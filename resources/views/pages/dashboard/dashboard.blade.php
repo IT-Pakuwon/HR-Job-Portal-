@@ -1,78 +1,66 @@
 <x-app-layout>
-    <div class="px-4 sm:px-6 lg:px-8 py-8 w-full max-w-9xl mx-auto">
-
+    <div class="max-w-9xl mx-auto w-full px-2 py-2 sm:px-6 lg:px-2">
+        {{-- <div class="px-6 sm:px-6 lg:px-6 py-6 w-full max-w-9xl mx-auto rounded-tl-2xl"> --}}
+        {{-- <div x-data="dashboardData()" x-init="init()" class="px-6 sm:px-6 lg:px-6 py-6 w-full max-w-9xl mx-auto rounded-tl-2xl"> --}}
         <!-- Dashboard actions -->
-        <div class="sm:flex sm:justify-between sm:items-center mb-8">
-
-            <!-- Left: Title -->
-            <div class="mb-4 sm:mb-0">
-                <h1 class="text-2xl md:text-3xl text-gray-800 dark:text-gray-100 font-bold">Dashboard</h1>
+        {{-- <div class="sm:flex sm:justify-between sm:items-center mb-6">          
+            <div class="mb-4 sm:mb-4">
+                <h1 class="text-2xl md:text-3xl text-gray-800 dark:text-gray-100 font-bold">
+                    <span id="greeting"></span>
+                </h1>
+                <p id="message" class="text-lg text-gray-600 dark:text-gray-400 mt-2"></p>
             </div>
+        </div> --}}
 
-            <!-- Right: Actions -->
-            <div class="grid grid-flow-col sm:auto-cols-max justify-start sm:justify-end gap-2">
-
-                <!-- Filter button -->
-                <x-dropdown-filter align="right" />
-
-                <!-- Datepicker built with flatpickr -->
-                <x-datepicker />
-
-                <!-- Add view button -->
-                <button class="btn bg-gray-900 text-gray-100 hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-800 dark:hover:bg-white">
-                    <svg class="fill-current shrink-0 xs:hidden" width="16" height="16" viewBox="0 0 16 16">
-                        <path d="M15 7H9V1c0-.6-.4-1-1-1S7 .4 7 1v6H1c-.6 0-1 .4-1 1s.4 1 1 1h6v6c0 .6.4 1 1 1s1-.4 1-1V9h6c.6 0 1-.4 1-1s-.4-1-1-1z" />
-                  </svg>
-                  <span class="max-xs:sr-only">Add View</span>
-                </button>
-                
-            </div>
-
-        </div>
-        
         <!-- Cards -->
-        <div class="grid grid-cols-12 gap-6">
-
-            <!-- Line chart (Acme Plus) -->
-            <x-dashboard.dashboard-card-01 :dataFeed="$dataFeed" />
-
-            <!-- Line chart (Acme Advanced) -->
-            <x-dashboard.dashboard-card-02 :dataFeed="$dataFeed" />
-
-            <!-- Line chart (Acme Professional) -->
-            <x-dashboard.dashboard-card-03 :dataFeed="$dataFeed" />
-
-            <!-- Bar chart (Direct vs Indirect) -->
-            <x-dashboard.dashboard-card-04 />
-
-            <!-- Line chart (Real Time Value) -->
-            <x-dashboard.dashboard-card-05 />
-
-            <!-- Doughnut chart (Top Countries) -->
-            <x-dashboard.dashboard-card-06 />
-
-            <!-- Table (Top Channels) -->
-            <x-dashboard.dashboard-card-07 />
-
-            <!-- Line chart (Sales Over Time) -->
-            <x-dashboard.dashboard-card-08 />
-
-            <!-- Stacked bar chart (Sales VS Refunds) -->
-            <x-dashboard.dashboard-card-09 />
-
-            <!-- Card (Customers) -->
-            <x-dashboard.dashboard-card-10 />
-
-            <!-- Card (Reasons for Refunds) -->
-            <x-dashboard.dashboard-card-11 />             
-
-            <!-- Card (Recent Activity) -->
-            <x-dashboard.dashboard-card-12 />
-            
-            <!-- Card (Income/Expenses) -->
-            <x-dashboard.dashboard-card-13 />
+        <div class="grid grid-cols-12 gap-2">
+            <x-dashboard.dashboard-agenda :agendas="$agendas" />
+            <x-dashboard.dashboard-approval :tr_approval="$tr_approval" />
+            <x-dashboard.dashboard-news :news="$news" />
 
         </div>
-
     </div>
+
+    {{-- <script>
+        function getGreeting() {
+        const hour = new Date().getHours();
+        let greeting = "Good day"; // Default greeting
+        let emoji = "🌞"; // Default emoji
+        let message = "Here's everything for you today!"; // Default message
+
+        if (hour < 12) {
+            greeting = "Good morning";
+            emoji = "☀️";
+        } else if (hour >= 12 && hour < 18) {
+            greeting = "Good afternoon";
+            emoji = "🌤️";
+        } else {
+            greeting = "Good evening";
+            emoji = "🌙";
+        }
+
+        return { greeting, emoji, message };
+    }
+
+    const { greeting, emoji, message } = getGreeting();
+
+    document.getElementById("greeting").innerText = `${greeting} ${emoji}`;
+    document.getElementById("message").innerText = message;
+
+        // function dashboardData() {
+        //     return {                            
+        //         paginatedGroups: [],              
+
+        //         paginateGroups() {
+        //             this.paginatedGroups = this.groups.slice(0, 5);
+        //         },                          
+
+
+        //         // init() {
+        //         //     this.fetchTasks();
+        //         //     this.fetchAgendas();
+        //         // }
+        //     };
+        // }
+    </script> --}}
 </x-app-layout>
