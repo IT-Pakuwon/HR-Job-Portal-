@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -12,11 +11,23 @@ use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 {
-    use HasApiTokens;
-    use HasFactory;
-    use HasProfilePhoto;
-    use Notifiable;
-    use TwoFactorAuthenticatable;
+    use HasApiTokens, HasFactory, HasProfilePhoto, Notifiable, TwoFactorAuthenticatable;
+
+  
+    // protected $table = 'ms_user';    
+    // protected $primaryKey = 'user_id';
+    protected $connection = 'mysql2';
+    protected $table = "users";   
+
+    /**
+     * Menentukan apakah primary key menggunakan auto-increment
+     */
+    public $incrementing = true;
+
+    /**
+     * Menentukan tipe data primary key
+     */
+    protected $keyType = 'int';
 
     /**
      * The attributes that are mass assignable.
@@ -26,7 +37,23 @@ class User extends Authenticatable
     protected $fillable = [
         'name',
         'email',
-        'password',
+        'password',       
+        'username',
+        'status',
+        'role',
+        'companyid',
+        'departmentid',
+        'groups',
+        'site',
+        'created_user',
+        'test_email',
+        'jabatan',
+        'email_bcc',
+        'user_id_talenta',
+        'job_level',
+        'approval_line',
+        'npk',
+        'profile_photo_path'
     ];
 
     /**
@@ -58,4 +85,12 @@ class User extends Authenticatable
     protected $appends = [
         'profile_photo_url',
     ];
+
+    public function getProfilePhotoUrlAttribute()
+    {
+        return $this->profile_photo_path
+            ? asset('storage/' . $this->profile_photo_path)
+            : 'https://ui-avatars.com/api/?name=' . urlencode($this->name) . '&color=7F9CF5&background=EBF4FF';
+    }
+
 }

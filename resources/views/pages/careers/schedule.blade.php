@@ -1,0 +1,236 @@
+<!-- Button -->
+<button type="button" onclick="openAgendaModal()" style="margin-bottom: 10px; padding: 8px 16px; background-color: #6366f1; color: white; border: none; border-radius: 5px;">
+  Create Schedule
+</button>
+
+<!-- Modal -->
+<div id="agendaModal" style="display: none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5);">
+  <div style="background-color: white; margin: 10% auto; padding: 20px; width: 500px; border-radius: 10px;">
+    <h3 class="mb-3 font-semibold">Create Schedule</h3>
+    <form id="createAgendaForm">
+      @csrf
+      <input type="hidden" name="refid" value="{{ $career->docid }}" />
+      <input type="hidden" name="cpnyid" value="{{ $jobposting->cpnyid }}" />
+      <input type="hidden" name="departementid" value="{{ $jobposting->departementid }}" />
+
+      <div class="flex gap-8 w-full">
+        <div class="flex flex-col w-full">
+          <label>Title</label>
+          <input type="text" name="title" required class="form-control" style="width: 100%; margin-bottom: 10px;" />
+        </div>
+      </div>
+      <label>Description</label>
+      <textarea name="description" required class="form-control" style="width: 100%; margin-bottom: 10px;"></textarea>
+
+      <div class="flex gap-8 w-full">
+        <div class="flex flex-col w-1/2">
+          <label>Start Date</label>
+          <input type="datetime-local" name="startdate" required class="form-control" style="width: 100%; margin-bottom: 10px;" />
+        </div>
+        <div class="flex flex-col w-1/2">
+          <label>End Date</label>
+          <input type="datetime-local" name="enddate" required class="form-control" style="width: 100%; margin-bottom: 10px;" />
+        </div>
+      </div>
+
+      <div class="flex gap-8 w-full">
+        <div class="flex flex-col w-1/2">
+          <label>Type</label>
+          <select class="w-full p-3 border border-gray-200/50 rounded-sm focus:ring focus:ring-blue-300 bg-gray-200/10 dark:bg-gray-800 " name="reftype" style="width: 100%; margin-bottom: 16px;" required>
+            @foreach($typestep as $p)
+                <option value="{{ $p->step_id }}">{{ $p->step_descr }}</option>
+            @endforeach
+          </select>
+        </div>
+        <div class="flex flex-col w-1/2">
+          <label>Location</label>
+          <input type="text" name="location" required class="form-control" style="width: 100%; margin-bottom: 10px;" />
+        </div>
+      </div>
+
+      <div class="flex gap-8 w-full">
+        <div class="flex flex-col w-full">
+          <label>Address</label>
+          <textarea name="location_address" required class="form-control" style="width: 100%; margin-bottom: 10px;"></textarea>
+        </div>
+      </div>
+
+      <label>Participant</label>
+      <select class="w-full p-3 border border-gray-200/50 rounded-sm focus:ring focus:ring-blue-300 bg-gray-200/10 dark:bg-gray-800 select2" name="participant[]" multiple style="width: 100%; margin-bottom: 16px;" required>
+        @foreach($userlist as $p)
+            <option value="{{ $p->username }}">{{ $p->name }}</option>
+        @endforeach
+      </select>
+
+      <div style="margin-top: 10px;">
+        <button type="submit" style="background-color: #22c55e; color: white; padding: 6px 12px; border: none; border-radius: 5px;">Save</button>
+        <button type="button" onclick="closeAgendaModal()" style="background-color: #e5e7eb; color: #374151; padding: 6px 12px; border: none; border-radius: 5px; margin-left: 10px;">
+          Cancel
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+<div id="cancelModal" style="display: none; position: fixed; z-index: 99999; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5);">
+  <div style="background: white; padding: 20px; width: 400px; margin: 15% auto; border-radius: 10px;">
+    <h3>Cancel Schedule</h3>
+    <form id="cancelForm">
+      @csrf
+      <input type="hidden" name="agenda_id" id="cancel_agenda_id">
+      <label>Reason for Cancellation</label>
+      <textarea name="reason" required style="width: 100%; margin: 10px 0;"></textarea>
+      <button type="submit" style="background-color: #ef4444; color: white; padding: 6px 12px; border: none; border-radius: 5px;">Submit</button>
+      <button type="button" onclick="closeCancelModal()" style="margin-left: 10px;">Close</button>
+    </form>
+  </div>
+</div>
+
+
+<!-- Table -->
+<table style="width: 100%; border-collapse: collapse; font-family: Arial, sans-serif;">
+  <thead>
+    <tr style="background-color: #f9f9f9; text-align: left;">
+      <th>DocID</th>
+      <th>Title</th>
+      <th>Description</th>
+      <th>StartDate</th>
+      <th>EndDate</th>
+      <th>Participant</th>
+      <th>Status</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    @foreach ($agenda as $p)
+      <tr>
+        <td>
+          <a href="{{ url('/showagendas/' . $p->id) }}" target="_blank"
+            style="background-color: #6366f1; color: white; padding: 4px 12px; border-radius: 6px; font-weight: bold; display: inline-block; text-decoration: none;">
+            {{ $p->docid }}
+          </a>
+        </td>
+        <td>{{ $p->title }}</td>
+        <td>{{ $p->description }}</td>
+        <td>{{ $p->startdate }}</td>
+        <td>{{ $p->enddate }}</td>
+        <td>{{ $p->participant }}</td>
+        <td>
+          @php
+            $statusText = '';
+            $bgColor = '';
+            $textColor = '';
+        
+            switch ($p->status) {
+                case 'P':
+                    $statusText = 'On Progress';
+                    $bgColor = '#fef08a'; // kuning
+                    $textColor = '#92400e';
+                    break;
+                case 'C':
+                    $statusText = 'Completed';
+                    $bgColor = '#bbf7d0'; // hijau muda
+                    $textColor = '#166534';
+                    break;
+                case 'R':
+                    $statusText = 'Rejected';
+                    $bgColor = '#fecaca'; // merah muda
+                    $textColor = '#991b1b';
+                    break;
+                case 'X':
+                    $statusText = 'Cancelled';
+                    $bgColor = '#fecaca';
+                    $textColor = '#991b1b';
+                    break;
+                default:
+                    $statusText = ucfirst($p->status);
+                    $bgColor = '#e5e7eb';
+                    $textColor = '#374151';
+            }
+          @endphp
+        
+          <span style="background-color: {{ $bgColor }}; color: {{ $textColor }}; padding: 4px 10px; border-radius: 6px; font-weight: bold; font-size: 13px;">
+            {{ $statusText }} 
+          </span> 
+        </td>
+        <td>
+          @if ($p->status == 'C')
+            <button onclick="openCancelModal({{ $p->id }})" style="padding: 4px 10px; background-color: #f87171; color: white; border: none; border-radius: 4px;">Cancel</button>
+          @endif
+           {{ $p->agenda_note }} 
+        </td>
+        
+      </tr> 
+    @endforeach
+  </tbody>
+</table>
+
+<!-- Script -->
+<script>
+  function openAgendaModal() {
+    document.getElementById('agendaModal').style.display = 'block';
+  }
+
+  function closeAgendaModal() {
+    document.getElementById('agendaModal').style.display = 'none';
+  }
+
+  $('#createAgendaForm').on('submit', function(e) {
+    e.preventDefault();
+    $.ajax({
+      url: '{{ route("agendas.store") }}',
+      method: 'POST',
+      data: $(this).serialize(),
+      success: function(response) {
+        // alert('Agenda berhasil dibuat!');
+        toastr.success("Schedule created successfully");
+        location.reload();
+      },
+      error: function(xhr) {
+        alert('Gagal membuat agenda: ' + xhr.responseText);
+      }
+    });
+  });
+</script>
+
+<script>
+  function openCancelModal(id) {
+    $('#cancel_agenda_id').val(id);
+    $('#cancelModal').show();
+  }
+  
+  function closeCancelModal() {
+    $('#cancelModal').hide();
+  }
+  
+  $('#cancelForm').on('submit', function(e) {
+    e.preventDefault();
+    $.ajax({
+      url: '{{ route('agendas.cancel') }}',
+      type: 'POST',
+      data: $(this).serialize(),
+      success: function(response) {
+        toastr.success("Schedule cancelled successfully");
+        location.reload();
+      },
+      error: function(xhr) {
+        alert('Cancel failed: ' + xhr.responseText);
+      }
+    });
+  });
+</script>
+
+<script>
+  $(document).ready(function () {
+    $('.select2').select2({
+        placeholder: "Select Participants",        
+        allowClear: true,
+        width: '100%',
+        dropdownParent: $('#agendaModal') // ⬅️ ini penting!
+    });
+  });
+</script>
+ <!-- Toastr CSS -->
+ <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+ <!-- Toastr JS -->
+ <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>  
+

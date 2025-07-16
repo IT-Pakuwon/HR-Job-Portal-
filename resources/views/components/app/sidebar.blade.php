@@ -489,189 +489,163 @@
                     <span class="hidden lg:block lg:sidebar-expanded:hidden 2xl:hidden text-center w-6" aria-hidden="true">•••</span>
                     <span class="lg:hidden lg:sidebar-expanded:block 2xl:block">More</span>
                 </h3>
-                <ul class="mt-3">
-                    <!-- Authentication -->
-                    <li class="pl-4 pr-3 py-2 rounded-lg mb-0.5 last:mb-0" x-data="{ open: false }">
-                        <a class="block text-gray-800 dark:text-gray-100 truncate transition" :class="open ? '' : 'hover:text-gray-900 dark:hover:text-white'" href="#0" @click.prevent="open = !open; sidebarExpanded = true">
+                <li class="@if (in_array(Request::segment(1), ['hr'])) from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04] @endif mb-0.5 rounded-lg py-2 pl-4 pr-3 last:mb-0"
+                        x-data="{ open: true }">
+
+                        <!-- HR Header -->
+                        <a class="block truncate text-base font-semibold text-gray-500/90 transition hover:text-gray-800 dark:text-gray-300 dark:hover:text-white"
+                            href="#0" @click.prevent="open = !open; sidebarExpanded = true">
                             <div class="flex items-center justify-between">
                                 <div class="flex items-center">
-                                    <svg class="shrink-0 fill-current text-gray-400 dark:text-gray-500" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
-                                        <path d="M11.442 4.576a1 1 0 1 0-1.634-1.152L4.22 11.35 1.773 8.366A1 1 0 1 0 .227 9.634l3.281 4a1 1 0 0 0 1.59-.058l6.344-9ZM15.817 4.576a1 1 0 1 0-1.634-1.152l-5.609 7.957a1 1 0 0 0-1.347 1.453l.656.8a1 1 0 0 0 1.59-.058l6.344-9Z" />
+                                    <svg xmlns="http://www.w3.org/2000/svg"
+                                        class="@if (in_array(Request::segment(1), ['hr'])) text-violet-500 @else text-gray-400 dark:text-gray-500 @endif h-5 w-5 shrink-0"
+                                        viewBox="0 0 24 24" fill="currentColor" class="size-6">
+                                        <path fill-rule="evenodd"
+                                            d="M7.5 6a4.5 4.5 0 1 1 9 0 4.5 4.5 0 0 1-9 0ZM3.751 20.105a8.25 8.25 0 0 1 16.498 0 .75.75 0 0 1-.437.695A18.683 18.683 0 0 1 12 22.5c-2.786 0-5.433-.608-7.812-1.7a.75.75 0 0 1-.437-.695Z"
+                                            clip-rule="evenodd" />
                                     </svg>
-                                    <span class="text-sm font-medium ml-4 lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">Authentication</span>
+                                    <span class="ml-4 text-xl font-bold">HR</span>
                                 </div>
-                                <!-- Icon -->
-                                <div class="flex shrink-0 ml-2 lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">
-                                    <svg class="w-3 h-3 shrink-0 ml-1 fill-current text-gray-400 dark:text-gray-500" :class="{ 'rotate-180': open }" viewBox="0 0 12 12">
+                                <div class="ml-2 flex shrink-0">
+                                    <svg class="h-3 w-3 fill-current text-gray-400 transition-transform dark:text-gray-500"
+                                        :class="open ? 'rotate-180' : 'rotate-0'" viewBox="0 0 12 12">
                                         <path d="M5.9 11.4L.5 6l1.4-1.4 4 4 4-4L11.3 6z" />
                                     </svg>
                                 </div>
                             </div>
                         </a>
-                        <div class="lg:hidden lg:sidebar-expanded:block 2xl:block">
-                            <ul class="pl-8 mt-1" :class="{ 'hidden': !open }" x-cloak>
-                                <li class="mb-1 last:mb-0">
-                                    <form method="POST" action="{{ route('logout') }}" x-data>
-                                        @csrf
 
-                                        <a class="block text-gray-500/90 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition truncate" href="{{ route('logout') }}" @click.prevent="$root.submit();">
-                                            <span class="text-sm font-medium lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">Sign In</span>
-                                        </a>
-                                    </form>                                     
-                                </li>
-                                <li class="mb-1 last:mb-0">
-                                    <form method="POST" action="{{ route('logout') }}" x-data>
-                                        @csrf
+                        <!-- Submenu Sections -->
+                        <div x-show="sidebarExpanded && open" x-collapse>
+                            <ul class="mb-2 ml-1.5 mt-1 pl-8" x-show="open" x-collapse>
 
-                                        <a class="block text-gray-500/90 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition truncate" href="{{ route('logout') }}" @click.prevent="$root.submit();">
-                                            <span class="text-sm font-medium lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">Sign Up</span>
-                                        </a>
-                                    </form>                                      
+                                <!-- General Sub-header -->
+                                <li x-data="{ openGeneral: true }" class="mt-3">
+                                    <button @click="openGeneral = !openGeneral"
+                                        class="flex w-full items-center justify-between text-left text-base font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                                        General
+                                        <svg :class="openGeneral ? 'rotate-180' : 'rotate-0'"
+                                            class="h-3 w-3 transform text-gray-400 transition-transform"
+                                            viewBox="0 0 12 12">
+                                            <path d="M5.9 11.4L.5 6l1.4-1.4 4 4 4-4L11.3 6z" />
+                                        </svg>
+                                    </button>
+                                    <ul x-show="openGeneral" x-collapse class="ml-2 mt-2 space-y-1">
+                                        <li>
+                                            <a href="{{ route('news') }}"
+                                                class="@if (Route::is('news')) font-medium text-violet-500 @endif block truncate text-lg transition hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+                                                News
+                                            </a>
+                                        </li>
+                                    </ul>
                                 </li>
-                                <li class="mb-1 last:mb-0">
-                                    <form method="POST" action="{{ route('logout') }}" x-data>
-                                        @csrf
 
-                                        <a class="block text-gray-500/90 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition truncate" href="{{ route('logout') }}" @click.prevent="$root.submit();">
-                                            <span class="text-sm font-medium lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">Reset Password</span>
-                                        </a>
-                                    </form>                                      
+                                <!-- Recruitment Sub-header -->
+                                <li x-data="{ openRecruitment: true }" class="mt-4">
+                                    <button @click="openRecruitment = !openRecruitment"
+                                        class="flex w-full items-center justify-between text-left text-base font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                                        Recruitment
+                                        <svg :class="openRecruitment ? 'rotate-180' : 'rotate-0'"
+                                            class="h-3 w-3 transform text-gray-400 transition-transform"
+                                            viewBox="0 0 12 12">
+                                            <path d="M5.9 11.4L.5 6l1.4-1.4 4 4 4-4L11.3 6z" />
+                                        </svg>
+                                    </button>
+                                    <ul x-show="openRecruitment" x-collapse class="ml-2 mt-2 space-y-1">
+                                        {{-- <li>
+                                            <a href="{{ route('orgchart.index') }}"
+                                                class="@if (Route::is('orgchart.index')) font-medium text-violet-500 @endif block truncate text-lg transition hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+                                                Struktur Organization
+                                            </a>
+                                        </li> --}}
+                                        {{-- <li>
+                                            <a href="{{ route('stos') }}"
+                                                class="@if (Route::is('stos')) font-medium text-violet-500 @endif block truncate text-lg transition hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+                                                Organization Structure
+                                            </a>
+                                        </li> --}}
+                                        <li x-data="{ openOrganization: true }" class="mt-4">
+                                            <button @click="openOrganization = !openOrganization"
+                                                class="flex w-full items-center justify-between text-left text-base font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                                                Organization Structure
+                                                <svg :class="openOrganization ? 'rotate-180' : 'rotate-0'"
+                                                    class="h-3 w-3 transform text-gray-400 transition-transform"
+                                                    viewBox="0 0 12 12">
+                                                    <path d="M5.9 11.4L.5 6l1.4-1.4 4 4 4-4L11.3 6z" />
+                                                </svg>
+                                            </button>
+                                            <ul x-show="openOrganization" x-collapse class="ml-2 mt-2 space-y-1">
+                                                <li>
+                                                    <a href="{{ route('stos') }}"
+                                                        class="@if (Route::is('stos')) font-medium text-violet-500 @endif block truncate text-lg transition hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+                                                        Create
+                                                    </a>
+                                                </li>
+                                                <li>
+                                                    <a href="{{ route('stoall') }}"
+                                                        class="@if (Route::is('stoall')) font-medium text-violet-500 @endif block truncate text-lg transition hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+                                                        Search
+                                                    </a>
+                                                </li>
+                                            </ul>
+                                        </li>
+                                        {{-- 
+
+
+
+                                        <li>
+                                            <a href="{{ route('manpowers') }}"
+                                                class="@if (Route::is('manpowers')) font-medium text-violet-500 @endif block truncate text-lg transition hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+                                                Manpower
+                                            </a>
+                                        </li> --}}
+                                        <li x-data="{ openPRF: true }" class="mt-4">
+                                            <button @click="openPRF = !openPRF"
+                                                class="flex w-full items-center justify-between text-left text-base font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                                                Personnel Requisition
+                                                <svg :class="openPRF ? 'rotate-180' : 'rotate-0'"
+                                                    class="h-3 w-3 transform text-gray-400 transition-transform"
+                                                    viewBox="0 0 12 12">
+                                                    <path d="M5.9 11.4L.5 6l1.4-1.4 4 4 4-4L11.3 6z" />
+                                                </svg>
+                                            </button>
+                                            <ul x-show="openPRF" x-collapse class="ml-2 mt-2 space-y-1">
+                                                <li>
+                                                    <a href="{{ route('personnels') }}"
+                                                        class="@if (Route::is('personnels')) font-medium text-violet-500 @endif block truncate text-lg transition hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+                                                        PRF
+                                                    </a>
+                                                </li>
+                                                <li>
+                                                    <a href="{{ route('jobapplicant') }}"
+                                                        class="@if (Route::is('jobapplicant')) font-medium text-violet-500 @endif block truncate text-lg transition hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+                                                        Jobs & Applicant
+                                                    </a>
+                                                </li>
+                                            </ul>
+                                        </li>
+
+                                        <li>
+                                            {{-- <a href="{{ route('jobpostings') }}"
+                                                class="block text-[12px]  dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition truncate
+                                                @if (Route::is('jobpostings')) font-medium text-violet-500 @endif">
+                                                List Job
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a href="{{ route('careers') }}"
+                                                class="block text-lg dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition truncate
+                                                @if (Route::is('careers')) font-medium text-violet-500 @endif">
+                                                List Applicant
+                                            </a>
+                                        </li> --}}
+
+                                    </ul>
                                 </li>
+
                             </ul>
                         </div>
                     </li>
-                    <!-- Onboarding -->
-                    <li class="pl-4 pr-3 py-2 rounded-lg mb-0.5 last:mb-0" x-data="{ open: false }">
-                        <a class="block text-gray-800 dark:text-gray-100 truncate transition" :class="open ? '' : 'hover:text-gray-900 dark:hover:text-white'" href="#0" @click.prevent="open = !open; sidebarExpanded = true">
-                            <div class="flex items-center justify-between">
-                                <div class="flex items-center">
-                                    <svg class="shrink-0 fill-current text-gray-400 dark:text-gray-500" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
-                                        <path d="M6.668.714a1 1 0 0 1-.673 1.244 6.014 6.014 0 0 0-4.037 4.037 1 1 0 1 1-1.916-.571A8.014 8.014 0 0 1 5.425.041a1 1 0 0 1 1.243.673ZM7.71 4.709a3 3 0 1 0 0 6 3 3 0 0 0 0-6ZM9.995.04a1 1 0 1 0-.57 1.918 6.014 6.014 0 0 1 4.036 4.037 1 1 0 0 0 1.917-.571A8.014 8.014 0 0 0 9.995.041ZM14.705 8.75a1 1 0 0 1 .673 1.244 8.014 8.014 0 0 1-5.383 5.384 1 1 0 0 1-.57-1.917 6.014 6.014 0 0 0 4.036-4.037 1 1 0 0 1 1.244-.673ZM1.958 9.424a1 1 0 0 0-1.916.57 8.014 8.014 0 0 0 5.383 5.384 1 1 0 0 0 .57-1.917 6.014 6.014 0 0 1-4.037-4.037Z" />
-                                    </svg>
-                                    <span class="text-sm font-medium ml-4 lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">Onboarding</span>
-                                </div>
-                                <!-- Icon -->
-                                <div class="flex shrink-0 ml-2 lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">
-                                    <svg class="w-3 h-3 shrink-0 ml-1 fill-current text-gray-400 dark:text-gray-500" :class="{ 'rotate-180': open }" viewBox="0 0 12 12">
-                                        <path d="M5.9 11.4L.5 6l1.4-1.4 4 4 4-4L11.3 6z" />
-                                    </svg>
-                                </div>
-                            </div>
-                        </a>
-                        <div class="lg:hidden lg:sidebar-expanded:block 2xl:block">
-                            <ul class="pl-8 mt-1 @if(!in_array(Request::segment(1), ['onboarding'])){{ 'hidden' }}@endif" :class="open ? 'block!' : 'hidden'">
-                                <li class="mb-1 last:mb-0">
-                                    <a class="block text-gray-500/90 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition truncate" href="{{ route('onboarding-01') }}">
-                                        <span class="text-sm font-medium lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">Step 1</span>
-                                    </a>
-                                </li>
-                                <li class="mb-1 last:mb-0">
-                                    <a class="block text-gray-500/90 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition truncate" href="{{ route('onboarding-02') }}">
-                                        <span class="text-sm font-medium lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">Step 2</span>
-                                    </a>
-                                </li>
-                                <li class="mb-1 last:mb-0">
-                                    <a class="block text-gray-500/90 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition truncate" href="{{ route('onboarding-03') }}">
-                                        <span class="text-sm font-medium lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">Step 3</span>
-                                    </a>
-                                </li>
-                                <li class="mb-1 last:mb-0">
-                                    <a class="block text-gray-500/90 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition truncate" href="{{ route('onboarding-04') }}">
-                                        <span class="text-sm font-medium lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">Step 4</span>
-                                    </a>
-                                </li>
-                            </ul>
-                        </div>
-                    </li>
-                    <!-- Components -->
-                    <li class="pl-4 pr-3 py-2 rounded-lg mb-0.5 last:mb-0 bg-linear-to-r @if(in_array(Request::segment(1), ['component'])){{ 'from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]' }}@endif" x-data="{ open: {{ in_array(Request::segment(1), ['component']) ? 1 : 0 }} }">
-                        <a class="block text-gray-800 dark:text-gray-100 truncate transition" :class="open ? '' : 'hover:text-gray-900 dark:hover:text-white'" href="#0" @click.prevent="open = !open; sidebarExpanded = true">
-                            <div class="flex items-center justify-between">
-                                <div class="flex items-center">
-                                    <svg class="shrink-0 fill-current @if(in_array(Request::segment(1), ['component'])){{ 'text-violet-500' }}@else{{ 'text-gray-400 dark:text-gray-500' }}@endif" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
-                                        <path d="M.06 10.003a1 1 0 0 1 1.948.455c-.019.08.01.152.078.19l5.83 3.333c.053.03.116.03.168 0l5.83-3.333a.163.163 0 0 0 .078-.188 1 1 0 0 1 1.947-.459 2.161 2.161 0 0 1-1.032 2.384l-5.83 3.331a2.168 2.168 0 0 1-2.154 0l-5.83-3.331a2.162 2.162 0 0 1-1.032-2.382Zm7.856-7.981-5.83 3.332a.17.17 0 0 0 0 .295l5.828 3.33c.054.031.118.031.17.002l5.83-3.333a.17.17 0 0 0 0-.294L8.085 2.023a.172.172 0 0 0-.17-.001ZM9.076.285l5.83 3.332c1.458.833 1.458 2.935 0 3.768l-5.83 3.333c-.667.38-1.485.38-2.153-.001l-5.83-3.332c-1.457-.833-1.457-2.935 0-3.767L6.925.285a2.173 2.173 0 0 1 2.15 0Z" />
-                                    </svg>  
-                                    <span class="text-sm font-medium ml-4 lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">Components</span>
-                                </div>
-                                <!-- Icon -->
-                                <div class="flex shrink-0 ml-2 lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">
-                                    <svg class="w-3 h-3 shrink-0 ml-1 fill-current text-gray-400 dark:text-gray-500" :class="{ 'rotate-180': open }" viewBox="0 0 12 12">
-                                        <path d="M5.9 11.4L.5 6l1.4-1.4 4 4 4-4L11.3 6z" />
-                                    </svg>
-                                </div>
-                            </div>
-                        </a>
-                        <div class="lg:hidden lg:sidebar-expanded:block 2xl:block">
-                            <ul class="pl-8 mt-1 @if(!in_array(Request::segment(1), ['component'])){{ 'hidden' }}@endif" :class="open ? 'block!' : 'hidden'">
-                                <li class="mb-1 last:mb-0">
-                                    <a class="block text-gray-500/90 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition truncate @if(Route::is('button-page')){{ 'text-violet-500!' }}@endif" href="{{ route('button-page') }}">
-                                        <span class="text-sm font-medium lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">Button</span>
-                                    </a>
-                                </li>
-                                <li class="mb-1 last:mb-0">
-                                    <a class="block text-gray-500/90 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition truncate @if(Route::is('form-page')){{ 'text-violet-500!' }}@endif" href="{{ route('form-page') }}">
-                                        <span class="text-sm font-medium lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">Input Form</span>
-                                    </a>
-                                </li>
-                                <li class="mb-1 last:mb-0">
-                                    <a class="block text-gray-500/90 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition truncate @if(Route::is('dropdown-page')){{ 'text-violet-500!' }}@endif" href="{{ route('dropdown-page') }}">
-                                        <span class="text-sm font-medium lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">Dropdown</span>
-                                    </a>
-                                </li>
-                                <li class="mb-1 last:mb-0">
-                                    <a class="block text-gray-500/90 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition truncate @if(Route::is('alert-page')){{ 'text-violet-500!' }}@endif" href="{{ route('alert-page') }}">
-                                        <span class="text-sm font-medium lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">Alert & Banner</span>
-                                    </a>
-                                </li>
-                                <li class="mb-1 last:mb-0">
-                                    <a class="block text-gray-500/90 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition truncate @if(Route::is('modal-page')){{ 'text-violet-500!' }}@endif" href="{{ route('modal-page') }}">
-                                        <span class="text-sm font-medium lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">Modal</span>
-                                    </a>
-                                </li>
-                                <li class="mb-1 last:mb-0">
-                                    <a class="block text-gray-500/90 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition truncate @if(Route::is('pagination-page')){{ 'text-violet-500!' }}@endif" href="{{ route('pagination-page') }}">
-                                        <span class="text-sm font-medium lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">Pagination</span>
-                                    </a>
-                                </li>
-                                <li class="mb-1 last:mb-0">
-                                    <a class="block text-gray-500/90 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition truncate @if(Route::is('tabs-page')){{ 'text-violet-500!' }}@endif" href="{{ route('tabs-page') }}">
-                                        <span class="text-sm font-medium lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">Tabs</span>
-                                    </a>
-                                </li>
-                                <li class="mb-1 last:mb-0">
-                                    <a class="block text-gray-500/90 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition truncate @if(Route::is('breadcrumb-page')){{ 'text-violet-500!' }}@endif" href="{{ route('breadcrumb-page') }}">
-                                        <span class="text-sm font-medium lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">Breadcrumb</span>
-                                    </a>
-                                </li>
-                                <li class="mb-1 last:mb-0">
-                                    <a class="block text-gray-500/90 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition truncate @if(Route::is('badge-page')){{ 'text-violet-500!' }}@endif" href="{{ route('badge-page') }}">
-                                        <span class="text-sm font-medium lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">Badge</span>
-                                    </a>
-                                </li>
-                                <li class="mb-1 last:mb-0">
-                                    <a class="block text-gray-500/90 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition truncate @if(Route::is('avatar-page')){{ 'text-violet-500!' }}@endif" href="{{ route('avatar-page') }}">
-                                        <span class="text-sm font-medium lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">Avatar</span>
-                                    </a>
-                                </li>
-                                <li class="mb-1 last:mb-0">
-                                    <a class="block text-gray-500/90 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition truncate @if(Route::is('tooltip-page')){{ 'text-violet-500!' }}@endif" href="{{ route('tooltip-page') }}">
-                                        <span class="text-sm font-medium lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">Tooltip</span>
-                                    </a>
-                                </li>
-                                <li class="mb-1 last:mb-0">
-                                    <a class="block text-gray-500/90 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition truncate @if(Route::is('accordion-page')){{ 'text-violet-500!' }}@endif" href="{{ route('accordion-page') }}">
-                                        <span class="text-sm font-medium lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">Accordion</span>
-                                    </a>
-                                </li>
-                                <li class="mb-1 last:mb-0">
-                                    <a class="block text-gray-500/90 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition truncate @if(Route::is('icons-page')){{ 'text-violet-500!' }}@endif" href="{{ route('icons-page') }}">
-                                        <span class="text-sm font-medium lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">Icons</span>
-                                    </a>
-                                </li>
-                            </ul>
-                        </div>
-                    </li>
-                </ul>
             </div>
         </div>
 
