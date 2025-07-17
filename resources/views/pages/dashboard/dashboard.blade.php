@@ -1,66 +1,43 @@
 <x-app-layout>
-    <div class="max-w-9xl mx-auto w-full px-2 py-2 sm:px-6 lg:px-2">
-        {{-- <div class="px-6 sm:px-6 lg:px-6 py-6 w-full max-w-9xl mx-auto rounded-tl-2xl"> --}}
-        {{-- <div x-data="dashboardData()" x-init="init()" class="px-6 sm:px-6 lg:px-6 py-6 w-full max-w-9xl mx-auto rounded-tl-2xl"> --}}
+    <div class="max-w-9xl mx-auto w-full px-4 py-8 sm:px-6 lg:px-8">
+
         <!-- Dashboard actions -->
-        {{-- <div class="sm:flex sm:justify-between sm:items-center mb-6">          
-            <div class="mb-4 sm:mb-4">
-                <h1 class="text-2xl md:text-3xl text-gray-800 dark:text-gray-100 font-bold">
-                    <span id="greeting"></span>
-                </h1>
-                <p id="message" class="text-lg text-gray-600 dark:text-gray-400 mt-2"></p>
+        {{-- <div class="mb-8 sm:flex sm:items-center sm:justify-between">
+
+            <!-- Left: Title -->
+            <div class="mb-4 sm:mb-0">
+                <h1 class="text-2xl font-bold text-gray-800 md:text-3xl dark:text-gray-100">Dashboard</h1>
             </div>
+
+            <!-- Right: Actions -->
+            <div class="grid grid-flow-col justify-start gap-2 sm:auto-cols-max sm:justify-end">
+
+                <!-- Filter button -->
+                <x-dropdown-filter align="right" />
+
+                <!-- Datepicker built with flatpickr -->
+                <x-datepicker />
+
+                <!-- Add view button -->
+                <button
+                    class="btn bg-gray-900 text-gray-100 hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-800 dark:hover:bg-white">
+                    <svg class="xs:hidden shrink-0 fill-current" width="16" height="16" viewBox="0 0 16 16">
+                        <path
+                            d="M15 7H9V1c0-.6-.4-1-1-1S7 .4 7 1v6H1c-.6 0-1 .4-1 1s.4 1 1 1h6v6c0 .6.4 1 1 1s1-.4 1-1V9h6c.6 0 1-.4 1-1s-.4-1-1-1z" />
+                    </svg>
+                    <span class="max-xs:sr-only">Add View</span>
+                </button>
+
+            </div>
+
         </div> --}}
 
         <!-- Cards -->
-        <div class="grid grid-cols-12 gap-2">
+        <div class="grid grid-cols-12 gap-6">
             <x-dashboard.dashboard-agenda :agendas="$agendas" />
             <x-dashboard.dashboard-approval :tr_approval="$tr_approval" />
             <x-dashboard.dashboard-news :news="$news" />
-
         </div>
+
     </div>
-
-    {{-- <script>
-        function getGreeting() {
-        const hour = new Date().getHours();
-        let greeting = "Good day"; // Default greeting
-        let emoji = "🌞"; // Default emoji
-        let message = "Here's everything for you today!"; // Default message
-
-        if (hour < 12) {
-            greeting = "Good morning";
-            emoji = "☀️";
-        } else if (hour >= 12 && hour < 18) {
-            greeting = "Good afternoon";
-            emoji = "🌤️";
-        } else {
-            greeting = "Good evening";
-            emoji = "🌙";
-        }
-
-        return { greeting, emoji, message };
-    }
-
-    const { greeting, emoji, message } = getGreeting();
-
-    document.getElementById("greeting").innerText = `${greeting} ${emoji}`;
-    document.getElementById("message").innerText = message;
-
-        // function dashboardData() {
-        //     return {                            
-        //         paginatedGroups: [],              
-
-        //         paginateGroups() {
-        //             this.paginatedGroups = this.groups.slice(0, 5);
-        //         },                          
-
-
-        //         // init() {
-        //         //     this.fetchTasks();
-        //         //     this.fetchAgendas();
-        //         // }
-        //     };
-        // }
-    </script> --}}
 </x-app-layout>

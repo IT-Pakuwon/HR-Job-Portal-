@@ -1,223 +1,281 @@
 <x-app-layout>
-    <div class="max-w-9xl mx-auto w-full py-1">
-        <div class="grid">
-            <div class="max-w-9xl mx-auto w-full px-0 py-1 lg:px-2">
-                <div class="gap-6">
-                    <div
-                        class="flex flex-col gap-10 overflow-hidden sm:col-span-1 lg:row-span-2 xl:col-span-1 xl:flex-col">
-                        <form id="stoForm" class="flex flex-col gap-4" enctype="multipart/form-data">
-                            @csrf
-                            <div
-                                class="flex w-full w-full flex-col rounded-2xl border-b bg-white p-6 shadow-sm dark:bg-gray-800">
-                                <div class="flex justify-between border-b dark:border-gray-600">
-                                    <h2 class="mb-2 text-xl font-bold">Create STO</h2>
-                                </div>
-                                <div
-                                    class="mt-2 mt-2 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-2 dark:border-gray-600">
-                                    <div class="flex items-center gap-4">
-                                        <label class="mb-1 block w-40 font-medium text-gray-700 dark:text-gray-300">STO
-                                            ID</label>
-                                        <input type="text" name="sto_id"
-                                            class="w-full rounded-sm border border-gray-200/50 bg-gray-200/10 p-3 focus:ring focus:ring-blue-300 dark:bg-gray-800"
-                                            value="{{ $sto->sto_id }}" readonly>
-                                    </div>
-                                    <div class="flex items-center gap-4">
-                                        <label
-                                            class="mb-1 block w-40 font-medium text-gray-700 dark:text-gray-300">Date</label>
-                                        <input type="text" name="sto_date"
-                                            class="w-full rounded-sm border border-gray-200/50 bg-gray-200/10 p-3 focus:ring focus:ring-blue-300 dark:bg-gray-800"
-                                            value="{{ $sto->sto_date }}" readonly>
-                                    </div>
-                                </div>
-                                <div
-                                    class="mt-2 mt-2 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-2 dark:border-gray-600">
-                                    <div class="flex items-center gap-4">
-                                        <label
-                                            class="mb-1 block w-40 font-medium text-gray-700 dark:text-gray-300">Company</label>
-                                        <select
-                                            class="w-full rounded-sm border border-gray-200/50 bg-gray-200/10 p-3 focus:ring focus:ring-blue-300 dark:bg-gray-800"
-                                            name="cpnyid" required>
-                                            @foreach ($usercpny as $p)
-                                                <option value="{{ $p->cpnyid }}"
-                                                    {{ $p->cpnyid == $usercpny2->cpnyid ? 'selected' : '' }}>
-                                                    {{ $p->cpnyid }}</option>
-                                            @endforeach
-                                        </select>
-                                    </div>
-                                    <div class="flex items-center gap-4">
-                                        <label
-                                            class="mb-1 block w-40 font-medium text-gray-700 dark:text-gray-300">Department</label>
-                                        <select
-                                            class="w-full rounded-sm border border-gray-200/50 bg-gray-200/10 p-3 focus:ring focus:ring-blue-300 dark:bg-gray-800"
-                                            name="departementid" required>
-                                            @foreach ($userdept as $p)
-                                                <option value="{{ $p->deptname }}"
-                                                    {{ $p->deptname == $userdept2->deptname ? 'selected' : '' }}>
-                                                    {{ $p->deptname }}</option>
-                                            @endforeach
-                                        </select>
-                                    </div>
-                                </div>
-                                
-                                <div class="chart-container" style="width: 100%; height: 800px;"></div>
-
-                                
-
+    <div class="max-w-9xl mx-auto w-full px-4 py-4 sm:px-6 lg:px-8">
+        <div class="grid grid-cols-1 gap-8 lg:grid-cols-2 lg:grid-rows-[minmax(0,auto)_1fr]">
+            <div class="grid grid-cols-1 gap-8 md:grid-cols-2 lg:col-span-2 lg:row-span-1">
+                <div class="flex flex-col gap-8">
+                    <form id="stoForm" class="flex flex-col gap-8" enctype="multipart/form-data">
+                        @csrf
+                        <div class="h-[250px] w-full rounded-xl bg-white p-6 shadow-lg dark:bg-gray-800">
+                            <div class="mb-6 border-b border-gray-200 pb-4 dark:border-gray-700">
+                                <h2 class="text-xl font-extrabold text-gray-800 dark:text-white">Create ORG Chart</h2>
                             </div>
 
-                    </div>
-
-
-                    <div class="flex w-full flex-col gap-2 rounded-2xl border-b bg-white dark:bg-gray-800">
-                        <div class="flex w-1/2 w-full flex-col border-b p-4">
-                            <details class="group mb-4" open>
-                                <summary class="mb-4 flex cursor-pointer items-center justify-between rounded">
-                                    <span class="text-lg font-semibold">Attachments</span>
-                                    <span class="transition-all group-open:hidden">See details</span>
-                                    <span class="hidden transition-all group-open:inline">Hide details</span>
-                                </summary>
-                                <div class="flex h-auto flex-col justify-start">
-                                    <div id="attachmentsContainer">
-                                        <div class="attachment-row flex items-center gap-2">
-                                            <input type="file" name="attachments[]"
-                                                class="mt-4 w-full border p-3 text-lg">
-                                            <button type="button"
-                                                class="removeAttachment mt-4 hidden rounded border border-red-600 bg-red-200/30 p-3 text-red-600 transition hover:bg-red-600 hover:text-white">
-                                                🗑️
-                                            </button>
-                                        </div>
-                                    </div>
-                                    <button type="button" id="addAttachment"
-                                        class="mb-4 mt-4 flex items-center justify-center gap-2 rounded border border-gray-700 bg-gray-200/10 p-2 text-gray-800 hover:border-red-700 hover:bg-red-200/10 hover:font-medium hover:text-red-800">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20"
-                                            fill="currentColor">
-                                            <path fill-rule="evenodd"
-                                                d="M10 2a1 1 0 011 1v6h6a1 1 0 110 2h-6v6a1 1 0 11-2 0v-6H3a1 1 0 110-2h6V3a1 1 0 011-1z"
-                                                clip-rule="evenodd" />
-                                        </svg> Add Attachment
-                                    </button>
+                            <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+                                <div class="flex flex-col gap-2">
+                                    <label for="sto_id"
+                                        class="block text-sm font-medium text-gray-700 dark:text-gray-300">STO
+                                        ID</label>
+                                    <input type="text" id="sto_id" name="sto_id"
+                                        class="pointer-events-none w-full rounded-lg border border-gray-300 bg-gray-100 p-2.5 text-gray-700 focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                        value="{{ $sto->sto_id }}" readonly>
                                 </div>
-                            </details>
+                                <div class="flex flex-col gap-2">
+                                    <label for="sto_date"
+                                        class="block text-sm font-medium text-gray-700 dark:text-gray-300">Date</label>
+                                    <input type="text" id="sto_date" name="sto_date"
+                                        class="pointer-events-none w-full rounded-lg border border-gray-300 bg-gray-100 p-2.5 text-gray-700 focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                        value="{{ $sto->sto_date }}" readonly>
+                                </div>
+                            </div>
+
+                            <div class="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2">
+                                <div class="flex flex-col gap-2">
+                                    <label for="company"
+                                        class="block text-sm font-medium text-gray-700 dark:text-gray-300">Company</label>
+                                    <select id="company"
+                                        class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                        name="cpnyid" required>
+                                        @foreach ($usercpny as $p)
+                                            <option value="{{ $p->cpnyid }}"
+                                                {{ $p->cpnyid == $usercpny2->cpnyid ? 'selected' : '' }}>
+                                                {{ $p->cpnyid }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div class="flex flex-col gap-2">
+                                    <label for="department"
+                                        class="block text-sm font-medium text-gray-700 dark:text-gray-300">Department</label>
+                                    <select id="department"
+                                        class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                        name="departementid" required>
+                                        @foreach ($userdept as $p)
+                                            <option value="{{ $p->deptname }}"
+                                                {{ $p->deptname == $userdept2->deptname ? 'selected' : '' }}>
+                                                {{ $p->deptname }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
                         </div>
-                        <div class="flex h-auto w-full flex-row justify-end gap-4 pl-4 pr-4">                            
-                            <div class="w-1/8 flex flex-col justify-start">
-                                <button type="button" id="cancelBtn"
-                                    class="mb-4 mt-4 flex items-center justify-center gap-2 rounded border border-red-700 bg-red-200/10 p-2 text-red-700 hover:border-red-700 hover:bg-red-700 hover:font-medium hover:text-white">
-                                    <span id="btnText">Cancel Approval</span>
-                                    <svg id="cancelSpinner" class="hidden h-5 w-5 animate-spin text-white"
-                                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                        <circle class="opacity-25" cx="12" cy="12" r="10"
-                                            stroke="currentColor" stroke-width="4"></circle>
-                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
-                                    </svg>
-                                </button>
+                    </form>
+                </div>
+
+                <div class="flex flex-col gap-8">
+                    <div class="flex w-full flex-col gap-8 rounded-xl bg-white p-6 shadow-lg dark:bg-gray-800">
+                        <details class="group" open>
+                            <summary
+                                class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-xl font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
+                                <span>Attachments</span>
+                                <span class="text-sm font-medium text-gray-500 transition-all group-open:hidden">See
+                                    details &rarr;</span>
+                                <span
+                                    class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline">Hide
+                                    details &darr;</span>
+                            </summary>
+                            <div class="flex max-h-[125px] flex-col overflow-y-auto pt-6">
+                                <div id="attachmentsContainer">
+                                    <div class="attachment-row flex items-center gap-2">
+                                        <input type="file" name="attachments[]"
+                                            class="flex-grow rounded-md border border-gray-200 bg-white px-4 py-2 text-sm text-gray-700 file:mr-4 file:rounded-full file:border-0 file:bg-indigo-100 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-indigo-700 hover:file:bg-indigo-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:file:bg-indigo-700 dark:file:text-white dark:hover:file:bg-indigo-600">
+                                        <button type="button"
+                                            class="removeAttachment hidden rounded border border-red-600 bg-red-200/30 p-3 text-red-600 transition-colors hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">🗑️
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="w-1/8 flex flex-col justify-start">
-                                <button type="submit" id="submitBtn" class="mb-4 mt-4 flex items-center justify-center gap-2 rounded border border-blue-700 bg-blue-200/10 p-2 text-blue-700 hover:border-blue-700 hover:bg-blue-700 hover:font-medium hover:text-white">
-                                    <span id="btnText">Submit Approval</span>
-                                    <svg id="loadingSpinner" class="hidden h-5 w-5 animate-spin text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                        <circle class="opacity-25" cx="12" cy="12" r=" 10" stroke="currentColor" stroke-width="4"></circle>
-                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
-                                    </svg>
-                                </button>
-                            </div>
+                            <button type="button" id="addAttachment"
+                                class="mt-4 flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 bg-gray-50 px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20"
+                                    fill="currentColor">
+                                    <path fill-rule="evenodd"
+                                        d="M10 2a1 1 0 011 1v6h6a1 1 0 110 2h-6v6a1 1 0 11-2 0v-6H3a1 1 0 110-2h6V3a1 1 0 011-1z"
+                                        clip-rule="evenodd" />
+                                </svg> Add Attachment
+                            </button>
+                        </details>
+                        <div class="flex w-full justify-end gap-4 pt-4">
+                            <button type="button" id="cancelBtn"
+                                class="inline-flex items-center justify-center rounded-lg bg-red-600 px-6 py-3 text-base font-semibold text-white shadow-md transition-colors hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">
+                                <span id="cancelBtnText">Cancel</span>
+                                <svg id="cancelSpinner" class="ml-2 hidden h-5 w-5 animate-spin text-white"
+                                    xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10"
+                                        stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+                                </svg>
+                            </button>
+                            <button type="submit" id="submitBtn" form="stoForm"
+                                class="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-6 py-3 text-base font-semibold text-white shadow-md transition-colors hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                                <span id="submitBtnText">Submit Approval</span>
+                                <svg id="loadingSpinner" class="ml-2 hidden h-5 w-5 animate-spin text-white"
+                                    xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10"
+                                        stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+                                </svg>
+                            </button>
                         </div>
                     </div>
                 </div>
-                </form>
             </div>
-            <div id="modalForm"
-                class="fixed inset-0 z-50 flex hidden items-center justify-center bg-gray-500/10 bg-opacity-50 backdrop-blur-md">
-                <div class="relative w-full max-w-5xl rounded-lg bg-white p-4">
-                    <div class="border-gray-200s mb-4 flex justify-between border-b">
-                        <ul class="-mb-px flex flex-wrap text-center text-sm font-medium" id="tabs">
-                            <li class="mr-2">
-                                <button type="button"
-                                    class="tab-button border-blue-600 px-4 py-2 text-lg text-blue-600"
-                                    onclick="switchTab('view')">View Employee</button>
-                            </li>
-                            <li class="mr-2">
-                                <button type="button"
-                                    class="tab-button px-4 py-2 text-lg text-gray-600 hover:border-blue-600 hover:text-blue-600"
-                                    onclick="switchTab('employee')">Add Employee</button>
-                            </li>
-                            <li class="mr-2">
-                                <button type="button"
-                                    class="tab-button px-4 py-2 text-lg text-gray-600 hover:border-blue-600 hover:text-blue-600"
-                                    onclick="switchTab('departement')">Add Sub Departement</button>
-                            </li>
-                            <li class="mr-2">
-                                <button type="button"
-                                    class="tab-button px-4 py-2 text-lg text-gray-600 hover:border-blue-600 hover:text-blue-600"
-                                    onclick="switchTab('specprofile')">Add Job Profile & Spec</button>
-                            </li>
-                        </ul>
-                        <button onclick="closeModal()" class="text-lg text-gray-500">close</button>
 
+            <div class="flex flex-col gap-8 lg:col-span-2 lg:row-start-2">
+                <details class="group w-full rounded-xl bg-white p-6 shadow-lg dark:bg-gray-800" open>
+                    <summary
+                        class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-xl font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
+                        <span>ORG Chart Visualization</span>
+                        <span class="text-sm font-medium text-gray-500 transition-all group-open:hidden">See details
+                            &rarr;</span>
+                        <span class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline">Hide
+                            details &darr;</span>
+                    </summary>
+                    <div class="relative mt-4">
+                        <div
+                            class="chart-container flex h-[500px] w-full items-center justify-center overflow-auto rounded-lg border border-gray-200 bg-gray-50 text-lg text-gray-400 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-500">
+                        </div>
                     </div>
+                </details>
+            </div>
+        </div>
+        <div id="modalForm"
+            class="fixed inset-0 z-50 flex hidden items-center justify-center bg-gray-900/40 backdrop-blur-sm">
+            <div class="relative w-full max-w-5xl rounded-lg bg-white shadow-xl dark:bg-gray-800">
+                <div class="flex items-center justify-between border-b border-gray-200 p-4 dark:border-gray-700">
+                    <ul class="-mb-px flex flex-wrap text-center text-sm font-medium" id="tabs">
+                        <li class="mr-2">
+                            <button type="button"
+                                class="tab-button active-tab inline-flex items-center justify-center rounded-t-lg border-b-2 border-transparent p-4 text-lg text-gray-500 transition-colors duration-200 hover:border-gray-300 hover:text-gray-600 dark:text-gray-400 dark:hover:text-gray-300"
+                                onclick="switchTab('view')">
+                                <svg class="mr-2 h-5 w-5 text-gray-400 group-hover:text-gray-500 dark:text-gray-500 dark:group-hover:text-gray-300"
+                                    aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor"
+                                    viewBox="0 0 20 20">
+                                    <path
+                                        d="M10 0a10 10 0 1 0 10 10A10.009 10.009 0 0 0 10 0Zm0 18a8 8 0 1 1 8-8A8.009 8.009 0 0 1 10 18Zm-3-8a1 1 0 0 1 1-1h4a1 1 0 0 1 0 2H8a1 1 0 0 1-1-1Zm0-4a1 1 0 0 1 1-1h4a1 1 0 0 1 0 2H8a1 1 0 01-1-1Zm0 8a1 1 0 0 1 1-1h4a1 1 0 0 1 0 2H8a1 1 0 01-1-1Z" />
+                                </svg>
+                                View Employee
+                            </button>
+                        </li>
+                        <li class="mr-2">
+                            <button type="button"
+                                class="tab-button inline-flex items-center justify-center rounded-t-lg border-b-2 border-transparent p-4 text-lg text-gray-500 transition-colors duration-200 hover:border-gray-300 hover:text-gray-600 dark:text-gray-400 dark:hover:text-gray-300"
+                                onclick="switchTab('employee')">
+                                <svg class="mr-2 h-5 w-5 text-gray-400 group-hover:text-gray-500 dark:text-gray-500 dark:group-hover:text-gray-300"
+                                    aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor"
+                                    viewBox="0 0 20 20">
+                                    <path
+                                        d="M10 0a10 10 0 1 0 10 10A10.009 10.009 0 0 0 10 0Zm0 18a8 8 0 1 1 8-8A8.009 8.009 0 0 1 10 18Zm-3-8a1 1 0 0 1 1-1h4a1 1 0 0 1 0 2H8a1 1 0 01-1-1Zm0-4a1 1 0 0 1 1-1h4a1 1 0 010 2H8a1 1 0 01-1-1Zm0 8a1 1 0 011-1h4a1 1 0 010 2H8a1 1 0 01-1-1Z" />
+                                </svg>
+                                Add Employee
+                            </button>
+                        </li>
+                        <li class="mr-2">
+                            <button type="button"
+                                class="tab-button inline-flex items-center justify-center rounded-t-lg border-b-2 border-transparent p-4 text-lg text-gray-500 transition-colors duration-200 hover:border-gray-300 hover:text-gray-600 dark:text-gray-400 dark:hover:text-gray-300"
+                                onclick="switchTab('departement')">
+                                <svg class="mr-2 h-5 w-5 text-gray-400 group-hover:text-gray-500 dark:text-gray-500 dark:group-hover:text-gray-300"
+                                    aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor"
+                                    viewBox="0 0 20 20">
+                                    <path
+                                        d="M10 0a10 10 0 1 0 10 10A10.009 10.009 0 0 0 10 0Zm0 18a8 8 0 1 1 8-8A8.009 10.009 0 0 1 10 18Zm-3-8a1 1 0 0 1 1-1h4a1 1 0 0 1 0 2H8a1 1 0 01-1-1Zm0-4a1 1 0 0 1 1-1h4a1 1 0 010 2H8a1 1 0 01-1-1Zm0 8a1 1 0 011-1h4a1 1 0 010 2H8a1 1 0 01-1-1Z" />
+                                </svg>
+                                Add Sub Departement
+                            </button>
+                        </li>
+                        <li class="mr-2">
+                            <button type="button"
+                                class="tab-button inline-flex items-center justify-center rounded-t-lg border-b-2 border-transparent p-4 text-lg text-gray-500 transition-colors duration-200 hover:border-gray-300 hover:text-gray-600 dark:text-gray-400 dark:hover:text-gray-300"
+                                onclick="switchTab('specprofile')">
+                                <svg class="mr-2 h-5 w-5 text-gray-400 group-hover:text-gray-500 dark:text-gray-500 dark:group-hover:text-gray-300"
+                                    aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor"
+                                    viewBox="0 0 20 20">
+                                    <path
+                                        d="M10 0a10 10 0 1 0 10 10A10.009 10.009 0 0 0 10 0Zm0 18a8 8 0 1 1 8-8A8.009 10.009 0 0 1 10 18Zm-3-8a1 1 0 0 1 1-1h4a1 1 0 0 1 0 2H8a1 1 0 01-1-1Zm0-4a1 1 0 011-1h4a1 1 0 010 2H8a1 1 0 01-1-1Zm0 8a1 1 0 011-1h4a1 1 0 010 2H8a1 1 0 01-1-1Z" />
+                                </svg>
+                                Add Job Profile & Spec
+                            </button>
+                        </li>
+                    </ul>
+                    <button onclick="closeModal()"
+                        class="text-2xl leading-none text-gray-500 transition-colors hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+                        &times;
+                    </button>
+                </div>
 
-                    <!-- Tab Content: View Employee -->
+                <div class="max-h-[80vh] overflow-y-auto p-6">
                     <div id="tab-view" class="tab-content hidden">
-                        <div class="flex justify-between">
-                            {{-- <h3 class="text-lg font-semibold">Employee List</h3> --}}
-                            <div class="mb-4 flex items-center justify-between">
-                                <h4 class="text-lg font-semibold">Parent Department: <span id="parentDeptLabel" class="text-lg font-semibold text-gray-800"></span></h4>                             
+                        <div class="mb-4 flex flex-col justify-between gap-4 md:flex-row md:items-center">
+                            <h4 class="text-xl font-semibold text-gray-800 dark:text-white">
+                                Parent Department: <span id="parentDeptLabel"
+                                    class="text-indigo-600 dark:text-indigo-400"></span>
                                 <button id="btnChangeParentDept"
-                                    class="flex items-center gap-1 rounded px-3 py-1.5 text-sm text-black">
+                                    class="ml-2 inline-flex items-center gap-1 rounded-md bg-gray-100 px-3 py-1.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                        stroke-width="1.5" stroke="currentColor" class="size-6">
+                                        stroke-width="1.5" stroke="currentColor" class="size-5">
                                         <path stroke-linecap="round" stroke-linejoin="round"
                                             d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
                                     </svg>
                                     <span>Change Parent</span>
                                 </button>
-                            </div>
+                            </h4>
 
-                            <div class="mb-4 flex items-center justify-between">
-                                <h4 id="departmentLabel" class="text-lg font-semibold text-gray-800">
-                                    Dept: <!-- Dynamic text will be inserted via JS -->
-                                </h4>
+                            <h4 id="departmentLabel" class="text-xl font-semibold text-gray-800 dark:text-white">
+                                Department: <span class="text-indigo-600 dark:text-indigo-400"></span>
                                 <button id="btnChangeDept"
-                                    class="flex items-center gap-1 rounded px-3 py-1.5 text-sm text-black">
+                                    class="ml-2 inline-flex items-center gap-1 rounded-md bg-gray-100 px-3 py-1.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                        stroke-width="1.5" stroke="currentColor" class="size-6">
+                                        stroke-width="1.5" stroke="currentColor" class="size-5">
                                         <path stroke-linecap="round" stroke-linejoin="round"
                                             d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
                                     </svg>
                                     <span>Move All Employee</span>
                                 </button>
-                            </div>
+                            </h4>
                         </div>
-                        <table class="w-full border border-black text-sm text-black">
-                            <thead class="bg-gray-300/10">
-                                <tr class="text-left">
-                                    <th class="border border-black px-2 py-1">No</th>
-                                    <th class="border border-black px-2 py-1">Name</th>
-                                    <th class="border border-black px-2 py-1">Company</th>
-                                    <th class="border border-black px-2 py-1">Position</th>
-                                    <th class="border border-black px-2 py-1">Photo</th>
-                                    <th class="border border-black px-2 py-1">Action</th>
-                                </tr>
-                            </thead>
-                            <tbody id="employeeTableBody">
-
-                            </tbody>
-                        </table>
+                        <div class="overflow-x-auto rounded-lg border border-gray-200 shadow-sm dark:border-gray-700">
+                            <table
+                                class="min-w-full divide-y divide-gray-200 text-sm text-gray-800 dark:divide-gray-700 dark:text-gray-200">
+                                <thead class="bg-gray-50 dark:bg-gray-700">
+                                    <tr>
+                                        <th scope="col"
+                                            class="border-r border-gray-200 px-4 py-2 text-left font-semibold tracking-wider dark:border-gray-600">
+                                            No</th>
+                                        <th scope="col"
+                                            class="border-r border-gray-200 px-4 py-2 text-left font-semibold tracking-wider dark:border-gray-600">
+                                            Name</th>
+                                        <th scope="col"
+                                            class="border-r border-gray-200 px-4 py-2 text-left font-semibold tracking-wider dark:border-gray-600">
+                                            Company</th>
+                                        <th scope="col"
+                                            class="border-r border-gray-200 px-4 py-2 text-left font-semibold tracking-wider dark:border-gray-600">
+                                            Position</th>
+                                        <th scope="col"
+                                            class="border-r border-gray-200 px-4 py-2 text-left font-semibold tracking-wider dark:border-gray-600">
+                                            Photo</th>
+                                        <th scope="col" class="px-4 py-2 text-left font-semibold tracking-wider">
+                                            Action
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody id="employeeTableBody"
+                                    class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-800">
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
 
-                    <!-- Tab Content: Employee -->
-                    <div id="tab-employee" class="tab-content">
-                        <h3 class="mb-4 text-lg font-semibold">Add Employee</h3>
+                    <div id="tab-employee" class="tab-content hidden">
+                        <h3 class="mb-4 text-xl font-semibold text-gray-800 dark:text-white">Add Employee</h3>
                         <form id="formAddEmployee" method="POST" action="{{ route('orgchart.store') }}"
-                            enctype="multipart/form-data">
+                            enctype="multipart/form-data" class="space-y-4">
                             @csrf
                             <input type="hidden" name="approval_line" id="modalApprovalLine">
-                            {{-- <input type="hidden" name="full_name" value="Vacant">        --}}
                             <input type="hidden" name="sto_id" value="{{ $sto->sto_id }}">
-                            <div class="mb-4">
-                                <label class="block text-sm font-medium text-gray-700">Company</label>
-                                <select
-                                    class="w-full rounded-sm border border-gray-200/50 bg-gray-200/10 p-3 focus:ring focus:ring-blue-300 dark:bg-gray-800"
+
+                            <div>
+                                <label for="employeeCompany"
+                                    class="block text-sm font-medium text-gray-700 dark:text-gray-300">Company</label>
+                                <select id="employeeCompany"
+                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                     name="cpnyid" required>
                                     @foreach ($usercpny as $p)
                                         <option value="{{ $p->cpnyid }}"
@@ -226,117 +284,152 @@
                                     @endforeach
                                 </select>
                             </div>
-                            <div class="mb-4">
-                                <label class="inline-flex items-center">
-                                    <input type="checkbox" id="vacantCheckbox" class="form-checkbox text-blue-600">
-                                    <span class="ml-2 text-sm text-gray-700">Set as VACANT</span>
-                                </label>
+
+                            <div class="flex items-center">
+                                <input type="checkbox" id="vacantCheckbox"
+                                    class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700">
+                                <label for="vacantCheckbox" class="ml-2 text-sm text-gray-700 dark:text-gray-300">Set
+                                    as VACANT</label>
                             </div>
 
-                            <!-- Hidden input untuk simpan full_name saat VACANT -->
                             <input type="hidden" name="full_name" id="hiddenFullName" value="VACANT">
 
-                            <div class="mb-4" id="fullNameGroup">
-                                <label class="block text-sm font-medium text-gray-700">Name</label>                    
-                                <select id="selectFullName" name="full_name" class="mt-1 block w-full rounded-md border border-gray-300 p-2">
+                            <div id="fullNameGroup">
+                                <label for="selectFullName"
+                                    class="block text-sm font-medium text-gray-700 dark:text-gray-300">Name</label>
+                                <select id="selectFullName" name="full_name"
+                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
                                     <option value="" disabled selected>Pilih nama karyawan...</option>
                                     @foreach ($users as $p)
                                         <option value="{{ $p->name }}">{{ $p->name }}</option>
                                     @endforeach
                                 </select>
                             </div>
-                            {{-- <div class="mb-4">
-                                <label class="block text-sm font-medium text-gray-700">Position</label>
-                                <select
-                                    class="w-full rounded-sm border border-gray-200/50 bg-gray-200/10 p-3 focus:ring focus:ring-blue-300 dark:bg-gray-800"
-                                    name="job_position" required>
-                                    @foreach ($joblevel as $p)
-                                        <option value="{{ $p->title_level }}">{{ $p->title_level }}</option>
-                                    @endforeach
-                                </select>
-                            </div> --}}
-                            <div class="mb-4" id="imageGroup">
-                                <label class="block text-sm font-medium text-gray-700">Image</label>
+
+                            <div id="imageGroup">
+                                <label for="imageInput"
+                                    class="block text-sm font-medium text-gray-700 dark:text-gray-300">Image</label>
                                 <input type="file" name="image" id="imageInput" accept="image/*"
-                                    class="mt-1 block w-full rounded-md border border-gray-300 p-2">
+                                    class="mt-1 block w-full text-sm text-gray-700 file:mr-4 file:rounded-full file:border-0 file:bg-indigo-50 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-indigo-700 hover:file:bg-indigo-100 dark:text-gray-300 dark:file:bg-indigo-700 dark:file:text-white">
                             </div>
-                            <div class="mb-4" id="qtyGroup">
-                                <label class="block text-sm font-medium text-gray-700">Qty</label>
+
+                            <div id="qtyGroup">
+                                <label for="qty"
+                                    class="block text-sm font-medium text-gray-700 dark:text-gray-300">Qty</label>
                                 <input type="number" name="qty" id="qty"
-                                    class="mt-1 block w-full rounded-md border border-gray-300 p-2"
-                                    value="{{ old('qty', 1) }}" required>
+                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                    value="{{ old('qty', 1) }}" required min="1">
                             </div>
+
                             <input type="hidden" name="status_talenta" value="Active">
-                            <div class="mt-4">
+
+                            <div class="border-t border-gray-200 pt-4 dark:border-gray-700">
                                 <button type="submit"
-                                    class="rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700">Simpan</button>
+                                    class="inline-flex items-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                                    Save Employee
+                                </button>
                             </div>
                         </form>
                     </div>
 
-                    <!-- Tab Content: Departement -->
                     <div id="tab-departement" class="tab-content hidden">
-                        <h3 class="mb-4 text-lg font-semibold">Add Sub Departement</h3>
-                        <form id="formAddDepartement" method="POST" action="{{ route('orgchart.store') }}">
+                        <h3 class="mb-4 text-xl font-semibold text-gray-800 dark:text-white">Add Sub Department
+                        </h3>
+                        <form id="formAddDepartement" method="POST" action="{{ route('orgchart.store') }}"
+                            class="space-y-4">
                             @csrf
                             <input type="hidden" name="approval_line" id="modalApprovalLine">
                             <input type="hidden" name="sto_id" value="{{ $sto->sto_id }}">
-                            <div class="mb-4">
-                                <label class="block text-sm font-medium text-gray-700">Sub Departement</label>
-                                <input type="text" name="departement_name"
-                                    class="mt-1 block w-full rounded-md border border-gray-300 p-2" required>
+
+                            <div>
+                                <label for="departement_name"
+                                    class="block text-sm font-medium text-gray-700 dark:text-gray-300">Sub
+                                    Department Name</label>
+                                <input type="text" name="departement_name" id="departement_name"
+                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                    required>
                             </div>
-                            <div class="mb-4">
-                                <label class="block text-sm font-medium text-gray-700">Sub Grading</label>         
-                                <input type="hidden" name="subgrade_name" id="subgrade_name">                           
-                                <select name="subgrade_id" class="mt-1 block w-full rounded-md border border-gray-300 p-2" required onchange="updateSubgradeName(this)">  
-                                    <option value="" disabled selected>-- Pilih --</option>                                  
-                                    @foreach ($subgrading as $p)                                        
-                                        <option value="{{ $p->subgrade_id }}">{{ $p->subgrade_id }} - {{ $p->subgrade_name }}</option>
+
+                            <div>
+                                <label for="subgrade_id"
+                                    class="block text-sm font-medium text-gray-700 dark:text-gray-300">Sub
+                                    Grading</label>
+                                <input type="hidden" name="subgrade_name" id="subgrade_name">
+                                <select name="subgrade_id" id="subgrade_id"
+                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                    required onchange="updateSubgradeName(this)">
+                                    <option value="" disabled selected>-- Pilih --</option>
+                                    @foreach ($subgrading as $p)
+                                        <option value="{{ $p->subgrade_id }}">{{ $p->subgrade_id }} -
+                                            {{ $p->subgrade_name }}</option>
                                     @endforeach
                                 </select>
                             </div>
-                          
-                            <div class="mt-4">
+
+                            <div class="border-t border-gray-200 pt-4 dark:border-gray-700">
                                 <button type="submit"
-                                    class="rounded-md bg-green-600 px-4 py-2 text-white hover:bg-green-700">Simpan</button>
+                                    class="inline-flex items-center rounded-md border border-transparent bg-green-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2">
+                                    Save Department
+                                </button>
                             </div>
                         </form>
                     </div>
 
                     <div id="tab-specprofile" class="tab-content hidden">
-                        <h3 class="mb-4 text-lg font-semibold">Add Job Profile & Spec</h3>
-                        <form id="formAddSpec" method="POST" action="{{ route('orgchart.store') }}">
+                        <h3 class="mb-4 text-xl font-semibold text-gray-800 dark:text-white">Add Job Profile &
+                            Spec
+                        </h3>
+                        <form id="formAddSpec" method="POST" action="{{ route('orgchart.store') }}"
+                            class="space-y-4">
                             @csrf
                             <input type="hidden" name="approval_line" id="modalApprovalLine">
                             <input type="hidden" name="sto_id" value="{{ $sto->sto_id }}">
-                            <div class="mb-4">
-                                <label class="block text-sm font-medium text-gray-700">Position</label>                                    
-                                <select name="job_level" class="mt-1 block w-full rounded-md border border-gray-300 p-2" required>
-                                    @foreach ($subgrading as $p)                                        
-                                        <option value="{{ $p->subgrade_id }}">{{ $p->subgrade_id }} - {{ $p->subgrade_name }}</option>
+
+                            <div>
+                                <label for="job_level"
+                                    class="block text-sm font-medium text-gray-700 dark:text-gray-300">Position</label>
+                                <select name="job_level" id="job_level"
+                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                    required>
+                                    <option value="" disabled selected>-- Select Position --</option>
+                                    @foreach ($subgrading as $p)
+                                        <option value="{{ $p->subgrade_id }}">{{ $p->subgrade_id }} -
+                                            {{ $p->subgrade_name }}</option>
                                     @endforeach
                                 </select>
                             </div>
-                           <div class="mb-4">
-                                <label class="block text-sm font-medium text-gray-700">Job Purpose</label>
-                                <div id="jobPurposeList" class="flex flex-col gap-2">
-                                    <!-- Baris pertama -->
-                                    <div class="flex gap-2">
-                                        <textarea name="job_purpose[]" class="w-full border rounded p-2" placeholder="Deskripsikan tujuan pekerjaan" required></textarea>
-                                        <button type="button" class="removePurpose hidden text-red-600">🗑️</button>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Job
+                                    Purpose</label>
+                                <div id="jobPurposeList" class="flex flex-col gap-3">
+                                    <div class="flex items-center gap-2">
+                                        <textarea name="job_purpose[]"
+                                            class="flex-grow rounded-md border-gray-300 p-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                            placeholder="Describe job purpose" required rows="3"></textarea>
+                                        <button type="button" class="removePurpose hidden">
+                                            🗑️
+                                        </button>
                                     </div>
                                 </div>
                                 <button type="button" id="addJobPurpose"
-                                    class="mt-2 rounded border border-blue-600 px-3 py-1 text-blue-600 hover:bg-blue-100">
-                                    + Add Purpose
+                                    class="mt-3 inline-flex items-center rounded-md border border-transparent bg-indigo-100 px-3 py-1.5 text-sm font-medium text-indigo-700 transition-colors hover:bg-indigo-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="mr-1 h-4 w-4" fill="none"
+                                        viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                    </svg> Add Purpose
                                 </button>
                             </div>
 
-                            <div class="mb-4 grid grid-cols-1 gap-6 md:grid-cols-2">
+                            <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700">Education Level</label>                               
-                                     <select name="education_level" class="mt-1 block w-full rounded-md border border-gray-300 p-2" required>
+                                    <label for="education_level"
+                                        class="block text-sm font-medium text-gray-700 dark:text-gray-300">Education
+                                        Level</label>
+                                    <select name="education_level" id="education_level"
+                                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                        required>
                                         <option value="" disabled selected>-- Pilih --</option>
                                         <option value="SMP">SMP</option>
                                         <option value="SMA / SMK">SMA / SMK</option>
@@ -350,160 +443,214 @@
                                     </select>
                                 </div>
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700">Jurusan</label>
-                                    <input type="text" name="education_major" class="mt-1 block w-full rounded-md border border-gray-300 p-2" placeholder="Masukkan jurusan" required>
+                                    <label for="education_major"
+                                        class="block text-sm font-medium text-gray-700 dark:text-gray-300">Major</label>
+                                    <input type="text" name="education_major" id="education_major"
+                                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                        placeholder="e.g., Computer Science" required>
                                 </div>
                             </div>
 
-                            <div class="mb-4 grid grid-cols-1 gap-6 md:grid-cols-2">
+                            <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700">Experience (Years)</label>
-                                    <input type="number" name="experience_years" class="mt-1 block w-full rounded-md border border-gray-300 p-2" placeholder="Contoh: 2" required>
+                                    <label for="experience_years"
+                                        class="block text-sm font-medium text-gray-700 dark:text-gray-300">Experience
+                                        (Years)</label>
+                                    <input type="number" name="experience_years" id="experience_years"
+                                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                        placeholder="e.g., 2" required min="0">
                                 </div>
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700">Experience in Position</label>
-                                    <input type="text" name="experience_position" class="mt-1 block w-full rounded-md border border-gray-300 p-2" placeholder="Contoh: Supervisor HR" required>
+                                    <label for="experience_position"
+                                        class="block text-sm font-medium text-gray-700 dark:text-gray-300">Experience
+                                        in Position</label>
+                                    <input type="text" name="experience_position" id="experience_position"
+                                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                        placeholder="e.g., HR Supervisor" required>
                                 </div>
                             </div>
 
-                            <div class="mt-4">
-                                <button type="submit" class="rounded-md bg-green-600 px-4 py-2 text-white hover:bg-green-700">Simpan</button>
+                            <div class="border-t border-gray-200 pt-4 dark:border-gray-700">
+                                <button type="submit"
+                                    class="inline-flex items-center rounded-md border border-transparent bg-green-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2">
+                                    Save Job Profile
+                                </button>
                             </div>
                         </form>
                     </div>
-                    
-                    <div id="editModal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-gray-500/10 backdrop-blur-md">
-                        <div class="relative w-full max-w-lg rounded-lg bg-white p-6">
-                            <button onclick="closeEditModal()"
-                                class="absolute right-2 top-2 text-2xl text-gray-500">&times;</button>
-                            <h3 class="mb-4 text-lg font-bold">Edit Employee</h3>
-                            <form id="editEmployeeForm" enctype="multipart/form-data">
-                                @csrf
-                                <input type="hidden" name="id" id="edit_id">
+                </div>
 
-                                <div class="mb-3">
-                                    <label>Name</label>
-                                    <select name="employee_name" id="edit_name" class="w-full select2">
-                                        <option value="" disabled selected>-- Select Employee --</option>                                       
-                                        @foreach ($users as $p)
-                                            <option value="{{ $p->name }}">{{ $p->name }}</option>
-                                        @endforeach
-                                    </select>
-                                </div>
+                <div id="editModal"
+                    class="fixed inset-0 z-50 flex hidden items-center justify-center bg-gray-900/40 backdrop-blur-sm">
+                    <div class="relative w-full max-w-lg rounded-lg bg-white p-6 shadow-xl dark:bg-gray-800">
+                        <button onclick="closeEditModal()"
+                            class="absolute right-3 top-3 text-2xl leading-none text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+                            &times;
+                        </button>
+                        <h3 class="mb-6 text-xl font-bold text-gray-800 dark:text-white">Edit Employee</h3>
+                        <form id="editEmployeeForm" enctype="multipart/form-data" class="space-y-4">
+                            @csrf
+                            <input type="hidden" name="id" id="edit_id">
 
-                                <div class="mb-3">
-                                    <label>Company</label>                                    
-                                    <select
-                                        class="w-full rounded-sm border border-gray-200/50 bg-gray-200/10 p-3 focus:ring focus:ring-blue-300 dark:bg-gray-800"
-                                        name="employee_company" id="edit_company">
-                                        @foreach ($usercpny as $p)
-                                            <option value="{{ $p->cpnyid }}"
-                                                {{ $p->cpnyid == $usercpny2->cpnyid ? 'selected' : '' }}>
-                                                {{ $p->cpnyid }}</option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                                {{-- <div class="mb-3">
-                                    <label>Position</label>                                    
-                                    <select
-                                        class="w-full rounded-sm border border-gray-200/50 bg-gray-200/10 p-3 focus:ring focus:ring-blue-300 dark:bg-gray-800"
-                                        name="employee_level" id="edit_position">
-                                        @foreach ($joblevel as $p)
-                                            <option value="{{ $p->title_level }}">{{ $p->title_level }}</option>
-                                        @endforeach
-                                    </select>
-                                </div> --}}
-                                <div class="mb-3">
-                                    <label>New Image (optional)</label>
-                                    <input type="file" name="image" class="w-full">
-                                </div>
+                            <div>
+                                <label for="edit_name"
+                                    class="block text-sm font-medium text-gray-700 dark:text-gray-300">Name</label>
+                                <select name="employee_name" id="edit_name"
+                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
+                                    <option value="" disabled selected>-- Select Employee --</option>
+                                    @foreach ($users as $p)
+                                        <option value="{{ $p->name }}">{{ $p->name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+
+                            <div>
+                                <label for="edit_company"
+                                    class="block text-sm font-medium text-gray-700 dark:text-gray-300">Company</label>
+                                <select name="employee_company" id="edit_company"
+                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
+                                    @foreach ($usercpny as $p)
+                                        <option value="{{ $p->cpnyid }}"
+                                            {{ $p->cpnyid == $usercpny2->cpnyid ? 'selected' : '' }}>
+                                            {{ $p->cpnyid }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+
+                            <div>
+                                <label for="edit_image"
+                                    class="block text-sm font-medium text-gray-700 dark:text-gray-300">New
+                                    Image
+                                    (optional)</label>
+                                <input type="file" name="image" id="edit_image" accept="image/*"
+                                    class="mt-1 block w-full text-sm text-gray-700 file:mr-4 file:rounded-full file:border-0 file:bg-indigo-50 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-indigo-700 hover:file:bg-indigo-100 dark:text-gray-300 dark:file:bg-indigo-700 dark:file:text-white">
+                            </div>
+
+                            <div class="border-t border-gray-200 pt-4 dark:border-gray-700">
                                 <button type="submit"
-                                    class="rounded bg-blue-600 px-4 py-2 text-white">Update</button>
-                            </form>
-                        </div>
+                                    class="inline-flex items-center rounded-md border border-transparent bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                                    Update Employee
+                                </button>
+                            </div>
+                        </form>
                     </div>
+                </div>
 
-                    <div id="modalChangeDept"
-                        class="fixed inset-0 z-50 flex hidden items-center justify-center bg-gray-500/10 bg-opacity-50 backdrop-blur-md">
-                        <div class="w-full max-w-md rounded-lg bg-white p-6 shadow-lg">
-                            <h3 class="mb-4 text-lg font-semibold">Change Department</h3>
+                <div id="modalChangeDept"
+                    class="fixed inset-0 z-50 flex hidden items-center justify-center bg-gray-900/40 backdrop-blur-sm">
+                    <div class="relative w-full max-w-md rounded-lg bg-white p-6 shadow-xl dark:bg-gray-800">
+                        <h3 class="mb-6 text-xl font-bold text-gray-800 dark:text-white">Change Department</h3>
 
-                            <label class="mb-2 block text-sm font-medium text-gray-700">Select Department</label>
-                            <select id="selectNewDept" class="mb-4 w-full rounded border p-2">
+                        <div class="mb-4">
+                            <label for="selectNewDept"
+                                class="block text-sm font-medium text-gray-700 dark:text-gray-300">Select
+                                Department</label>
+                            <select id="selectNewDept"
+                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
                                 @foreach ($subdepartments as $dept)
-                                    <option value="{{ $dept->departement_id }}">{{ $dept->departement_name }} - {{ $dept->subgrade_name }}
-                                    </option>
+                                    <option value="{{ $dept->departement_id }}">{{ $dept->departement_name }}
+                                        -
+                                        {{ $dept->subgrade_name }}</option>
                                 @endforeach
                             </select>
+                        </div>
 
-                            <div class="flex justify-end space-x-2">
-                                <button id="btnCancelChange"
-                                    class="rounded bg-gray-300 px-4 py-2 hover:bg-gray-400">Cancel</button>
-                                <button id="btnConfirmChange"
-                                    class="rounded bg-green-600 px-4 py-2 text-white hover:bg-green-700">Update</button>
-                            </div>
+                        <div class="flex justify-end space-x-3 border-t border-gray-200 pt-4 dark:border-gray-700">
+                            <button id="btnCancelChange"
+                                class="inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
+                                Cancel
+                            </button>
+                            <button id="btnConfirmChange"
+                                class="inline-flex items-center rounded-md border border-transparent bg-green-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2">
+                                Update
+                            </button>
                         </div>
                     </div>
+                </div>
 
-                    <div id="modalChangeParent"
-                        class="fixed inset-0 z-50 flex hidden items-center justify-center bg-gray-500/10 bg-opacity-50 backdrop-blur-md">
-                        <div class="w-full max-w-md rounded-lg bg-white p-6 shadow-lg">
-                            <h3 class="mb-4 text-lg font-semibold">Change Parent Department</h3>
+                <div id="modalChangeParent"
+                    class="fixed inset-0 z-50 flex hidden items-center justify-center bg-gray-900/40 backdrop-blur-sm">
+                    <div class="relative w-full max-w-md rounded-lg bg-white p-6 shadow-xl dark:bg-gray-800">
+                        <h3 class="mb-6 text-xl font-bold text-gray-800 dark:text-white">Change Parent
+                            Department
+                        </h3>
 
-                            <label class="mb-2 block text-sm font-medium text-gray-700">Select New Parent Department</label>
-                            <select id="selectNewParentDept" class="mb-4 w-full rounded border p-2">
+                        <div class="mb-4">
+                            <label for="selectNewParentDept"
+                                class="block text-sm font-medium text-gray-700 dark:text-gray-300">Select New
+                                Parent Department</label>
+                            <select id="selectNewParentDept"
+                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
                                 @foreach ($parentdepartments as $dept)
-                                    <option value="{{ $dept->departement_id }}">{{ $dept->departement_name }} - {{ $dept->subgrade_name }}
-                                    </option>
+                                    <option value="{{ $dept->departement_id }}">{{ $dept->departement_name }}
+                                        -
+                                        {{ $dept->subgrade_name }}</option>
                                 @endforeach
                             </select>
+                        </div>
 
-                            <div class="flex justify-end space-x-2">
-                                <button id="btnCancelChangeParent"
-                                    class="rounded bg-gray-300 px-4 py-2 hover:bg-gray-400">Cancel</button>
-                                <button id="btnConfirmChangeParent"
-                                    class="rounded bg-green-600 px-4 py-2 text-white hover:bg-green-700">Update</button>
-                            </div>
+                        <div class="flex justify-end space-x-3 border-t border-gray-200 pt-4 dark:border-gray-700">
+                            <button id="btnCancelChangeParent"
+                                class="inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
+                                Cancel
+                            </button>
+                            <button id="btnConfirmChangeParent"
+                                class="inline-flex items-center rounded-md border border-transparent bg-green-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2">
+                                Update
+                            </button>
                         </div>
                     </div>
+                </div>
 
-                                        
-                    <div id="modalJobProfile" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-gray-500/10 backdrop-blur-md">
-                        <div class="w-full max-w-4xl rounded-lg bg-white p-6 shadow-xl overflow-y-auto max-h-[90vh]">
-                            <div class="flex justify-between items-center mb-4">
-                                <h3 class="text-lg font-semibold">
-                                    Job Profile - <span id="jobLevelLabel" class="text-blue-600 font-semibold"></span>
-                                </h3>
-                                <button onclick="$('#modalJobProfile').addClass('hidden')" class="text-gray-600 hover:text-red-600 text-xl">&times;</button>
-                            </div>
+                <div id="modalJobProfile"
+                    class="fixed inset-0 z-50 flex hidden items-center justify-center bg-gray-900/40 backdrop-blur-sm">
+                    <div
+                        class="relative max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-lg bg-white p-6 shadow-xl dark:bg-gray-800">
+                        <div
+                            class="mb-4 flex items-center justify-between border-b border-gray-200 pb-4 dark:border-gray-700">
+                            <h3 class="text-xl font-semibold text-gray-800 dark:text-white">
+                                Job Profile - <span id="jobLevelLabel"
+                                    class="font-bold text-indigo-600 dark:text-indigo-400"></span>
+                            </h3>
+                            <button onclick="$('#modalJobProfile').addClass('hidden')"
+                                class="text-2xl leading-none text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+                                &times;
+                            </button>
+                        </div>
 
-                            <div class="mb-4">
-                                <table class="w-full border border-black text-sm">
-                                    <thead class="bg-gray-100">
-                                        <tr>
-                                            <th class="border border-black px-2 py-1">No</th>                                           
-                                            <th class="border border-black px-2 py-1">Job Purpose</th>   
-                                            <th class="border border-black px-2 py-1">Action</th>                                        
-                                        </tr>
-                                    </thead>
-                                    <tbody id="jobProfileBody"></tbody>
-                                </table>
-                            </div>
+                        <div
+                            class="mb-6 overflow-x-auto rounded-lg border border-gray-200 shadow-sm dark:border-gray-700">
+                            <table
+                                class="min-w-full divide-y divide-gray-200 text-sm text-gray-800 dark:divide-gray-700 dark:text-gray-200">
+                                <thead class="bg-gray-50 dark:bg-gray-700">
+                                    <tr>
+                                        <th scope="col"
+                                            class="border-r border-gray-200 px-4 py-2 text-left font-semibold tracking-wider dark:border-gray-600">
+                                            No</th>
+                                        <th scope="col"
+                                            class="border-r border-gray-200 px-4 py-2 text-left font-semibold tracking-wider dark:border-gray-600">
+                                            Job Purpose</th>
+                                        <th scope="col" class="px-4 py-2 text-left font-semibold tracking-wider">
+                                            Action
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody id="jobProfileBody"
+                                    class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-800">
+                                </tbody>
+                            </table>
+                        </div>
 
-                            <div id="jobSpecInfo" class="text-sm text-gray-700 space-y-2">
-                                <!-- Job Spec details will be injected here -->
-                            </div>
+                        <div id="jobSpecInfo" class="space-y-3 text-base text-gray-700 dark:text-gray-300">
                         </div>
                     </div>
-
                 </div>
             </div>
-            <div id="successMessage" class="mt-4 hidden font-bold text-green-600">
-                Sto Created Successfully!
-            </div>
         </div>
-    </div>
-    </div>
+        <div id="successMessage"
+            class="mt-4 hidden rounded-md bg-green-50 p-3 text-sm font-medium text-green-700 shadow-sm">
+            STO created successfully!
+        </div>
     </div>
 
     <!-- D3 Org Chart Dependencies -->
@@ -511,7 +658,7 @@
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/d3-org-chart@3.1.0"></script>
     <script src="https://cdn.jsdelivr.net/npm/d3-flextree@2.1.2/build/d3-flextree.js"></script>
-    
+
 
     <!-- Tambahkan di bagian <head> atau sebelum script -->
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
@@ -532,7 +679,7 @@
         var chart = null;
 
         d3.json("{{ route('orgchart.json') }}").then((res) => {
-            const data = res.nodes;         // ⬅️ Ambil 'nodes' dari response
+            const data = res.nodes; // ⬅️ Ambil 'nodes' dari response
             const connections = res.connections || []; // ⬅️ Ambil 'connections' tambahan
 
             chart = new d3.OrgChart()
@@ -546,12 +693,12 @@
                 .compactMarginBetween((d) => 35)
                 .compactMarginPair((d) => 30)
                 .neighbourMargin((a, b) => 20)
-                .nodeContent(function (d) {
+                .nodeContent(function(d) {
                     const members = d.data.members || [];
                     const level = d.depth;
                     const bgColor = d.data.bgColor || '#f5f5f5';
 
-               
+
                     return `
                         <div style='width:${d.width}px;height:${d.height}px;padding-top:25px;padding-left:1px;padding-right:1px'>
                             <div style="
@@ -571,13 +718,13 @@
                                 <div style="font-size:12px;color:#333">                                    
                                     <div style="margin-top:10px;">
                                         ${members.map(m => `
-                                            <div style="display:flex;align-items:center;margin-bottom:6px;">
-                                                <img src="${m.image}" style="width:30px;height:30px;border-radius:50%;margin-right:8px;" />
-                                                <span style="font-size:12px; color:${m.name.toUpperCase() === 'VACANT' ? 'red' : '#000'};">
-                                                    ${m.name} (${m.company})
-                                                </span>
-                                            </div>
-                                        `).join('')}
+                                                                                                                                                                                                                                                                                                                                                                                <div style="display:flex;align-items:center;margin-bottom:6px;">
+                                                                                                                                                                                                                                                                                                                                                                                    <img src="${m.image}" style="width:30px;height:30px;border-radius:50%;margin-right:8px;" />
+                                                                                                                                                                                                                                                                                                                                                                                    <span style="font-size:12px; color:${m.name.toUpperCase() === 'VACANT' ? 'red' : '#000'};">
+                                                                                                                                                                                                                                                                                                                                                                                        ${m.name} (${m.company})
+                                                                                                                                                                                                                                                                                                                                                                                    </span>
+                                                                                                                                                                                                                                                                                                                                                                                </div>
+                                                                                                                                                                                                                                                                                                                                                                            `).join('')}
                                     </div>
                                 </div>
                             </div>
@@ -591,16 +738,16 @@
                 .data(data)
                 .expandAll()
                 .render();
-           
+
             chart.connections(connections).render();
-            
+
         });
 
         function openModal(id) {
             alert('Clicked node ID: ' + id);
         }
     </script>
-  
+
     <script>
         function openModal(id) {
             currentDeptId = id;
@@ -736,11 +883,10 @@
                     alert('Gagal menyimpan data!');
                 }
             });
-        });     
-
+        });
     </script>
 
-    
+
 
     <script>
         function switchTab(tab) {
@@ -783,7 +929,7 @@
                 data: formData,
                 success: function(response) {
                     closeModal();
-                    refreshChart();                    
+                    refreshChart();
                     toastr.success("Add Sub Departement Successfully!");
                 },
                 error: function(xhr) {
@@ -792,7 +938,6 @@
                 }
             });
         });
-       
     </script>
 
     <script>
@@ -800,6 +945,7 @@
             const selectedText = selectElement.options[selectElement.selectedIndex].text;
             $('#subgrade_name').val(selectedText);
         }
+
         function refreshChart() {
             console.log("🌀 Memanggil refreshChart()");
             d3.json("{{ route('orgchart.json') }}")
@@ -818,12 +964,12 @@
                         .compactMarginBetween((d) => 35)
                         .compactMarginPair((d) => 30)
                         .neighbourMargin((a, b) => 20)
-                        .nodeContent(function (d) {
+                        .nodeContent(function(d) {
                             const members = d.data.members || [];
                             const level = d.depth;
                             const bgColor = d.data.bgColor || '#f5f5f5';
 
-                    
+
                             return `
                                 <div style='width:${d.width}px;height:${d.height}px;padding-top:25px;padding-left:1px;padding-right:1px'>
                                     <div style="
@@ -839,13 +985,13 @@
                                         <div style="font-size:12px;color:#333">                                    
                                             <div style="margin-top:10px;">
                                                 ${members.map(m => `
-                                                    <div style="display:flex;align-items:center;margin-bottom:6px;">
-                                                        <img src="${m.image}" style="width:30px;height:30px;border-radius:50%;margin-right:8px;" />
-                                                        <span style="font-size:12px; color:${m.name.toUpperCase() === 'VACANT' ? 'red' : '#000'};">
-                                                            ${m.name} (${m.company})
-                                                        </span>
-                                                    </div>
-                                                `).join('')}
+                                                                                                                                                                                                                                                                                                                                                                                        <div style="display:flex;align-items:center;margin-bottom:6px;">
+                                                                                                                                                                                                                                                                                                                                                                                            <img src="${m.image}" style="width:30px;height:30px;border-radius:50%;margin-right:8px;" />
+                                                                                                                                                                                                                                                                                                                                                                                            <span style="font-size:12px; color:${m.name.toUpperCase() === 'VACANT' ? 'red' : '#000'};">
+                                                                                                                                                                                                                                                                                                                                                                                                ${m.name} (${m.company})
+                                                                                                                                                                                                                                                                                                                                                                                            </span>
+                                                                                                                                                                                                                                                                                                                                                                                        </div>
+                                                                                                                                                                                                                                                                                                                                                                                    `).join('')}
                                             </div>
                                         </div>
                                     </div>
@@ -864,8 +1010,6 @@
                     console.error('❌ Gagal render ulang chart:', err);
                 });
         }
-
-
     </script>
 
 
@@ -992,16 +1136,16 @@
         $(document).on('click', '.btn-edit', function() {
             const id = $(this).data('id');
             $('#edit_id').val(id);
-             $('#edit_name').val($(this).data('name')).trigger('change'); 
+            $('#edit_name').val($(this).data('name')).trigger('change');
             $('#edit_company').val($(this).data('company'));
             $('#edit_position').val($(this).data('position'));
             $('#editModal').removeClass('hidden');
         });
 
         function closeEditModal() {
-            $('#editModal').addClass('hidden');             
+            $('#editModal').addClass('hidden');
             $('#editEmployeeForm')[0].reset();
-            $('#edit_name').val(null).trigger('change'); 
+            $('#edit_name').val(null).trigger('change');
         }
 
         // Submit Update
@@ -1028,7 +1172,7 @@
             });
         });
 
-         $(document).ready(function () {
+        $(document).ready(function() {
             $('#edit_name').select2({
                 dropdownParent: $('#editModal'),
                 width: '100%'
@@ -1038,7 +1182,7 @@
     <script>
         $(document).on('click', '.btn-delete', function() {
             // const id = $('#edit_id').val();
-            const id = $(this).data('id');            
+            const id = $(this).data('id');
             if (confirm('Yakin ingin menghapus employee ini?')) {
                 $.ajax({
                     url: `/orgchart/employee/delete/${id}`,
@@ -1114,13 +1258,13 @@
         });
     </script>
 
-    <script>   
-        $(document).ready(function () {
+    <script>
+        $(document).ready(function() {
             // Tombol Add Purpose
-            $('#addJobPurpose').on('click', function () {
+            $('#addJobPurpose').on('click', function() {
                 $('#jobPurposeList').append(`
                     <div class="flex gap-2">
-                        <textarea name="job_purpose[]" class="w-full border rounded p-2" placeholder="Deskripsikan tujuan pekerjaan" required></textarea>
+                        <textarea name="job_purpose[]" class="w-full border border-gray-300  rounded p-2" placeholder="Deskripsikan tujuan pekerjaan" required></textarea>
                         <button type="button" class="removePurpose text-red-600">🗑️</button>
                     </div>
                 `);
@@ -1128,7 +1272,7 @@
             });
 
             // Tombol Remove Purpose
-            $(document).on('click', '.removePurpose', function () {
+            $(document).on('click', '.removePurpose', function() {
                 $(this).closest('div').remove();
                 toggleRemoveButtons();
             });
@@ -1142,7 +1286,6 @@
                 }
             }
         });
-
     </script>
     <script>
         $('#formAddSpec').submit(function(e) {
@@ -1176,13 +1319,13 @@
         });
     </script>
     <script>
-        $(document).on('click', '.btn-profile', function () {
+        $(document).on('click', '.btn-profile', function() {
             const empId = $(this).data('id');
 
             $.ajax({
                 url: `/orgchart/job-profile/${empId}`,
                 method: 'GET',
-                success: function (res) {
+                success: function(res) {
                     const profiles = res.profiles || [];
                     const spec = res.spec || {};
 
@@ -1213,15 +1356,14 @@
 
                     $('#modalJobProfile').removeClass('hidden');
                 },
-                error: function () {
+                error: function() {
                     toastr.error('Gagal memuat job profile.');
                 }
             });
         });
-
     </script>
     <script>
-        $(document).on('click', '.btn-delete-jobpurpose', function () {
+        $(document).on('click', '.btn-delete-jobpurpose', function() {
             const id = $(this).data('id');
             if (confirm('Yakin ingin menghapus Job Purpose ini?')) {
                 $.ajax({
@@ -1230,11 +1372,11 @@
                     data: {
                         _token: `{{ csrf_token() }}`
                     },
-                    success: function (res) {
+                    success: function(res) {
                         toastr.success(res.message || 'Deleted');
                         $('.btn-profile[data-id]').trigger('click'); // reload modal content
                     },
-                    error: function () {
+                    error: function() {
                         toastr.error('Gagal menghapus Job Purpose.');
                     }
                 });
@@ -1269,9 +1411,9 @@
 
         $('#btnConfirmChangeParent').click(() => {
             const newParentId = $('#selectNewParentDept').val();
-            console.log('newParentId',newParentId)
-            console.log('currentParentId',currentParentId)
-            console.log('currentDeptId_parent',currentDeptId_parent)
+            console.log('newParentId', newParentId)
+            console.log('currentParentId', currentParentId)
+            console.log('currentDeptId_parent', currentDeptId_parent)
             if (!newParentId || newParentId === currentParentId) {
                 alert('Select a different parent department');
                 return;
@@ -1296,7 +1438,6 @@
                 }
             });
         });
-
     </script>
 
 </x-app-layout>
