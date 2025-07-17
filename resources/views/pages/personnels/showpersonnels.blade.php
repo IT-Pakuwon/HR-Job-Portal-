@@ -86,8 +86,7 @@
                     </header>
 
                     <div class="space-y-4 p-4"> {{-- Increased padding and consistent vertical spacing --}}
-
-                        <div class="grid grid-cols-1 gap-4 sm:grid-cols-3"> {{-- Increased gap --}}
+                        <div class="grid grid-cols-3 gap-4 sm:grid-cols-3"> {{-- Increased gap --}}
                             @php
                                 $jobDetails = [
                                     [
@@ -118,17 +117,15 @@
                             @endforeach
                         </div>
 
-                        <div class="grid grid-cols-1 gap-6 md:grid-cols-2"> {{-- Adjusted to 2 columns on medium screens --}}
+                        <div class="grid grid-cols-2 gap-6 md:grid-cols-2"> {{-- Adjusted to 2 columns on medium screens --}}
                             <div class="flex flex-col gap-6"> {{-- Consistent gap for items within this column --}}
                                 @php
                                     $jobDetail = [
                                         [
-                                            'icon' => 'clipboard-list',
                                             'label' => 'Job Type',
                                             'value' => $personnel->job_type,
                                         ],
                                         [
-                                            'icon' => 'user-check',
                                             'label' => 'Immediate Superior',
                                             'value' => $personnel->immediate_superior,
                                         ],
@@ -137,8 +134,6 @@
                                 @foreach ($jobDetail as $details)
                                     <div
                                         class="transition- hover:-md flex items-center gap-4 rounded-lg border border-gray-200 bg-gray-50 p-4 duration-200 dark:border-gray-700 dark:bg-gray-800">
-                                        <i
-                                            class="lucide lucide-{{ $details['icon'] }} h-7 w-7 flex-shrink-0 text-indigo-500 dark:text-indigo-400"></i>
                                         <div>
                                             <p class="text-xs font-medium text-gray-500 dark:text-gray-400">
                                                 {{ $details['label'] }}</p>
@@ -152,12 +147,10 @@
                                 @php
                                     $jobDetail2 = [
                                         [
-                                            'icon' => 'gauge',
                                             'label' => 'Job Level',
                                             'value' => $personnel->job_level,
                                         ],
                                         [
-                                            'icon' => 'map-pin',
                                             'label' => 'State Position',
                                             'value' => $personnel->state_position,
                                         ],
@@ -166,8 +159,6 @@
                                 @foreach ($jobDetail2 as $details)
                                     <div
                                         class="transition- hover:-md flex items-center gap-4 rounded-lg border border-gray-200 bg-gray-50 p-4 duration-200 dark:border-gray-700 dark:bg-gray-800">
-                                        <i
-                                            class="lucide lucide-{{ $details['icon'] }} h-7 w-7 flex-shrink-0 text-indigo-500 dark:text-indigo-400"></i>
                                         <div>
                                             <p class="text-xs font-medium text-gray-500 dark:text-gray-400">
                                                 {{ $details['label'] }}</p>
@@ -186,7 +177,7 @@
                                 {{-- Larger, bolder title --}}
                                 <span class="text-emerald-500">📊</span> Job Numbers
                             </h3>
-                            <div class="grid grid-cols-1 gap-4 sm:grid-cols-3"> {{-- Consistent gap --}}
+                            <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
                                 @php
                                     $jobNumbers = [
                                         ['label' => 'Total Required', 'value' => $personnel->required],

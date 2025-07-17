@@ -1,76 +1,75 @@
 <x-app-layout>
-    <div class="max-w-9xl mx-auto w-full py-1">
-        <div class="grid">
-            <div class="max-w-9xl mx-auto w-full px-2 py-1 sm:px-6 lg:px-2">
-                <div class="gap">
-                    <div
-                        class="flex w-full flex-col gap-2 overflow-hidden sm:col-span-1 lg:row-span-2 xl:row-span-2 xl:flex-row">
-                        <div class="flex w-full flex-col">
+    <div class="max-w-9xl mx-auto px-4 py-4 sm:px-6 lg:px-8">
+        <div class="gap">
+            <div
+                class="rounded-lgsm:col-span-1 flex w-full flex-col gap-2 overflow-hidden lg:row-span-2 xl:row-span-2 xl:flex-row dark:bg-gray-800">
+                <div class="flex w-full flex-col">
+                    <div x-data="{ tab: 'tab1', content1Loaded: true, content2Loaded: false, content3Loaded: false }">
+                        <div
+                            class="flex items-center rounded-t-lg border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
+                            <button @click="tab = 'tab1'; content1Loaded = true"
+                                :class="tab === 'tab1' ?
+                                    'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400' :
+                                    'text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200'"
+                                class="whitespace-nowrap px-3 py-3 text-lg font-medium transition-colors duration-200 focus:outline-none sm:px-4 sm:text-base">
+                                Summary
+                            </button>
+                            <button @click="tab = 'tab2'; content2Loaded = true"
+                                :class="tab === 'tab2' ?
+                                    'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400' :
+                                    'text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200'"
+                                class="whitespace-nowrap px-3 py-3 text-lg font-medium transition-colors duration-200 focus:outline-none sm:px-4 sm:text-base">
+                                Applicant Profile
+                            </button>
+                            <button @click="tab = 'tab3'; content3Loaded = true"
+                                :class="tab === 'tab3' ?
+                                    'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400' :
+                                    'text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200'"
+                                class="whitespace-nowrap px-3 py-3 text-lg font-medium transition-colors duration-200 focus:outline-none sm:px-4 sm:text-base">
+                                Job Information
+                            </button>
+                        </div>
 
-                            <!-- Tabs Start -->
-                            <div x-data="{ tab: 'tab1', content1Loaded: false, content2Loaded: false, content3Loaded: false }">
-                                <!-- Tab Headers -->
-                                <div class="mb-4 flex space-x-2 border-b border-gray-300 dark:border-gray-600">
-                                    <button @click="tab = 'tab1'; content1Loaded = true"
-                                        :class="tab === 'tab1' ? 'border-b-2 border-blue-500 text-blue-600' :
-                                            'text-gray-600 dark:text-gray-300'"
-                                        class="px-4 py-2 text-lg font-medium focus:outline-none">
-                                        Summary
-                                    </button>
-                                    <button @click="tab = 'tab2'; content2Loaded = true"
-                                        :class="tab === 'tab2' ? 'border-b-2 border-blue-500 text-blue-600' :
-                                            'text-gray-600 dark:text-gray-300'"
-                                        class="px-4 py-2 text-lg font-medium focus:outline-none">
-                                        Applicant Profile
-                                    </button>
-                                    <button @click="tab = 'tab3'; content3Loaded = true"
-                                        :class="tab === 'tab3' ? 'border-b-2 border-blue-500 text-blue-600' :
-                                            'text-gray-600 dark:text-gray-300'"
-                                        class="px-4 py-2 text-lg font-medium focus:outline-none">
-                                        Job Information
-                                    </button>
-                                </div>
-                                {{-- <!-- Debugging: Display current tab state -->
-                                <p>Current Tab: <strong x-text="tab"></strong></p> --}}
-
-                                <!-- Tab Content -->
-                                <div>
-                                    <!-- Tab 1 -->
-                                    <div x-show="tab === 'tab1'" x-transition x-init="$nextTick(() => { initializeComponent() })"
-                                        class="rounded-lg bg-white p-4 shadow dark:bg-gray-800">
-                                        @include('pages.careers.approval')
-                                    </div>
-
-                                    <!-- Tab 2 -->
-                                    <div x-show="tab === 'tab2'" x-init="content2Loaded = true" x-cloak
-                                        class="rounded-lg bg-white p-4 shadow dark:bg-gray-800">
-                                        {{-- <p class="text-gray-800 dark:text-gray-200">Ini konten dari Tab 2.</p> --}}
-                                        <!-- Include page content for tab2 -->
-                                        <template x-if="content2Loaded">
-                                            @include('pages.applicants.applicantscareer')
-                                        </template>
-                                    </div>
-
-                                    <!-- Tab 3 -->
-                                    <div x-show="tab === 'tab3'" x-init="content3Loaded = true" x-cloak
-                                        class="rounded-lg bg-white p-4 shadow dark:bg-gray-800">
-                                        {{-- <p class="text-gray-800 dark:text-gray-200">Ini konten dari Tab 3.</p> --}}
-                                        <!-- Include page content for tab3 -->
-                                        <template x-if="content3Loaded">
-                                            @include('pages.jobpostings.jobinformationcareers')
-                                        </template>
-                                    </div>
-                                </div>
+                        <div>
+                            <div x-show="tab === 'tab1'" x-transition:enter="transition ease-out duration-300 transform"
+                                x-transition:enter-start="opacity-0 scale-95"
+                                x-transition:enter-end="opacity-100 scale-100"
+                                x-transition:leave="transition ease-in duration-200 transform"
+                                x-transition:leave-start="opacity-100 scale-100"
+                                x-transition:leave-end="opacity-0 scale-95" x-init="$nextTick(() => { initializeComponent() })"
+                                class="rounded-b-lg bg-white p-4 shadow-lg dark:bg-gray-800">
+                                @include('pages.careers.approval')
                             </div>
 
+                            <div x-show="tab === 'tab2'" x-init="content2Loaded = true" x-cloak
+                                x-transition:enter="transition ease-out duration-300 transform"
+                                x-transition:enter-start="opacity-0 scale-95"
+                                x-transition:enter-end="opacity-100 scale-100"
+                                x-transition:leave="transition ease-in duration-200 transform"
+                                x-transition:leave-start="opacity-100 scale-100"
+                                x-transition:leave-end="opacity-0 scale-95"
+                                class="rounded-b-lg bg-white p-4 shadow-lg dark:bg-gray-800">
+                                <template x-if="content2Loaded">
+                                    @include('pages.applicants.applicantscareer')
+                                </template>
+                            </div>
 
-                            <!-- Tabs End -->
-
+                            <div x-show="tab === 'tab3'" x-init="content3Loaded = true" x-cloak
+                                x-transition:enter="transition ease-out duration-300 transform"
+                                x-transition:enter-start="opacity-0 scale-95"
+                                x-transition:enter-end="opacity-100 scale-100"
+                                x-transition:leave="transition ease-in duration-200 transform"
+                                x-transition:leave-start="opacity-100 scale-100"
+                                x-transition:leave-end="opacity-0 scale-95"
+                                class="rounded-b-lg bg-white p-4 shadow-lg dark:bg-gray-800">
+                                <template x-if="content3Loaded">
+                                    @include('pages.jobpostings.jobinformationcareers')
+                                </template>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-
 </x-app-layout>

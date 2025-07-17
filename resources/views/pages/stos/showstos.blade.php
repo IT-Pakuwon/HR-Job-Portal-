@@ -44,7 +44,7 @@
         </div>
         <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
             <div class="lg:col-span-1">
-                <div class="flex h-full flex-col rounded-xl bg-white shadow-lg dark:bg-gray-800">
+                <div class="flex h-full flex-col rounded-xl bg-white dark:bg-gray-800">
                     <header
                         class="flex items-center justify-between rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
                         <h1 class="text-xl font-semibold text-gray-800 dark:text-gray-100">
@@ -74,7 +74,7 @@
                         </div>
 
                         <div
-                            class="absolute bottom-4 right-4 flex items-center space-x-2 rounded-xl bg-gray-900/60 p-2 shadow-xl backdrop-blur-sm">
+                            class="absolute bottom-4 right-7 flex items-center space-x-2 rounded-xl bg-gray-900/60 p-2 shadow-xl backdrop-blur-sm">
                             <button onclick="window.open('{{ route('orgchart.fullscreen') }}', '_blank')"
                                 class="flex h-10 w-10 items-center justify-center rounded-full bg-blue-600 text-white shadow-md transition-colors hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
@@ -152,8 +152,7 @@
             </div>
 
             <div class="lg:col-span-1">
-                <div x-data="{ activeTab: 'structure' }"
-                    class="rounded-xl bg-white shadow-lg transition-shadow duration-300 hover:shadow-xl dark:bg-gray-800">
+                <div x-data="{ activeTab: 'structure' }" class="rounded-xl bg-white dark:bg-gray-800">
 
                     <header
                         class="flex items-center rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
@@ -873,13 +872,13 @@
                                 <div style="font-size:12px;color:#333">
                                     <div style="margin-top:10px;">
                                         ${members.map(m => `
-                                            <div style="display:flex;align-items:center;margin-bottom:6px;">
-                                                <img src="${m.image}" style="width:30px;height:30px;border-radius:50%;margin-right:8px;" />
-                                                <span style="font-size:12px; color:${m.name.toUpperCase() === 'VACANT' ? 'red' : '#000'};">
-                                                    ${m.name} (${m.company})
-                                                </span>
-                                            </div>
-                                        `).join('')}
+                                                                    <div style="display:flex;align-items:center;margin-bottom:6px;">
+                                                                        <img src="${m.image}" style="width:30px;height:30px;border-radius:50%;margin-right:8px;" />
+                                                                        <span style="font-size:12px; color:${m.name.toUpperCase() === 'VACANT' ? 'red' : '#000'};">
+                                                                            ${m.name} (${m.company})
+                                                                        </span>
+                                                                    </div>
+                                                                `).join('')}
                                     </div>
                                 </div>
                             </div>

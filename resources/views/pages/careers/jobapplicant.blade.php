@@ -128,104 +128,6 @@
                     }
                 }
 
-                #jobpostingsTable_filter {
-                    margin-bottom: 20px;
-                    display: flex;
-                    justify-content: flex-start;
-                    /* Aligns items to the left */
-                    align-items: center;
-                    /* Vertically aligns items */
-                }
-
-                #jobpostingsTable_filter label {
-                    margin-right: 2px;
-                }
-
-                #jobpostingsTable_filter input {
-                    width: 200px;
-                    /* Adjust the width of the input box */
-                }
-
-
-                #jobpostingsTable_wrapper {
-                    margin-top: 20px;
-                    width: 100%;
-                }
-
-
-                #applicantsContainer_wrapper {
-                    margin-top: 20px;
-                    width: 100%;
-                }
-
-                /* Prevent text from wrapping */
-                #jobpostingsTable td {
-                    white-space: nowrap;
-                    /* Prevent text from wrapping */
-                    overflow: hidden;
-                    /* Hide overflow content */
-                    text-overflow: ellipsis;
-                    /* Display ellipsis ("...") for overflowing content */
-                }
-
-                /* Optional: Adjust the width for table cells */
-                #jobpostingsTable th,
-                #jobpostingsTable td {
-                    padding: 10px;
-                    /* Adjust padding for better appearance */
-                    max-width: 200px;
-                    /* You can set a maximum width to control overflow */
-                }
-
-
-                #jobpostingsTable_length {
-                    width: auto;
-                    display: flex;
-                    justify-content: flex-start;
-                }
-
-                #jobpostingsTable_length select {
-                    width: auto;
-                    padding: 5px;
-                    min-width: 80px;
-                }
-
-                #jobpostingsTable_length select option {
-                    padding: 5px;
-                    /* Mengatur jarak antar opsi */
-                }
-
-                #jobpostingsTable_info {
-                    margin-top: 10px;
-                    margin-bottom: 10px;
-                }
-
-                .dataTables_paginate {
-                    margin-top: 10px;
-                    margin-bottom: 10px;
-
-                }
-
-                #jobpostingsTable tbody tr td {
-                    padding: 8px 8px;
-                    /* Adjust padding for uniform height */
-                    line-height: 2;
-                    /* Optional, for better text alignment */
-                }
-
-                #jobpostingsTable tbody tr {
-                    transition: background-color 0.3s ease, color 0.3s ease;
-                }
-
-                #jobpostingsTable tbody tr:hover {
-                    background-color: #8f8f8f11;
-                    opacity: 100%;
-                    cursor: pointer;
-                }
-
-                #jobpostingsTable tbody tr:hover td {
-                    color: black;
-                }
 
                 /* Applicant Table */
                 #applicantsTable_filter {
@@ -248,7 +150,6 @@
 
 
                 #applicantsTable_wrapper {
-                    margin-top: 20px;
                     width: 100%;
                 }
 
@@ -389,67 +290,67 @@
                     display: none;
                 }
             </style>
-            <div id="container" class="mt-2 grid grid-cols-1 gap-4 xl:grid-cols-1">
-                <!-- TABEL: Applicants Only -->
-                <div id="applicantsContainer" class="overflow-x-auto rounded-xl bg-white p-4">
-                    <div class="flex items-center justify-between">
-                        <h1 class="text-2xl font-bold">Applicants</h1>
-                    </div>
-                    <div id="applicantsTableWrapper" class="overflow-x-auto rounded-xl bg-white">
-                        <table id="applicantsTable" class="min-w-full rounded">
-                            <thead>
-                                <tr>
-                                    <th>Docid</th>
-                                    <th>Date</th>
-                                    <th>Name</th>
-                                    <th>Education</th>
-                                    <th>Religion</th>
-                                    <th>Height</th>
-                                    <th>Weight</th>
-                                    <th>Last Working</th>
-                                    <th>Score</th>
-                                    <th>Step</th>
-                                </tr>
-                            </thead>
-                            <tbody></tbody>
-                        </table>
-                    </div>
+            <div class="mt-6 rounded-2xl bg-white dark:bg-gray-800">
+                <div
+                    class="flex flex-col items-start justify-between gap-4 border-b border-gray-200 p-4 sm:flex-row sm:items-center dark:border-gray-700">
+                    {{-- Changed text-3xl to text-xl --}}
+                    <h1 class="text-xl font-extrabold text-gray-700 dark:text-white">Applicant List</h1>
+                    <a"
+                        class="inline-flex items-center rounded-xl bg-indigo-600 px-6 py-2 text-base font-semibold text-white transition-colors duration-200 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                        List Job Posting
+                        </a>
                 </div>
 
-
-                <!-- TABEL KANAN: Applicant -->
-                <div id="applicantsContainer" class="overflow-x-auto rounded-xl bg-white p-4" style="display:none;">
-
-                    <div class="flex items-center justify-between">
-                        <h1 class="text-2xl font-bold">Applicants</h1>
-                        <div class="flex flex-row-reverse items-center justify-end gap-4 text-xl">
-                            <button id="detailApplicantsBtn" class="font-semibold text-blue-500 hover:text-blue-700">See
-                                Detail</button>
-                            <button id="closeApplicantsBtn"
-                                class="font-semibold text-red-500 hover:text-red-700">Close</button>
-
-                        </div>
-
-                    </div>
-                    <div id="applicantsTableWrapper" class="overflow-x-auto rounded-xl bg-white">
-                        <table id="applicantsTable" class="min-w-full rounded">
-                            <thead>
-                                <tr>
-                                    <th>Docid</th>
-                                    <th>Date</th>
-                                    <th>Name</th>
-                                    <th>Education</th>
-                                    <th>Religion</th>
-                                    <th>Height</th>
-                                    <th>Weight</th>
-                                    <th>Last Working</th>
-                                    <th>Score</th>
-                                    <th>Step</th>
-                                </tr>
-                            </thead>
-                            <tbody></tbody>
-                        </table>
-                    </div>
+                <div class="overflow-x-auto p-6"> {{-- Padding applied here instead of outer container --}}
+                    <table id="applicantsTable" class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                        <thead class="bg-gray-50 dark:bg-gray-700">
+                            <tr>
+                                <th scope="col"
+                                    class="w-32 px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                                    DocID
+                                </th>
+                                <th scope="col"
+                                    class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                                    Date
+                                </th>
+                                <th scope="col"
+                                    class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                                    Name
+                                </th>
+                                <th scope="col"
+                                    class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                                    Education
+                                </th>
+                                <th scope="col"
+                                    class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                                    Religion
+                                </th>
+                                <th scope="col"
+                                    class="w-32 px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                                    Height
+                                </th>
+                                <th scope="col"
+                                    class="w-32 px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                                    Weight
+                                </th>
+                                <th scope="col"
+                                    class="w-32 px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                                    Last Working
+                                </th>
+                                <th scope="col"
+                                    class="w-32 px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                                    Score
+                                </th>
+                                <th scope="col"
+                                    class="w-32 px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                                    Step
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-800">
+                            {{-- Table rows will be populated here by JavaScript/DataTables --}}
+                        </tbody>
+                    </table>
                 </div>
             </div>
 
@@ -481,21 +382,39 @@
                         order: [
                             [8, 'desc']
                         ],
-                        columns: [
-                            {
+                        columns: [{
                                 data: 'docid',
                                 render: function(data, type, row) {
                                     return `<a href="/showcareers/${row.id}" target="_blank" class="px-4 py-2.5 bg-indigo-500 text-white rounded hover:bg-indigo-700">${data}</a>`;
                                 }
                             },
-                            { data: 'apply_date' },
-                            { data: 'fullname' },
-                            { data: 'education_name' },
-                            { data: 'religion' },
-                            { data: 'height', className: 'small-col' },
-                            { data: 'weight', className: 'small-col' },
-                            { data: 'company_name' },
-                            { data: 'match_score_percentage', className: 'small-col' },
+                            {
+                                data: 'apply_date'
+                            },
+                            {
+                                data: 'fullname'
+                            },
+                            {
+                                data: 'education_name'
+                            },
+                            {
+                                data: 'religion'
+                            },
+                            {
+                                data: 'height',
+                                className: 'small-col'
+                            },
+                            {
+                                data: 'weight',
+                                className: 'small-col'
+                            },
+                            {
+                                data: 'company_name'
+                            },
+                            {
+                                data: 'match_score_percentage',
+                                className: 'small-col'
+                            },
                             {
                                 data: 'prev_apply_step',
                                 render: function(data) {

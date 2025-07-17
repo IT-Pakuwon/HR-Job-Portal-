@@ -5,14 +5,14 @@
 </style>
 
 <!-- Wrapper untuk seluruh bagian payroll -->
-<div class="mt-8 space-y-6">
+<div class="space-y-6">
 
     <!-- Bagian PDF Preview -->
     <div class="flex flex-wrap gap-6">
         <!-- Payroll PDF -->
-        <div class="min-w-[300px] flex-1 rounded-lg bg-white p-4 shadow-sm">
+        <div class="min-w-[300px] flex-1 rounded-lg bg-white p-4 shadow-sm dark:bg-transparent">
             <div class="flex items-center justify-between">
-                <h3 class="font text-lg text-gray-700">Payroll Confirmation PDF</h3>
+                <h3 class="font text-lg text-gray-700 dark:text-white">Payroll Confirmation PDF</h3>
                 <form id="payrollpdf" class="flex-shrink-0">
                     @csrf
                     <input type="hidden" name="applicant_id" value="{{ $applicant->applicant_id ?? '' }}">
@@ -31,9 +31,9 @@
         </div>
 
         <!-- Offering Letter PDF -->
-        <div class="min-w-[300px] flex-1 rounded-lg bg-white p-4 shadow-sm">
+        <div class="min-w-[300px] flex-1 rounded-lg bg-white p-4 shadow-sm dark:bg-transparent">
             <div class="flex items-center justify-between">
-                <h3 class="font text-lg text-gray-700">Offering Letter PDF</h3>
+                <h3 class="font text-lg text-gray-700 dark:text-white">Offering Letter PDF</h3>
                 <form id="offeringForm" class="flex-shrink-0">
                     @csrf
                     <input type="hidden" name="applicant_id" value="{{ $applicant->applicant_id ?? '' }}">
@@ -54,10 +54,10 @@
     <!-- Payroll Section -->
     <div class="bg-whitenrounded-lg space-y-4 shadow">
         <div class="flex items-center justify-between">
-            <h3 class="text-lg font-semibold text-gray-700">Payroll Confirmation Data</h3>
+            <h3 class="text-lg font-semibold text-gray-700 dark:text-white">Payroll Confirmation Data</h3>
             <button id="addPayrollBtn"
-                class="rounded-md bg-green-600 px-4 py-2 text-white transition hover:bg-green-700">
-                + Tambah
+                class="inline-flex items-center rounded-xl bg-indigo-600 px-6 py-2 text-base font-semibold text-white transition-colors duration-200 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                <i class="fas fa-plus pr-2"></i>Add
             </button>
         </div>
         <div id="payrollModal"
@@ -280,7 +280,7 @@
             error: function(xhr) {
                 if (xhr.status === 409 && xhr.responseJSON?.message) {
                     toastr.warning(xhr.responseJSON
-                    .message); // pesan duplikat payroll atau onboarding
+                        .message); // pesan duplikat payroll atau onboarding
                 } else {
                     toastr.error('Terjadi kesalahan sistem. Coba lagi.');
                 }
