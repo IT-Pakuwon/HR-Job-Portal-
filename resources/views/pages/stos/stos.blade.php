@@ -310,15 +310,25 @@
 
             <script>
                 $(document).ready(function() {
+                    // Set default status filter to 'P' (On Progress)
+                    $('.status-filter[data-status="P"]').addClass('active');
+
                     let table = $('#stosTable').DataTable({
-                        ajax: "{{ route('stos.json') }}?status=P",
+                        ajax: {
+                            url: "{{ route('stos.json') }}",
+                            type: 'GET',
+                            data: function(d) {
+                                d.status = $('.status-filter.active').data('status') || '';
+                            }
+                        },
                         processing: true,
-                        serverSide: false,
+                        serverSide: true,
                         responsive: true,
                         order: [
                             [0, 'desc']
                         ],
-                        columns: [{
+                        columns: [
+                            {
                                 data: 'id',
                                 render: function(data, type, row) {
                                     let url = `/showstos/${row.id}`;
@@ -326,7 +336,6 @@
                                         'px-4 py-2.5 bg-indigo-500 text-white rounded hover:bg-indigo-700';
                                     let buttonText = row.sto_id;
 
-                                    // **Cek apakah user yang login sama dengan created_user dan status = D**
                                     if (row.status === 'D' && row.created_user === currentUser) {
                                         url = `/editstos/${row.id}`;
                                         buttonClass =
@@ -392,21 +401,10 @@
 
                     $('.status-filter').on('click', function(e) {
                         e.preventDefault();
-
-                        let selectedStatus = $(this).data('status');
-
-                        // URL baru dengan query param status
-                        let newUrl = "{{ route('stos.json') }}";
-                        newUrl += "?status=" + encodeURIComponent(selectedStatus ?? '');
-
-                        console.log("Loading DataTable with URL:", newUrl); // for debug
-
-                        table.ajax.url(newUrl).load();
+                        $('.status-filter').removeClass('active');
+                        $(this).addClass('active');
+                        table.ajax.reload();
                     });
-
-
-
-
                 });
             </script>
         </div>

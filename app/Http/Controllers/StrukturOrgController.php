@@ -54,18 +54,48 @@ class StrukturOrgController extends Controller
     
     public function json(Request $request)
     {
-        // $status = $request->query('status', 'P');
+        // DataTables server-side protocol
         $status = $request->has('status') ? $request->query('status') : 'P';
-
         $query = TrSto::query();
-
         if (!empty($status)) {
             $query->where('status', $status);
         }
 
-        $sto = $query->orderBy('id', 'desc')->get();
+        // Search
+        $search = $request->input('search.value');
+        if ($search) {
+            $query->where(function($q) use ($search) {
+                $q->where('sto_id', 'like', "%$search%")
+                  ->orWhere('cpnyid', 'like', "%$search%")
+                  ->orWhere('departementid', 'like', "%$search%")
+                  ->orWhere('user', 'like', "%$search%")
+                  ->orWhere('status', 'like', "%$search%")
+                  ->orWhere('created_user', 'like', "%$search%")
+                  ->orWhere('sto_date', 'like', "%$search%")
+                  ->orWhere('id', 'like', "%$search%")
+                ;
+            });
+        }
 
-        return response()->json(['data' => $sto]);
+        // Sorting
+        $orderColumnIndex = $request->input('order.0.column');
+        $orderDir = $request->input('order.0.dir', 'desc');
+        $columns = ['id', 'sto_date', 'cpnyid', 'departementid', 'user', 'status'];
+        $orderColumn = $columns[$orderColumnIndex ?? 0] ?? 'id';
+        $query->orderBy($orderColumn, $orderDir);
+
+        // Pagination
+        $start = intval($request->input('start', 0));
+        $length = intval($request->input('length', 10));
+        $total = $query->count();
+        $data = $query->skip($start)->take($length)->get();
+
+        return response()->json([
+            'draw' => intval($request->input('draw', 1)),
+            'recordsTotal' => $total,
+            'recordsFiltered' => $total,
+            'data' => $data,
+        ]);
     }
 
 

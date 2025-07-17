@@ -836,76 +836,97 @@
     <script>
         var chart = null;
 
-        d3.json("{{ route('orgchart.json') }}").then((res) => {
-            const data = res.nodes; // ⬅️ Ambil 'nodes' dari response
-            const connections = res.connections || []; // ⬅️ Ambil 'connections' tambahan
+        function renderOrgChart() {
+            d3.json("{{ route('orgchart.json') }}").then((res) => {
+                const data = res.nodes;
+                const connections = res.connections || [];
 
-            chart = new d3.OrgChart()
-                .nodeWidth((d) => {
-                    return 300 + (d.data.members?.length || 0) * 10;
-                })
-                .nodeHeight((d) => {
-                    return 100 + (d.data.members?.length || 0) * 30;
-                })
-                .childrenMargin((d) => 40)
-                .compactMarginBetween((d) => 35)
-                .compactMarginPair((d) => 30)
-                .neighbourMargin((a, b) => 20)
-                .nodeContent(function(d) {
-                    const members = d.data.members || [];
-                    const level = d.depth;
-                    const bgColor = d.data.bgColor || '#f5f5f5';
-                    return `
-                        <div style='width:${d.width}px;height:${d.height}px;padding-top:25px;padding-left:1px;padding-right:1px'>
-                            <div style="
-                                background-color:${bgColor};
-                                width:${d.width - 2}px;
-                                height:${d.height - 25}px;
-                                border-radius:10px;
-                                border:1px solid #E4E2E9;
-                                padding:15px;
-                                overflow:visible;
-                            ">
-                                ${d.data.position
-                                    ? `<div style="font-size:18px;color:#08011E;margin-bottom:5px">${d.data.name} ${d.data.position}</div>`
-                                    : `<div style="font-size:18px;color:#08011E;text-align:center;margin-top:10px;">${d.data.name}</div>`
-                                }
-                                <div style="font-size:12px;color:#333">
-                                    <div style="margin-top:10px;">
-                                        ${members.map(m => `
-                                            <div style="display:flex;align-items:center;margin-bottom:6px;">
-                                                <img src="${m.image}" style="width:30px;height:30px;border-radius:50%;margin-right:8px;" />
-                                                <span style="font-size:12px; color:${m.name.toUpperCase() === 'VACANT' ? 'red' : '#000'};">
-                                                    ${m.name} (${m.company})
-                                                </span>
-                                            </div>
-                                        `).join('')}
+                // Get container size
+                var container = document.querySelector('.chart-container');
+                var width = container.offsetWidth;
+                var height = container.offsetHeight;
+
+                // Remove previous chart if exists
+                while (container.firstChild) {
+                    container.removeChild(container.firstChild);
+                }
+
+                chart = new d3.OrgChart()
+                    .nodeWidth((d) => {
+                        return 300 + (d.data.members?.length || 0) * 10;
+                    })
+                    .nodeHeight((d) => {
+                        return 100 + (d.data.members?.length || 0) * 30;
+                    })
+                    .childrenMargin((d) => 40)
+                    .compactMarginBetween((d) => 35)
+                    .compactMarginPair((d) => 30)
+                    .neighbourMargin((a, b) => 20)
+                    .nodeContent(function(d) {
+                        const members = d.data.members || [];
+                        const level = d.depth;
+                        const bgColor = d.data.bgColor || '#f5f5f5';
+                        return `
+                            <div style='width:${d.width}px;height:${d.height}px;padding-top:25px;padding-left:1px;padding-right:1px'>
+                                <div style="
+                                    background-color:${bgColor};
+                                    width:${d.width - 2}px;
+                                    height:${d.height - 25}px;
+                                    border-radius:10px;
+                                    border:1px solid #E4E2E9;
+                                    padding:15px;
+                                    overflow:visible;
+                                ">
+                                    ${d.data.position
+                                        ? `<div style="font-size:18px;color:#08011E;margin-bottom:5px">${d.data.name} ${d.data.position}</div>`
+                                        : `<div style="font-size:18px;color:#08011E;text-align:center;margin-top:10px;">${d.data.name}</div>`
+                                    }
+                                    <div style="font-size:12px;color:#333">
+                                        <div style="margin-top:10px;">
+                                            ${members.map(m => `
+                                                <div style="display:flex;align-items:center;margin-bottom:6px;">
+                                                    <img src="${m.image}" style="width:30px;height:30px;border-radius:50%;margin-right:8px;" />
+                                                    <span style="font-size:12px; color:${m.name.toUpperCase() === 'VACANT' ? 'red' : '#000'};">
+                                                        ${m.name} (${m.company})
+                                                    </span>
+                                                </div>
+                                            `).join('')}
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    `;
-                })
-                .onNodeClick((d) => {
-                    openModal(d.data.id);
-                })
-                .container('.chart-container')
-                .data(data)
-                // .disableZoom()
-                .render();
+                        `;
+                    })
+                    .onNodeClick((d) => {
+                        openModal(d.data.id);
+                    })
+                    .container('.chart-container')
+                    .data(data)
+                    .expandAll()
+                    .width(width)
+                    .height(height)
+                    .render();
 
-            chart.connections(connections).render();
-            chart.expandAll().fit()
-            setTimeout(() => {
-                d3.select(".chart-container svg")
-                    .on("wheel.zoom", null)
-                    .on("mousedown.zoom", null)
-                    .on("touchstart.zoom", null)
-                    .on("touchmove.zoom", null)
-                    .on("touchend.zoom", null)
-                    .on("dblclick.zoom", null);
-            }, 100);
+                chart.connections(connections).render();
+                setTimeout(() => {
+                    d3.select(".chart-container svg")
+                        .on("wheel.zoom", null)
+                        .on("mousedown.zoom", null)
+                        .on("touchstart.zoom", null)
+                        .on("touchmove.zoom", null)
+                        .on("touchend.zoom", null)
+                        .on("dblclick.zoom", null);
+                }, 100);
+            });
+        }
 
+        // Initial render
+        $(document).ready(function() {
+            renderOrgChart();
+            // Optionally, re-render on window resize for responsiveness
+            $(window).on('resize', function() {
+                renderOrgChart();
+            });
         });
 
         function openModal(id) {
