@@ -390,30 +390,32 @@
                 }
             </style>
             <div id="container" class="mt-2 grid grid-cols-1 gap-4 xl:grid-cols-1">
-                <!-- TABEL: Applicants Only -->
-                <div id="applicantsContainer" class="overflow-x-auto rounded-xl bg-white p-4">
-                    <div class="flex items-center justify-between">
-                        <h1 class="text-2xl font-bold">Applicants</h1>
+                <!-- TABEL KIRI: Job Posting -->
+                <div id="jobpostingTableWrapper" class="overflow-x-auto rounded-xl bg-white p-4">
+                    <div class="mb-4 flex items-center justify-end">
+                        {{-- <label for="cpnyidFilter" class="mr-2 font-semibold text-gray-700"></label> --}}
+                        <select id="cpnyidFilter" class="rounded border px-3 py-1">
+                            <option value="">All</option>
+                            <option value="AW">AW</option>
+                            <option value="EP">EP</option>
+                            <option value="PSA">PSA</option>
+                            <option value="GPS">GPS</option>
+                        </select>
                     </div>
-                    <div id="applicantsTableWrapper" class="overflow-x-auto rounded-xl bg-white">
-                        <table id="applicantsTable" class="min-w-full rounded">
-                            <thead>
-                                <tr>
-                                    <th>Docid</th>
-                                    <th>Date</th>
-                                    <th>Name</th>
-                                    <th>Education</th>
-                                    <th>Religion</th>
-                                    <th>Height</th>
-                                    <th>Weight</th>
-                                    <th>Last Working</th>
-                                    <th>Score</th>
-                                    <th>Step</th>
-                                </tr>
-                            </thead>
-                            <tbody></tbody>
-                        </table>
-                    </div>
+                    <h1 class="text-2xl font-bold">List Job Posting</h1>
+                    <table id="jobpostingsTable" class="min-w-full rounded">
+                        <thead>
+                            <tr>
+                                <th>DocID</th>
+                                <th>Date</th>
+                                <th>Company</th>
+                                <th>Departement</th>
+                                <th>Title</th>
+                                <th>Level</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
                 </div>
 
 
@@ -461,41 +463,95 @@
 
             <script>
                 $(document).ready(function() {
-                    let currentStatus = '';
-                    let applicantTable = $('#applicantsTable').DataTable({
-                        responsive: true,
+                    let jobTable = $('#jobpostingsTable').DataTable({
+                        ajax: "{{ route('jobapplicant.json') }}?status=P",
                         processing: true,
-                        serverSide: true,
+                        serverSide: false,
+                        responsive: true,
+                        order: [
+                            [0, 'desc']
+                        ],
+                        columns: [{
+                                data: 'id',
+                                render: function(data, type, row) {
+                                    let url = `/showjobpostings/${row.id}`;
+                                    let buttonClass =
+                                        'px-4 py-2.5 bg-indigo-500 text-white rounded hover:bg-indigo-700';
+                                    let buttonText = row.docid;
+
+                                    return `<a href="${url}" class="px-3 py-1 ${buttonClass} text-white rounded">${buttonText}</a>`;
+                                }
+                            },
+                            {
+                                data: 'date',
+                                className: 'no-pointer'
+                            },
+                            {
+                                data: 'cpnyid',
+                                className: 'no-pointer'
+                            },
+                            {
+                                data: 'departementid',
+                                className: 'no-pointer'
+                            },
+                            {
+                                data: 'job_title',
+                                className: 'no-pointer'
+                            },
+                            {
+                                data: 'job_level',
+                                className: 'no-pointer'
+                            },
+                        ]
+                    });
+
+                    let applicantTable = $('#applicantsTable').DataTable({
+                        responsive: true, // penting!
+                        processing: true,
                         searching: true,
                         paging: true,
                         info: true,
                         lengthChange: true,
                         pageLength: 10,
-                        ajax: {
-                            url: "{{ route('jobapplicant.json') }}",
-                            type: 'GET',
-                            data: function(d) {
-                                d.status = currentStatus;
-                            }
-                        },
+                        data: [],
                         order: [
                             [8, 'desc']
                         ],
-                        columns: [
-                            {
+                        columns: [{
                                 data: 'docid',
                                 render: function(data, type, row) {
                                     return `<a href="/showcareers/${row.id}" target="_blank" class="px-4 py-2.5 bg-indigo-500 text-white rounded hover:bg-indigo-700">${data}</a>`;
                                 }
                             },
-                            { data: 'apply_date' },
-                            { data: 'fullname' },
-                            { data: 'education_name' },
-                            { data: 'religion' },
-                            { data: 'height', className: 'small-col' },
-                            { data: 'weight', className: 'small-col' },
-                            { data: 'company_name' },
-                            { data: 'match_score_percentage', className: 'small-col' },
+                            {
+                                data: 'apply_date'
+                            },
+                            {
+                                data: 'fullname'
+                            },
+                            {
+                                data: 'education_name',
+                                // className: 'edu-col hidden'
+                            },
+                            {
+                                data: 'religion',
+                                // className: 'edu-col hidden'
+                            },
+                            {
+                                data: 'height',
+                                className: 'small-col'
+                            },
+                            {
+                                data: 'weight',
+                                className: 'small-col'
+                            },
+                            {
+                                data: 'company_name',
+                            },
+                            {
+                                data: 'match_score_percentage',
+                                className: 'small-col'
+                            },
                             {
                                 data: 'prev_apply_step',
                                 render: function(data) {
@@ -511,30 +567,154 @@
                                         'OFF': 'Offering',
                                         'JOIN': 'Join'
                                     };
-                                    return `<span class=\"w-32 bg-blue-300/30 text-blue-600 text-base font-semibold px-4 py-2 text-center rounded\">${labelMap[data] || data}</span>`;
+                                    return `<span class="w-32 bg-blue-300/30 text-blue-600 text-base font-semibold px-4 py-2 text-center rounded">${labelMap[data] || data}</span>`;
                                 }
                             }
                         ],
+
                         rowCallback: function(row, data, index) {
                             if (data.is_read === 'N') {
-                                $(row).css('color', 'blue');
+                                $(row).css('color', 'blue'); // ❗ teks biru untuk is_read = N
                             } else {
-                                $(row).css('color', 'black');
+                                $(row).css('color', 'black'); // teks normal untuk is_read = Y
                             }
                         }
                     });
-                    $('#applicantsTable thead th').eq(5).addClass('small-col');
-                    $('#applicantsTable thead th').eq(6).addClass('small-col');
-                    $('#applicantsTable thead th').eq(8).addClass('small-col');
 
-                    // Event handler status-filter
+
+                    $('#applicantsTable thead th').eq(5).addClass('small-col'); // Height
+                    $('#applicantsTable thead th').eq(6).addClass('small-col'); // Weight
+                    $('#applicantsTable thead th').eq(8).addClass('small-col'); // Score
+
+                    // On clicking a Job Posting row, show applicants
+                    $('#jobpostingsTable tbody').on('click', 'tr', function() {
+                        let data = jobTable.row(this).data();
+
+                        if (data && data.docid) {
+                            let jobDocId = data.docid;
+
+                            $('#applicantsContainer').show();
+                            $('#container').removeClass('xl:grid-cols-1').addClass('xl:grid-cols-2');
+
+                            jobTable.columns.adjust();
+                            if (jobTable.responsive) {
+                                jobTable.responsive.recalc();
+                            }
+
+                            applicantTable.columns.adjust();
+                            if (applicantTable.responsive) {
+                                applicantTable.responsive.recalc();
+                            }
+
+                            $(window).trigger('resize');
+
+                            $.ajax({
+                                url: `/jobapplicant/applicants/${jobDocId}`,
+                                type: 'GET',
+                                success: function(res) {
+                                    applicantTable.clear().rows.add(res.data).draw();
+                                    applicantTable.columns.adjust().draw();
+
+
+                                },
+                                error: function() {
+                                    // alert('Failed to load applicants.');
+                                }
+                            });
+                        }
+                    });
+
+
+                    // Close Applicants panel button click
+                    // $('#closeApplicantsBtn').on('click', function() {
+                    //     $('#applicantsContainer').hide();
+                    //     $('#container').removeClass('xl:grid-cols-2').addClass('xl:grid-cols-1');
+                    // });
+
+                    $('#closeApplicantsBtn').on('click', function() {
+                        $('#jobpostingTableWrapper').show(); // Tampilkan tabel kiri
+                        // $('#applicantsContainer').show(); // Tampilkan tabel kanan
+                        $('#applicantsContainer').hide();
+                        // Reset layout jadi 2 kolom
+                        $('#container').removeClass('xl:grid-cols-2').addClass('xl:grid-cols-1');
+
+                        // Reset kolom applicants agar tidak span 2 kolom
+                        $('#applicantsContainer').removeClass('xl:col-span-2');
+                        // $('#applicantsTable thead th.edu-col, #applicantsTable tbody td.edu-col').addClass('hidden');
+                    });
+
+
+                    // Tombol Detail: perbesar applicantsTable dan sembunyikan jobpostingsTable
+                    $('#detailApplicantsBtn').on('click', function() {
+                        $('#jobpostingTableWrapper').hide(); // sembunyikan tabel kiri
+                        $('#applicantsContainer').removeClass('xl:grid-cols-2').addClass(
+                            'xl:col-span-2'); // optional: membuat lebar penuh
+                        // $('#applicantsTable thead th.edu-col, #applicantsTable tbody td.edu-col').removeClass('hidden');
+                        $('#detailApplicantsBtn').addClass('hidden');
+
+                    });
+
+                    $('#cpnyidFilter').on('change', function() {
+                        let selectedCpnyid = $(this).val();
+                        let selectedStatus = $('.status-filter.active').data('status') || 'P';
+
+                        let newUrl = "{{ route('jobapplicant.json') }}?status=" + encodeURIComponent(
+                            selectedStatus);
+                        if (selectedCpnyid) {
+                            newUrl += "&cpnyid=" + encodeURIComponent(selectedCpnyid);
+                        }
+
+                        jobTable.ajax.url(newUrl).load();
+
+                        updateCounts(selectedCpnyid); // <-- ini penting
+                    });
+
+
                     $('.status-filter').on('click', function(e) {
                         e.preventDefault();
+
                         $('.status-filter').removeClass('active');
                         $(this).addClass('active');
-                        currentStatus = $(this).data('status');
-                        applicantTable.ajax.reload();
+
+                        let selectedStatus = $(this).data('status');
+                        let selectedCpnyid = $('#cpnyidFilter').val();
+
+                        let newUrl = "{{ route('jobapplicant.json') }}?status=" + encodeURIComponent(
+                            selectedStatus);
+                        if (selectedCpnyid) {
+                            newUrl += "&cpnyid=" + encodeURIComponent(selectedCpnyid);
+                        }
+
+                        jobTable.ajax.url(newUrl).load();
                     });
+
+                    function updateCounts(cpnyid = '') {
+                        let url = "{{ route('jobapplicant.counts') }}";
+                        if (cpnyid) {
+                            url += '?cpnyid=' + encodeURIComponent(cpnyid);
+                        }
+
+                        $.ajax({
+                            url: url,
+                            type: 'GET',
+                            success: function(data) {
+                                $('[data-status=""] .font-extrabold').text(data.all);
+                                $('[data-status="P"] .font-extrabold').text(data.onProgress);
+                                $('[data-status="R"] .font-extrabold').text(data.reject);
+                                $('[data-status="D"] .font-extrabold').text(data.revise);
+                                $('[data-status="C"] .font-extrabold').text(data.completed);
+                            },
+                            error: function() {
+                                console.error('Failed to load status counts');
+                            }
+                        });
+                    }
+
+
+
+
+
+
                 });
             </script>
 
