@@ -2,78 +2,73 @@
     @php
         $currentPage = Route::currentRouteName() == 'jobpostings' ? 'HR' : '';
     @endphp
-    
-
-    <div class="max-w-9xl mx-auto w-full px-2 py-2 sm:px-6 lg:px-2">
-        {{-- <div class="px-4 sm:px-6 lg:px-8 w-full max-w-9xl mx-auto"> --}}
-        <!-- Dashboard actions -->
-        <div class="mb-4 flex items-center justify-end">
-            {{-- <label for="cpnyidFilter" class="mr-2 font-semibold text-gray-700"></label> --}}
-            <select id="cpnyidFilter" class="rounded border px-3 py-1">
-                <option value="">All</option>
-                <option value="AW">AW</option>
-                <option value="EP">EP</option>
-                <option value="PSA">PSA</option>
-                <option value="GPS">GPS</option>
-            </select>
-        </div>
-        <div class="grid grid-rows-5 gap-6 xl:grid-cols-5 xl:grid-rows-1">
+    <div class="max-w-9xl mx-auto px-4 py-4 sm:px-6 lg:px-8">
+        <div class="grid-col-1 grid gap-6 xl:grid-cols-5 xl:grid-rows-1">
+            {{-- All Status --}}
             <button>
                 <a href="#" class="status-filter" data-status="">
                     <div
-                        class="flex items-center gap-4 rounded-lg border border-orange-700 bg-orange-200/20 p-4 text-orange-600 shadow-md shadow-white">
-                        <span class="text-4xl">📄</span>
-                        <div>
+                        class="flex items-center gap-4 rounded-lg border border-orange-700 bg-orange-200/20 p-3 text-orange-600">
+                        <span class="text-xl">📄</span>
+                        <div class="flex flex-grow items-center justify-between">
                             <p class="text-lg font-medium">All</p>
-                            <p class="text-3xl font-extrabold">{{ $all }}</p>
+                            <p class="text-right text-xl font-extrabold">{{ $all }}</p>
                         </div>
                     </div>
                 </a>
             </button>
+
+            {{-- On Progress Status --}}
             <button>
                 <a href="#" class="status-filter" data-status="P">
                     <div
-                        class="flex items-center gap-4 rounded-lg border border-blue-700 bg-blue-200/20 p-4 text-blue-600 shadow-md shadow-white">
-                        <span class="text-4xl">⏳</span>
-                        <div>
+                        class="flex items-center gap-4 rounded-lg border border-blue-700 bg-blue-200/20 p-3 text-blue-600">
+                        <span class="text-xl">⏳</span>
+                        <div class="flex flex-grow items-center justify-between">
                             <p class="text-lg font-medium">On Progress</p>
-                            <p class="text-left text-3xl font-extrabold">{{ $onProgress }}</p>
+                            <p class="text-right text-xl font-extrabold">{{ $onProgress }}</p>
                         </div>
                     </div>
                 </a>
             </button>
+
+            {{-- Reject Status --}}
             <button>
                 <a href="#" class="status-filter" data-status="R">
                     <div
-                        class="flex items-center gap-4 rounded-lg border border-red-700 bg-red-200/20 p-4 text-red-600 shadow-md shadow-white">
-                        <span class="text-4xl">⛔️</span>
-                        <div>
+                        class="flex items-center gap-4 rounded-lg border border-red-700 bg-red-200/20 p-3 text-red-600">
+                        <span class="text-xl">⛔️</span>
+                        <div class="flex flex-grow items-center justify-between">
                             <p class="text-lg font-medium">Reject</p>
-                            <p class="text-left text-3xl font-extrabold">{{ $reject }}</p>
+                            <p class="text-right text-xl font-extrabold">{{ $reject }}</p>
                         </div>
                     </div>
                 </a>
             </button>
+
+            {{-- Revise / Draft Status --}}
             <button>
                 <a href="#" class="status-filter" data-status="D">
                     <div
-                        class="flex items-center gap-4 rounded-lg border border-gray-700 bg-gray-200/20 p-4 text-gray-600 shadow-md shadow-white">
-                        <span class="text-4xl">✏️</span>
-                        <div>
-                            <p class="text-lg font-medium">Revise</p>
-                            <p class="f text-left text-3xl font-extrabold">{{ $revise }}</p>
+                        class="flex items-center gap-4 rounded-lg border border-gray-700 bg-gray-200/20 p-3 text-gray-600 dark:border-white dark:text-white">
+                        <span class="text-xl">✏️</span>
+                        <div class="flex flex-grow items-center justify-between">
+                            <p class="text-lg font-medium">Revise / Draft</p>
+                            <p class="text-right text-xl font-extrabold">{{ $revise }}</p>
                         </div>
                     </div>
                 </a>
             </button>
+
+            {{-- Completed Status --}}
             <button>
                 <a href="#" class="status-filter" data-status="C">
                     <div
-                        class="flex items-center gap-4 rounded-lg border border-green-700 bg-green-200/20 p-4 text-green-600 shadow-md shadow-white">
-                        <span class="text-4xl">✅</span>
-                        <div>
+                        class="flex items-center gap-4 rounded-lg border border-green-700 bg-green-200/20 p-3 text-green-600">
+                        <span class="text-xl">✅</span>
+                        <div class="flex flex-grow items-center justify-between">
                             <p class="text-lg font-medium">Completed</p>
-                            <p class="text-left text-3xl font-extrabold">{{ $completed }}</p>
+                            <p class="text-right text-xl font-extrabold">{{ $completed }}</p>
                         </div>
                     </div>
                 </a>
@@ -394,30 +389,19 @@
                     display: none;
                 }
             </style>
-            {{-- <div class="mt-6  overflow-y-auto bg-white  dark:bg-gray-800 p-4 rounded-xl">
-                <div class="flex flex-col sm:flex-row justify-between items-center gap-4">
-                    <h1 class=" align-middle text-2xl font-bold  dark:text-white">List Job Posting</h1>     
-                </div>
-                <div class="bg-white dark:bg-gray-800 rounded-lg">
-                    <table id="jobpostingsTable" class="min-w-full rounded mt-5">
-                        <thead class="bg-white-200 dark:text-white">
-                            <tr>
-                                <th class="px-4 py-3 text-left w-32">DocID</th>
-                                <th class="px-4 py-3 text-center">Date</th>
-                                <th class="px-4 py-3 text-center">Company</th>
-                                <th class="px-4 py-3 text-center">Departement</th>
-                                <th class="px-4 py-3 text-center">Title</th>
-                                <th class="px-4 py-3 text-center">Level</th>
-                                <th class="px-4 py-3 text-center w-32">Status</th>  
-                            </tr>
-                        </thead>
-                            <tbody></tbody>
-                    </table>
-                </div>   
-            </div>   --}}
             <div id="container" class="mt-2 grid grid-cols-1 gap-4 xl:grid-cols-1">
                 <!-- TABEL KIRI: Job Posting -->
                 <div id="jobpostingTableWrapper" class="overflow-x-auto rounded-xl bg-white p-4">
+                    <div class="mb-4 flex items-center justify-end">
+                        {{-- <label for="cpnyidFilter" class="mr-2 font-semibold text-gray-700"></label> --}}
+                        <select id="cpnyidFilter" class="rounded border px-3 py-1">
+                            <option value="">All</option>
+                            <option value="AW">AW</option>
+                            <option value="EP">EP</option>
+                            <option value="PSA">PSA</option>
+                            <option value="GPS">GPS</option>
+                        </select>
+                    </div>
                     <h1 class="text-2xl font-bold">List Job Posting</h1>
                     <table id="jobpostingsTable" class="min-w-full rounded">
                         <thead>
@@ -433,6 +417,7 @@
                         <tbody></tbody>
                     </table>
                 </div>
+
 
                 <!-- TABEL KANAN: Applicant -->
                 <div id="applicantsContainer" class="overflow-x-auto rounded-xl bg-white p-4" style="display:none;">
@@ -460,8 +445,8 @@
                                     <th>Height</th>
                                     <th>Weight</th>
                                     <th>Last Working</th>
-                                    <th>Score</th>                                    
-                                    <th>Step</th>                                    
+                                    <th>Score</th>
+                                    <th>Step</th>
                                 </tr>
                             </thead>
                             <tbody></tbody>
@@ -492,7 +477,7 @@
                                     let url = `/showjobpostings/${row.id}`;
                                     let buttonClass =
                                         'px-4 py-2.5 bg-indigo-500 text-white rounded hover:bg-indigo-700';
-                                    let buttonText = row.docid;                                  
+                                    let buttonText = row.docid;
 
                                     return `<a href="${url}" class="px-3 py-1 ${buttonClass} text-white rounded">${buttonText}</a>`;
                                 }
@@ -529,7 +514,7 @@
                         lengthChange: true,
                         pageLength: 10,
                         data: [],
-                         order: [
+                        order: [
                             [8, 'desc']
                         ],
                         columns: [{
@@ -552,10 +537,21 @@
                                 data: 'religion',
                                 // className: 'edu-col hidden'
                             },
-                            { data: 'height', className: 'small-col' },
-                            { data: 'weight', className: 'small-col' },
-                            { data: 'company_name', },
-                            { data: 'match_score_percentage', className: 'small-col' },                           
+                            {
+                                data: 'height',
+                                className: 'small-col'
+                            },
+                            {
+                                data: 'weight',
+                                className: 'small-col'
+                            },
+                            {
+                                data: 'company_name',
+                            },
+                            {
+                                data: 'match_score_percentage',
+                                className: 'small-col'
+                            },
                             {
                                 data: 'prev_apply_step',
                                 render: function(data) {
@@ -575,7 +571,7 @@
                                 }
                             }
                         ],
-                        
+
                         rowCallback: function(row, data, index) {
                             if (data.is_read === 'N') {
                                 $(row).css('color', 'blue'); // ❗ teks biru untuk is_read = N
@@ -619,7 +615,7 @@
                                     applicantTable.clear().rows.add(res.data).draw();
                                     applicantTable.columns.adjust().draw();
 
-                                    
+
                                 },
                                 error: function() {
                                     // alert('Failed to load applicants.');
