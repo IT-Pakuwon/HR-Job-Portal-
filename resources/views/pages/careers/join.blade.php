@@ -39,42 +39,26 @@
         </div>
     </div>
 </div>
-<!-- Checklist Onboarding -->
-<div class="mt-6 w-full rounded-lg bg-white p-4 shadow-sm dark:bg-transparent" id="docid_onboarding"
+<div class="mt-6 w-full rounded-xl bg-white p-6 dark:bg-gray-800" id="docid_onboarding"
     data-docid="{{ optional($onboarding)->docid }}">
-    <h3 class="mb-4 text-lg font-semibold text-gray-700">Checklist Onboarding</h3>
 
-    {{-- <form id="checklistForm">
-    @csrf
-    <input type="hidden" name="applicant_id" value="{{ $applicant->applicant_id ?? '' }}">
-
-    <div class="grid grid-cols-2 gap-4">
-      <label><input type="checkbox" name="checklist[]" value="On Boarding Video"> On Boarding Video</label>
-      <label><input type="checkbox" name="checklist[]" value="Integritas"> Integritas</label>
-      <label><input type="checkbox" name="checklist[]" value="Komputer/Laptop"> Komputer/Laptop</label>
-      <label><input type="checkbox" name="checklist[]" value="BPJS Tenaga Kerja"> BPJS Tenaga Kerja</label>
-      <label><input type="checkbox" name="checklist[]" value="BPJS Kesehatan"> BPJS Kesehatan</label>
-      <label><input type="checkbox" name="checklist[]" value="Pembuatan Talenta"> Pembuatan Talenta</label>
-      <label><input type="checkbox" name="checklist[]" value="Email"> Email</label>
-      <label><input type="checkbox" name="checklist[]" value="Parkir"> Parkir</label>
-      <label><input type="checkbox" name="checklist[]" value="Pengenalan Akses"> Pengenalan Akses</label>
-    </div>
-
-    <button type="submit" class="mt-4 bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-500 transition">
-      Simpan Checklist
-    </button>
-  </form> --}}
+    <header class="mb-6 flex items-center gap-2"> {{-- Section header with enhanced styling --}}
+        <h3 class="text-xl font-bold text-gray-800 dark:text-gray-100">
+            <span class="text-green-500">✅</span> Checklist Onboarding
+        </h3>
+    </header>
 
     <form id="checklistForm">
         @csrf
-        {{-- <input type="hidden" id="docid_onboarding" value="{{ $onboarding->docid ?? '' }}"> --}}
-        <div id="checklistArea" class="grid grid-cols-2 gap-4">
-            <!-- Isi akan dimuat dengan JS -->
+        <div id="checklistArea" class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         </div>
 
-        <button type="submit"
-            class="inline-flex items-center rounded-xl bg-indigo-600 px-6 py-2 text-base font-semibold text-white transition-colors duration-200 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">Save
-        </button>
+        <div class="mt-8 flex justify-end">
+            <button type="submit"
+                class="inline-flex items-center rounded-xl bg-indigo-600 px-6 py-2 text-base font-semibold text-white shadow-md transition-colors duration-200 hover:bg-indigo-700 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800">
+                Save Checklist
+            </button>
+        </div>
     </form>
 
 </div>

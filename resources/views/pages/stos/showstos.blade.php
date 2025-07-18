@@ -90,14 +90,8 @@
                             class="fixed inset-0 z-50 flex hidden items-center justify-center bg-gray-900/40 backdrop-blur-sm">
                             <div
                                 class="card-container relative w-full max-w-2xl transform overflow-hidden rounded-md bg-white">
-                                <div class="card-header border-b border-gray-200 p-4 dark:border-gray-700">
-                                    {{-- <ul class="flex flex-wrap text-center font-medium" id="tabs">
-                                        <li>
-                                            <button type="button"
-                                                class="tab-button inline-block rounded-t-lg px-4 py-2 text-base font-semibold text-indigo-600 hover:text-indigo-700 focus:outline-none"
-                                                onclick="switchTab('view')">View Employee</button>
-                                        </li>
-                                    </ul> --}}
+                                <div
+                                    class="card-header flex flex-col items-start justify-between border-b border-gray-200 p-4 sm:flex-row sm:items-center dark:border-gray-700">
                                     <button onclick="closeModal()"
                                         class="inline-flex items-center gap-1 rounded-md px-3 py-2 text-sm font-medium text-gray-700 transition-colors dark:bg-gray-700/30 dark:text-gray-300 dark:hover:bg-gray-600/50">
                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
@@ -107,16 +101,13 @@
                                         </svg>
                                         Back
                                     </button>
+                                    <h3 class="card-title !mb-0 !text-lg">Employee List</h3>
+                                    <h4 id="departmentLabel" class="text-lg text-gray-600 dark:text-gray-300">
+                                    </h4>
+
                                 </div>
 
                                 <div id="tab-view" class="tab-content hidden px-6 py-4">
-                                    <div
-                                        class="mb-4 flex flex-col items-start justify-between sm:flex-row sm:items-center">
-                                        <h3 class="card-title !mb-0 !text-xl">Employee List</h3>
-                                        <h4 id="departmentLabel"
-                                            class="text-lg font-bold text-gray-600 dark:text-gray-300"></h4>
-                                    </div>
-
                                     <div class="table-responsive-container w-full overflow-x-auto">
                                         <table class="base-table w-full text-sm">
                                             <thead class="bg-gray-50 dark:bg-gray-700">
@@ -140,7 +131,7 @@
                                                 </tr>
                                             </thead>
                                             <tbody id="employeeTableBody"
-                                                class="divide-y divide-gray-200 dark:divide-gray-600">
+                                                class="divide-y divide-gray-200 border-gray-200 dark:divide-gray-600">
                                             </tbody>
                                         </table>
                                     </div>
@@ -872,13 +863,13 @@
                                 <div style="font-size:12px;color:#333">
                                     <div style="margin-top:10px;">
                                         ${members.map(m => `
-                                                                    <div style="display:flex;align-items:center;margin-bottom:6px;">
-                                                                        <img src="${m.image}" style="width:30px;height:30px;border-radius:50%;margin-right:8px;" />
-                                                                        <span style="font-size:12px; color:${m.name.toUpperCase() === 'VACANT' ? 'red' : '#000'};">
-                                                                            ${m.name} (${m.company})
-                                                                        </span>
-                                                                    </div>
-                                                                `).join('')}
+                                                                                                            <div style="display:flex;align-items:center;margin-bottom:6px;">
+                                                                                                                <img src="${m.image}" style="width:30px;height:30px;border-radius:50%;margin-right:8px;" />
+                                                                                                                <span style="font-size:12px; color:${m.name.toUpperCase() === 'VACANT' ? 'red' : '#000'};">
+                                                                                                                    ${m.name} (${m.company})
+                                                                                                                </span>
+                                                                                                            </div>
+                                                                                                        `).join('')}
                                     </div>
                                 </div>
                             </div>
@@ -934,11 +925,11 @@
                     employees.forEach((emp, index) => {
                         html += `
                                     <tr>
-                                        <td class="border border-black px-2 py-1">${index + 1}</td>
-                                        <td class="border border-black px-2 py-1">${emp.employee_name}</td>
-                                        <td class="border border-black px-2 py-1">${emp.employee_company}</td>
-                                        <td class="border border-black px-2 py-1">${emp.employee_level}</td>
-                                        <td class="border border-black px-2 py-1 text-center">
+                                        <td class="border border-gray-200 px-2 py-1">${index + 1}</td>
+                                        <td class="border border-gray-200 px-2 py-1">${emp.employee_name}</td>
+                                        <td class="border border-gray-200 px-2 py-1">${emp.employee_company}</td>
+                                        <td class="border border-gray-200 px-2 py-1">${emp.employee_level}</td>
+                                        <td class="border border-gray-200 px-2 py-1 text-center">
                                             ${emp.image ? `<img src="${emp.image}" class="w-15 h-15 rounded-full mx-auto">` : '-'}
                                         </td>                                       
                                     </tr>

@@ -76,33 +76,47 @@
     </table>
 
     {{-- <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded">Simpan</button> --}}
-    <div style="display: flex; align-items: flex-start; gap: 40px; margin-top: 20px;">
-        <button type="submit"
-            class="inline-flex items-center rounded-xl bg-indigo-600 px-6 py-2 text-base font-semibold text-white transition-colors duration-200 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
-            Save</button>
-        <table class="w-full text-sm">
+
+    <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
             <thead class="bg-gray-50 dark:bg-gray-700">
-                <tr class="text-gray-600 dark:text-gray-700">
-                    <th colspan="2" style="border: 1px solid #333; background-color: #e0e0e0; padding: 4px 8px;">
-                        STANDAR SCORING :</th>
+                <tr>
+                    <th colspan="2"
+                        class="rounded-t-lg px-6 py-3 text-center text-sm font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                        STANDARD SCORING
+                    </th>
                 </tr>
             </thead>
-            <tbody>
-                <tr>
-                    <td style="border: 1px solid #333; padding: 4px 8px;">SUITABLE</td>
-                    <td style="border: 1px solid #333; padding: 4px 8px;">21–28 FOR LEVEL<br>MANAGER/SUPERVISOR<br>20–25
-                        FOR STAFF</td>
+            <tbody class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-800">
+                <tr class="transition-colors duration-150 hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                    <td
+                        class="whitespace-nowrap border-r border-gray-200 px-6 py-4 text-sm font-medium text-gray-900 dark:border-gray-700 dark:text-gray-100">
+                        SUITABLE</td>
+                    <td class="px-6 py-4 text-sm text-gray-700 dark:text-gray-300">
+                        21–28 FOR LEVEL<br class="md:hidden">MANAGER/SUPERVISOR<br>20–25 FOR STAFF
+                    </td>
                 </tr>
-                <tr>
-                    <td style="border: 1px solid #333; padding: 4px 8px;">CONSIDER</td>
-                    <td style="border: 1px solid #333; padding: 4px 8px;">15–19</td>
+                <tr class="transition-colors duration-150 hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                    <td
+                        class="whitespace-nowrap border-r border-gray-200 px-6 py-4 text-sm font-medium text-gray-900 dark:border-gray-700 dark:text-gray-100">
+                        CONSIDER</td>
+                    <td class="px-6 py-4 text-sm text-gray-700 dark:text-gray-300">15–19</td>
                 </tr>
-                <tr>
-                    <td style="border: 1px solid #333; padding: 4px 8px;">NOT SUITABLE</td>
-                    <td style="border: 1px solid #333; padding: 4px 8px;">0–14</td>
+                <tr class="transition-colors duration-150 hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                    <td
+                        class="whitespace-nowrap border-r border-gray-200 px-6 py-4 text-sm font-medium text-gray-900 dark:border-gray-700 dark:text-gray-100">
+                        NOT SUITABLE</td>
+                    <td class="px-6 py-4 text-sm text-gray-700 dark:text-gray-300">0–14</td>
                 </tr>
             </tbody>
         </table>
+    </div>
+
+    <div class="mt-6 flex justify-end"> {{-- Container to align button to the right --}}
+        <button type="submit"
+            class="inline-flex items-center rounded-xl bg-indigo-600 px-6 py-2 text-base font-semibold text-white shadow-md transition-colors duration-200 hover:bg-indigo-700 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800">
+            Save
+        </button>
     </div>
 </form>
 

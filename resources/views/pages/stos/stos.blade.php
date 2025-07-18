@@ -261,10 +261,16 @@
                     class="flex flex-col items-start justify-between gap-4 border-b border-gray-200 p-4 sm:flex-row sm:items-center dark:border-gray-700">
                     {{-- Changed text-3xl to text-xl --}}
                     <h1 class="text-xl font-extrabold text-gray-700 dark:text-white">Organization Structure</h1>
-                    <a href="{{ url('/createstos') }}"
-                        class="inline-flex items-center rounded-xl bg-indigo-600 px-6 py-2 text-base font-semibold text-white transition-colors duration-200 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
-                        <i class="fas fa-plus pr-2"></i>Create
-                    </a>
+                    <div class="flex gap-2">
+                        <a href="{{ url('/createstos') }}"
+                            class="inline-flex items-center rounded-xl bg-indigo-600 px-6 py-2 text-base font-semibold text-white transition-colors duration-200 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                            <i class="fas fa-plus pr-2"></i>Create
+                        </a>
+                        <a href="{{ url('/stoall') }}"
+                            class="inline-flex items-center rounded-xl bg-blue-600 px-6 py-2 text-base font-semibold text-white transition-colors duration-200 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">All
+                            Org Chart
+                        </a>
+                    </div>
                 </div>
 
                 <div class="overflow-x-auto p-6"> {{-- Padding applied here instead of outer container --}}
@@ -327,8 +333,7 @@
                         order: [
                             [0, 'desc']
                         ],
-                        columns: [
-                            {
+                        columns: [{
                                 data: 'id',
                                 render: function(data, type, row) {
                                     let url = `/showstos/${row.id}`;
