@@ -2,78 +2,73 @@
     @php
         $currentPage = Route::currentRouteName() == 'jobpostings' ? 'HR' : '';
     @endphp
-    
-
-    <div class="max-w-9xl mx-auto w-full px-2 py-2 sm:px-6 lg:px-2">
-        {{-- <div class="px-4 sm:px-6 lg:px-8 w-full max-w-9xl mx-auto"> --}}
-        <!-- Dashboard actions -->
-        <div class="mb-4 flex items-center justify-end">
-            {{-- <label for="cpnyidFilter" class="mr-2 font-semibold text-gray-700"></label> --}}
-            <select id="cpnyidFilter" class="rounded border px-3 py-1">
-                <option value="">All</option>
-                <option value="AW">AW</option>
-                <option value="EP">EP</option>
-                <option value="PSA">PSA</option>
-                <option value="GPS">GPS</option>
-            </select>
-        </div>
-        <div class="grid grid-rows-5 gap-6 xl:grid-cols-5 xl:grid-rows-1">
+    <div class="max-w-9xl mx-auto px-4 py-4 sm:px-6 lg:px-8">
+        <div class="grid-col-1 grid gap-6 xl:grid-cols-5 xl:grid-rows-1">
+            {{-- All Status --}}
             <button>
                 <a href="#" class="status-filter" data-status="">
                     <div
-                        class="flex items-center gap-4 rounded-lg border border-orange-700 bg-orange-200/20 p-4 text-orange-600 shadow-md shadow-white">
-                        <span class="text-4xl">📄</span>
-                        <div>
+                        class="flex items-center gap-4 rounded-lg border border-orange-700 bg-orange-200/20 p-3 text-orange-600">
+                        <span class="text-xl">📄</span>
+                        <div class="flex flex-grow items-center justify-between">
                             <p class="text-lg font-medium">All</p>
-                            <p class="text-3xl font-extrabold">{{ $all }}</p>
+                            <p class="text-right text-xl font-extrabold">{{ $all }}</p>
                         </div>
                     </div>
                 </a>
             </button>
+
+            {{-- On Progress Status --}}
             <button>
                 <a href="#" class="status-filter" data-status="P">
                     <div
-                        class="flex items-center gap-4 rounded-lg border border-blue-700 bg-blue-200/20 p-4 text-blue-600 shadow-md shadow-white">
-                        <span class="text-4xl">⏳</span>
-                        <div>
+                        class="flex items-center gap-4 rounded-lg border border-blue-700 bg-blue-200/20 p-3 text-blue-600">
+                        <span class="text-xl">⏳</span>
+                        <div class="flex flex-grow items-center justify-between">
                             <p class="text-lg font-medium">On Progress</p>
-                            <p class="text-left text-3xl font-extrabold">{{ $onProgress }}</p>
+                            <p class="text-right text-xl font-extrabold">{{ $onProgress }}</p>
                         </div>
                     </div>
                 </a>
             </button>
+
+            {{-- Reject Status --}}
             <button>
                 <a href="#" class="status-filter" data-status="R">
                     <div
-                        class="flex items-center gap-4 rounded-lg border border-red-700 bg-red-200/20 p-4 text-red-600 shadow-md shadow-white">
-                        <span class="text-4xl">⛔️</span>
-                        <div>
+                        class="flex items-center gap-4 rounded-lg border border-red-700 bg-red-200/20 p-3 text-red-600">
+                        <span class="text-xl">⛔️</span>
+                        <div class="flex flex-grow items-center justify-between">
                             <p class="text-lg font-medium">Reject</p>
-                            <p class="text-left text-3xl font-extrabold">{{ $reject }}</p>
+                            <p class="text-right text-xl font-extrabold">{{ $reject }}</p>
                         </div>
                     </div>
                 </a>
             </button>
+
+            {{-- Revise / Draft Status --}}
             <button>
                 <a href="#" class="status-filter" data-status="D">
                     <div
-                        class="flex items-center gap-4 rounded-lg border border-gray-700 bg-gray-200/20 p-4 text-gray-600 shadow-md shadow-white">
-                        <span class="text-4xl">✏️</span>
-                        <div>
-                            <p class="text-lg font-medium">Revise</p>
-                            <p class="f text-left text-3xl font-extrabold">{{ $revise }}</p>
+                        class="flex items-center gap-4 rounded-lg border border-gray-700 bg-gray-200/20 p-3 text-gray-600 dark:border-white dark:text-white">
+                        <span class="text-xl">✏️</span>
+                        <div class="flex flex-grow items-center justify-between">
+                            <p class="text-lg font-medium">Revise / Draft</p>
+                            <p class="text-right text-xl font-extrabold">{{ $revise }}</p>
                         </div>
                     </div>
                 </a>
             </button>
+
+            {{-- Completed Status --}}
             <button>
                 <a href="#" class="status-filter" data-status="C">
                     <div
-                        class="flex items-center gap-4 rounded-lg border border-green-700 bg-green-200/20 p-4 text-green-600 shadow-md shadow-white">
-                        <span class="text-4xl">✅</span>
-                        <div>
+                        class="flex items-center gap-4 rounded-lg border border-green-700 bg-green-200/20 p-3 text-green-600">
+                        <span class="text-xl">✅</span>
+                        <div class="flex flex-grow items-center justify-between">
                             <p class="text-lg font-medium">Completed</p>
-                            <p class="text-left text-3xl font-extrabold">{{ $completed }}</p>
+                            <p class="text-right text-xl font-extrabold">{{ $completed }}</p>
                         </div>
                     </div>
                 </a>
@@ -133,104 +128,6 @@
                     }
                 }
 
-                #jobpostingsTable_filter {
-                    margin-bottom: 20px;
-                    display: flex;
-                    justify-content: flex-start;
-                    /* Aligns items to the left */
-                    align-items: center;
-                    /* Vertically aligns items */
-                }
-
-                #jobpostingsTable_filter label {
-                    margin-right: 2px;
-                }
-
-                #jobpostingsTable_filter input {
-                    width: 200px;
-                    /* Adjust the width of the input box */
-                }
-
-
-                #jobpostingsTable_wrapper {
-                    margin-top: 20px;
-                    width: 100%;
-                }
-
-
-                #applicantsContainer_wrapper {
-                    margin-top: 20px;
-                    width: 100%;
-                }
-
-                /* Prevent text from wrapping */
-                #jobpostingsTable td {
-                    white-space: nowrap;
-                    /* Prevent text from wrapping */
-                    overflow: hidden;
-                    /* Hide overflow content */
-                    text-overflow: ellipsis;
-                    /* Display ellipsis ("...") for overflowing content */
-                }
-
-                /* Optional: Adjust the width for table cells */
-                #jobpostingsTable th,
-                #jobpostingsTable td {
-                    padding: 10px;
-                    /* Adjust padding for better appearance */
-                    max-width: 200px;
-                    /* You can set a maximum width to control overflow */
-                }
-
-
-                #jobpostingsTable_length {
-                    width: auto;
-                    display: flex;
-                    justify-content: flex-start;
-                }
-
-                #jobpostingsTable_length select {
-                    width: auto;
-                    padding: 5px;
-                    min-width: 80px;
-                }
-
-                #jobpostingsTable_length select option {
-                    padding: 5px;
-                    /* Mengatur jarak antar opsi */
-                }
-
-                #jobpostingsTable_info {
-                    margin-top: 10px;
-                    margin-bottom: 10px;
-                }
-
-                .dataTables_paginate {
-                    margin-top: 10px;
-                    margin-bottom: 10px;
-
-                }
-
-                #jobpostingsTable tbody tr td {
-                    padding: 8px 8px;
-                    /* Adjust padding for uniform height */
-                    line-height: 2;
-                    /* Optional, for better text alignment */
-                }
-
-                #jobpostingsTable tbody tr {
-                    transition: background-color 0.3s ease, color 0.3s ease;
-                }
-
-                #jobpostingsTable tbody tr:hover {
-                    background-color: #8f8f8f11;
-                    opacity: 100%;
-                    cursor: pointer;
-                }
-
-                #jobpostingsTable tbody tr:hover td {
-                    color: black;
-                }
 
                 /* Applicant Table */
                 #applicantsTable_filter {
@@ -253,7 +150,6 @@
 
 
                 #applicantsTable_wrapper {
-                    margin-top: 20px;
                     width: 100%;
                 }
 
@@ -394,79 +290,67 @@
                     display: none;
                 }
             </style>
-            {{-- <div class="mt-6  overflow-y-auto bg-white  dark:bg-gray-800 p-4 rounded-xl">
-                <div class="flex flex-col sm:flex-row justify-between items-center gap-4">
-                    <h1 class=" align-middle text-2xl font-bold  dark:text-white">List Job Posting</h1>     
-                </div>
-                <div class="bg-white dark:bg-gray-800 rounded-lg">
-                    <table id="jobpostingsTable" class="min-w-full rounded mt-5">
-                        <thead class="bg-white-200 dark:text-white">
-                            <tr>
-                                <th class="px-4 py-3 text-left w-32">DocID</th>
-                                <th class="px-4 py-3 text-center">Date</th>
-                                <th class="px-4 py-3 text-center">Company</th>
-                                <th class="px-4 py-3 text-center">Departement</th>
-                                <th class="px-4 py-3 text-center">Title</th>
-                                <th class="px-4 py-3 text-center">Level</th>
-                                <th class="px-4 py-3 text-center w-32">Status</th>  
-                            </tr>
-                        </thead>
-                            <tbody></tbody>
-                    </table>
-                </div>   
-            </div>   --}}
-            <div id="container" class="mt-2 grid grid-cols-1 gap-4 xl:grid-cols-1">
-                <!-- TABEL KIRI: Job Posting -->
-                <div id="jobpostingTableWrapper" class="overflow-x-auto rounded-xl bg-white p-4">
-                    <h1 class="text-2xl font-bold">List Job Posting</h1>
-                    <table id="jobpostingsTable" class="min-w-full rounded">
-                        <thead>
-                            <tr>
-                                <th>DocID</th>
-                                <th>Date</th>
-                                <th>Company</th>
-                                <th>Departement</th>
-                                <th>Title</th>
-                                <th>Level</th>
-                            </tr>
-                        </thead>
-                        <tbody></tbody>
-                    </table>
+            <div class="mt-6 rounded-2xl bg-white dark:bg-gray-800">
+                <div
+                    class="flex flex-col items-start justify-between gap-4 border-b border-gray-200 p-4 sm:flex-row sm:items-center dark:border-gray-700">
+                    {{-- Changed text-3xl to text-xl --}}
+                    <h1 class="text-xl font-extrabold text-gray-700 dark:text-white">Applicant List</h1>
+                    <a"
+                        class="inline-flex items-center rounded-xl bg-indigo-600 px-6 py-2 text-base font-semibold text-white transition-colors duration-200 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                        List Job Posting
+                        </a>
                 </div>
 
-                <!-- TABEL KANAN: Applicant -->
-                <div id="applicantsContainer" class="overflow-x-auto rounded-xl bg-white p-4" style="display:none;">
-
-                    <div class="flex items-center justify-between">
-                        <h1 class="text-2xl font-bold">Applicants</h1>
-                        <div class="flex flex-row-reverse items-center justify-end gap-4 text-xl">
-                            <button id="detailApplicantsBtn" class="font-semibold text-blue-500 hover:text-blue-700">See
-                                Detail</button>
-                            <button id="closeApplicantsBtn"
-                                class="font-semibold text-red-500 hover:text-red-700">Close</button>
-
-                        </div>
-
-                    </div>
-                    <div id="applicantsTableWrapper" class="overflow-x-auto rounded-xl bg-white">
-                        <table id="applicantsTable" class="min-w-full rounded">
-                            <thead>
-                                <tr>
-                                    <th>Docid</th>
-                                    <th>Date</th>
-                                    <th>Name</th>
-                                    <th>Education</th>
-                                    <th>Religion</th>
-                                    <th>Height</th>
-                                    <th>Weight</th>
-                                    <th>Last Working</th>
-                                    <th>Score</th>                                    
-                                    <th>Step</th>                                    
-                                </tr>
-                            </thead>
-                            <tbody></tbody>
-                        </table>
-                    </div>
+                <div class="overflow-x-auto p-6"> {{-- Padding applied here instead of outer container --}}
+                    <table id="applicantsTable" class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                        <thead class="bg-gray-50 dark:bg-gray-700">
+                            <tr>
+                                <th scope="col"
+                                    class="w-32 px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                                    DocID
+                                </th>
+                                <th scope="col"
+                                    class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                                    Date
+                                </th>
+                                <th scope="col"
+                                    class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                                    Name
+                                </th>
+                                <th scope="col"
+                                    class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                                    Education
+                                </th>
+                                <th scope="col"
+                                    class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                                    Religion
+                                </th>
+                                <th scope="col"
+                                    class="w-32 px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                                    Height
+                                </th>
+                                <th scope="col"
+                                    class="w-32 px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                                    Weight
+                                </th>
+                                <th scope="col"
+                                    class="w-32 px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                                    Last Working
+                                </th>
+                                <th scope="col"
+                                    class="w-32 px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                                    Score
+                                </th>
+                                <th scope="col"
+                                    class="w-32 px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                                    Step
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-800">
+                            {{-- Table rows will be populated here by JavaScript/DataTables --}}
+                        </tbody>
+                    </table>
                 </div>
             </div>
 
@@ -478,58 +362,24 @@
 
             <script>
                 $(document).ready(function() {
-                    let jobTable = $('#jobpostingsTable').DataTable({
-                        ajax: "{{ route('jobapplicant.json') }}?status=P",
-                        processing: true,
-                        serverSide: false,
-                        responsive: true,
-                        order: [
-                            [0, 'desc']
-                        ],
-                        columns: [{
-                                data: 'id',
-                                render: function(data, type, row) {
-                                    let url = `/showjobpostings/${row.id}`;
-                                    let buttonClass =
-                                        'px-4 py-2.5 bg-indigo-500 text-white rounded hover:bg-indigo-700';
-                                    let buttonText = row.docid;                                  
-
-                                    return `<a href="${url}" class="px-3 py-1 ${buttonClass} text-white rounded">${buttonText}</a>`;
-                                }
-                            },
-                            {
-                                data: 'date',
-                                className: 'no-pointer'
-                            },
-                            {
-                                data: 'cpnyid',
-                                className: 'no-pointer'
-                            },
-                            {
-                                data: 'departementid',
-                                className: 'no-pointer'
-                            },
-                            {
-                                data: 'job_title',
-                                className: 'no-pointer'
-                            },
-                            {
-                                data: 'job_level',
-                                className: 'no-pointer'
-                            },
-                        ]
-                    });
-
+                    let currentStatus = '';
                     let applicantTable = $('#applicantsTable').DataTable({
-                        responsive: true, // penting!
+                        responsive: true,
                         processing: true,
+                        serverSide: true,
                         searching: true,
                         paging: true,
                         info: true,
                         lengthChange: true,
                         pageLength: 10,
-                        data: [],
-                         order: [
+                        ajax: {
+                            url: "{{ route('jobapplicant.json') }}",
+                            type: 'GET',
+                            data: function(d) {
+                                d.status = currentStatus;
+                            }
+                        },
+                        order: [
                             [8, 'desc']
                         ],
                         columns: [{
@@ -545,17 +395,26 @@
                                 data: 'fullname'
                             },
                             {
-                                data: 'education_name',
-                                // className: 'edu-col hidden'
+                                data: 'education_name'
                             },
                             {
-                                data: 'religion',
-                                // className: 'edu-col hidden'
+                                data: 'religion'
                             },
-                            { data: 'height', className: 'small-col' },
-                            { data: 'weight', className: 'small-col' },
-                            { data: 'company_name', },
-                            { data: 'match_score_percentage', className: 'small-col' },                           
+                            {
+                                data: 'height',
+                                className: 'small-col'
+                            },
+                            {
+                                data: 'weight',
+                                className: 'small-col'
+                            },
+                            {
+                                data: 'company_name'
+                            },
+                            {
+                                data: 'match_score_percentage',
+                                className: 'small-col'
+                            },
                             {
                                 data: 'prev_apply_step',
                                 render: function(data) {
@@ -571,154 +430,30 @@
                                         'OFF': 'Offering',
                                         'JOIN': 'Join'
                                     };
-                                    return `<span class="w-32 bg-blue-300/30 text-blue-600 text-base font-semibold px-4 py-2 text-center rounded">${labelMap[data] || data}</span>`;
+                                    return `<span class=\"w-32 bg-blue-300/30 text-blue-600 text-base font-semibold px-4 py-2 text-center rounded\">${labelMap[data] || data}</span>`;
                                 }
                             }
                         ],
-                        
                         rowCallback: function(row, data, index) {
                             if (data.is_read === 'N') {
-                                $(row).css('color', 'blue'); // ❗ teks biru untuk is_read = N
+                                $(row).css('color', 'blue');
                             } else {
-                                $(row).css('color', 'black'); // teks normal untuk is_read = Y
+                                $(row).css('color', 'black');
                             }
                         }
                     });
+                    $('#applicantsTable thead th').eq(5).addClass('small-col');
+                    $('#applicantsTable thead th').eq(6).addClass('small-col');
+                    $('#applicantsTable thead th').eq(8).addClass('small-col');
 
-
-                    $('#applicantsTable thead th').eq(5).addClass('small-col'); // Height
-                    $('#applicantsTable thead th').eq(6).addClass('small-col'); // Weight
-                    $('#applicantsTable thead th').eq(8).addClass('small-col'); // Score
-
-                    // On clicking a Job Posting row, show applicants
-                    $('#jobpostingsTable tbody').on('click', 'tr', function() {
-                        let data = jobTable.row(this).data();
-
-                        if (data && data.docid) {
-                            let jobDocId = data.docid;
-
-                            $('#applicantsContainer').show();
-                            $('#container').removeClass('xl:grid-cols-1').addClass('xl:grid-cols-2');
-
-                            jobTable.columns.adjust();
-                            if (jobTable.responsive) {
-                                jobTable.responsive.recalc();
-                            }
-
-                            applicantTable.columns.adjust();
-                            if (applicantTable.responsive) {
-                                applicantTable.responsive.recalc();
-                            }
-
-                            $(window).trigger('resize');
-
-                            $.ajax({
-                                url: `/jobapplicant/applicants/${jobDocId}`,
-                                type: 'GET',
-                                success: function(res) {
-                                    applicantTable.clear().rows.add(res.data).draw();
-                                    applicantTable.columns.adjust().draw();
-
-                                    
-                                },
-                                error: function() {
-                                    // alert('Failed to load applicants.');
-                                }
-                            });
-                        }
-                    });
-
-
-                    // Close Applicants panel button click
-                    // $('#closeApplicantsBtn').on('click', function() {
-                    //     $('#applicantsContainer').hide();
-                    //     $('#container').removeClass('xl:grid-cols-2').addClass('xl:grid-cols-1');
-                    // });
-
-                    $('#closeApplicantsBtn').on('click', function() {
-                        $('#jobpostingTableWrapper').show(); // Tampilkan tabel kiri
-                        // $('#applicantsContainer').show(); // Tampilkan tabel kanan
-                        $('#applicantsContainer').hide();
-                        // Reset layout jadi 2 kolom
-                        $('#container').removeClass('xl:grid-cols-2').addClass('xl:grid-cols-1');
-
-                        // Reset kolom applicants agar tidak span 2 kolom
-                        $('#applicantsContainer').removeClass('xl:col-span-2');
-                        // $('#applicantsTable thead th.edu-col, #applicantsTable tbody td.edu-col').addClass('hidden');
-                    });
-
-
-                    // Tombol Detail: perbesar applicantsTable dan sembunyikan jobpostingsTable
-                    $('#detailApplicantsBtn').on('click', function() {
-                        $('#jobpostingTableWrapper').hide(); // sembunyikan tabel kiri
-                        $('#applicantsContainer').removeClass('xl:grid-cols-2').addClass(
-                            'xl:col-span-2'); // optional: membuat lebar penuh
-                        // $('#applicantsTable thead th.edu-col, #applicantsTable tbody td.edu-col').removeClass('hidden');
-                        $('#detailApplicantsBtn').addClass('hidden');
-
-                    });
-
-                    $('#cpnyidFilter').on('change', function() {
-                        let selectedCpnyid = $(this).val();
-                        let selectedStatus = $('.status-filter.active').data('status') || 'P';
-
-                        let newUrl = "{{ route('jobapplicant.json') }}?status=" + encodeURIComponent(
-                            selectedStatus);
-                        if (selectedCpnyid) {
-                            newUrl += "&cpnyid=" + encodeURIComponent(selectedCpnyid);
-                        }
-
-                        jobTable.ajax.url(newUrl).load();
-
-                        updateCounts(selectedCpnyid); // <-- ini penting
-                    });
-
-
+                    // Event handler status-filter
                     $('.status-filter').on('click', function(e) {
                         e.preventDefault();
-
                         $('.status-filter').removeClass('active');
                         $(this).addClass('active');
-
-                        let selectedStatus = $(this).data('status');
-                        let selectedCpnyid = $('#cpnyidFilter').val();
-
-                        let newUrl = "{{ route('jobapplicant.json') }}?status=" + encodeURIComponent(
-                            selectedStatus);
-                        if (selectedCpnyid) {
-                            newUrl += "&cpnyid=" + encodeURIComponent(selectedCpnyid);
-                        }
-
-                        jobTable.ajax.url(newUrl).load();
+                        currentStatus = $(this).data('status');
+                        applicantTable.ajax.reload();
                     });
-
-                    function updateCounts(cpnyid = '') {
-                        let url = "{{ route('jobapplicant.counts') }}";
-                        if (cpnyid) {
-                            url += '?cpnyid=' + encodeURIComponent(cpnyid);
-                        }
-
-                        $.ajax({
-                            url: url,
-                            type: 'GET',
-                            success: function(data) {
-                                $('[data-status=""] .font-extrabold').text(data.all);
-                                $('[data-status="P"] .font-extrabold').text(data.onProgress);
-                                $('[data-status="R"] .font-extrabold').text(data.reject);
-                                $('[data-status="D"] .font-extrabold').text(data.revise);
-                                $('[data-status="C"] .font-extrabold').text(data.completed);
-                            },
-                            error: function() {
-                                console.error('Failed to load status counts');
-                            }
-                        });
-                    }
-
-
-
-
-
-
                 });
             </script>
 

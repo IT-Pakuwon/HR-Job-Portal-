@@ -51,7 +51,7 @@ Route::post('/login', function (Request $request) {
     $credentials = $request->validate([
         'login' => ['required'], // Bisa email, username, atau NIP
         'password' => ['required'],
-        'g-recaptcha-response' => ['required', 'captcha'],        
+        // 'g-recaptcha-response' => ['required', 'captcha'],        
     ]);
 
     // Cari user berdasarkan email, username, atau NIP

@@ -42,308 +42,130 @@
                 </button>
             </div>
         </div>
-        <div class="flex w-full flex-col gap-2 overflow-hidden sm:col-span-1 lg:row-span-1 xl:row-span-1 xl:flex-row">
-            <div class="flex flex-col gap-6 sm:w-1/2 md:w-full">
-                <div class="rounded-xl bg-white duration-300 dark:bg-gray-800">
+        <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+            <div class="lg:col-span-1">
+                <div class="flex h-full flex-col rounded-xl bg-white shadow-lg dark:bg-gray-800">
                     <header
                         class="flex items-center justify-between rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
-                        {{-- Rounded-t-xl, stronger border, and darker background for header --}}
-                        <h1 class="flex items-center gap-2 text-2xl font-bold text-gray-800 dark:text-gray-100">
-                            {{-- Larger, bolder title --}}
-                            <span class="text-indigo-500">🆔</span> {{-- Iconic color for the ID icon --}}
-                            {{ $personnel->docid }}
+                        <h1 class="text-xl font-semibold text-gray-800 dark:text-gray-100">
+                            🆔 {{ $sto->sto_id }}
                         </h1>
-                        @php
-                            // Define the status text
-                            $statusText = match ($personnel->status) {
-                                'D' => 'Revise',
-                                'P' => 'On Progress',
-                                'C' => 'Completed',
-                                'X' => 'Cancelled',
-                                'R' => 'Rejected',
-                                default => 'Unknown',
-                            };
-
-                            // Define the status badge classes based on the status
-                            $statusClasses = '';
-                            if ($personnel->status === 'D') {
-                                $statusClasses = 'bg-blue-100 text-blue-700 dark:bg-blue-800/30 dark:text-blue-300';
-                            } elseif ($personnel->status === 'P') {
-                                $statusClasses =
-                                    'bg-yellow-100 text-yellow-700 dark:bg-yellow-800/30 dark:text-yellow-300';
-                            } elseif ($personnel->status === 'C') {
-                                $statusClasses = 'bg-green-100 text-green-700 dark:bg-green-800/30 dark:text-green-300';
-                            } elseif (in_array($personnel->status, ['X', 'R'])) {
-                                $statusClasses = 'bg-red-100 text-red-700 dark:bg-red-800/30 dark:text-red-300';
-                            } else {
-                                $statusClasses = 'bg-gray-100 text-gray-700 dark:bg-gray-800/30 dark:text-gray-300';
-                            }
-                        @endphp
                         <span
-                            class="{{ $statusClasses }} inline-flex items-center rounded-full px-4 py-1 text-sm font-semibold transition-colors duration-200">
-                            {{ $statusText }}
+                            class="@if ($sto->status === 'D') bg-gray-300/30 text-gray-600
+                            @elseif($sto->status === 'P') bg-blue-300/30 text-blue-600
+                            @elseif($sto->status === 'A') bg-green-300/30 text-green-600
+                            @elseif($sto->status === 'R') bg-red-300/30 text-red-600
+                            @else bg-gray-300/30 text-gray-600 @endif rounded-full px-3 py-1 text-sm font-semibold">
+                            @if ($sto->status === 'D')
+                                Draft
+                            @elseif($sto->status === 'P')
+                                Pending
+                            @elseif($sto->status === 'A')
+                                Approved
+                            @elseif($sto->status === 'R')
+                                Rejected
+                            @else
+                                Unknown
+                            @endif
                         </span>
                     </header>
+                    <div class="relative">
+                        <div class="chart-container flex h-[500px] w-full items-center justify-center overflow-auto">
+                        </div>
 
-                    <div class="space-y-4 p-4"> {{-- Increased padding and consistent vertical spacing --}}
-                        <div class="grid grid-cols-3 gap-4 sm:grid-cols-3"> {{-- Increased gap --}}
-                            @php
-                                $jobDetails = [
-                                    [
-                                        'label' => 'Company',
-                                        'value' => $personnel->cpnyid,
-                                    ],
-                                    [
-                                        'label' => 'Department',
-                                        'value' => $personnel->departementid,
-                                    ],
-                                    [
-                                        'label' => 'Job Title',
-                                        'value' => $personnel->job_title,
-                                    ],
-                                ];
-                            @endphp
-                            @foreach ($jobDetails as $detail)
-                                <div
-                                    class="transition- hover:-md flex flex-row items-center gap-4 rounded-lg border border-gray-200 bg-gray-50 p-4 duration-200 dark:border-gray-700 dark:bg-gray-800">
-                                    {{-- Rounded-lg, subtle background, , and hover effect --}}
-                                    <div>
-                                        <p class="text-xs font-medium text-gray-500 dark:text-gray-400">
-                                            {{ $detail['label'] }}</p> {{-- Label above value, smaller text --}}
-                                        <p class="text-base font-semibold text-gray-900 dark:text-gray-100">
-                                            {{ $detail['value'] }}</p> {{-- Bolder value --}}
-                                    </div>
+                        <div
+                            class="absolute bottom-4 right-4 flex items-center space-x-2 rounded-xl bg-gray-900/60 p-2 shadow-xl backdrop-blur-sm">
+                            <button onclick="window.open('{{ route('orgchart.fullscreen') }}', '_blank')"
+                                class="flex h-10 w-10 items-center justify-center rounded-full bg-blue-600 text-white shadow-md transition-colors hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
+                                    viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M4 8V4m0 0h4M4 4l5 5m11-5V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5v-4m0 0h-4m4 0l-5-5" />
+                                </svg>
+                                <span class="sr-only">Open Fullscreen</span>
+                            </button>
+                        </div>
+
+                        <div id="modalForm"
+                            class="fixed inset-0 z-50 flex hidden items-center justify-center bg-gray-900/40 backdrop-blur-sm">
+                            <div
+                                class="card-container relative w-full max-w-2xl transform overflow-hidden rounded-md bg-white">
+                                <div class="card-header border-b border-gray-200 p-4 dark:border-gray-700">
+                                    {{-- <ul class="flex flex-wrap text-center font-medium" id="tabs">
+                                        <li>
+                                            <button type="button"
+                                                class="tab-button inline-block rounded-t-lg px-4 py-2 text-base font-semibold text-indigo-600 hover:text-indigo-700 focus:outline-none"
+                                                onclick="switchTab('view')">View Employee</button>
+                                        </li>
+                                    </ul> --}}
+                                    <button onclick="closeModal()"
+                                        class="inline-flex items-center gap-1 rounded-md px-3 py-2 text-sm font-medium text-gray-700 transition-colors dark:bg-gray-700/30 dark:text-gray-300 dark:hover:bg-gray-600/50">
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                            stroke-width="1.5" stroke="currentColor" class="h-4 w-4">
+                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+                                        </svg>
+                                        Back
+                                    </button>
                                 </div>
-                            @endforeach
-                        </div>
 
-                        <div class="grid grid-cols-2 gap-6 md:grid-cols-2"> {{-- Adjusted to 2 columns on medium screens --}}
-                            <div class="flex flex-col gap-6"> {{-- Consistent gap for items within this column --}}
-                                @php
-                                    $jobDetail = [
-                                        [
-                                            'label' => 'Job Type',
-                                            'value' => $personnel->job_type,
-                                        ],
-                                        [
-                                            'label' => 'Immediate Superior',
-                                            'value' => $personnel->immediate_superior,
-                                        ],
-                                    ];
-                                @endphp
-                                @foreach ($jobDetail as $details)
+                                <div id="tab-view" class="tab-content hidden px-6 py-4">
                                     <div
-                                        class="transition- hover:-md flex items-center gap-4 rounded-lg border border-gray-200 bg-gray-50 p-4 duration-200 dark:border-gray-700 dark:bg-gray-800">
-                                        <div>
-                                            <p class="text-xs font-medium text-gray-500 dark:text-gray-400">
-                                                {{ $details['label'] }}</p>
-                                            <p class="text-base font-semibold text-gray-900 dark:text-gray-100">
-                                                {{ $details['value'] }}</p>
-                                        </div>
+                                        class="mb-4 flex flex-col items-start justify-between sm:flex-row sm:items-center">
+                                        <h3 class="card-title !mb-0 !text-xl">Employee List</h3>
+                                        <h4 id="departmentLabel"
+                                            class="text-lg font-bold text-gray-600 dark:text-gray-300"></h4>
                                     </div>
-                                @endforeach
-                            </div>
-                            <div class="flex flex-col gap-6"> {{-- Consistent gap for items within this column --}}
-                                @php
-                                    $jobDetail2 = [
-                                        [
-                                            'label' => 'Job Level',
-                                            'value' => $personnel->job_level,
-                                        ],
-                                        [
-                                            'label' => 'State Position',
-                                            'value' => $personnel->state_position,
-                                        ],
-                                    ];
-                                @endphp
-                                @foreach ($jobDetail2 as $details)
-                                    <div
-                                        class="transition- hover:-md flex items-center gap-4 rounded-lg border border-gray-200 bg-gray-50 p-4 duration-200 dark:border-gray-700 dark:bg-gray-800">
-                                        <div>
-                                            <p class="text-xs font-medium text-gray-500 dark:text-gray-400">
-                                                {{ $details['label'] }}</p>
-                                            <p class="text-base font-semibold text-gray-900 dark:text-gray-100">
-                                                {{ $details['value'] }}</p>
-                                        </div>
+
+                                    <div class="table-responsive-container w-full overflow-x-auto">
+                                        <table class="base-table w-full text-sm">
+                                            <thead class="bg-gray-50 dark:bg-gray-700">
+                                                <tr>
+                                                    <th
+                                                        class="table-header-cell border border-gray-200 dark:border-gray-600">
+                                                        No</th>
+                                                    <th
+                                                        class="table-header-cell border border-gray-200 dark:border-gray-600">
+                                                        Name</th>
+                                                    <th
+                                                        class="table-header-cell border border-gray-200 dark:border-gray-600">
+                                                        Company</th>
+                                                    <th
+                                                        class="table-header-cell border border-gray-200 dark:border-gray-600">
+                                                        Jabatan
+                                                    </th>
+                                                    <th
+                                                        class="table-header-cell border border-gray-200 dark:border-gray-600">
+                                                        Foto</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="employeeTableBody"
+                                                class="divide-y divide-gray-200 dark:divide-gray-600">
+                                            </tbody>
+                                        </table>
                                     </div>
-                                @endforeach
-                            </div>
-                        </div>
-
-                        <div
-                            class="rounded-xl border border-gray-200 bg-gray-50 p-6 dark:border-gray-700 dark:bg-gray-800">
-                            {{-- Rounded-xl, stronger  --}}
-                            <h3 class="mb-4 flex items-center gap-2 text-xl font-bold text-gray-800 dark:text-gray-100">
-                                {{-- Larger, bolder title --}}
-                                <span class="text-emerald-500">📊</span> Job Numbers
-                            </h3>
-                            <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
-                                @php
-                                    $jobNumbers = [
-                                        ['label' => 'Total Required', 'value' => $personnel->required],
-                                        ['label' => 'Actual', 'value' => $personnel->actual],
-                                        ['label' => 'Actual Number', 'value' => $personnel->total_actual],
-                                    ];
-                                @endphp
-
-                                @foreach ($jobNumbers as $job)
-                                    <div
-                                        class="hover:-md flex flex-row items-center justify-between space-y-1 rounded-lg border border-gray-200 bg-white p-2 transition-all duration-200 dark:border-gray-700 dark:bg-gray-900">
-                                        {{-- Flex-col for stacking, space-y, larger padding, rounded-lg, darker bg in dark mode, hover effect --}}
-                                        <span class="text-xs font-medium text-gray-500 dark:text-gray-400">
-                                            {{ $job['label'] }}</span>
-                                        <span
-                                            class="text-xl font-extrabold text-indigo-600 dark:text-indigo-400">{{ $job['value'] }}</span>
-                                        {{-- Much larger and bolder value --}}
-                                    </div>
-                                @endforeach
-                            </div>
-                        </div>
-
-                        <div
-                            class="rounded-xl border border-gray-200 bg-gray-50 p-6 dark:border-gray-700 dark:bg-gray-800">
-                            {{-- Rounded-xl, stronger  --}}
-                            <h3 class="mb-3 flex items-center gap-2 text-xl font-bold text-gray-800 dark:text-gray-100">
-                                {{-- Larger, bolder title --}}
-                                <span class="text-pink-500">🤔</span> Reason for Vacancy
-                            </h3>
-                            <p class="text-base leading-relaxed text-gray-700 dark:text-gray-300">
-                                {{ $personnel->reason_vacancy }}</p> {{-- Adjusted text color and line height --}}
-                        </div>
-
-                        <div
-                            class="rounded-xl border border-gray-200 bg-gray-50 p-6 dark:border-gray-700 dark:bg-gray-800">
-                            {{-- Rounded-xl, stronger  --}}
-                            <div class="flex flex-col md:flex-row md:items-center md:gap-4">
-                                <h3
-                                    class="mb-3 flex flex-shrink-0 items-center gap-2 text-xl font-bold text-gray-800 md:mb-0 dark:text-gray-100">
-                                    {{-- Larger, bolder title --}}
-                                    <span class="text-2xl text-purple-500">🏷️</span>
-                                    Tags
-                                </h3>
-                                <div x-data="{ isOpen: true }" class="mt-2 flex max-w-full flex-wrap gap-3 md:mt-0">
-                                    {{-- Added margin-top for mobile, consistent gap --}}
-                                    @foreach ($jobtag as $jt)
-                                        <span
-                                            class="-sm hover:-md inline-block cursor-pointer rounded-full bg-purple-100 px-4 py-1.5 text-sm font-semibold text-purple-700 transition-all duration-300 hover:bg-purple-200 dark:bg-purple-800/30 dark:text-purple-300 dark:hover:bg-purple-800">
-                                            {{-- Adjusted colors for tags, hover effects --}}
-                                            {{ $jt->job_tags }}
-                                        </span>
-                                    @endforeach
                                 </div>
                             </div>
                         </div>
-
                     </div>
                 </div>
             </div>
-            <div class="flex flex-col gap-4 sm:w-1/2 md:w-full">
-                <div x-data="{ activeTab: 'Responsibilities' }" class="rounded-xl bg-white duration-300 dark:bg-gray-800">
+
+            <div class="lg:col-span-1">
+                <div x-data="{ activeTab: 'structure' }"
+                    class="rounded-xl bg-white shadow-lg transition-shadow duration-300 hover:shadow-xl dark:bg-gray-800">
+
                     <header
                         class="flex items-center rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
                         <nav class="-mb-px flex flex-grow"> {{-- Added -mb-px to negative margin to overlap border --}}
-                            <button @click="activeTab = 'Responsibilities'"
+                            <button @click="activeTab = 'structure'"
                                 :class="{
-                                    'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400': activeTab === 'Responsibilities',
-                                    'border-b-2 border-transparent text-gray-600 hover:text-gray-800 hover:border-gray-300 dark:text-gray-300 dark:hover:text-gray-100 dark:hover:border-gray-600': activeTab !== 'Responsibilities'
+                                    'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400': activeTab === 'structure',
+                                    'border-b-2 border-transparent text-gray-600 hover:text-gray-800 hover:border-gray-300 dark:text-gray-300 dark:hover:text-gray-100 dark:hover:border-gray-600': activeTab !== 'structure'
                                 }"
                                 class="flex-1 whitespace-nowrap px-4 py-2 text-center text-sm font-medium transition-colors duration-200 focus:outline-none">
-                                Job Responsibilities
+                                Structure Details
                             </button>
-                            <button @click="activeTab = 'Qualification'"
-                                :class="{
-                                    'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400': activeTab === 'Qualification',
-                                    'border-b-2 border-transparent text-gray-600 hover:text-gray-800 hover:border-gray-300 dark:text-gray-300 dark:hover:text-gray-100 dark:hover:border-gray-600': activeTab !== 'Qualification'
-                                }"
-                                class="flex-1 whitespace-nowrap px-4 py-2 text-center text-sm font-medium transition-colors duration-200 focus:outline-none">
-                                Job Qualification
-                            </button>
-                        </nav>
-                    </header>
-
-                    <div class="flex-grow overflow-y-auto rounded-b-xl bg-white p-4 dark:bg-gray-800">
-                        <div x-show="activeTab === 'Responsibilities'"
-                            x-transition:enter="transition ease-out duration-300"
-                            x-transition:enter-start="opacity-0 translate-y-2"
-                            x-transition:enter-end="opacity-100 translate-y-0"
-                            x-transition:leave="transition ease-in duration-200"
-                            x-transition:leave-start="opacity-100 translate-y-0"
-                            x-transition:leave-end="opacity-0 translate-y-2">
-                            <ul
-                                class="custom-scrollbar max-h-60 space-y-2 overflow-y-auto text-gray-700 dark:text-gray-300">
-                                {{-- Added custom-scrollbar class --}}
-                                @foreach ($jobres as $jr)
-                                    <li class="flex items-start gap-2"> {{-- Changed space-x-3 to gap-2 --}}
-                                        <span
-                                            class="flex-shrink-0 text-lg leading-none text-indigo-500 dark:text-indigo-400">•</span>
-                                        {{-- Larger bullet point, aligned --}}
-                                        <span
-                                            class="text-base leading-relaxed">{{ $jr->job_responsibilities_descr }}</span>
-                                        {{-- Adjusted text size and line height --}}
-                                    </li>
-                                @endforeach
-                                @if ($jobres->isEmpty())
-                                    <li class="py-4 text-center italic text-gray-500 dark:text-gray-400">No job
-                                        responsibilities listed.</li>
-                                @endif
-                            </ul>
-                        </div>
-
-                        <div x-show="activeTab === 'Qualification'"
-                            x-transition:enter="transition ease-out duration-300"
-                            x-transition:enter-start="opacity-0 translate-y-2"
-                            x-transition:enter-end="opacity-100 translate-y-0"
-                            x-transition:leave="transition ease-in duration-200"
-                            x-transition:leave-start="opacity-100 translate-y-0"
-                            x-transition:leave-end="opacity-0 translate-y-2">
-                            <ul class="space-y-4 text-gray-700 dark:text-gray-300"> {{-- Increased space-y --}}
-                                <div class="grid grid-cols-1 gap-4 md:grid-cols-2"> {{-- Changed to grid for better layout of education/experience --}}
-                                    <li
-                                        class="py-3dark:border-gray-700 flex items-center gap-3 rounded-lg border border-gray-200 bg-gray-100 px-4 dark:bg-gray-900">
-                                        {{-- Smoother background, better padding, border --}}
-                                        <span
-                                            class="flex-shrink-0 text-xl text-indigo-500 dark:text-indigo-400">🎓</span>
-                                        {{-- Larger icon --}}
-                                        <span class="font-semibold text-gray-800 dark:text-gray-100">Pendidikan
-                                            minimum
-                                            <span class="font-bold">{{ $personnel->education }}</span></span>
-                                        {{-- Bolder value --}}
-                                    </li>
-                                    <li
-                                        class="py-3dark:border-gray-700 flex items-center gap-3 rounded-lg border border-gray-200 bg-gray-100 px-4 dark:bg-gray-900">
-                                        {{-- Smoother background, better padding, border --}}
-                                        <span
-                                            class="flex-shrink-0 text-xl text-indigo-500 dark:text-indigo-400">💼</span>
-                                        {{-- Larger icon --}}
-                                        <span class="font-semibold text-gray-800 dark:text-gray-100">Pengalaman
-                                            minimum
-                                            <span class="font-bold">{{ $personnel->experience_start }}
-                                                Tahun</span></span>
-                                        {{-- Bolder value --}}
-                                    </li>
-                                </div>
-                                @foreach ($jobqua as $jq)
-                                    <li class="flex items-start gap-2"> {{-- Adjusted gap and padding-top --}}
-                                        <span
-                                            class="flex-shrink-0 text-lg leading-none text-indigo-500 dark:text-indigo-400">•</span>
-                                        {{-- Larger bullet point, aligned --}}
-                                        <span
-                                            class="text-base font-medium leading-relaxed text-gray-700 dark:text-gray-300">{{ $jq->job_qualification_descr }}</span>
-                                        {{-- Adjusted text size and line height --}}
-                                    </li>
-                                @endforeach
-                                @if ($jobqua->isEmpty() && !$personnel->education && !$personnel->experience_start)
-                                    <li class="py-4 text-center italic text-gray-500 dark:text-gray-400">No job
-                                        qualifications listed.</li>
-                                @endif
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-                <div x-data="{ activeTab: 'approval' }" class="rounded-xl bg-white duration-300 dark:bg-gray-800">
-                    <header
-                        class="flex items-center rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
-                        <nav class="-mb-px flex flex-grow"> {{-- Added -mb-px to negative margin to overlap border --}}
                             <button @click="activeTab = 'approval'"
                                 :class="{
                                     'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400': activeTab === 'approval',
@@ -372,6 +194,93 @@
                     </header>
 
                     <div class="flex-grow overflow-y-auto rounded-b-xl bg-white p-6 dark:bg-gray-800">
+                        <div x-show="activeTab === 'structure'" x-transition:enter="transition ease-out duration-300"
+                            x-transition:enter-start="opacity-0 translate-y-2"
+                            x-transition:enter-end="opacity-100 translate-y-0"
+                            x-transition:leave="transition ease-in duration-200"
+                            x-transition:leave-start="opacity-100 translate-y-0"
+                            x-transition:leave-end="opacity-0 translate-y-2">
+                            <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+                                @php
+                                    $jobDetails = [
+                                        ['icon' => '🏢', 'label' => 'Company', 'value' => $sto->cpnyid],
+                                        ['icon' => '📝', 'label' => 'Created By', 'value' => $sto->user],
+                                        [
+                                            'icon' => '🗓️',
+                                            'label' => 'Creation Date',
+                                            'value' => \Carbon\Carbon::parse($sto->sto_date)->format('d M Y'),
+                                        ],
+                                    ];
+                                @endphp
+                                @foreach ($jobDetails as $detail)
+                                    <div
+                                        class="flex items-center gap-3 rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-700">
+                                        <div class="flex-shrink-0 text-xl text-indigo-600">{{ $detail['icon'] }}
+                                        </div>
+                                        <div>
+                                            <p class="text-sm font-medium text-gray-500 dark:text-gray-400">
+                                                {{ $detail['label'] }}</p>
+                                            <p class="text-base font-semibold text-gray-900 dark:text-gray-100">
+                                                {{ $detail['value'] }}</p>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+
+                            <div
+                                class="mt-8 rounded-xl border border-gray-200 bg-gray-50 p-6 dark:border-gray-700 dark:bg-gray-800">
+                                <h3
+                                    class="mb-4 flex items-center gap-2 text-xl font-extrabold text-gray-800 dark:text-white">
+                                    📊 Vacant Summary
+                                </h3>
+
+                                @php
+                                    $vacantByLevel = [];
+                                    foreach ($employee as $emp) {
+                                        $level = $emp->department->subgrade_name ?? 'Unknown';
+                                        $company = $emp['employee_company'] ?? 'Unknown';
+                                        if (!isset($vacantByLevel[$level])) {
+                                            $vacantByLevel[$level] = [];
+                                        }
+                                        if (!isset($vacantByLevel[$level][$company])) {
+                                            $vacantByLevel[$level][$company] = 0;
+                                        }
+                                        $vacantByLevel[$level][$company]++;
+                                    }
+                                    $levels = array_keys($vacantByLevel); // For tabs
+                                @endphp
+                                <div x-data="{ tab: '{{ $levels[0] ?? '' }}' }" class="space-y-6">
+                                    <div
+                                        class="mb-4 flex flex-wrap gap-2 border-b border-gray-200 pb-2 dark:border-gray-700">
+                                        @foreach ($levels as $level)
+                                            <button @click="tab = '{{ $level }}'"
+                                                :class="{ 'bg-indigo-600 text-white shadow-md': tab === '{{ $level }}', 'text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700': tab !== '{{ $level }}' }"
+                                                class="rounded-md px-4 py-2 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                                                {{ $level }}
+                                            </button>
+                                        @endforeach
+                                    </div>
+
+                                    @foreach ($vacantByLevel as $level => $companies)
+                                        <div x-show="tab === '{{ $level }}'" class="mt-4">
+                                            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                                                @foreach ($companies as $company => $count)
+                                                    <div
+                                                        class="flex justify-between rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-700">
+                                                        <h4 class="font-bold text-gray-800 dark:text-white">
+                                                            {{ $company }}</h4>
+                                                        <p class="text-sm text-indigo-600 dark:text-indigo-400">
+                                                            Vacant:
+                                                            {{ $count }}</p>
+                                                    </div>
+                                                @endforeach
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                        </div>
+
                         <div x-show="activeTab === 'approval'" x-transition:enter="transition ease-out duration-300"
                             x-transition:enter-start="opacity-0 translate-y-2"
                             x-transition:enter-end="opacity-100 translate-y-0"
@@ -507,7 +416,6 @@
             </div>
         </div>
     </div>
-
     <div id="loadingSpinnerContainer" class="flex h-16 items-center justify-center">
         <svg class="h-10 w-10 animate-spin text-indigo-500" xmlns="http://www.w3.org/2000/svg" fill="none"
             viewBox="0 0 24 24" stroke="currentColor">
@@ -517,52 +425,49 @@
         </svg>
     </div>
 
-    <div id="rejectTaskModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50 p-4">
-        <div class="-lg w-full max-w-md rounded-lg bg-white p-6 dark:bg-gray-700">
-            <h2 class="mb-4 text-xl font-bold text-gray-800 dark:text-white">Reject Task</h2>
+    <div id="rejectTaskModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50">
+        <div class="w-full max-w-md rounded-lg bg-white p-6 shadow-lg dark:bg-gray-700">
+            <h2 class="mb-4 text-xl font-semibold text-gray-800 dark:text-white">Reject Task</h2>
             <textarea id="rejectReason"
-                class="mt-2 w-full rounded-lg border border-gray-300 p-3 focus:outline-none focus:ring-2 focus:ring-red-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                class="mt-2 w-full rounded-lg border p-3 focus:outline-none dark:bg-gray-800 dark:text-white"
                 placeholder="Enter rejection reason..."></textarea>
 
-            <div class="mt-6 flex justify-end gap-3">
-                <button id="cancelRejectBtn"
-                    class="rounded-lg bg-gray-200 px-5 py-2 font-medium text-gray-700 transition-colors hover:bg-gray-300 dark:bg-gray-600 dark:text-white dark:hover:bg-gray-500">
+            <div class="mt-4 flex justify-between">
+                <button id="cancelRejectBtn" class="rounded-lg bg-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-400">
                     Cancel
                 </button>
-                <button id="confirmRejectBtn"
-                    class="rounded-lg bg-red-600 px-5 py-2 font-medium text-white transition-colors hover:bg-red-700">
+                <button id="confirmRejectBtn" class="rounded-lg bg-red-500 px-4 py-2 text-white hover:bg-red-600">
                     Reject
                 </button>
             </div>
         </div>
     </div>
-
-    <div id="reviseTaskModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50 p-4">
-        <div class="-lg w-full max-w-md rounded-lg bg-white p-6 dark:bg-gray-700">
-            <h2 class="mb-4 text-xl font-bold text-gray-800 dark:text-white">Revise Task</h2>
+    <div id="reviseTaskModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50">
+        <div class="w-full max-w-md rounded-lg bg-white p-6 shadow-lg dark:bg-gray-700">
+            <h2 class="mb-4 text-xl font-semibold text-gray-800 dark:text-white">Revise Task</h2>
             <textarea id="reviseReason"
-                class="mt-2 w-full rounded-lg border border-gray-300 p-3 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                class="mt-2 w-full rounded-lg border p-3 focus:outline-none dark:bg-gray-800 dark:text-white"
                 placeholder="Enter revise reason..."></textarea>
 
-            <div class="mt-6 flex justify-end gap-3">
-                <button id="cancelReviseBtn"
-                    class="rounded-lg bg-gray-200 px-5 py-2 font-medium text-gray-700 transition-colors hover:bg-gray-300 dark:bg-gray-600 dark:text-white dark:hover:bg-gray-500">
+            <div class="mt-4 flex justify-between">
+                <button id="cancelReviseBtn" class="rounded-lg bg-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-400">
                     Cancel
                 </button>
-                <button id="confirmReviseBtn"
-                    class="rounded-lg bg-blue-600 px-5 py-2 font-medium text-white transition-colors hover:bg-blue-700">
+                <button id="confirmReviseBtn" class="rounded-lg bg-red-500 px-4 py-2 text-white hover:bg-red-600">
                     Revise
                 </button>
             </div>
         </div>
     </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
     <script>
         lucide.createIcons();
     </script>
 
     <script>
         $(document).ready(function() {
-            let docid = "{{ $personnel->docid }}"; // Ambil task ID dari PHP ke JavaScript
+            let docid = "{{ $sto->sto_id }}"; // Ambil task ID dari PHP ke JavaScript
             loadComments(docid);
 
             // **Fungsi untuk Memuat Komentar**
@@ -572,7 +477,7 @@
                 commentList.html('<p class="text-gray-500 italic">Loading comments...</p>'); // Loader
 
                 $.ajax({
-                    url: `/personnel/${docid}/comments`,
+                    url: `/sto/${docid}/comments`,
                     type: 'GET',
                     success: function(response) {
                         console.log("Comments Loaded:", response);
@@ -617,7 +522,7 @@
                 $('#postCommentBtn').prop('disabled', true).text('Posting...'); // Disable button saat proses
 
                 $.ajax({
-                    url: `/personnel/${docid}/comments`,
+                    url: `/sto/${docid}/comments`,
                     type: 'POST',
                     data: {
                         docid: docid,
@@ -660,18 +565,18 @@
     </script>
     <script>
         $(document).on("click", "#approveBtn", function() {
-            let docid = "{{ $personnel->docid }}"; // Ambil Task ID dari modal        
-            approvePersonnel(docid);
+            let docid = "{{ $sto->sto_id }}"; // Ambil Task ID dari modal        
+            approveSto(docid);
         });
 
-        function approvePersonnel(docid) {
+        function approveSto(docid) {
             let $spinner = $("#loadingSpinnerContainer"); // Ambil elemen spinner
 
             // Tampilkan spinner di kanan bawah
             $spinner.fadeIn();
 
             $.ajax({
-                url: `/personnel/${docid}/approve`,
+                url: `/sto/${docid}/approve`,
                 type: "POST",
                 data: {
                     _token: "{{ csrf_token() }}",
@@ -687,8 +592,8 @@
                             );
 
                         // Tampilkan alert sukses
-                        toastr.success("Personnel approved successfully!");
-                        window.location.href = "/personnels";
+                        toastr.success("Sto approved successfully!");
+                        window.location.href = "/stos";
                     } else {
                         toastr.error(response.message);
                     }
@@ -697,9 +602,9 @@
                     console.error(xhr.responseText);
 
                     if (xhr.status === 403) {
-                        toastr.error("You are not authorized to approve this personnel.");
+                        toastr.error("You are not authorized to approve this sto.");
                     } else {
-                        toastr.error("Error: Unable to approve personnel.");
+                        toastr.error("Error: Unable to approve sto.");
                     }
                 },
                 complete: function() {
@@ -717,7 +622,7 @@
             $(document).on("click", "#rejectBtn", function() {
                 $("#rejectReason").val(""); // Reset alasan reject
                 // $("#rejectTaskModal").removeClass("hidden").css("z-index", "60");
-                let docid = "{{ $personnel->docid }}";
+                let docid = "{{ $sto->sto_id }}";
                 checkApproval(docid, "reject");
 
             });
@@ -729,7 +634,7 @@
 
             // Saat tombol "Reject" ditekan, proses perubahan status
             $(document).on("click", "#confirmRejectBtn", function() {
-                let docid = "{{ $personnel->docid }}"; // Ambil ID tugas dari modal detail
+                let docid = "{{ $sto->sto_id }}"; // Ambil ID tugas dari modal detail
                 let rejectReason = $("#rejectReason").val().trim();
 
                 if (rejectReason === "") {
@@ -742,7 +647,7 @@
                 $spinner.fadeIn();
 
                 $.ajax({
-                    url: `/personnel/${docid}/reject`,
+                    url: `/sto/${docid}/reject`,
                     type: "POST",
                     data: {
                         _token: "{{ csrf_token() }}",
@@ -753,7 +658,7 @@
                         if (response.success) {
                             // alert("Task has been rejected successfully.");
 
-                            // Update status di modal personnel
+                            // Update status di modal sto
                             $("#xstatus").text("Rejected")
                                 .removeClass()
                                 .addClass(
@@ -761,9 +666,9 @@
                                 );
                             $spinner.fadeOut();
 
-                            window.location.href = "/personnels";
+                            window.location.href = "/stos";
                         } else {
-                            alert("Failed to reject personnel.");
+                            alert("Failed to reject sto.");
                         }
                     },
                     error: function(xhr) {
@@ -772,7 +677,7 @@
                         if (xhr.status === 403) {
                             alert("You Can't Rejected!"); // Popup jika user tidak berhak
                         } else {
-                            alert("Error: Unable to reject personnel status.");
+                            alert("Error: Unable to reject sto status.");
                         }
                     },
                 });
@@ -785,7 +690,7 @@
             $(document).on("click", "#reviseBtn", function() {
                 $("#reviseReason").val(""); // Reset alasan revise
                 // $("#reviseTaskModal").removeClass("hidden").css("z-index", "60");
-                let docid = "{{ $personnel->docid }}";
+                let docid = "{{ $sto->sto_id }}";
                 checkApproval(docid, "revise");
 
             });
@@ -797,7 +702,7 @@
 
             // Saat tombol "Revise" ditekan, proses perubahan status
             $(document).on("click", "#confirmReviseBtn", function() {
-                let docid = "{{ $personnel->docid }}"; // Ambil ID tugas dari modal detail
+                let docid = "{{ $sto->sto_id }}"; // Ambil ID tugas dari modal detail
                 let reviseReason = $("#reviseReason").val().trim();
 
                 if (reviseReason === "") {
@@ -809,7 +714,7 @@
                 $spinner.fadeIn();
 
                 $.ajax({
-                    url: `/personnel/${docid}/revise`,
+                    url: `/sto/${docid}/revise`,
                     type: "POST",
                     data: {
                         _token: "{{ csrf_token() }}",
@@ -820,16 +725,16 @@
                         if (response.success) {
                             // alert("Task has been reviseed successfully.");
 
-                            // Update status di modal personnel
+                            // Update status di modal sto
                             $("#xstatus").text("Revised")
                                 .removeClass()
                                 .addClass(
                                     "w-full max-w-32 bg-red-300/30 dark:bg-red-300 text-red-600 flex justify-items-center focus:outline-none pointer-events-none border-none font-semibold px-2 py-0.5 rounded"
                                 );
                             $spinner.fadeOut();
-                            window.location.href = "/personnels";
+                            window.location.href = "/stos";
                         } else {
-                            alert("Failed to revise personnel.");
+                            alert("Failed to revise sto.");
                         }
                     },
                     error: function(xhr) {
@@ -838,7 +743,7 @@
                         if (xhr.status === 403) {
                             alert("You Can't Revised!"); // Popup jika user tidak berhak
                         } else {
-                            alert("Error: Unable to revise personnel status.");
+                            alert("Error: Unable to revise sto status.");
                         }
                     },
                 });
@@ -854,7 +759,7 @@
         function checkApproval(docid, action) {
             console.log(docid, '-', action);
             $.ajax({
-                url: `/personnel/${docid}/check-approval/${action}`,
+                url: `/sto/${docid}/check-approval/${action}`,
                 type: "GET",
                 success: function(response) {
                     if (response.canPerformAction) {
@@ -866,11 +771,11 @@
                             $("#reviseReason").val(""); // Reset alasan revise
                             $("#reviseTaskModal").removeClass("hidden").css("z-index", "60");
                             // } else if (action === "approve") {
-                            //     approvePersonnel(docid); // Jika approve, langsung jalankan proses approval
+                            //     approveSto(docid); // Jika approve, langsung jalankan proses approval
                         }
                     } else {
                         // Jika user tidak boleh melakukan aksi, tampilkan popup toastr
-                        toastr.error("You are not authorized to " + action + " this personnel.");
+                        toastr.error("You are not authorized to " + action + " this sto.");
                     }
                 },
                 error: function() {
@@ -904,5 +809,260 @@
             color: white;
         }
     </style>
+
+    <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/lucide.min.js"></script>
+
+    <!-- D3 Org Chart Dependencies -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/d3-org-chart@3.1.0"></script>
+    <script src="https://cdn.jsdelivr.net/npm/d3-flextree@2.1.2/build/d3-flextree.js"></script>
+
+    <!-- Tambahkan di bagian <head> atau sebelum script -->
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            $('#departement_name_select').select2({
+                tags: true, // Memungkinkan input baru
+                placeholder: "Pilih atau ketik departemen",
+                width: '100%'
+            });
+        });
+    </script>
+
+
+    <script>
+        var chart = null;
+
+        function renderOrgChart() {
+            d3.json("{{ route('orgchart.json') }}").then((res) => {
+                const data = res.nodes;
+                const connections = res.connections || [];
+
+                // Get container size
+                var container = document.querySelector('.chart-container');
+                var width = container.offsetWidth;
+                var height = container.offsetHeight;
+
+                // Remove previous chart if exists
+                while (container.firstChild) {
+                    container.removeChild(container.firstChild);
+                }
+
+                chart = new d3.OrgChart()
+                    .nodeWidth((d) => {
+                        return 300 + (d.data.members?.length || 0) * 10;
+                    })
+                    .nodeHeight((d) => {
+                        return 100 + (d.data.members?.length || 0) * 30;
+                    })
+                    .childrenMargin((d) => 40)
+                    .compactMarginBetween((d) => 35)
+                    .compactMarginPair((d) => 30)
+                    .neighbourMargin((a, b) => 20)
+                    .nodeContent(function(d) {
+                        const members = d.data.members || [];
+                        const level = d.depth;
+                        const bgColor = d.data.bgColor || '#f5f5f5';
+                        return `
+                            <div style='width:${d.width}px;height:${d.height}px;padding-top:25px;padding-left:1px;padding-right:1px'>
+                                <div style="
+                                    background-color:${bgColor};
+                                    width:${d.width - 2}px;
+                                    height:${d.height - 25}px;
+                                    border-radius:10px;
+                                    border:1px solid #E4E2E9;
+                                    padding:15px;
+                                    overflow:visible;
+                                ">
+                                    ${d.data.position
+                                        ? `<div style="font-size:18px;color:#08011E;margin-bottom:5px">${d.data.name} ${d.data.position}</div>`
+                                        : `<div style="font-size:18px;color:#08011E;text-align:center;margin-top:10px;">${d.data.name}</div>`
+                                    }
+                                    <div style="font-size:12px;color:#333">
+                                        <div style="margin-top:10px;">
+                                            ${members.map(m => `
+                                                <div style="display:flex;align-items:center;margin-bottom:6px;">
+                                                    <img src="${m.image}" style="width:30px;height:30px;border-radius:50%;margin-right:8px;" />
+                                                    <span style="font-size:12px; color:${m.name.toUpperCase() === 'VACANT' ? 'red' : '#000'};">
+                                                        ${m.name} (${m.company})
+                                                    </span>
+                                                </div>
+                                            `).join('')}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    })
+                    .onNodeClick((d) => {
+                        openModal(d.data.id);
+                    })
+                    .container('.chart-container')
+                    .data(data)
+                    .expandAll()
+                    .width(width)
+                    .height(height)
+                    .render();
+
+                chart.connections(connections).render();
+                setTimeout(() => {
+                    d3.select(".chart-container svg")
+                        .on("wheel.zoom", null)
+                        .on("mousedown.zoom", null)
+                        .on("touchstart.zoom", null)
+                        .on("touchmove.zoom", null)
+                        .on("touchend.zoom", null)
+                        .on("dblclick.zoom", null);
+                }, 100);
+            });
+        }
+
+        // Initial render
+        $(document).ready(function() {
+            renderOrgChart();
+            // Optionally, re-render on window resize for responsiveness
+            $(window).on('resize', function() {
+                renderOrgChart();
+            });
+        });
+
+        function openModal(id) {
+            alert('Clicked node ID: ' + id); // ganti ini untuk buka modal
+        }
+    </script>
+
+
+    <script>
+        function openModal(id) {
+            currentDeptId = id;
+            document.querySelectorAll('input[name="approval_line"]').forEach(el => el.value = id);
+
+            $.ajax({
+                url: `{{ url('/orgchart/employee/by-dept') }}/${id}`,
+                method: 'GET',
+                success: function(response) {
+                    const employees = response.employees || [];
+                    const deptName = response.departement_name || '-';
+
+                    // Set label di atas tabel
+                    const capitalizedDeptName = deptName.charAt(0).toUpperCase() + deptName.slice(1)
+                        .toLowerCase();
+                    $('#departmentLabel').text(`Dept: ${capitalizedDeptName}`);
+
+                    let html = '';
+                    employees.forEach((emp, index) => {
+                        html += `
+                                    <tr>
+                                        <td class="border border-black px-2 py-1">${index + 1}</td>
+                                        <td class="border border-black px-2 py-1">${emp.employee_name}</td>
+                                        <td class="border border-black px-2 py-1">${emp.employee_company}</td>
+                                        <td class="border border-black px-2 py-1">${emp.employee_level}</td>
+                                        <td class="border border-black px-2 py-1 text-center">
+                                            ${emp.image ? `<img src="${emp.image}" class="w-15 h-15 rounded-full mx-auto">` : '-'}
+                                        </td>                                       
+                                    </tr>
+                                `;
+                    });
+
+
+                    $('#employeeTableBody').html(html);
+                    switchTab('view');
+                    $('#modalForm').removeClass('hidden');
+                },
+                error: function(xhr) {
+                    alert('Gagal memuat employee!');
+                    console.error(xhr);
+                }
+            });
+        }
+
+
+        function closeModal() {
+            document.getElementById('modalForm').classList.add('hidden');
+            document.getElementById('formAddEmployee').reset();
+        }
+    </script>
+
+    <script>
+        $('#formAddEmployee').submit(function(e) {
+            e.preventDefault(); // cegah submit default
+
+            const form = $(this);
+            const url = form.attr('action');
+            const formData = form.serialize();
+
+            $.ajax({
+                type: 'POST',
+                url: url,
+                data: formData,
+                success: function(response) {
+                    closeModal(); // tutup modal
+                    refreshChart(); // reload chart
+                    // alert('Data berhasil disimpan!');
+                    toastr.success("Add Vacant Successfully!");
+                },
+                error: function(xhr) {
+                    console.error(xhr);
+                    alert('Gagal menyimpan data!');
+                }
+            });
+        });
+
+        function refreshChart() {
+            d3.json("{{ route('orgchart.json') }}").then((data) => {
+                chart.data(data).render(); // update chart dengan data baru
+            });
+        }
+    </script>
+
+    <script>
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('text-blue-600',
+                'border-blue-600'));
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.add('hidden'));
+
+            document.getElementById(`tab-${tab}`).classList.remove('hidden');
+            const activeBtn = [...document.querySelectorAll('.tab-button')].find(btn => btn.textContent.toLowerCase() ===
+                tab);
+            if (activeBtn) activeBtn.classList.add('text-blue-600', 'border-blue-600');
+        }
+    </script>
+
+    <script>
+        $('#formAddDepartement').submit(function(e) {
+            e.preventDefault();
+            const form = $(this);
+            const url = form.attr('action');
+            const formData = form.serialize();
+
+            $.ajax({
+                type: 'POST',
+                url: url,
+                data: formData,
+                success: function(response) {
+                    closeModal();
+                    refreshChart();
+                    // alert('Departement berhasil disimpan!');
+                    toastr.success("Add Sub Departement Successfully!");
+                },
+                error: function(xhr) {
+                    console.error(xhr);
+                    alert('Gagal menyimpan departement!');
+                }
+            });
+        });
+    </script>
+
+    {{-- <script>
+                document.querySelector('.chart-container').addEventListener('click', function () {
+                    window.open('{{ route("orgchart.fullscreen") }}', '_blank'); // ganti dengan route yang sesuai
+                });
+            </script> --}}
+
+
+
 
 </x-app-layout>

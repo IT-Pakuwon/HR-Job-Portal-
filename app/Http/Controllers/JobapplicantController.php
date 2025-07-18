@@ -31,12 +31,13 @@ class JobapplicantController extends Controller
 {
     public function index()
     {
-        $all = Jobposting::count();
-        $onProgress = Jobposting::where('status', 'P')->count();
-        $reject = Jobposting::where('status', 'R')->count();
-        $revise = Jobposting::where('status', 'D')->count();
-        $completed = Jobposting::where('status', 'C')->count();
-       
+        // Ambil jumlah total pelamar dari viewtrxcareer
+        $all = DB::connection('mysql3')->table('viewtrxcareer')->count();
+        $onProgress = DB::connection('mysql3')->table('viewtrxcareer')->where('status', 'P')->count();
+        $reject = DB::connection('mysql3')->table('viewtrxcareer')->where('status', 'R')->count();
+        $revise = DB::connection('mysql3')->table('viewtrxcareer')->where('status', 'D')->count();
+        $completed = DB::connection('mysql3')->table('viewtrxcareer')->where('status', 'C')->count();
+
         return view('pages.careers.jobapplicant', compact('all', 'onProgress', 'reject', 'revise', 'completed'));
     }
     
@@ -45,19 +46,62 @@ class JobapplicantController extends Controller
         $status = $request->query('status');
         $cpnyid = $request->query('cpnyid');
 
-        $query = Jobposting::query();
+        $start = $request->input('start', 0);
+        $length = $request->input('length', 10);
+        $search = $request->input('search.value', '');
+        $orderColumnIndex = $request->input('order.0.column', 0);
+        $orderDir = $request->input('order.0.dir', 'desc');
+
+        // Kolom yang bisa diurutkan
+        $columns = [
+            'vc.docid', 'vc.apply_date', 'vc.fullname', 'vc.education_name', 'vc.religion',
+            'vc.height', 'vc.weight', 'vc.company_name', 'vs.match_score_percentage', 'vc.prev_apply_step'
+        ];
+        $orderColumn = $columns[$orderColumnIndex] ?? 'vc.docid';
+
+        $query = DB::connection('mysql3')->table('viewtrxcareer as vc')
+            ->leftJoin('viewtrxcareer_scoring as vs', 'vc.docid', '=', 'vs.docid');
 
         if (!empty($status)) {
-            $query->where('status', $status);
+            $query->where('vc.status', $status);
         }
-
         if (!empty($cpnyid)) {
-            $query->where('cpnyid', $cpnyid);
+            $query->where('vc.cpnyid', $cpnyid);
         }
 
-        $jobposting = $query->orderBy('id', 'desc')->get();
+        if (!empty($search)) {
+            $query->where(function($q) use ($search) {
+                $q->where('vc.fullname', 'like', "%$search%")
+                  ->orWhere('vc.education_name', 'like', "%$search%")
+                  ->orWhere('vc.religion', 'like', "%$search%")
+                  ->orWhere('vc.company_name', 'like', "%$search%")
+                  ->orWhere('vc.docid', 'like', "%$search%")
+                  ->orWhere('vc.prev_apply_step', 'like', "%$search%")
+                  ->orWhere('vs.match_score_percentage', 'like', "%$search%")
+                  ;
+            });
+        }
 
-        return response()->json(['data' => $jobposting]);
+        $totalRecords = DB::connection('mysql3')->table('viewtrxcareer')->count();
+        $filteredRecords = $query->count();
+
+        $applicants = $query->select(
+            'vc.*',
+            DB::raw('IFNULL(vs.total_tags, 0) as total_tags'),
+            DB::raw('IFNULL(vs.matched_count, 0) as matched_count'),
+            DB::raw('IFNULL(vs.match_score_percentage, 0) as match_score_percentage')
+        )
+        ->orderByRaw($orderColumn . ' ' . $orderDir)
+        ->skip($start)
+        ->take($length)
+        ->get();
+
+        return response()->json([
+            'draw' => intval($request->input('draw')),
+            'recordsTotal' => $totalRecords,
+            'recordsFiltered' => $filteredRecords,
+            'data' => $applicants
+        ]);
     }
 
     public function getCounts(Request $request)
