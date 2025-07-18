@@ -96,61 +96,41 @@ class DashboardController extends Controller
     }
 
     public function Waitingjson(Request $request)
-    {     
-        $user = request()->user();     
+    {
+        $user = request()->user();
         if (!$user) {
-            return redirect()->route('login');
-        }       
-
-        // Step 1: Ambil data dari database kedua (ViewTrxAll)
-        $viewTrxAll = ViewTrxAll::get(); // Ambil semua atau tambahkan kondisi jika diperlukan
-
-        // Step 2: Ambil semua docid dari ViewTrxAll untuk mencocokkan di T_approval
-        $docIds = $viewTrxAll->pluck('docid')->toArray(); // Convert ke array
-        
-        // Step 2: Ambil data dari T_approval berdasarkan kondisi yang diberikan
+            return response()->json(['data' => []], 401);
+        }
+        $viewTrxAll = ViewTrxAll::get();
+        $docIds = $viewTrxAll->pluck('docid')->toArray();
         $trxApproval = T_approval::whereIn('docid', $docIds)
             ->where('aprvusername', 'like', "%" . $user->username . "%")
             ->where('status', 'P')
             ->whereNotNull('aprvdatebefore')
             ->pluck('docid')
-            ->toArray(); // Ambil hanya docid yang memenuhi kondisi
-
-        // Step 3: Ambil data yang cocok dari ViewTrxAll berdasarkan hasil query T_approval
+            ->toArray();
         $tr_approval = ViewTrxAll::whereIn('docid', $trxApproval)
             ->select('id', 'docdate', 'cpnyid', 'departementid', 'infohd', 'url', 'docid','status')
             ->get();
-
         return response()->json(['data' => $tr_approval]);
     }
 
     public function Approvejson(Request $request)
-    {   
-        
-        $user = request()->user();     
+    {
+        $user = request()->user();
         if (!$user) {
-            return redirect()->route('login');
-        }       
-
-        // Step 1: Ambil data dari database kedua (ViewTrxAll)
-        $viewTrxAll = ViewTrxAll::get(); // Ambil semua atau tambahkan kondisi jika diperlukan
-
-        // Step 2: Ambil semua docid dari ViewTrxAll untuk mencocokkan di T_approval
-        $docIds = $viewTrxAll->pluck('docid')->toArray(); // Convert ke array
-        
-        // Step 2: Ambil data dari T_approval berdasarkan kondisi yang diberikan
+            return response()->json(['data' => []], 401);
+        }
+        $viewTrxAll = ViewTrxAll::get();
+        $docIds = $viewTrxAll->pluck('docid')->toArray();
         $trxApproval = T_approval::whereIn('docid', $docIds)
             ->where('aprvusername', 'like', "%" . $user->username . "%")
             ->where('status', 'A')
-            // ->whereNotNull('aprvdatebefore')
             ->pluck('docid')
-            ->toArray(); // Ambil hanya docid yang memenuhi kondisi
-
-        // Step 3: Ambil data yang cocok dari ViewTrxAll berdasarkan hasil query T_approval
+            ->toArray();
         $tr_approval = ViewTrxAll::whereIn('docid', $trxApproval)
             ->select('id', 'docdate', 'cpnyid', 'departementid', 'infohd', 'url', 'docid','status')
             ->get();
-
         return response()->json(['data' => $tr_approval]);
     }
 

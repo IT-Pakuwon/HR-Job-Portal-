@@ -1,192 +1,210 @@
 @props(['tr_approval'])
 
-<div class="col-span-full flex h-[45vh] flex-col rounded-xl bg-white p-4 sm:col-span-12 xl:col-span-7 dark:bg-gray-800">
 
-
-    <!-- Table Container -->
-    <div x-data="pagination()" x-init="init()" class="overflow-x-auto rounded-lg bg-white dark:bg-gray-800">
+<div class="col-span-full col-span-12 rounded-2xl bg-white p-6 dark:bg-gray-800">
+    <!-- Tabs -->
+    <div class="mb-4 border-b border-gray-200 dark:border-gray-700">
+        <ul class="flex flex-wrap -mb-px text-sm font-medium text-center" id="approvalTabs" role="tablist">
+            <li class="mr-2">
+                <button class="inline-block p-4 border-b-2 rounded-t-lg text-blue-600 border-blue-600 dark:text-blue-400 dark:border-blue-400" id="tab-waiting" type="button" role="tab" aria-controls="waiting" aria-selected="true" onclick="switchTab('waiting')">Waiting Approval</button>
+            </li>
+            <li class="mr-2">
+                <button class="inline-block p-4 border-b-2 border-transparent rounded-t-lg hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300" id="tab-approved" type="button" role="tab" aria-controls="approved" aria-selected="false" onclick="switchTab('approved')">Approval</button>
+            </li>
+        </ul>
+    </div>
+    <!-- Tab Content -->
+    <div id="tab-content-waiting" class="tab-content">
         <div class="flex flex-col items-center justify-between gap-4 sm:flex-row">
             <div>
-                <h1 class="text-2xl font-bold dark:text-white">📝 To Do List</h1>
+                <h1 class="text-2xl font-bold dark:text-white">📝 Waiting Approval</h1>
                 <p class="text-m ml-8 mt-2 dark:text-white">See what's your task for today!</p>
             </div>
-            
-            <!-- Search Input -->
-            {{-- <div class="flex gap-2">
-                <input x-ref="search" type="text" placeholder="Search task..."
-                    @input="searchValue = $refs.search.value.toLowerCase(); currentPage = 1; paginate();"
-                    class="rounded-md border bg-gray-100 px-3 py-2 text-sm text-gray-700 dark:bg-gray-700 dark:text-white">
-            </div> --}}
             <div class="flex gap-2">
-            <a href="{{ route('waitingapproval') }}"
-                class="w-full max-w-xs text-center text-sm font-medium text-blue-600 hover:text-blue-800">
-                See More
-            </a>
+                <input id="waitingSearch" type="text" placeholder="Search..." class="rounded-md border bg-gray-100 px-3 py-2 text-sm text-gray-700 dark:bg-gray-700 dark:text-white" />
+            </div>
         </div>
-
-            
-        </div>
-        <table class="mt-4 w-full rounded">
-            <thead class="bg-gray-200 text-xs text-gray-700 dark:bg-gray-700 dark:text-white">
-                <tr>
-                    <th @click="sortTable('docid')" class="cursor-pointer select-none px-4 py-2 text-left uppercase"
-                        :class="getSortClass('docid')">
-                        <span x-html="getSortLabel('docid', 'DocID')"></span>
-                    </th>
-                    <th @click="sortTable('docdate')" class="cursor-pointer select-none px-4 py-2 text-left uppercase"
-                        :class="getSortClass('docdate')">
-                        <span x-html="getSortLabel('docdate', 'Date')"></span>
-                    </th>
-                    <th @click="sortTable('cpnyid')" class="cursor-pointer select-none px-4 py-2 text-center uppercase"
-                        :class="getSortClass('cpnyid')">
-                        <span x-html="getSortLabel('cpnyid', 'Company')"></span>
-                    </th>
-                    <th @click="sortTable('departementid')"
-                        class="cursor-pointer select-none px-4 py-2 text-right uppercase"
-                        :class="getSortClass('departementid')">
-                        <span x-html="getSortLabel('departementid', 'Department')"></span>
-                    </th>
-                    <th @click="sortTable('infohd')" class="cursor-pointer select-none px-4 py-2 text-right uppercase"
-                        :class="getSortClass('infohd')">
-                        <span x-html="getSortLabel('infohd', 'Info')"></span>
-                    </th>
-                </tr>
-            </thead>
-            <tbody id="taskTable" class="text-sm text-gray-800 dark:text-gray-300">
-                @foreach ($tr_approval as $ap)
-                    <tr
-                        class="border-b border-gray-200 transition hover:bg-gray-100 dark:border-gray-700 dark:hover:bg-gray-800">
-                        <td class="whitespace-nowrap p-3 text-left">
-                            <a href="{{ url($ap->url . '/' . $ap->id) }}" target="_blank"
-                                class="rounded-md bg-blue-500 px-3 py-1 text-white transition hover:bg-blue-600">
-                                {{ $ap->docid }}
-                            </a>
-                        </td>
-                        <td class="whitespace-nowrap p-3 text-left">{{ $ap->docdate ?? '-' }}</td>
-                        <td class="whitespace-nowrap p-3 text-center">{{ $ap->cpnyid ?? '-' }}</td>
-                        <td class="whitespace-nowrap p-3 text-right">{{ $ap->departementid ?? '-' }}</td>
-                        <td class="whitespace-nowrap p-3 text-right">{{ $ap->infohd ?? '-' }}</td>
+        <div class="overflow-x-auto rounded-lg bg-white dark:bg-gray-800 mt-4">
+            <table class="min-w-full w-full rounded" id="waitingTable">
+                <thead class="bg-gray-200 text-xs text-gray-700 dark:bg-gray-700 dark:text-white">
+                    <tr>
+                        <th class="px-4 py-2 text-left uppercase">DocID</th>
+                        <th class="px-4 py-2 text-left uppercase">Date</th>
+                        <th class="px-4 py-2 text-center uppercase">Company</th>
+                        <th class="px-4 py-2 text-right uppercase">Department</th>
+                        <th class="px-4 py-2 text-right uppercase">Info</th>
                     </tr>
-                @endforeach
-            </tbody>
-        </table>
-
-        <!-- Pagination -->
-        <div class="flex items-center justify-between p-4">
-            <button @click="prevPage" :disabled="currentPage === 1"
-                class="rounded-md bg-gray-200 px-3 py-2 text-gray-700 transition hover:bg-gray-300 disabled:opacity-50 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600">
-                Previous
-            </button>
-            <span class="text-sm text-gray-700 dark:text-white">
-                Page <span x-text="currentPage"></span> of <span x-text="totalPages"></span>
-            </span>
-            <button @click="nextPage" :disabled="currentPage === totalPages"
-                class="rounded-md bg-gray-200 px-3 py-2 text-gray-700 transition hover:bg-gray-300 disabled:opacity-50 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600">
-                Next
-            </button>
+                </thead>
+                <tbody class="text-sm text-gray-800 dark:text-gray-300">
+                    <!-- Data will be loaded by JS -->
+                </tbody>
+            </table>            
+        <div class="flex items-center justify-between mt-2">
+            <button id="waitingPrev" class="rounded-md bg-gray-200 px-3 py-2 text-gray-700 transition hover:bg-gray-300 disabled:opacity-50 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600">Previous</button>
+            <span id="waitingPaginationInfo" class="text-sm text-gray-700 dark:text-white">Page 1 of 1</span>
+            <button id="waitingNext" class="rounded-md bg-gray-200 px-3 py-2 text-gray-700 transition hover:bg-gray-300 disabled:opacity-50 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600">Next</button>
+        </div>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div id="tab-content-approved" class="tab-content hidden">
+        <div class="flex flex-col items-center justify-between gap-4 sm:flex-row">
+            <div>
+                <h1 class="text-2xl font-bold dark:text-white">✅ Approval</h1>
+                <p class="text-m ml-8 mt-2 dark:text-white">See your approved tasks!</p>
+            </div>
+            <div class="flex gap-2">
+                <input id="approvedSearch" type="text" placeholder="Search..." class="rounded-md border bg-gray-100 px-3 py-2 text-sm text-gray-700 dark:bg-gray-700 dark:text-white" />
+            </div>
+        </div>
+        <div class="overflow-x-auto rounded-lg bg-white dark:bg-gray-800 mt-4">
+            <table class="min-w-full w-full rounded" id="approvedTable">
+                <thead class="bg-gray-200 text-xs text-gray-700 dark:bg-gray-700 dark:text-white">
+                    <tr>
+                        <th class="px-4 py-2 text-left uppercase">DocID</th>
+                        <th class="px-4 py-2 text-left uppercase">Date</th>
+                        <th class="px-4 py-2 text-center uppercase">Company</th>
+                        <th class="px-4 py-2 text-right uppercase">Department</th>
+                        <th class="px-4 py-2 text-right uppercase">Info</th>
+                    </tr>
+                </thead>
+                <tbody class="text-sm text-gray-800 dark:text-gray-300">
+                    <!-- Data will be loaded by JS -->
+                </tbody>
+            </table>
+            <div class="flex items-center justify-between mt-2">
+                <button id="approvedPrev" class="rounded-md bg-gray-200 px-3 py-2 text-gray-700 transition hover:bg-gray-300 disabled:opacity-50 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600">Previous</button>
+                <span id="approvedPaginationInfo" class="text-sm text-gray-700 dark:text-white">Page 1 of 1</span>
+                <button id="approvedNext" class="rounded-md bg-gray-200 px-3 py-2 text-gray-700 transition hover:bg-gray-300 disabled:opacity-50 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600">Next</button>
+            </div>       
+                </tbody>
+            </table>
         </div>
     </div>
 </div>
 
-<!-- Alpine.js Logic -->
 <script>
-    function pagination() {
-        return {
-            currentPage: 1,
-            perPage: 5,
-            totalPages: 1,
-            searchValue: '',
-            sortKey: '',
-            sortAsc: true,
-            data: [],
-
-            init() {
-                const rows = document.querySelectorAll('#taskTable tr');
-                this.data = [...rows].map(row => {
-                    const cells = row.querySelectorAll('td');
-                    return {
-                        element: row,
-                        docid: cells[0]?.innerText.trim().toLowerCase(),
-                        docdate: cells[1]?.innerText.trim().toLowerCase(),
-                        cpnyid: cells[2]?.innerText.trim().toLowerCase(),
-                        departementid: cells[3]?.innerText.trim().toLowerCase(),
-                        infohd: cells[4]?.innerText.trim().toLowerCase(),
-                        rawText: row.textContent.toLowerCase()
-                    };
-                });
-                this.paginate();
-            },
-
-            getFilteredData() {
-                let filtered = this.data;
-
-                if (this.searchValue) {
-                    filtered = filtered.filter(item => item.rawText.includes(this.searchValue));
-                }
-
-                if (this.sortKey) {
-                    filtered.sort((a, b) => {
-                        const valA = a[this.sortKey];
-                        const valB = b[this.sortKey];
-                        if (valA < valB) return this.sortAsc ? -1 : 1;
-                        if (valA > valB) return this.sortAsc ? 1 : -1;
-                        return 0;
-                    });
-                }
-
-                return filtered;
-            },
-
-            paginate() {
-                const filtered = this.getFilteredData();
-                this.totalPages = Math.ceil(filtered.length / this.perPage) || 1;
-
-                this.data.forEach(item => item.element.style.display = 'none');
-
-                const start = (this.currentPage - 1) * this.perPage;
-                const end = start + this.perPage;
-
-                filtered.slice(start, end).forEach(item => {
-                    item.element.style.display = '';
-                });
-            },
-
-            prevPage() {
-                if (this.currentPage > 1) {
-                    this.currentPage--;
-                    this.paginate();
-                }
-            },
-
-            nextPage() {
-                if (this.currentPage < this.totalPages) {
-                    this.currentPage++;
-                    this.paginate();
-                }
-            },
-
-            sortTable(key) {
-                if (this.sortKey === key) {
-                    this.sortAsc = !this.sortAsc;
-                } else {
-                    this.sortKey = key;
-                    this.sortAsc = true;
-                }
-                this.paginate();
-            },
-
-            getSortClass(key) {
-                if (this.sortKey !== key) return '';
-                return 'text-sm font-semibold text-gray-600 dark:text-gray-400';
-            },
-
-            getSortLabel(key, label) {
-                if (this.sortKey === key) {
-                    const arrow = this.sortAsc ? '▲' : '▼';
-                    return `${label} <span class='ml-1'>${arrow}</span>`;
-                }
-                return label;
-            }
-        };
+    function switchTab(tab) {
+        if (tab === 'waiting') {
+            document.getElementById('tab-waiting').classList.add('text-blue-600', 'border-blue-600', 'dark:text-blue-400', 'dark:border-blue-400');
+            document.getElementById('tab-approved').classList.remove('text-blue-600', 'border-blue-600', 'dark:text-blue-400', 'dark:border-blue-400');
+            document.getElementById('tab-content-waiting').classList.remove('hidden');
+            document.getElementById('tab-content-approved').classList.add('hidden');
+        } else {
+            document.getElementById('tab-waiting').classList.remove('text-blue-600', 'border-blue-600', 'dark:text-blue-400', 'dark:border-blue-400');
+            document.getElementById('tab-approved').classList.add('text-blue-600', 'border-blue-600', 'dark:text-blue-400', 'dark:border-blue-400');
+            document.getElementById('tab-content-waiting').classList.add('hidden');
+            document.getElementById('tab-content-approved').classList.remove('hidden');
+        }
     }
+
+    // Search & Pagination logic
+    function renderTable(data, tbodySelector, page, perPage, searchValue) {
+        const tbody = document.querySelector(tbodySelector);
+        tbody.innerHTML = '';
+        let filtered = data;
+        if (searchValue) {
+            const val = searchValue.toLowerCase();
+            filtered = data.filter(ap =>
+                (ap.docid && ap.docid.toLowerCase().includes(val)) ||
+                (ap.docdate && ap.docdate.toLowerCase().includes(val)) ||
+                (ap.cpnyid && ap.cpnyid.toLowerCase().includes(val)) ||
+                (ap.departementid && ap.departementid.toLowerCase().includes(val)) ||
+                (ap.infohd && ap.infohd.toLowerCase().includes(val))
+            );
+        }
+        const total = filtered.length;
+        const start = (page - 1) * perPage;
+        const end = start + perPage;
+        const paged = filtered.slice(start, end);
+        if (paged.length > 0) {
+            paged.forEach(ap => {
+                tbody.innerHTML += `
+                    <tr class="border-b border-gray-200 transition hover:bg-gray-100 dark:border-gray-700 dark:hover:bg-gray-800">
+                        <td class="whitespace-nowrap p-3 text-left">
+                            <a href="${ap.url}/${ap.id}" target="_blank" class="rounded-md bg-blue-500 px-3 py-1 text-white transition hover:bg-blue-600">${ap.docid}</a>
+                        </td>
+                        <td class="whitespace-nowrap p-3 text-left">${ap.docdate ?? '-'}</td>
+                        <td class="whitespace-nowrap p-3 text-center">${ap.cpnyid ?? '-'}</td>
+                        <td class="whitespace-nowrap p-3 text-right">${ap.departementid ?? '-'}</td>
+                        <td class="whitespace-nowrap p-3 text-right">${ap.infohd ?? '-'}</td>
+                    </tr>
+                `;
+            });
+        } else {
+            tbody.innerHTML = '<tr><td colspan="5" class="text-center py-4">No data found.</td></tr>';
+        }
+        return { total, filteredCount: filtered.length };
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        let waitingData = [];
+        let approvedData = [];
+        let waitingPage = 1;
+        let approvedPage = 1;
+        const perPage = 5;
+        let waitingSearch = '';
+        let approvedSearch = '';
+
+        function updateWaitingTable() {
+            const { total, filteredCount } = renderTable(waitingData, '#waitingTable tbody', waitingPage, perPage, waitingSearch);
+            document.getElementById('waitingPaginationInfo').innerText = `Page ${waitingPage} of ${Math.ceil(filteredCount/perPage)||1}`;
+        }
+        function updateApprovedTable() {
+            const { total, filteredCount } = renderTable(approvedData, '#approvedTable tbody', approvedPage, perPage, approvedSearch);
+            document.getElementById('approvedPaginationInfo').innerText = `Page ${approvedPage} of ${Math.ceil(filteredCount/perPage)||1}`;
+        }
+
+        fetch('/waitingjson')
+            .then(response => response.json())
+            .then(data => {
+                waitingData = data.data || [];
+                updateWaitingTable();
+            });
+        fetch('/approvejson')
+            .then(response => response.json())
+            .then(data => {
+                approvedData = data.data || [];
+                updateApprovedTable();
+            });
+
+        document.getElementById('waitingSearch').addEventListener('input', function(e) {
+            waitingSearch = e.target.value;
+            waitingPage = 1;
+            updateWaitingTable();
+        });
+        document.getElementById('approvedSearch').addEventListener('input', function(e) {
+            approvedSearch = e.target.value;
+            approvedPage = 1;
+            updateApprovedTable();
+        });
+
+        document.getElementById('waitingPrev').addEventListener('click', function() {
+            if (waitingPage > 1) {
+                waitingPage--;
+                updateWaitingTable();
+            }
+        });
+        document.getElementById('waitingNext').addEventListener('click', function() {
+            const filteredCount = renderTable(waitingData, '#waitingTable tbody', 1, waitingData.length, waitingSearch).filteredCount;
+            if (waitingPage < Math.ceil(filteredCount/perPage)) {
+                waitingPage++;
+                updateWaitingTable();
+            }
+        });
+        document.getElementById('approvedPrev').addEventListener('click', function() {
+            if (approvedPage > 1) {
+                approvedPage--;
+                updateApprovedTable();
+            }
+        });
+        document.getElementById('approvedNext').addEventListener('click', function() {
+            const filteredCount = renderTable(approvedData, '#approvedTable tbody', 1, approvedData.length, approvedSearch).filteredCount;
+            if (approvedPage < Math.ceil(filteredCount/perPage)) {
+                approvedPage++;
+                updateApprovedTable();
+            }
+        });
+    });
 </script>

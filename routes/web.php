@@ -79,6 +79,10 @@ Route::post('/logout', function () {
     // Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::middleware(['auth'])->group(function () {
 
+    // Dashboard Approval JSON endpoints
+    Route::get('/waitingjson', [DashboardController::class, 'Waitingjson'])->name('dashboard.waitingjson');
+    Route::get('/approvejson', [DashboardController::class, 'Approvejson'])->name('dashboard.approvejson');
+
     // Ambil semua screens dan buat route otomatis
     // $screens = MsScreen::all();
     // foreach ($screens as $screen) {

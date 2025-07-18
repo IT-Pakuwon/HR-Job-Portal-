@@ -28,8 +28,8 @@
                             <label for="selectdeptname"
                                 class="mb-1 block text-lg font-semibold text-gray-700 dark:text-gray-300">Department:</label>
                             <select id="selectdeptname"
-                                class="w-full min-w-[150px] rounded-lg border border-gray-300 bg-white p-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-900 dark:text-white"
-                                name="company_filter">
+                                class="w-full min-w-[200px] rounded-lg border border-gray-300 bg-white p-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-900 dark:text-white"
+                                name="departementid" required>
                                 <option value="">All</option>
                                 @foreach ($departements as $p)
                                     <option value="{{ $p->deptname }}" {{ $p->deptname == 'IT' ? 'selected' : '' }}>
@@ -413,12 +413,26 @@
         </script>
         <script>
             $(document).ready(function() {
-
                 $('#selectdeptname').select2({
                     placeholder: "Pilih Departement Name...",
                     allowClear: true,
-                    width: '100%'
+                    width: 'resolve',
+                    dropdownAutoWidth: true
                 });
+                setTimeout(function() {
+                    $("#selectdeptname").next('.select2-container').css('min-width', '200px');
+                }, 0);
+
+                // Aktifkan select2 untuk Company
+                $('#selectCompany').select2({
+                    placeholder: "Pilih Company...",
+                    allowClear: true,
+                    width: 'resolve',
+                    dropdownAutoWidth: true
+                });
+                setTimeout(function() {
+                    $("#selectCompany").next('.select2-container').css('min-width', '150px');
+                }, 0);
             });
         </script>
 

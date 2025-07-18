@@ -34,7 +34,7 @@
 
         <!-- Cards -->
         <div class="grid grid-cols-12 gap-6">
-            <x-dashboard.dashboard-agenda :agendas="$agendas" />
+            {{-- <x-dashboard.dashboard-agenda :agendas="$agendas" /> --}}
             <x-dashboard.dashboard-approval :tr_approval="$tr_approval" />
             <x-dashboard.dashboard-news :news="$news" />
         </div>
