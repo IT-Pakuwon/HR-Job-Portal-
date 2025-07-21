@@ -5,7 +5,7 @@
                 <div class="flex flex-col gap-8">
                     <form id="stoForm" class="flex flex-col gap-8" enctype="multipart/form-data">
                         @csrf
-                        <div class="h-[250px] w-full rounded-xl bg-white p-6 shadow-lg dark:bg-gray-800">
+                        <div class="flex w-full flex-col gap-8 rounded-xl bg-white p-6 shadow-lg dark:bg-gray-800">
                             <div class="mb-6 border-b border-gray-200 pb-4 dark:border-gray-700">
                                 <h2 class="text-xl font-extrabold text-gray-800 dark:text-white">Create ORG Chart</h2>
                             </div>
@@ -75,7 +75,7 @@
                             <div class="flex max-h-[125px] flex-col overflow-y-auto pt-6">
                                 <div id="attachmentsContainer">
                                     <div class="attachment-row flex items-center gap-2">
-                                        <input type="file" name="attachments[]"
+                                        <input type="file" name="attachments[]" form="stoForm"
                                             class="flex-grow rounded-md border border-gray-200 bg-white px-4 py-2 text-sm text-gray-700 file:mr-4 file:rounded-full file:border-0 file:bg-indigo-100 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-indigo-700 hover:file:bg-indigo-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:file:bg-indigo-700 dark:file:text-white dark:hover:file:bg-indigo-600">
                                         <button type="button"
                                             class="removeAttachment hidden rounded border border-red-600 bg-red-200/30 p-3 text-red-600 transition-colors hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">🗑️
@@ -1019,6 +1019,14 @@
                 e.preventDefault();
 
                 let formData = new FormData(this);
+
+                $('input[name="attachments[]"]').each(function() {
+                    const files = this.files;
+                    for (let i = 0; i < files.length; i++) {
+                        // Gunakan array notation agar bisa multiple
+                        formData.append('attachments[]', files[i]);
+                    }
+                });
 
                 // Tampilkan Loading, Disable Button
                 $('#submitBtn').attr('disabled', true); // Disable tombol

@@ -75,7 +75,7 @@
 
                         <div
                             class="absolute bottom-4 right-7 flex items-center space-x-2 rounded-xl bg-gray-900/60 p-2 shadow-xl backdrop-blur-sm">
-                            <button onclick="window.open('{{ route('orgchart.fullscreen') }}', '_blank')"
+                            <button onclick="window.open('{{ route('orgchart.fullscreen', ['sto' => $sto->id]) }}', '_blank')"
                                 class="flex h-10 w-10 items-center justify-center rounded-full bg-blue-600 text-white shadow-md transition-colors hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
                                     viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -449,6 +449,31 @@
             </div>
         </div>
     </div>
+        <style>
+        /* Styling untuk loading spinner di kanan bawah */
+        #loadingSpinnerContainer {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 10px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 50px;
+            height: 50px;
+            z-index: 1000;
+            display: none;
+            /* Tersembunyi saat tidak digunakan */
+        }
+
+        #loadingSpinnerContainer svg {
+            width: 30px;
+            height: 30px;
+            color: white;
+        }
+    </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script>
@@ -774,31 +799,6 @@
             });
         }
     </script>
-    <style>
-        /* Styling untuk loading spinner di kanan bawah */
-        #loadingSpinnerContainer {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: rgba(0, 0, 0, 0.7);
-            padding: 10px;
-            border-radius: 50%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            width: 50px;
-            height: 50px;
-            z-index: 1000;
-            display: none;
-            /* Tersembunyi saat tidak digunakan */
-        }
-
-        #loadingSpinnerContainer svg {
-            width: 30px;
-            height: 30px;
-            color: white;
-        }
-    </style>
 
     <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/lucide.min.js"></script>
 
@@ -826,7 +826,7 @@
     <script>
         var chart = null;
 
-        d3.json("{{ route('orgchart.json') }}").then((res) => {
+        d3.json("{{ route('orgchartShow.json', ['sto' => $sto->id]) }}").then((res) => {
             const data = res.nodes; // ⬅️ Ambil 'nodes' dari response
             const connections = res.connections || []; // ⬅️ Ambil 'connections' tambahan
 
@@ -981,7 +981,7 @@
         });
 
         function refreshChart() {
-            d3.json("{{ route('orgchart.json') }}").then((data) => {
+            d3.json("{{ route('orgchartShow.json', ['sto' => $sto->id]) }}").then((data) => {
                 chart.data(data).render(); // update chart dengan data baru
             });
         }
@@ -1024,14 +1024,6 @@
             });
         });
     </script>
-
-    {{-- <script>
-                document.querySelector('.chart-container').addEventListener('click', function () {
-                    window.open('{{ route("orgchart.fullscreen") }}', '_blank'); // ganti dengan route yang sesuai
-                });
-            </script> --}}
-
-
 
 
 </x-app-layout>

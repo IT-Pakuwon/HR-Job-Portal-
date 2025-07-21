@@ -316,7 +316,7 @@ Route::post('/logout', function () {
     Route::delete('/orgchart/job-profile/{id}', [StrukturOrgController::class, 'deleteJobProfile']);
     Route::post('/orgchart/change-parent', [StrukturOrgController::class, 'changeParent'])->name('orgchart.change-parent');
     Route::get('/departement/detail/{id}', [StrukturOrgController::class, 'getDepartmentDetail']);
-    Route::get('/orgchart/fullscreen', [StrukturOrgController::class, 'fullscreen'])->name('orgchart.fullscreen');
+    Route::get('/orgchart/fullscreen/{sto}', [StrukturOrgController::class, 'fullscreen'])->name('orgchart.fullscreen');
 
 
 
