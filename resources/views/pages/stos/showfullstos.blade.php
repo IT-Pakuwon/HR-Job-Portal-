@@ -199,7 +199,7 @@
             <script>
                 var chart = null;
 
-                d3.json("{{ route('orgchart.json') }}").then((res) => {
+                d3.json("{{ route('orgchartShow.json', ['sto' => $sto->id]) }}").then((res) => {
                     const data = res.nodes; // ⬅️ Ambil 'nodes' dari response
                     const connections = res.connections || []; // ⬅️ Ambil 'connections' tambahan
 
@@ -218,8 +218,6 @@
                             const members = d.data.members || [];
                             const level = d.depth;
                             const bgColor = d.data.bgColor || '#f5f5f5';
-
-
                             return `
                                 <div style='width:${d.width}px;height:${d.height}px;padding-top:25px;padding-left:1px;padding-right:1px'>
                                     <div style="
@@ -232,19 +230,19 @@
                                         overflow:visible;
                                     ">
                                         ${d.data.position
-                                        ? `<div style="font-size:18px;color:#08011E;margin-bottom:5px">${d.data.name} ${d.data.position}</div>`
-                                        : `<div style="font-size:18px;color:#08011E;text-align:center;margin-top:10px;">${d.data.name}</div>`
-                                        }                           
-                                        <div style="font-size:12px;color:#333">                                    
+                                            ? `<div style="font-size:18px;color:#08011E;margin-bottom:5px">${d.data.name} ${d.data.position}</div>`
+                                            : `<div style="font-size:18px;color:#08011E;text-align:center;margin-top:10px;">${d.data.name}</div>`
+                                        }
+                                        <div style="font-size:12px;color:#333">
                                             <div style="margin-top:10px;">
                                                 ${members.map(m => `
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            <div style="display:flex;align-items:center;margin-bottom:6px;">
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                <img src="${m.image}" style="width:30px;height:30px;border-radius:50%;margin-right:8px;" />
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                <span style="font-size:12px; color:${m.name.toUpperCase() === 'VACANT' ? 'red' : '#000'};">
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    ${m.name} (${m.company})
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                </span>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            </div>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        `).join('')}
+                                                                                                                    <div style="display:flex;align-items:center;margin-bottom:6px;">
+                                                                                                                        <img src="${m.image}" style="width:30px;height:30px;border-radius:50%;margin-right:8px;" />
+                                                                                                                        <span style="font-size:12px; color:${m.name.toUpperCase() === 'VACANT' ? 'red' : '#000'};">
+                                                                                                                            ${m.name} (${m.company})
+                                                                                                                        </span>
+                                                                                                                    </div>
+                                                                                                                `).join('')}
                                             </div>
                                         </div>
                                     </div>
@@ -256,11 +254,20 @@
                         })
                         .container('.chart-container')
                         .data(data)
-                        .expandAll()
+                        // .disableZoom()
                         .render();
 
                     chart.connections(connections).render();
-
+                    chart.expandAll().fit()
+                    setTimeout(() => {
+                        d3.select(".chart-container svg")
+                            .on("wheel.zoom", null)
+                            .on("mousedown.zoom", null)
+                            .on("touchstart.zoom", null)
+                            .on("touchmove.zoom", null)
+                            .on("touchend.zoom", null)
+                            .on("dblclick.zoom", null);
+                    }, 100);
 
                 });
 
@@ -347,7 +354,7 @@
                 });
 
                 function refreshChart() {
-                    d3.json("{{ route('orgchart.json') }}").then((data) => {
+                    d3.json("{{ route('orgchartShow.json', ['sto' => $sto->id]) }}").then((data) => {
                         chart.data(data).render(); // update chart dengan data baru
                     });
                 }

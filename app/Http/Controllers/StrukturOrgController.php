@@ -464,8 +464,7 @@ class StrukturOrgController extends Controller
             ->where('refid', $sto->sto_id)
             ->where('status', 'A')
             ->get();
-
-       
+        
         return view('pages.stos.showstos', compact('sto','approval','attachment','employee'));
     }
 
@@ -1391,6 +1390,7 @@ class StrukturOrgController extends Controller
 
     public function jsonOrgShow($id)
     {
+        
         $sto = TrSto::findOrFail($id);
 
         $userDept = $sto->departementid;
@@ -1537,9 +1537,12 @@ class StrukturOrgController extends Controller
         ]);
     }
 
-    public function fullscreen()
-    {
-        return view('pages.stos.showfullstos'); // bikin view baru bernama fullscreen.blade.php
+    public function fullscreen($id)
+    {       
+        $sto = TrSto::findOrFail($id);        
+        return view('pages.stos.showfullstos', compact('sto'));
+       
+
     }
 
 
