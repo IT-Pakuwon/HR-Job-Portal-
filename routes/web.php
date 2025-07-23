@@ -156,6 +156,8 @@ Route::post('/logout', function () {
     Route::get('/api/job-parent-info/{parentId}/{departementId}/{deptId}', [PersonnelController::class, 'getParentJobInfo']);
     Route::get('/api/vacant-employees/{deptId}', [PersonnelController::class, 'getVacantByTopParent']);
     Route::get('/createpersonnelsx', [PersonnelController::class, 'createPersonnelx']);
+    Route::get('/api/job-parent-info/{parentId}/{departementId}/{deptId}', [PersonnelController::class, 'getParentJobInfo']);
+    Route::get('/api/job-parent-info-edit/{parentId}/{departementId}/{deptId}', [PersonnelController::class, 'getJobParentInfoEdit']);
 
 
 
@@ -355,8 +357,8 @@ Route::post('/logout', function () {
     Route::put('/budgets/{id}', [BudgetController::class, 'updateBudget'])->name('budgets.update');
     Route::put('/budgets/remove-attachment/{id}', [BudgetController::class, 'removeAttachment']);    
     Route::get('/budget/{id}/check-approval/{action}', [BudgetController::class, 'checkApproval']);   
-    Route::get('/api/sites/{cpnyid}', [BudgetController::class, 'getSitesByCompany']);
-    Route::get('/api/job-parent-info/{parentId}/{departementId}/{deptId}', [BudgetController::class, 'getParentJobInfo']);
+    // Route::get('/api/sites/{cpnyid}', [BudgetController::class, 'getSitesByCompany']);
+    // Route::get('/api/job-parent-info/{parentId}/{departementId}/{deptId}', [BudgetController::class, 'getParentJobInfo']);
     Route::get('/api/vacant-employees/{deptId}', [BudgetController::class, 'getVacantByTopParent']);  
     
     Route::post('/import-budget', [BudgetController::class, 'import'])->name('budget.import.post');

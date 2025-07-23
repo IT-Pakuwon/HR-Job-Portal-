@@ -7,7 +7,7 @@
                         @csrf
                         <div class="flex w-full flex-col gap-8 rounded-xl bg-white p-6 shadow-lg dark:bg-gray-800">
                             <div class="mb-6 border-b border-gray-200 pb-4 dark:border-gray-700">
-                                <h2 class="text-xl font-extrabold text-gray-800 dark:text-white">Create ORG Chart</h2>
+                                <h2 class="text-xl font-extrabold text-gray-800 dark:text-white">Create ORG Structure</h2>
                             </div>
 
                             <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
@@ -203,7 +203,7 @@
 
                 <div class="max-h-[80vh] overflow-y-auto p-6">
                     <div id="tab-view" class="tab-content hidden">
-                        <div class="mb-4 flex flex-col justify-between gap-4 md:flex-row md:items-center">
+                        {{-- <div class="mb-4 flex flex-col justify-between gap-4 md:flex-row md:items-center">
                             <h4 class="text-xl font-semibold text-gray-800 dark:text-white">
                                 Parent Department: <span id="parentDeptLabel"
                                     class="text-indigo-600 dark:text-indigo-400"></span>
@@ -230,6 +230,36 @@
                                     <span>Move All Employee</span>
                                 </button>
                             </h4>
+                        </div> --}}
+                        <div class="flex justify-between">
+                            {{-- <h3 class="text-lg font-semibold">Employee List</h3> --}}
+                            <div class="mb-4 flex items-center justify-between">
+                                <h4 class="text-lg font-semibold">Parent Department: <span id="parentDeptLabel" class="text-lg font-semibold text-gray-800"></span></h4>                             
+                                <button id="btnChangeParentDept"
+                                    class="flex items-center gap-1 rounded px-3 py-1.5 text-sm text-black">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                        stroke-width="1.5" stroke="currentColor" class="size-6">
+                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                            d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
+                                    </svg>
+                                    <span>Change Parent</span>
+                                </button>
+                            </div>
+
+                            <div class="mb-4 flex items-center justify-between">
+                                <h4 id="departmentLabel" class="text-lg font-semibold text-gray-800">
+                                    Dept: <!-- Dynamic text will be inserted via JS -->
+                                </h4>
+                                <button id="btnChangeDept"
+                                    class="flex items-center gap-1 rounded px-3 py-1.5 text-sm text-black">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                        stroke-width="1.5" stroke="currentColor" class="size-6">
+                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                            d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
+                                    </svg>
+                                    <span>Move All Employee</span>
+                                </button>
+                            </div>
                         </div>
                         <div class="overflow-x-auto rounded-lg border border-gray-200 shadow-sm dark:border-gray-700">
                             <table
@@ -286,7 +316,7 @@
                             </div>
 
                             <div class="flex items-center">
-                                <input type="checkbox" id="vacantCheckbox"
+                                <input type="checkbox" id="vacantCheckbox" checked
                                     class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700">
                                 <label for="vacantCheckbox" class="ml-2 text-sm text-gray-700 dark:text-gray-300">Set
                                     as VACANT</label>
@@ -388,7 +418,7 @@
                             <div>
                                 <label for="job_level"
                                     class="block text-sm font-medium text-gray-700 dark:text-gray-300">Position</label>
-                                <select name="job_level" id="job_level"
+                                {{-- <select name="job_level" id="job_level"
                                     class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                     required>
                                     <option value="" disabled selected>-- Select Position --</option>
@@ -396,7 +426,10 @@
                                         <option value="{{ $p->subgrade_id }}">{{ $p->subgrade_id }} -
                                             {{ $p->subgrade_name }}</option>
                                     @endforeach
-                                </select>
+                                </select> --}}                               
+                                <input type="text" id="position" name="position" class="mt-1 block w-full rounded-md border-gray-300 bg-gray-200 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-800 dark:text-gray-400" readonly>
+
+
                             </div>
 
                             <div>
@@ -843,6 +876,12 @@
 
 
                     $('#employeeTableBody').html(html);
+                    if (employees.length > 0) {
+                        const firstPosition = employees[0].employee_level;
+                        $('#position').val(firstPosition);
+                    } else {
+                        $('#position').val('');
+                    }
                     switchTab('view');
                     $('#modalForm').removeClass('hidden');
                 },
@@ -1104,16 +1143,16 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 
     <script>
-        $(document).ready(function() {
-            $('#qtyGroup').hide(); // sembunyikan saat awal
+        $(document).ready(function () {
+            // Langsung jalankan logika berdasarkan kondisi checkbox saat halaman dimuat
+            toggleVacantUI($('#vacantCheckbox').is(':checked'));
 
-            // Default name setting
-            $('#full_name').attr('name', 'full_name');
-            $('#hiddenFullName').removeAttr('name');
-
-            $('#vacantCheckbox').change(function() {
+            $('#vacantCheckbox').change(function () {
                 const isChecked = $(this).is(':checked');
+                toggleVacantUI(isChecked);
+            });
 
+            function toggleVacantUI(isChecked) {
                 if (isChecked) {
                     $('#hiddenFullName').val('VACANT').attr('name', 'full_name');
                     $('#fullNameGroup').hide();
@@ -1132,12 +1171,13 @@
                     $('#imageInput').attr('name', 'image');
                     $('#hiddenFullName').removeAttr('name');
 
-                    // ✅ Kembalikan qty ke 1
+                    // Kembalikan qty ke 1
                     $('#qty').val(1);
                 }
-            });
+            }
         });
     </script>
+
 
     <script>
         // Open Edit Modal
@@ -1309,6 +1349,12 @@
                 data: formData,
                 success: function(response) {
                     if (response.success && response.type === 'job_spec') {
+                        // ✅ Reset inputan
+                        form.trigger('reset'); // reset semua input biasa
+                        $('#selectFullName').val(null).trigger('change'); // jika select2 atau select biasa
+                        $('#position').val(''); // reset input readonly
+                        $('#vacantCheckbox').prop('checked', true).trigger('change'); // default VACANT
+
                         closeModal(); // sembunyikan modal
                         refreshChart(); // refresh chart
                         toastr.success("Job Spec Saved Successfully!");
@@ -1326,6 +1372,7 @@
             });
         });
     </script>
+
     <script>
         $(document).on('click', '.btn-profile', function() {
             const empId = $(this).data('id');

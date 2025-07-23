@@ -41,14 +41,28 @@ use Illuminate\Support\Facades\Storage;
 
 class StrukturOrgController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $all = TrSto::count();
-        $onProgress = TrSto::where('status', 'P')->count();
-        $reject = TrSto::where('status', 'R')->count();
-        $revise = TrSto::where('status', 'D')->count();
-        $completed = TrSto::where('status', 'C')->count();
-       
+    
+        $user = request()->user();
+        $baseQuery = TrSto::query();
+        if (!isset($user->role) || $user->role !== 'admin') {
+            $cpnyids = is_array($user->companyid) ? $user->companyid : explode(',', $user->companyid);
+            $departementids = is_array($user->departmentid) ? $user->departmentid : explode(',', $user->departmentid);
+            if ($cpnyids && $cpnyids[0] !== '') {
+                $baseQuery->whereIn('cpnyid', (array)$cpnyids);
+            }
+            if ($departementids && $departementids[0] !== '') {
+                $baseQuery->whereIn('departementid', (array)$departementids);
+            }
+        }
+
+        $all = (clone $baseQuery)->count();
+        $onProgress = (clone $baseQuery)->where('status', 'P')->count();
+        $reject = (clone $baseQuery)->where('status', 'R')->count();
+        $revise = (clone $baseQuery)->whereIn('status', ['D', 'H'])->count();
+        $completed = (clone $baseQuery)->where('status', 'C')->count();
+
         return view('pages.stos.stos', compact('all', 'onProgress', 'reject', 'revise', 'completed'));
     }
     
@@ -57,8 +71,27 @@ class StrukturOrgController extends Controller
         // DataTables server-side protocol
         $status = $request->has('status') ? $request->query('status') : 'P';
         $query = TrSto::query();
+
+        // Filter by cpnyid and departementid if present     
+        $user = request()->user();
+        if (!isset($user->role) || $user->role !== 'admin') {
+            $cpnyids = is_array($user->companyid) ? $user->companyid : explode(',', $user->companyid);
+            $departementids = is_array($user->departmentid) ? $user->departmentid : explode(',', $user->departmentid);
+            if ($cpnyids && $cpnyids[0] !== '') {
+                $query->whereIn('cpnyid', (array)$cpnyids);
+            }
+            if ($departementids && $departementids[0] !== '') {
+                $query->whereIn('departementid', (array)$departementids);
+            }
+        }
+
+        // If status is 'D' (Revise) or 'H' (Draft), treat both as the same filter
         if (!empty($status)) {
-            $query->where('status', $status);
+            if ($status === 'D') {
+                $query->whereIn('status', ['D', 'H']);
+            } else {
+                $query->where('status', $status);
+            }
         }
 
         // Search
@@ -121,7 +154,7 @@ class StrukturOrgController extends Controller
        
         // Cek apakah sudah ada STO yg belum di-submit
         $sto = TrSto::where('user', $user->username)
-            ->where('status', 'D') // atau 'Draft'
+            ->where('status', 'H') // atau 'Draft'
             ->latest('created_at')
             ->first();
 
@@ -130,19 +163,243 @@ class StrukturOrgController extends Controller
             $sto_id = $this->insert_sto_autonbr($request, $usercpny2, $userdept2);
             $sto = TrSto::where('sto_id', $sto_id)->first();
         }
-        $subdepartments = StoDepartement::select('departement_id','departement_name','subgrade_name')
-            ->where('status','A')
-            ->get();
+        // $subdepartments = StoDepartement::select('departement_id','departement_name','subgrade_name')
+        //     ->where('status','A')
+        //     ->get();
 
         $parentdepartments = StoDepartement::select('departement_id','departement_name','subgrade_name')
             ->where('status','A')
             ->get();
+
+        $root = StoDepartement::where('departement_name', $user->departmentid)->where('status', 'A')->first();
+        
+        $subdepartments = collect();
+
+        if ($root) {           
+            $subdepartments = $this->getAllChildDepartments($root->departement_id);
+            $parentdepartments = $this->getAllChildDepartments($root->departement_id);
+
+        }
+        
    
         return view('pages.stos.createstos', compact('companies','departements','joblevel','usercpny','usercpny2','userdept','userdept2','sto','users','subdepartments','subgrading','parentdepartments'));
     }
 
+    private function getAllChildDepartments($parentId)
+    {
+        $children = StoDepartement::where('parent_id', $parentId)
+            ->where('status', 'A')
+            ->get();
+
+        $all = collect($children);
+
+        foreach ($children as $child) {
+            $descendants = $this->getAllChildDepartments($child->departement_id);
+            $all = $all->merge($descendants);
+        }
+
+        return $all;
+    }
+
+
 
     public function storeSto(Request $request)
+    {
+        // dd($request->all()); 
+        
+        // Validasi input
+        $request->validate([
+            'cpnyid' => 'required|string',
+            'departementid' => 'required|string',        
+            'attachments.*' => 'file|max:2048' // Validasi file, max 2MB
+        ]);
+
+        $doctype = 'STO';
+        $count_approval = M_approval::where('status', 'A')
+            ->where('aprvcpnyid', $request->cpnyid)
+            ->where('aprvdeptid', $request->departementid)
+            ->where('aprvdoctype', $doctype)
+            ->count();
+        
+        if ($count_approval === 0) {
+            return response()->json([
+                'message' => 'Approval line belum di-setup, Please contact IT!'
+            ], 422);
+        }
+
+        DB::beginTransaction();
+        try {
+            $datenow = Carbon::now()->format('Y-m-d');
+            $dt = Carbon::now();
+            $year = $dt->year;
+            $month = str_pad($dt->month, 2, '0', STR_PAD_LEFT);            
+            $datestamp = Carbon::now()->toDateTimeString();
+            $user = request()->user();                               
+            
+            $sto = TrSto::where('status', 'H')
+                ->where('sto_id', $request->sto_id)               
+                ->first();
+
+            $sto->sto_date = $datenow;
+            $sto->cpnyid = $request->cpnyid;
+            $sto->departementid = $request->departementid;
+            $sto->updated_user = $user->username;
+            $sto->status = 'P';
+            $sto->save();
+           
+            //read ms_approval
+            $m_approval = M_approval::where('aprvdoctype', $doctype)
+                ->where('aprvcpnyid', $request->cpnyid)
+                ->where('aprvdeptid', $request->departementid)
+                ->where('status', 'A')
+                ->get();
+
+            //insert trx_approval
+            foreach ($m_approval as $mp) {
+                $aprvdatebefore = ($mp->aprvid == 1) ? $datestamp : null; 
+                T_approval::create([
+                    'docid' => $sto->sto_id,
+                    'aprvid' => $mp->aprvid,
+                    'aprvdoctype' => $mp->aprvdoctype,
+                    'aprvcpnyid' => $mp->aprvcpnyid,
+                    'aprvdeptid' => $mp->aprvdeptid,
+                    'aprvusername' => $mp->aprvusername,
+                    'name' => $mp->name,
+                    'aprvdatebefore' => $aprvdatebefore,
+                    'aprvtotalday' => 1,
+                    'status' => 'P',
+                    'created_user' => $user->username
+                ]);
+            }            
+           
+            // Simpan Attachments ke attachments          
+            if ($request->hasfile('attachments')) {
+                foreach ($request->file('attachments') as $file) {
+                    $randomNumber = random_int(10000000, 99999999);
+                    $filename = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+                   
+                    $originalName = str_replace('%', '', $file->getClientOriginalName());
+                    $attachfile = md5($randomNumber) . '-' . $originalName;
+
+                    //attach to folder
+                    $folder_attach = public_path() . '/attachments/'.$year;
+                    $config['upload_path'] = $folder_attach;                   
+                    if(!is_dir($folder_attach))
+                    {
+                        mkdir($folder_attach, 0777);
+                    }
+                    
+                    $folder_upload = $folder_attach;
+                    // $folder_upload = public_path() . '/attachments';
+                    $file->move($folder_upload, $attachfile);
+
+                    //insert to table attachments
+                    $attach = new Attachment();
+                    $attach->docid = $sto->sto_id;
+                    $attach->name = $filename;
+                    $attach->attachfile = $attachfile;
+                    $attach->status = 'A';
+                    $attach->extention = $file->getClientOriginalExtension();
+                    $attach->created_user = $user->username;
+                    $attach->save();
+                }
+            }
+            
+
+            $t_approval_next = T_approval::where('docid', $sto->sto_id)
+                ->where('status', 'P')
+                ->orderby('aprvid','ASC')
+                ->first();
+
+            $id = $sto->id;
+            $data = array(
+                'docid' => $t_approval_next->docid,
+                'cpnyid' => $t_approval_next->aprvcpnyid,
+                'deptname' => $t_approval_next->aprvdeptid,                
+                'date' => $t_approval_next->aprvdatebefore,
+                'name' => $t_approval_next->created_user,                          
+                'info' => 'Struktur Organisasi New Employee',           
+                'url' => url('/showsto/') . $id
+    
+            );
+    
+            $multiapp = explode(',', $t_approval_next->aprvusername);
+    
+            $email_it = User::whereIN('username', $multiapp)
+                ->where('status', 'A')
+                ->get();
+    
+            foreach ($email_it as $emailsit) {
+                Mail::send('emails.mailapprove', $data, function ($message) use ($data, $emailsit) {
+                    $message->to($emailsit->test_email)->subject($data['docid'] . ' - Waiting Approval STO');
+                    $message->from('digitalserver@pakuwon.com', 'Pakuwon System');
+                });
+            }       
+
+            DB::commit();
+            return response()->json(['success' => true, 'sto' => $sto]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['error' => 'Gagal menyimpan sto', 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    public function editSto(Request $request,$id)
+    {
+        $user = request()->user();
+        $usercpny = Usercpny::where('username', '=', $user->username)
+            ->get();
+        $usercpny2 = Usercpny::where('username', '=', $user->username)
+            ->first();
+        $userdept = Userdept::where('username', '=', $user->username)
+            ->get();
+        $userdept2 = Userdept::where('username', '=', $user->username)
+            ->first();        
+        $companies = Company::select('cpnyid')->get();
+        $departements = Dept::select('deptname')->get();
+        $joblevel = JobLevel::select('title_level')->get(); 
+        $subgrading = StoSubGrading::select('subgrade_id','subgrade_name')->get();
+        
+        $users = User::select('name')
+            ->where('status','A')
+            ->get();
+       
+        
+        $sto = TrSto::findOrFail($id);
+
+        if (!$sto) {
+            // Jika belum ada, buat baru
+            $sto_id = $this->insert_sto_autonbr($request, $usercpny2, $userdept2);
+            $sto = TrSto::where('sto_id', $sto_id)->first();
+        }
+        // $subdepartments = StoDepartement::select('departement_id','departement_name','subgrade_name')
+        //     ->where('status','A')
+        //     ->get();
+
+        $parentdepartments = StoDepartement::select('departement_id','departement_name','subgrade_name')
+            ->where('status','A')
+            ->get();
+
+        $root = StoDepartement::where('departement_name', $user->departmentid)->where('status', 'A')->first();
+        
+        $subdepartments = collect();
+
+        if ($root) {           
+            $subdepartments = $this->getAllChildDepartments($root->departement_id);
+            $parentdepartments = $this->getAllChildDepartments($root->departement_id);
+
+        }
+
+        $attachment = Attachment::where('docid', $sto->sto_id)  
+            ->where('status','A')         
+            ->get();
+        
+   
+        return view('pages.stos.editstos', compact('companies','departements','joblevel','usercpny','usercpny2','userdept','userdept2','sto','users','subdepartments','subgrading','parentdepartments','attachment'));
+    }
+
+        
+     public function updateSto(Request $request)
     {
         // dd($request->all()); 
         
@@ -271,7 +528,7 @@ class StrukturOrgController extends Controller
             foreach ($email_it as $emailsit) {
                 Mail::send('emails.mailapprove', $data, function ($message) use ($data, $emailsit) {
                     $message->to($emailsit->test_email)->subject($data['docid'] . ' - Waiting Approval STO');
-                    $message->from('digitalserver@pakuwon.com', 'Pakuwon Smart System');
+                    $message->from('digitalserver@pakuwon.com', 'Pakuwon System');
                 });
             }       
 
@@ -280,154 +537,6 @@ class StrukturOrgController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json(['error' => 'Gagal menyimpan sto', 'message' => $e->getMessage()], 500);
-        }
-    }
-
-    public function editTrSto($id)
-    {
-        $user = request()->user();
-        $usercpny = Usercpny::where('username', '=', $user->username)
-            ->get();
-        $usercpny2 = Usercpny::where('username', '=', $user->username)
-            ->first();
-        $userdept = Userdept::where('username', '=', $user->username)
-            ->get();
-        $userdept2 = Userdept::where('username', '=', $user->username)
-            ->first();
-        $sto = TrSto::findOrFail($id);
-        $companies = Company::select('cpnyid')->get();
-        $departements = Dept::select('deptname')->get();
-        $joblevel = JobLevel::select('title_level')->get();      
-        $attachment = Attachment::where('docid', $sto->sto_id)  
-            ->where('status','A')         
-            ->get();
-
-        return view('pages.stos.editstos', compact('sto', 'companies', 'departements', 'joblevel','jobres','jobqua','attachment','usercpny','usercpny2','userdept','userdept2'));
-    }
-    
-    public function updateSto(Request $request, $id)
-    {
-        // dd($request->all()); 
-        
-        // Validasi input
-        $request->validate([
-            'cpnyid' => 'required|string',
-            'departementid' => 'required|string',          
-            
-        ]);
-
-        DB::beginTransaction();
-        try {
-            $datenow = Carbon::now()->format('Y-m-d');
-            $dt = Carbon::now();
-            $year = $dt->year;
-            $month = str_pad($dt->month, 2, '0', STR_PAD_LEFT);
-            $doctype = 'STO';
-            $datestamp = Carbon::now()->toDateTimeString();
-            $user = request()->user();
-
-            $sto = TrSto::findOrFail($id);
-                       
-            $sto -> update([              
-                'cpnyid' => $request->cpnyid,
-                'departementid' => $request->departementid,                         
-                'updated_user' => $user->username,
-                'status' => $request->status ?? 'P'                
-            ]);
-
-            //read ms_approval
-            $m_approval = M_approval::where('aprvdoctype', $doctype)
-                ->where('aprvcpnyid', $request->cpnyid)
-                ->where('aprvdeptid', $request->departementid)
-                ->where('status', 'A')
-                ->get();
-
-            //insert trx_approval
-            foreach ($m_approval as $mp) {
-                $aprvdatebefore = ($mp->aprvid == 1) ? $datestamp : null; 
-                T_approval::create([
-                    'docid' => $sto->sto_id,
-                    'aprvid' => $mp->aprvid,
-                    'aprvdoctype' => $mp->aprvdoctype,
-                    'aprvcpnyid' => $mp->aprvcpnyid,
-                    'aprvdeptid' => $mp->aprvdeptid,
-                    'aprvusername' => $mp->aprvusername,
-                    'name' => $mp->name,
-                    'aprvdatebefore' => $aprvdatebefore,
-                    'aprvtotalday' => 1,
-                    'status' => 'P',
-                    'created_user' => $user->username
-                ]);
-            }            
-
-           
-            // Simpan Attachments ke attachments          
-            if ($request->hasfile('attachments')) {
-                foreach ($request->file('attachments') as $file) {
-                    $randomNumber = random_int(10000000, 99999999);
-                    $filename = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
-                   
-                    $originalName = str_replace('%', '', $file->getClientOriginalName());
-                    $attachfile = md5($randomNumber) . '-' . $originalName;
-
-                    //attach to folder
-                    $folder_attach = public_path() . '/attachments/'.$year;
-                    $config['upload_path'] = $folder_attach;                   
-                    if(!is_dir($folder_attach))
-                    {
-                        mkdir($folder_attach, 0777);
-                    }
-                    
-                    $folder_upload = $folder_attach;
-                    // $folder_upload = public_path() . '/attachments';
-                    $file->move($folder_upload, $attachfile);
-
-                    //insert to table attachments
-                    $attach = new Attachment();
-                    $attach->docid = $sto->sto_id;
-                    $attach->name = $filename;
-                    $attach->attachfile = $attachfile;
-                    $attach->status = 'A';
-                    $attach->extention = $file->getClientOriginalExtension();
-                    $attach->created_user = $user->username;
-                    $attach->save();
-                }
-            }
-
-            $t_approval_next = T_approval::where('docid', $sto->sto_id)
-                ->where('status', 'P')
-                ->orderby('aprvid','ASC')
-                ->first();
-           
-            $data = array(
-                'docid' => $t_approval_next->docid,
-                'cpnyid' => $t_approval_next->aprvcpnyid,
-                'deptname' => $t_approval_next->aprvdeptid,                
-                'date' => $t_approval_next->aprvdatebefore,
-                'name' => $t_approval_next->created_user,                          
-                'info' => 'Struktur Organisasi New Employee',           
-                'url' => url('/showstos/') . $sto->id
-    
-            );
-    
-            $multiapp = explode(',', $t_approval_next->aprvusername);
-    
-            $email_it = User::whereIN('username', $multiapp)
-                ->where('status', 'A')
-                ->get();
-    
-            foreach ($email_it as $emailsit) {
-                Mail::send('emails.mailapprove', $data, function ($message) use ($data, $emailsit) {
-                    $message->to($emailsit->test_email)->subject($data['docid'] . ' - Waiting Approval STO');
-                    $message->from('digitalserver@pakuwon.com', 'Pakuwon Smart System');
-                });
-            }
-
-            DB::commit();
-            return response()->json(['success' => true, 'sto' => $sto]);
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return response()->json(['error' => 'Gagal menyimpan STO', 'message' => $e->getMessage()], 500);
         }
     }
 
@@ -577,7 +686,7 @@ class StrukturOrgController extends Controller
                 Mail::send('emails.mailapprove', $data, function ($message) use ($data, $emailsit) {
 
                     $message->to($emailsit->test_email)->subject($data['docid'] . ' - Waiting Approval STO');
-                    $message->from('digitalserver@pakuwon.com', 'Pakuwon Smart System');
+                    $message->from('digitalserver@pakuwon.com', 'Pakuwon System');
                 });
             }
         }
@@ -646,7 +755,7 @@ class StrukturOrgController extends Controller
             Mail::send('emails.mailapprove', $data, function ($message) use ($data, $emailsit) {
 
                 $message->to($emailsit->test_email)->subject($data['docid'] . ' - Rejected STO');
-                $message->from('digitalserver@pakuwon.com', 'Pakuwon Smart System');
+                $message->from('digitalserver@pakuwon.com', 'Pakuwon System');
             });
         }
 
@@ -719,7 +828,7 @@ class StrukturOrgController extends Controller
             Mail::send('emails.mailapprove', $data, function ($message) use ($data, $emailsit) {
 
                 $message->to($emailsit->test_email)->subject($data['docid'] . ' - Revise STO');
-                $message->from('digitalserver@pakuwon.com', 'Pakuwon Smart System');
+                $message->from('digitalserver@pakuwon.com', 'Pakuwon System');
             });
         }
 
@@ -968,11 +1077,16 @@ class StrukturOrgController extends Controller
             $departement->parent_id = $request->approval_line ?? null;
             $departement->refid = $request->sto_id;
             $departement->subgrade_id = $request->subgrade_id;
-            $departement->subgrade_name = $request->subgrade_name;
+
+            // Ambil hanya bagian setelah tanda " - "
+            $subgradeParts = explode(' - ', $request->subgrade_name);
+            $departement->subgrade_name = $subgradeParts[1] ?? $request->subgrade_name;
+
             $departement->created_user = $user->username;
             $departement->status = 'A';
 
             $departement->save();
+
             
             // Update departement_id dengan ID yang baru saja dibuat
             $departement->departement_id = $departement->id;
@@ -1125,7 +1239,7 @@ class StrukturOrgController extends Controller
             $sto->departementid = $userdept2;
             $sto->user = $user->username;
             $sto->created_user = $user->username;
-            $sto->status = 'D';
+            $sto->status = 'H';
             $sto->save();
 
             DB::commit();

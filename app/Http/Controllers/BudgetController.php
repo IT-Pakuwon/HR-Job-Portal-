@@ -1035,8 +1035,10 @@ class BudgetController extends Controller
 
     public function getSitesByCompany($cpnyid)
     {
-        $sites = Site::where('cpnyid', $cpnyid)
-            ->select('id', 'site')         
+        // $sites = Site::where('cpnyid', $cpnyid)
+        //     ->select('id', 'site')         
+        //     ->get();
+        $sites = Site::select('id', 'site')         
             ->get();
 
         return response()->json($sites);
