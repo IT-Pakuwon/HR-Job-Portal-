@@ -332,14 +332,14 @@
                                             <div id="tab-view" class="tab-content hidden max-w-5xl">
                                                 <h3 class="mb-4 text-lg font-semibold">Employee List</h3>
                                                 <table
-                                                    class="w-full border border-black bg-blue-300/10 text-sm text-black">
+                                                    class="w-full border border-gray-200 bg-blue-300/10 text-sm text-black">
                                                     <thead>
                                                         <tr class="text-left">
-                                                            <th class="border border-black px-2 py-1">No</th>
-                                                            <th class="border border-black px-2 py-1">Name</th>
-                                                            <th class="border border-black px-2 py-1">Company</th>
-                                                            <th class="border border-black px-2 py-1">Jabatan</th>
-                                                            <th class="border border-black px-2 py-1">Foto</th>
+                                                            <th class="border border-gray-200 px-2 py-1">No</th>
+                                                            <th class="border border-gray-200 px-2 py-1">Name</th>
+                                                            <th class="border border-gray-200 px-2 py-1">Company</th>
+                                                            <th class="border border-gray-200 px-2 py-1">Jabatan</th>
+                                                            <th class="border border-gray-200 px-2 py-1">Foto</th>
                                                         </tr>
                                                     </thead>
                                                     <tbody id="employeeTableBody">
@@ -854,11 +854,11 @@
                             response.forEach((emp, index) => {
                                 html += `
                                     <tr>
-                                        <td class="border border-black px-2 py-1">${index + 1}</td>
-                                        <td class="border border-black px-2 py-1">${emp.employee_name}</td>
-                                        <td class="border border-black px-2 py-1">${emp.employee_company}</td>
-                                        <td class="border border-black px-2 py-1">${emp.employee_position}</td>
-                                        <td class="border border-black px-2 py-1 text-center">
+                                        <td class="border border-gray-200 px-2 py-1">${index + 1}</td>
+                                        <td class="border border-gray-200 px-2 py-1">${emp.employee_name}</td>
+                                        <td class="border border-gray-200 px-2 py-1">${emp.employee_company}</td>
+                                        <td class="border border-gray-200 px-2 py-1">${emp.employee_position}</td>
+                                        <td class="border border-gray-200 px-2 py-1 text-center">
                                             ${emp.image ? `<img src="${emp.image}" class="w-15 h-15 rounded-full mx-auto">` : '-'}
                                         </td>
                                     </tr>

@@ -159,7 +159,7 @@
                                                                             {{ $level }}
                                                                         </button>
                                                                     @endforeach
-              <!-- 
+                                                                    <!--
                                                     <div
                                                         class="rounded-xl border border-gray-200 bg-gray-50 p-6 dark:border-gray-700 dark:bg-gray-800">
                                                         <h3
@@ -422,14 +422,14 @@
                                                 </div>
 
                                                 <table
-                                                    class="w-full border border-black bg-gray-300/10 text-sm text-black">
+                                                    class="w-full border border-gray-200 bg-gray-300/10 text-sm text-black">
                                                     <thead>
                                                         <tr class="text-left">
-                                                            <th class="border border-black px-2 py-1">No</th>
-                                                            <th class="border border-black px-2 py-1">Name</th>
-                                                            <th class="border border-black px-2 py-1">Company</th>
-                                                            <th class="border border-black px-2 py-1">Position</th>
-                                                            <th class="border border-black px-2 py-1">Foto</th>
+                                                            <th class="border border-gray-200 px-2 py-1">No</th>
+                                                            <th class="border border-gray-200 px-2 py-1">Name</th>
+                                                            <th class="border border-gray-200 px-2 py-1">Company</th>
+                                                            <th class="border border-gray-200 px-2 py-1">Position</th>
+                                                            <th class="border border-gray-200 px-2 py-1">Foto</th>
                                                         </tr>
                                                     </thead>
                                                     <tbody id="employeeTableBody">
@@ -904,11 +904,11 @@
                                             <strong>Employee:</strong>
                                             <div style="margin-top:10px;">
                                                 ${members.map(m => `
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    <div style="display:flex;align-items:center;margin-bottom:6px;">
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    <img src="${m.image}" style="width:20px;height:20px;border-radius:50%;margin-right:8px;" />
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    <span style="font-size:12px;">${m.name} (${m.company} - ${m.position})</span>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    </div>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    `).join('')}
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                <div style="display:flex;align-items:center;margin-bottom:6px;">
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                <img src="${m.image}" style="width:20px;height:20px;border-radius:50%;margin-right:8px;" />
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                <span style="font-size:12px;">${m.name} (${m.company} - ${m.position})</span>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                </div>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                `).join('')}
                                             </div>
                                         </div>
                                     </div>
@@ -951,11 +951,11 @@
                             employees.forEach((emp, index) => {
                                 html += `
                                     <tr>
-                                        <td class="border border-black px-2 py-1">${index + 1}</td>
-                                        <td class="border border-black px-2 py-1">${emp.employee_name}</td>
-                                        <td class="border border-black px-2 py-1">${emp.employee_company}</td>
-                                        <td class="border border-black px-2 py-1">${emp.employee_level}</td>
-                                        <td class="border border-black px-2 py-1 text-center">
+                                        <td class="border border-gray-200 px-2 py-1">${index + 1}</td>
+                                        <td class="border border-gray-200 px-2 py-1">${emp.employee_name}</td>
+                                        <td class="border border-gray-200 px-2 py-1">${emp.employee_company}</td>
+                                        <td class="border border-gray-200 px-2 py-1">${emp.employee_level}</td>
+                                        <td class="border border-gray-200 px-2 py-1 text-center">
                                             ${emp.image ? `<img src="${emp.image}" class="w-15 h-15 rounded-full mx-auto">` : '-'}
                                         </td>                                       
                                     </tr>
