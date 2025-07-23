@@ -177,6 +177,9 @@ class PersonnelController extends Controller
             $tglbln = substr($year, 2) . $month;
             $docid = $doctype . $tglbln . sprintf("%03d", $urutan);
 
+            $site = Site::where('id', $request->siteid)              
+                ->where('status', 'A')
+                ->first();
 
             $title = StoDepartement::where('departement_id', $request->job_title)              
                 ->where('status', 'A')
@@ -187,7 +190,9 @@ class PersonnelController extends Controller
                 'cpnyid' => $request->cpnyid,
                 'departementid' => $request->departementid,
                 'division_id' => $request->division,
+                'locationname' => $site->site ?? null,
                 'date' => $datenow,
+                'user' => $user->username,
                 'job_title' => $title->departement_name,
                 'job_level' => $request->job_level,                
                 'immediate_superior' => $request->immediate_superior,                
@@ -341,7 +346,7 @@ class PersonnelController extends Controller
             foreach ($email_it as $emailsit) {
                 Mail::send('emails.mailapprove', $data, function ($message) use ($data, $emailsit) {
                     $message->to($emailsit->test_email)->subject($data['docid'] . ' - Waiting Approval Personnels');
-                    $message->from('digitalserver@pakuwon.com', 'Pakuwon Smart System');
+                    $message->from('digitalserver@pakuwon.com', 'Pakuwon System');
                 });
             }       
 
@@ -353,8 +358,10 @@ class PersonnelController extends Controller
         }
     }
 
+
     public function editPersonnel($id)
     {
+        $personnel = Personnel::findOrFail($id);
         $user = request()->user();
         $usercpny = Usercpny::where('username', '=', $user->username)
             ->get();
@@ -364,19 +371,17 @@ class PersonnelController extends Controller
             ->get();
         $userdept2 = Userdept::where('username', '=', $user->username)
             ->first();
-        $personnel = Personnel::findOrFail($id);
         $companies = Company::select('cpnyid')->get();
         $departements = Dept::select('deptname')->get();
         $joblevel = JobLevel::select('title_level')->get();
-        $jobres = JobResponsiblities::where('docid', $personnel->docid)           
-            ->get();
-        $jobqua = JobQualification::where('docid', $personnel->docid)           
-            ->get();
+        $skillTags = MJobtag::select('id', 'job_tags')->get(); 
+        $division = Division::select('division_id','division_name')->get();
+
         $attachment = Attachment::where('docid', $personnel->docid)  
             ->where('status','A')         
             ->get();
-
-        return view('pages.personnels.editpersonnels', compact('personnel', 'companies', 'departements', 'joblevel','jobres','jobqua','attachment','usercpny','usercpny2','userdept','userdept2'));
+       
+        return view('pages.personnels.editpersonnels', compact('companies','departements','joblevel','usercpny','usercpny2','userdept','userdept2','skillTags','division','personnel','attachment'));
     }
     
     public function updatePersonnel(Request $request, $id)
@@ -391,7 +396,7 @@ class PersonnelController extends Controller
             'job_level' => 'required|string',
             'immediate_superior' => 'required|string',
             'state_position' => 'required|string',
-            'job_type' => 'required|string|in:Replacement,Temporary',
+            'job_type' => 'required|string|in:Replacement,New',
             'reason_vacancy' => 'required|string',
             'required' => 'required|integer|min:1',
             'actual' => 'required|integer|min:0',
@@ -409,12 +414,18 @@ class PersonnelController extends Controller
             $user = request()->user();
 
             $personnel = Personnel::findOrFail($id);
+
+            $title = StoDepartement::where('departement_id', $request->job_title)              
+                ->where('status', 'A')
+                ->first();
                        
             $personnel -> update([              
                 'cpnyid' => $request->cpnyid,
                 'departementid' => $request->departementid,
                 'date' => $datenow,
-                'job_title' => $request->job_title,
+                'locationname' => $site->site ?? null,
+                'user' => $user->username,
+                'job_title' => $title->departement_name,
                 'job_level' => $request->job_level,                
                 'immediate_superior' => $request->immediate_superior,                
                 'state_position' => $request->state_position,
@@ -540,7 +551,7 @@ class PersonnelController extends Controller
             foreach ($email_it as $emailsit) {
                 Mail::send('emails.mailapprove', $data, function ($message) use ($data, $emailsit) {
                     $message->to($emailsit->test_email)->subject($data['docid'] . ' - Waiting Approval Personnels');
-                    $message->from('digitalserver@pakuwon.com', 'Pakuwon Smart System');
+                    $message->from('digitalserver@pakuwon.com', 'Pakuwon System');
                 });
             }
 
@@ -696,7 +707,7 @@ class PersonnelController extends Controller
                 Mail::send('emails.mailapprove', $data, function ($message) use ($data, $emailsit) {
 
                     $message->to($emailsit->test_email)->subject($data['docid'] . ' - Waiting Approval Personnel');
-                    $message->from('digitalserver@pakuwon.com', 'Pakuwon Smart System');
+                    $message->from('digitalserver@pakuwon.com', 'Pakuwon System');
                 });
             }
         }
@@ -766,7 +777,7 @@ class PersonnelController extends Controller
             Mail::send('emails.mailapprove', $data, function ($message) use ($data, $emailsit) {
 
                 $message->to($emailsit->test_email)->subject($data['docid'] . ' - Rejected Personnel');
-                $message->from('digitalserver@pakuwon.com', 'Pakuwon Smart System');
+                $message->from('digitalserver@pakuwon.com', 'Pakuwon System');
             });
         }
 
@@ -839,7 +850,7 @@ class PersonnelController extends Controller
             Mail::send('emails.mailapprove', $data, function ($message) use ($data, $emailsit) {
 
                 $message->to($emailsit->test_email)->subject($data['docid'] . ' - Revise Personnel');
-                $message->from('digitalserver@pakuwon.com', 'Pakuwon Smart System');
+                $message->from('digitalserver@pakuwon.com', 'Pakuwon System');
             });
         }
 
@@ -1007,8 +1018,11 @@ class PersonnelController extends Controller
 
     public function getSitesByCompany($cpnyid)
     {
-        $sites = Site::where('cpnyid', $cpnyid)
-            ->select('id', 'site')         
+        // $sites = Site::where('cpnyid', $cpnyid)
+        //     ->select('id', 'site')         
+        //     ->get();
+
+        $sites = Site::select('id', 'site')         
             ->get();
 
         return response()->json($sites);
@@ -1129,6 +1143,7 @@ class PersonnelController extends Controller
 
     public function getParentJobInfo($parentId, $departementId,$deptId)
     {
+        
         // Ambil 1 orang selain VACANT di parent_id tsb
         $employee = DB::table('hr_ms_sto_employee as e')
             ->join('hr_ms_sto_departement as d', 'e.departement_id', '=', 'd.departement_id')
@@ -1181,6 +1196,56 @@ class PersonnelController extends Controller
         
     }
 
+    public function getJobParentInfoEdit($parentId, $departementId,$deptId, Request $request)
+    {
+        $docid = $request->query('docid');
+        
+        // Ambil 1 orang selain VACANT di parent_id tsb
+        $employee = DB::table('hr_ms_sto_employee as e')
+            ->join('hr_ms_sto_departement as d', 'e.departement_id', '=', 'd.departement_id')
+            ->where('d.departement_id', $parentId)           
+            ->select('e.employee_name', 'e.employee_level','d.subgrade_name')
+            ->first();
+        // dd($employee);
+        $jobprofile = DB::table('hr_ms_sto_job_profile')           
+            ->where('departement_id', $departementId)    
+            ->get();
+
+        $jobspec = DB::table('hr_ms_sto_job_spec')           
+            ->where('departement_id', $departementId)    
+            ->first();       
+
+        $actual = DB::table('hr_ms_sto_employee as e')
+            ->where('e.departement_id', $departementId)
+            ->where('e.employee_name', '!=', 'VACANT')
+            ->where('e.status', 'A')
+            ->count();
+
+        $skill = DB::table('hr_trx_prf_job_qualification')           
+            ->where('docid', $docid)    
+            ->get();
+
+        $tags = DB::table('hr_trx_prf_job_tags')           
+            ->where('docid', $docid)    
+            ->get();
+
+                     
+        return response()->json([
+            'employee_name' => $employee->employee_name ?? 'Not Found',
+            'employee_level' => $employee->subgrade_name ?? '',
+            'experience_min' => $jobspec->experience_min ?? '',
+            'experience_position' => $jobspec->experience_position ?? '',
+            'education_min' => $jobspec->education_min ?? '',
+            'education_jurusan' => $jobspec->education_jurusan ?? '',
+            'job_profile' => $jobprofile,
+            'skill' => $skill,
+            'tags' => $tags,
+            'actual' => $actual,
+            'required' => 1,
+            'total_actual' => $actual + 1,
+        ]);
+        
+    }
 
 
 

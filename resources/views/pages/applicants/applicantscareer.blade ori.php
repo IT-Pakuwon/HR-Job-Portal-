@@ -1,7 +1,5 @@
-<div class="py-1 w-full max-w-9xl mx-auto">
-  <div class="grid">
-      <div class="px-2 sm:px-6 lg:px-2 py-1 w-full max-w-9xl mx-auto">
-          <div class="gap">
+           <div class="max-w-9xl mx-auto w-full p-4">
+               <div class="gap">
                    <div
                        class="flex w-full flex-col gap-4 overflow-hidden sm:col-span-1 lg:row-span-2 xl:row-span-2 xl:flex-row">
                        <div class="flex w-full flex-col">
@@ -901,49 +899,48 @@
                        </div>
                    </div>
                </div>
-      </div>
-    
-<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
-<script src="https://unpkg.com/lucide@latest"></script>
-<script>
-  lucide.createIcons();
-</script>
+           </div>
 
-<script>
-    $('#applicantprofile').on('submit', function(e) {
-        e.preventDefault();
-        var form = $(this);
+           <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
+           <script src="https://unpkg.com/lucide@latest"></script>
+           <script>
+               lucide.createIcons();
+           </script>
 
-        $.ajax({
-            url: "{{ route('applicantprofile.pdf') }}",
-            method: 'POST',
-            data: form.serialize(),
-            xhrFields: {
-                responseType: 'blob'
-            },
-            headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-            },
-            success: function(blob, status, xhr) {
-                // Cek apakah response berupa PDF atau error JSON
-                var contentType = xhr.getResponseHeader('Content-Type');
-                if (contentType && contentType.indexOf('application/pdf') !== -1) {
-                    const url = window.URL.createObjectURL(blob);
-                    window.open(url, '_blank');
-                } else {
-                    // Jika error JSON
-                    var reader = new FileReader();
-                    reader.onload = function() {
-                        var resp = JSON.parse(reader.result);
-                        alert(resp.message || 'Gagal generate PDF');
-                    };
-                    reader.readAsText(blob);
-                }
-            },
-            error: function(xhr) {
-                alert('Gagal generate PDF. Pastikan data sudah lengkap.');
-            }
-        });
-    });
-</script>
+           <script>
+               $('#applicantprofile').on('submit', function(e) {
+                   e.preventDefault();
+                   var form = $(this);
 
+                   $.ajax({
+                       url: "{{ route('applicantprofile.pdf') }}",
+                       method: 'POST',
+                       data: form.serialize(),
+                       xhrFields: {
+                           responseType: 'blob'
+                       },
+                       headers: {
+                           'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                       },
+                       success: function(blob, status, xhr) {
+                           // Cek apakah response berupa PDF atau error JSON
+                           var contentType = xhr.getResponseHeader('Content-Type');
+                           if (contentType && contentType.indexOf('application/pdf') !== -1) {
+                               const url = window.URL.createObjectURL(blob);
+                               window.open(url, '_blank');
+                           } else {
+                               // Jika error JSON
+                               var reader = new FileReader();
+                               reader.onload = function() {
+                                   var resp = JSON.parse(reader.result);
+                                   alert(resp.message || 'Gagal generate PDF');
+                               };
+                               reader.readAsText(blob);
+                           }
+                       },
+                       error: function(xhr) {
+                           alert('Gagal generate PDF. Pastikan data sudah lengkap.');
+                       }
+                   });
+               });
+           </script>

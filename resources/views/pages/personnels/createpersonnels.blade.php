@@ -94,15 +94,13 @@
                                             class="block text-sm font-medium text-gray-700 dark:text-gray-300">Immediate
                                             Superior</label>
                                         <input type="text" name="immediate_superior" id="immediate_superior"
-                                            class="pointer-events-none w-full rounded-lg border border-gray-300 bg-gray-100 p-2.5 text-gray-700 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
-                                            readonly>
+                                            class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
                                     </div>
                                     <div class="flex flex-col gap-2">
                                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">State
                                             Position</label>
                                         <input type="text" name="state_position" id="state_position"
-                                            class="pointer-events-none w-full rounded-lg border border-gray-300 bg-gray-100 p-2.5 text-gray-700 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
-                                            readonly>
+                                            class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
                                     </div>
                                     <div class="flex flex-col gap-2">
                                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Job
@@ -261,13 +259,8 @@
                                                     <td
                                                         class="border border-gray-200 p-3 text-center dark:border-gray-700">
                                                         <button type="button"
-                                                            class="removeQualification hidden h-8 w-8 items-center justify-center rounded-md bg-red-100 text-red-600 transition-colors hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">
-                                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4"
-                                                                viewBox="0 0 20 20" fill="currentColor">
-                                                                <path fill-rule="evenodd"
-                                                                    d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 011-1h4a1 1 0 110 2H8a1 1 0 01-1-1zm2 3a1 1 0 011-1h4a1 1 0 110 2H10a1 1 0 01-1-1zm0 3a1 1 0 011-1h4a1 1 0 110 2H10a1 1 0 01-1-1z"
-                                                                    clip-rule="evenodd" />
-                                                            </svg>
+                                                            class="removeQualification bg-red-200/10  hover:border-red-700  hover:bg-red-400/30  border-red-700 border text-white px-3 py-3 rounded">
+                                                            🗑️
                                                         </button>
                                                     </td>
                                                 </tr>
@@ -682,10 +675,10 @@
                         dataType: 'json',
                         success: function(data) {
                             // Isi supervisor & state position
-                            $('#immediate_superior').val(data.employee_name).prop('readonly',
-                                true);
-                            $('#state_position').val(data.employee_level).prop('readonly',
-                                true);
+                            // $('#immediate_superior').val(data.employee_name).prop('readonly',
+                            //     true);
+                            // $('#state_position').val(data.employee_level).prop('readonly',
+                            //     true);
 
                             // Isi experience dan education
                             $('#experience_start').val(data.experience_min || '').prop(
