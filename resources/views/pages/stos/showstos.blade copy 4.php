@@ -1098,11 +1098,11 @@
                         employees.forEach((emp, index) => {
                             html += `
                                     <tr>
-                                        <td class="border border-black px-2 py-1">${index + 1}</td>
-                                        <td class="border border-black px-2 py-1">${emp.employee_name}</td>
-                                        <td class="border border-black px-2 py-1">${emp.employee_company}</td>
-                                        <td class="border border-black px-2 py-1">${emp.employee_level}</td>
-                                        <td class="border border-black px-2 py-1 text-center">
+                                        <td class="border border-gray-200 px-2 py-1">${index + 1}</td>
+                                        <td class="border border-gray-200 px-2 py-1">${emp.employee_name}</td>
+                                        <td class="border border-gray-200 px-2 py-1">${emp.employee_company}</td>
+                                        <td class="border border-gray-200 px-2 py-1">${emp.employee_level}</td>
+                                        <td class="border border-gray-200 px-2 py-1 text-center">
                                             ${emp.image ? `<img src="${emp.image}" class="w-15 h-15 rounded-full mx-auto">` : '-'}
                                         </td>                                       
                                     </tr>

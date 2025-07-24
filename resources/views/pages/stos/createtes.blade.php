@@ -184,15 +184,15 @@
                     <!-- Tab Content: View Employee -->
                     <div id="tab-view" class="tab-content hidden">
                         <h3 class="mb-4 text-lg font-semibold">Employee List</h3>
-                        <table class="w-full border border-black text-sm text-black">
+                        <table class="w-full border border-gray-200 text-sm text-black">
                             <thead class="bg-gray-300/10">
                                 <tr class="text-left">
-                                    <th class="border border-black px-2 py-1">No</th>
-                                    <th class="border border-black px-2 py-1">Name</th>
-                                    <th class="border border-black px-2 py-1">Company</th>
-                                    <th class="border border-black px-2 py-1">Position</th>
-                                    <th class="border border-black px-2 py-1">Photo</th>
-                                    <th class="border border-black px-2 py-1">Action</th>
+                                    <th class="border border-gray-200 px-2 py-1">No</th>
+                                    <th class="border border-gray-200 px-2 py-1">Name</th>
+                                    <th class="border border-gray-200 px-2 py-1">Company</th>
+                                    <th class="border border-gray-200 px-2 py-1">Position</th>
+                                    <th class="border border-gray-200 px-2 py-1">Photo</th>
+                                    <th class="border border-gray-200 px-2 py-1">Action</th>
                                 </tr>
                             </thead>
                             <tbody id="employeeTableBody">
@@ -409,11 +409,11 @@
                                 <strong>Employee:</strong>
                                 <div style="margin-top:10px;">
                                     ${members.map(m => `
-                                                                                                                                                                                                                                                        <div style="display:flex;align-items:center;margin-bottom:6px;">
-                                                                                                                                                                                                                                                            <img src="${m.image}" style="width:20px;height:20px;border-radius:50%;margin-right:8px;" />
-                                                                                                                                                                                                                                                            <span style="font-size:12px;">${m.name} (${m.company} - ${m.position})</span>
-                                                                                                                                                                                                                                                        </div>
-                                                                                                                                                                                                                                                    `).join('')}
+                                                                                                                                                                                                                                                            <div style="display:flex;align-items:center;margin-bottom:6px;">
+                                                                                                                                                                                                                                                                <img src="${m.image}" style="width:20px;height:20px;border-radius:50%;margin-right:8px;" />
+                                                                                                                                                                                                                                                                <span style="font-size:12px;">${m.name} (${m.company} - ${m.position})</span>
+                                                                                                                                                                                                                                                            </div>
+                                                                                                                                                                                                                                                        `).join('')}
                                 </div>
                             </div>
                         </div>
@@ -450,13 +450,13 @@
                         html += `
 
                         <tr>
-                            <td class="border border-black px-2 py-1">${index + 1}</td>
-                            <td class="border border-black px-2 py-1">${emp.employee_name}</td>
+                            <td class="border border-gray-200 px-2 py-1">${index + 1}</td>
+                            <td class="border border-gray-200 px-2 py-1">${emp.employee_name}</td>
 
 @@ -370,287 +434,339 @@ function openModal(approvalLineId) {
                                 ${emp.image ? `<img src="${emp.image}" class="w-15 h-15 rounded-full mx-auto">` : '-'}
                             </td>
-                            <td class="border border-black px-2 py-1 text-center">
+                            <td class="border border-gray-200 px-2 py-1 text-center">
                                 <div class="inline-flex gap-2">
                                     <!-- Edit Button -->
                                     <button
