@@ -61,7 +61,7 @@
                         <button type="button"
                             class="inline-flex items-center rounded-xl bg-indigo-600 px-6 py-2 text-base font-semibold text-white shadow-md transition-colors duration-200 hover:bg-indigo-700 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800"
                             onclick="chart.exportImg({full:true})">Export Image Full</button>
-                    </div>
+                    </div>               
                     <div class="chart-container w-full" style="width: 100%;"></div>
                 </div>
             </form>
@@ -193,12 +193,12 @@
         </div>
 
         <!-- D3 Org Chart Dependencies -->
-        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>   
         <script src="https://d3js.org/d3.v7.min.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/d3-org-chart@3.1.0"></script>
-
         <script src="https://cdn.jsdelivr.net/npm/d3-flextree@2.1.2/build/d3-flextree.js"></script>
 
+        
         <!-- Tambahkan di bagian <head> atau sebelum script -->
         <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
         <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
@@ -314,14 +314,15 @@
             }
         </script>
 
-        <script>
+       <script>
             var chart = null;
             $('select[name="departementid"], #selectCompany').on('change', function() {
                 const deptname = encodeURIComponent($('#selectdeptname').val());
                 const company = encodeURIComponent($('#selectCompany').val());
 
                 $('.chart-container').html(
-                    '<div class="text-center text-gray-400 mt-10 animate-pulse">Loading...</div>');
+                    '<div class="text-center text-gray-400 mt-10 animate-pulse">Loading...</div>'
+                );
 
                 $.ajax({
                     url: `/orgchart/by-dept/${deptname}?company=${company}`,
@@ -345,59 +346,91 @@
                             .childrenMargin((d) => 40)
                             .compactMarginBetween((d) => 35)
                             .compactMarginPair((d) => 30)
-                            .neighbourMargin((a, b) => 20)
+                            .neighbourMargin((a, b) => 20)                            
                             .nodeContent(function(d) {
                                 const members = d.data.members || [];
                                 const level = d.depth;
-                                // const bgColor = level === 0 ? '#e3f2fd' : level === 1 ? '#e8f5e9' : level === 2 ? '#fff3e0' : level === 3 ? '#fce4ec' : '#f5f5f5';
                                 const bgColor = d.data.bgColor || '#f5f5f5';
 
                                 return `
-                                <div style='width:${d.width}px;height:${d.height}px;padding-top:25px;padding-left:1px;padding-right:1px'>
-                                    <div style="
-                                        background-color:${bgColor};
-                                        width:${d.width - 2}px;
-                                        height:${d.height - 25}px;
-                                        border-radius:10px;
-                                        border:1px solid #E4E2E9;
-                                        padding:15px;
-                                        overflow:visible;
-                                    ">
-                                        ${d.data.position
-                                        ? `<div style="font-size:18px;color:#08011E;margin-bottom:5px">${d.data.name} ${d.data.position}</div>`
-                                        : `<div style="font-size:18px;color:#08011E;text-align:center;margin-top:10px;">${d.data.name}</div>`
-                                        }                           
-                                        <div style="font-size:12px;color:#333">                                    
-                                            <div style="margin-top:10px;">
-                                                ${members.map(m => `
-                                                                                                                                                                            <div style="display:flex;align-items:center;margin-bottom:6px;">
-                                                                                                                                                                                <img src="${m.image}" style="width:30px;height:30px;border-radius:50%;margin-right:8px;" />
-                                                                                                                                                                                <span style="font-size:12px; color:${m.name.toUpperCase() === 'VACANT' ? 'red' : '#000'};">
-                                                                                                                                                                                    ${m.name} (${m.company})
-                                                                                                                                                                                </span>
-                                                                                                                                                                            </div>
-                                                                                                                                                                        `).join('')}
+                                    <div style='width:${d.width}px;height:${d.height}px;padding-top:25px;padding-left:1px;padding-right:1px'>
+                                        <div style="
+                                            background-color:${bgColor};
+                                            width:${d.width - 2}px;
+                                            height:${d.height - 25}px;
+                                            border-radius:10px;
+                                            border:1px solid #E4E2E9;
+                                            padding:15px;
+                                            overflow:visible;
+                                        ">
+                                            ${d.data.position
+                                                ? `<div style="font-size:18px;color:#08011E;margin-bottom:5px">${d.data.name} ${d.data.position}</div>`
+                                                : `<div style="font-size:18px;color:#08011E;text-align:center;margin-top:10px;">${d.data.name}</div>`
+                                            }                           
+                                            <div style="font-size:12px;color:#333">                                    
+                                                <div style="margin-top:10px;">
+                                                    ${members.map(m => `
+                                                        <div style="display:flex;align-items:center;margin-bottom:6px;">
+                                                            <img src="${m.image}" style="width:30px;height:30px;border-radius:50%;margin-right:8px;" />
+                                                            <span style="font-size:12px; color:${m.name.toUpperCase() === 'VACANT' ? 'red' : '#000'};">
+                                                                ${m.name} (${m.company})
+                                                            </span>
+                                                        </div>
+                                                    `).join('')}
+                                                </div>
+
                                             </div>
                                         </div>
                                     </div>
-                                </div>
-                            `;
+                                `;
                             })
                             .onNodeClick((d) => openModal(d.data.id))
                             .container('.chart-container')
-                            .data(nodes) // ✅ ini yang benar
-                            .expandAll() // ⛔ HARUS setelah .data([...])
-                            .render();
+                            .data(nodes)
+                            .expandAll()
+                            .connections(connections)
+                            // .render()
+                            chart.compact(false).render().fit();
+                        // Tambahkan garis horizontal untuk setiap level
+                        setTimeout(() => {
+                            const svg = d3.select('.chart-container').select('svg');
+                            if (!svg.node()) return;
 
-                        // Tambahkan garis tambahan
-                        chart.connections(connections).render();
+                            const svgWidth = svg.node().getBoundingClientRect().width || 2000;
+                            const levelY = {};
 
+                            svg.selectAll('.node').each(function() {
+                                const d = d3.select(this).datum();
+                                const y = d.y; // Y position langsung dari data
 
+                                // Kelompokkan berdasarkan level (depth)
+                                if (!levelY[d.depth]) {
+                                    levelY[d.depth] = [];
+                                }
+                                levelY[d.depth].push(y);
+                            });
+
+                            Object.keys(levelY).forEach(depth => {
+                                const yVals = levelY[depth];
+                                if (yVals.length) {
+                                    const avgY = Math.min(...yVals) - 100; // posisikan garis sedikit di atas
+                                    svg.append('line')
+                                        .attr('x1', 0)
+                                        .attr('x2', svgWidth)
+                                        .attr('y1', avgY)
+                                        .attr('y2', avgY)
+                                        .attr('stroke', '#999')
+                                        .attr('stroke-width', 1)
+                                        .attr('stroke-dasharray', '4,2');
+                                }
+                            });
+
+                            console.log('Garis horizontal per level:', Object.keys(levelY));
+                        }, 400);
                     },
 
                     error: function(xhr) {
-                        $('.chart-container').empty(); // ❗bersihkan chart sebelumnya
-
+                        $('.chart-container').empty();
                         if (xhr.status === 404) {
                             $('.chart-container').html(
                                 '<div class="text-center text-gray-500 mt-10">Department not found.</div>'
@@ -411,6 +444,37 @@
                 });
             });
         </script>
+        <script>
+            function exportOrgChartImage() {
+                if (!chart) {
+                    alert("Chart belum dimuat!");
+                    return;
+                }
+
+                // Perluas chart terlebih dahulu agar mencakup semua node
+                chart.fit(); // ← ini wajib duluan
+
+                setTimeout(() => {
+                    const svg = d3.select('.chart-container').select('svg');
+                    const bbox = svg.node().getBBox();
+
+                    const width = bbox.x + bbox.width + 100;
+                    const height = bbox.y + bbox.height + 100;
+
+                    svg.attr('width', width).attr('height', height);
+
+                    chart.exportImg({
+                        full: true, // pastikan seluruh area diambil
+                        scale: 2,   // lebih tajam
+                        save: true, // langsung download
+                        name: 'OrgChart.png'
+                    });
+
+                }, 500);
+            }
+        </script>
+
+
         <script>
             $(document).ready(function() {
                 $('#selectdeptname').select2({
@@ -504,42 +568,10 @@
                 });
             });
         </script>
-        <script>
-            function exportOrgChartImage() {
-                if (chart) {
-                    chart.exportImg(); // ✅ panggil method bawaan d3-org-chart
-                } else {
-                    alert("Chart belum dimuat!");
-                }
-            }
-        </script>
+       
 
         <script src="https://unpkg.com/html2canvas@1.1.4/dist/html2canvas.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.3.1/jspdf.umd.min.js"></script>
-        <script>
-            function downloadPdf(chart) {
-                chart.exportImg({
-                    save: false,
-                    full: true,
-                    onLoad: (base64) => {
-                        var pdf = new jspdf.jsPDF();
-                        var img = new Image();
-                        img.src = base64;
-                        img.onload = function() {
-                            pdf.addImage(
-                                img,
-                                'JPEG',
-                                5,
-                                5,
-                                595 / 3,
-                                ((img.height / img.width) * 595) / 3
-                            );
-                            pdf.save('chart.pdf');
-                        };
-                    },
-                });
-            }
-        </script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.3.1/jspdf.umd.min.js"></script>      
 
 
 

@@ -267,7 +267,7 @@ Route::post('/logout', function () {
     Route::get('/jobapplicant', [JobapplicantController::class, 'index'])->name('jobapplicant');
     Route::get('/jobapplicant/json', [JobapplicantController::class, 'json'])->name('jobapplicant.json'); 
     Route::get('/jobapplicant/applicants/{jobId}', [JobapplicantController::class, 'JobApplicants'])->name('jobapplicant.applicants');
-    Route::get('/jobapplicant/counts', [JobapplicantController::class, 'getCounts'])->name('jobapplicant.counts');
+    // Route::get('/jobapplicant/counts', [JobapplicantController::class, 'getCounts'])->name('jobapplicant.counts');
 
 
     Route::get('/applicants', [ApplicantController::class, 'index'])->name('applicants');    
