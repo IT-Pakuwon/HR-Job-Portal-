@@ -31,14 +31,14 @@ class JobapplicantController extends Controller
 {
     public function index()
     {
-        // Ambil jumlah total pelamar dari viewtrxcareer
-        $all = DB::connection('mysql3')->table('viewtrxcareer')->count();
-        $onProgress = DB::connection('mysql3')->table('viewtrxcareer')->where('status', 'P')->count();
-        $reject = DB::connection('mysql3')->table('viewtrxcareer')->where('status', 'R')->count();
-        $revise = DB::connection('mysql3')->table('viewtrxcareer')->where('status', 'D')->count();
-        $completed = DB::connection('mysql3')->table('viewtrxcareer')->where('status', 'C')->count();
+        // Ambil jumlah total pelamar dari viewtrxcareer     
+        $all = ViewCareer::count();
+        $unchecked = ViewCareer::where('is_read', 'N')->count();
+        $checked = ViewCareer::where('is_read', 'Y')->count();
+        $reject = ViewCareer::where('status', 'R')->count();       
+        $approved = ViewCareer::where('status', 'C')->count();
 
-        return view('pages.careers.jobapplicant', compact('all', 'onProgress', 'reject', 'revise', 'completed'));
+        return view('pages.careers.jobapplicant', compact('all', 'unchecked', 'checked', 'reject', 'approved'));
     }
     
     public function json(Request $request)
@@ -62,9 +62,21 @@ class JobapplicantController extends Controller
         $query = DB::connection('mysql3')->table('viewtrxcareer as vc')
             ->leftJoin('viewtrxcareer_scoring as vs', 'vc.docid', '=', 'vs.docid');
 
+        // if (!empty($status)) {
+        //     $query->where('vc.status', $status);
+        // }
+
         if (!empty($status)) {
-            $query->where('vc.status', $status);
+            if ($status === 'is_read_Y') {
+                $query->where('vc.is_read', 'Y');
+            } elseif ($status === 'is_read_N') {
+                $query->where('vc.is_read', 'N');
+            } else {
+                $query->where('vc.status', $status);
+            }
         }
+
+
         if (!empty($cpnyid)) {
             $query->where('vc.cpnyid', $cpnyid);
         }
@@ -82,7 +94,7 @@ class JobapplicantController extends Controller
             });
         }
 
-        $totalRecords = DB::connection('mysql3')->table('viewtrxcareer')->count();
+        $totalRecords = ViewCareer::count();
         $filteredRecords = $query->count();
 
         $applicants = $query->select(
