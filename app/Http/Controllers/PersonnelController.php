@@ -176,7 +176,7 @@ class PersonnelController extends Controller
 
             $tglbln = substr($year, 2) . $month;
             $docid = $doctype . $tglbln . sprintf("%03d", $urutan);
-
+           
             $site = Site::where('id', $request->siteid)              
                 ->where('status', 'A')
                 ->first();
@@ -1051,6 +1051,32 @@ class PersonnelController extends Controller
  
         return response()->json($departments);
     }
+
+    public function getReplacementByTopParent($parentDeptName)
+    {
+        $topDept = DB::table('hr_ms_sto_departement')
+            ->whereNull('parent_id')
+            ->where('departement_name', $parentDeptName)
+            ->first();
+
+        if (!$topDept) {
+            return response()->json(['error' => 'Parent departement not found'], 404);
+        }
+
+        $childIds = $this->getAllChildDepartments($topDept->departement_id);
+
+        $employees = DB::table('hr_ms_sto_employee as e')
+            ->join('hr_ms_sto_departement as d', 'e.departement_id', '=', 'd.departement_id')
+            ->where('e.employee_name', '<>', 'VACANT')   // bukan VACANT
+            ->where('e.status', 'A')
+            ->whereNotNull('e.refid') // hanya yang memiliki refid
+            ->whereIn('e.departement_id', $childIds)
+            ->select('e.id as employee_id', 'e.employee_name', 'e.employee_company', 'd.departement_id', 'd.departement_name','d.subgrade_name','d.parent_id')
+            ->get();
+
+        return response()->json($employees);
+    }
+
 
     public function getVacantByTopParent($parentDeptName)
     {

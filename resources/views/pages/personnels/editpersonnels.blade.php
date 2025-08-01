@@ -73,6 +73,15 @@
                             <div class="pt-6">
                                 <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-2">
                                     <div class="flex flex-col gap-2">
+                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Job Type</label>
+                                        <select name="job_type" id="job_type"
+                                            class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                            required>
+                                            <option value="New" {{ (old('job_type', $personnel->job_type ?? '') == 'New') ? 'selected' : '' }}>New</option>
+                                            <option value="Replacement" {{ (old('job_type', $personnel->job_type ?? '') == 'Replacement') ? 'selected' : '' }}>Replacement</option>
+                                        </select>
+                                    </div>
+                                    <div class="flex flex-col gap-2">
                                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Job
                                             Title</label>
                                         <select name="job_title" id="job_title"
@@ -100,16 +109,7 @@
                                         <input type="text" name="state_position" id="state_position"
                                             class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                             value="{{ old('state_position', $personnel->state_position ?? '') }}">
-                                    </div>
-                                    <div class="flex flex-col gap-2">
-                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Job Type</label>
-                                        <select name="job_type" id="job_type"
-                                            class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
-                                            required>
-                                            <option value="New" {{ (old('job_type', $personnel->job_type ?? '') == 'New') ? 'selected' : '' }}>New</option>
-                                            <option value="Replacement" {{ (old('job_type', $personnel->job_type ?? '') == 'Replacement') ? 'selected' : '' }}>Replacement</option>
-                                        </select>
-                                    </div>
+                                    </div>                                    
                                     <div class="flex flex-col gap-2">
                                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Reason for Vacancy</label>
                                         <textarea name="reason_vacancy" id="reason_vacancy"
@@ -411,7 +411,7 @@
             $('#addAttachment').click(function() {
                 $('#attachmentsContainer').append(`
             <div class="attachment-row flex items-center gap-2">
-                <input type="file" name="attachments[]" class="w-full mt-4 p-3 text-lg border rounded mt-4">
+                <input type="file" name="attachments[]" class="flex-grow rounded-md border border-gray-200 bg-white px-4 py-2 text-sm text-gray-700 file:mr-4 file:rounded-full file:border-0 file:bg-indigo-100 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-indigo-700 hover:file:bg-indigo-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:file:bg-indigo-700 dark:file:text-white dark:hover:file:bg-indigo-600">
                     <button type="button" class="removeAttachment bg-red-200/30 mt-4 text-red-600 p-3 rounded hidden border border-red-600 hover:text-white hover:bg-red-600 transition">🗑️</button>
             </div>
         `);
@@ -522,24 +522,7 @@
     <script>
         $(document).ready(function () {
             // Hitung jumlah baris existing saat halaman dimuat
-            let qualificationCount = $('#qualificationTable .qualification-row').length || 0;
-
-            // Fungsi untuk Menambah Baris Qualification
-            // $('#addQualification').click(function () {
-            //     qualificationCount++;
-            //     $('#qualificationTable').append(`
-            //         <tr class="qualification-row">
-            //             <td class="p-3 border text-center">${qualificationCount}</td>
-            //             <td class="p-3 border">
-            //                 <input type="text" name="qualification[]" placeholder="Type here..." class="w-full p-2 border-none focus:ring-0 focus:outline-none bg-transparent">
-            //             </td>
-            //             <td class="p-3 border text-center">
-            //                 <button type="button" class="removeQualification bg-red-200/10 hover:border-red-700 hover:bg-red-400/30 border-red-700 border text-white px-3 py-3 rounded">🗑️</button>
-            //             </td>
-            //         </tr>
-            //     `);
-            //     updateRemoveButtons();
-            // });
+            let qualificationCount = $('#qualificationTable .qualification-row').length || 0;   
 
             $('#addQualification').click(function() {
                 // Hitung ulang total baris yang ada saat ini (termasuk baris dari data AJAX)
@@ -690,39 +673,96 @@
 
     <script>
         $(document).ready(function() {
-            $('select[name="departementid"]').on('change', function() {
-                let deptId = $(this).val();
-                let $jobTitle = $('#job_title');
+            // $('select[name="departementid"]').on('change', function() {
+            //     let deptId = $(this).val();
+            //     let $jobTitle = $('#job_title');
+            //     $jobTitle.empty().append('<option value="">Loading...</option>');
+
+            //     if (deptId) {
+            //         $.ajax({
+            //             url: `/api/vacant-employees/${deptId}`,
+            //             type: 'GET',
+            //             dataType: 'json',
+            //             success: function(data) {
+                            
+            //                 $jobTitle.empty().append(
+            //                     '<option value="">-- Select Vacant Position --</option>');
+            //                 if (data.length > 0) {
+            //                     $.each(data, function(key, emp) {
+            //                         $jobTitle.append(
+            //                             `<option value="${emp.departement_id}" data-title-level="${emp.subgrade_name}" data-parent-id="${emp.parent_id}">${emp.departement_name}-${emp.subgrade_name}</option>`
+            //                         );
+            //                     });
+            //                 } else {
+            //                     $jobTitle.append('<option value="">No vacant found</option>');
+            //                 }
+            //             },
+            //             error: function() {
+            //                 $jobTitle.empty().append(
+            //                     '<option value="">Error loading data</option>');
+            //             }
+            //         });
+            //     } else {
+            //         $jobTitle.empty().append('<option value="">-- Select Vacant Position --</option>');
+            //     }
+            // });
+
+            const selectedJobTitleId = "{{ $personnel->job_title }}";
+           
+            function loadJobTitles() {
+                let deptId = $('select[name="departementid"]').val();
+                let jobType = $('#job_type').val();
+                let $jobTitle = $('#job_title');                       
+                console.log("Selected Job Title ID:", selectedJobTitleId);         
                 $jobTitle.empty().append('<option value="">Loading...</option>');
 
-                if (deptId) {
-                    $.ajax({
-                        url: `/api/vacant-employees/${deptId}`,
-                        type: 'GET',
-                        dataType: 'json',
-                        success: function(data) {
-                            
-                            $jobTitle.empty().append(
-                                '<option value="">-- Select Vacant Position --</option>');
-                            if (data.length > 0) {
-                                $.each(data, function(key, emp) {
-                                    $jobTitle.append(
-                                        `<option value="${emp.departement_id}" data-title-level="${emp.subgrade_name}" data-parent-id="${emp.parent_id}">${emp.departement_name}-${emp.subgrade_name}</option>`
-                                    );
-                                });
-                            } else {
-                                $jobTitle.append('<option value="">No vacant found</option>');
-                            }
-                        },
-                        error: function() {
-                            $jobTitle.empty().append(
-                                '<option value="">Error loading data</option>');
-                        }
-                    });
-                } else {
-                    $jobTitle.empty().append('<option value="">-- Select Vacant Position --</option>');
+                if (!deptId || !jobType) {
+                    $jobTitle.html('<option value="">-- Select Vacant Position --</option>');
+                    return;
                 }
+
+                let url =
+                    jobType === 'New'
+                        ? `/api/vacant-employees/${deptId}`
+                        : `/api/replacement-employees/${deptId}`;
+
+                $.ajax({
+                    url: url,
+                    type: 'GET',
+                    dataType: 'json',
+                    success: function(data) {
+                        $jobTitle.empty().append('<option value="">-- Select Vacant Position --</option>');
+
+                        if (data.length > 0) {
+                            $.each(data, function(key, emp) {
+                                const isSelected = emp.departement_name == selectedJobTitleId ? 'selected' : '';
+                                console.log("Adding job title option:", emp.departement_name, emp.subgrade_name, isSelected);                                $jobTitle.append(`
+                                    <option value="${emp.departement_id}" 
+                                            data-title-level="${emp.subgrade_name}" 
+                                            data-parent-id="${emp.parent_id}"
+                                            ${isSelected}>
+                                        ${emp.departement_name}-${emp.subgrade_name}
+                                    </option>`);
+                            });
+
+                            // Jika ditemukan dan dipilih otomatis, trigger change agar data lain ikut terisi
+                            $jobTitle.trigger('change');
+                        } else {
+                            $jobTitle.append('<option value="">No positions found</option>');
+                        }
+                    },
+                    error: function() {
+                        $jobTitle.html('<option value="">Error loading data</option>');
+                    }
+                });
+            }
+
+
+            // Jalankan saat departementid atau job_type berubah
+            $('select[name="departementid"], #job_type').on('change', function() {
+                loadJobTitles();
             });
+
 
             $('#job_title').on('change', function() {
                 let selected = $(this).find(':selected');
@@ -738,12 +778,7 @@
                         url: `/api/job-parent-info-edit/${parentId}/${selected.val()}/${deptId}?docid=${docid}`,
                         type: 'GET',
                         dataType: 'json',
-                        success: function(data) {
-                            // Isi supervisor & state position
-                            // $('#immediate_superior').val(data.employee_name).prop('readonly',
-                            //     true);
-                            // $('#state_position').val(data.employee_level).prop('readonly',
-                            //     true);
+                        success: function(data) {                         
 
                             console.log("Skill:", data.skill);
                             console.log("Tags:", data.tags);

@@ -391,14 +391,14 @@
                                                 </div>
 
                                                 <table
-                                                    class="w-full border border-gray-200 bg-gray-300/10 text-sm text-black">
+                                                    class="w-full border border-black bg-gray-300/10 text-sm text-black">
                                                     <thead>
                                                         <tr class="text-left">
-                                                            <th class="border border-gray-200 px-2 py-1">No</th>
-                                                            <th class="border border-gray-200 px-2 py-1">Name</th>
-                                                            <th class="border border-gray-200 px-2 py-1">Company</th>
-                                                            <th class="border border-gray-200 px-2 py-1">Jabatan</th>
-                                                            <th class="border border-gray-200 px-2 py-1">Foto</th>
+                                                            <th class="border border-black px-2 py-1">No</th>
+                                                            <th class="border border-black px-2 py-1">Name</th>
+                                                            <th class="border border-black px-2 py-1">Company</th>
+                                                            <th class="border border-black px-2 py-1">Jabatan</th>
+                                                            <th class="border border-black px-2 py-1">Foto</th>
                                                         </tr>
                                                     </thead>
                                                     <tbody id="employeeTableBody">
@@ -923,11 +923,11 @@
                             employees.forEach((emp, index) => {
                                 html += `
                                     <tr>
-                                        <td class="border border-gray-200 px-2 py-1">${index + 1}</td>
-                                        <td class="border border-gray-200 px-2 py-1">${emp.employee_name}</td>
-                                        <td class="border border-gray-200 px-2 py-1">${emp.employee_company}</td>
-                                        <td class="border border-gray-200 px-2 py-1">${emp.employee_level}</td>
-                                        <td class="border border-gray-200 px-2 py-1 text-center">
+                                        <td class="border border-black px-2 py-1">${index + 1}</td>
+                                        <td class="border border-black px-2 py-1">${emp.employee_name}</td>
+                                        <td class="border border-black px-2 py-1">${emp.employee_company}</td>
+                                        <td class="border border-black px-2 py-1">${emp.employee_level}</td>
+                                        <td class="border border-black px-2 py-1 text-center">
                                             ${emp.image ? `<img src="${emp.image}" class="w-15 h-15 rounded-full mx-auto">` : '-'}
                                         </td>                                       
                                     </tr>

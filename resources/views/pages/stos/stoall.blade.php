@@ -1,4 +1,13 @@
 <x-app-layout>
+    {{-- <style>
+        #chartLegend {
+  position: absolute;
+  right: 36px;
+  bottom: 36px;
+  z-index: 10;
+}
+
+    </style> --}}
     <div class="max-w-9xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
         <div class="flex flex-col gap-6">
             <form id="stoForm" class="flex flex-col rounded-xl bg-white shadow-lg dark:bg-gray-800"
@@ -37,21 +46,7 @@
                                     </option>
                                 @endforeach
                             </select>
-                        </div>
-
-                        {{-- <div class="flex items-center gap-2">
-                            <label for="selectdeptname"
-                                class="mb-1 block text-lg font-semibold text-gray-700 dark:text-gray-300">Department:</label>
-                            <select id="selectdeptname"
-                                class="w-full min-w-[200px] rounded-lg border border-gray-300 bg-white p-2.5 shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-900 dark:text-white"
-                                name="departementid" required>
-                                @foreach ($departements as $p)
-                                    <option value="{{ $p->deptname }}" {{ $p->deptname == 'IT' ? 'selected' : '' }}>
-                                        {{ $p->deptname }}
-                                    </option>
-                                @endforeach
-                            </select>
-                        </div> --}}
+                        </div>                   
                     </div>
                 </div>
 
@@ -60,9 +55,68 @@
                     <div class="mb-6 flex justify-end"> {{-- Aligns button to the right --}}
                         <button type="button"
                             class="inline-flex items-center rounded-xl bg-indigo-600 px-6 py-2 text-base font-semibold text-white shadow-md transition-colors duration-200 hover:bg-indigo-700 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800"
-                            onclick="chart.exportImg({full:true})">Export Image Full</button>
-                    </div>               
-                    <div class="chart-container w-full" style="width: 100%;"></div>
+                            onclick="exportChartWithLegend()">Export Image Full</button>                     
+                    </div>            
+               
+                    {{-- <div id="chartExportArea" style="position:relative;"> --}}
+                    <div id="chartExportArea" style="position:relative; background: #fff; min-height:1100px; padding-bottom:200px;">
+                        {{-- <div class="chart-container w-full" style="width:100%; min-height:420px;"></div> --}}
+                        <div class="chart-container w-full" style="width: 100%;"></div>    
+                        <!-- Legend di pojok kanan bawah -->
+                        <div id="chartLegend2" style="position:absolute; left:32px; bottom:32px;">
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <span style="display: inline-block; width: 28px; height: 18px; background: #cefefe; border-radius: 4px; border:1px solid #ccc"></span>
+                                <span>Crew</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <span style="display: inline-block; width: 28px; height: 18px; background: #c6d4df; border-radius: 4px; border:1px solid #ccc"></span>
+                                <span>Staff</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <span style="display: inline-block; width: 28px; height: 18px; background: #bdb9c9; border-radius: 4px; border:1px solid #ccc"></span>
+                                <span>Senior Staff</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <span style="display: inline-block; width: 28px; height: 18px; background: #e6d0dd; border-radius: 4px; border:1px solid #ccc"></span>
+                                <span>Supervisor</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <span style="display: inline-block; width: 28px; height: 18px; background: #97d077; border-radius: 4px; border:1px solid #ccc"></span>
+                                <span>Assistant Manager / Chief</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <span style="display: inline-block; width: 28px; height: 18px; background: #effbfe; border-radius: 4px; border:1px solid #ccc"></span>
+                                <span>Head of Dept</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <span style="display: inline-block; width: 28px; height: 18px; background: #c7ffbb; border-radius: 4px; border:1px solid #ccc"></span>
+                                <span>Head of Division</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <span style="display: inline-block; width: 28px; height: 18px; background: #ddebf6; border-radius: 4px; border:1px solid #ccc"></span>
+                                <span>Executive</span>
+                            </div>
+                        </div>
+                        <div id="chartLegend"
+                        style="
+                            position: absolute;
+                            right: 16px;
+                            bottom: 16px;
+                            z-index: 10;
+                            display: flex;
+                            flex-direction: column;
+                            gap: 8px;
+                            padding: 16px;
+                            border-radius: 12px;
+                            background: #fff;
+                            box-shadow: 0 2px 8px #0001;
+                            width: 260px;
+                            border: 1px solid #eee;
+                        ">
+                    </div>
+                </div>
+
+
                 </div>
             </form>
 
@@ -238,14 +292,14 @@
                         employees.forEach((emp, index) => {
                             html += `
                         <tr>
-                            <td class="border border-gray-200 px-2 py-1">${index + 1}</td>
-                            <td class="border border-gray-200 px-2 py-1">${emp.employee_name}</td>
-                            <td class="border border-gray-200 px-2 py-1">${emp.employee_company}</td>
-                            <td class="border border-gray-200 px-2 py-1">${emp.employee_level}</td>
-                            <td class="border border-gray-200 px-2 py-1 text-center">
+                            <td class="border border-black px-2 py-1">${index + 1}</td>
+                            <td class="border border-black px-2 py-1">${emp.employee_name}</td>
+                            <td class="border border-black px-2 py-1">${emp.employee_company}</td>
+                            <td class="border border-black px-2 py-1">${emp.employee_level}</td>
+                            <td class="border border-black px-2 py-1 text-center">
                                 <img src="${emp.image || 'https://cdn-icons-png.flaticon.com/512/149/149071.png'}" class="w-15 h-15 rounded-full mx-auto">
                             </td>
-                            <td class="border border-gray-200 px-2 py-1 text-center">
+                            <td class="border border-black px-2 py-1 text-center">
                                 <div class="inline-flex gap-2">
                                     <!-- Job Profile Button -->
                                     <button
@@ -331,6 +385,92 @@
                         const nodes = data.nodes || [];
                         const connections = data.connections || [];
 
+                        // // ==== GENERATE LEGEND ====
+                        // let legendArr = [];
+                        // nodes.forEach(d => {
+                        //     (d.members || []).forEach(m => {
+                        //         legendArr.push({
+                        //             department: d.name,
+                        //             company: m.company
+                        //         });
+                        //     });
+                        // });
+
+                        // let legendMap = {};
+                        // legendArr.forEach(row => {
+                        //     let key = row.department + '-' + row.company;
+                        //     if (!legendMap[key]) {
+                        //         legendMap[key] = { department: row.department, company: row.company, count: 0 };
+                        //     }
+                        //     legendMap[key].count++;
+                        // });
+
+                        // let legendList = Object.values(legendMap);
+
+                        // let legendHTML = `
+                        // <div class="p-2 rounded border bg-white shadow" style="display:inline-block; min-width:260px">
+                        //     <div class="font-bold mb-1">Legend:</div>
+                        //     <table class="text-xs">
+                        //     <thead>
+                        //         <tr>
+                        //         <th class="pr-4">Department</th>
+                        //         <th class="pr-4">Company</th>
+                        //         <th>Jumlah</th>
+                        //         </tr>
+                        //     </thead>
+                        //     <tbody>
+                        //         ${legendList.map(item => `
+                        //         <tr>
+                        //             <td class="pr-4">${item.department}</td>
+                        //             <td class="pr-4">${item.company}</td>
+                        //             <td>${item.count}</td>
+                        //         </tr>
+                        //         `).join('')}
+                        //     </tbody>
+                        //     </table>
+                        // </div>
+                        // `;
+
+                        // $('#chartLegend').html(legendHTML);
+                        // // ==== END LEGEND ====
+                        // ==== LEGEND PER COMPANY ====
+                        let companyMap = {};
+                        nodes.forEach(d => {
+                            (d.members || []).forEach(m => {
+                                if (!companyMap[m.company]) {
+                                    companyMap[m.company] = 0;
+                                }
+                                companyMap[m.company]++;
+                            });
+                        });
+
+                        let legendCompany = Object.entries(companyMap).map(([company, count]) => ({ company, count }));
+
+                        let legendHTML = `
+                        <div class="p-2 rounded border bg-white shadow" style="display:inline-block; min-width:160px">
+                            <div class="font-bold mb-1">Legend (Company):</div>
+                            <table class="text-xs">
+                            <thead>
+                                <tr>
+                                <th class="pr-4">Company</th>
+                                <th>Jumlah</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${legendCompany.map(item => `
+                                <tr>
+                                    <td class="pr-4">${item.company}</td>
+                                    <td>${item.count}</td>
+                                </tr>
+                                `).join('')}
+                            </tbody>
+                            </table>
+                        </div>
+                        `;
+
+                        $('#chartLegend').html(legendHTML);
+                        // ==== END LEGEND ====
+
                         if (!Array.isArray(nodes) || nodes.length === 0) {
                             $('.chart-container').html(
                                 '<div class="text-center text-gray-500 mt-10">No data available for this department.</div>'
@@ -343,7 +483,7 @@
                         chart = new d3.OrgChart()
                             .nodeWidth((d) => 300 + (d.data.members?.length || 0) * 10)
                             .nodeHeight((d) => 100 + (d.data.members?.length || 0) * 30)
-                            .childrenMargin((d) => 40)
+                            .childrenMargin((d) => 60)
                             .compactMarginBetween((d) => 35)
                             .compactMarginPair((d) => 30)
                             .neighbourMargin((a, b) => 20)                            
@@ -351,14 +491,17 @@
                                 const members = d.data.members || [];
                                 const level = d.depth;
                                 const bgColor = d.data.bgColor || '#f5f5f5';
-
+                            
+                                console.log('Level:', level); // Debugging line
+                                console.log('Node Width:', d.width, 'Height:', d.height); // Debugging line
+                                console.log('Node Data:', d.data); // Debugging line
                                 return `
-                                    <div style='width:${d.width}px;height:${d.height}px;padding-top:25px;padding-left:1px;padding-right:1px'>
+                                    <div style='width:${d.width}px;height:${d.height}px;padding-top:25px;padding-left:25px;padding-right:10px'>
                                         <div style="
                                             background-color:${bgColor};
-                                            width:${d.width - 2}px;
+                                            width:${d.width - 50}px;
                                             height:${d.height - 25}px;
-                                            border-radius:10px;
+                                            border-radius:20px;
                                             border:1px solid #E4E2E9;
                                             padding:15px;
                                             overflow:visible;
@@ -370,7 +513,7 @@
                                             <div style="font-size:12px;color:#333">                                    
                                                 <div style="margin-top:10px;">
                                                     ${members.map(m => `
-                                                        <div style="display:flex;align-items:center;margin-bottom:6px;">
+                                                        <div style="display:flex;align-items:center;margin-bottom:2px;">
                                                             <img src="${m.image}" style="width:30px;height:30px;border-radius:50%;margin-right:8px;" />
                                                             <span style="font-size:12px; color:${m.name.toUpperCase() === 'VACANT' ? 'red' : '#000'};">
                                                                 ${m.name} (${m.company})
@@ -378,7 +521,6 @@
                                                         </div>
                                                     `).join('')}
                                                 </div>
-
                                             </div>
                                         </div>
                                     </div>
@@ -392,41 +534,39 @@
                             // .render()
                             chart.compact(false).render().fit();
                         // Tambahkan garis horizontal untuk setiap level
-                        setTimeout(() => {
-                            const svg = d3.select('.chart-container').select('svg');
-                            if (!svg.node()) return;
+                        // setTimeout(() => {
+                        //     const svg = d3.select('.chart-container').select('svg');
+                        //     if (!svg.node()) return;
 
-                            const svgWidth = svg.node().getBoundingClientRect().width || 2000;
-                            const levelY = {};
+                        //     const svgWidth = svg.node().getBoundingClientRect().width || 102000;
+                        //     const levelY = {};
 
-                            svg.selectAll('.node').each(function() {
-                                const d = d3.select(this).datum();
-                                const y = d.y; // Y position langsung dari data
+                        //     svg.selectAll('.node').each(function() {
+                        //         const d = d3.select(this).datum();
+                        //         const y = d.y;
 
-                                // Kelompokkan berdasarkan level (depth)
-                                if (!levelY[d.depth]) {
-                                    levelY[d.depth] = [];
-                                }
-                                levelY[d.depth].push(y);
-                            });
+                        //         if (!levelY[d.depth]) {
+                        //             levelY[d.depth] = [];
+                        //         }
+                        //         levelY[d.depth].push(y);
+                        //     });
 
-                            Object.keys(levelY).forEach(depth => {
-                                const yVals = levelY[depth];
-                                if (yVals.length) {
-                                    const avgY = Math.min(...yVals) - 100; // posisikan garis sedikit di atas
-                                    svg.append('line')
-                                        .attr('x1', 0)
-                                        .attr('x2', svgWidth)
-                                        .attr('y1', avgY)
-                                        .attr('y2', avgY)
-                                        .attr('stroke', '#999')
-                                        .attr('stroke-width', 1)
-                                        .attr('stroke-dasharray', '4,2');
-                                }
-                            });
-
-                            console.log('Garis horizontal per level:', Object.keys(levelY));
-                        }, 400);
+                        //     Object.keys(levelY).forEach(depth => {
+                        //         const yVals = levelY[depth];
+                        //         if (yVals.length) {
+                        //             // Garis tepat di tengah node level tsb:
+                        //             const avgY = yVals.reduce((a, b) => a + b, 0) / yVals.length;
+                        //             svg.append('line')
+                        //                 .attr('x1', 0)
+                        //                 .attr('x2', svgWidth)
+                        //                 .attr('y1', avgY)
+                        //                 .attr('y2', avgY)
+                        //                 .attr('stroke', '#999')
+                        //                 .attr('stroke-width', 1)
+                        //                 .attr('stroke-dasharray', '4,2');
+                        //         }
+                        //     });
+                        // }, 400);
                     },
 
                     error: function(xhr) {
@@ -444,36 +584,6 @@
                 });
             });
         </script>
-        <script>
-            function exportOrgChartImage() {
-                if (!chart) {
-                    alert("Chart belum dimuat!");
-                    return;
-                }
-
-                // Perluas chart terlebih dahulu agar mencakup semua node
-                chart.fit(); // ← ini wajib duluan
-
-                setTimeout(() => {
-                    const svg = d3.select('.chart-container').select('svg');
-                    const bbox = svg.node().getBBox();
-
-                    const width = bbox.x + bbox.width + 100;
-                    const height = bbox.y + bbox.height + 100;
-
-                    svg.attr('width', width).attr('height', height);
-
-                    chart.exportImg({
-                        full: true, // pastikan seluruh area diambil
-                        scale: 2,   // lebih tajam
-                        save: true, // langsung download
-                        name: 'OrgChart.png'
-                    });
-
-                }, 500);
-            }
-        </script>
-
 
         <script>
             $(document).ready(function() {
@@ -544,8 +654,8 @@
                         profiles.forEach((p, i) => {
                             rows += `
                             <tr>
-                                <td class="border border-gray-200 px-2 py-1">${i + 1}</td>                                
-                                <td class="border border-gray-200 px-2 py-1">${p.job_purpose || ''}</td>                                                                                    
+                                <td class="border border-black px-2 py-1">${i + 1}</td>                                
+                                <td class="border border-black px-2 py-1">${p.job_purpose || ''}</td>                                                                                    
                             </tr>
                         `;
                         });
@@ -574,5 +684,39 @@
         <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.3.1/jspdf.umd.min.js"></script>      
 
 
+        <script>
+           function exportChartWithLegend() {
+            const exportArea = document.getElementById('chartExportArea');
+            const images = exportArea.querySelectorAll('img');
+            let loaded = 0;
+            if (images.length === 0) {
+                doExport();
+                return;
+            }
+            images.forEach(img => {
+                if (img.complete) {
+                    loaded++;
+                    if (loaded === images.length) doExport();
+                } else {
+                    img.onload = () => {
+                        loaded++;
+                        if (loaded === images.length) doExport();
+                    }
+                    img.onerror = () => {
+                        loaded++;
+                        if (loaded === images.length) doExport();
+                    }
+                }
+            });
+            function doExport() {
+                html2canvas(exportArea, { backgroundColor: '#fff', scale: 2, useCORS: true }).then(function(canvas) {
+                    const link = document.createElement('a');
+                    link.href = canvas.toDataURL('image/png');
+                    link.download = 'orgchart-export.png';
+                    link.click();
+                });
+            }
+        }
+    </script>
 
 </x-app-layout>
