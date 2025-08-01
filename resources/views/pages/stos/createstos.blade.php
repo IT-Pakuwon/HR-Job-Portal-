@@ -16,7 +16,7 @@
                                         class="block text-sm font-medium text-gray-700 dark:text-gray-300">STO
                                         ID</label>
                                     <input type="text" id="sto_id" name="sto_id"
-                                        class="pointer-events-none w-full rounded-lg border border-gray-300 bg-gray-100 p-2.5 text-gray-700 focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                        class="w-full rounded-lg border border-gray-300 bg-gray-100 p-2.5 text-gray-700 focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                         value="{{ $sto->sto_id }}" readonly>
                                 </div>
                                 <div class="flex flex-col gap-2">
@@ -30,31 +30,29 @@
 
                             <div class="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2">
                                 <div class="flex flex-col gap-2">
-                                    <label for="company"
+                                    <label for="selectCompany"
                                         class="block text-sm font-medium text-gray-700 dark:text-gray-300">Company</label>
-                                    <select id="company"
+                                    <select id="selectCompany"
                                         class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                         name="cpnyid" required>
-                                        @foreach ($usercpny as $p)
-                                            <option value="{{ $p->cpnyid }}"
-                                                {{ $p->cpnyid == $usercpny2->cpnyid ? 'selected' : '' }}>
-                                                {{ $p->cpnyid }}</option>
+                                        <option value="" disabled selected>Select</option>
+                                        @foreach ($companies as $p)
+                                            <option value="{{ $p->cpnyid }}">{{ $p->cpnyid }}</option>
                                         @endforeach
                                     </select>
                                 </div>
                                 <div class="flex flex-col gap-2">
-                                    <label for="department"
+                                    <label for="selectdeptname"
                                         class="block text-sm font-medium text-gray-700 dark:text-gray-300">Department</label>
-                                    <select id="department"
+                                    <select id="selectdeptname"
                                         class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                         name="departementid" required>
-                                        @foreach ($userdept as $p)
-                                            <option value="{{ $p->deptname }}"
-                                                {{ $p->deptname == $userdept2->deptname ? 'selected' : '' }}>
-                                                {{ $p->deptname }}</option>
+                                         <option value="" disabled selected>Select</option>
+                                        @foreach ($departements as $p)
+                                            <option value="{{ $p->deptname }}">{{ $p->deptname }}</option>
                                         @endforeach
                                     </select>
-                                </div>
+                                </div>                               
                             </div>
                         </div>
                     </form>
@@ -202,35 +200,7 @@
                 </div>
 
                 <div class="max-h-[80vh] overflow-y-auto p-6">
-                    <div id="tab-view" class="tab-content hidden">
-                        {{-- <div class="mb-4 flex flex-col justify-between gap-4 md:flex-row md:items-center">
-                            <h4 class="text-xl font-semibold text-gray-800 dark:text-white">
-                                Parent Department: <span id="parentDeptLabel"
-                                    class="text-indigo-600 dark:text-indigo-400"></span>
-                                <button id="btnChangeParentDept"
-                                    class="ml-2 inline-flex items-center gap-1 rounded-md bg-gray-100 px-3 py-1.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                        stroke-width="1.5" stroke="currentColor" class="size-5">
-                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                            d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
-                                    </svg>
-                                    <span>Change Parent</span>
-                                </button>
-                            </h4>
-
-                            <h4 id="departmentLabel" class="text-xl font-semibold text-gray-800 dark:text-white">
-                                Department: <span class="text-indigo-600 dark:text-indigo-400"></span>
-                                <button id="btnChangeDept"
-                                    class="ml-2 inline-flex items-center gap-1 rounded-md bg-gray-100 px-3 py-1.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                        stroke-width="1.5" stroke="currentColor" class="size-5">
-                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                            d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
-                                    </svg>
-                                    <span>Move All Employee</span>
-                                </button>
-                            </h4>
-                        </div> --}}
+                    <div id="tab-view" class="tab-content hidden">                        
                         <div class="flex justify-between">
                             {{-- <h3 class="text-lg font-semibold">Employee List</h3> --}}
                             <div class="mb-4 flex items-center justify-between">
@@ -307,10 +277,8 @@
                                 <select id="employeeCompany"
                                     class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                     name="cpnyid" required>
-                                    @foreach ($usercpny as $p)
-                                        <option value="{{ $p->cpnyid }}"
-                                            {{ $p->cpnyid == $usercpny2->cpnyid ? 'selected' : '' }}>
-                                            {{ $p->cpnyid }}</option>
+                                    @foreach ($companies as $p)
+                                        <option value="{{ $p->cpnyid }}">{{ $p->cpnyid }}</option>
                                     @endforeach
                                 </select>
                             </div>
@@ -325,15 +293,15 @@
                             <input type="hidden" name="full_name" id="hiddenFullName" value="VACANT">
 
                             <div id="fullNameGroup">
-                                <label for="selectFullName"
-                                    class="block text-sm font-medium text-gray-700 dark:text-gray-300">Name</label>
-                                <select id="selectFullName" name="full_name"
+                                <label for="selectFullName" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Name</label>
+                                <select id="selectFullName" name="name"
                                     class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
                                     <option value="" disabled selected>Pilih nama karyawan...</option>
                                     @foreach ($users as $p)
-                                        <option value="{{ $p->name }}">{{ $p->name }}</option>
+                                        <option value="{{ $p->name }}" data-npk="{{ $p->npk }}">{{ $p->name }}</option>
                                     @endforeach
                                 </select>
+                                <input type="hidden" name="npk" id="hiddenNpk">
                             </div>
 
                             <div id="imageGroup">
@@ -532,9 +500,10 @@
                                     class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
                                     <option value="" disabled selected>-- Select Employee --</option>
                                     @foreach ($users as $p)
-                                        <option value="{{ $p->name }}">{{ $p->name }}</option>
+                                        <option value="{{ $p->name }}" data-npk="{{ $p->npk }}">{{ $p->name }}</option>
                                     @endforeach
                                 </select>
+                                <input type="hidden" name="npk" id="hiddenNpkedit">
                             </div>
 
                             <div>
@@ -707,78 +676,161 @@
         });
     </script>
 
+     
+    <script>
+        $(document).ready(function() {
+            $('#stoForm').submit(function(e) {
+                e.preventDefault();
+
+                let formData = new FormData(this);
+
+                $('input[name="attachments[]"]').each(function() {
+                    const files = this.files;
+                    for (let i = 0; i < files.length; i++) {
+                        // Gunakan array notation agar bisa multiple
+                        formData.append('attachments[]', files[i]);
+                    }
+                });
+
+                // Tampilkan Loading, Disable Button
+                $('#submitBtn').attr('disabled', true); // Disable tombol
+                $('#btnText').text('Processing...'); // Ubah teks tombol
+                $('#loadingSpinner').removeClass('hidden'); // Tampilkan spinner
+
+                $.ajax({
+                    url: "{{ route('stos.store') }}",
+                    type: "POST",
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function(response) {
+                        $('#successMessage').removeClass('hidden'); // Tampilkan pesan sukses
+                        $('#stoForm')[0].reset(); // Reset form setelah submit
+
+                        // Tambahkan reset untuk Add Employee
+                        $('#formAddEmployee')[0].reset();
+                        // $('#vacantCheckbox').prop('checked', true);
+                        $('#selectFullName').val('').trigger('change');
+                        // $('#hiddenFullName').val('VACANT');
+                        // toggleVacantUI(true);
+
+                        // Reset Tombol ke Semula
+                        $('#submitBtn').attr('disabled', false);
+                        $('#btnText').text('Submit Approval');
+                        $('#loadingSpinner').addClass('hidden'); // Sembunyikan spinner
+                        toastr.success("Sto Submit Successfully!");
+                        window.location.href = "/stos";
+                    },
+                    error: function(xhr) {
+                        if (xhr.status === 422 && xhr.responseJSON.message) {
+                            toastr.error(xhr.responseJSON.message);
+                        } else {
+                            // alert('Error! Please check the input.');
+                        }
+
+                        // Reset Tombol ke Semula
+                        $('#submitBtn').attr('disabled', false);
+                        $('#btnText').text('Submit Approval');
+                        $('#loadingSpinner').addClass('hidden');
+                    }
+                });
+            });
+        });
+    </script>
 
     <script>
         var chart = null;
+        $('select[name="departementid"]').on('change', function() {
+            const deptname = encodeURIComponent($('#selectdeptname').val());
+            // const company = encodeURIComponent($('#selectCompany').val());
 
-        d3.json("{{ route('orgchart.json') }}").then((res) => {
-            const data = res.nodes; // ⬅️ Ambil 'nodes' dari response
-            const connections = res.connections || []; // ⬅️ Ambil 'connections' tambahan
+            $('.chart-container').html(
+                '<div class="text-center text-gray-400 mt-10 animate-pulse">Loading...</div>'
+            );
 
-            chart = new d3.OrgChart()
-                .nodeWidth((d) => {
-                    return 300 + (d.data.members?.length || 0) * 10;
-                })
-                .nodeHeight((d) => {
-                    return 100 + (d.data.members?.length || 0) * 30;
-                })
-                .childrenMargin((d) => 40)
-                .compactMarginBetween((d) => 35)
-                .compactMarginPair((d) => 30)
-                .neighbourMargin((a, b) => 20)
-                .nodeContent(function(d) {
-                    const members = d.data.members || [];
-                    const level = d.depth;
-                    const bgColor = d.data.bgColor || '#f5f5f5';
+            $.ajax({
+                url: `/orgchart/by-dept/${deptname}`,
+                method: 'GET',
+                success: function(data) {
+                    const nodes = data.nodes || [];
+                    const connections = data.connections || [];
 
+                    if (!Array.isArray(nodes) || nodes.length === 0) {
+                        $('.chart-container').html(
+                            '<div class="text-center text-gray-500 mt-10">No data available for this department.</div>'
+                        );
+                        return;
+                    }
 
-                    return `
-                        <div style='width:${d.width}px;height:${d.height}px;padding-top:25px;padding-left:1px;padding-right:1px'>
-                            <div style="
-                                background-color:${bgColor};
-                                width:${d.width - 2}px;
-                                height:${d.height - 25}px;
-                                border-radius:10px;
-                                border:1px solid #E4E2E9;
-                                padding:15px;
-                                overflow:visible;
-                            ">
-                                ${d.data.position
-                                ? `<div style="font-size:18px;color:#08011E;margin-bottom:5px">${d.data.name} ${d.data.position}</div>`
-                                : `<div style="font-size:18px;color:#08011E;text-align:center;margin-top:10px;">${d.data.name}</div>`
-                                }
-                          
-                                <div style="font-size:12px;color:#333">                                    
-                                    <div style="margin-top:10px;">
-                                        ${members.map(m => `
-                                                                                                                                                                                                                                                                                                                                                                                        <div style="display:flex;align-items:center;margin-bottom:6px;">
-                                                                                                                                                                                                                                                                                                                                                                                            <img src="${m.image}" style="width:30px;height:30px;border-radius:50%;margin-right:8px;" />
-                                                                                                                                                                                                                                                                                                                                                                                            <span style="font-size:12px; color:${m.name.toUpperCase() === 'VACANT' ? 'red' : '#000'};">
-                                                                                                                                                                                                                                                                                                                                                                                                ${m.name} (${m.company})
-                                                                                                                                                                                                                                                                                                                                                                                            </span>
-                                                                                                                                                                                                                                                                                                                                                                                        </div>
-                                                                                                                                                                                                                                                                                                                                                                                    `).join('')}
+                    $('.chart-container').empty(); // Bersihkan chart sebelumnya
+
+                    chart = new d3.OrgChart()
+                        .nodeWidth((d) => 300 + (d.data.members?.length || 0) * 10)
+                        .nodeHeight((d) => 100 + (d.data.members?.length || 0) * 30)
+                        .childrenMargin((d) => 40)
+                        .compactMarginBetween((d) => 35)
+                        .compactMarginPair((d) => 30)
+                        .neighbourMargin((a, b) => 20)                            
+                        .nodeContent(function(d) {
+                            const members = d.data.members || [];
+                            const level = d.depth;
+                            const bgColor = d.data.bgColor || '#f5f5f5';
+
+                            return `
+                                <div style='width:${d.width}px;height:${d.height}px;padding-top:25px;padding-left:1px;padding-right:1px'>
+                                    <div style="
+                                        background-color:${bgColor};
+                                        width:${d.width - 2}px;
+                                        height:${d.height - 25}px;
+                                        border-radius:10px;
+                                        border:1px solid #E4E2E9;
+                                        padding:15px;
+                                        overflow:visible;
+                                    ">
+                                        ${d.data.position
+                                            ? `<div style="font-size:18px;color:#08011E;margin-bottom:5px">${d.data.name} ${d.data.position}</div>`
+                                            : `<div style="font-size:18px;color:#08011E;text-align:center;margin-top:10px;">${d.data.name}</div>`
+                                        }                           
+                                        <div style="font-size:12px;color:#333">                                    
+                                            <div style="margin-top:10px;">
+                                                ${members.map(m => `
+                                                    <div style="display:flex;align-items:center;margin-bottom:6px;">
+                                                        <img src="${m.image}" style="width:30px;height:30px;border-radius:50%;margin-right:8px;" />
+                                                        <span style="font-size:12px; color:${m.name.toUpperCase() === 'VACANT' ? 'red' : '#000'};">
+                                                            ${m.name} (${m.company})
+                                                        </span>
+                                                    </div>
+                                                `).join('')}
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        </div>
-                    `;
-                })
-                .onNodeClick((d) => {
-                    openModal(d.data.id);
-                })
-                .container('.chart-container')
-                .data(data)
-                .expandAll()
-                .render();
+                            `;
+                        })
+                        .onNodeClick((d) => openModal(d.data.id))
+                        .container('.chart-container')
+                        .data(nodes)
+                        .expandAll()
+                        .connections(connections)
+                        // .render()
+                        chart.compact(false).render().fit();                 
+                    
+                },
 
-            chart.connections(connections).render();
-
+                error: function(xhr) {
+                    $('.chart-container').empty();
+                    if (xhr.status === 404) {
+                        $('.chart-container').html(
+                            '<div class="text-center text-gray-500 mt-10">Department not found.</div>'
+                        );
+                    } else {
+                        $('.chart-container').html(
+                            '<div class="text-center text-red-500 mt-10">Error loading chart data.</div>'
+                        );
+                    }
+                }
+            });
         });
-
-        function openModal(id) {
-            alert('Clicked node ID: ' + id);
-        }
     </script>
 
     <script>
@@ -820,14 +872,14 @@
                     employees.forEach((emp, index) => {
                         html += `
                         <tr>
-                            <td class="border border-gray-200 px-2 py-1">${index + 1}</td>
-                            <td class="border border-gray-200 px-2 py-1">${emp.employee_name}</td>
-                            <td class="border border-gray-200 px-2 py-1">${emp.employee_company}</td>
-                            <td class="border border-gray-200 px-2 py-1">${emp.employee_level}</td>
-                            <td class="border border-gray-200 px-2 py-1 text-center">
-                                <img src="${emp.image || 'https://cdn-icons-png.flaticon.com/512/149/149071.png'}" class="w-15 h-15 rounded-full mx-auto">
+                            <td class="border border-black px-2 py-1">${index + 1}</td>
+                            <td class="border border-black px-2 py-1">${emp.employee_name}</td>
+                            <td class="border border-black px-2 py-1">${emp.employee_company}</td>
+                            <td class="border border-black px-2 py-1">${emp.employee_level}</td>
+                            <td class="border border-black px-2 py-1 text-center">
+                                <img src="${emp.image || 'https://cdn-icons-png.flaticon.com/512/149/149071.png'}" class="w-25 h-25 rounded-full mx-auto">
                             </td>
-                            <td class="border border-gray-200 px-2 py-1 text-center">
+                            <td class="border border-black px-2 py-1 text-center">
                                 <div class="inline-flex gap-2">
                                     <!-- Job Profile Button -->
                                     <button
@@ -987,15 +1039,30 @@
 
         function refreshChart() {
             console.log("🌀 Memanggil refreshChart()");
-            d3.json("{{ route('orgchart.json') }}")
-                .then((res) => {
-                    const data = res.nodes;
-                    const connections = res.connections || [];
 
-                    // Kosongkan dulu chart-container (HARUS)
-                    document.querySelector('.chart-container').innerHTML = '';
+            const deptname = encodeURIComponent($('#selectdeptname').val());
+            // const company = encodeURIComponent($('#selectCompany').val());
 
-                    // Buat ulang chart
+            $('.chart-container').html(
+                '<div class="text-center text-gray-400 mt-10 animate-pulse">Refreshing...</div>'
+            );
+
+            $.ajax({
+                url: `/orgchart/by-dept/${deptname}`,
+                method: 'GET',
+                success: function(data) {
+                    const nodes = data.nodes || [];
+                    const connections = data.connections || [];
+
+                    if (!Array.isArray(nodes) || nodes.length === 0) {
+                        $('.chart-container').html(
+                            '<div class="text-center text-gray-500 mt-10">No data available for this department.</div>'
+                        );
+                        return;
+                    }
+
+                    $('.chart-container').empty();
+
                     chart = new d3.OrgChart()
                         .nodeWidth((d) => 300 + (d.data.members?.length || 0) * 10)
                         .nodeHeight((d) => 100 + (d.data.members?.length || 0) * 30)
@@ -1005,9 +1072,7 @@
                         .neighbourMargin((a, b) => 20)
                         .nodeContent(function(d) {
                             const members = d.data.members || [];
-                            const level = d.depth;
                             const bgColor = d.data.bgColor || '#f5f5f5';
-
 
                             return `
                                 <div style='width:${d.width}px;height:${d.height}px;padding-top:25px;padding-left:1px;padding-right:1px'>
@@ -1020,17 +1085,20 @@
                                         padding:15px;
                                         overflow:visible;
                                     ">
-                                        <div style="font-size:18px;color:#08011E;margin-bottom:5px">${d.data.name}  ${d.data.position}</div>                           
+                                        ${d.data.position
+                                            ? `<div style="font-size:18px;color:#08011E;margin-bottom:5px">${d.data.name} ${d.data.position}</div>`
+                                            : `<div style="font-size:18px;color:#08011E;text-align:center;margin-top:10px;">${d.data.name}</div>`
+                                        }
                                         <div style="font-size:12px;color:#333">                                    
                                             <div style="margin-top:10px;">
                                                 ${members.map(m => `
-                                                                                                                                                                                                                                                                                                                                                                                                <div style="display:flex;align-items:center;margin-bottom:6px;">
-                                                                                                                                                                                                                                                                                                                                                                                                    <img src="${m.image}" style="width:30px;height:30px;border-radius:50%;margin-right:8px;" />
-                                                                                                                                                                                                                                                                                                                                                                                                    <span style="font-size:12px; color:${m.name.toUpperCase() === 'VACANT' ? 'red' : '#000'};">
-                                                                                                                                                                                                                                                                                                                                                                                                        ${m.name} (${m.company})
-                                                                                                                                                                                                                                                                                                                                                                                                    </span>
-                                                                                                                                                                                                                                                                                                                                                                                                </div>
-                                                                                                                                                                                                                                                                                                                                                                                            `).join('')}
+                                                    <div style="display:flex;align-items:center;margin-bottom:6px;">
+                                                        <img src="${m.image}" style="width:30px;height:30px;border-radius:50%;margin-right:8px;" />
+                                                        <span style="font-size:12px; color:${m.name.toUpperCase() === 'VACANT' ? 'red' : '#000'};">
+                                                            ${m.name} (${m.company})
+                                                        </span>
+                                                    </div>
+                                                `).join('')}
                                             </div>
                                         </div>
                                     </div>
@@ -1039,72 +1107,32 @@
                         })
                         .onNodeClick((d) => openModal(d.data.id))
                         .container('.chart-container')
-                        .data(data)
+                        .data(nodes)
                         .expandAll()
-                        .render();
-
-                    chart.connections(connections).render();
-                })
-                .catch((err) => {
-                    console.error('❌ Gagal render ulang chart:', err);
-                });
-        }
-    </script>
-
-
-    <script>
-        $(document).ready(function() {
-            $('#stoForm').submit(function(e) {
-                e.preventDefault();
-
-                let formData = new FormData(this);
-
-                $('input[name="attachments[]"]').each(function() {
-                    const files = this.files;
-                    for (let i = 0; i < files.length; i++) {
-                        // Gunakan array notation agar bisa multiple
-                        formData.append('attachments[]', files[i]);
+                        .connections(connections)
+                        .compact(false)
+                        .render()
+                        .fit();
+                },
+                error: function(xhr) {
+                    $('.chart-container').empty();
+                    if (xhr.status === 404) {
+                        $('.chart-container').html(
+                            '<div class="text-center text-gray-500 mt-10">Department not found.</div>'
+                        );
+                    } else {
+                        $('.chart-container').html(
+                            '<div class="text-center text-red-500 mt-10">Error loading chart data.</div>'
+                        );
                     }
-                });
-
-                // Tampilkan Loading, Disable Button
-                $('#submitBtn').attr('disabled', true); // Disable tombol
-                $('#btnText').text('Processing...'); // Ubah teks tombol
-                $('#loadingSpinner').removeClass('hidden'); // Tampilkan spinner
-
-                $.ajax({
-                    url: "{{ route('stos.store') }}",
-                    type: "POST",
-                    data: formData,
-                    processData: false,
-                    contentType: false,
-                    success: function(response) {
-                        $('#successMessage').removeClass('hidden'); // Tampilkan pesan sukses
-                        $('#stoForm')[0].reset(); // Reset form setelah submit
-
-                        // Reset Tombol ke Semula
-                        $('#submitBtn').attr('disabled', false);
-                        $('#btnText').text('Submit Approval');
-                        $('#loadingSpinner').addClass('hidden'); // Sembunyikan spinner
-                        toastr.success("ORG Chart Submit Successfully!");
-                        window.location.href = "/stos";
-                    },
-                    error: function(xhr) {
-                        if (xhr.status === 422 && xhr.responseJSON.message) {
-                            toastr.error(xhr.responseJSON.message);
-                        } else {
-                            // alert('Error! Please check the input.');
-                        }
-
-                        // Reset Tombol ke Semula
-                        $('#submitBtn').attr('disabled', false);
-                        $('#btnText').text('Submit Approval');
-                        $('#loadingSpinner').addClass('hidden');
-                    }
-                });
+                }
             });
-        });
+        }
+
     </script>
+
+
+    
 
     <script>
         $(document).ready(function() {
@@ -1112,7 +1140,7 @@
             $('#addAttachment').click(function() {
                 $('#attachmentsContainer').append(`
             <div class="attachment-row flex items-center gap-2">
-                <input type="file" name="attachments[]" class="w-full mt-4 p-3 text-lg border rounded mt-4">
+                <input type="file" name="attachments[]" class="flex-grow rounded-md border border-gray-200 bg-white px-4 py-2 text-sm text-gray-700 file:mr-4 file:rounded-full file:border-0 file:bg-indigo-100 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-indigo-700 hover:file:bg-indigo-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:file:bg-indigo-700 dark:file:text-white dark:hover:file:bg-indigo-600">
                     <button type="button" class="removeAttachment bg-red-200/30 mt-4 text-red-600 p-3 rounded hidden border border-red-600 hover:text-white hover:bg-red-600 transition">🗑️</button>
             </div>
         `);
@@ -1144,7 +1172,6 @@
 
     <script>
         $(document).ready(function () {
-            // Langsung jalankan logika berdasarkan kondisi checkbox saat halaman dimuat
             toggleVacantUI($('#vacantCheckbox').is(':checked'));
 
             $('#vacantCheckbox').change(function () {
@@ -1154,29 +1181,55 @@
 
             function toggleVacantUI(isChecked) {
                 if (isChecked) {
+                    // Mode VACANT aktif
                     $('#hiddenFullName').val('VACANT').attr('name', 'full_name');
+                    $('#selectFullName').removeAttr('name').val('');
+                    $('#imageInput').removeAttr('name');
                     $('#fullNameGroup').hide();
                     $('#imageGroup').hide();
                     $('#qtyGroup').show();
-
-                    $('#full_name').removeAttr('name');
-                    $('#selectFullName').removeAttr('name').val(null).trigger('change');
-                    $('#imageInput').removeAttr('name');
                 } else {
+                    // Mode pilih karyawan
+                    $('#selectFullName').attr('name', 'full_name'); // 🟢 tambahkan kembali name
+                    $('#hiddenFullName').removeAttr('name'); // 🔴 hilangkan name dari hidden
+                    $('#imageInput').attr('name', 'image');
                     $('#fullNameGroup').show();
                     $('#imageGroup').show();
                     $('#qtyGroup').hide();
-
-                    $('#full_name').attr('name', 'full_name');
-                    $('#imageInput').attr('name', 'image');
-                    $('#hiddenFullName').removeAttr('name');
-
-                    // Kembalikan qty ke 1
                     $('#qty').val(1);
                 }
             }
         });
     </script>
+    <script>
+    //    $(function() {
+    //         $('#selectFullName').on('change', function() {
+    //             var npk = $(this).find(':selected').data('npk') || '';
+    //             console.log("Selected NPK:", npk);
+    //             $('#hiddenNpk').val(npk);
+    //         });
+    //     });
+        $(function() {
+            $('#selectFullName, #edit_name').on('change', function() {
+                // Ini untuk select yang berubah
+                var selectedOption = $(this).find(':selected');
+                var npk = selectedOption.data('npk') || '';
+                var value = selectedOption.val() || '';
+                console.log("Selected NPK:", npk);
+                console.log("Selected Value:", value);
+
+                // Kalau hidden NPK-nya beda, bisa dibuat dinamis:
+                if ($(this).attr('id') === 'selectFullName') {
+                    $('#hiddenNpk').val(npk);
+                }
+                if ($(this).attr('id') === 'edit_name') {
+                    $('#hiddenNpkedit').val(npk);
+                }
+            });
+        });
+
+    </script>
+
 
 
     <script>
@@ -1388,9 +1441,9 @@
                     profiles.forEach((p, i) => {
                         rows += `
                             <tr>
-                                <td class="border border-gray-200 px-2 py-1">${i + 1}</td>                                
-                                <td class="border border-gray-200 px-2 py-1">${p.job_purpose || ''}</td>  
-                                <td class="border border-gray-200 px-2 py-1 text-center">
+                                <td class="border border-black px-2 py-1">${i + 1}</td>                                
+                                <td class="border border-black px-2 py-1">${p.job_purpose || ''}</td>  
+                                <td class="border border-black px-2 py-1 text-center">
                                     <button class="btn-delete-jobpurpose bg-red-500 text-white px-2 py-1 rounded text-xs hover:bg-red-700"
                                         data-id="${p.id}">
                                         🗑️ Delete
@@ -1494,5 +1547,29 @@
             });
         });
     </script>
+    <script>
+            $(document).ready(function() {
+                $('#selectdeptname').select2({
+                    placeholder: "Pilih Departement Name...",
+                    allowClear: true,
+                    width: 'resolve',
+                    dropdownAutoWidth: true
+                });
+                setTimeout(function() {
+                    $("#selectdeptname").next('.select2-container').css('min-width', '200px');
+                }, 0);
+
+                // Aktifkan select2 untuk Company
+                $('#selectCompany').select2({
+                    placeholder: "Pilih Company...",
+                    allowClear: true,
+                    width: 'resolve',
+                    dropdownAutoWidth: true
+                });
+                setTimeout(function() {
+                    $("#selectCompany").next('.select2-container').css('min-width', '150px');
+                }, 0);
+            });
+        </script>
 
 </x-app-layout>

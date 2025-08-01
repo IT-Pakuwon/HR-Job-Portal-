@@ -46,16 +46,16 @@ class StrukturOrgController extends Controller
     
         $user = request()->user();
         $baseQuery = TrSto::query();
-        if (!isset($user->role) || $user->role !== 'admin') {
-            $cpnyids = is_array($user->companyid) ? $user->companyid : explode(',', $user->companyid);
-            $departementids = is_array($user->departmentid) ? $user->departmentid : explode(',', $user->departmentid);
-            if ($cpnyids && $cpnyids[0] !== '') {
-                $baseQuery->whereIn('cpnyid', (array)$cpnyids);
-            }
-            if ($departementids && $departementids[0] !== '') {
-                $baseQuery->whereIn('departementid', (array)$departementids);
-            }
-        }
+        // if (!isset($user->role) || $user->role !== 'admin') {
+        //     $cpnyids = is_array($user->companyid) ? $user->companyid : explode(',', $user->companyid);
+        //     $departementids = is_array($user->departmentid) ? $user->departmentid : explode(',', $user->departmentid);
+        //     if ($cpnyids && $cpnyids[0] !== '') {
+        //         $baseQuery->whereIn('cpnyid', (array)$cpnyids);
+        //     }
+        //     if ($departementids && $departementids[0] !== '') {
+        //         $baseQuery->whereIn('departementid', (array)$departementids);
+        //     }
+        // }
 
         $all = (clone $baseQuery)->count();
         $onProgress = (clone $baseQuery)->where('status', 'P')->count();
@@ -74,16 +74,16 @@ class StrukturOrgController extends Controller
 
         // Filter by cpnyid and departementid if present     
         $user = request()->user();
-        if (!isset($user->role) || $user->role !== 'admin') {
-            $cpnyids = is_array($user->companyid) ? $user->companyid : explode(',', $user->companyid);
-            $departementids = is_array($user->departmentid) ? $user->departmentid : explode(',', $user->departmentid);
-            if ($cpnyids && $cpnyids[0] !== '') {
-                $query->whereIn('cpnyid', (array)$cpnyids);
-            }
-            if ($departementids && $departementids[0] !== '') {
-                $query->whereIn('departementid', (array)$departementids);
-            }
-        }
+        // if (!isset($user->role) || $user->role !== 'admin') {
+        //     $cpnyids = is_array($user->companyid) ? $user->companyid : explode(',', $user->companyid);
+        //     $departementids = is_array($user->departmentid) ? $user->departmentid : explode(',', $user->departmentid);
+        //     if ($cpnyids && $cpnyids[0] !== '') {
+        //         $query->whereIn('cpnyid', (array)$cpnyids);
+        //     }
+        //     if ($departementids && $departementids[0] !== '') {
+        //         $query->whereIn('departementid', (array)$departementids);
+        //     }
+        // }
 
         // If status is 'D' (Revise) or 'H' (Draft), treat both as the same filter
         if (!empty($status)) {
@@ -148,7 +148,7 @@ class StrukturOrgController extends Controller
         $joblevel = JobLevel::select('title_level')->get(); 
         $subgrading = StoSubGrading::select('subgrade_id','subgrade_name')->get();
         
-        $users = User::select('name')
+        $users = User::select('name','npk')
             ->where('status','A')
             ->get();
        
@@ -344,6 +344,7 @@ class StrukturOrgController extends Controller
         }
     }
 
+    
     public function editSto(Request $request,$id)
     {
         $user = request()->user();
@@ -360,7 +361,7 @@ class StrukturOrgController extends Controller
         $joblevel = JobLevel::select('title_level')->get(); 
         $subgrading = StoSubGrading::select('subgrade_id','subgrade_name')->get();
         
-        $users = User::select('name')
+        $users = User::select('name','npk')
             ->where('status','A')
             ->get();
        
@@ -380,7 +381,7 @@ class StrukturOrgController extends Controller
             ->where('status','A')
             ->get();
 
-        $root = StoDepartement::where('departement_name', $user->departmentid)->where('status', 'A')->first();
+        $root = StoDepartement::where('departement_name', $sto->departmentid)->where('status', 'A')->first();
         
         $subdepartments = collect();
 
@@ -1039,7 +1040,7 @@ class StrukturOrgController extends Controller
                 $file = $request->file('image');
                 $filename = Str::random(10) . '.' . $file->getClientOriginalExtension();
                 $file->move(public_path('avatar'), $filename);
-                $imageUrl = url('avatar/' . $filename);
+                $imageUrl = 'avatar/' . $filename;
             }
 
             for ($i = 0; $i < $qty; $i++) {
@@ -1047,6 +1048,7 @@ class StrukturOrgController extends Controller
                 $employee->departement_id = $request->approval_line;
                 $employee->employee_name = $request->full_name;
                 // $employee->employee_level = $request->job_position;
+                $employee->employee_id = $request->npk;
                 $employee->employee_company = $request->cpnyid;
                 $employee->refid = $request->sto_id;
                 $employee->created_user = $user->username;
@@ -1176,8 +1178,8 @@ class StrukturOrgController extends Controller
                     'departement_id' => $emp->departement_id,
                     'employee_name' => $emp->employee_name,
                     'employee_company' => $emp->employee_company,
-                    'employee_level' => $subgradeName, // Gantikan dengan subgrade_name
-                    'image' => $emp->image ?? 'https://cdn-icons-png.flaticon.com/512/149/149071.png',
+                    'employee_level' => $subgradeName, // Gantikan dengan subgrade_name                   
+                    'image' => $emp->image ? asset('avatar/' . ltrim($emp->image, '/')) : 'https://cdn-icons-png.flaticon.com/512/149/149071.png',
                 ];
             });
 
@@ -1222,7 +1224,7 @@ class StrukturOrgController extends Controller
             }
 
             $tglbln = substr($year, 2) . $month;
-            $docid = $doctype . $tglbln . sprintf("%05d", $urutan);
+            $docid = $doctype . $tglbln . sprintf("%03d", $urutan);
 
             if ($usercpny2==null){
                 $usercpny2 = $user->companyid;
@@ -1253,19 +1255,27 @@ class StrukturOrgController extends Controller
     public function updateEmployee(Request $request, $id)
     {
         // dd($id);
+        // dd($request->all());
         $employee = StoEmployee::findOrFail($id);
-        $employee->employee_name = $request->employee_name;
-        $employee->employee_company = $request->employee_company;
-        $employee->employee_level = $request->employee_level;
-
+        
+        $user = Auth::user();
+      
+        $imageUrl = null;
         if ($request->hasFile('image')) {
             $file = $request->file('image');
             $filename = Str::random(10) . '.' . $file->getClientOriginalExtension();
             $file->move(public_path('avatar'), $filename);
-            $employee->image = url('avatar/' . $filename);
+            $imageUrl = 'avatar/' . $filename;
         }
 
-        $employee->save();
+            $employee->employee_name = $request->employee_name;          
+            $employee->employee_id = $request->npk;
+            $employee->employee_company = $request->employee_company;       
+            $employee->updated_user = $user->username;
+            $employee->status = 'A';
+            $employee->image = $imageUrl; // simpan URL-nya
+            $employee->save();
+     
         return response()->json(['success' => true]);
     }
 
@@ -1418,7 +1428,7 @@ class StrukturOrgController extends Controller
                     'name' => $m->employee_name,
                     'company' => $m->employee_company,
                     // 'position' => $m->employee_level,
-                    'image' => $m->image ?? 'https://cdn-icons-png.flaticon.com/512/149/149071.png',
+                    'image' => $m->image ? asset('avatar/' . ltrim($m->image, '/')) : 'https://cdn-icons-png.flaticon.com/512/149/149071.png',
                 ];
             });
 
@@ -1450,57 +1460,8 @@ class StrukturOrgController extends Controller
             'connections' => $connections,
         ]);
     }
-
-
-    public function jsonOrgByDept_xxx($deptname)
-    {
-     
-        $root = StoDepartement::whereRaw('LOWER(departement_name) = ?', [strtolower($deptname)])
-            ->where('status', 'A')
-            ->first();
-
-        if (!$root) {
-            return response()->json(['error' => 'Department not found'], 404);
-        }
-
-        $allDepartments = StoDepartement::where('status', 'A')->get();
-
-        function getDescendants($departments, $parentId) {
-            $result = collect();
-            foreach ($departments as $dept) {
-                if ($dept->parent_id == $parentId) {
-                    $result->push($dept);
-                    $result = $result->merge(getDescendants($departments, $dept->departement_id));
-                }
-            }
-            return $result;
-        }
-
-        $filtered = collect([$root])->merge(getDescendants($allDepartments, $root->departement_id));
-
-        $data = [];
-        foreach ($filtered as $dept) {
-            $memberList = $dept->hr_ms_sto_employee()->get()->map(function ($m) {
-                return [
-                    'name' => $m->employee_name,
-                    'company' => $m->employee_company,
-                    'position' => $m->employee_level,
-                    'image' => $m->image ?? 'https://cdn-icons-png.flaticon.com/512/149/149071.png',
-                ];
-            });
-
-            $data[] = [
-                'id' => $dept->departement_id,
-                'parentId' => $dept->parent_id,
-                'name' => $dept->departement_name,
-                'position' => 'Department',
-                'members' => $memberList->toArray(),
-                'image' => 'https://cdn-icons-png.flaticon.com/512/149/149071.png',
-            ];
-        }
-
-        return response()->json($data);
-    }
+   
+  
 
     public function jsonOrgShow($id)
     {
@@ -1550,8 +1511,9 @@ class StrukturOrgController extends Controller
                 return [
                     'name' => $m->employee_name,
                     'company' => $m->employee_company,
-                    // 'position' => $m->employee_level,
-                    'image' => $m->image ?? 'https://cdn-icons-png.flaticon.com/512/149/149071.png',
+                    // 'position' => $m->employee_level,                   
+                    'image' => $m->image ? asset('avatar/' . ltrim($m->image, '/')) : 'https://cdn-icons-png.flaticon.com/512/149/149071.png',
+
                 ];
             });
 

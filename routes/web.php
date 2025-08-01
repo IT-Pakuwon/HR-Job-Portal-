@@ -40,6 +40,7 @@ use App\Http\Controllers\WorksCategoryController;
 use App\Http\Controllers\BudgetController;
 use App\Http\Controllers\VendorController;
 use App\Http\Controllers\CanvassController;
+use App\Http\Controllers\ChangeStoController;
 
 
 Route::redirect('/', 'login');
@@ -155,12 +156,10 @@ Route::post('/logout', function () {
     Route::get('/api/sites/{cpnyid}', [PersonnelController::class, 'getSitesByCompany']);
     Route::get('/api/job-parent-info/{parentId}/{departementId}/{deptId}', [PersonnelController::class, 'getParentJobInfo']);
     Route::get('/api/vacant-employees/{deptId}', [PersonnelController::class, 'getVacantByTopParent']);
+    Route::get('/api/replacement-employees/{deptname}', [PersonnelController::class, 'getReplacementByTopParent']);
     Route::get('/createpersonnelsx', [PersonnelController::class, 'createPersonnelx']);
     Route::get('/api/job-parent-info/{parentId}/{departementId}/{deptId}', [PersonnelController::class, 'getParentJobInfo']);
     Route::get('/api/job-parent-info-edit/{parentId}/{departementId}/{deptId}', [PersonnelController::class, 'getJobParentInfoEdit']);
-
-
-
 
     Route::get('/tasks', [ProjectTaskController::class, 'index'])->name('tasks');
     Route::get('/tasks/json', [ProjectTaskController::class, 'json'])->name('tasks.json');
@@ -187,8 +186,6 @@ Route::post('/logout', function () {
     Route::get('/wi/sublocations', [WorkInstructionController::class, 'getSubLocations'])->name('wi.sublocations');
     Route::get('/wi/workers', [WorkInstructionController::class, 'getWorkers'])->name('wi.workers');
 
-
-    
 
     Route::get('/manpowers', [ManpowerController::class, 'index'])->name('manpowers');
     Route::get('/manpowers/json', [ManpowerController::class, 'json'])->name('manpowers.json');
@@ -259,7 +256,6 @@ Route::post('/logout', function () {
     Route::post('/applicant-profile/pdf', [CareerController::class, 'pdfApplicantprofile'])->name('applicantprofile.pdf');
 
 
-
     Route::get('/jobpostings', [JobpostingController::class, 'index'])->name('jobpostings');
     Route::get('/jobpostings/json', [JobpostingController::class, 'json'])->name('jobpostings.json'); 
     Route::get('/showjobpostings/{id}', [JobpostingController::class, 'showJobposting']);
@@ -312,7 +308,7 @@ Route::post('/logout', function () {
     Route::post('/orgchart/employee/change-dept', [StrukturOrgController::class, 'changeEmployeeDepartment'])->name('orgchart.change-dept');
     Route::get('/stoall', [StrukturOrgController::class, 'stoall'])->name('stoall');
     Route::get('/orgchartall/json', [StrukturOrgController::class, 'jsonOrgall'])->name('orgchartall.json');
-    Route::get('/orgchart/by-dept/{deptname}', [StrukturOrgController::class, 'jsonOrgByDept'])->name('orgchart.by-dept');
+    Route::get('/orgchart/by-dept/{deptname}', [StrukturOrgController::class, 'jsonOrgByDept'])->name('orgchart.by-dept');   
     Route::get('/orgchart/show/{sto}', [StrukturOrgController::class, 'jsonOrgShow'])->name('orgchartShow.json');
     Route::get('/orgchart/job-profile/{id}', [StrukturOrgController::class, 'getJobProfile']);
     Route::delete('/orgchart/job-profile/{id}', [StrukturOrgController::class, 'deleteJobProfile']);
@@ -321,6 +317,20 @@ Route::post('/logout', function () {
     Route::get('/orgchart/fullscreen/{sto}', [StrukturOrgController::class, 'fullscreen'])->name('orgchart.fullscreen');
 
 
+    Route::get('/changestos', [ChangeStoController::class, 'index'])->name('changestos');
+    Route::get('/changestos/json', [ChangeStoController::class, 'json'])->name('changestos.json');
+    Route::get('/createchangestos', [ChangeStoController::class, 'createChangesto']);
+    Route::post('/changestos', [ChangeStoController::class, 'storeChangesto'])->name('changestos.store');
+    Route::get('/showchangestos/{id}', [ChangeStoController::class, 'showChangesto']);
+    Route::get('/changesto/{id}/comments', [ChangeStoController::class, 'fetchComments']);
+    Route::post('/changesto/{id}/comments', [ChangeStoController::class, 'storeComment']);
+    Route::post('/changesto/{id}/approve', [ChangeStoController::class, 'approveChangesto']);
+    Route::post('/changesto/{id}/reject', [ChangeStoController::class, 'rejectChangesto']);
+    Route::post('/changesto/{id}/revise', [ChangeStoController::class, 'reviseChangesto']);
+    Route::get('/editchangestos/{id}', [ChangeStoController::class, 'editChangesto']);
+    Route::put('/changestos/{id}', [ChangeStoController::class, 'updateChangesto'])->name('changestos.update');
+    Route::put('/changestos/remove-attachment/{id}', [ChangeStoController::class, 'removeAttachment']);    
+    Route::get('/changesto/{id}/check-approval/{action}', [ChangeStoController::class, 'checkApproval']);   
 
 
     Route::get('/eng/users', [UsersEngController::class, 'index'])->name('userseng');
@@ -347,19 +357,19 @@ Route::post('/logout', function () {
     Route::get('/budgets/json', [BudgetController::class, 'json'])->name('budgets.json');
     Route::get('/createbudgets', [BudgetController::class, 'createBudget'])->name('budget.create');
     Route::post('/budgets', [BudgetController::class, 'storeBudget'])->name('budgets.store');
-    Route::get('/showbudgets/{id}', [BudgetController::class, 'showBudget']);
-    Route::get('/budget/{id}/comments', [BudgetController::class, 'fetchComments']);
-    Route::post('/budget/{id}/comments', [BudgetController::class, 'storeComment']);
-    Route::post('/budget/{id}/approve', [BudgetController::class, 'approveBudget']);
-    Route::post('/budget/{id}/reject', [BudgetController::class, 'rejectBudget']);
-    Route::post('/budget/{id}/revise', [BudgetController::class, 'reviseBudget']);
-    Route::get('/editbudgets/{id}', [BudgetController::class, 'editBudget'])->name('budget.edit');
-    Route::put('/budgets/{id}', [BudgetController::class, 'updateBudget'])->name('budgets.update');
-    Route::put('/budgets/remove-attachment/{id}', [BudgetController::class, 'removeAttachment']);    
-    Route::get('/budget/{id}/check-approval/{action}', [BudgetController::class, 'checkApproval']);   
+    // Route::get('/showbudgets/{id}', [BudgetController::class, 'showBudget']);
+    // Route::get('/budget/{id}/comments', [BudgetController::class, 'fetchComments']);
+    // Route::post('/budget/{id}/comments', [BudgetController::class, 'storeComment']);
+    // Route::post('/budget/{id}/approve', [BudgetController::class, 'approveBudget']);
+    // Route::post('/budget/{id}/reject', [BudgetController::class, 'rejectBudget']);
+    // Route::post('/budget/{id}/revise', [BudgetController::class, 'reviseBudget']);
+    // Route::get('/editbudgets/{id}', [BudgetController::class, 'editBudget'])->name('budget.edit');
+    // Route::put('/budgets/{id}', [BudgetController::class, 'updateBudget'])->name('budgets.update');
+    // Route::put('/budgets/remove-attachment/{id}', [BudgetController::class, 'removeAttachment']);    
+    // Route::get('/budget/{id}/check-approval/{action}', [BudgetController::class, 'checkApproval']);   
     // Route::get('/api/sites/{cpnyid}', [BudgetController::class, 'getSitesByCompany']);
     // Route::get('/api/job-parent-info/{parentId}/{departementId}/{deptId}', [BudgetController::class, 'getParentJobInfo']);
-    Route::get('/api/vacant-employees/{deptId}', [BudgetController::class, 'getVacantByTopParent']);  
+    // Route::get('/api/vacant-employees/{deptId}', [BudgetController::class, 'getVacantByTopParent']);  
     
     Route::post('/import-budget', [BudgetController::class, 'import'])->name('budget.import.post');
     Route::get('/get-business-units/{cpny_id}', [BudgetController::class, 'getBusinessUnits']);

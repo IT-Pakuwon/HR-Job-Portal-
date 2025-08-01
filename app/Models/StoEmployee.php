@@ -12,6 +12,7 @@ class StoEmployee extends Model
     protected $fillable = [     
         'departement_id',
         'employee_name',
+        'employee_id',
         'employee_company',
         'employee_position',
         'refid',
