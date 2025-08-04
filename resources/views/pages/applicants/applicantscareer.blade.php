@@ -50,7 +50,7 @@
                                                                     class="text-xs text-gray-500 dark:text-gray-400">Full
                                                                     Name</span>
                                                                 <p
-                                                                    class="text-base font-medium text-gray-900 dark:text-gray-100">
+                                                                    class="w-full break-all text-base font-medium text-gray-900 dark:text-gray-100">
                                                                     {{ $applicant->full_name }}</p>
                                                             </div>
                                                         </div>
@@ -62,7 +62,7 @@
                                                                 <span
                                                                     class="text-xs text-gray-500 dark:text-gray-400">Email</span>
                                                                 <p
-                                                                    class="text-base font-medium text-gray-900 dark:text-gray-100">
+                                                                    class="w-full break-all text-base font-medium text-gray-900 dark:text-gray-100">
                                                                     {{ $applicant->email_address }}</p>
                                                             </div>
                                                         </div>
@@ -80,7 +80,7 @@
                                                                     class="text-xs text-gray-500 dark:text-gray-400">Birth
                                                                     Place</span>
                                                                 <p
-                                                                    class="text-base font-medium text-gray-900 dark:text-gray-100">
+                                                                    class="w-full break-all text-base font-medium text-gray-900 dark:text-gray-100">
                                                                     {{ $applicant->birth_place }}</p>
                                                             </div>
                                                         </div>
@@ -91,7 +91,7 @@
                                                                 <span
                                                                     class="text-xs text-gray-500 dark:text-gray-400">DOB</span>
                                                                 <p
-                                                                    class="text-base font-medium text-gray-900 dark:text-gray-100">
+                                                                    class="w-full break-all text-base font-medium text-gray-900 dark:text-gray-100">
                                                                     {{ $applicant->date_of_birth }}</p>
                                                             </div>
                                                         </div>
@@ -105,7 +105,7 @@
                                                                 <span
                                                                     class="text-xs text-gray-500 dark:text-gray-400">Gender</span>
                                                                 <p
-                                                                    class="text-base font-medium text-gray-900 dark:text-gray-100">
+                                                                    class="w-full break-all text-base font-medium text-gray-900 dark:text-gray-100">
                                                                     {{ $applicant->gender }}</p>
                                                             </div>
                                                         </div>
@@ -117,7 +117,7 @@
                                                                     class="text-xs text-gray-500 dark:text-gray-400">Blood
                                                                     Type</span>
                                                                 <p
-                                                                    class="text-base font-medium text-gray-900 dark:text-gray-100">
+                                                                    class="w-full break-all text-base font-medium text-gray-900 dark:text-gray-100">
                                                                     {{ $applicant->blood_type }}</p>
                                                             </div>
                                                         </div>
@@ -134,7 +134,7 @@
                                                                 <span
                                                                     class="text-xs text-gray-500 dark:text-gray-400">Age</span>
                                                                 <p
-                                                                    class="text-base font-medium text-gray-900 dark:text-gray-100">
+                                                                    class="w-full break-all text-base font-medium text-gray-900 dark:text-gray-100">
                                                                     {{ $applicant->age }}</p>
                                                             </div>
                                                         </div>
@@ -145,7 +145,7 @@
                                                                 <span
                                                                     class="text-xs text-gray-500 dark:text-gray-400">Height</span>
                                                                 <p
-                                                                    class="text-base font-medium text-gray-900 dark:text-gray-100">
+                                                                    class="w-full break-all text-base font-medium text-gray-900 dark:text-gray-100">
                                                                     {{ $applicant->height }} cm</p>
                                                             </div>
                                                         </div>
@@ -156,7 +156,7 @@
                                                                 <span
                                                                     class="text-xs text-gray-500 dark:text-gray-400">Weight</span>
                                                                 <p
-                                                                    class="text-base font-medium text-gray-900 dark:text-gray-100">
+                                                                    class="w-full break-all text-base font-medium text-gray-900 dark:text-gray-100">
                                                                     {{ $applicant->weight }} kg</p>
                                                             </div>
                                                         </div>
@@ -172,19 +172,17 @@
                                                                 <span
                                                                     class="text-xs text-gray-500 dark:text-gray-400">Citizenship</span>
                                                                 <p
-                                                                    class="text-base font-medium text-gray-900 dark:text-gray-100">
+                                                                    class="w-full break-all text-base font-medium text-gray-900 dark:text-gray-100">
                                                                     {{ $applicant->citizenship }}</p>
                                                             </div>
                                                         </div>
                                                         <div class="flex items-center gap-2">
-                                                            <i
-                                                                class="lucide lucide-map-pin h-6 w-6 text-gray-600 dark:text-gray-300"></i>
                                                             <div>
                                                                 <span
                                                                     class="text-xs text-gray-500 dark:text-gray-400">KTP
                                                                     ID</span>
                                                                 <p
-                                                                    class="text-base font-medium text-gray-900 dark:text-gray-100">
+                                                                    class="w-full break-all text-base font-medium text-gray-900 dark:text-gray-100">
                                                                     {{ $applicant->ktp_id }}</p>
                                                             </div>
                                                         </div>
@@ -199,7 +197,7 @@
                                                                     class="text-xs text-gray-500 dark:text-gray-400">Marital
                                                                     Status</span>
                                                                 <p
-                                                                    class="text-base font-medium text-gray-900 dark:text-gray-100">
+                                                                    class="w-full break-all text-base font-medium text-gray-900 dark:text-gray-100">
                                                                     {{ $applicant->martial_status }}</p>
                                                             </div>
                                                         </div>
@@ -210,7 +208,7 @@
                                                                 <span
                                                                     class="text-xs text-gray-500 dark:text-gray-400">Religion</span>
                                                                 <p
-                                                                    class="text-base font-medium text-gray-900 dark:text-gray-100">
+                                                                    class="w-full break-all text-base font-medium text-gray-900 dark:text-gray-100">
                                                                     {{ $applicant->religion }}</p>
                                                             </div>
                                                         </div>
@@ -225,7 +223,7 @@
                                                             <span
                                                                 class="text-xs text-gray-500 dark:text-gray-400">Address</span>
                                                             <p
-                                                                class="text-base font-medium text-gray-900 dark:text-gray-100">
+                                                                class="w-full break-all text-base font-medium text-gray-900 dark:text-gray-100">
                                                                 {{ $applicant->id_address }}
                                                                 {{ $applicant->domicile_address }}
                                                                 {{ $applicant->domicile_city }}</p>
@@ -234,15 +232,15 @@
                                                 </div>
                                                 <div class="grid grid-cols-1 gap-4">
                                                     <div
-                                                        class="grid grid-cols-4 gap-4 rounded-lg border border-gray-200 bg-gray-200/10 p-3 dark:border-gray-700 dark:bg-gray-800">
+                                                        class="grid grid-cols-2 gap-4 rounded-lg border border-gray-200 bg-gray-200/10 p-3 dark:border-gray-700 dark:bg-gray-800">
                                                         <div class="flex items-center gap-2">
                                                             <i
-                                                                class="lucide lucide-bar-chart-2 h-6 w-6 text-gray-600 dark:text-gray-300"></i>
+                                                                class="lucide lucide-map-pin h-6 w-6 text-gray-600 dark:text-gray-300"></i>
                                                             <div>
                                                                 <span
                                                                     class="text-xs text-gray-500 dark:text-gray-400">Facebook</span>
                                                                 <p
-                                                                    class="text-base font-medium text-gray-900 dark:text-gray-100">
+                                                                    class="w-full break-all text-base font-medium text-gray-900 dark:text-gray-100">
                                                                     {{ $applicant->sosmed_facebook_account }}
                                                                 </p>
                                                             </div>
@@ -254,7 +252,7 @@
                                                                 <span
                                                                     class="text-xs text-gray-500 dark:text-gray-400">Instagram</span>
                                                                 <p
-                                                                    class="text-base font-medium text-gray-900 dark:text-gray-100">
+                                                                    class="w-full break-all text-base font-medium text-gray-900 dark:text-gray-100">
                                                                     {{ $applicant->sosmed_instagram_account }}
                                                                 </p>
                                                             </div>
@@ -266,7 +264,7 @@
                                                                 <span
                                                                     class="text-xs text-gray-500 dark:text-gray-400">Twitter</span>
                                                                 <p
-                                                                    class="text-base font-medium text-gray-900 dark:text-gray-100">
+                                                                    class="w-full break-all text-base font-medium text-gray-900 dark:text-gray-100">
                                                                     {{ $applicant->sosmed_x_account }}</p>
                                                             </div>
                                                         </div>
@@ -277,7 +275,7 @@
                                                                 <span
                                                                     class="text-xs text-gray-500 dark:text-gray-400">LinkedIn</span>
                                                                 <p
-                                                                    class="text-base font-medium text-gray-900 dark:text-gray-100">
+                                                                    class="w-full break-all text-base font-medium text-gray-900 dark:text-gray-100">
                                                                     {{ $applicant->sosmed_linkedin_account }}
                                                                 </p>
                                                             </div>
@@ -476,24 +474,23 @@
                                                     <thead
                                                         class="bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-200">
                                                         <tr>
-                                                            <th class="border px-4 py-2">Name</th>
-                                                            {{-- <th class="px-4 py-2 border">Score</th>                                                                              --}}
+                                                            <th class="border px-4 py-2">Description</th>
                                                         </tr>
                                                     </thead>
                                                     <tbody class="text-gray-700 dark:text-gray-300">
                                                         @foreach ($applicant_skill as $skill)
                                                             <tr
-                                                                class="odd:bg-white even:bg-gray-50 dark:odd:bg-gray-800 dark:even:bg-gray-900">
+                                                                class="font-light odd:bg-white even:bg-gray-50 dark:odd:bg-gray-800 dark:even:bg-gray-900">
                                                                 <td class="border px-4 py-2">
                                                                     {{ $skill->skill_descr }}
                                                                 </td>
-                                                                {{-- <td class="px-4 py-2 border">{{ $skill->skill_score }}</td>                                                 --}}
+
                                                             </tr>
                                                         @endforeach
                                                     </tbody>
                                                 </table>
                                         </div>
-                                        <hr>
+                                        <hr class="py-4">
                                         <div>
                                             <h2 class="text-xl font-semibold text-gray-700 dark:text-gray-100">
                                                 Languange
@@ -773,7 +770,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="overflow-hidden rounded-2xl bg-white shadow-sm dark:bg-gray-800">
+                        <div class="overflow-hidden rounded-2xl bg-white dark:bg-gray-800">
                             <header
                                 class="flex items-center justify-between border-b border-gray-300/10 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
                                 <h2 class="text-xl font-semibold text-gray-700 dark:text-gray-100">Detail
@@ -795,7 +792,8 @@
                                                 <div>
                                                     <span class="text-xs text-gray-500 dark:text-gray-400">Last
                                                         Salary</span>
-                                                    <p class="text-base font-medium text-gray-900 dark:text-gray-100">
+                                                    <p
+                                                        class="w-full break-all text-base font-medium text-gray-900 dark:text-gray-100">
                                                         Rp. {{ $applicant->existing_last_thp }}</p>
                                                 </div>
                                             </div>
@@ -806,7 +804,8 @@
                                                 <div>
                                                     <span class="text-xs text-gray-500 dark:text-gray-400">Expected
                                                         Salary</span>
-                                                    <p class="text-base font-medium text-gray-900 dark:text-gray-100">
+                                                    <p
+                                                        class="w-full break-all text-base font-medium text-gray-900 dark:text-gray-100">
                                                         Rp. {{ $applicant->expected_thp }}</p>
                                                 </div>
                                             </div>
@@ -819,7 +818,8 @@
                                                 <div>
                                                     <span
                                                         class="text-xs text-gray-500 dark:text-gray-400">Expectations</span>
-                                                    <p class="text-base font-medium text-gray-900 dark:text-gray-100">
+                                                    <p
+                                                        class="w-full break-all text-base font-medium text-gray-900 dark:text-gray-100">
                                                         {{ $applicant->expectations }}</p>
                                                 </div>
                                             </div>
@@ -830,7 +830,8 @@
                                                 <div>
                                                     <span class="text-xs text-gray-500 dark:text-gray-400">Career
                                                         Achievement</span>
-                                                    <p class="text-base font-medium text-gray-900 dark:text-gray-100">
+                                                    <p
+                                                        class="w-full break-all text-base font-medium text-gray-900 dark:text-gray-100">
                                                         {{ $applicant->applicant_achievement }}</p>
                                                 </div>
                                             </div>
