@@ -42,6 +42,36 @@ use App\Http\Controllers\VendorController;
 use App\Http\Controllers\CanvassController;
 use App\Http\Controllers\ChangeStoController;
 
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Response;
+
+// use Illuminate\Support\Facades\Response;
+// use Illuminate\Support\Facades\File;
+
+// Route::get('/avatar/{filename}', function($filename){
+//     $path = public_path('avatar/' . $filename);   // <- Ubah ke public_path!
+//     if (!file_exists($path)) abort(404);
+
+//     $type = File::mimeType($path);
+//     $fileContent = File::get($path);
+
+//     return Response::make($fileContent, 200, [
+//         'Content-Type' => $type,
+//         'Access-Control-Allow-Origin' => '*',
+//         'Access-Control-Allow-Methods' => 'GET, OPTIONS',
+//         'Access-Control-Allow-Headers' => 'Origin, Content-Type, Accept, Authorization',
+//     ]);
+// });
+
+Route::get('/avatar/{filename}', function($filename){
+    return response($filename, 200, [
+        'Access-Control-Allow-Origin' => '*',
+        'X-Debug-Header' => 'ROUTE AVATAR TES'
+    ]);
+});
+
+
+
 
 Route::redirect('/', 'login');
 Route::get('/login', function () {
@@ -316,7 +346,7 @@ Route::post('/logout', function () {
     Route::get('/departement/detail/{id}', [StrukturOrgController::class, 'getDepartmentDetail']);
     Route::get('/orgchart/fullscreen/{sto}', [StrukturOrgController::class, 'fullscreen'])->name('orgchart.fullscreen');
 
-
+    
     Route::get('/changestos', [ChangeStoController::class, 'index'])->name('changestos');
     Route::get('/changestos/json', [ChangeStoController::class, 'json'])->name('changestos.json');
     Route::get('/createchangestos', [ChangeStoController::class, 'createChangesto']);
