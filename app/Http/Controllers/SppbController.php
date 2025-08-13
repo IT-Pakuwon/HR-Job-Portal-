@@ -5,7 +5,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth; 
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
-use App\Models\ChangeSto;
+use App\Models\Sppb;
 use App\Models\Autonbr;
 use App\Models\T_Message;
 use App\Models\Attachment;
@@ -37,17 +37,17 @@ use App\Models\StoSubGrading;
 use Mail;
 
 
-class ChangestoController extends Controller
+class SppbController extends Controller
 {
     public function index()
     {
-        $all = Changesto::count();
-        $onProgress = Changesto::where('status', 'P')->count();
-        $reject = Changesto::where('status', 'R')->count();
-        $revise = Changesto::where('status', 'D')->count();
-        $completed = Changesto::where('status', 'C')->count();
+        $all = Sppb::count();
+        $onProgress = Sppb::where('status', 'P')->count();
+        $reject = Sppb::where('status', 'R')->count();
+        $revise = Sppb::where('status', 'D')->count();
+        $completed = Sppb::where('status', 'C')->count();
        
-        return view('pages.changestos.changestos', compact('all', 'onProgress', 'reject', 'revise', 'completed'));
+        return view('pages.sppbs.sppbs', compact('all', 'onProgress', 'reject', 'revise', 'completed'));
     }
     
     public function json(Request $request)
@@ -55,20 +55,20 @@ class ChangestoController extends Controller
         // $status = $request->query('status', 'P');
         $status = $request->has('status') ? $request->query('status') : 'P';
 
-        $query = Changesto::query();
+        $query = Sppb::query();
 
         if (!empty($status)) {
             $query->where('status', $status);
         }
 
-        $changesto = $query->orderBy('id', 'desc')->get();
+        $sppb = $query->orderBy('id', 'desc')->get();
 
-        return response()->json(['data' => $changesto]);
+        return response()->json(['data' => $sppb]);
     }
 
 
 
-    public function createChangesto()
+    public function createSppb()
     {
         $user = request()->user();
         $usercpny = Usercpny::where('username', '=', $user->username)
@@ -81,11 +81,11 @@ class ChangestoController extends Controller
             ->first();       
         $subgrading = StoSubGrading::select('subgrade_id','subgrade_name')->get();        
        
-        return view('pages.changestos.createchangestos', compact('subgrading','usercpny','usercpny2','userdept','userdept2'));
+        return view('pages.sppbs.createsppbs', compact('subgrading','usercpny','usercpny2','userdept','userdept2'));
     }
 
     
-   public function storeChangesto(Request $request)
+   public function storeSppb(Request $request)
     {
         $request->validate([
             'cpnyid' => 'required|string',
@@ -143,8 +143,8 @@ class ChangestoController extends Controller
             $tglbln = substr($year, 2) . $month;
             $docid = $doctype . $tglbln . sprintf("%03d", $urutan);
             // dd($docid);
-            // Simpan ke changesto
-            $changesto = Changesto::create([
+            // Simpan ke sppb
+            $sppb = Sppb::create([
                 'changerequest_id' => $docid,
                 'cpnyid' => $request->cpnyid,
                 'departementid' => $request->departementid,
@@ -228,7 +228,7 @@ class ChangestoController extends Controller
                     'date' => $firstApproval->aprvdatebefore,
                     'name' => $user->username,
                     'info' => $request->changerequest_note,
-                    'url' => url('/showchangestos/' . $changesto->id)
+                    'url' => url('/showsppbs/' . $sppb->id)
                 ];
 
                 $approvers = explode(',', $firstApproval->aprvusername);
@@ -246,7 +246,7 @@ class ChangestoController extends Controller
             }
 
             DB::commit();
-            return response()->json(['success' => true, 'task' => $changesto]);
+            return response()->json(['success' => true, 'task' => $sppb]);
 
         } catch (\Exception $e) {
             DB::rollBack();
@@ -259,9 +259,9 @@ class ChangestoController extends Controller
 
 
 
-    public function editChangesto($id)
+    public function editSppb($id)
     {
-        $changesto = Changesto::findOrFail($id);
+        $sppb = Sppb::findOrFail($id);
         $user = request()->user();
         $usercpny = Usercpny::where('username', '=', $user->username)
             ->get();
@@ -273,14 +273,14 @@ class ChangestoController extends Controller
             ->first();
         $subgrading = StoSubGrading::select('subgrade_id','subgrade_name')->get();   
 
-        $attachment = Attachment::where('docid', $changesto->changerequest_id)  
+        $attachment = Attachment::where('docid', $sppb->changerequest_id)  
             ->where('status','A')         
             ->get();
        
-        return view('pages.changestos.editchangestos', compact('subgrading','usercpny','usercpny2','userdept','userdept2','changesto','attachment'));
+        return view('pages.sppbs.editsppbs', compact('subgrading','usercpny','usercpny2','userdept','userdept2','sppb','attachment'));
     }
     
-    public function updateChangesto(Request $request, $id)
+    public function updateSppb(Request $request, $id)
     {
         // dd($request->all()); 
         
@@ -304,9 +304,9 @@ class ChangestoController extends Controller
             $datestamp = Carbon::now()->toDateTimeString();
             $user = request()->user();
 
-            $changesto = Changesto::findOrFail($id);
+            $sppb = Sppb::findOrFail($id);
                                    
-            $changesto -> update([              
+            $sppb -> update([              
                 'cpnyid' => $request->cpnyid,
                 'departementid' => $request->departementid,
                 'departement_name' => $request->departement_name,
@@ -329,7 +329,7 @@ class ChangestoController extends Controller
             foreach ($m_approval as $mp) {
                 $aprvdatebefore = ($mp->aprvid == 1) ? $datestamp : null; 
                 T_approval::create([
-                    'docid' => $changesto->changerequest_id,
+                    'docid' => $sppb->changerequest_id,
                     'aprvid' => $mp->aprvid,
                     'aprvdoctype' => $mp->aprvdoctype,
                     'aprvcpnyid' => $mp->aprvcpnyid,
@@ -367,7 +367,7 @@ class ChangestoController extends Controller
 
                     //insert to table attachments
                     $attach = new Attachment();
-                    $attach->docid = $changesto->changerequest_id;
+                    $attach->docid = $sppb->changerequest_id;
                     $attach->name = $filename;
                     $attach->attachfile = $attachfile;
                     $attach->status = 'A';
@@ -377,7 +377,7 @@ class ChangestoController extends Controller
                 }
             }
 
-            $t_approval_next = T_approval::where('docid', $changesto->changerequest_id)
+            $t_approval_next = T_approval::where('docid', $sppb->changerequest_id)
                 ->where('status', 'P')
                 ->orderby('aprvid','ASC')
                 ->first();
@@ -389,7 +389,7 @@ class ChangestoController extends Controller
                 'date' => $t_approval_next->aprvdatebefore,
                 'name' => $t_approval_next->created_user,                          
                 'info' => $request->job_title,           
-                'url' => url('/showchangestos/') . $changesto->id
+                'url' => url('/showsppbs/') . $sppb->id
     
             );
     
@@ -407,10 +407,10 @@ class ChangestoController extends Controller
             }
 
             DB::commit();
-            return response()->json(['success' => true, 'changesto' => $changesto]);
+            return response()->json(['success' => true, 'sppb' => $sppb]);
         } catch (\Exception $e) {
             DB::rollBack();
-            return response()->json(['error' => 'Gagal menyimpan changesto', 'message' => $e->getMessage()], 500);
+            return response()->json(['error' => 'Gagal menyimpan sppb', 'message' => $e->getMessage()], 500);
         }
     }
 
@@ -427,22 +427,22 @@ class ChangestoController extends Controller
     }
  
 
-    public function showChangesto($id)
+    public function showSppb($id)
     {        
-        $changesto = Changesto::findOrFail($id);
-        // $changesto = Changesto::with('departement.subgrading')->findOrFail($id);
-        $approval = T_approval::where('docid', $changesto->changerequest_id)
+        $sppb = Sppb::findOrFail($id);
+        // $sppb = Sppb::with('departement.subgrading')->findOrFail($id);
+        $approval = T_approval::where('docid', $sppb->changerequest_id)
             ->where('status','<>','X')      
             ->orderBy('created_at')
             ->orderBy('aprvid')      
             ->get();
        
-        $attachment = Attachment::where('docid', $changesto->changerequest_id)    
+        $attachment = Attachment::where('docid', $sppb->changerequest_id)    
             ->where('status','A')        
             ->get();
        
        
-        return view('pages.changestos.showchangestos', compact('changesto','approval','attachment'));
+        return view('pages.sppbs.showsppbs', compact('sppb','approval','attachment'));
     }
 
     
@@ -482,23 +482,23 @@ class ChangestoController extends Controller
         ]);
     }
 
-    public function approveChangesto(Request $request, $docid)
+    public function approveSppb(Request $request, $docid)
     {
         $datestamp = Carbon::now()->toDateTimeString();       
         $user = request()->user(); // Ambil user yang login
         
-        $changesto = Changesto::where('changerequest_id', $docid)->first();   
+        $sppb = Sppb::where('changerequest_id', $docid)->first();   
 
-        if (!$changesto) {
+        if (!$sppb) {
             return response()->json(['success' => false, 'message' => 'Prf not found'], 404);
         }        
 
-        $count_approval = T_approval::where('docid', '=', $changesto->changerequest_id)
+        $count_approval = T_approval::where('docid', '=', $sppb->changerequest_id)
             ->where('status', '=', 'P')
             ->count();
     
         // Cek apakah user memiliki akses untuk approve
-        $t_approval = T_approval::where('docid', $changesto->changerequest_id)
+        $t_approval = T_approval::where('docid', $sppb->changerequest_id)
             ->where('status', 'P')
             ->where('aprvusername', 'like', "%" . $user->username . "%")
             ->first();
@@ -514,14 +514,14 @@ class ChangestoController extends Controller
         }   
 
         if ($count_approval == 1) {
-            $changesto->status = 'C';
-            $changesto->completed_user = $user->username;
-            $changesto->completed_at = $datestamp;
-            $changesto->save();
-            app('App\Http\Controllers\ChangestoController')->insert_jobposting($docid);
+            $sppb->status = 'C';
+            $sppb->completed_user = $user->username;
+            $sppb->completed_at = $datestamp;
+            $sppb->save();
+            app('App\Http\Controllers\SppbController')->insert_jobposting($docid);
         }
 
-        $t_approval_next = T_approval::where('docid', $changesto->changerequest_id)
+        $t_approval_next = T_approval::where('docid', $sppb->changerequest_id)
             ->where('status', 'P')
             ->orderby('aprvid','ASC')
             ->first();
@@ -538,8 +538,8 @@ class ChangestoController extends Controller
                 'deptname' => $t_approval_next->aprvdeptid,               
                 'date' => $t_approval_next->aprvdatebefore,
                 'name' => $t_approval_next->created_user,
-                'info' => $changesto->changerequest_note,               
-                'url' => url('/showchangestos/') . $changesto->id
+                'info' => $sppb->changerequest_note,               
+                'url' => url('/showsppbs/') . $sppb->id
 
             );
 
@@ -561,22 +561,22 @@ class ChangestoController extends Controller
         return response()->json(['success' => true, 'message' => 'Task approved successfully']);
     }
 
-    public function rejectChangesto(Request $request, $docid)
+    public function rejectSppb(Request $request, $docid)
     {
         
         // dd($request->all());         
         $datestamp = Carbon::now()->toDateTimeString();       
         $user = request()->user(); // Ambil user yang login
 
-        $changesto = Changesto::where('changerequest_id', $docid)->first();  
+        $sppb = Sppb::where('changerequest_id', $docid)->first();  
         
         
-        if (!$changesto) {
+        if (!$sppb) {
             return response()->json(['success' => false, 'message' => 'Task not found'], 404);
         }
 
         // Cek apakah user memiliki akses untuk approve
-        $t_approval = T_approval::where('docid', $changesto->changerequest_id)
+        $t_approval = T_approval::where('docid', $sppb->changerequest_id)
             ->where('status', 'P')
             ->where('aprvusername', 'like', "%" . $user->username . "%")
             ->first();
@@ -588,11 +588,11 @@ class ChangestoController extends Controller
             $t_approval->aprvdateafter = $datestamp;           
             $t_approval->save();
 
-            $changesto->status = 'R';
-            $changesto->save();
+            $sppb->status = 'R';
+            $sppb->save();
         }   
                        
-        $t_aprv_sisa = T_approval::where('docid', '=', $changesto->changerequest_id)
+        $t_aprv_sisa = T_approval::where('docid', '=', $sppb->changerequest_id)
             ->where('status', '=', 'P')
             ->get();
 
@@ -609,47 +609,47 @@ class ChangestoController extends Controller
             // 'locationname' => $ms_site->site,
             'date' => $t_approval->aprvdatebefore,
             'name' => $t_approval->created_user,
-            'info' => $changesto->changerequest_note,               
-            'url' => url('/showchangestos/') . $changesto->id
+            'info' => $sppb->changerequest_note,               
+            'url' => url('/showsppbs/') . $sppb->id
 
         );
 
        
-        $email_it = User::where('username', $changesto->created_user)
+        $email_it = User::where('username', $sppb->created_user)
                 ->where('status', 'A')
                 ->get();
 
         foreach ($email_it as $emailsit) {
             Mail::send('emails.mailapprove', $data, function ($message) use ($data, $emailsit) {
 
-                $message->to($emailsit->test_email)->subject($data['docid'] . ' - Rejected Changesto');
+                $message->to($emailsit->test_email)->subject($data['docid'] . ' - Rejected Sppb');
                 $message->from('digitalserver@pakuwon.com', 'HR System');
             });
         }
 
-        $id = $changesto->id;
+        $id = $sppb->id;
         $doctype ='CSO';
         app('App\Http\Controllers\SendCommentController')->sendmsg($id, $doctype, $request);
 
-        return response()->json(['success' => true, 'message' => 'Changesto rejected successfully']);
+        return response()->json(['success' => true, 'message' => 'Sppb rejected successfully']);
     }
 
-    public function reviseChangesto(Request $request, $docid)
+    public function reviseSppb(Request $request, $docid)
     {
         
         // dd($request->all());         
         $datestamp = Carbon::now()->toDateTimeString();       
         $user = request()->user(); // Ambil user yang login
 
-        $changesto = Changesto::where('changerequest_id', $docid)->first();  
+        $sppb = Sppb::where('changerequest_id', $docid)->first();  
         
         
-        if (!$changesto) {
-            return response()->json(['success' => false, 'message' => 'Changesto not found'], 404);
+        if (!$sppb) {
+            return response()->json(['success' => false, 'message' => 'Sppb not found'], 404);
         }
 
         // Cek apakah user memiliki akses untuk approve
-        $t_approval = T_approval::where('docid', $changesto->changerequest_id)
+        $t_approval = T_approval::where('docid', $sppb->changerequest_id)
             ->where('status', 'P')
             ->where('aprvusername', 'like', "%" . $user->username . "%")
             ->first();
@@ -661,11 +661,11 @@ class ChangestoController extends Controller
             $t_approval->aprvdateafter = $datestamp;           
             $t_approval->save();
 
-            $changesto->status = 'D';
-            $changesto->save();
+            $sppb->status = 'D';
+            $sppb->save();
         }   
                        
-        $t_aprv_sisa = T_approval::where('docid', '=', $changesto->changerequest_id)
+        $t_aprv_sisa = T_approval::where('docid', '=', $sppb->changerequest_id)
             ->where('status', '=', 'P')
             ->get();
 
@@ -682,29 +682,29 @@ class ChangestoController extends Controller
             // 'locationname' => $ms_site->site,
             'date' => $t_approval->aprvdatebefore,
             'name' => $t_approval->created_user,
-            'info' => $changesto->changerequest_note,               
-            'url' => url('/showchangestos/') . $changesto->id
+            'info' => $sppb->changerequest_note,               
+            'url' => url('/showsppbs/') . $sppb->id
 
         );
 
        
-        $email_it = User::where('username', $changesto->created_user)
+        $email_it = User::where('username', $sppb->created_user)
                 ->where('status', 'A')
                 ->get();
 
         foreach ($email_it as $emailsit) {
             Mail::send('emails.mailapprove', $data, function ($message) use ($data, $emailsit) {
 
-                $message->to($emailsit->test_email)->subject($data['docid'] . ' - Revise Changesto');
+                $message->to($emailsit->test_email)->subject($data['docid'] . ' - Revise Sppb');
                 $message->from('digitalserver@pakuwon.com', 'HR System');
             });
         }
 
-        $id = $changesto->id;
+        $id = $sppb->id;
         $doctype ='CSO';
         app('App\Http\Controllers\SendCommentController')->sendmsg($id, $doctype, $request);
 
-        return response()->json(['success' => true, 'message' => 'Changesto revise successfully']);
+        return response()->json(['success' => true, 'message' => 'Sppb revise successfully']);
     }
 
     

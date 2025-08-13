@@ -454,7 +454,7 @@ class CareerController extends Controller
         if (!$jobposting) {
             return response()->json(['success' => false, 'message' => 'Job Posting not found'], 404);
         }
-
+        // dd($user);
         // Cek apakah user termasuk dalam daftar approval
         $cek_approval = T_approval::where('docid', $jobposting->refid)
             ->where('aprvusername', 'like', '%' . $user->username . '%')
@@ -464,8 +464,15 @@ class CareerController extends Controller
             return response()->json(['success' => false, 'message' => "You Can't Approve!"], 403);
         }
 
+        if($user->groups==20){
+            $step_pic = 'HC';
+        }else{
+            $step_pic = 'USER';
+        }
+
         $t_approval = JobApplyStep::where('docid', $career->docid)
             ->where('status', 'P')
+            ->where('step_pic',$step_pic)
             ->orderBy('step_order', 'ASC')
             ->first();
 
