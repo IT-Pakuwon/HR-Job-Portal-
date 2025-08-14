@@ -239,8 +239,8 @@ class SppbController extends Controller
                 foreach ($emails as $email) {
                     Mail::send('emails.mailapprove', $data, function ($message) use ($email, $data) {
                         $message->to($email)
-                            ->subject($data['docid'] . ' - Waiting Approval Change STO')
-                            ->from('digitalserver@pakuwon.com', 'HR System');
+                            ->subject($data['docid'] . ' - Waiting Approval Candidate')
+                            ->from('digitalserver@pakuwon.com', 'Pakuwon System');
                     });
                 }
             }
@@ -402,7 +402,7 @@ class SppbController extends Controller
             foreach ($email_it as $emailsit) {
                 Mail::send('emails.mailapprove', $data, function ($message) use ($data, $emailsit) {
                     $message->to($emailsit->test_email)->subject($data['docid'] . ' - Waiting Approval Change STOs');
-                    $message->from('digitalserver@pakuwon.com', 'HR System');
+                    $message->from('digitalserver@pakuwon.com', 'Pakuwon System');
                 });
             }
 
@@ -553,7 +553,7 @@ class SppbController extends Controller
                 Mail::send('emails.mailapprove', $data, function ($message) use ($data, $emailsit) {
 
                     $message->to($emailsit->test_email)->subject($data['docid'] . ' - Waiting Approval Change STO');
-                    $message->from('digitalserver@pakuwon.com', 'HR System');
+                    $message->from('digitalserver@pakuwon.com', 'Pakuwon System');
                 });
             }
         }
@@ -623,7 +623,7 @@ class SppbController extends Controller
             Mail::send('emails.mailapprove', $data, function ($message) use ($data, $emailsit) {
 
                 $message->to($emailsit->test_email)->subject($data['docid'] . ' - Rejected Sppb');
-                $message->from('digitalserver@pakuwon.com', 'HR System');
+                $message->from('digitalserver@pakuwon.com', 'Pakuwon System');
             });
         }
 
@@ -696,7 +696,7 @@ class SppbController extends Controller
             Mail::send('emails.mailapprove', $data, function ($message) use ($data, $emailsit) {
 
                 $message->to($emailsit->test_email)->subject($data['docid'] . ' - Revise Sppb');
-                $message->from('digitalserver@pakuwon.com', 'HR System');
+                $message->from('digitalserver@pakuwon.com', 'Pakuwon System');
             });
         }
 

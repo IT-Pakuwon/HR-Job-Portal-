@@ -53,6 +53,8 @@ use App\Models\Tronboarding;
 use Illuminate\Support\Facades\Crypt;
 use Google\Cloud\Storage\StorageClient;
 use Illuminate\Support\Facades\Storage;
+use App\Models\MJobApplyStep;
+
 
 
 class CareerController extends Controller
@@ -284,14 +286,14 @@ class CareerController extends Controller
         $userlist = User::where('status','A')->get();
         $agenda = Agenda::where('refid', $career->docid)->get();
 
-        $typestep = JobApplyStep::leftjoin('hr_ms_job_step', 'hr_trx_job_apply_step.step_id', '=', 'hr_ms_job_step.step_id')                                      
-            ->select('hr_trx_job_apply_step.step_id', 'hr_ms_job_step.step_descr')   
-            ->where('hr_trx_job_apply_step.docid',$career->docid)       
-            ->where('hr_trx_job_apply_step.status','<>','X')
-            ->orderBy('hr_trx_job_apply_step.step_order', 'ASC')
-            ->get();
-
-        $payrolls = Payrollconfirm::where('jobapply_id', $career->docid)->get();
+        // $typestep = JobApplyStep::leftjoin('hr_ms_job_step', 'hr_trx_job_apply_step.step_id', '=', 'hr_ms_job_step.step_id')                                      
+        //     ->select('hr_trx_job_apply_step.step_id', 'hr_ms_job_step.step_descr')   
+        //     ->where('hr_trx_job_apply_step.docid',$career->docid)       
+        //     ->where('hr_trx_job_apply_step.status','<>','X')
+        //     ->orderBy('hr_trx_job_apply_step.step_order', 'ASC')
+        //     ->get();
+        $typestep = MJobApplyStep::where('schedule', 1)->get();
+        $payrolls = Payrollconfirm::where('jobapply_id', $career->docid)->get();        
 
         $onboarding = Tronboarding::where('jobapply_id', $career->docid)->first();
           
@@ -464,28 +466,36 @@ class CareerController extends Controller
             return response()->json(['success' => false, 'message' => "You Can't Approve!"], 403);
         }
 
-        if($user->groups==20){
-            $step_pic = 'HC';
-        }else{
-            $step_pic = 'USER';
-        }
-
         $t_approval = JobApplyStep::where('docid', $career->docid)
-            ->where('status', 'P')
-            ->where('step_pic',$step_pic)
+            ->where('status', 'P')           
             ->orderBy('step_order', 'ASC')
             ->first();
+
+        if($user->groups==20){
+            $user_step_pic = 'HC';
+        }else{
+            $user_step_pic = 'USER';
+        }
+        // perbaiki disini jika $t_approval->step_pic = $user_step_pic maka bisa approve, jika tidak sama tdk bisa approve
 
         if (!$t_approval) {
             return response()->json(['success' => false, 'message' => 'No pending step to approve'], 404);
         }
 
+        // Tambahkan validasi step_pic
+        if ($t_approval->step_pic !== $user_step_pic) {
+            return response()->json(['success' => false, 'message' => "You can't approve this step"], 403);
+        }
     
         if ($t_approval->step_order == 2) {    
             $this->insert_checklist($career, $user);
             $this->insert_assessment($career, $user);   
             $this->insert_psychotest($career, $user);
             $this->sendemail_applicant($career, $user);     
+        }
+
+        if ($t_approval->step_order == 1) {    
+            $this->insert_trx_approval($career, $user);          
         }
 
 
@@ -1132,8 +1142,11 @@ class CareerController extends Controller
         $datebirth = Carbon::parse($applicant->date_of_birth)->translatedFormat('d F Y');   
         $payrollconfirm = Payrollconfirm::where('applicant_id', $request->applicant_id)->first();    
          
-        $net_salary = $payrollconfirm->net_salary ?? 0;
-        $salary_words = terbilang($net_salary) . ' rupiah';
+        // $net_salary = $payrollconfirm->net_salary ?? 0;
+        // $salary_words = terbilang($net_salary) . ' rupiah';
+         // Net salary aman + terbilang
+        $net_salary   = (float) (optional($payrollconfirm)->net_salary ?? 0); // <- aman jika payroll null
+        $salary_words = ucfirst($this->terbilang($net_salary)) . ' rupiah'; // <- pakai $this
 
 
         $data = [
@@ -1159,6 +1172,36 @@ class CareerController extends Controller
         return $pdf->stream('offering-letter.pdf');
         
     }
+
+    private function terbilang($angka): string
+    {
+        if (is_string($angka)) {
+            $angka = str_replace([',', ' '], '', $angka);
+        }
+        if (!is_numeric($angka)) return '';
+
+        $isMinus = $angka < 0;
+        $angka = (int) abs((float) $angka);
+
+        $bil = ['', 'satu', 'dua', 'tiga', 'empat', 'lima', 'enam', 'tujuh', 'delapan', 'sembilan', 'sepuluh', 'sebelas'];
+
+        $fn = function ($n) use (&$fn, $bil): string {
+            if ($n < 12)                  return ' '.$bil[$n];
+            if ($n < 20)                  return $fn($n - 10).' belas';
+            if ($n < 100)                 return $fn(intval($n / 10)).' puluh'.$fn($n % 10);
+            if ($n < 200)                 return ' seratus'.$fn($n - 100);
+            if ($n < 1000)                return $fn(intval($n / 100)).' ratus'.$fn($n % 100);
+            if ($n < 2000)                return ' seribu'.$fn($n - 1000);
+            if ($n < 1_000_000)           return $fn(intval($n / 1000)).' ribu'.$fn($n % 1000);
+            if ($n < 1_000_000_000)       return $fn(intval($n / 1_000_000)).' juta'.$fn($n % 1_000_000);
+            if ($n < 1_000_000_000_000)   return $fn(intval($n / 1_000_000_000)).' miliar'.$fn($n % 1_000_000_000);
+            return $fn(intval($n / 1_000_000_000_000)).' triliun'.$fn($n % 1_000_000_000_000);
+        };
+
+        $hasil = trim(preg_replace('/\s+/', ' ', $fn($angka)));
+        return ($isMinus ? 'minus ' : '').$hasil;
+    }
+
 
     public function pdfPaktaintegritas(Request $request)
     {
@@ -1651,6 +1694,77 @@ class CareerController extends Controller
           ->setOptions(['isRemoteEnabled' => true]);
 
         return $pdf->stream('applicant-profile.pdf');
+    }
+
+    public function insert_trx_approval($career, $user)
+    {
+        $datestamp = Carbon::now()->toDateTimeString();
+        DB::beginTransaction();
+        try {
+
+            $jobposting = Jobposting::where('docid', $career->jobid)->first();
+           
+            // Cek apakah user termasuk dalam daftar approval
+            $approvals = T_approval::where('docid', $jobposting->refid)
+                ->where('aprvid',1)    
+                ->orderBy('aprvid', 'ASC')            
+                ->first();
+            // dd($approvals);
+        
+            T_approval::create([
+                'docid' => $career->docid,
+                'aprvid' => $approvals->aprvid,
+                'aprvdoctype' => 'JAP',
+                'aprvcpnyid' => $approvals->aprvcpnyid,
+                'aprvdeptid' => $approvals->aprvdeptid,
+                'aprvusername' => $approvals->aprvusername,
+                'name' => $approvals->name,
+                'aprvdatebefore' => $approvals->aprvid == 1 ? $datestamp : null,
+                'aprvtotalday' => 1,
+                'status' => 'P',
+                'created_user' => $user->username
+            ]);
+
+             // Kirim email ke approver pertama
+            $firstApproval = T_approval::where('docid', $career->docid)
+                ->where('status', 'P')
+                ->orderBy('aprvid')
+                ->first();
+
+            if ($firstApproval) {
+                $data = [
+                    'docid' => $firstApproval->docid,
+                    'cpnyid' => $firstApproval->aprvcpnyid,
+                    'deptname' => $firstApproval->aprvdeptid,
+                    'date' => $firstApproval->aprvdatebefore,
+                    'name' => $user->username,
+                    'info' => 'Apply Candidate',
+                    'url' => url('/showcareers/' . $career->id)
+                ];
+
+                $approvers = explode(',', $firstApproval->aprvusername);
+                $emails = User::whereIn('username', $approvers)
+                    ->where('status', 'A')
+                    ->pluck('test_email');
+
+                foreach ($emails as $email) {
+                    Mail::send('emails.mailapprove', $data, function ($message) use ($email, $data) {
+                        $message->to($email)
+                            ->subject($data['docid'] . ' - Waiting Approval Apply Candidate')
+                            ->from('digitalserver@pakuwon.com', 'Pakuwon System');
+                    });
+                }
+            }
+            
+
+            DB::commit();
+            return true;
+        } catch (\Exception $e) {
+            DB::rollBack();
+            throw $e; // lempar balik supaya controller bisa tangani
+        }
+            
+
     }
 
 
