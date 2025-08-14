@@ -254,12 +254,6 @@ class AgendaController extends Controller
                     }            
                 }    
 
-                  // $this->insert_JobApplySch($agenda, $user);
-
-                $jobapply = JobApply::where('docid', $agenda->refid)->first();
-                $applicant = Applicant::where('applicant_id', $jobapply->applicant_id)->first();
-                $jobposting = Jobposting::where('docid', $jobapply->jobid)->first();
-
                 $t_approval_all = T_approval::where('docid', $docid)
                     ->where('status', 'P')
                     ->orderby('aprvid', 'ASC')
@@ -269,20 +263,14 @@ class AgendaController extends Controller
                     $id = $agenda->id;
                 
                     foreach ($t_approval_all as $approval) {
-                       
-
                         $data = [
                             'docid' => $approval->docid,
-                            'hod' => $approval->name,
-                            'full_name' => $applicant->full_name ?? 'Pelamar',
-                            'title' => $agenda->title,
-                            'interview_date' => Carbon::parse($agenda->startdate)->translatedFormat('l, d F Y'),
-                            'starttime' => Carbon::parse($agenda->startdate)->format('H:i'), // e.g., 09:00
-                            'endtime'   => Carbon::parse($agenda->enddate)->format('H:i'),   // e.g., 10:00
-                            'location' => $agenda->location,
-                            'location_address' => $agenda->location_address,
-                            'job_title' => $jobposting->job_title . ' ' . $jobposting->job_level,
-                            'url' => url('/showcareers') .'/'. $jobapply->id
+                            'cpnyid' => $approval->aprvcpnyid,
+                            'deptname' => $approval->aprvdeptid,
+                            'date' => $approval->aprvdatebefore,
+                            'name' => $approval->created_user,
+                            'info' => $request->title,
+                            'url' => url('/showagendas/') . $id
                         ];
                 
                         $multiapp = explode(',', $approval->aprvusername);
@@ -292,10 +280,9 @@ class AgendaController extends Controller
                             ->get();
                 
                         foreach ($email_it as $emailsit) {
-                            // Mail::send('emails.mailapprove', $data, function ($message) use ($data, $emailsit) {
-                            Mail::send('emails.mailinterviewinternal', $data, function ($message) use ($data, $emailsit) {
-                                $message->to($emailsit->test_email)->subject('Interview Kandidat');
-                                $message->from('digitalserver@pakuwon.com', 'Pakuwon System');
+                            Mail::send('emails.mailapprove', $data, function ($message) use ($data, $emailsit) {
+                                $message->to($emailsit->test_email)->subject($data['docid'] . ' - Waiting Approval Agendas');
+                                $message->from('digitalserver@pakuwon.com', 'Pakuwon Smart System');
                             });
                         }
                     }

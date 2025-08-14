@@ -106,7 +106,7 @@
 <table class="w-full text-sm">
     <thead class="bg-gray-50 dark:bg-gray-700">
         <tr class="text-gray-600 dark:text-gray-700">
-            <th>DocID</th>
+            {{-- <th>DocID</th> --}}
             <th>Title</th>
             <th>Description</th>
             <th>StartDate</th>
@@ -119,12 +119,12 @@
     <tbody>
         @foreach ($agenda as $p)
             <tr>
-                <td>
+                {{-- <td>
                     <a href="{{ url('/showagendas/' . $p->id) }}" target="_blank"
                         style="background-color: #6366f1; color: white; padding: 4px 12px; border-radius: 6px; font-weight: bold; display: inline-block; text-decoration: none;">
                         {{ $p->docid }}
                     </a>
-                </td>
+                </td> --}}
                 <td>{{ $p->title }}</td>
                 <td>{{ $p->description }}</td>
                 <td>{{ $p->startdate }}</td>
