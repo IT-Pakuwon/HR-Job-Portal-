@@ -37,17 +37,17 @@
             </button>
 
             <div class="flex items-center gap-3">
-                <a class="block" href="{{ route('dashboard') }}">
+                {{-- <a class="block" href="{{ route('dashboard') }}">
                     <img src="{{ asset('images/Logo Pakuwon.png') }}" class="h-8 w-8 object-contain"
                         alt="Pakuwon Logo" />
-                </a>
+                </a> --}}
                 <span :class="{ 'hidden': !sidebarExpanded && window.innerWidth >= 1024 }"
                     class="whitespace-nowrap text-xl font-bold uppercase text-gray-700 transition-opacity duration-200 dark:text-gray-100"
                     x-show="sidebarExpanded || window.innerWidth < 1024" x-transition:enter="ease-out duration-200"
                     x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
                     x-transition:leave="ease-in duration-150" x-transition:leave-start="opacity-100"
                     x-transition:leave-end="opacity-0">
-                    APPSystem
+                    APP System
                 </span>
             </div>
         </div>
@@ -75,6 +75,11 @@
                         </a>
                     </li>
                     <!-- Structure Organization -->
+
+                    <li class="py-2 pl-4 pr-3 text-xs font-semibold uppercase tracking-wider text-gray-500 last:mb-0"
+                        :class="{ 'lg:block': sidebarExpanded, 'lg:hidden': !sidebarExpanded }">
+                        Human Resources
+                    </li>
                     <li
                         class="bg-linear-to-r @if (in_array(Request::segment(1), ['stos'])) {{ 'from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]' }} @endif mb-0.5 rounded-lg py-2 pl-4 pr-3 last:mb-0">
                         <a class="@if (!in_array(Request::segment(1), ['stos'])) {{ 'hover:text-gray-900 dark:hover:text-white' }} @endif block truncate text-gray-800 transition dark:text-gray-100"
@@ -139,13 +144,52 @@
                                     <a class="@if (Route::is('changestos')) {{ 'text-violet-500!' }} @endif block truncate text-gray-500/90 transition hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
                                         href="{{ route('changestos') }}">
                                         <span
-                                            class="lg:sidebar-expanded:opacity-100 text-m font-medium duration-200 lg:opacity-0 2xl:opacity-100">Request Additional</span>
+                                            class="lg:sidebar-expanded:opacity-100 text-m font-medium duration-200 lg:opacity-0 2xl:opacity-100">Request
+                                            Additional</span>
                                     </a>
-                                </li>   
+                                </li>
                             </ul>
                         </div>
                     </li>
 
+                    <li class="py-2 pl-4 pr-3 text-xs font-semibold uppercase tracking-wider text-gray-500 last:mb-0"
+                        :class="{ 'lg:block': sidebarExpanded, 'lg:hidden': !sidebarExpanded }">
+                        Purchasing
+                    </li>
+                    <li
+                        class="bg-linear-to-r @if (in_array(Request::segment(1), ['budgets'])) {{ 'from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]' }} @endif mb-0.5 rounded-lg py-2 pl-4 pr-3 last:mb-0">
+                        <a class="@if (!in_array(Request::segment(1), ['budgets'])) {{ 'hover:text-gray-900 dark:hover:text-white' }} @endif block truncate text-gray-800 transition dark:text-gray-100"
+                            href="{{ route('budgets') }}">
+                            <div class="flex items-center">
+                                <svg class="@if (in_array(Request::segment(1), ['budgets'])) {{ 'text-violet-500' }}@else{{ 'text-gray-400 dark:text-gray-500' }} @endif shrink-0 fill-current"
+                                    xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+                                    viewBox="0 0 16 16">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 0 0 2.25-2.25V6.75A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25v10.5A2.25 2.25 0 0 0 4.5 19.5Z" />
+                                </svg>
+                                <span
+                                    class="lg:sidebar-expanded:opacity-100 text-m ml-4 font-medium duration-200 lg:opacity-0 2xl:opacity-100">Budget</span>
+                            </div>
+                        </a>
+                    </li>
+                    <li
+                        class="bg-linear-to-r @if (in_array(Request::segment(1), ['canvasssheet'])) {{ 'from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]' }} @endif mb-0.5 rounded-lg py-2 pl-4 pr-3 last:mb-0">
+                        <a class="@if (!in_array(Request::segment(1), ['canvasssheet'])) {{ 'hover:text-gray-900 dark:hover:text-white' }} @endif block truncate text-gray-800 transition dark:text-gray-100"
+                            href="{{ route('canvasssheet') }}">
+                            <div class="flex items-center">
+                                <svg class="@if (in_array(Request::segment(1), ['canvasssheet'])) {{ 'text-violet-500' }}@else{{ 'text-gray-400 dark:text-gray-500' }} @endif shrink-0 fill-current"
+                                    xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+                                    viewBox="0 0 16 16">
+
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M3.375 19.5h17.25m-17.25 0a1.125 1.125 0 0 1-1.125-1.125M3.375 19.5h7.5c.621 0 1.125-.504 1.125-1.125m-9.75 0V5.625m0 12.75v-1.5c0-.621.504-1.125 1.125-1.125m18.375 2.625V5.625m0 12.75c0 .621-.504 1.125-1.125 1.125m1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125m0 3.75h-7.5A1.125 1.125 0 0 1 12 18.375m9.75-12.75c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125m19.5 0v1.5c0 .621-.504 1.125-1.125 1.125M2.25 5.625v1.5c0 .621.504 1.125 1.125 1.125m0 0h17.25m-17.25 0h7.5c.621 0 1.125.504 1.125 1.125M3.375 8.25c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125m17.25-3.75h-7.5c-.621 0-1.125.504-1.125 1.125m8.625-1.125c.621 0 1.125.504 1.125 1.125v1.5c0 .621-.504 1.125-1.125 1.125m-17.25 0h7.5m-7.5 0c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125M12 10.875v-1.5m0 1.5c0 .621-.504 1.125-1.125 1.125M12 10.875c0 .621.504 1.125 1.125 1.125m-2.25 0c.621 0 1.125.504 1.125 1.125M13.125 12h7.5m-7.5 0c-.621 0-1.125.504-1.125 1.125M20.625 12c.621 0 1.125.504 1.125 1.125v1.5c0 .621-.504 1.125-1.125 1.125m-17.25 0h7.5M12 14.625v-1.5m0 1.5c0 .621-.504 1.125-1.125 1.125M12 14.625c0 .621.504 1.125 1.125 1.125m-2.25 0c.621 0 1.125.504 1.125 1.125m0 1.5v-1.5m0 0c0-.621.504-1.125 1.125-1.125m0 0h7.5" />
+                                </svg>
+                                <span
+                                    class="lg:sidebar-expanded:opacity-100 text-m ml-4 font-medium duration-200 lg:opacity-0 2xl:opacity-100">Canva
+                                    Sheets</span>
+                            </div>
+                        </a>
+                    </li>
                     <li class="bg-linear-to-r @if (in_array(Request::segment(1), ['budgets', 'canvasssheet', 'sppbs'])) {{ 'from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]' }} @endif mb-0.5 rounded-lg py-2 pl-4 pr-3 last:mb-0"
                         x-data="{ open: {{ in_array(Request::segment(1), ['budgets', 'canvasssheet', 'sppbs']) ? 1 : 0 }} }">
                         <a class="@if (!in_array(Request::segment(1), ['budgets', 'canvasssheet', 'sppbs'])) {{ 'hover:text-gray-900 dark:hover:text-white' }} @endif block truncate text-gray-800 transition dark:text-gray-100"
@@ -155,11 +199,12 @@
                                     <svg class="@if (in_array(Request::segment(1), ['budgets', 'jobpostings', 'sppbs'])) {{ 'text-violet-500' }}@else{{ 'text-gray-400 dark:text-gray-500' }} @endif shrink-0 fill-current"
                                         xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                         stroke-width="1.5" stroke="currentColor" width="16" height="16">
-                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                            d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
+                                        <path strokeLinecap="round" strokeLinejoin="round"
+                                            d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 0 0-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 0 0-16.536-1.84M7.5 14.25 5.106 5.272M6 20.25a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Zm12.75 0a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z" />
                                     </svg>
                                     <span
-                                        class="lg:sidebar-expanded:opacity-100 text-m ml-4 font-medium duration-200 lg:opacity-0 2xl:opacity-100">Purchasing</span>
+                                        class="lg:sidebar-expanded:opacity-100 text-m ml-4 font-medium duration-200 lg:opacity-0 2xl:opacity-100">Request
+                                        Form</span>
                                 </div>
                                 <div
                                     class="lg:sidebar-expanded:opacity-100 ml-2 flex shrink-0 duration-200 lg:opacity-0 2xl:opacity-100">
@@ -172,31 +217,43 @@
                         </a>
                         <div class="lg:sidebar-expanded:block lg:hidden 2xl:block">
                             <ul class="@if (!in_array(Request::segment(1), ['budgets', 'canvasssheet', 'sppbs', 'applicant-portal'])) {{ 'hidden' }} @endif mt-1 pl-8"
-                                :class="open ? 'block!' : 'hidden'">                                
-                                <li class="mb-1 last:mb-0">
-                                    <a class="@if (Route::is('budgets')) {{ 'text-violet-500!' }} @endif block truncate text-gray-500/90 transition hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-                                        href="{{ route('budgets') }}">
-                                        <span
-                                            class="lg:sidebar-expanded:opacity-100 text-m font-medium duration-200 lg:opacity-0 2xl:opacity-100">Budget</span>
-                                    </a>
-                                </li>  
+                                :class="open ? 'block!' : 'hidden'">
                                 <li class="mb-1 last:mb-0">
                                     <a class="@if (Route::is('sppbs')) {{ 'text-violet-500!' }} @endif block truncate text-gray-500/90 transition hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
                                         href="{{ route('sppbs') }}">
                                         <span
-                                            class="lg:sidebar-expanded:opacity-100 text-m font-medium duration-200 lg:opacity-0 2xl:opacity-100">SPPB</span>
+                                            class="lg:sidebar-expanded:opacity-100 text-m font-medium duration-200 lg:opacity-0 2xl:opacity-100">SPP
+                                            Barang</span>
                                     </a>
-                                </li>   
+                                </li>
                                 <li class="mb-1 last:mb-0">
-                                    <a class="@if (Route::is('canvass.create')) {{ 'text-violet-500!' }} @endif block truncate text-gray-500/90 transition hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-                                        href="{{ route('canvass.create') }}">
+                                    <a class="@if (Route::is('budgets')) {{ 'text-violet-500!' }} @endif block truncate text-gray-500/90 transition hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                                        href="{{ route('budgets') }}">
                                         <span
-                                            class="lg:sidebar-expanded:opacity-100 text-m font-medium duration-200 lg:opacity-0 2xl:opacity-100">Canvass Sheet</span>
+                                            class="lg:sidebar-expanded:opacity-100 text-m font-medium duration-200 lg:opacity-0 2xl:opacity-100">SPP
+                                            Jasa</span>
                                     </a>
-                                </li>                    
+                                </li>
+                                <li class="mb-1 last:mb-0">
+                                    <a class="@if (Route::is('sppbs')) {{ 'text-violet-500!' }} @endif block truncate text-gray-500/90 transition hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                                        href="{{ route('sppbs') }}">
+                                        <span
+                                            class="lg:sidebar-expanded:opacity-100 text-m font-medium duration-200 lg:opacity-0 2xl:opacity-100">SPP
+                                            Kendaran</span>
+                                    </a>
+                                </li>
+                                <li class="mb-1 last:mb-0">
+                                    <a class="@if (Route::is('sppbs')) {{ 'text-violet-500!' }} @endif block truncate text-gray-500/90 transition hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                                        href="{{ route('sppbs') }}">
+                                        <span
+                                            class="lg:sidebar-expanded:opacity-100 text-m font-medium duration-200 lg:opacity-0 2xl:opacity-100">SPP
+                                            Tenant</span>
+                                    </a>
+                                </li>
                             </ul>
                         </div>
                     </li>
+
                 </ul>
             </div>
         </div>
