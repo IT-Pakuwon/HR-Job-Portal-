@@ -46,7 +46,7 @@
                                     </option>
                                 @endforeach
                             </select>
-                        </div>                   
+                        </div>
                     </div>
                 </div>
 
@@ -55,50 +55,59 @@
                     <div class="mb-6 flex justify-end"> {{-- Aligns button to the right --}}
                         <button type="button"
                             class="inline-flex items-center rounded-xl bg-indigo-600 px-6 py-2 text-base font-semibold text-white shadow-md transition-colors duration-200 hover:bg-indigo-700 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800"
-                            onclick="exportChartWithLegend()">Export Image Full</button>                     
-                    </div>            
-               
+                            onclick="exportChartWithLegend()">Export Image Full</button>
+                    </div>
+
                     {{-- <div id="chartExportArea" style="position:relative;"> --}}
-                    <div id="chartExportArea" style="position:relative; background: #fff; min-height:1100px; padding-bottom:200px;">
+                    <div id="chartExportArea"
+                        style="position:relative; background: #fff; min-height:1100px; padding-bottom:200px;">
                         {{-- <div class="chart-container w-full" style="width:100%; min-height:420px;"></div> --}}
-                        <div class="chart-container w-full" style="width: 100%;"></div>    
+                        <div class="chart-container w-full" style="width: 100%;"></div>
                         <!-- Legend di pojok kanan bawah -->
                         <div id="chartLegend2" style="position:absolute; left:32px; bottom:32px;">
                             <div style="display: flex; align-items: center; gap: 12px;">
-                                <span style="display: inline-block; width: 28px; height: 18px; background: #cefefe; border-radius: 4px; border:1px solid #ccc"></span>
+                                <span
+                                    style="display: inline-block; width: 28px; height: 18px; background: #cefefe; border-radius: 4px; border:1px solid #ccc"></span>
                                 <span>Crew</span>
                             </div>
                             <div style="display: flex; align-items: center; gap: 12px;">
-                                <span style="display: inline-block; width: 28px; height: 18px; background: #c6d4df; border-radius: 4px; border:1px solid #ccc"></span>
+                                <span
+                                    style="display: inline-block; width: 28px; height: 18px; background: #c6d4df; border-radius: 4px; border:1px solid #ccc"></span>
                                 <span>Staff</span>
                             </div>
                             <div style="display: flex; align-items: center; gap: 12px;">
-                                <span style="display: inline-block; width: 28px; height: 18px; background: #bdb9c9; border-radius: 4px; border:1px solid #ccc"></span>
+                                <span
+                                    style="display: inline-block; width: 28px; height: 18px; background: #bdb9c9; border-radius: 4px; border:1px solid #ccc"></span>
                                 <span>Senior Staff</span>
                             </div>
                             <div style="display: flex; align-items: center; gap: 12px;">
-                                <span style="display: inline-block; width: 28px; height: 18px; background: #e6d0dd; border-radius: 4px; border:1px solid #ccc"></span>
+                                <span
+                                    style="display: inline-block; width: 28px; height: 18px; background: #e6d0dd; border-radius: 4px; border:1px solid #ccc"></span>
                                 <span>Supervisor</span>
                             </div>
                             <div style="display: flex; align-items: center; gap: 12px;">
-                                <span style="display: inline-block; width: 28px; height: 18px; background: #97d077; border-radius: 4px; border:1px solid #ccc"></span>
+                                <span
+                                    style="display: inline-block; width: 28px; height: 18px; background: #97d077; border-radius: 4px; border:1px solid #ccc"></span>
                                 <span>Assistant Manager / Chief</span>
                             </div>
                             <div style="display: flex; align-items: center; gap: 12px;">
-                                <span style="display: inline-block; width: 28px; height: 18px; background: #effbfe; border-radius: 4px; border:1px solid #ccc"></span>
+                                <span
+                                    style="display: inline-block; width: 28px; height: 18px; background: #effbfe; border-radius: 4px; border:1px solid #ccc"></span>
                                 <span>Head of Dept</span>
                             </div>
                             <div style="display: flex; align-items: center; gap: 12px;">
-                                <span style="display: inline-block; width: 28px; height: 18px; background: #c7ffbb; border-radius: 4px; border:1px solid #ccc"></span>
+                                <span
+                                    style="display: inline-block; width: 28px; height: 18px; background: #c7ffbb; border-radius: 4px; border:1px solid #ccc"></span>
                                 <span>Head of Division</span>
                             </div>
                             <div style="display: flex; align-items: center; gap: 12px;">
-                                <span style="display: inline-block; width: 28px; height: 18px; background: #ddebf6; border-radius: 4px; border:1px solid #ccc"></span>
+                                <span
+                                    style="display: inline-block; width: 28px; height: 18px; background: #ddebf6; border-radius: 4px; border:1px solid #ccc"></span>
                                 <span>Executive</span>
                             </div>
                         </div>
                         <div id="chartLegend"
-                        style="
+                            style="
                             position: absolute;
                             right: 16px;
                             bottom: 16px;
@@ -113,8 +122,8 @@
                             width: 260px;
                             border: 1px solid #eee;
                         ">
+                        </div>
                     </div>
-                </div>
 
 
                 </div>
@@ -247,12 +256,12 @@
         </div>
 
         <!-- D3 Org Chart Dependencies -->
-        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>   
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
         <script src="https://d3js.org/d3.v7.min.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/d3-org-chart@3.1.0"></script>
         <script src="https://cdn.jsdelivr.net/npm/d3-flextree@2.1.2/build/d3-flextree.js"></script>
 
-        
+
         <!-- Tambahkan di bagian <head> atau sebelum script -->
         <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
         <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
@@ -292,14 +301,14 @@
                         employees.forEach((emp, index) => {
                             html += `
                         <tr>
-                            <td class="border border-black px-2 py-1">${index + 1}</td>
-                            <td class="border border-black px-2 py-1">${emp.employee_name}</td>
-                            <td class="border border-black px-2 py-1">${emp.employee_company}</td>
-                            <td class="border border-black px-2 py-1">${emp.employee_level}</td>
-                            <td class="border border-black px-2 py-1 text-center">
+                            <td class="border   px-2 py-1">${index + 1}</td>
+                            <td class="border   px-2 py-1">${emp.employee_name}</td>
+                            <td class="border   px-2 py-1">${emp.employee_company}</td>
+                            <td class="border   px-2 py-1">${emp.employee_level}</td>
+                            <td class="border   px-2 py-1 text-center">
                                 <img src="${emp.image || 'https://cdn-icons-png.flaticon.com/512/149/149071.png'}" class="w-15 h-15 rounded-full mx-auto">
                             </td>
-                            <td class="border border-black px-2 py-1 text-center">
+                            <td class="border   px-2 py-1 text-center">
                                 <div class="inline-flex gap-2">
                                     <!-- Job Profile Button -->
                                     <button
@@ -368,7 +377,7 @@
             }
         </script>
 
-       <script>
+        <script>
             var chart = null;
             $('select[name="departementid"], #selectCompany').on('change', function() {
                 const deptname = encodeURIComponent($('#selectdeptname').val());
@@ -408,28 +417,28 @@
                         // let legendList = Object.values(legendMap);
 
                         // let legendHTML = `
-                        // <div class="p-2 rounded border bg-white shadow" style="display:inline-block; min-width:260px">
-                        //     <div class="font-bold mb-1">Legend:</div>
-                        //     <table class="text-xs">
-                        //     <thead>
-                        //         <tr>
-                        //         <th class="pr-4">Department</th>
-                        //         <th class="pr-4">Company</th>
-                        //         <th>Jumlah</th>
-                        //         </tr>
-                        //     </thead>
-                        //     <tbody>
-                        //         ${legendList.map(item => `
+                // <div class="p-2 rounded border bg-white shadow" style="display:inline-block; min-width:260px">
+                //     <div class="font-bold mb-1">Legend:</div>
+                //     <table class="text-xs">
+                //     <thead>
+                //         <tr>
+                //         <th class="pr-4">Department</th>
+                //         <th class="pr-4">Company</th>
+                //         <th>Jumlah</th>
+                //         </tr>
+                //     </thead>
+                //     <tbody>
+                //         ${legendList.map(item => `
                         //         <tr>
                         //             <td class="pr-4">${item.department}</td>
                         //             <td class="pr-4">${item.company}</td>
                         //             <td>${item.count}</td>
                         //         </tr>
                         //         `).join('')}
-                        //     </tbody>
-                        //     </table>
-                        // </div>
-                        // `;
+                //     </tbody>
+                //     </table>
+                // </div>
+                // `;
 
                         // $('#chartLegend').html(legendHTML);
                         // // ==== END LEGEND ====
@@ -444,7 +453,10 @@
                             });
                         });
 
-                        let legendCompany = Object.entries(companyMap).map(([company, count]) => ({ company, count }));
+                        let legendCompany = Object.entries(companyMap).map(([company, count]) => ({
+                            company,
+                            count
+                        }));
 
                         let legendHTML = `
                         <div class="p-2 rounded border bg-white shadow" style="display:inline-block; min-width:160px">
@@ -458,11 +470,11 @@
                             </thead>
                             <tbody>
                                 ${legendCompany.map(item => `
-                                <tr>
-                                    <td class="pr-4">${item.company}</td>
-                                    <td>${item.count}</td>
-                                </tr>
-                                `).join('')}
+                                        <tr>
+                                            <td class="pr-4">${item.company}</td>
+                                            <td>${item.count}</td>
+                                        </tr>
+                                        `).join('')}
                             </tbody>
                             </table>
                         </div>
@@ -486,14 +498,15 @@
                             .childrenMargin((d) => 60)
                             .compactMarginBetween((d) => 35)
                             .compactMarginPair((d) => 30)
-                            .neighbourMargin((a, b) => 20)                            
+                            .neighbourMargin((a, b) => 20)
                             .nodeContent(function(d) {
                                 const members = d.data.members || [];
                                 const level = d.depth;
                                 const bgColor = d.data.bgColor || '#f5f5f5';
-                            
+
                                 console.log('Level:', level); // Debugging line
-                                console.log('Node Width:', d.width, 'Height:', d.height); // Debugging line
+                                console.log('Node Width:', d.width, 'Height:', d
+                                .height); // Debugging line
                                 console.log('Node Data:', d.data); // Debugging line
                                 return `
                                     <div style='width:${d.width}px;height:${d.height}px;padding-top:25px;padding-left:25px;padding-right:10px'>
@@ -513,13 +526,13 @@
                                             <div style="font-size:12px;color:#333">                                    
                                                 <div style="margin-top:10px;">
                                                     ${members.map(m => `
-                                                        <div style="display:flex;align-items:center;margin-bottom:2px;">
-                                                            <img src="${m.image}" style="width:30px;height:30px;border-radius:50%;margin-right:8px;" />
-                                                            <span style="font-size:12px; color:${m.name.toUpperCase() === 'VACANT' ? 'red' : '#000'};">
-                                                                ${m.name} (${m.company})
-                                                            </span>
-                                                        </div>
-                                                    `).join('')}
+                                                                <div style="display:flex;align-items:center;margin-bottom:2px;">
+                                                                    <img src="${m.image}" style="width:30px;height:30px;border-radius:50%;margin-right:8px;" />
+                                                                    <span style="font-size:12px; color:${m.name.toUpperCase() === 'VACANT' ? 'red' : '#000'};">
+                                                                        ${m.name} (${m.company})
+                                                                    </span>
+                                                                </div>
+                                                            `).join('')}
                                                 </div>
                                             </div>
                                         </div>
@@ -531,8 +544,8 @@
                             .data(nodes)
                             .expandAll()
                             .connections(connections)
-                            // .render()
-                            chart.compact(false).render().fit();
+                        // .render()
+                        chart.compact(false).render().fit();
                         // Tambahkan garis horizontal untuk setiap level
                         // setTimeout(() => {
                         //     const svg = d3.select('.chart-container').select('svg');
@@ -654,8 +667,8 @@
                         profiles.forEach((p, i) => {
                             rows += `
                             <tr>
-                                <td class="border border-black px-2 py-1">${i + 1}</td>                                
-                                <td class="border border-black px-2 py-1">${p.job_purpose || ''}</td>                                                                                    
+                                <td class="border   px-2 py-1">${i + 1}</td>                                
+                                <td class="border   px-2 py-1">${p.job_purpose || ''}</td>                                                                                    
                             </tr>
                         `;
                         });
@@ -678,45 +691,50 @@
                 });
             });
         </script>
-       
+
 
         <script src="https://unpkg.com/html2canvas@1.1.4/dist/html2canvas.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.3.1/jspdf.umd.min.js"></script>      
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.3.1/jspdf.umd.min.js"></script>
 
 
         <script>
-           function exportChartWithLegend() {
-            const exportArea = document.getElementById('chartExportArea');
-            const images = exportArea.querySelectorAll('img');
-            let loaded = 0;
-            if (images.length === 0) {
-                doExport();
-                return;
-            }
-            images.forEach(img => {
-                if (img.complete) {
-                    loaded++;
-                    if (loaded === images.length) doExport();
-                } else {
-                    img.onload = () => {
-                        loaded++;
-                        if (loaded === images.length) doExport();
-                    }
-                    img.onerror = () => {
-                        loaded++;
-                        if (loaded === images.length) doExport();
-                    }
+            function exportChartWithLegend() {
+                const exportArea = document.getElementById('chartExportArea');
+                const images = exportArea.querySelectorAll('img');
+                let loaded = 0;
+                if (images.length === 0) {
+                    doExport();
+                    return;
                 }
-            });
-            function doExport() {
-                html2canvas(exportArea, { backgroundColor: '#fff', scale: 2, useCORS: true }).then(function(canvas) {
-                    const link = document.createElement('a');
-                    link.href = canvas.toDataURL('image/png');
-                    link.download = 'orgchart-export.png';
-                    link.click();
+                images.forEach(img => {
+                    if (img.complete) {
+                        loaded++;
+                        if (loaded === images.length) doExport();
+                    } else {
+                        img.onload = () => {
+                            loaded++;
+                            if (loaded === images.length) doExport();
+                        }
+                        img.onerror = () => {
+                            loaded++;
+                            if (loaded === images.length) doExport();
+                        }
+                    }
                 });
+
+                function doExport() {
+                    html2canvas(exportArea, {
+                        backgroundColor: '#fff',
+                        scale: 2,
+                        useCORS: true
+                    }).then(function(canvas) {
+                        const link = document.createElement('a');
+                        link.href = canvas.toDataURL('image/png');
+                        link.download = 'orgchart-export.png';
+                        link.click();
+                    });
+                }
             }
-        }
-    </script>
+        </script>
 
 </x-app-layout>
