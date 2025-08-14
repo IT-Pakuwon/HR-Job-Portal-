@@ -83,7 +83,7 @@
         </tr>
         <tr>
             <td>Tempat/Tanggal Lahir <em>(Place/Date Birth)</em> :</td>
-            <td>{{ $applicant->birth_place }}, {{ $date }}</td>
+            <td>{{ $applicant->birth_place }},{{ $applicant->date_of_birth }}</td>
             <td>Umur <em>(Age)</em>:</td>
             <td>{{ $applicant->age }}</td>
         </tr>
@@ -95,7 +95,7 @@
         </tr>
         <tr>
             <td>Warga Negara <em>(Nationality)</em>:</td>
-            <td>{{ $applicant->nationality }}</td>
+            <td>{{ $applicant->citizenship }}</td>
             <td>NIK <em>(ID Number)</em> :</td>
             <td colspan="2">{{ $applicant->ktp_id }}</td>
         </tr>
@@ -216,10 +216,11 @@
         </tr>
         <tr class="section-header">
             <td colspan="3" style="padding: 8px; font-weight: bold;">1. FORMAL</td>
-        </tr> <tr style="text-align: center; font-weight: bold;">
-        <td style="width: 20%;">Nama Sekolah / Universitas<br><em>(School / University Name)</em></td>
-        <td style="width: 10%;">Tahun Mulai<br><em>(Start Year)</em></td>
-        <td style="width: 20%;">Tahun Selesai<br><em>(End Year)</em></td>
+        </tr>
+        <tr style="text-align: center; font-weight: bold;">
+            <td style="width: 20%;">Nama Sekolah / Universitas<br><em>(School / University Name)</em></td>
+            <td style="width: 10%;">Tahun Mulai<br><em>(Start Year)</em></td>
+            <td style="width: 20%;">Tahun Selesai<br><em>(End Year)</em></td>
         </tr>
 
         @foreach ($applicant_education as $p)

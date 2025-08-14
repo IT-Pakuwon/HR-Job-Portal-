@@ -93,7 +93,8 @@
                                    x-transition:enter-end="opacity-100 translate-y-0"
                                    x-transition:leave="transition ease-in duration-200"
                                    x-transition:leave-start="opacity-100 translate-y-0"
-                                   x-transition:leave-end="opacity-0 translate-y-2">
+                                   x-transition:leave-end="opacity-0 translate-y-2"
+                                   class="max-h-[300px] overflow-y-auto">
                                    <ul class="overflow-y-auto pr-3 text-gray-700 dark:text-gray-300">
                                        @foreach ($jobres as $jr)
                                            <li class="flex items-start gap-2">
@@ -116,7 +117,8 @@
                                    x-transition:enter-end="opacity-100 translate-y-0"
                                    x-transition:leave="transition ease-in duration-200"
                                    x-transition:leave-start="opacity-100 translate-y-0"
-                                   x-transition:leave-end="opacity-0 translate-y-2">
+                                   x-transition:leave-end="opacity-0 translate-y-2"
+                                   class="max-h-[300px] overflow-y-auto">
                                    <ul class="space-y-2 text-gray-700 dark:text-gray-300">
                                        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                                            <li
