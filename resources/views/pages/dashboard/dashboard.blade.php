@@ -2,14 +2,14 @@
     <div class="max-w-9xl mx-auto w-full px-4 py-8 sm:px-6 lg:px-8">
 
         <!-- Dashboard actions -->
-        {{-- <div class="mb-8 sm:flex sm:items-center sm:justify-between">
+        <div class="mb-8 sm:flex sm:items-center sm:justify-between">
 
             <!-- Left: Title -->
             <div class="mb-4 sm:mb-0">
                 <h1 class="text-2xl font-bold text-gray-800 md:text-3xl dark:text-gray-100">Dashboard</h1>
             </div>
 
-            <!-- Right: Actions -->
+            {{-- <!-- Right: Actions -->
             <div class="grid grid-flow-col justify-start gap-2 sm:auto-cols-max sm:justify-end">
 
                 <!-- Filter button -->
@@ -28,15 +28,15 @@
                     <span class="max-xs:sr-only">Add View</span>
                 </button>
 
-            </div>
+            </div> --}}
 
-        </div> --}}
+        </div>
 
         <!-- Cards -->
         <div class="grid grid-cols-12 gap-6">
             {{-- <x-dashboard.dashboard-agenda :agendas="$agendas" /> --}}
             <x-dashboard.dashboard-approval :tr_approval="$tr_approval" />
-            <x-dashboard.dashboard-news :news="$news" />
+            {{-- <x-dashboard.dashboard-news :news="$news" /> --}}
         </div>
 
     </div>
