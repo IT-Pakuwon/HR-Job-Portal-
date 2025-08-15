@@ -1,15 +1,21 @@
 @props(['tr_approval'])
 
 
-<div class="col-span-full col-span-12 rounded-2xl bg-white p-6 dark:bg-gray-800">
+<div class="col-span-12 col-span-full rounded-2xl bg-white p-6 dark:bg-gray-800">
     <!-- Tabs -->
     <div class="mb-4 border-b border-gray-200 dark:border-gray-700">
-        <ul class="flex flex-wrap -mb-px text-sm font-medium text-center" id="approvalTabs" role="tablist">
+        <ul class="-mb-px flex flex-wrap text-center text-sm font-medium" id="approvalTabs" role="tablist">
             <li class="mr-2">
-                <button class="inline-block p-4 border-b-2 rounded-t-lg text-blue-600 border-blue-600 dark:text-blue-400 dark:border-blue-400" id="tab-waiting" type="button" role="tab" aria-controls="waiting" aria-selected="true" onclick="switchTab('waiting')">Waiting Approval</button>
+                <button
+                    class="inline-block rounded-t-lg border-b-2 border-blue-600 p-4 text-blue-600 dark:border-blue-400 dark:text-blue-400"
+                    id="tab-waiting" type="button" role="tab" aria-controls="waiting" aria-selected="true"
+                    onclick="switchTab('waiting')">Waiting Approval</button>
             </li>
             <li class="mr-2">
-                <button class="inline-block p-4 border-b-2 border-transparent rounded-t-lg hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300" id="tab-approved" type="button" role="tab" aria-controls="approved" aria-selected="false" onclick="switchTab('approved')">Approval</button>
+                <button
+                    class="inline-block rounded-t-lg border-b-2 border-transparent p-4 hover:border-gray-300 hover:text-gray-600 dark:hover:text-gray-300"
+                    id="tab-approved" type="button" role="tab" aria-controls="approved" aria-selected="false"
+                    onclick="switchTab('approved')">Approval</button>
             </li>
         </ul>
     </div>
@@ -21,11 +27,12 @@
                 <p class="text-m ml-8 mt-2 dark:text-white">See what's your task for today!</p>
             </div>
             <div class="flex gap-2">
-                <input id="waitingSearch" type="text" placeholder="Search..." class="rounded-md border bg-gray-100 px-3 py-2 text-sm text-gray-700 dark:bg-gray-700 dark:text-white" />
+                <input id="waitingSearch" type="text" placeholder="Search..."
+                    class="rounded-md border bg-gray-100 px-3 py-2 text-sm text-gray-700 dark:bg-gray-700 dark:text-white" />
             </div>
         </div>
-        <div class="overflow-x-auto rounded-lg bg-white dark:bg-gray-800 mt-4">
-            <table class="min-w-full w-full rounded" id="waitingTable">
+        <div class="mt-4 overflow-x-auto rounded-lg bg-white dark:bg-gray-800">
+            <table class="w-full min-w-full rounded" id="waitingTable">
                 <thead class="bg-gray-200 text-xs text-gray-700 dark:bg-gray-700 dark:text-white">
                     <tr>
                         <th class="px-4 py-2 text-left uppercase">DocID</th>
@@ -38,13 +45,15 @@
                 <tbody class="text-sm text-gray-800 dark:text-gray-300">
                     <!-- Data will be loaded by JS -->
                 </tbody>
-            </table>            
-        <div class="flex items-center justify-between mt-2">
-            <button id="waitingPrev" class="rounded-md bg-gray-200 px-3 py-2 text-gray-700 transition hover:bg-gray-300 disabled:opacity-50 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600">Previous</button>
-            <span id="waitingPaginationInfo" class="text-sm text-gray-700 dark:text-white">Page 1 of 1</span>
-            <button id="waitingNext" class="rounded-md bg-gray-200 px-3 py-2 text-gray-700 transition hover:bg-gray-300 disabled:opacity-50 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600">Next</button>
-        </div>
-                </tbody>
+            </table>
+            <div class="mt-2 flex items-center justify-between">
+                <button id="waitingPrev"
+                    class="rounded-md bg-gray-200 px-3 py-2 text-gray-700 transition hover:bg-gray-300 disabled:opacity-50 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600">Previous</button>
+                <span id="waitingPaginationInfo" class="text-sm text-gray-700 dark:text-white">Page 1 of 1</span>
+                <button id="waitingNext"
+                    class="rounded-md bg-gray-200 px-3 py-2 text-gray-700 transition hover:bg-gray-300 disabled:opacity-50 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600">Next</button>
+            </div>
+            </tbody>
             </table>
         </div>
     </div>
@@ -55,11 +64,12 @@
                 <p class="text-m ml-8 mt-2 dark:text-white">See your approved tasks!</p>
             </div>
             <div class="flex gap-2">
-                <input id="approvedSearch" type="text" placeholder="Search..." class="rounded-md border bg-gray-100 px-3 py-2 text-sm text-gray-700 dark:bg-gray-700 dark:text-white" />
+                <input id="approvedSearch" type="text" placeholder="Search..."
+                    class="rounded-md border bg-gray-100 px-3 py-2 text-sm text-gray-700 dark:bg-gray-700 dark:text-white" />
             </div>
         </div>
-        <div class="overflow-x-auto rounded-lg bg-white dark:bg-gray-800 mt-4">
-            <table class="min-w-full w-full rounded" id="approvedTable">
+        <div class="mt-4 overflow-x-auto rounded-lg bg-white dark:bg-gray-800">
+            <table class="w-full min-w-full rounded" id="approvedTable">
                 <thead class="bg-gray-200 text-xs text-gray-700 dark:bg-gray-700 dark:text-white">
                     <tr>
                         <th class="px-4 py-2 text-left uppercase">DocID</th>
@@ -73,12 +83,14 @@
                     <!-- Data will be loaded by JS -->
                 </tbody>
             </table>
-            <div class="flex items-center justify-between mt-2">
-                <button id="approvedPrev" class="rounded-md bg-gray-200 px-3 py-2 text-gray-700 transition hover:bg-gray-300 disabled:opacity-50 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600">Previous</button>
+            <div class="mt-2 flex items-center justify-between">
+                <button id="approvedPrev"
+                    class="rounded-md bg-gray-200 px-3 py-2 text-gray-700 transition hover:bg-gray-300 disabled:opacity-50 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600">Previous</button>
                 <span id="approvedPaginationInfo" class="text-sm text-gray-700 dark:text-white">Page 1 of 1</span>
-                <button id="approvedNext" class="rounded-md bg-gray-200 px-3 py-2 text-gray-700 transition hover:bg-gray-300 disabled:opacity-50 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600">Next</button>
-            </div>       
-                </tbody>
+                <button id="approvedNext"
+                    class="rounded-md bg-gray-200 px-3 py-2 text-gray-700 transition hover:bg-gray-300 disabled:opacity-50 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600">Next</button>
+            </div>
+            </tbody>
             </table>
         </div>
     </div>
@@ -87,13 +99,17 @@
 <script>
     function switchTab(tab) {
         if (tab === 'waiting') {
-            document.getElementById('tab-waiting').classList.add('text-blue-600', 'border-blue-600', 'dark:text-blue-400', 'dark:border-blue-400');
-            document.getElementById('tab-approved').classList.remove('text-blue-600', 'border-blue-600', 'dark:text-blue-400', 'dark:border-blue-400');
+            document.getElementById('tab-waiting').classList.add('text-blue-600', 'border-blue-600',
+                'dark:text-blue-400', 'dark:border-blue-400');
+            document.getElementById('tab-approved').classList.remove('text-blue-600', 'border-blue-600',
+                'dark:text-blue-400', 'dark:border-blue-400');
             document.getElementById('tab-content-waiting').classList.remove('hidden');
             document.getElementById('tab-content-approved').classList.add('hidden');
         } else {
-            document.getElementById('tab-waiting').classList.remove('text-blue-600', 'border-blue-600', 'dark:text-blue-400', 'dark:border-blue-400');
-            document.getElementById('tab-approved').classList.add('text-blue-600', 'border-blue-600', 'dark:text-blue-400', 'dark:border-blue-400');
+            document.getElementById('tab-waiting').classList.remove('text-blue-600', 'border-blue-600',
+                'dark:text-blue-400', 'dark:border-blue-400');
+            document.getElementById('tab-approved').classList.add('text-blue-600', 'border-blue-600',
+                'dark:text-blue-400', 'dark:border-blue-400');
             document.getElementById('tab-content-waiting').classList.add('hidden');
             document.getElementById('tab-content-approved').classList.remove('hidden');
         }
@@ -135,7 +151,10 @@
         } else {
             tbody.innerHTML = '<tr><td colspan="5" class="text-center py-4">No data found.</td></tr>';
         }
-        return { total, filteredCount: filtered.length };
+        return {
+            total,
+            filteredCount: filtered.length
+        };
     }
 
     document.addEventListener('DOMContentLoaded', function() {
@@ -143,17 +162,26 @@
         let approvedData = [];
         let waitingPage = 1;
         let approvedPage = 1;
-        const perPage = 5;
+        const perPage = 10;
         let waitingSearch = '';
         let approvedSearch = '';
 
         function updateWaitingTable() {
-            const { total, filteredCount } = renderTable(waitingData, '#waitingTable tbody', waitingPage, perPage, waitingSearch);
-            document.getElementById('waitingPaginationInfo').innerText = `Page ${waitingPage} of ${Math.ceil(filteredCount/perPage)||1}`;
+            const {
+                total,
+                filteredCount
+            } = renderTable(waitingData, '#waitingTable tbody', waitingPage, perPage, waitingSearch);
+            document.getElementById('waitingPaginationInfo').innerText =
+                `Page ${waitingPage} of ${Math.ceil(filteredCount/perPage)||1}`;
         }
+
         function updateApprovedTable() {
-            const { total, filteredCount } = renderTable(approvedData, '#approvedTable tbody', approvedPage, perPage, approvedSearch);
-            document.getElementById('approvedPaginationInfo').innerText = `Page ${approvedPage} of ${Math.ceil(filteredCount/perPage)||1}`;
+            const {
+                total,
+                filteredCount
+            } = renderTable(approvedData, '#approvedTable tbody', approvedPage, perPage, approvedSearch);
+            document.getElementById('approvedPaginationInfo').innerText =
+                `Page ${approvedPage} of ${Math.ceil(filteredCount/perPage)||1}`;
         }
 
         fetch('/waitingjson')
@@ -187,8 +215,9 @@
             }
         });
         document.getElementById('waitingNext').addEventListener('click', function() {
-            const filteredCount = renderTable(waitingData, '#waitingTable tbody', 1, waitingData.length, waitingSearch).filteredCount;
-            if (waitingPage < Math.ceil(filteredCount/perPage)) {
+            const filteredCount = renderTable(waitingData, '#waitingTable tbody', 1, waitingData.length,
+                waitingSearch).filteredCount;
+            if (waitingPage < Math.ceil(filteredCount / perPage)) {
                 waitingPage++;
                 updateWaitingTable();
             }
@@ -200,8 +229,9 @@
             }
         });
         document.getElementById('approvedNext').addEventListener('click', function() {
-            const filteredCount = renderTable(approvedData, '#approvedTable tbody', 1, approvedData.length, approvedSearch).filteredCount;
-            if (approvedPage < Math.ceil(filteredCount/perPage)) {
+            const filteredCount = renderTable(approvedData, '#approvedTable tbody', 1, approvedData
+                .length, approvedSearch).filteredCount;
+            if (approvedPage < Math.ceil(filteredCount / perPage)) {
                 approvedPage++;
                 updateApprovedTable();
             }
