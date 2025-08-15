@@ -192,15 +192,15 @@
                                 </button>
                             </div>
                         </div>
-                        <table class="w-full border border-black text-sm text-black">
+                        <table class="w-full border   text-sm text-black">
                             <thead class="bg-gray-300/10">
                                 <tr class="text-left">
-                                    <th class="border border-black px-2 py-1">No</th>
-                                    <th class="border border-black px-2 py-1">Name</th>
-                                    <th class="border border-black px-2 py-1">Company</th>
-                                    <th class="border border-black px-2 py-1">Position</th>
-                                    <th class="border border-black px-2 py-1">Photo</th>
-                                    <th class="border border-black px-2 py-1">Action</th>
+                                    <th class="border   px-2 py-1">No</th>
+                                    <th class="border   px-2 py-1">Name</th>
+                                    <th class="border   px-2 py-1">Company</th>
+                                    <th class="border   px-2 py-1">Position</th>
+                                    <th class="border   px-2 py-1">Photo</th>
+                                    <th class="border   px-2 py-1">Action</th>
                                 </tr>
                             </thead>
                             <tbody id="employeeTableBody">
@@ -504,12 +504,12 @@
                             </div>
 
                             <div class="mb-4">
-                                <table class="w-full border border-black text-sm">
+                                <table class="w-full border   text-sm">
                                     <thead class="bg-gray-100">
                                         <tr>
-                                            <th class="border border-black px-2 py-1">No</th>
-                                            <th class="border border-black px-2 py-1">Job Purpose</th>
-                                            <th class="border border-black px-2 py-1">Action</th>
+                                            <th class="border   px-2 py-1">No</th>
+                                            <th class="border   px-2 py-1">Job Purpose</th>
+                                            <th class="border   px-2 py-1">Action</th>
                                         </tr>
                                     </thead>
                                     <tbody id="jobProfileBody"></tbody>
@@ -666,14 +666,14 @@
                     employees.forEach((emp, index) => {
                         html += `
                         <tr>
-                            <td class="border border-black px-2 py-1">${index + 1}</td>
-                            <td class="border border-black px-2 py-1">${emp.employee_name}</td>
-                            <td class="border border-black px-2 py-1">${emp.employee_company}</td>
-                            <td class="border border-black px-2 py-1">${emp.employee_level}</td>
-                            <td class="border border-black px-2 py-1 text-center">
+                            <td class="border   px-2 py-1">${index + 1}</td>
+                            <td class="border   px-2 py-1">${emp.employee_name}</td>
+                            <td class="border   px-2 py-1">${emp.employee_company}</td>
+                            <td class="border   px-2 py-1">${emp.employee_level}</td>
+                            <td class="border   px-2 py-1 text-center">
                                 <img src="${emp.image || 'https://cdn-icons-png.flaticon.com/512/149/149071.png'}" class="w-15 h-15 rounded-full mx-auto">
                             </td>
-                            <td class="border border-black px-2 py-1 text-center">
+                            <td class="border   px-2 py-1 text-center">
                                 <div class="inline-flex gap-2">
                                     <!-- Job Profile Button -->
                                     <button
@@ -1212,9 +1212,9 @@
                     profiles.forEach((p, i) => {
                         rows += `
                             <tr>
-                                <td class="border border-black px-2 py-1">${i + 1}</td>                                
-                                <td class="border border-black px-2 py-1">${p.job_purpose || ''}</td>  
-                                <td class="border border-black px-2 py-1 text-center">
+                                <td class="border   px-2 py-1">${i + 1}</td>                                
+                                <td class="border   px-2 py-1">${p.job_purpose || ''}</td>  
+                                <td class="border   px-2 py-1 text-center">
                                     <button class="btn-delete-jobpurpose bg-red-500 text-white px-2 py-1 rounded text-xs hover:bg-red-700"
                                         data-id="${p.id}">
                                         🗑️ Delete

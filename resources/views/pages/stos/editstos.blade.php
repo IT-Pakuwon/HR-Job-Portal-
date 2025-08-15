@@ -3,7 +3,7 @@
         <div class="grid grid-cols-1 gap-8 lg:grid-cols-2 lg:grid-rows-[minmax(0,auto)_1fr]">
             <div class="grid grid-cols-1 gap-8 md:grid-cols-2 lg:col-span-2 lg:row-span-1">
                 <div class="flex flex-col gap-8">
-                    <form id="stoForm" class="flex flex-col gap-8" enctype="multipart/form-data" >
+                    <form id="stoForm" class="flex flex-col gap-8" enctype="multipart/form-data">
                         @method('PUT')
                         @csrf
                         <div class="flex w-full flex-col gap-8 rounded-xl bg-white p-6 shadow-lg dark:bg-gray-800">
@@ -37,7 +37,9 @@
                                         class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                         name="cpnyid" required>
                                         @foreach ($companies as $p)
-                                            <option value="{{ $p->cpnyid }}" {{ $p->cpnyid == $sto->cpnyid ? 'selected' : '' }}>{{ $p->cpnyid }}</option>
+                                            <option value="{{ $p->cpnyid }}"
+                                                {{ $p->cpnyid == $sto->cpnyid ? 'selected' : '' }}>{{ $p->cpnyid }}
+                                            </option>
                                         @endforeach
                                     </select>
                                 </div>
@@ -48,10 +50,12 @@
                                         class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                         name="departementid" required>
                                         @foreach ($departements as $p)
-                                            <option value="{{ $p->deptname }}" {{ $p->deptname == $sto->departementid ? 'selected' : '' }}>{{ $p->deptname }}</option>
+                                            <option value="{{ $p->deptname }}"
+                                                {{ $p->deptname == $sto->departementid ? 'selected' : '' }}>
+                                                {{ $p->deptname }}</option>
                                         @endforeach
                                     </select>
-                                </div>                               
+                                </div>
                             </div>
                         </div>
                     </form>
@@ -69,13 +73,13 @@
                                     class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline">Hide
                                     details &darr;</span>
                             </summary>
-                           <div class="flex max-h-[125px] flex-col overflow-y-auto pt-6">
+                            <div class="flex max-h-[125px] flex-col overflow-y-auto pt-6">
                                 <div id="attachmentsContainer">
                                     @foreach ($attachment as $attach)
                                         <div class="attachment-row flex items-center gap-2"
                                             data-attachid="{{ $attach->id }}">
-                                            <a href="{{ url('/attachments/' . $attach->attachfile) }}"
-                                                target="_blank" class="mt-4 w-full border p-3 text-lg">📎
+                                            <a href="{{ url('/attachments/' . $attach->attachfile) }}" target="_blank"
+                                                class="mt-4 w-full border p-3 text-lg">📎
                                                 {{ $attach->name }}</a>
                                             <button type="button"
                                                 class="removeAttachment2 mt-4 rounded border border-red-700 bg-red-200/10 px-3 py-3 text-white hover:border-red-700 hover:bg-red-400/30 dark:bg-red-700/30"
@@ -236,7 +240,8 @@
                         <div class="flex justify-between">
                             {{-- <h3 class="text-lg font-semibold">Employee List</h3> --}}
                             <div class="mb-4 flex items-center justify-between">
-                                <h4 class="text-lg font-semibold">Parent Department: <span id="parentDeptLabel" class="text-lg font-semibold text-gray-800"></span></h4>                             
+                                <h4 class="text-lg font-semibold">Parent Department: <span id="parentDeptLabel"
+                                        class="text-lg font-semibold text-gray-800"></span></h4>
                                 <button id="btnChangeParentDept"
                                     class="flex items-center gap-1 rounded px-3 py-1.5 text-sm text-black">
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
@@ -327,12 +332,14 @@
                             <input type="hidden" name="full_name" id="hiddenFullName" value="VACANT">
 
                             <div id="fullNameGroup">
-                                <label for="selectFullName" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Name</label>
+                                <label for="selectFullName"
+                                    class="block text-sm font-medium text-gray-700 dark:text-gray-300">Name</label>
                                 <select id="selectFullName" name="name"
                                     class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
                                     <option value="" disabled selected>Pilih nama karyawan...</option>
                                     @foreach ($users as $p)
-                                        <option value="{{ $p->name }}" data-npk="{{ $p->npk }}">{{ $p->name }}</option>
+                                        <option value="{{ $p->name }}" data-npk="{{ $p->npk }}">
+                                            {{ $p->name }}</option>
                                     @endforeach
                                 </select>
                                 <input type="hidden" name="npk" id="hiddenNpk">
@@ -428,8 +435,10 @@
                                         <option value="{{ $p->subgrade_id }}">{{ $p->subgrade_id }} -
                                             {{ $p->subgrade_name }}</option>
                                     @endforeach
-                                </select> --}}                               
-                                <input type="text" id="position" name="position" class="mt-1 block w-full rounded-md border-gray-300 bg-gray-200 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-800 dark:text-gray-400" readonly>
+                                </select> --}}
+                                <input type="text" id="position" name="position"
+                                    class="mt-1 block w-full rounded-md border-gray-300 bg-gray-200 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-800 dark:text-gray-400"
+                                    readonly>
 
 
                             </div>
@@ -534,7 +543,8 @@
                                     class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
                                     <option value="" disabled selected>-- Select Employee --</option>
                                     @foreach ($users as $p)
-                                        <option value="{{ $p->name }}" data-npk="{{ $p->npk }}">{{ $p->name }}</option>
+                                        <option value="{{ $p->name }}" data-npk="{{ $p->npk }}">
+                                            {{ $p->name }}</option>
                                     @endforeach
                                 </select>
                                 <input type="hidden" name="npk" id="hiddenNpkedit">
@@ -768,7 +778,8 @@
                         window.location.href = "/stos";
                     },
                     error: function(xhr) {
-                        if (xhr.status === 422 && xhr.responseJSON && xhr.responseJSON.message) {
+                        if (xhr.status === 422 && xhr.responseJSON && xhr.responseJSON
+                            .message) {
                             toastr.error(xhr.responseJSON.message);
                         } else {
                             toastr.error('Error! Please check the input.');
@@ -816,7 +827,7 @@
                         .childrenMargin((d) => 40)
                         .compactMarginBetween((d) => 35)
                         .compactMarginPair((d) => 30)
-                        .neighbourMargin((a, b) => 20)                            
+                        .neighbourMargin((a, b) => 20)
                         .nodeContent(function(d) {
                             const members = d.data.members || [];
                             const level = d.depth;
@@ -840,13 +851,13 @@
                                         <div style="font-size:12px;color:#333">                                    
                                             <div style="margin-top:10px;">
                                                 ${members.map(m => `
-                                                    <div style="display:flex;align-items:center;margin-bottom:6px;">
-                                                        <img src="${m.image}" style="width:30px;height:30px;border-radius:50%;margin-right:8px;" />
-                                                        <span style="font-size:12px; color:${m.name.toUpperCase() === 'VACANT' ? 'red' : '#000'};">
-                                                            ${m.name} (${m.company})
-                                                        </span>
-                                                    </div>
-                                                `).join('')}
+                                                        <div style="display:flex;align-items:center;margin-bottom:6px;">
+                                                            <img src="${m.image}" style="width:30px;height:30px;border-radius:50%;margin-right:8px;" />
+                                                            <span style="font-size:12px; color:${m.name.toUpperCase() === 'VACANT' ? 'red' : '#000'};">
+                                                                ${m.name} (${m.company})
+                                                            </span>
+                                                        </div>
+                                                    `).join('')}
                                             </div>
                                         </div>
                                     </div>
@@ -858,9 +869,9 @@
                         .data(nodes)
                         .expandAll()
                         .connections(connections)
-                        // .render()
-                        chart.compact(false).render().fit();                 
-                    
+                    // .render()
+                    chart.compact(false).render().fit();
+
                 },
 
                 error: function(xhr) {
@@ -918,14 +929,14 @@
                     employees.forEach((emp, index) => {
                         html += `
                         <tr>
-                            <td class="border border-black px-2 py-1">${index + 1}</td>
-                            <td class="border border-black px-2 py-1">${emp.employee_name}</td>
-                            <td class="border border-black px-2 py-1">${emp.employee_company}</td>
-                            <td class="border border-black px-2 py-1">${emp.employee_level}</td>
-                            <td class="border border-black px-2 py-1 text-center">
+                            <td class="border   px-2 py-1">${index + 1}</td>
+                            <td class="border   px-2 py-1">${emp.employee_name}</td>
+                            <td class="border   px-2 py-1">${emp.employee_company}</td>
+                            <td class="border   px-2 py-1">${emp.employee_level}</td>
+                            <td class="border   px-2 py-1 text-center">
                                 <img src="${emp.image || 'https://cdn-icons-png.flaticon.com/512/149/149071.png'}" class="w-25 h-25 rounded-full mx-auto">
                             </td>
-                            <td class="border border-black px-2 py-1 text-center">
+                            <td class="border   px-2 py-1 text-center">
                                 <div class="inline-flex gap-2">
                                     <!-- Job Profile Button -->
                                     <button
@@ -1138,13 +1149,13 @@
                                         <div style="font-size:12px;color:#333">                                    
                                             <div style="margin-top:10px;">
                                                 ${members.map(m => `
-                                                    <div style="display:flex;align-items:center;margin-bottom:6px;">
-                                                        <img src="${m.image}" style="width:30px;height:30px;border-radius:50%;margin-right:8px;" />
-                                                        <span style="font-size:12px; color:${m.name.toUpperCase() === 'VACANT' ? 'red' : '#000'};">
-                                                            ${m.name} (${m.company})
-                                                        </span>
-                                                    </div>
-                                                `).join('')}
+                                                        <div style="display:flex;align-items:center;margin-bottom:6px;">
+                                                            <img src="${m.image}" style="width:30px;height:30px;border-radius:50%;margin-right:8px;" />
+                                                            <span style="font-size:12px; color:${m.name.toUpperCase() === 'VACANT' ? 'red' : '#000'};">
+                                                                ${m.name} (${m.company})
+                                                            </span>
+                                                        </div>
+                                                    `).join('')}
                                             </div>
                                         </div>
                                     </div>
@@ -1174,11 +1185,10 @@
                 }
             });
         }
-
     </script>
 
 
-    
+
 
     <script>
         $(document).ready(function() {
@@ -1217,10 +1227,10 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 
     <script>
-        $(document).ready(function () {
+        $(document).ready(function() {
             toggleVacantUI($('#vacantCheckbox').is(':checked'));
 
-            $('#vacantCheckbox').change(function () {
+            $('#vacantCheckbox').change(function() {
                 const isChecked = $(this).is(':checked');
                 toggleVacantUI(isChecked);
             });
@@ -1248,13 +1258,13 @@
         });
     </script>
     <script>
-    //    $(function() {
-    //         $('#selectFullName').on('change', function() {
-    //             var npk = $(this).find(':selected').data('npk') || '';
-    //             console.log("Selected NPK:", npk);
-    //             $('#hiddenNpk').val(npk);
-    //         });
-    //     });
+        //    $(function() {
+        //         $('#selectFullName').on('change', function() {
+        //             var npk = $(this).find(':selected').data('npk') || '';
+        //             console.log("Selected NPK:", npk);
+        //             $('#hiddenNpk').val(npk);
+        //         });
+        //     });
         $(function() {
             $('#selectFullName, #edit_name').on('change', function() {
                 // Ini untuk select yang berubah
@@ -1273,7 +1283,6 @@
                 }
             });
         });
-
     </script>
 
 
@@ -1450,7 +1459,8 @@
                     if (response.success && response.type === 'job_spec') {
                         // ✅ Reset inputan
                         form.trigger('reset'); // reset semua input biasa
-                        $('#selectFullName').val(null).trigger('change'); // jika select2 atau select biasa
+                        $('#selectFullName').val(null).trigger(
+                        'change'); // jika select2 atau select biasa
                         $('#position').val(''); // reset input readonly
                         $('#vacantCheckbox').prop('checked', true).trigger('change'); // default VACANT
 
@@ -1487,9 +1497,9 @@
                     profiles.forEach((p, i) => {
                         rows += `
                             <tr>
-                                <td class="border border-black px-2 py-1">${i + 1}</td>                                
-                                <td class="border border-black px-2 py-1">${p.job_purpose || ''}</td>  
-                                <td class="border border-black px-2 py-1 text-center">
+                                <td class="border   px-2 py-1">${i + 1}</td>                                
+                                <td class="border   px-2 py-1">${p.job_purpose || ''}</td>  
+                                <td class="border   px-2 py-1 text-center">
                                     <button class="btn-delete-jobpurpose bg-red-500 text-white px-2 py-1 rounded text-xs hover:bg-red-700"
                                         data-id="${p.id}">
                                         🗑️ Delete
@@ -1594,28 +1604,28 @@
         });
     </script>
     <script>
-            $(document).ready(function() {
-                $('#selectdeptname').select2({
-                    placeholder: "Pilih Departement Name...",
-                    allowClear: true,
-                    width: 'resolve',
-                    dropdownAutoWidth: true
-                });
-                setTimeout(function() {
-                    $("#selectdeptname").next('.select2-container').css('min-width', '200px');
-                }, 0);
-
-                // Aktifkan select2 untuk Company
-                $('#selectCompany').select2({
-                    placeholder: "Pilih Company...",
-                    allowClear: true,
-                    width: 'resolve',
-                    dropdownAutoWidth: true
-                });
-                setTimeout(function() {
-                    $("#selectCompany").next('.select2-container').css('min-width', '150px');
-                }, 0);
+        $(document).ready(function() {
+            $('#selectdeptname').select2({
+                placeholder: "Pilih Departement Name...",
+                allowClear: true,
+                width: 'resolve',
+                dropdownAutoWidth: true
             });
-        </script>
+            setTimeout(function() {
+                $("#selectdeptname").next('.select2-container').css('min-width', '200px');
+            }, 0);
+
+            // Aktifkan select2 untuk Company
+            $('#selectCompany').select2({
+                placeholder: "Pilih Company...",
+                allowClear: true,
+                width: 'resolve',
+                dropdownAutoWidth: true
+            });
+            setTimeout(function() {
+                $("#selectCompany").next('.select2-container').css('min-width', '150px');
+            }, 0);
+        });
+    </script>
 
 </x-app-layout>
