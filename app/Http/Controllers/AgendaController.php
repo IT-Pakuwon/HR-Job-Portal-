@@ -254,11 +254,55 @@ class AgendaController extends Controller
                     }            
                 }    
 
-                  // $this->insert_JobApplySch($agenda, $user);
+                $this->insert_JobApplySch($agenda, $user);
 
                 $jobapply = JobApply::where('docid', $agenda->refid)->first();
                 $applicant = Applicant::where('applicant_id', $jobapply->applicant_id)->first();
                 $jobposting = Jobposting::where('docid', $jobapply->jobid)->first();
+
+                // $jobapplystep = JobApplyStep::where('docid', $jobapply->docid)
+                //     ->where('status', 'P')
+                //     ->whereIn('step_order', [3, 5])
+                //     ->orderBy('step_order', 'ASC')
+                //     ->first();
+
+                // $jobapplystep->status = 'A';
+                // $jobapplystep->aprvuserdate = $datestamp;
+                // $jobapplystep->aprvusername = $user->username;
+                // $jobapplystep->save();
+
+                 // 1) Coba approve STEP 3 jika masih pending
+                $step3 = JobApplyStep::where('docid', $jobapply->docid)
+                    ->where('step_order', 3)
+                    ->where('status', 'P')
+                    ->lockForUpdate()
+                    ->first();
+
+                if ($step3) {
+                    $step3->status        = 'A';
+                    $step3->aprvuserdate  = $datestamp;
+                    $step3->aprvusername  = $user->username;
+                    $step3->save();
+
+                    return response()->json([
+                        'success' => true,
+                        'message' => 'Step 3 approved. Step 5 tidak diproses.'
+                    ]);
+                }
+
+                // 2) Jika step 3 sudah bukan pending, cek apakah step 5 pending
+                $step5 = JobApplyStep::where('docid', $jobapply->docid)
+                    ->where('step_order', 5)
+                    ->where('status', 'P')
+                    ->lockForUpdate()
+                    ->first();
+
+                if (!$step5) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Tidak ada step 3 atau 5 yang pending.'
+                    ], 404);
+                }
 
                 $t_approval_all = T_approval::where('docid', $docid)
                     ->where('status', 'P')

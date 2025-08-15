@@ -287,6 +287,12 @@ Route::post('/logout', function () {
     Route::post('/onboarding/checklist/update', [CareerController::class, 'updateChecklist'])->name('onboarding.checklist.update');
     Route::post('/applicant-profile/pdf', [CareerController::class, 'pdfApplicantprofile'])->name('applicantprofile.pdf');
 
+    Route::post('/signconfirm/store', [CareerController::class, 'storeSign'])->name('signconfirm.store');
+    Route::post('/signconfirm/update', [CareerController::class, 'updateSign'])->name('signconfirm.update');
+    Route::get('/signconfirm/{id}', [CareerController::class, 'editSign'])->name('signconfirm.edit');
+    Route::delete('/signconfirm/{id}', [CareerController::class, 'destroySign'])->name('signconfirm.destroy');
+
+
 
     Route::get('/jobpostings', [JobpostingController::class, 'index'])->name('jobpostings');
     Route::get('/jobpostings/json', [JobpostingController::class, 'json'])->name('jobpostings.json'); 
