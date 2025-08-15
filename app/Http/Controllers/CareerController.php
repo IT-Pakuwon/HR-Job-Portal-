@@ -54,6 +54,7 @@ use Illuminate\Support\Facades\Crypt;
 use Google\Cloud\Storage\StorageClient;
 use Illuminate\Support\Facades\Storage;
 use App\Models\MJobApplyStep;
+use App\Models\SignPayroll;
 
 
 
@@ -293,7 +294,9 @@ class CareerController extends Controller
         //     ->orderBy('hr_trx_job_apply_step.step_order', 'ASC')
         //     ->get();
         $typestep = MJobApplyStep::where('schedule', 1)->get();
-        $payrolls = Payrollconfirm::where('jobapply_id', $career->docid)->get();        
+        $payrolls = Payrollconfirm::where('jobapply_id', $career->docid)->get();   
+        
+        $sign = SignPayroll::where('docid', $career->docid)->orderby('aprvid','ASC')->get(); 
 
         $onboarding = Tronboarding::where('jobapply_id', $career->docid)->first();
           
@@ -301,7 +304,7 @@ class CareerController extends Controller
             'career','applicant','applicant_family','applicant_marital','applicant_education','applicant_working',
             'applicant_language','applicant_course','applicant_sw','applicant_skill','jobapplystep',
             'jobres','jobqua','jobposting','tr_checklist','year','photo','cv','coverletter','user','datenow',
-            'assessmentGroups','tr_assessment','tr_assessment_user','assessmentGroupsUser','agenda','userlist','typestep','payrolls','onboarding'
+            'assessmentGroups','tr_assessment','tr_assessment_user','assessmentGroupsUser','agenda','userlist','typestep','payrolls','onboarding','sign'
         ));
     }
 
@@ -1099,7 +1102,7 @@ class CareerController extends Controller
         $applicant = Applicant::where('applicant_id', $request->applicant_id)->first();
         $company = Company::select(['cpnyid', 'cpnyname'])->where('cpnyid', $request->cpnyid)->first();
         $payrollconfirm = Payrollconfirm::where('applicant_id', $request->applicant_id)->first();
-        $t_approval = T_approval::where('docid', $request->refid)
+        $t_approval = SignPayroll::where('docid', $request->jobapply_id)
             ->orderby('aprvid','ASC')
             ->get();
         // dd($t_approval);    
@@ -1766,6 +1769,100 @@ class CareerController extends Controller
             
 
     }
+
+    public function storeSign(Request $request)
+    {
+        // dd($request->all());
+        $user = Auth::user();       
+
+
+        DB::beginTransaction();
+        try {
+           
+            $datenow = Carbon::now()->format('Y-m-d');
+            $now = Carbon::now();
+            $year = $now->year;
+            $month = str_pad($now->month, 2, '0', STR_PAD_LEFT);
+            $request->validate([
+                    'aprvid'        => 'required|array',
+                    'aprvid.*'      => 'required|integer',
+                    'aprvusername'  => 'required|array',
+                    'aprvusername.*'=> 'required|string',
+                    'aprvname'      => 'required|array',
+                    'aprvname.*'    => 'required|string',                  
+                ]);
+
+            foreach ($request->aprvid as $i => $ord) {
+                SignPayroll::create([
+                    'docid'         => $request->jobapply_id,                  
+                    'aprvid'       => $ord,
+                    'aprvusername' => $request->aprvusername[$i],  // username
+                    'name'         => $request->aprvname[$i],      // name                  
+                    'jabatan'      => $request->jabatan[$i] ?? null,
+                     'status' => 'P',
+                    'created_user' => $user->username
+                ]);
+            }
+
+            DB::commit();
+            return response()->json(['success' => true]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'error' => 'Gagal menyimpan Transaksi Sign Payroll',
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+
+    public function editSign($id)
+    {
+        $data = SignPayroll::find($id);
+        return response()->json($data);
+    }
+
+    public function updateSign(Request $request)
+    {
+        // Validasi minimal
+        $request->validate([
+            'id'             => ['required','integer','exists:ms_approval_payroll,id'], // sesuaikan nama tabel
+            'aprvid'         => ['required'],
+            'aprvusername'   => ['required'],
+            // 'aprvname'       => ['required'], // <- hidden yg kamu kirim dari select
+            'jabatan'        => ['required'],
+        ]);
+
+        $row = SignPayroll::findOrFail($request->id);
+
+        // Helper untuk ambil single value dari array/single
+        $pick = function ($key) use ($request) {
+            $v = $request->input($key);
+            return is_array($v) ? ($v[0] ?? null) : $v;
+        };
+
+        $row->aprvid        = (int) $pick('aprvid');         // ["3"] -> 3
+        $row->aprvusername  = (string) $pick('aprvusername'); // ["benny"] -> "benny"
+        $row->name          = (string) $pick('aprvname');     // gunakan aprvname (bukan name)
+        $row->jabatan       = (string) $pick('jabatan');
+        $row->updated_user  = Auth::user()->username ?? 'system';
+        $row->save();
+
+        return response()->json(['success' => true]);
+    }
+
+    public function destroySign($id)
+    {
+        $sign = SignPayroll::find($id);
+        if (!$sign) {
+            return response()->json(['success' => false, 'message' => 'Not found'], 404);
+        }
+
+        $sign->delete();
+        return response()->json(['success' => true]);
+    }
+
 
 
 

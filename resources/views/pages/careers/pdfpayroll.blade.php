@@ -147,7 +147,7 @@
     <tr><td>ACCOUNT CODE</td><td>:</td><td></td></tr>
     <tr><td>DEPARTEMEN</td><td>:</td><td>{{ $departementid }}</td></tr>
     <tr><td>LEVEL</td><td>:</td><td>{{ $job_level }}</td></tr>
-    <tr><td>JABATAN</td><td>:</td><td>{{ $job_title }}</td></tr>
+    <tr><td>JABATAN</td><td>:</td><td>{{ $job_title }} {{ $job_level }}</td></tr>
     <tr><td>GAJI YANG DISEPAKATI</td><td>:</td><td>Rp. {{ $net_salary }}* (gaji Nett, belum dipotong BPJS TK 3%)</td></tr>
     <tr><td>FASILITAS LAIN</td><td>:</td><td>{{ $other_facility }}</td></tr>
     <tr><td>TANGGAL KESEDIAAN</td><td>:</td><td>{{ $availability_date }}</td></tr>
@@ -179,7 +179,7 @@
                     @elseif (in_array($approval->aprvid, [2, 3]))
                         HCD DEPT
                     @else
-                        {{ strtoupper($approval->position ?? '') }}
+                        {{ strtoupper($approval->jabatan ?? '') }}
                     @endif
                     <br>
                     Tgl : ........................
@@ -198,7 +198,7 @@
             @foreach ($row2 as $approval)
                 <td colspan="2" align="center">
                     <strong>{{ strtoupper($approval->name) }}</strong><br>
-                    {{ strtoupper($approval->position ?? 'DIRECTOR') }}<br>
+                    {{ strtoupper($approval->jabatan ?? 'DIRECTOR') }}<br>
                     Tgl : ........................
                 </td>
             @endforeach
