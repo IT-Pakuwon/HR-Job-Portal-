@@ -194,6 +194,7 @@ class PersonnelController extends Controller
                 'date' => $datenow,
                 'user' => $user->username,
                 'job_title' => $title->departement_name,
+                'subgrade_id' => $request->subgrade_id,
                 'job_level' => $request->job_level,                
                 'immediate_superior' => $request->immediate_superior,                
                 'state_position' => $request->state_position,
@@ -426,6 +427,7 @@ class PersonnelController extends Controller
                 'locationname' => $site->site ?? null,
                 'user' => $user->username,
                 'job_title' => $title->departement_name,
+                'subgrade_id' => $request->subgrade_id,
                 'job_level' => $request->job_level,                
                 'immediate_superior' => $request->immediate_superior,                
                 'state_position' => $request->state_position,
@@ -952,6 +954,7 @@ class PersonnelController extends Controller
                 'division_id' => optional($personnel->divisionRef)->division_name,
                 'date' => $datenow,
                 'job_title' => $personnel->job_title,
+                'subgrade_id' => $personnel->subgrade_id,
                 'job_level' => $personnel->job_level,                
                 'immediate_superior' => $personnel->immediate_superior,                
                 'state_position' => $personnel->state_position,
@@ -1097,7 +1100,7 @@ class PersonnelController extends Controller
             ->where('e.employee_name', 'VACANT')
             ->where('e.status', 'A')
             ->whereIn('e.departement_id', $childIds)
-            ->select('e.id as employee_id', 'e.employee_name', 'e.employee_company', 'd.departement_id', 'd.departement_name','d.subgrade_name','d.parent_id')
+            ->select('e.id as employee_id', 'e.employee_name', 'e.employee_company', 'd.departement_id', 'd.departement_name','d.subgrade_name','d.parent_id','d.subgrade_id')
             ->get();
 
         return response()->json($vacants);

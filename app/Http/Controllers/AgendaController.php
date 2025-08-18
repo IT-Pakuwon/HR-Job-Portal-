@@ -166,15 +166,32 @@ class AgendaController extends Controller
             $tglbln = substr($year, 2) . $month;
             $docid = $doctype . $tglbln . sprintf("%03d", $urutan);
            
-            $userlist = User::where('status','A')
-                ->get(); 
+            // $userlist = User::where('status','A')
+            //     ->get(); 
 
-            $participantlist = $request->input('participant');
-            if($participantlist <> null){
-                $userlist->appreance = implode(',', $participantlist);
-            }else{
-                $userlist->appreance = '';
+            // $participantlist = $request->input('participant');
+            // if($participantlist <> null){
+            //     $userlist->appreance = implode(',', $participantlist);
+            // }else{
+            //     $userlist->appreance = '';
+            // }
+
+            $userlist = User::where('status', 'A')->get();
+
+            // 2) Normalisasi input participant (boleh array atau string "a,b,c")
+            $raw = $request->input('participant', []);
+            if (is_string($raw)) {
+                $participants = array_map('trim', explode(',', $raw));
+            } else {
+                $participants = (array) $raw;
             }
+            $participants = array_values(array_unique(array_filter($participants))); // trim, buang kosong, unik
+
+            // CSV utk kolom participant (dipakai FIND_IN_SET)
+            $participantCsv = implode(',', $participants);
+
+            // 3) Buat peta username => name dari collection $userlist (tanpa query ulang)
+            $userMap = $userlist->pluck('name', 'username'); // contoh: ['benny' => 'Benny Benjamin', ...]
                        
             $agenda = Agenda::create([
                 'docid' => $docid,
@@ -191,7 +208,8 @@ class AgendaController extends Controller
                 'location_address' => $request->location_address,    
                 'created_user' => $user->username,
                 'refid' => $request->refid,
-                'participant' => $userlist->appreance              
+                // 'participant' => $userlist->appreance        
+                'participant'       => $participantCsv,      
             ]);
             
             // Simpan Attachments ke attachments          
@@ -236,73 +254,88 @@ class AgendaController extends Controller
             }elseif($accId){                                
                 dd('zoom only');     
             }else{
-                if ($request->has('participant')) {
-                    foreach ($request->participant as $mp) {                
-                        T_approval::create([
-                            'docid' => $docid,
-                            'aprvid' => 1,
-                            'aprvdoctype' => 'AGD',
-                            'aprvcpnyid' => $request->departementid,
-                            'aprvdeptid' => $request->cpnyid,
-                            'aprvusername' => $mp,
-                            'name' => $mp,
-                            'aprvdatebefore' => $datestamp,
-                            'aprvtotalday' => 1,
-                            'status' => 'P',
-                            'created_user' => $user->username
-                        ]);
-                    }            
-                }    
+                // if ($request->has('participant')) {
+                //     foreach ($request->participant as $mp) {                
+                //         T_approval::create([
+                //             'docid' => $docid,
+                //             'aprvid' => 1,
+                //             'aprvdoctype' => 'AGD',
+                //             'aprvcpnyid' => $request->departementid,
+                //             'aprvdeptid' => $request->cpnyid,
+                //             'aprvusername' => $mp,
+                //             'name' => $mp,
+                //             'aprvdatebefore' => $datestamp,
+                //             'aprvtotalday' => 1,
+                //             'status' => 'P',
+                //             'created_user' => $user->username
+                //         ]);
+                //     }            
+                // }    
 
-                $this->insert_JobApplySch($agenda, $user);
+                if (!empty($participants)) {
+                    $rows = [];
+                    foreach ($participants as $i => $uname) {
+                        $rows[] = [
+                            'docid'          => $docid,
+                            'aprvid'         => 1, // atau ($i+1) kalau ingin urut 1..n
+                            'aprvdoctype'    => 'AGD',
+                            'aprvcpnyid'     => $request->cpnyid,        // <- pastikan tidak terbalik
+                            'aprvdeptid'     => $request->departementid, // <-
+                            'aprvusername'   => $uname,                                  // username
+                            'name'           => $userMap->get($uname, $uname),           // NAMA LENGKAP                            
+                            'aprvtotalday'   => 1,
+                            // 'aprvdatebefore' => $datestamp,
+                            'status'         => 'P',
+                            'created_user'   => $user->username,
+                         
+                        ];
+                    }
+                    T_approval::insert($rows); // lebih efisien daripada create() di-loop
+                }
+
+                // $this->insert_JobApplySch($agenda, $user);
 
                 $jobapply = JobApply::where('docid', $agenda->refid)->first();
                 $applicant = Applicant::where('applicant_id', $jobapply->applicant_id)->first();
                 $jobposting = Jobposting::where('docid', $jobapply->jobid)->first();
 
-                // $jobapplystep = JobApplyStep::where('docid', $jobapply->docid)
-                //     ->where('status', 'P')
-                //     ->whereIn('step_order', [3, 5])
-                //     ->orderBy('step_order', 'ASC')
-                //     ->first();
-
-                // $jobapplystep->status = 'A';
-                // $jobapplystep->aprvuserdate = $datestamp;
-                // $jobapplystep->aprvusername = $user->username;
-                // $jobapplystep->save();
-
-                 // 1) Coba approve STEP 3 jika masih pending
                 $step3 = JobApplyStep::where('docid', $jobapply->docid)
-                    ->where('step_order', 3)
                     ->where('status', 'P')
-                    ->lockForUpdate()
+                    ->where('step_order', 3)                    
                     ->first();
 
-                if ($step3) {
-                    $step3->status        = 'A';
-                    $step3->aprvuserdate  = $datestamp;
-                    $step3->aprvusername  = $user->username;
+                if($step3){
+                    $step3->status = 'A';
+                    $step3->aprvuserdate = $datestamp;
+                    $step3->aprvusername = $user->username;
                     $step3->save();
-
-                    return response()->json([
-                        'success' => true,
-                        'message' => 'Step 3 approved. Step 5 tidak diproses.'
-                    ]);
                 }
 
-                // 2) Jika step 3 sudah bukan pending, cek apakah step 5 pending
-                $step5 = JobApplyStep::where('docid', $jobapply->docid)
-                    ->where('step_order', 5)
-                    ->where('status', 'P')
-                    ->lockForUpdate()
+                $step4 = JobApplyStep::where('docid', $jobapply->docid)
+                    ->where('status', 'A')
+                    ->where('step_order', 4)                    
                     ->first();
 
-                if (!$step5) {
-                    return response()->json([
-                        'success' => false,
-                        'message' => 'Tidak ada step 3 atau 5 yang pending.'
-                    ], 404);
+                if($step4){
+                    $step5 = JobApplyStep::where('docid', $jobapply->docid)
+                        ->where('status', 'P')
+                        ->where('step_order', 5)                    
+                        ->first();
+
+                       
+                    if($step5){
+                       
+                        $step5->status = 'A';
+                        $step5->aprvuserdate = $datestamp;
+                        $step5->aprvusername = $user->username;
+                        $step5->save();
+                    }else{
+                        
+                    }
+                    
                 }
+
+                
 
                 $t_approval_all = T_approval::where('docid', $docid)
                     ->where('status', 'P')

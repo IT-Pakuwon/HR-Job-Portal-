@@ -96,6 +96,7 @@
                                     <div class="flex flex-col gap-2">
                                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Job
                                             Level</label>
+                                        <input type="hidden" name="subgrade_id" id="subgrade_id">
                                         <input type="text" name="job_level" id="job_level"
                                             class="pointer-events-none w-full rounded-lg border border-gray-300 bg-gray-100 p-2.5 text-gray-700 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                             readonly>
@@ -689,10 +690,13 @@
 
                         if (data.length > 0) {
                             $.each(data, function(key, emp) {
+                                const subgradeId = emp.subgrade_id ?? '';
+                                                               
                                 $jobTitle.append(`
                                     <option value="${emp.departement_id}" 
                                             data-title-level="${emp.subgrade_name}" 
-                                            data-parent-id="${emp.parent_id}">
+                                            data-parent-id="${emp.parent_id}"        
+                                            data-subgrade-id="${subgradeId}">                                    
                                         ${emp.departement_name}-${emp.subgrade_name}
                                     </option>`);
                             });
@@ -719,6 +723,10 @@
                 let deptId = $('select[name="departementid"]').val();
 
                 $('#job_level').val(titleLevel).prop('readonly', true); // isi title level
+
+                // SET subgrade_id
+                const subgradeId = selected.data('subgrade-id') || '';
+                $('#subgrade_id').val(subgradeId);
 
                 if (parentId) {
                     $.ajax({
