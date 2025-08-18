@@ -1,141 +1,177 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
-  <meta charset="UTF-8">
-  <title>Pernyataan Sikap dan Etika</title>
-  <style>
-    @page {
-      size: A4;
-      margin: 15mm;
-    }
+    <meta charset="UTF-8">
+    <title>Pakta Integritas</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 15mm 20mm;
+        }
 
-    body {
-      font-family: Arial, sans-serif;
-      font-size: 12px;
-      margin: 0;
-      padding: 0;
-      line-height: 1.4;
-    }
+        body {
+            font-family: 'Times New Roman', Times, serif;
+            font-size: 12pt;
+            line-height: 1.5;
+        }
 
-    h2 {
-      text-align: center;
-      font-size: 14pt;
-      font-weight: bold;
-      /* text-decoration: underline; */
-    }
+        .container {
+            max-width: 100%;
+            margin: auto;
+        }
 
-    ol {
-      margin-top: 5px;
-      margin-bottom: 5px;
-    }
+        h2 {
+            text-align: center;
+            font-size: 14pt;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
 
-    .ttd {
-      text-align: right;
-      margin-top: 50px;
-    }
+        p {
+            text-align: justify;
+            margin-top: 0;
+            margin-bottom: 10px;
+        }
 
-    .biodata {
-      text-align: right;  /* Align biodata to the right */
-      margin-top: 20px;
-    }
+        .biodata-table {
+            width: 100%;
+            margin: 20px 0;
+        }
 
-    table {
-      width: auto;
-      margin-left: auto;  /* Center the table horizontally */
-      margin-right: 0;
-    }
+        .biodata-table td {
+            padding: 2px 0;
+            vertical-align: top;
+        }
 
-    td {
-      padding: 4px 8px;
-    }
+        .biodata-table td:first-child {
+            width: 120px;
+        }
 
-    .label {
-      text-align: left;
-      width: 100px;
-    }
+        .declaration-list {
+            margin-top: 10px;
+            margin-left: 0;
+            padding-left: 20px;
+        }
 
-    .colon {
-      text-align: right;
-      padding-left: 5px;
-    }
+        .declaration-list li {
+            text-align: justify;
+            margin-bottom: 10px;
+        }
 
-    .value {
-      text-align: left;
-    }
+        .signature-area {
+            margin-top: 50px;
+            text-align: left;
+        }
 
-    p {
-      margin-bottom: 5px;
-    }
-  </style>
+
+        .name-line {
+            margin-top: 60px;
+            font-weight: bold;
+        }
+
+        .sub-list {
+            list-style-type: lower-alpha;
+            margin-top: 5px;
+            margin-bottom: 5px;
+        }
+    </style>
 </head>
+
 <body>
 
-  <h2>Pernyataan Sikap dan Etika Bekerja dengan Integritas</h2><br>
+    <div class="container">
+        <h2>PAKTA INTEGRITAS</h2>
 
-  <p>
-    Sebagai seorang karyawan yang perusahaannya tergabung dalam Pakuwon group,
-    dengan ini saya menyatakan bahwa saya telah memahami sepenuhnya Sikap dan
-    Kode Etik Kerja yang berlaku di Perusahaan sebagai bagian dari Ketentuan dan
-    Peraturan Perusahaan, dan dengan ini saya menyatakan bahwa saya :
-  </p>
+        <p style="text-align: justify;">
+            Dalam rangka penerapan Tata Kelola Perusahaan Yang Baik (<em> Good Corporate Governance/GCG</em>), maka Saya
+            yang bertandatangan di bawah ini:
+        </p>
 
-  <ol>
-    <li>Tidak akan mengambil / memindahkan (barang dan/atau uang), yang dilakukan dalam lingkungan perusahaan tanpa melalui prosedur yang sah / resmi.</li>
-    <li>Tidak akan memperkaya diri sendiri dengan menggunakan, mengatasnamakan serta mempergunakan semua fasilitas perusahaan untuk kepentingan pribadi.</li>
-    <li>Tidak akan merusak dengan sengaja atau karena kecerobohan milik / harta benda perusahaan, termasuk di dalamnya barang-barang yang dipakai sebagai perlengkapan kerja, demikian juga barang milik anggota pimpinan perusahaan, anggota staff dan teman teman.</li>
-    <li>Tidak akan dengan sengaja atau ceroboh membiarkan teman sekerja atau pimpinan perusahaan dalam keadaan bahaya ditempat kerja.</li>
-    <li>Tidak akan melakukan penganiayaan ataupun perkelahian fisik, mengancam, mengintimidasi atau menghina secara kasar terhadap keluarga pengusaha, pengunjung, keluarga pengunjung, anggota staff dan teman sekerja, begitu juga terhadap orang lain yang berada dalam lingkungan perusahaan.</li>
-    <li>Tidak akan memberikan keterangan palsu atau yang dipalsukan/ keterangan yang tidak benar.</li>
-    <li>Tidak akan melakukan pelecehan seksual dan atau tindakan asusila ditempat kerja.</li>
-    <li>Tidak akan meminum minuman keras yang memabukan dan berjudi di dalam lingkungan perusahaan.</li>
-    <li>Tidak akan membongkar rahasia perusahaan atau rumah tangga anggota pimpinan perusahaan, anggota staff dan teman sekerja.</li>
-    <li>Tidak akan menggunakan narkoba, terlibat dalam pengedaran dan atau penjual narkoba.</li>
-    <li>Tidak akan melakukan kerjasama dengan pihak luar untuk melakukan sesuatu yang akan merugikan perusahaan.</li>
-    <li>Tidak akan melanggar norma-norma hukum atau norma kesusilaan yang berlaku di Indonesia.</li>
-  </ol>
+        <table class="biodata-table">
+            <tr>
+                <td>Nama</td>
+                <td>:</td>
+                <td>____________________________</td>
+            </tr>
+            <tr>
+                <td>NIK</td>
+                <td>:</td>
+                <td>____________________________</td>
+            </tr>
+            <tr>
+                <td>Jabatan</td>
+                <td>:</td>
+                <td>____________________________</td>
+            </tr>
+            <tr>
+                <td>Divisi</td>
+                <td>:</td>
+                <td>____________________________</td>
+            </tr>
+        </table>
 
-  <p>
-    Maka untuk itu, saya berjanji akan mentaati/ mematuhi seluruh ketentuan yang
-    dijelaskan dalam Sikap dan Kode Etik Kerja tersebut secara sadar dan tanpa
-    paksaan. Selanjutnya, saya menyatakan bahwa saya akan dengan suka rela
-    mengundurkan diri dari Perusahaan bilamana saya gagal mentaati atau malah
-    melanggar ketentuan-ketentuan dalam Sikap dan Kode Etik Kerja tersebut.
-  </p><br><br><br>
+        <p style="text-align: center;">Dengan ini menyatakan bahwa Saya berkomitmen untuk:</p>
 
+        <ol class="declaration-list">
+            <li>Mematuhi dan melaksanakan seluruh peraturan, Kode Etik (<em>Code of Conduct</em>), kebijakan dan standar
+                operasional prosedur yang ditetapkan Perusahaan serta peraturan perundang-undangan yang berlaku.</li>
+            <li>Bekerja secara bertanggung jawab, jujur, amanah, profesional, transparan dan akuntabel tanpa
+                mengharapkan keuntungan pribadi di luar ketentuan Perusahaan.</li>
+            <li>Tidak melakukan perbuatan yang dapat merugikan integritas dan reputasi Perusahaan.</li>
+            <li>Tidak melakukan perbuatan yang melanggar hukum baik pidana (kriminal) maupun perdata, melanggar etika,
+                norma moral dan pelanggaran asusila di lingkungan Perusahaan.</li>
+            <li>Menerapkan tindakan Anti Korupsi, Anti Penyuapan ( <em>Anti-Bribery</em> ) dan <em>Anti-Lobbying</em>
+                antara lain
+                :
+                <ul class="sub-list">
+                    <li>Tidak melakukan atau mengajak melakukan perbuatan korupsi, kolusi dan nepotisme (KKN).</li>
+                    <li>Tidak meminta dan/atau menerima atau memberi gratifikasi, suap, atau imbalan dalam bentuk apapun
+                        yang berkaitan dengan tugas dan tanggung jawab Saya.</li>
+                    <li>Tidak melakukan perbuatan yang menimbulkan benturan kepentingan ( <em>Conflict of Interest</em>
+                        ).</li>
+                    <li>Tidak melakukan segala aktivitas yang tidak transparan, seperti lobbying atau tindakan lain yang
+                        bertujuan mempengaruhi pihak lain yang bertentangan dengan aturan Perusahaan, termasuk namun
+                        tidak terbatas pada memberikan rekomendasi, mengambil keputusan, atau memberikan perintah yang
+                        memanfaatkan Perusahaan secara langsung maupun tidak langsung untuk keuntungan pribadi,
+                        keluarga, kerabat, teman dekat, atau golongan tertentu.</li>
+                </ul>
+            </li>
+            <li>Melaporkan setiap indikasi tindakan korupsi, kolusi, nepotisme, penyuapan, pelanggaran hukum, Kode Etik,
+                penyelewengan, kecurangan atau tindakan lainnya yang tidak sesuai dengan etika, tata nilai, peraturan
+                dan kebijakan Perusahaan yang Saya ketahui dilakukan oleh pihak ketiga maupun Direksi atau karyawan
+                Perusahaan melalui surat kepada Tim <em>Whistle Blowing System</em> (WBS) Perusahaan atau dengan
+                mengunduh
+                formulir di wbs.pakuwonjati.com.</li>
+            <li>Menjaga informasi rahasia milik Perusahaan yang diperoleh dalam bentuk apapun baik tertulis, tidak
+                tertulis maupun elektronik (“Informasi Rahasia”) dan tidak menggunakan Informasi Rahasia untuk
+                keuntungan pribadi baik untuk membeli atau menjual saham Perusahaan, termasuk namun tidak terbatas pada
+                mendorong orang lain untuk memperdagangkan Informasi Rahasia atau memberikannya kepada pihak yang tidak
+                berwenang ( <em>insider trading</em> ). Kewajiban tersebut akan terus berlaku selama menjadi karyawan
+                atau setelah
+                keluar dari Perusahaan dan dikecualikan terhadap informasi yang telah diketahui oleh publik dan/atau
+                telah memperoleh ijin tertulis Perusahaan atau adanya kewajiban pengungkapan untuk mematuhi kewajiban
+                hukum dan/atau perintah, permintaan, atau putusan pengadilan atau pejabat pengadilan.</li>
+            <li>Memastikan karyawan di lingkungan kerja yang menjadi tanggung jawab Saya untuk melaksanakan Pakta
+                Integritas secara konsisten dan bertanggung jawab.</li>
+            <li>Bersedia menerima sanksi sesuai Peraturan Perusahaan, Perjanjian Kerja Bersama (PKB) atas setiap
+                pelanggaran terhadap pakta integritas, termasuk tetapi tidak terbatas pada tindakan disiplin, pemutusan
+                hubungan kerja atau proses hukum sesuai dengan peraturan perundang-undangan yang berlaku.</li>
+        </ol>
 
-  
+        <p style="margin-top: 20px;">
+            Dengan menandatangani Pakta Integritas ini, Saya berkomitmen untuk menjalankan tugas Saya dengan penuh
+            tanggung jawab dan integritas tinggi demi tercapainya visi dan misi Perusahaan.
+        </p>
 
-  <div class="ttd">
-    <p>Yang Menyatakan,</p>
-    <br><br><br>
-    <p>____________________</p>
-  </div>
-
-  <div class="biodata">
-    <table>
-      <tr>
-        <td class="label">Nama</td>
-        <td class="colon">:</td>
-        <td class="value">{{ $full_name }}</td>
-      </tr>
-      <tr>
-        <td class="label">Jabatan</td>
-        <td class="colon">:</td>
-        <td class="value">{{ $job_title }}</td>
-      </tr>
-      <tr>
-        <td class="label">Department</td>
-        <td class="colon">:</td>
-        <td class="value">{{ $departementid }}</td>
-      </tr>
-      <tr>
-        <td class="label">Tanggal</td>
-        <td class="colon">:</td>
-        <td class="value">{{ $date }}</td>
-      </tr>
-    </table>
-  </div>
-
+        <div class="signature-area">
+            <p>Yang Memberikan Pernyataan,</p>
+            <div class="name-line">_________________________</div>
+            <p>Nama :</p>
+            <p>Jabatan :</p>
+        </div>
+    </div>
 
 </body>
+
 </html>
