@@ -18,6 +18,7 @@ class Personnel extends Model
         'date',
         'user',
         'job_title',
+        'subgrade_id',
         'job_level',        
         'immediate_superior',
         'state_position',
