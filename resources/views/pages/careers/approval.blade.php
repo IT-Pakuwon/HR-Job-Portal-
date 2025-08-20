@@ -34,6 +34,7 @@
                            class="whitespace-nowrap px-3 py-3 text-sm font-medium transition-colors duration-200 focus:outline-none sm:px-4 sm:text-base">
                            Checklist
                        </button>
+                       @if($canAccessAssessment)
                        <button @click="subtab = 'assessment'"
                            :class="subtab === 'assessment' ?
                                'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400' :
@@ -41,6 +42,7 @@
                            class="whitespace-nowrap px-3 py-3 text-sm font-medium transition-colors duration-200 focus:outline-none sm:px-4 sm:text-base">
                            Assessment HC
                        </button>
+                       @endif
                        <button @click="subtab = 'assessmentuser'"
                            :class="subtab === 'assessmentuser' ?
                                'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400' :
@@ -48,20 +50,24 @@
                            class="whitespace-nowrap px-3 py-3 text-sm font-medium transition-colors duration-200 focus:outline-none sm:px-4 sm:text-base">
                            Assessment User
                        </button>
-                       <button @click="subtab = 'payroll'"
-                           :class="subtab === 'payroll' ?
-                               'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400' :
-                               'text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200'"
-                           class="whitespace-nowrap px-3 py-3 text-sm font-medium transition-colors duration-200 focus:outline-none sm:px-4 sm:text-base">
-                           Payroll
-                       </button>
-                       <button @click="subtab = 'join'"
-                           :class="subtab === 'join' ?
-                               'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400' :
-                               'text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200'"
-                           class="whitespace-nowrap px-3 py-3 text-sm font-medium transition-colors duration-200 focus:outline-none sm:px-4 sm:text-base">
-                           Join
-                       </button>
+                       @if($canAccessPayroll)
+                        <button @click="subtab = 'payroll'"
+                            :class="subtab === 'payroll' ?
+                                'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400' :
+                                'text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200'"
+                            class="whitespace-nowrap px-3 py-3 text-sm font-medium transition-colors duration-200 focus:outline-none sm:px-4 sm:text-base">
+                            Payroll
+                        </button>
+                       @endif
+                        @if($canAccessAssessment)
+                        <button @click="subtab = 'join'"
+                            :class="subtab === 'join' ?
+                                'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400' :
+                                'text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200'"
+                            class="whitespace-nowrap px-3 py-3 text-sm font-medium transition-colors duration-200 focus:outline-none sm:px-4 sm:text-base">
+                            Join
+                        </button>
+                       @endif
                    </div>
 
                    <div>

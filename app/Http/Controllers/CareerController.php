@@ -55,6 +55,8 @@ use Google\Cloud\Storage\StorageClient;
 use Illuminate\Support\Facades\Storage;
 use App\Models\MJobApplyStep;
 use App\Models\SignPayroll;
+use App\Models\GroupAccspecific;
+use App\Models\CompanyAddress;
 
 
 
@@ -151,7 +153,12 @@ class CareerController extends Controller
         $career = ViewCareer::findOrFail($id);   
         $job_apply = Career::where('docid', $career->docid)->first();
 
-        if ($user->departmentid=='HRGA') {           
+        $hasGroupAccess = GroupAccspecific::where('username', $user->username)
+            ->where('group_access_id', 'STEP')
+            ->where('status', 'A')
+            ->first();
+
+        if ($hasGroupAccess) {           
             $job_apply->is_read = 'Y';
             $job_apply->save();
         }
@@ -284,7 +291,7 @@ class CareerController extends Controller
         }
 
         $agenda = Agenda::where('refid', $career->docid)->get();
-        $userlist = User::where('status','A')->get();
+        $userlist = User::where('status','A')->orderby('name','ASC')->get();
         $agenda = Agenda::where('refid', $career->docid)->get();
 
         // $typestep = JobApplyStep::leftjoin('hr_ms_job_step', 'hr_trx_job_apply_step.step_id', '=', 'hr_ms_job_step.step_id')                                      
@@ -299,12 +306,21 @@ class CareerController extends Controller
         $sign = SignPayroll::where('docid', $career->docid)->orderby('aprvid','ASC')->get(); 
 
         $onboarding = Tronboarding::where('jobapply_id', $career->docid)->first();
+
+        $canAccessPayroll = GroupAccspecific::where('username', $user->username)
+            ->where('parameter_access_id', $career->subgrade_id)
+            ->where('status', 'A')
+            ->exists();
+
+        $canAccessAssessment = GroupAccspecific::where('username', $user->username)            
+            ->where('status', 'A')
+            ->exists();
           
         return view('pages.careers.showcareers', compact(
             'career','applicant','applicant_family','applicant_marital','applicant_education','applicant_working',
             'applicant_language','applicant_course','applicant_sw','applicant_skill','jobapplystep',
             'jobres','jobqua','jobposting','tr_checklist','year','photo','cv','coverletter','user','datenow',
-            'assessmentGroups','tr_assessment','tr_assessment_user','assessmentGroupsUser','agenda','userlist','typestep','payrolls','onboarding','sign'
+            'assessmentGroups','tr_assessment','tr_assessment_user','assessmentGroupsUser','agenda','userlist','typestep','payrolls','onboarding','sign','canAccessPayroll','canAccessAssessment'
         ));
     }
 
@@ -465,16 +481,25 @@ class CareerController extends Controller
             ->where('aprvusername', 'like', '%' . $user->username . '%')
             ->first();
 
-        if (!$cek_approval) {
+        $hasGroupAccess = GroupAccspecific::where('username', $user->username)
+            ->where('group_access_id', 'STEP')
+            ->where('status', 'A')
+            ->first();
+        
+        if (!$cek_approval && !$hasGroupAccess) {
             return response()->json(['success' => false, 'message' => "You Can't Approve!"], 403);
         }
+
+        // if (!$cek_approval) {
+        //     return response()->json(['success' => false, 'message' => "You Can't Approve!"], 403);
+        // }
 
         $t_approval = JobApplyStep::where('docid', $career->docid)
             ->where('status', 'P')           
             ->orderBy('step_order', 'ASC')
             ->first();
 
-        if($user->groups==20){
+        if($hasGroupAccess){
             $user_step_pic = 'HC';
         }else{
             $user_step_pic = 'USER';
@@ -493,7 +518,8 @@ class CareerController extends Controller
         if ($t_approval->step_order == 2) {    
             $this->insert_checklist($career, $user);
             $this->insert_assessment($career, $user);   
-            $this->insert_psychotest($career, $user);
+            // $this->insert_psychotest($career, $user);
+            $this->update_trx_approval($career, $user);
             $this->sendemail_applicant($career, $user);     
         }
 
@@ -1105,6 +1131,8 @@ class CareerController extends Controller
         $t_approval = SignPayroll::where('docid', $request->jobapply_id)
             ->orderby('aprvid','ASC')
             ->get();
+
+        $net_salary   = (float) (optional($payrollconfirm)->net_salary ?? 0);
         // dd($t_approval);    
         $data = [
             'cpnyid' => $company->cpnyname,
@@ -1121,8 +1149,8 @@ class CareerController extends Controller
             'tax_liability' => $payrollconfirm->tax_liability ?? '-',
             'npwp_id' => $payrollconfirm->npwp_id ?? '-',
             'bank_account' => $payrollconfirm->bank_account ?? '-',
-            'bank_name' => $payrollconfirm->bank_name ?? '-',
-            'net_salary' => $payrollconfirm->net_salary ?? '0',
+            'bank_name' => $payrollconfirm->bank_name ?? '-',          
+            'net_salary' => number_format($net_salary) ?? '0',
             'other_facility' => $payrollconfirm->other_facility ?? '-',
             'availability_date' => $payrollconfirm->availability_date ?? '-',
             'work_start_date' => $payrollconfirm->work_start_date ?? '-',
@@ -1151,7 +1179,8 @@ class CareerController extends Controller
         $net_salary   = (float) (optional($payrollconfirm)->net_salary ?? 0); // <- aman jika payroll null
         $salary_words = ucfirst($this->terbilang($net_salary)) . ' rupiah'; // <- pakai $this
 
-
+        $companyaddress = CompanyAddress::where('cpnyid', $request->cpnyid)->first();
+        
         $data = [
             'cpnyid' => $company->cpnyname,
             'departementid' => $request->departementid,
@@ -1168,6 +1197,8 @@ class CareerController extends Controller
             'net_salary' => number_format($net_salary) ?? '0',
             'salary_words' => $salary_words,          
             'logo' => $company->cpnyid,
+            'company_name' => $companyaddress->cpnyname ?? '-',
+            'company_address' => $companyaddress->address ?? '-',
                     
         ];
 
@@ -1758,6 +1789,36 @@ class CareerController extends Controller
                     });
                 }
             }
+            
+
+            DB::commit();
+            return true;
+        } catch (\Exception $e) {
+            DB::rollBack();
+            throw $e; // lempar balik supaya controller bisa tangani
+        }
+            
+
+    }
+
+    public function update_trx_approval($career, $user)
+    {
+        $datestamp = Carbon::now()->toDateTimeString();
+        DB::beginTransaction();
+        try {
+
+                       
+            // Cek apakah user termasuk dalam daftar approval
+            $approvals = T_approval::where('docid', $career->docid)
+                ->where('aprvid',1)                            
+                ->first();
+            // dd($approvals);
+            $approvals->status = 'A';
+            $approvals->aprvdateafter = $datestamp;
+            $approvals->aprvusername = $user->username;
+            $approvals->name = $user->name;
+            $approvals->save();
+           
             
 
             DB::commit();
