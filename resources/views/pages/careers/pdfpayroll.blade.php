@@ -127,8 +127,8 @@
 </head>
 <body>
 
-  <div class="text-left bold">NPK</div>
-  <div class="text-left bold">REV. IX/2023</div>
+  {{-- <div class="text-left bold">NPK</div>
+  <div class="text-left bold">REV. IX/2023</div> --}}
 
   <h2>PAYROLL CONFIRMATION</h2>
   <p class="text-center">(Diisi oleh HRD)</p>
@@ -160,35 +160,30 @@
     <table class="signature-table" width="100%">
         @php
             $row1 = $approvals->whereIn('aprvid', [1, 2, 3]);
+            $row1Count = $row1->count();
             $row2 = $approvals->whereIn('aprvid', [4, 5]);
         @endphp
 
         <tr>
             <!-- Karyawan -->
-            <td width="25%">
-                <strong style="text-transform: uppercase;">{{ $full_name ?? '__________' }}</strong><br>
+            {{-- <td width="5%"> --}}
+                {{-- <strong style="text-transform: uppercase;">{{ $full_name ?? '__________' }}</strong><br>
                 KARYAWAN<br>
-                Tgl : ........................
-            </td>
+                Tgl : ........................ --}}
+            {{-- </td> --}}
 
-            @foreach ($row1 as $approval)
-                <td width="25%">
-                    <strong>{{ strtoupper($approval->name) }}</strong><br>
-                    @if ($approval->aprvid == 1)
-                        HOD
-                    @elseif (in_array($approval->aprvid, [2, 3]))
-                        HCD DEPT
-                    @else
-                        {{ strtoupper($approval->jabatan ?? '') }}
-                    @endif
-                    <br>
+             @foreach ($row1 as $approval)
+                <td width="{{ 100 / max($row1Count, 3) }}%">
+                    <strong>{{ strtoupper($approval->name) }}</strong><br>     
+                    {{ strtoupper($approval->jabatan ?? '') }}<br>              
                     Tgl : ........................
                 </td>
             @endforeach
 
+
             {{-- Sisa kolom kalau kurang dari 3 --}}
-            @for ($i = 0; $i < 3 - $row1->count(); $i++)
-                <td width="25%"></td>
+            @for ($i = 0; $i < 3 - $row1Count; $i++)
+              <td width="{{ 100 / max($row1Count, 3) }}%"></td>
             @endfor
         </tr>
 

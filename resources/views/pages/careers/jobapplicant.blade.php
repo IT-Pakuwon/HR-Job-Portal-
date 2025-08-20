@@ -295,10 +295,10 @@
                     class="flex flex-col items-start justify-between gap-4 border-b border-gray-200 p-4 sm:flex-row sm:items-center dark:border-gray-700">
                     {{-- Changed text-3xl to text-xl --}}
                     <h1 class="text-xl font-extrabold text-gray-700 dark:text-white">Applicant List</h1>
-                    <a"
+                    {{-- <a"
                         class="inline-flex items-center rounded-xl bg-indigo-600 px-6 py-2 text-base font-semibold text-white transition-colors duration-200 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
                         List Job Posting
-                        </a>
+                        </a> --}}
                 </div>
 
                 <div class="overflow-x-auto p-6"> {{-- Padding applied here instead of outer container --}}

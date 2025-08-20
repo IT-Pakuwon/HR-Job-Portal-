@@ -1179,7 +1179,8 @@ class StrukturOrgController extends Controller
                     'employee_name' => $emp->employee_name,
                     'employee_company' => $emp->employee_company,
                     'employee_level' => $subgradeName, // Gantikan dengan subgrade_name                   
-                    'image' => $emp->image ? asset('avatar/' . ltrim($emp->image, '/')) : 'https://cdn-icons-png.flaticon.com/512/149/149071.png',
+                    // 'image' => $emp->image ? asset('avatar/' . ltrim($emp->image, '/')) : 'https://cdn-icons-png.flaticon.com/512/149/149071.png',
+                    'image' => $emp->image ? asset($emp->image) : 'https://cdn-icons-png.flaticon.com/512/149/149071.png',
                 ];
             });
 
@@ -1428,7 +1429,8 @@ class StrukturOrgController extends Controller
                     'name' => $m->employee_name,
                     'company' => $m->employee_company,
                     // 'position' => $m->employee_level,
-                    'image' => $m->image ? asset('avatar/' . ltrim($m->image, '/')) : 'https://cdn-icons-png.flaticon.com/512/149/149071.png',
+                    // 'image' => $m->image ? asset('avatar/' . ltrim($m->image, '/')) : 'https://cdn-icons-png.flaticon.com/512/149/149071.png',
+                    'image' => $m->image ? asset($m->image) : 'https://cdn-icons-png.flaticon.com/512/149/149071.png',
                 ];
             });
 

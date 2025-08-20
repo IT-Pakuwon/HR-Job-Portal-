@@ -76,11 +76,16 @@
 
                     <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
                         <div class="flex flex-col">
-                            <label for="tax_liability"
-                                class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Tanggungan</label>
-                            <input type="text" name="tax_liability" id="tax_liability"
+                            <label for="tax_liability" class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Tanggungan</label>
+                            <select name="tax_liability" id="tax_liability"
                                 class="w-full rounded-lg border border-gray-300 p-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
                                 required>
+                                <option value="">-- Pilih Tanggungan --</option>
+                                <option value="TK0">TK0</option>
+                                <option value="K1">K1</option>
+                                <option value="K2">K2</option>
+                                <option value="K3">K3</option>
+                            </select>
                         </div>
 
                         <div class="flex flex-col">
@@ -100,19 +105,22 @@
                         </div>
 
                         <div class="flex flex-col">
-                            <label for="bank_name"
-                                class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Bank</label>
-                            <input type="text" name="bank_name" id="bank_name"
+                            <label for="bank_name" class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Bank</label>                           
+                            <select name="bank_name" id="bank_name"
                                 class="w-full rounded-lg border border-gray-300 p-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
                                 required>
+                                <option value="">-- Pilih Bank --</option>
+                                <option value="BCA">BCA</option>
+                                <option value="MANDIRI">MANDIRI</option>                           
+                            </select>
                         </div>
 
                         <div class="flex flex-col">
-                            <label for="net_salary"
-                                class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Salary</label>
-                            <input type="number" name="net_salary" id="net_salary"
+                            <label for="net_salary" class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Salary</label>
+                            {{-- <input type="number" name="net_salary" id="net_salary"
                                 class="w-full rounded-lg border border-gray-300 p-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
-                                required>
+                                required> --}}
+                            <input type="text" name="net_salary" id="net_salary" inputmode="numeric" class="money-separator w-full rounded-lg border border-gray-300 p-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white" placeholder="0" required>
                         </div>
 
                         <div class="flex flex-col">
@@ -144,11 +152,14 @@
 
                     <div class="mt-6 flex flex-col">
                         <label for="employment_status"
-                            class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Status
-                            Kepegawaian</label>
-                        <input type="text" name="employment_status" id="employment_status"
+                            class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Status Kepegawaian</label>                      
+                        <select name="employment_status" id="employment_status"
                             class="w-full rounded-lg border border-gray-300 p-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
                             required>
+                            <option value="">-- Pilih Bank --</option>
+                            <option value="PKWT">PKWT</option>
+                            <option value="PKWTT">PKWTT</option>                           
+                        </select>
                     </div>
 
 
@@ -439,6 +450,7 @@
     $('#addPayrollBtn').click(function() {
         $('#payrollForm')[0].reset();
         $('#payroll_id').val('');
+        $('#net_salary').val('');
         $('#payrollModal').removeClass('hidden');
     });
 
@@ -447,6 +459,10 @@
         $.get('/payrollconfirm/' + id, function(data) {
             for (let key in data) {
                 $('[name="' + key + '"]').val(data[key]);
+            }
+            // khusus net_salary → format tampilan
+            if (typeof data.net_salary !== 'undefined' && data.net_salary !== null) {
+                $('#net_salary').val(formatThousandsID(String(data.net_salary)));
             }
             $('#payroll_id').val(data.id);
             $('#payrollModal').removeClass('hidden');
@@ -460,6 +476,13 @@
     $('#payrollForm').submit(function(e) {
         e.preventDefault();
         let form = $(this);
+
+        // --- bersihkan net_salary sebelum serialize ---
+        const $net = $('#net_salary');
+        const displayedSalary = $net.val();               // simpan tampilan "1.234.567"
+        const cleanedSalary   = displayedSalary.replace(/\D/g, ''); // "1234567"
+        $net.val(cleanedSalary);
+
         let url = form.find('#payroll_id').val() ?
             "{{ route('payrollconfirm.update') }}" :
             "{{ route('payrollconfirm.store') }}";
@@ -483,6 +506,10 @@
                 } else {
                     toastr.error('Terjadi kesalahan sistem. Coba lagi.');
                 }
+            },
+            complete: function() {
+                // --- kembalikan tampilan input ke format ribuan jika tidak reload (mis. error) ---
+                $net.val(formatThousandsID(displayedSalary));
             }
         });
     });
@@ -511,36 +538,94 @@
         $('#signModal').addClass('hidden');
     });
 
-    $('#signForm').submit(function(e) {
-        e.preventDefault();
-        let form = $(this);
-        let url = form.find('#sign_id').val() ?
-            "{{ route('signconfirm.update') }}" :
-            "{{ route('signconfirm.store') }}";
+    // $('#signForm').submit(function(e) {
+    //     e.preventDefault();
+    //     let form = $(this);
+    //     let url = form.find('#sign_id').val() ?
+    //         "{{ route('signconfirm.update') }}" :
+    //         "{{ route('signconfirm.store') }}";
 
-        $.ajax({
-            type: 'POST',
-            url: url,
-            data: form.serialize(),
-            success: function(response) {
-                if (response.success) {
-                    toastr.success('Data sign berhasil disimpan.');
-                    setTimeout(() => location.reload(), 1000); // reload setelah toastr tampil
-                } else {
-                    toastr.error('Gagal menyimpan data sign.');
-                }
-            },
-            error: function(xhr) {
-                if (xhr.status === 409 && xhr.responseJSON?.message) {
-                    toastr.warning(xhr.responseJSON
-                        .message); // pesan duplikat sign atau onboarding
-                } else {
-                    toastr.error('Terjadi kesalahan sistem. Coba lagi.');
-                }
-            }
-        });
-    });
+    //     $.ajax({
+    //         type: 'POST',
+    //         url: url,
+    //         data: form.serialize(),
+    //         success: function(response) {
+    //             if (response.success) {
+    //                 toastr.success('Data sign berhasil disimpan.');
+    //                 setTimeout(() => location.reload(), 1000); // reload setelah toastr tampil
+    //             } else {
+    //                 toastr.error('Gagal menyimpan data sign.');
+    //             }
+    //         },
+    //         error: function(xhr) {
+    //             if (xhr.status === 409 && xhr.responseJSON?.message) {
+    //                 toastr.warning(xhr.responseJSON
+    //                     .message); // pesan duplikat sign atau onboarding
+    //             } else {
+    //                 toastr.error('Terjadi kesalahan sistem. Coba lagi.');
+    //             }
+    //         }
+    //     });
+    // });
 </script>
+
+<script>
+// Guard global kecil utk cegah double submit
+let submittingSign = false;
+
+$(document)
+  .off('submit.sign', '#signForm')
+  .on('submit.sign', '#signForm', function (e) {
+    e.preventDefault();
+
+    // kalau sedang submit, abaikan
+    if (submittingSign) return;
+    submittingSign = true;
+
+    const $form = $(this);
+    const $btn  = $form.find('button[type="submit"]');
+    const btnHtml = $btn.html(); // simpan isi tombol
+
+    // Kunci tombol
+    $btn.prop('disabled', true)
+        .addClass('opacity-60 cursor-not-allowed')
+        .html('Menyimpan…');
+
+    const url = $form.find('#sign_id').val()
+      ? "{{ route('signconfirm.update') }}"
+      : "{{ route('signconfirm.store') }}";
+
+    $.ajax({
+      type: 'POST',
+      url,
+      data: $form.serialize(),
+      success: function (resp) {
+        if (resp && resp.success) {
+          toastr.success('Data sign berhasil disimpan.');
+          // tidak perlu re-enable; kita reload
+          setTimeout(() => location.reload(), 600);
+        } else {
+          toastr.error('Gagal menyimpan data sign.');
+        }
+      },
+      error: function (xhr) {
+        if (xhr.status === 409 && xhr.responseJSON?.message) {
+          toastr.warning(xhr.responseJSON.message);
+        } else {
+          toastr.error('Terjadi kesalahan sistem. Coba lagi.');
+        }
+      },
+      complete: function () {
+        // Kalau tidak reload (karena error), kembalikan tombol & guard
+        $btn.prop('disabled', false)
+            .removeClass('opacity-60 cursor-not-allowed')
+            .html(btnHtml);
+        submittingSign = false;
+      }
+    });
+  });
+</script>
+
 
 <script>
 (function() {
@@ -658,8 +743,24 @@
   });
 </script>
 
+<script>
+  // Format ribuan dengan titik (1.234.567)
+  function formatThousandsID(nStr) {
+    // Ambil hanya digit
+    const digits = (nStr || '').toString().replace(/\D/g, '');
+    if (!digits) return '';
+    // Sisipkan titik per 3 digit
+    return digits.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  }
 
+  // Hook untuk net_salary: ketik → auto format
+  $(document).on('input', '#net_salary.money-separator', function () {
+    const caretToEnd = document.activeElement === this; // caret akan ke akhir; cukup oke
+    const formatted = formatThousandsID($(this).val());
+    $(this).val(formatted);
+  });
 
+</script>
 
 <!-- Toastr CSS -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">

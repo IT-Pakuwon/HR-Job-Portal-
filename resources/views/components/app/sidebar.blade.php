@@ -98,13 +98,13 @@
                         </a>
                     </li>
                     <!-- Dashboard -->
-                    <li class="bg-linear-to-r @if (in_array(Request::segment(1), ['personnels', 'jobapplicant', 'careers'])) {{ 'from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]' }} @endif mb-0.5 rounded-lg py-2 pl-4 pr-3 last:mb-0"
-                        x-data="{ open: {{ in_array(Request::segment(1), ['personnels', 'jobapplicant', 'careers']) ? 1 : 0 }} }">
-                        <a class="@if (!in_array(Request::segment(1), ['personnels', 'jobapplicant', 'careers'])) {{ 'hover:text-gray-900 dark:hover:text-white' }} @endif block truncate text-gray-800 transition dark:text-gray-100"
+                    <li class="bg-linear-to-r @if (in_array(Request::segment(1), ['personnels', 'jobapplicant', 'changestos'])) {{ 'from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]' }} @endif mb-0.5 rounded-lg py-2 pl-4 pr-3 last:mb-0"
+                        x-data="{ open: {{ in_array(Request::segment(1), ['personnels', 'jobapplicant', 'changestos']) ? 1 : 0 }} }">
+                        <a class="@if (!in_array(Request::segment(1), ['personnels', 'jobapplicant', 'changestos'])) {{ 'hover:text-gray-900 dark:hover:text-white' }} @endif block truncate text-gray-800 transition dark:text-gray-100"
                             href="#0" @click.prevent="open = !open; sidebarExpanded = true">
                             <div class="flex items-center justify-between">
                                 <div class="flex items-center">
-                                    <svg class="@if (in_array(Request::segment(1), ['personnels', 'jobpostings', 'careers'])) {{ 'text-violet-500' }}@else{{ 'text-gray-400 dark:text-gray-500' }} @endif shrink-0 fill-current"
+                                    <svg class="@if (in_array(Request::segment(1), ['personnels', 'jobpostings', 'changestos'])) {{ 'text-violet-500' }}@else{{ 'text-gray-400 dark:text-gray-500' }} @endif shrink-0 fill-current"
                                         xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                         stroke-width="1.5" stroke="currentColor" width="16" height="16">
                                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -115,7 +115,7 @@
                                 </div>
                                 <div
                                     class="lg:sidebar-expanded:opacity-100 ml-2 flex shrink-0 duration-200 lg:opacity-0 2xl:opacity-100">
-                                    <svg class="@if (in_array(Request::segment(1), ['personnels', 'personnel-requisition', 'job-posting', 'applicant-portal'])) {{ 'rotate-180' }} @endif ml-1 h-3 w-3 shrink-0 fill-current text-gray-400 dark:text-gray-500"
+                                    <svg class="@if (in_array(Request::segment(1), ['personnels', 'jobpostings', 'changestos'])) {{ 'rotate-180' }} @endif ml-1 h-3 w-3 shrink-0 fill-current text-gray-400 dark:text-gray-500"
                                         :class="open ? 'rotate-180' : 'rotate-0'" viewBox="0 0 12 12">
                                         <path d="M5.9 11.4L.5 6l1.4-1.4 4 4 4-4L11.3 6z" />
                                     </svg>
@@ -123,7 +123,7 @@
                             </div>
                         </a>
                         <div class="lg:sidebar-expanded:block lg:hidden 2xl:block">
-                            <ul class="@if (!in_array(Request::segment(1), ['personnels', 'personnel-requisition', 'job-posting', 'applicant-portal'])) {{ 'hidden' }} @endif mt-1 pl-8"
+                            <ul class="@if (!in_array(Request::segment(1), ['personnels', 'jobapplicant', 'changestos'])) {{ 'hidden' }} @endif mt-1 pl-8"
                                 :class="open ? 'block!' : 'hidden'">
                                 <li class="mb-1 last:mb-0">
                                     <a class="@if (Route::is('personnels')) {{ 'text-violet-500!' }} @endif block truncate text-gray-500/90 transition hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
@@ -152,7 +152,7 @@
                         </div>
                     </li>
 
-                    <li class="py-2 pl-4 pr-3 text-xs font-semibold uppercase tracking-wider text-gray-500 last:mb-0"
+                    {{-- <li class="py-2 pl-4 pr-3 text-xs font-semibold uppercase tracking-wider text-gray-500 last:mb-0"
                         :class="{ 'lg:block': sidebarExpanded, 'lg:hidden': !sidebarExpanded }">
                         Purchasing
                     </li>
@@ -252,7 +252,7 @@
                                 </li>
                             </ul>
                         </div>
-                    </li>
+                    </li> --}}
 
                 </ul>
             </div>

@@ -57,27 +57,52 @@
       text-align: center;
     }
 
-    .footer-note {
+    /* .footer-note {
       font-style: italic;
       font-size: 10px;
       text-align: center;
       margin-top: 30px;
+    } */
+
+    .pdf-footer{
+       font-style: italic;
+      font-size: 10px;
+      text-align: center;
+      margin-top: 30px;
+    }
+    .pdf-footer .pt-name{
+      font-weight: bold;
+      text-transform: uppercase;
+    }
+    .pdf-footer .pt-address{
+      margin-top: 2px;
     }
 
   </style>
 </head>
 <body>
-  <div style="text-align: center; margin-bottom: 10px;">
+  {{-- <div style="text-align: center; margin-bottom: 10px;"> --}}
+  <div style="margin-bottom:10px; text-align:
+      @if($logo=='EP' || $logo=='GH') right
+      @elseif($logo=='GPS' || $logo=='PRB') left
+      @else center
+      @endif
+    ;">
     @if($logo =='AW')
-      <img src="{{ public_path('images/gc.png') }}" alt="Company Logo" style="height: 70px;">
+      <img src="{{ public_path('logo/gc.png') }}" alt="Company Logo" style="height: 70px;">
     @elseif ($logo =='EP')
-      <img src="{{ public_path('images/kk.png') }}" alt="Company Logo" style="height: 70px;">
+      <img src="{{ public_path('logo/kk.png') }}" alt="Company Logo" style="height: 70px;">
     @elseif ($logo =='PSA')
-      <img src="{{ public_path('images/bm.png') }}" alt="Company Logo" style="height: 70px;">
+      <img src="{{ public_path('logo/bm.png') }}" alt="Company Logo" style="height: 70px;">
     @elseif ($logo =='GPS')
-      <img src="{{ public_path('images/pmb.jpeg') }}" alt="Company Logo" style="height: 70px;">
+      <img src="{{ public_path('logo/pmb.png') }}" alt="Company Logo" style="height: 70px;">
+    @elseif ($logo =='PRB')
+      <img src="{{ public_path('logo/prb.png') }}" alt="Company Logo" style="height: 70px;">
+    @elseif ($logo =='GH')
+      <img src="{{ public_path('logo/gh.png') }}" alt="Company Logo" style="height: 70px;">
     @endif
   </div>
+  <br>  
 
   <p>Jakarta, {{ $date }}</p>
 
@@ -154,7 +179,7 @@
           HC Dev Ops Senior Manager<br>
           Tgl: ........................
         </td>
-        <td>
+        <td style="text-align:right">
           <strong>Mengetahui,</strong><br><br><br><br>
           <strong>_______________</strong><br>
           Karyawan<br>
@@ -163,6 +188,52 @@
       </tr>
     </table>
   </div>
+
+  @php
+    // Pakai variabel yang kamu punya. Fallback: cpnyid untuk nama PT.
+    $ptName    = $company_name ?? $cpnyid ?? '';
+    $ptAddress = $company_address ?? '';
+  @endphp
+
+  {{-- FOOTER --}}
+<div class="pdf-footer">
+  <div class="pt-name">
+    @if ($logo == 'AW')
+       {{ $ptName ?? '' }}
+    @elseif ($logo == 'EP')
+      {{ $ptName ?? '' }}
+    @elseif ($logo == 'PSA')
+       {{ $ptName ?? '' }}
+    @elseif ($logo == 'GPS')
+       {{ $ptName ?? '' }}
+    @elseif ($logo == 'PRB')
+       {{ $ptName ?? '' }}
+    @elseif ($logo == 'GH')
+       {{ $ptName ?? '' }}
+    @else
+       {{ $ptName ?? '' }}
+    @endif
+  </div>
+
+  <div class="pt-address">
+    @if ($logo == 'AW')
+      {{ $ptAddress ?? '' }}
+    @elseif ($logo == 'EP')
+      {{ $ptAddress ?? '' }}
+    @elseif ($logo == 'PSA')
+      {{ $ptAddress ?? '' }}
+    @elseif ($logo == 'GPS')
+      {{ $ptAddress ?? '' }}
+    @elseif ($logo == 'PRB')
+      {{ $ptAddress ?? '' }}
+    @elseif ($logo == 'GH')
+      {{ $ptAddress ?? '' }}
+    @else
+      {{ $ptAddress ?? '' }}
+    @endif
+  </div>
+</div>
+
 
 </body>
 </html>

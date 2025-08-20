@@ -1,12 +1,51 @@
 <x-app-layout>
-    <div class="max-w-9xl mx-auto w-full py-2">
-        <div class="grid">
-            <div class="mx-auto w-full px-2 py-1 sm:px-6 lg:px-2">
-                <div class="gap-1">
-                    <div
-                        class="flex w-full flex-col gap-2 overflow-hidden sm:col-span-1 lg:row-span-1 xl:row-span-1 xl:flex-row">
-                        <div class="flex flex-col gap-4 sm:w-1/2 md:w-full">
-                            <div class="flex flex-col rounded-2xl bg-white shadow-sm dark:bg-gray-800">
+    <div class="max-w-9xl mx-auto px-4 py-4 sm:px-6 lg:px-8">
+        <div class="mb-4 flex items-center justify-between">
+            <div>
+                <button onclick="history.back()"
+                    class="inline-flex items-center gap-1 rounded-md bg-gray-100 px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:bg-gray-700/30 dark:text-gray-300 dark:hover:bg-gray-600/50">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                        stroke="currentColor" class="h-4 w-4">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+                    </svg>
+                    Back
+                </button>
+            </div>
+
+            <div class="flex gap-3">
+                <button id="approveBtn"
+                    class="inline-flex items-center gap-1 rounded-md bg-green-100 px-3 py-2 text-sm font-medium text-green-700 transition-colors hover:bg-green-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 dark:bg-green-700/30 dark:text-green-300 dark:hover:bg-green-600/50">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                        stroke="currentColor" class="h-4 w-4">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M6.633 10.25c.806 0 1.533-.446 2.031-1.08a9.041 9.041 0 0 1 2.861-2.4c.723-.384 1.35-.956 1.653-1.715a4.498 4.498 0 0 0 .322-1.672V2.75a.75.75 0 0 1 .75-.75 2.25 2.25 0 0 1 2.25 2.25c0 1.152-.26 2.243-.723 3.218-.266.558.107 1.282.725 1.282m0 0h3.126c1.026 0 1.945.694 2.054 1.715.045.422.068.85.068 1.285a11.95 11.95 0 0 1-2.649 7.521c-.388.482-.987.729-1.605.729H13.48c-.483 0-.964-.078-1.423-.23l-3.114-1.04a4.501 4.501 0 0 0-1.423-.23H5.904m10.598-9.75H14.25M5.904 18.5c.083.205.173.405.27.602.197.4-.078.898-.523.898h-.908c-.889 0-1.713-.518-1.972-1.368a12 12 0 0 1-.521-3.507c0-1.553.295-3.036.831-4.398C3.387 9.953 4.167 9.5 5 9.5h1.053c.472 0 .745.556.5.96a8.958 8.958 0 0 0-1.302 4.665c0 1.194.232 2.333.654 3.375Z" />
+                    </svg>
+                    Approve
+                </button>
+                <button id="reviseBtn"
+                    class="inline-flex items-center gap-1 rounded-md bg-gray-500 px-3 py-2 text-sm font-medium text-gray-100 transition-colors hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:bg-gray-100 dark:bg-gray-700/30 dark:text-gray-300 dark:hover:bg-gray-600/50">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                        stroke="currentColor" class="size-4">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
+                    </svg>
+                    Revise
+                </button>
+                <button id="rejectBtn"
+                    class="inline-flex items-center gap-1 rounded-md bg-red-100 px-3 py-2 text-sm font-medium text-red-700 transition-colors hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:bg-red-700/30 dark:text-red-300 dark:hover:bg-red-600/50">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                        stroke="currentColor" class="h-4 w-4">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M7.498 15.25H4.372c-1.026 0-1.945-.694-2.054-1.715a12.137 12.137 0 0 1-.068-1.285c0-2.848.992-5.464 2.649-7.521C5.287 4.247 5.886 4 6.504 4h4.016a4.5 4.5 0 0 1 1.423.23l3.114 1.04a4.5 4.5 0 0 0 1.423.23h1.294M7.498 15.25c.618 0 .991.724.725 1.282A7.471 7.471 0 0 0 7.5 19.75 2.25 2.25 0 0 0 9.75 22a.75.75 0 0 0 .75-.75v-.633c0-.573.11-1.14.322-1.672.304-.76.93-1.33 1.653-1.715a9.04 9.04 0 0 0 2.86-2.4c.498-.634 1.226-1.08 2.032-1.08h.384m-10.253 1.5H9.7m8.075-9.75c.01.05.027.1.05.148.593 1.2.925 2.55.925 3.977 0 1.487-.36 2.89-.999 4.125m.023-8.25c-.076-.365.183-.75.575-.75h.908c.889 0 1.713-.518 1.972-1.368.339 1.11.521 2.287.521 3.507 0 1.553-.295 3.036-.831 4.398-.306.774-1.086 1.227-1.918 1.227h-1.053c-.472 0-.745-.556-.5-.96a8.95 8.95 0 0 0 .303-.54" />
+                    </svg>
+                    Reject
+                </button>
+            </div>
+        </div>
+        <div class="flex w-full flex-row gap-6 overflow-hidden sm:col-span-1 lg:row-span-1 xl:col-span-1 xl:flex-col">
+            <div class="flex w-full flex-row gap-6">
+                        <div class="flex flex-col gap-6 sm:w-1/2 md:w-full max-h-96 min-h-[12rem] bg-white rounded-2xl">
+                            <div class="flex flex-col rounded-2xl bg-white shadow-sm dark:bg-gray-800 h-full ">
                                 <header
                                     class="flex flex-row justify-between rounded-t-2xl border-b border-gray-300/10 bg-gray-50 px-6 py-4 dark:border-gray-600">
                                     <div class="flex w-full justify-between gap-2">
@@ -82,100 +121,68 @@
                                 </div>
                                                             
                             </div>
-                            <div class="flex max-h-96 min-h-[12rem] flex-col rounded-2xl dark:bg-gray-800">
-                               <header
-                                    class="flex items-center justify-between rounded-t-2xl border-b border-gray-300/10 bg-gray-50 px-6 py-4 dark:border-gray-600 dark:text-gray-100">
-                                    <h2 class="text-xl font-semibold">📝 Budget Detail</h2>
-                                    
-                                </header>
-                                <div class="flex-grow overflow-y-auto rounded-b-2xl bg-white p-4 px-4">
-                                    <table class="w-full text-sm">
-                                        <thead>
-                                            <tr>                                                           
-                                                <th class="px-4 py-2">Account</th>
-                                                <th class="px-4 py-2">Activity</th>
-                                                <th class="px-4 py-2">Detail</th>
-                                                <th class="px-4 py-2 text-right">Total Budget</th>
-                                                {{-- @for($i = 1; $i <= 12; $i++)
-                                                    <th class="px-4 py-2 text-right">Period{{ str_pad($i, 2, '0', STR_PAD_LEFT) }}</th>
-                                                @endfor --}}
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            @foreach($budgetdetail as $item)
-                                                <tr class="border-t hover:bg-gray-50">                                                              
-                                                    <td class="px-4 py-2">{{ $item->account_id }}</td>
-                                                    <td class="px-4 py-2">{{ $item->activity_id }}</td>
-                                                    <td class="px-4 py-2">{{ $item->activity_detail }}</td>
-                                                    <td class="px-4 py-2 text-right">{{ number_format($item->totalbudget) }}</td>
-                                                    {{-- @for($i = 1; $i <= 12; $i++)
-                                                        @php
-                                                            $period = 'period' . str_pad($i, 2, '0', STR_PAD_LEFT) . '_budget';
-                                                        @endphp
-                                                        <td class="px-4 py-2 text-right">{{ number_format($item->$period) }}</td>
-                                                    @endfor --}}
-                                                </tr>
-                                            @endforeach
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
                         </div>
 
                         <div class="flex flex-col gap-4 sm:w-1/2 md:w-full">
-                            <div class="flex max-h-96 min-h-[12rem] flex-col rounded-2xl dark:bg-gray-800">
-                                <header
-                                    class="flex items-center justify-between rounded-t-2xl border-b border-gray-300/10 bg-gray-50 px-6 py-4 dark:border-gray-600 dark:text-gray-100">
-                                    <h2 class="text-xl font-semibold">🚀 Approval</h2>
-                                    <div class="flex gap-2">
-                                        <div
-                                            class="flex items-center gap-1 rounded-md bg-green-500/15 px-2 py-2 text-sm font-medium text-green-700 transition hover:bg-green-600 hover:text-white">
-                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                                stroke-width="1.5" stroke="currentColor" class="h-4 w-4">
-                                                <path stroke-linecap="round" stroke-linejoin="round"
-                                                    d="M6.633 10.25c.806 0 1.533-.446 2.031-1.08a9.041 9.041 0 0 1 2.861-2.4c.723-.384 1.35-.956 1.653-1.715a4.498 4.498 0 0 0 .322-1.672V2.75a.75.75 0 0 1 .75-.75 2.25 2.25 0 0 1 2.25 2.25c0 1.152-.26 2.243-.723 3.218-.266.558.107 1.282.725 1.282m0 0h3.126c1.026 0 1.945.694 2.054 1.715.045.422.068.85.068 1.285a11.95 11.95 0 0 1-2.649 7.521c-.388.482-.987.729-1.605.729H13.48c-.483 0-.964-.078-1.423-.23l-3.114-1.04a4.501 4.501 0 0 0-1.423-.23H5.904m10.598-9.75H14.25M5.904 18.5c.083.205.173.405.27.602.197.4-.078.898-.523.898h-.908c-.889 0-1.713-.518-1.972-1.368a12 12 0 0 1-.521-3.507c0-1.553.295-3.036.831-4.398C3.387 9.953 4.167 9.5 5 9.5h1.053c.472 0 .745.556.5.96a8.958 8.958 0 0 0-1.302 4.665c0 1.194.232 2.333.654 3.375Z" />
-                                                <path stroke-linecap="round" stroke-linejoin="round"
-                                                    d="M6.633 10.25c.806 0 1.533-.446 2.031-1.08a9.041 9.041 0 0 1 2.861-2.4c.723-.384 1.35-.956 1.653-1.715a4.498 4.498 0 0 0 .322-1.672V2.75a.75.75 0 0 1 .75-.75 2.25 2.25 0 0 1 2.25 2.25c0 1.152-.26 2.243-.723 3.218-.266.558.107 1.282.725 1.282m0 0h3.126c1.026 0 1.945.694 2.054 1.715.045.422.068.85.068 1.285a11.95 11.95 0 0 1-2.649 7.521c-.388.482-.987.729-1.605.729H13.48c-.483 0-.964-.078-1.423-.23l-3.114-1.04a4.501 4.501 0 0 0-1.423-.23H5.904m10.598-9.75H14.25M5.904 18.5c.083.205.173.405.27.602.197.4-.078.898-.523.898h-.908c-.889 0-1.713-.518-1.972-1.368a12 12 0 0 1-.521-3.507c0-1.553.295-3.036.831-4.398C3.387 9.953 4.167 9.5 5 9.5h1.053c.472 0 .745.556.5.96a8.958 8.958 0 0 0-1.302 4.665c0 1.194.232 2.333.654 3.375Z" />
-                                            </svg>
-                                            <button id="approveBtn" class="focus:outline-none">Approve</button>
-                                        </div>
-                                        <div
-                                            class="flex items-center gap-1 rounded-md bg-gray-500/15 px-2 text-sm font-medium text-gray-700 transition hover:bg-gray-600 hover:text-white dark:bg-gray-100/10 dark:text-white dark:hover:bg-gray-900">
-                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                                stroke-width="1.5" stroke="currentColor" class="size-4">
-                                                <path stroke-linecap="round" stroke-linejoin="round"
-                                                    d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
-                                            </svg>
-                                            <button id="reviseBtn" class="focus:outline-none">Revise</button>
-                                        </div>
-                                        <div
-                                            class="flex items-center gap-1 rounded-md bg-red-500/15 px-2 text-sm font-medium text-red-700 transition hover:bg-red-600 hover:text-white">
-                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none"
-                                                viewBox="0 0 24 24" stroke-width="1.5"
-                                                stroke="currentColor"class="w-4 h-4">
-                                                <path stroke-linecap="round" stroke-linejoin="round"
-                                                    d="M7.498 15.25H4.372c-1.026 0-1.945-.694-2.054-1.715a12.137 12.137 0 0 1-.068-1.285c0-2.848.992-5.464 2.649-7.521C5.287 4.247 5.886 4 6.504 4h4.016a4.5 4.5 0 0 1 1.423.23l3.114 1.04a4.5 4.5 0 0 0 1.423.23h1.294M7.498 15.25c.618 0 .991.724.725 1.282A7.471 7.471 0 0 0 7.5 19.75 2.25 2.25 0 0 0 9.75 22a.75.75 0 0 0 .75-.75v-.633c0-.573.11-1.14.322-1.672.304-.76.93-1.33 1.653-1.715a9.04 9.04 0 0 0 2.86-2.4c.498-.634 1.226-1.08 2.032-1.08h.384m-10.253 1.5H9.7m8.075-9.75c.01.05.027.1.05.148.593 1.2.925 2.55.925 3.977 0 1.487-.36 2.89-.999 4.125m.023-8.25c-.076-.365.183-.75.575-.75h.908c.889 0 1.713.518 1.972 1.368.339 1.11.521 2.287.521 3.507 0 1.553-.295 3.036-.831 4.398-.306.774-1.086 1.227-1.918 1.227h-1.053c-.472 0-.745-.556-.5-.96a8.95 8.95 0 0 0 .303-.54" />
-                                            </svg>
-                                            <button id="rejectBtn" class="focus:outline-none">Reject</button>
-                                        </div>
-                                    </div>
-                                </header>
-                                <div class="flex-grow overflow-y-auto rounded-b-2xl bg-white p-4 px-4">
+                        <div x-data="{ activeTab: 'approval' }" class="rounded-xl bg-white duration-300 dark:bg-gray-800">
+                            <header
+                                class="flex items-center rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
+                                <nav class="-mb-px flex flex-grow"> {{-- Added -mb-px to negative margin to overlap border --}}
+                                    <button @click="activeTab = 'approval'"
+                                        :class="{
+                                            'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400': activeTab === 'approval',
+                                            'border-b-2 border-transparent text-gray-600 hover:text-gray-800 hover:border-gray-300 dark:text-gray-300 dark:hover:text-gray-100 dark:hover:border-gray-600': activeTab !== 'approval'
+                                        }"
+                                        class="flex-1 whitespace-nowrap px-4 py-2 text-center text-sm font-medium transition-colors duration-200 focus:outline-none">
+                                        Approval Details
+                                    </button>
+                                    <button @click="activeTab = 'attachment'"
+                                        :class="{
+                                            'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400': activeTab === 'attachment',
+                                            'border-b-2 border-transparent text-gray-600 hover:text-gray-800 hover:border-gray-300 dark:text-gray-300 dark:hover:text-gray-100 dark:hover:border-gray-600': activeTab !== 'attachment'
+                                        }"
+                                        class="flex-1 whitespace-nowrap px-4 py-2 text-center text-sm font-medium transition-colors duration-200 focus:outline-none">
+                                        Attachment
+                                    </button>
+                                    <button @click="activeTab = 'comments'"
+                                        :class="{
+                                            'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400': activeTab === 'comments',
+                                            'border-b-2 border-transparent text-gray-600 hover:text-gray-800 hover:border-gray-300 dark:text-gray-300 dark:hover:text-gray-100 dark:hover:border-gray-600': activeTab !== 'comments'
+                                        }"
+                                        class="flex-1 whitespace-nowrap px-4 py-2 text-center text-sm font-medium transition-colors duration-200 focus:outline-none">
+                                        Comments
+                                    </button>
+                                </nav>
+                            </header>
+
+                            <div class="flex-grow overflow-y-auto rounded-b-xl bg-white p-6 dark:bg-gray-800 max-h-96 min-h-[12rem]">
+                                <div x-show="activeTab === 'approval'" x-transition:enter="transition ease-out duration-300"
+                                    x-transition:enter-start="opacity-0 translate-y-2"
+                                    x-transition:enter-end="opacity-100 translate-y-0"
+                                    x-transition:leave="transition ease-in duration-200"
+                                    x-transition:leave-start="opacity-100 translate-y-0"
+                                    x-transition:leave-end="opacity-0 translate-y-2">
                                     <table class="w-full text-sm">
                                         <thead>
-                                            <tr class="text-gray-700 dark:text-gray-300">
-                                                <th class="p-3 text-left">Level</th>
-                                                <th class="p-3 text-left">Name</th>
-                                                <th class="p-3 text-left">Date</th>
-                                                <th class="p-3 text-left">Status</th>
+                                            <tr
+                                                class="border-b border-gray-200 text-gray-600 dark:border-gray-700 dark:text-gray-300">
+                                                <th class="p-3 text-left font-semibold">Level</th>
+                                                <th class="p-3 text-left font-semibold">Name</th>
+                                                <th class="p-3 text-left font-semibold">Date</th>
+                                                <th class="p-3 text-left font-semibold">Status</th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             @foreach ($approval as $ap)
-                                                <tr class="hover:bg-gray-100 dark:hover:bg-gray-800">
-                                                    <td class="p-3 text-left">{{ $ap->aprvid }}</td>
-                                                    <td class="p-3 text-left">{{ $ap->name }}</td>
-                                                    <td class="p-3 text-left">{{ $ap->aprvdatebefore }}</td>
+                                                <tr
+                                                    class="border-b border-gray-100 transition-colors hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700">
+                                                    <td class="p-3 text-left text-gray-800 dark:text-gray-200">
+                                                        {{ $ap->aprvid }}</td>
+                                                    <td class="p-3 text-left text-gray-800 dark:text-gray-200">
+                                                        {{ $ap->name }}</td>
+                                                    <td class="p-3 text-left text-gray-700 dark:text-gray-300">
+                                                        {{ \Carbon\Carbon::parse($ap->aprvdatebefore)->format('d M Y') }}
+                                                    </td>
                                                     <td class="p-3 text-left">
                                                         @php
                                                             $statusText = '';
@@ -203,27 +210,26 @@
                                                             }
                                                         @endphp
                                                         <span
-                                                            class="{{ $statusClass }} rounded-md px-3 py-1">{{ $statusText }}</span>
+                                                            class="{{ $statusClass }} inline-block rounded-full px-3 py-1 text-xs font-semibold">{{ $statusText }}</span>
                                                     </td>
                                                 </tr>
                                             @endforeach
                                         </tbody>
                                     </table>
                                 </div>
-                            </div>
 
-                            <div class="flex max-h-96 min-h-[12rem] flex-col rounded-2xl dark:bg-gray-800">
-                                <header
-                                    class="flex items-center justify-between rounded-t-2xl border-b border-gray-300/10 bg-gray-50 px-6 py-4 dark:border-gray-600 dark:text-gray-100">
-                                    <h2 class="text-xl font-semibold">📂 Attachment</h2>
-                                </header>
-                                <div class="flex-grow overflow-y-auto rounded-b-2xl bg-white p-4 px-4">
+                                <div x-show="activeTab === 'attachment'" x-transition:enter="transition ease-out duration-300"
+                                    x-transition:enter-start="opacity-0 translate-y-2"
+                                    x-transition:enter-end="opacity-100 translate-y-0"
+                                    x-transition:leave="transition ease-in duration-200"
+                                    x-transition:leave-start="opacity-100 translate-y-0"
+                                    x-transition:leave-end="opacity-0 translate-y-2">
                                     <table class="w-full text-sm">
                                         <thead class="text-gray-600 dark:text-gray-300">
-                                            <tr>
-                                                <th class="p-3 text-left">Filename</th>
-                                                <th class="p-3 text-left">Created By</th>
-                                                <th class="p-3 text-left">Date</th>
+                                            <tr class="border-b border-gray-200 dark:border-gray-700">
+                                                <th class="p-3 text-left font-semibold">Filename</th>
+                                                <th class="p-3 text-left font-semibold">Created By</th>
+                                                <th class="p-3 text-left font-semibold">Date</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -232,16 +238,90 @@
                                                     $year = $at->created_at->year;
                                                     $fileUrl = url('/attachments/' . $year . '/' . $at->attachfile);
                                                 @endphp
-                                                <tr class="transition-colors hover:bg-gray-50 dark:hover:bg-gray-700">
+                                                <tr
+                                                    class="border-b border-gray-100 transition-colors last:border-b-0 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700">
                                                     <td class="p-3">
                                                         <a href="{{ $fileUrl }}" target="_blank"
-                                                            class="flex items-center gap-2 text-gray-600 hover:underline dark:text-gray-300">📎
+                                                            class="flex items-center gap-2 font-medium text-indigo-600 hover:underline dark:text-indigo-400">📎
                                                             {{ $at->name }}</a>
                                                     </td>
-                                                    <td class="p-3">{{ $at->created_user }}</td>
-                                                    <td class="p-3">
+                                                    <td class="p-3 text-gray-800 dark:text-gray-200">
+                                                        {{ $at->created_user }}</td>
+                                                    <td class="p-3 text-gray-700 dark:text-gray-300">
                                                         {{ \Carbon\Carbon::parse($at->created_at)->format('d M Y') }}
                                                     </td>
+                                                </tr>
+                                            @endforeach
+                                            @if ($attachment->isEmpty())
+                                                <tr>
+                                                    <td colspan="3"
+                                                        class="p-4 text-center italic text-gray-500 dark:text-gray-400">
+                                                        No attachments found.</td>
+                                                </tr>
+                                            @endif
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                <div x-show="activeTab === 'comments'" x-transition:enter="transition ease-out duration-300"
+                                    x-transition:enter-start="opacity-0 translate-y-2"
+                                    x-transition:enter-end="opacity-100 translate-y-0"
+                                    x-transition:leave="transition ease-in duration-200"
+                                    x-transition:leave-start="opacity-100 translate-y-0"
+                                    x-transition:leave-end="opacity-0 translate-y-2">
+                                    <div x-data="{ comments: [], newComment: '', currentUser: 'User1' }" class="flex w-full flex-col justify-center">
+                                        <div id="commentList"
+                                            class="custom-scrollbar flex max-h-60 flex-col space-y-4 overflow-y-auto p-4">
+                                            <p class="py-4 text-center italic text-gray-500">Loading comments...</p>
+                                        </div>
+                                        <div class="flex items-center gap-3 border-t border-gray-200 p-4 dark:border-gray-700">
+                                            <input id="commentInput" x-model="newComment" type="text"
+                                                placeholder="Write a comment..."
+                                                class="flex-1 rounded-lg border border-transparent bg-gray-100 p-3 text-gray-800 transition-all duration-200 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white dark:focus:ring-indigo-400">
+                                            <button id="postCommentBtn"
+                                                @click="if(newComment.trim()) { comments.push({ text: newComment, user: currentUser }); newComment = ''; }"
+                                                class="rounded-lg bg-indigo-600 px-5 py-3 text-sm font-semibold text-white shadow-md transition-all duration-200 hover:bg-indigo-700 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 active:scale-95 dark:focus:ring-offset-gray-800">
+                                                Post 🚀
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        </div>
+            </div>
+            <div class="flex max-h-96 min-h-[12rem] flex-col rounded-2xl dark:bg-gray-800">
+                               <header
+                                    class="flex items-center justify-between rounded-t-2xl border-b border-gray-300/10 bg-gray-50 px-6 py-4 dark:border-gray-600 dark:text-gray-100">
+                                    <h2 class="text-xl font-semibold">📝 Budget Detail</h2>
+                                    
+                                </header>
+                                <div class="flex-grow overflow-y-auto rounded-b-2xl bg-white p-4 px-4">
+                                    <table class="w-full text-sm">
+                                        <thead>
+                                            <tr>                                                           
+                                                <th class="px-4 py-2">Account</th>
+                                                <th class="px-4 py-2">Activity</th>
+                                                <th class="px-4 py-2">Detail</th>
+                                                <th class="px-4 py-2 text-right">Total Budget</th>
+                                                @for($i = 1; $i <= 12; $i++)
+                                                    <th class="px-4 py-2 text-right">Period{{ str_pad($i, 2, '0', STR_PAD_LEFT) }}</th>
+                                                @endfor
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach($budgetdetail as $item)
+                                                <tr class="border-t hover:bg-gray-50">                                                              
+                                                    <td class="px-4 py-2">{{ $item->account_id }}</td>
+                                                    <td class="px-4 py-2">{{ $item->activity_id }}</td>
+                                                    <td class="px-4 py-2">{{ $item->activity_detail }}</td>
+                                                    <td class="px-4 py-2 text-right">{{ number_format($item->totalbudget) }}</td>
+                                                    @for($i = 1; $i <= 12; $i++)
+                                                        @php
+                                                            $period = 'period' . str_pad($i, 2, '0', STR_PAD_LEFT) . '_budget';
+                                                        @endphp
+                                                        <td class="px-4 py-2 text-right">{{ number_format($item->$period) }}</td>
+                                                    @endfor
                                                 </tr>
                                             @endforeach
                                         </tbody>
@@ -249,57 +329,11 @@
                                 </div>
                             </div>
 
-
-                            <div class="overflow-hidden rounded-2xl shadow-sm dark:bg-gray-800">
-                                <div
-                                    class="col-span-full flex flex-col border-b sm:col-span-6 xl:col-span-12 dark:border-gray-200/10">
-                                    <div x-data="{ isOpen: true, comments: [], newComment: '', currentUser: 'User1' }" class="flex w-full flex-col justify-center">
-                                        <header
-                                            class="flex flex-row justify-between rounded-t-2xl border-b border-gray-300/10 bg-gray-50 px-6 py-4 dark:border-gray-600">
-                                            <h2
-                                                class="flex items-center gap-2 text-xl font-semibold text-gray-700 dark:text-gray-100">
-                                                💬 Comments
-                                            </h2>
-                                        </header>
-                                        <div
-                                            class="flex flex-col overflow-hidden bg-white transition-all duration-300">
-                                            <div id="commentList"
-                                                class="flex max-h-60 flex-col space-y-3 overflow-y-auto p-4">
-                                                <!-- added fixed max-height and scroll -->
-                                                <template x-for="(comment, index) in comments" :key="index">
-                                                    <div :class="comment.user === currentUser ? 'self-end bg-indigo-500 text-white' :
-                                                        'self-start bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200'"
-                                                        class="max-w-xs rounded-lg p-3 shadow-md">
-                                                        <p class="text-sm"><strong x-text="comment.user"></strong>:
-                                                            <span x-text="comment.text"></span>
-                                                        </p>
-                                                    </div>
-                                                </template>
-                                                <p x-show="comments.length === 0"
-                                                    class="animate-pulse italic text-gray-500">No comments yet...</p>
-                                            </div>
-                                            <div
-                                                class="flex items-center gap-2 border-t border-gray-200 p-3 dark:border-gray-700">
-                                                <input id="commentInput" x-model="newComment" type="text"
-                                                    placeholder="Write a comment..."
-                                                    class="flex-1 rounded-lg bg-gray-100 p-3 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-400 dark:bg-gray-800 dark:text-white">
-                                                <button id="postCommentBtn"
-                                                    @click="if(newComment.trim()) { comments.push({ text: newComment, user: currentUser }); newComment = ''; }"
-                                                    class="rounded-lg bg-indigo-500 px-4 py-2 text-sm font-semibold text-white shadow-md transition-all duration-200 hover:bg-indigo-600 hover:shadow-lg active:scale-95">
-                                                    Post 🚀
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                        </div>
-
                     </div>
 
                 </div>
             </div>
+        </div>
             <div id="loadingSpinnerContainer" class="flex h-16 items-center justify-center">
                 <svg class="h-10 w-10 animate-spin text-indigo-500" xmlns="http://www.w3.org/2000/svg" fill="none"
                     viewBox="0 0 24 24" stroke="currentColor">
