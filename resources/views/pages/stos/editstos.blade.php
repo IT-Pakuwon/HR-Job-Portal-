@@ -78,8 +78,8 @@
                                     @foreach ($attachment as $attach)
                                         <div class="attachment-row flex items-center gap-2"
                                             data-attachid="{{ $attach->id }}">
-                                            <a href="{{ url('/attachments/' . $attach->attachfile) }}" target="_blank"
-                                                class="mt-4 w-full border p-3 text-lg">📎
+                                            <a href="{{ url('/attachments/' . $attach->attachfile) }}"
+                                                target="_blank" class="mt-4 w-full border p-3 text-lg">📎
                                                 {{ $attach->name }}</a>
                                             <button type="button"
                                                 class="removeAttachment2 mt-4 rounded border border-red-700 bg-red-200/10 px-3 py-3 text-white hover:border-red-700 hover:bg-red-400/30 dark:bg-red-700/30"
@@ -741,12 +741,12 @@
 
                 let formData = new FormData(this);
 
-                $('input[name="attachments[]"]').each(function() {
-                    const files = this.files;
-                    for (let i = 0; i < files.length; i++) {
-                        formData.append('attachments[]', files[i]);
-                    }
-                });
+                // $('input[name="attachments[]"]').each(function() {
+                //     const files = this.files;
+                //     for (let i = 0; i < files.length; i++) {
+                //         formData.append('attachments[]', files[i]);
+                //     }
+                // });
 
                 // Tampilkan Loading, Disable Button
                 $('#submitBtn').attr('disabled', true); // Disable tombol
@@ -1196,7 +1196,7 @@
             $('#addAttachment').click(function() {
                 $('#attachmentsContainer').append(`
             <div class="attachment-row flex items-center gap-2">
-                <input type="file" name="attachments[]" class="flex-grow rounded-md border border-gray-200 bg-white px-4 py-2 text-sm text-gray-700 file:mr-4 file:rounded-full file:border-0 file:bg-indigo-100 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-indigo-700 hover:file:bg-indigo-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:file:bg-indigo-700 dark:file:text-white dark:hover:file:bg-indigo-600">
+                <input type="file" name="attachments[]" form="stoForm" class="flex-grow rounded-md border border-gray-200 bg-white px-4 py-2 text-sm text-gray-700 file:mr-4 file:rounded-full file:border-0 file:bg-indigo-100 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-indigo-700 hover:file:bg-indigo-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:file:bg-indigo-700 dark:file:text-white dark:hover:file:bg-indigo-600">
                     <button type="button" class="removeAttachment bg-red-200/30 mt-4 text-red-600 p-3 rounded hidden border border-red-600 hover:text-white hover:bg-red-600 transition">🗑️</button>
             </div>
         `);
@@ -1217,9 +1217,42 @@
                     $('.removeAttachment').addClass('hidden');
                 }
             }
+
+            $(document).on('click', '.removeAttachment2', function() {
+                let attachmentId = $(this).data('id'); // Ambil ID attachment
+                let row = $(this).closest('.attachment-row'); // Dapatkan row attachment
+
+                // Cek konfirmasi pengguna
+                let confirmDelete = confirm('Are you sure you want to remove this attachment?');
+
+                if (confirmDelete) {
+                    $.ajax({
+                        url: "/stos/remove-attachment/" + attachmentId, // Endpoint ke controller
+                        type: "POST",
+                        data: {
+                            _method: "PUT",
+                            _token: "{{ csrf_token() }}"
+                        },
+                        success: function(response) {
+                            if (response.success) {
+                                row.remove(); // Hapus dari tampilan jika berhasil
+                                alert("Attachment removed successfully!");
+                            } else {
+                                alert("Failed to remove attachment.");
+                            }
+                        },
+                        error: function(xhr) {
+                            alert("Error! Unable to remove attachment.");
+                            console.error(xhr.responseText);
+                        }
+                    });
+                } else {
+                    // **TIDAK ADA AKSI JIKA USER MEMBATALKAN**
+                    return false;
+                }
+            });
         });
     </script>
-
 
     <!-- Toastr CSS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
@@ -1627,5 +1660,6 @@
             }, 0);
         });
     </script>
+    
 
 </x-app-layout>

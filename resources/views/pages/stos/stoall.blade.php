@@ -55,8 +55,9 @@
                     <div class="mb-6 flex justify-end"> {{-- Aligns button to the right --}}
                         <button type="button"
                             class="inline-flex items-center rounded-xl bg-indigo-600 px-6 py-2 text-base font-semibold text-white shadow-md transition-colors duration-200 hover:bg-indigo-700 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800"
-                            onclick="exportChartWithLegend()">Export Image Full</button>
+                            onclick="chart.exportImg({full:true})">Export Image Full</button>
                     </div>
+                    {{-- <button onclick="chart.exportImg({full:true})">Export Full</button> --}}
 
                     {{-- <div id="chartExportArea" style="position:relative;"> --}}
                     <div id="chartExportArea"
@@ -64,7 +65,7 @@
                         {{-- <div class="chart-container w-full" style="width:100%; min-height:420px;"></div> --}}
                         <div class="chart-container w-full" style="width: 100%;"></div>
                         <!-- Legend di pojok kanan bawah -->
-                        <div id="chartLegend2" style="position:absolute; left:32px; bottom:32px;">
+                        {{-- <div id="chartLegend2" style="position:absolute; left:32px; bottom:32px;">
                             <div style="display: flex; align-items: center; gap: 12px;">
                                 <span
                                     style="display: inline-block; width: 28px; height: 18px; background: #cefefe; border-radius: 4px; border:1px solid #ccc"></span>
@@ -105,8 +106,8 @@
                                     style="display: inline-block; width: 28px; height: 18px; background: #ddebf6; border-radius: 4px; border:1px solid #ccc"></span>
                                 <span>Executive</span>
                             </div>
-                        </div>
-                        <div id="chartLegend"
+                        </div> --}}
+                        {{-- <div id="chartLegend"
                             style="
                             position: absolute;
                             right: 16px;
@@ -122,7 +123,7 @@
                             width: 260px;
                             border: 1px solid #eee;
                         ">
-                        </div>
+                        </div> --}}
                     </div>
 
 
@@ -520,7 +521,7 @@
                                             overflow:visible;
                                         ">
                                             ${d.data.position
-                                                ? `<div style="font-size:18px;color:#08011E;margin-bottom:5px">${d.data.name} ${d.data.position}</div>`
+                                                ? `<div style="font-size:18px;color:#08011E;margin-bottom:5px;"><strong>${d.data.name} ${d.data.position}</strong></div>`
                                                 : `<div style="font-size:18px;color:#08011E;text-align:center;margin-top:10px;">${d.data.name}</div>`
                                             }                           
                                             <div style="font-size:12px;color:#333">                                    
@@ -544,6 +545,11 @@
                             .data(nodes)
                             .expandAll()
                             .connections(connections)
+                            .linkUpdate((d, i, arr) => {
+                                d3.select(arr[i])
+                                .attr('stroke-width', 2)   // tebal garis parent-child
+                                .attr('stroke', '#374151'); // opsional: warna
+                            })
                         // .render()
                         chart.compact(false).render().fit();
                         // Tambahkan garis horizontal untuk setiap level

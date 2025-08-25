@@ -1,0 +1,22 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+
+class MsSubLocationPG extends Model
+{
+    protected $connection = 'pgsql';
+    protected $table = "ms_sub_location";
+
+    protected $fillable = [
+        'cpny_id',
+        'sub_location_id',
+        'location_id',
+        'sub_location_name',
+        'status',
+        'created_by',
+        'updated_by'
+    ];
+}

@@ -1011,7 +1011,7 @@ class CareerController extends Controller
         $data = [
             'name' => $applicant->full_name ?? 'Pelamar',
             // 'url' => url('http://careerjakarta.pakuwon.local/checkform') // gunakan URL lengkap
-            'url'  => url("http://careerjakarta.pakuwon.local/checkform/{$encryptedDocId}")
+            'url'  => url("https://careerjakarta.pakuwon.com/checkform/{$encryptedDocId}")
         ];
 
         Mail::send('emails.mailapplicant', $data, function ($message) use ($applicant,$data) {
@@ -1922,6 +1922,52 @@ class CareerController extends Controller
 
         $sign->delete();
         return response()->json(['success' => true]);
+    }
+
+    public function updateSchedule(Request $request)
+    {
+
+        // dd($request->all());
+        $data = $request->validate([
+            'applicant_id'      => ['required','string'],
+            'jobapply_id'       => ['nullable','string'],
+            'availability_date' => ['required','date'],
+            'work_start_date'   => ['required','date','after_or_equal:availability_date'],
+        ]);
+
+        DB::beginTransaction();
+        try {
+            // Update / create di payrollconfirm
+            PayrollConfirm::updateOrCreate(
+                [
+                    'applicant_id' => $data['applicant_id'],
+                    'jobapply_id'  => $data['jobapply_id'] ?? null,
+                ],
+                [
+                    'availability_date' => $data['availability_date'],
+                    'work_start_date'   => $data['work_start_date'],
+                    'updated_at'        => now(),
+                ]
+            );
+
+            // Kirim email kandidat
+            $applicant = Applicant::where('applicant_id', $data['applicant_id'])->first();
+            if ($applicant && !empty($applicant->email_address)) {
+                Mail::to($applicant->email_address)
+                    ->send(new CandidateScheduleMail(
+                        $applicant,
+                        $data['availability_date'],
+                        $data['work_start_date']
+                    ));
+            }
+
+            DB::commit();
+            return response()->json(['success' => true, 'message' => 'Jadwal tersimpan & email terkirim.']);
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            report($e);
+            return response()->json(['success' => false, 'message' => 'Gagal menyimpan: '.$e->getMessage()], 500);
+        }
     }
 
 

@@ -129,6 +129,10 @@
                                                         <th
                                                             class="table-header-cell border border-gray-200 dark:border-gray-600">
                                                             Foto</th>
+                                                        <th
+                                                            class="table-header-cell border border-gray-200 dark:border-gray-600">
+                                                            Action
+                                                        </th>
                                                     </tr>
                                                 </thead>
                                                 <tbody id="employeeTableBody"
@@ -448,6 +452,47 @@
                 <button id="confirmReviseBtn" class="rounded-lg bg-red-500 px-4 py-2 text-white hover:bg-red-600">
                     Revise
                 </button>
+            </div>
+        </div>
+    </div>
+    <div id="modalJobProfile"
+        class="fixed inset-0 z-50 flex hidden items-center justify-center bg-gray-900/40 backdrop-blur-sm">
+        <div
+            class="relative max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-lg bg-white p-6 shadow-xl dark:bg-gray-800">
+            <div
+                class="mb-4 flex items-center justify-between border-b border-gray-200 pb-4 dark:border-gray-700">
+                <h3 class="text-xl font-semibold text-gray-800 dark:text-white">
+                    Job Profile <span id="jobLevelLabel"
+                        class="font-bold text-indigo-600 dark:text-indigo-400"></span>
+                </h3>
+                <button onclick="$('#modalJobProfile').addClass('hidden')"
+                    class="text-2xl leading-none text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+                    &times;
+                </button>
+            </div>
+
+            <div
+                class="mb-6 overflow-x-auto rounded-lg border border-gray-200 shadow-sm dark:border-gray-700">
+                <table
+                    class="min-w-full divide-y divide-gray-200 text-sm text-gray-800 dark:divide-gray-700 dark:text-gray-200">
+                    <thead class="bg-gray-50 dark:bg-gray-700">
+                        <tr>
+                            <th scope="col"
+                                class="border-r border-gray-200 px-4 py-2 text-left font-semibold tracking-wider dark:border-gray-600">
+                                No</th>
+                            <th scope="col"
+                                class="border-r border-gray-200 px-4 py-2 text-left font-semibold tracking-wider dark:border-gray-600">
+                                Job Purpose</th>
+                           
+                        </tr>
+                    </thead>
+                    <tbody id="jobProfileBody"
+                        class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-800">
+                    </tbody>
+                </table>
+            </div>
+
+            <div id="jobSpecInfo" class="space-y-3 text-base text-gray-700 dark:text-gray-300">
             </div>
         </div>
     </div>
@@ -859,7 +904,7 @@
                                 overflow:visible;
                             ">
                                 ${d.data.position
-                                    ? `<div style="font-size:18px;color:#08011E;margin-bottom:5px">${d.data.name} ${d.data.position}</div>`
+                                    ? `<div style="font-size:18px;color:#08011E;margin-bottom:5px;"><strong>${d.data.name} ${d.data.position}</strong></div>`
                                     : `<div style="font-size:18px;color:#08011E;text-align:center;margin-top:10px;">${d.data.name}</div>`
                                 }
                                 <div style="font-size:12px;color:#333">
@@ -883,6 +928,11 @@
                 })
                 .container('.chart-container')
                 .data(data)
+                .linkUpdate((d, i, arr) => {
+                    d3.select(arr[i])
+                    .attr('stroke-width', 2)   // tebal garis parent-child
+                    .attr('stroke', '#374151'); // opsional: warna
+                })
                 // .disableZoom()
                 .render();
 
@@ -926,16 +976,32 @@
                     let html = '';
                     employees.forEach((emp, index) => {
                         html += `
-                                    <tr>
-                                        <td class="border border-gray-200 px-2 py-1">${index + 1}</td>
-                                        <td class="border border-gray-200 px-2 py-1">${emp.employee_name}</td>
-                                        <td class="border border-gray-200 px-2 py-1">${emp.employee_company}</td>
-                                        <td class="border border-gray-200 px-2 py-1">${emp.employee_level}</td>
-                                        <td class="border border-gray-200 px-2 py-1 text-center">
-                                            ${emp.image ? `<img src="${emp.image}" class="w-25 h-25 rounded-full mx-auto">` : '-'}
-                                        </td>                                       
-                                    </tr>
-                                `;
+                        <tr>
+                            <td class="border   px-2 py-1">${index + 1}</td>
+                            <td class="border   px-2 py-1">${emp.employee_name}</td>
+                            <td class="border   px-2 py-1">${emp.employee_company}</td>
+                            <td class="border   px-2 py-1">${emp.employee_level}</td>
+                            <td class="border   px-2 py-1 text-center">
+                                <img src="${emp.image || 'https://cdn-icons-png.flaticon.com/512/149/149071.png'}" class="w-25 h-25 rounded-full mx-auto">
+                            </td>
+                            <td class="border   px-2 py-1 text-center">
+                                <div class="inline-flex gap-2">
+                                    <!-- Job Profile Button -->
+                                    <button
+                                        class="btn-profile flex items-center gap-1 rounded bg-sky-500 hover:bg-sky-600 text-white px-2.5 py-2 text-xs transition"
+                                        title="Job Profile"
+                                        data-id="${emp.id}">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="size-4" fill="none" viewBox="0 0 24 24"
+                                            stroke="currentColor" stroke-width="1.5">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M12 5l7 7-7 7" />
+                                        </svg>
+                                        <span>Job Profile</span>
+                                    </button>                               
+                                </div>
+                            </td>
+
+                        </tr>
+                    `;
                     });
 
 
@@ -1022,6 +1088,44 @@
                 error: function(xhr) {
                     console.error(xhr);
                     alert('Gagal menyimpan departement!');
+                }
+            });
+        });
+    </script>
+    <script>
+        $(document).on('click', '.btn-profile', function() {
+            const empId = $(this).data('id');
+
+            $.ajax({
+                url: `/orgchart/job-profile/${empId}`,
+                method: 'GET',
+                success: function(res) {
+                    const profiles = res.profiles || [];
+                    const spec = res.spec || {};
+
+                    let rows = '';
+                    profiles.forEach((p, i) => {
+                        rows += `
+                            <tr>
+                                <td class="border   px-2 py-1">${i + 1}</td>                                
+                                <td class="border   px-2 py-1">${p.job_purpose || ''}</td>                                                                                       
+                            </tr>
+                        `;
+                    });
+
+                    $('#jobProfileBody').html(rows);
+                    $('#jobLevelLabel').text(spec.subgrade_name || '');
+
+                    $('#jobSpecInfo').html(`
+                        <h4 class="font-semibold">Job Spec Detail:</h4>                       
+                        <p><strong>Education:</strong> ${spec.education_min || ''} - ${spec.education_jurusan || ''}</p>
+                        <p><strong>Experience:</strong> ${spec.experience_min || ''} years as ${spec.experience_position || ''}</p>
+                    `);
+
+                    $('#modalJobProfile').removeClass('hidden');
+                },
+                error: function() {
+                    toastr.error('Gagal memuat job profile.');
                 }
             });
         });

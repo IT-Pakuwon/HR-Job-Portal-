@@ -15,7 +15,7 @@
       font-size: 12px;
       margin: 0;
       padding: 0;
-      line-height: 1.4;
+      line-height: 1.3;
     }
 
     h2 {
@@ -64,8 +64,7 @@
       margin-top: 30px;
     } */
 
-    .pdf-footer{
-       font-style: italic;
+    .pdf-footer{;
       font-size: 10px;
       text-align: center;
       margin-top: 30px;

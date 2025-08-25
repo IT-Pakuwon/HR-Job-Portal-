@@ -413,7 +413,7 @@
                                     <div class="flex items-center gap-2">
                                         <textarea name="job_purpose[]"
                                             class="flex-grow rounded-md border-gray-300 p-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
-                                            placeholder="Describe job purpose" required rows="3"></textarea>
+                                            placeholder="Describe job purpose" rows="3"></textarea>
                                         <button type="button" class="removePurpose hidden">
                                             🗑️
                                         </button>
@@ -691,13 +691,13 @@
 
                 let formData = new FormData(this);
 
-                $('input[name="attachments[]"]').each(function() {
-                    const files = this.files;
-                    for (let i = 0; i < files.length; i++) {
-                        // Gunakan array notation agar bisa multiple
-                        formData.append('attachments[]', files[i]);
-                    }
-                });
+                // $('input[name="attachments[]"]').each(function() {
+                //     const files = this.files;
+                //     for (let i = 0; i < files.length; i++) {
+                //         // Gunakan array notation agar bisa multiple
+                //         formData.append('attachments[]', files[i]);
+                //     }
+                // });
 
                 // Tampilkan Loading, Disable Button
                 $('#submitBtn').attr('disabled', true); // Disable tombol
@@ -795,7 +795,7 @@
                                         overflow:visible;
                                     ">
                                         ${d.data.position
-                                            ? `<div style="font-size:18px;color:#08011E;margin-bottom:5px">${d.data.name} ${d.data.position}</div>`
+                                            ? `<div style="font-size:18px;color:#08011E;margin-bottom:5px;"><strong>${d.data.name} ${d.data.position}</strong></div>`
                                             : `<div style="font-size:18px;color:#08011E;text-align:center;margin-top:10px;">${d.data.name}</div>`
                                         }                           
                                         <div style="font-size:12px;color:#333">                                    
@@ -819,6 +819,11 @@
                         .data(nodes)
                         .expandAll()
                         .connections(connections)
+                        .linkUpdate((d, i, arr) => {
+                            d3.select(arr[i])
+                            .attr('stroke-width', 2)   // tebal garis parent-child
+                            .attr('stroke', '#374151'); // opsional: warna
+                        })
                     // .render()
                     chart.compact(false).render().fit();
 
@@ -1117,6 +1122,11 @@
                         .data(nodes)
                         .expandAll()
                         .connections(connections)
+                        .linkUpdate((d, i, arr) => {
+                            d3.select(arr[i])
+                            .attr('stroke-width', 2)   // tebal garis parent-child
+                            .attr('stroke', '#374151'); // opsional: warna
+                        })
                         .compact(false)
                         .render()
                         .fit();
@@ -1146,7 +1156,7 @@
             $('#addAttachment').click(function() {
                 $('#attachmentsContainer').append(`
             <div class="attachment-row flex items-center gap-2">
-                <input type="file" name="attachments[]" class="flex-grow rounded-md border border-gray-200 bg-white px-4 py-2 text-sm text-gray-700 file:mr-4 file:rounded-full file:border-0 file:bg-indigo-100 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-indigo-700 hover:file:bg-indigo-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:file:bg-indigo-700 dark:file:text-white dark:hover:file:bg-indigo-600">
+                <input type="file" name="attachments[]" form="stoForm" class="flex-grow rounded-md border border-gray-200 bg-white px-4 py-2 text-sm text-gray-700 file:mr-4 file:rounded-full file:border-0 file:bg-indigo-100 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-indigo-700 hover:file:bg-indigo-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:file:bg-indigo-700 dark:file:text-white dark:hover:file:bg-indigo-600">
                     <button type="button" class="removeAttachment bg-red-200/30 mt-4 text-red-600 p-3 rounded hidden border border-red-600 hover:text-white hover:bg-red-600 transition">🗑️</button>
             </div>
         `);
@@ -1370,7 +1380,7 @@
             $('#addJobPurpose').on('click', function() {
                 $('#jobPurposeList').append(`
                     <div class="flex gap-2">
-                        <textarea name="job_purpose[]" class="w-full border border-gray-300  rounded p-2" placeholder="Deskripsikan tujuan pekerjaan" required></textarea>
+                        <textarea name="job_purpose[]" class="w-full border border-gray-300  rounded p-2" placeholder="Deskripsikan tujuan pekerjaan" ></textarea>
                         <button type="button" class="removePurpose text-red-600">🗑️</button>
                     </div>
                 `);
