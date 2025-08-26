@@ -42,674 +42,699 @@
                 </button>
             </div>
         </div>
-        <div class="flex w-full flex-col gap-2 overflow-hidden sm:col-span-1 lg:row-span-1 xl:row-span-1 xl:flex-row">
-            <div class="flex flex-col gap-6 sm:w-1/2 md:w-full">
-                <div class="rounded-xl bg-white duration-300 dark:bg-gray-800">
-                    <header
-                        class="flex items-center justify-between rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
-                        {{-- Rounded-t-xl, stronger border, and darker background for header --}}
-                        <h1 class="flex items-center gap-2 text-2xl font-bold text-gray-800 dark:text-gray-100">
-                            {{-- Larger, bolder title --}}
-                            <span class="text-indigo-500">🆔</span> {{-- Iconic color for the ID icon --}}
-                            {{ $changesto->changerequest_id }}
-                        </h1>
-                        @php
-                            // Define the status text
-                            $statusText = match ($changesto->status) {
-                                'D' => 'Revise',
-                                'P' => 'On Progress',
-                                'C' => 'Completed',
-                                'X' => 'Cancelled',
-                                'R' => 'Rejected',
-                                default => 'Unknown',
-                            };
+        <div class="flex w-full flex-row gap-6 overflow-hidden sm:col-span-1 lg:row-span-1 xl:col-span-1 xl:flex-col">
+            <div class="flex w-full flex-row gap-6">
+                        <div class="flex flex-col gap-6 sm:w-1/2 md:w-full max-h-96 min-h-[12rem] bg-white rounded-2xl">
+                            <div class="flex flex-col rounded-2xl bg-white shadow-sm dark:bg-gray-800 h-full ">
+                                <header
+                                    class="flex flex-row justify-between rounded-t-2xl border-b border-gray-300/10 bg-gray-50 px-6 py-4 dark:border-gray-600">
+                                    <div class="flex w-full justify-between gap-2">
+                                        <h1 class="text-xl font-semibold text-gray-700 dark:text-gray-100">🆔
+                                            {{ $sppb->sppbid }}</h1>
+                                        <span
+                                            class="text-l @if ($sppb->status === 'D') bg-gray-300/30 text-gray-600
+                                                @elseif($sppb->status === 'P') bg-blue-300/30 text-blue-600
+                                                @elseif($sppb->status === 'C') bg-green-300/30 text-green-600
+                                                @elseif(in_array($sppb->status, ['X', 'R'])) bg-red-300/30 text-red-600
+                                                @else bg-gray-500/30 text-gray-700 @endif rounded-lg px-3 py-1 font-semibold">
+                                            @php
+                                                $statusText = match ($sppb->status) {
+                                                    'D' => 'Revise',
+                                                    'P' => 'On Progress',
+                                                    'C' => 'Completed',
+                                                    'X' => 'Cancel',
+                                                    'R' => 'Rejected',
+                                                    default => 'Unknown',
+                                                };
+                                            @endphp
+                                            {{ $statusText }}
+                                        </span>
+                                    </div>
+                                </header>
+                                <!-- Main Content -->
+                                <div class="p-4">
+                                    <div class="flex flex-col gap-4">
+                                        <div class="grid grid-cols-1 gap-6 md:grid-cols-3">
+                                            @php
+                                                $sppbDetails = [
+                                                    [
+                                                        'icon' => 'office-building',
+                                                        'label' => 'Company',
+                                                        'value' => $sppb->cpny_id,
+                                                    ],                                                   
+                                                    [
+                                                        'icon' => 'building',
+                                                        'label' => 'Department',
+                                                        'value' => $sppb->department_id,
+                                                    ],    
+                                                    [
+                                                        'icon' => 'clipboard-list',
+                                                        'label' => 'Date',
+                                                        'value' => $sppb->sppbdate,
+                                                    ],                                               
+                                                    [
+                                                        'icon' => 'clipboard-list',
+                                                        'label' => 'User',
+                                                        'value' => optional($sppb->creator)->name,
+                                                    ],
+                                                     [
+                                                        'icon' => 'clipboard-list',
+                                                        'label' => 'Request Type',
+                                                        'value' => optional($sppb->requestType)->requesttype_name,
+                                                    ],
 
-                            // Define the status badge classes based on the status
-                            $statusClasses = '';
-                            if ($changesto->status === 'D') {
-                                $statusClasses = 'bg-blue-100 text-blue-700 dark:bg-blue-800/30 dark:text-blue-300';
-                            } elseif ($changesto->status === 'P') {
-                                $statusClasses =
-                                    'bg-yellow-100 text-yellow-700 dark:bg-yellow-800/30 dark:text-yellow-300';
-                            } elseif ($changesto->status === 'C') {
-                                $statusClasses = 'bg-green-100 text-green-700 dark:bg-green-800/30 dark:text-green-300';
-                            } elseif (in_array($changesto->status, ['X', 'R'])) {
-                                $statusClasses = 'bg-red-100 text-red-700 dark:bg-red-800/30 dark:text-red-300';
-                            } else {
-                                $statusClasses = 'bg-gray-100 text-gray-700 dark:bg-gray-800/30 dark:text-gray-300';
-                            }
-                        @endphp
-                        <span
-                            class="{{ $statusClasses }} inline-flex items-center rounded-full px-4 py-1 text-sm font-semibold transition-colors duration-200">
-                            {{ $statusText }}
-                        </span>
-                    </header>
 
-                    <div class="space-y-4 p-4"> {{-- Increased padding and consistent vertical spacing --}}
-                        <div class="grid grid-cols-3 gap-4 sm:grid-cols-3"> {{-- Increased gap --}}
-                            @php
-                                $jobDetails = [
-                                    [
-                                        'label' => 'Company',
-                                        'value' => $changesto->cpnyid,
-                                    ],
-                                    [
-                                        'label' => 'Department',
-                                        'value' => $changesto->departementid,
-                                    ],
-                                    [
-                                        'label' => 'Date',
-                                        'value' => $changesto->changerequest_date,
-                                    ],
-                                    [
-                                        'label' => 'Sub Department',
-                                        'value' => $changesto->departement_name,
-                                    ],
-                                    [
-                                        'label' => 'Subgrade Name',
-                                        'value' => $changesto->subgrade_name,
-                                    ],                                                                 
-                                    [
-                                        'label' => 'Created By',
-                                        'value' => $changesto->user,
-                                    ],
-                                                                
-                                ];
-                            @endphp
-                            @foreach ($jobDetails as $detail)
-                                <div
-                                    class="transition- hover:-md flex flex-row items-center gap-4 rounded-lg border border-gray-200 bg-gray-50 p-4 duration-200 dark:border-gray-700 dark:bg-gray-800">
-                                    {{-- Rounded-lg, subtle background, , and hover effect --}}
-                                    <div>
-                                        <p class="text-xs font-medium text-gray-500 dark:text-gray-400">
-                                            {{ $detail['label'] }}</p> {{-- Label above value, smaller text --}}
-                                        <p class="text-base font-semibold text-gray-900 dark:text-gray-100">
-                                            {{ $detail['value'] }}</p> {{-- Bolder value --}}
+                                                ];
+                                            @endphp
+                                            @foreach ($sppbDetails as $detail)
+                                                <div class="flex items-center gap-4 rounded-lg border border-gray-200 bg-gray-200/10 p-3 dark:border-gray-700 dark:bg-gray-800">
+                                                    <i class="lucide lucide-{{ $detail['icon'] }} h-6 w-6 text-gray-600 dark:text-gray-300"></i>
+                                                    <div>
+                                                        <p class="text-base font-medium text-gray-900 dark:text-gray-100">
+                                                            <span class="mr-1 text-xs text-gray-500 dark:text-gray-400">{{ $detail['label'] }}:</span>
+                                                            {{ $detail['value'] }}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            @endforeach
+                                        </div> 
                                     </div>
                                 </div>
-                            @endforeach
-                        </div>  
-
-                        <div
-                            class="rounded-xl border border-gray-200 bg-gray-50 p-6 dark:border-gray-700 dark:bg-gray-800">
-                            {{-- Rounded-xl, stronger  --}}
-                            <h3 class="mb-3 flex items-center gap-2 text-xl font-bold text-gray-800 dark:text-gray-100">
-                                {{-- Larger, bolder title --}}
-                                <span class="text-pink-500">🤔</span> Note
-                            </h3>
-                            <p class="text-base leading-relaxed text-gray-700 dark:text-gray-300">
-                                {{ $changesto->changerequest_note }}</p> {{-- Adjusted text color and line height --}}
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="flex flex-col gap-4 sm:w-1/2 md:w-full">                
-                <div x-data="{ activeTab: 'approval' }" class="rounded-xl bg-white duration-300 dark:bg-gray-800">
-                    <header
-                        class="flex items-center rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
-                        <nav class="-mb-px flex flex-grow"> {{-- Added -mb-px to negative margin to overlap border --}}
-                            <button @click="activeTab = 'approval'"
-                                :class="{
-                                    'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400': activeTab === 'approval',
-                                    'border-b-2 border-transparent text-gray-600 hover:text-gray-800 hover:border-gray-300 dark:text-gray-300 dark:hover:text-gray-100 dark:hover:border-gray-600': activeTab !== 'approval'
-                                }"
-                                class="flex-1 whitespace-nowrap px-4 py-2 text-center text-sm font-medium transition-colors duration-200 focus:outline-none">
-                                Approval Details
-                            </button>
-                            <button @click="activeTab = 'attachment'"
-                                :class="{
-                                    'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400': activeTab === 'attachment',
-                                    'border-b-2 border-transparent text-gray-600 hover:text-gray-800 hover:border-gray-300 dark:text-gray-300 dark:hover:text-gray-100 dark:hover:border-gray-600': activeTab !== 'attachment'
-                                }"
-                                class="flex-1 whitespace-nowrap px-4 py-2 text-center text-sm font-medium transition-colors duration-200 focus:outline-none">
-                                Attachment
-                            </button>
-                            <button @click="activeTab = 'comments'"
-                                :class="{
-                                    'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400': activeTab === 'comments',
-                                    'border-b-2 border-transparent text-gray-600 hover:text-gray-800 hover:border-gray-300 dark:text-gray-300 dark:hover:text-gray-100 dark:hover:border-gray-600': activeTab !== 'comments'
-                                }"
-                                class="flex-1 whitespace-nowrap px-4 py-2 text-center text-sm font-medium transition-colors duration-200 focus:outline-none">
-                                Comments
-                            </button>
-                        </nav>
-                    </header>
-
-                    <div class="flex-grow overflow-y-auto rounded-b-xl bg-white p-6 dark:bg-gray-800">
-                        <div x-show="activeTab === 'approval'" x-transition:enter="transition ease-out duration-300"
-                            x-transition:enter-start="opacity-0 translate-y-2"
-                            x-transition:enter-end="opacity-100 translate-y-0"
-                            x-transition:leave="transition ease-in duration-200"
-                            x-transition:leave-start="opacity-100 translate-y-0"
-                            x-transition:leave-end="opacity-0 translate-y-2">
-                            <table class="w-full text-sm">
-                                <thead>
-                                    <tr
-                                        class="border-b border-gray-200 text-gray-600 dark:border-gray-700 dark:text-gray-300">
-                                        <th class="p-3 text-left font-semibold">Level</th>
-                                        <th class="p-3 text-left font-semibold">Name</th>
-                                        <th class="p-3 text-left font-semibold">Date</th>
-                                        <th class="p-3 text-left font-semibold">Status</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach ($approval as $ap)
-                                        <tr
-                                            class="border-b border-gray-100 transition-colors hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700">
-                                            <td class="p-3 text-left text-gray-800 dark:text-gray-200">
-                                                {{ $ap->aprvid }}</td>
-                                            <td class="p-3 text-left text-gray-800 dark:text-gray-200">
-                                                {{ $ap->name }}</td>
-                                            <td class="p-3 text-left text-gray-700 dark:text-gray-300">
-                                                {{ \Carbon\Carbon::parse($ap->aprvdatebefore)->format('d M Y') }}
-                                            </td>
-                                            <td class="p-3 text-left">
-                                                @php
-                                                    $statusText = '';
-                                                    $statusClass = '';
-                                                    switch ($ap->status) {
-                                                        case 'P':
-                                                            $statusText = 'Waiting Approval';
-                                                            $statusClass = 'bg-yellow-500 text-white';
-                                                            break;
-                                                        case 'A':
-                                                            $statusText = 'Approved';
-                                                            $statusClass = 'bg-green-500 text-white';
-                                                            break;
-                                                        case 'R':
-                                                            $statusText = 'Rejected';
-                                                            $statusClass = 'bg-red-500 text-white';
-                                                            break;
-                                                        case 'D':
-                                                            $statusText = 'Revise';
-                                                            $statusClass = 'bg-blue-500 text-white';
-                                                            break;
-                                                        default:
-                                                            $statusText = 'Unknown';
-                                                            $statusClass = 'bg-gray-500 text-white';
-                                                    }
-                                                @endphp
-                                                <span
-                                                    class="{{ $statusClass }} inline-block rounded-full px-3 py-1 text-xs font-semibold">{{ $statusText }}</span>
-                                            </td>
-                                        </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
+                                                            
+                            </div>
                         </div>
 
-                        <div x-show="activeTab === 'attachment'" x-transition:enter="transition ease-out duration-300"
-                            x-transition:enter-start="opacity-0 translate-y-2"
-                            x-transition:enter-end="opacity-100 translate-y-0"
-                            x-transition:leave="transition ease-in duration-200"
-                            x-transition:leave-start="opacity-100 translate-y-0"
-                            x-transition:leave-end="opacity-0 translate-y-2">
-                            <table class="w-full text-sm">
-                                <thead class="text-gray-600 dark:text-gray-300">
-                                    <tr class="border-b border-gray-200 dark:border-gray-700">
-                                        <th class="p-3 text-left font-semibold">Filename</th>
-                                        <th class="p-3 text-left font-semibold">Created By</th>
-                                        <th class="p-3 text-left font-semibold">Date</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach ($attachment as $at)
-                                        @php
-                                            $year = $at->created_at->year;
-                                            $fileUrl = url('/attachments/' . $year . '/' . $at->attachfile);
-                                        @endphp
-                                        <tr
-                                            class="border-b border-gray-100 transition-colors last:border-b-0 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700">
-                                            <td class="p-3">
-                                                <a href="{{ $fileUrl }}" target="_blank"
-                                                    class="flex items-center gap-2 font-medium text-indigo-600 hover:underline dark:text-indigo-400">📎
-                                                    {{ $at->name }}</a>
-                                            </td>
-                                            <td class="p-3 text-gray-800 dark:text-gray-200">
-                                                {{ $at->created_user }}</td>
-                                            <td class="p-3 text-gray-700 dark:text-gray-300">
-                                                {{ \Carbon\Carbon::parse($at->created_at)->format('d M Y') }}
-                                            </td>
-                                        </tr>
-                                    @endforeach
-                                    @if ($attachment->isEmpty())
-                                        <tr>
-                                            <td colspan="3"
-                                                class="p-4 text-center italic text-gray-500 dark:text-gray-400">
-                                                No attachments found.</td>
-                                        </tr>
-                                    @endif
-                                </tbody>
-                            </table>
-                        </div>
-
-                        <div x-show="activeTab === 'comments'" x-transition:enter="transition ease-out duration-300"
-                            x-transition:enter-start="opacity-0 translate-y-2"
-                            x-transition:enter-end="opacity-100 translate-y-0"
-                            x-transition:leave="transition ease-in duration-200"
-                            x-transition:leave-start="opacity-100 translate-y-0"
-                            x-transition:leave-end="opacity-0 translate-y-2">
-                            <div x-data="{ comments: [], newComment: '', currentUser: 'User1' }" class="flex w-full flex-col justify-center">
-                                <div id="commentList"
-                                    class="custom-scrollbar flex max-h-60 flex-col space-y-4 overflow-y-auto p-4">
-                                    <p class="py-4 text-center italic text-gray-500">Loading comments...</p>
-                                </div>
-                                <div class="flex items-center gap-3 border-t border-gray-200 p-4 dark:border-gray-700">
-                                    <input id="commentInput" x-model="newComment" type="text"
-                                        placeholder="Write a comment..."
-                                        class="flex-1 rounded-lg border border-transparent bg-gray-100 p-3 text-gray-800 transition-all duration-200 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white dark:focus:ring-indigo-400">
-                                    <button id="postCommentBtn"
-                                        @click="if(newComment.trim()) { comments.push({ text: newComment, user: currentUser }); newComment = ''; }"
-                                        class="rounded-lg bg-indigo-600 px-5 py-3 text-sm font-semibold text-white shadow-md transition-all duration-200 hover:bg-indigo-700 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 active:scale-95 dark:focus:ring-offset-gray-800">
-                                        Post 🚀
+                        <div class="flex flex-col gap-4 sm:w-1/2 md:w-full">
+                        <div x-data="{ activeTab: 'attachment' }" class="rounded-xl bg-white duration-300 dark:bg-gray-800">
+                            <header
+                                class="flex items-center rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
+                                <nav class="-mb-px flex flex-grow"> {{-- Added -mb-px to negative margin to overlap border --}}
+                                     <button @click="activeTab = 'attachment'"
+                                        :class="{
+                                            'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400': activeTab === 'attachment',
+                                            'border-b-2 border-transparent text-gray-600 hover:text-gray-800 hover:border-gray-300 dark:text-gray-300 dark:hover:text-gray-100 dark:hover:border-gray-600': activeTab !== 'attachment'
+                                        }"
+                                        class="flex-1 whitespace-nowrap px-4 py-2 text-center text-sm font-medium transition-colors duration-200 focus:outline-none">
+                                        Attachment
                                     </button>
+                                    <button @click="activeTab = 'approval'"
+                                        :class="{
+                                            'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400': activeTab === 'approval',
+                                            'border-b-2 border-transparent text-gray-600 hover:text-gray-800 hover:border-gray-300 dark:text-gray-300 dark:hover:text-gray-100 dark:hover:border-gray-600': activeTab !== 'approval'
+                                        }"
+                                        class="flex-1 whitespace-nowrap px-4 py-2 text-center text-sm font-medium transition-colors duration-200 focus:outline-none">
+                                        Approval Details
+                                    </button>                                   
+                                    <button @click="activeTab = 'comments'"
+                                        :class="{
+                                            'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400': activeTab === 'comments',
+                                            'border-b-2 border-transparent text-gray-600 hover:text-gray-800 hover:border-gray-300 dark:text-gray-300 dark:hover:text-gray-100 dark:hover:border-gray-600': activeTab !== 'comments'
+                                        }"
+                                        class="flex-1 whitespace-nowrap px-4 py-2 text-center text-sm font-medium transition-colors duration-200 focus:outline-none">
+                                        Comments
+                                    </button>
+                                </nav>
+                            </header>
+
+                            <div class="flex-grow overflow-y-auto rounded-b-xl bg-white p-6 dark:bg-gray-800 max-h-96 min-h-[12rem]">
+                                <div x-show="activeTab === 'approval'" x-transition:enter="transition ease-out duration-300"
+                                    x-transition:enter-start="opacity-0 translate-y-2"
+                                    x-transition:enter-end="opacity-100 translate-y-0"
+                                    x-transition:leave="transition ease-in duration-200"
+                                    x-transition:leave-start="opacity-100 translate-y-0"
+                                    x-transition:leave-end="opacity-0 translate-y-2">
+                                    <table class="w-full text-sm">
+                                        <thead>
+                                            <tr
+                                                class="border-b border-gray-200 text-gray-600 dark:border-gray-700 dark:text-gray-300">
+                                                <th class="p-3 text-left font-semibold">Level</th>
+                                                <th class="p-3 text-left font-semibold">Name</th>
+                                                <th class="p-3 text-left font-semibold">Date</th>
+                                                <th class="p-3 text-left font-semibold">Status</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach ($approval as $ap)
+                                                <tr
+                                                    class="border-b border-gray-100 transition-colors hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700">
+                                                    <td class="p-3 text-left text-gray-800 dark:text-gray-200">
+                                                        {{ $ap->aprvid }}</td>
+                                                    <td class="p-3 text-left text-gray-800 dark:text-gray-200">
+                                                        {{ $ap->name }}</td>
+                                                    <td class="p-3 text-left text-gray-700 dark:text-gray-300">
+                                                        {{ \Carbon\Carbon::parse($ap->aprvdatebefore)->format('d M Y') }}
+                                                    </td>
+                                                    <td class="p-3 text-left">
+                                                        @php
+                                                            $statusText = '';
+                                                            $statusClass = '';
+                                                            switch ($ap->status) {
+                                                                case 'P':
+                                                                    $statusText = 'Waiting Approval';
+                                                                    $statusClass = 'bg-yellow-500 text-white';
+                                                                    break;
+                                                                case 'A':
+                                                                    $statusText = 'Approved';
+                                                                    $statusClass = 'bg-green-500 text-white';
+                                                                    break;
+                                                                case 'R':
+                                                                    $statusText = 'Rejected';
+                                                                    $statusClass = 'bg-red-500 text-white';
+                                                                    break;
+                                                                case 'D':
+                                                                    $statusText = 'Revise';
+                                                                    $statusClass = 'bg-blue-500 text-white';
+                                                                    break;
+                                                                default:
+                                                                    $statusText = 'Unknown';
+                                                                    $statusClass = 'bg-gray-500 text-white';
+                                                            }
+                                                        @endphp
+                                                        <span
+                                                            class="{{ $statusClass }} inline-block rounded-full px-3 py-1 text-xs font-semibold">{{ $statusText }}</span>
+                                                    </td>
+                                                </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                <div x-show="activeTab === 'attachment'" x-transition:enter="transition ease-out duration-300"
+                                    x-transition:enter-start="opacity-0 translate-y-2"
+                                    x-transition:enter-end="opacity-100 translate-y-0"
+                                    x-transition:leave="transition ease-in duration-200"
+                                    x-transition:leave-start="opacity-100 translate-y-0"
+                                    x-transition:leave-end="opacity-0 translate-y-2">
+                                    <table class="w-full text-sm">
+                                        <thead class="text-gray-600 dark:text-gray-300">
+                                            <tr class="border-b border-gray-200 dark:border-gray-700">
+                                                <th class="p-3 text-left font-semibold">Filename</th>
+                                                <th class="p-3 text-left font-semibold">Created By</th>
+                                                <th class="p-3 text-left font-semibold">Date</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach ($attachment as $at)
+                                                @php
+                                                    $year = $at->created_at->year;
+                                                    $fileUrl = url('/attachments/' . $year . '/' . $at->attachfile);
+                                                @endphp
+                                                <tr
+                                                    class="border-b border-gray-100 transition-colors last:border-b-0 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700">
+                                                    <td class="p-3">
+                                                        <a href="{{ $fileUrl }}" target="_blank"
+                                                            class="flex items-center gap-2 font-medium text-indigo-600 hover:underline dark:text-indigo-400">📎
+                                                            {{ $at->name }}</a>
+                                                    </td>
+                                                    <td class="p-3 text-gray-800 dark:text-gray-200">
+                                                        {{ $at->created_user }}</td>
+                                                    <td class="p-3 text-gray-700 dark:text-gray-300">
+                                                        {{ \Carbon\Carbon::parse($at->created_at)->format('d M Y') }}
+                                                    </td>
+                                                </tr>
+                                            @endforeach
+                                            @if ($attachment->isEmpty())
+                                                <tr>
+                                                    <td colspan="3"
+                                                        class="p-4 text-center italic text-gray-500 dark:text-gray-400">
+                                                        No attachments found.</td>
+                                                </tr>
+                                            @endif
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                <div x-show="activeTab === 'comments'" x-transition:enter="transition ease-out duration-300"
+                                    x-transition:enter-start="opacity-0 translate-y-2"
+                                    x-transition:enter-end="opacity-100 translate-y-0"
+                                    x-transition:leave="transition ease-in duration-200"
+                                    x-transition:leave-start="opacity-100 translate-y-0"
+                                    x-transition:leave-end="opacity-0 translate-y-2">
+                                    <div x-data="{ comments: [], newComment: '', currentUser: 'User1' }" class="flex w-full flex-col justify-center">
+                                        <div id="commentList"
+                                            class="custom-scrollbar flex max-h-60 flex-col space-y-4 overflow-y-auto p-4">
+                                            <p class="py-4 text-center italic text-gray-500">Loading comments...</p>
+                                        </div>
+                                        <div class="flex items-center gap-3 border-t border-gray-200 p-4 dark:border-gray-700">
+                                            <input id="commentInput" x-model="newComment" type="text"
+                                                placeholder="Write a comment..."
+                                                class="flex-1 rounded-lg border border-transparent bg-gray-100 p-3 text-gray-800 transition-all duration-200 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white dark:focus:ring-indigo-400">
+                                            <button id="postCommentBtn"
+                                                @click="if(newComment.trim()) { comments.push({ text: newComment, user: currentUser }); newComment = ''; }"
+                                                class="rounded-lg bg-indigo-600 px-5 py-3 text-sm font-semibold text-white shadow-md transition-all duration-200 hover:bg-indigo-700 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 active:scale-95 dark:focus:ring-offset-gray-800">
+                                                Post 🚀
+                                            </button>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
+                        </div>
+            </div>
+            <div class="flex max-h-96 min-h-[12rem] flex-col rounded-2xl dark:bg-gray-800">
+                               <header
+                                    class="flex items-center justify-between rounded-t-2xl border-b border-gray-300/10 bg-gray-50 px-6 py-4 dark:border-gray-600 dark:text-gray-100">
+                                    <h2 class="text-xl font-semibold">📝 SPPB Detail</h2>
+                                    
+                                </header>
+                                <div class="flex-grow overflow-y-auto rounded-b-2xl bg-white p-4 px-4">
+                                    <table class="w-full text-sm">
+                                        <thead>
+                                            <tr>                                                           
+                                                <th class="px-4 py-2">No</th>
+                                                <th class="px-4 py-2">IventoryID</th>
+                                                <th class="px-4 py-2">Description</th>
+                                                <th class="px-4 py-2">Qty</th>
+                                                <th class="px-4 py-2">UoM</th>
+                                                <th class="px-4 py-2">Note</th>
+                                                <th class="px-4 py-2">Coa</th>
+                                                <th class="px-4 py-2">Location</th>
+                                                <th class="px-4 py-2">SubLocation</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach($sppbdetail as $item)
+                                                <tr class="border-t hover:bg-gray-50">                                                              
+                                                    <td class="px-4 py-2">{{ $item->sppb_no }}</td>
+                                                    <td class="px-4 py-2">{{ $item->inventoryid }}</td>
+                                                    <td class="px-4 py-2">{{ $item->inventory_descr }}</td>
+                                                    <td class="px-4 py-2">{{ $item->qty }}</td>
+                                                    <td class="px-4 py-2">{{ $item->uom }}</td>
+                                                    <td class="px-4 py-2">{{ $item->note }}</td>
+                                                    <td class="px-4 py-2">{{ $item->budget_account_id }}</td>
+                                                    <td class="px-4 py-2">{{ optional($item->location)->location_name }}</td>    
+                                                    <td class="px-4 py-2">{{ optional($item->subLocation)->sub_location_name }}</td>
+                                                </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
                     </div>
+
                 </div>
             </div>
         </div>
-    </div>
-
-    <div id="loadingSpinnerContainer" class="flex h-16 items-center justify-center">
-        <svg class="h-10 w-10 animate-spin text-indigo-500" xmlns="http://www.w3.org/2000/svg" fill="none"
-            viewBox="0 0 24 24" stroke="currentColor">
-            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4">
-            </circle>
-            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
-        </svg>
-    </div>
-
-    <div id="rejectTaskModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50 p-4">
-        <div class="-lg w-full max-w-md rounded-lg bg-white p-6 dark:bg-gray-700">
-            <h2 class="mb-4 text-xl font-bold text-gray-800 dark:text-white">Reject Task</h2>
-            <textarea id="rejectReason"
-                class="mt-2 w-full rounded-lg border border-gray-300 p-3 focus:outline-none focus:ring-2 focus:ring-red-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
-                placeholder="Enter rejection reason..."></textarea>
-
-            <div class="mt-6 flex justify-end gap-3">
-                <button id="cancelRejectBtn"
-                    class="rounded-lg bg-gray-200 px-5 py-2 font-medium text-gray-700 transition-colors hover:bg-gray-300 dark:bg-gray-600 dark:text-white dark:hover:bg-gray-500">
-                    Cancel
-                </button>
-                <button id="confirmRejectBtn"
-                    class="rounded-lg bg-red-600 px-5 py-2 font-medium text-white transition-colors hover:bg-red-700">
-                    Reject
-                </button>
+            <div id="loadingSpinnerContainer" class="flex h-16 items-center justify-center">
+                <svg class="h-10 w-10 animate-spin text-indigo-500" xmlns="http://www.w3.org/2000/svg" fill="none"
+                    viewBox="0 0 24 24" stroke="currentColor">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
+                        stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                </svg>
             </div>
-        </div>
-    </div>
 
-    <div id="reviseTaskModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50 p-4">
-        <div class="-lg w-full max-w-md rounded-lg bg-white p-6 dark:bg-gray-700">
-            <h2 class="mb-4 text-xl font-bold text-gray-800 dark:text-white">Revise Task</h2>
-            <textarea id="reviseReason"
-                class="mt-2 w-full rounded-lg border border-gray-300 p-3 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
-                placeholder="Enter revise reason..."></textarea>
+            <div id="rejectTaskModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50">
+                <div class="w-full max-w-md rounded-lg bg-white p-6 shadow-lg dark:bg-gray-700">
+                    <h2 class="mb-4 text-xl font-semibold text-gray-800 dark:text-white">Reject</h2>
+                    <textarea id="rejectReason"
+                        class="mt-2 w-full rounded-lg border p-3 focus:outline-none dark:bg-gray-800 dark:text-white"
+                        placeholder="Enter rejection reason..."></textarea>
 
-            <div class="mt-6 flex justify-end gap-3">
-                <button id="cancelReviseBtn"
-                    class="rounded-lg bg-gray-200 px-5 py-2 font-medium text-gray-700 transition-colors hover:bg-gray-300 dark:bg-gray-600 dark:text-white dark:hover:bg-gray-500">
-                    Cancel
-                </button>
-                <button id="confirmReviseBtn"
-                    class="rounded-lg bg-blue-600 px-5 py-2 font-medium text-white transition-colors hover:bg-blue-700">
-                    Revise
-                </button>
+                    <div class="mt-4 flex justify-between">
+                        <button id="cancelRejectBtn"
+                            class="rounded-lg bg-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-400">
+                            Cancel
+                        </button>
+                        <button id="confirmRejectBtn"
+                            class="rounded-lg bg-red-500 px-4 py-2 text-white hover:bg-red-600">
+                            Reject
+                        </button>
+                    </div>
+                </div>
             </div>
-        </div>
-    </div>
+            <div id="reviseTaskModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50">
+                <div class="w-full max-w-md rounded-lg bg-white p-6 shadow-lg dark:bg-gray-700">
+                    <h2 class="mb-4 text-xl font-semibold text-gray-800 dark:text-white">Revise Task</h2>
+                    <textarea id="reviseReason"
+                        class="mt-2 w-full rounded-lg border p-3 focus:outline-none dark:bg-gray-800 dark:text-white"
+                        placeholder="Enter revise reason..."></textarea>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/locale/id.min.js"></script>
-    <script>
-        moment.locale('id');
-    </script>
+                    <div class="mt-4 flex justify-between">
+                        <button id="cancelReviseBtn"
+                            class="rounded-lg bg-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-400">
+                            Cancel
+                        </button>
+                        <button id="confirmReviseBtn"
+                            class="rounded-lg bg-red-500 px-4 py-2 text-white hover:bg-red-600">
+                            Revise
+                        </button>
+                    </div>
+                </div>
+            </div>    
+            
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/dayjs/1.11.10/dayjs.min.js"></script>
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/dayjs/1.11.10/plugin/relativeTime.min.js"></script>
+            <script> dayjs.extend(dayjs_plugin_relativeTime); </script>
 
-    <script>
-        $(document).ready(function() {
-            let docid = "{{ $changesto->changerequest_id }}"; // Ambil task ID dari PHP ke JavaScript
-            loadComments(docid);
+            <script>
+                $(document).ready(function() {
+                    let sppbid = "{{ $sppb->sppbid }}"; // Ambil task ID dari PHP ke JavaScript
+                    loadComments(sppbid);
 
-            // **Fungsi untuk Memuat Komentar**
-            function loadComments(docid) {
-                console.log("Loading comments for Doc ID:", docid);
-                let commentList = $('#commentList');
-                commentList.html('<p class="text-gray-500 italic">Loading comments...</p>'); // Loader
+                    // **Fungsi untuk Memuat Komentar**
+                    function loadComments(sppbid) {
+                        console.log("Loading comments for Doc ID:", sppbid);
+                        let commentList = $('#commentList');
+                        commentList.html('<p class="text-gray-500 italic">Loading comments...</p>'); // Loader
 
-                $.ajax({
-                    url: `/changesto/${docid}/comments`,
-                    type: 'GET',
-                    success: function(response) {
-                        console.log("Comments Loaded:", response);
-                        commentList.empty();
+                        $.ajax({
+                            url: `/sppb/${sppbid}/comments`,
+                            type: 'GET',
+                            success: function(response) {
+                                console.log("Comments Loaded:", response);
+                                commentList.empty();
 
-                        if (response.comments.length === 0) {
-                            commentList.append(
-                                '<p class="text-gray-500 italic">No comments yet. Be the first to comment!</p>'
-                            );
-                        } else {
-                            response.comments.forEach(comment => {
-                                let timeAgo = moment(comment.created_at)
-                                    .fromNow(); // Format waktu seperti "4 days ago"
-
-                                commentList.append(`
-                                    <div class="p-3 bg-gray-100 dark:bg-gray-800 rounded-lg mb-2 border border-gray-300 dark:border-gray-700">
-                                        <p class="text-sm font-semibold">${comment.username} 
-                                            <span class="text-xs text-gray-500">(${timeAgo})</span>
-                                        </p>
-                                        <p class="text-gray-800 dark:text-gray-200">${comment.message}</p>
-                                    </div>
+                                if (response.comments.length === 0) {
+                                    commentList.append(
+                                        '<p class="text-gray-500 italic">No comments yet. Be the first to comment!</p>'
+                                    );
+                                } else {
+                                    response.comments.forEach(comment => {
+                                        // let timeAgo = moment(comment.created_at)
+                                        //     .fromNow(); // Format waktu seperti "4 days ago"
+                                        let timeAgo = dayjs(comment.created_at).fromNow();
+                                        commentList.append(`
+                                        <div class="p-3 bg-gray-100 dark:bg-gray-800 rounded-lg mb-2 border border-gray-300 dark:border-gray-700">
+                                            <p class="text-sm font-semibold">${comment.username} 
+                                                <span class="text-xs text-gray-500">(${timeAgo})</span>
+                                            </p>
+                                            <p class="text-gray-800 dark:text-gray-200">${comment.message}</p>
+                                        </div>
                                 `);
-                            });
+                                    });
+                                }
+                            },
+                            error: function(xhr) {
+                                console.error("Error fetching comments:", xhr.responseText);
+                                commentList.html('<p class="text-red-500 italic">Failed to load comments.</p>');
+                            }
+                        });
+                    }
+
+                    // **Fungsi untuk Menambahkan Komentar**
+                    function addComment() {
+                        let input = $('#commentInput').val().trim();
+
+                        if (input === "") {
+                            alert("Please enter a comment.");
+                            return;
                         }
-                    },
-                    error: function(xhr) {
-                        console.error("Error fetching comments:", xhr.responseText);
-                        commentList.html('<p class="text-red-500 italic">Failed to load comments.</p>');
+
+                        $('#postCommentBtn').prop('disabled', true).text('Posting...'); // Disable button saat proses
+
+                        $.ajax({
+                            url: `/sppb/${sppbid}/comments`,
+                            type: 'POST',
+                            data: {
+                                sppbid: sppbid,
+                                comment: input,
+                                _token: '{{ csrf_token() }}'
+                            },
+                            success: function(response) {
+                                console.log('Comment added successfully:', response);
+
+                                if (response.status === "success") {
+                                    loadComments(sppbid); // **Reload komentar setelah menambahkan**
+                                    $('#commentInput').val(''); // Kosongkan input setelah sukses
+                                }
+                            },
+                            error: function(xhr) {
+                                console.error("Error adding comment:", xhr);
+                                alert("Error: " + (xhr.responseJSON ? xhr.responseJSON.message :
+                                    "Unknown Error"));
+                            },
+                            complete: function() {
+                                $('#postCommentBtn').prop('disabled', false).text(
+                                    'Post'); // Aktifkan kembali tombol
+                            }
+                        });
                     }
-                });
-            }
 
-            // **Fungsi untuk Menambahkan Komentar**
-            function addComment() {
-                let input = $('#commentInput').val().trim();
+                    // **Event Listener untuk Tombol "Post"**
+                    $('#postCommentBtn').click(function() {
+                        addComment();
+                    });
 
-                if (input === "") {
-                    alert("Please enter a comment.");
-                    return;
-                }
-
-                $('#postCommentBtn').prop('disabled', true).text('Posting...'); // Disable button saat proses
-
-                $.ajax({
-                    url: `/changesto/${docid}/comments`,
-                    type: 'POST',
-                    data: {
-                        docid: docid,
-                        comment: input,
-                        _token: '{{ csrf_token() }}'
-                    },
-                    success: function(response) {
-                        console.log('Comment added successfully:', response);
-
-                        if (response.status === "success") {
-                            loadComments(docid); // **Reload komentar setelah menambahkan**
-                            $('#commentInput').val(''); // Kosongkan input setelah sukses
+                    // **Event Listener untuk Enter (Tanpa Shift) di Input**
+                    $('#commentInput').keypress(function(event) {
+                        if (event.which === 13 && !event.shiftKey) {
+                            event.preventDefault();
+                            addComment();
                         }
-                    },
-                    error: function(xhr) {
-                        console.error("Error adding comment:", xhr);
-                        alert("Error: " + (xhr.responseJSON ? xhr.responseJSON.message :
-                            "Unknown Error"));
-                    },
-                    complete: function() {
-                        $('#postCommentBtn').prop('disabled', false).text(
-                            'Post'); // Aktifkan kembali tombol
-                    }
+                    });
                 });
-            }
+            </script>
+            <script>
+                $(document).on("click", "#approveBtn", function() {
+                    let sppbid = "{{ $sppb->sppbid }}"; // Ambil Task ID dari modal        
+                    approveSPPB(sppbid);
+                });
 
-            // **Event Listener untuk Tombol "Post"**
-            $('#postCommentBtn').click(function() {
-                addComment();
-            });
+                function approveSPPB(sppbid) {
+                    let $spinner = $("#loadingSpinnerContainer"); // Ambil elemen spinner
 
-            // **Event Listener untuk Enter (Tanpa Shift) di Input**
-            $('#commentInput').keypress(function(event) {
-                if (event.which === 13 && !event.shiftKey) {
-                    event.preventDefault();
-                    addComment();
-                }
-            });
-        });
-    </script>
-    <script>
-        $(document).on("click", "#approveBtn", function() {
-            let docid = "{{ $changesto->changerequest_id }}"; // Ambil Task ID dari modal        
-            approveChangeSto(docid);
-        });
+                    // Tampilkan spinner di kanan bawah
+                    $spinner.fadeIn();
 
-        function approveChangeSto(docid) {
-            let $spinner = $("#loadingSpinnerContainer"); // Ambil elemen spinner
+                    $.ajax({
+                        url: `/sppb/${sppbid}/approve`,
+                        type: "POST",
+                        data: {
+                            _token: "{{ csrf_token() }}",
+                            sppbid: sppbid
+                        },
+                        success: function(response) {
+                            if (response.success) {
+                                // Update status di UI
+                                $("#xstatus").text("Approved")
+                                    .removeClass()
+                                    .addClass(
+                                        "w-full max-w-32 bg-green-300/30 dark:bg-green-300 text-green-600 flex justify-items-center focus:outline-none pointer-events-none border-none font-semibold px-2 py-0.5 rounded"
+                                    );
 
-            // Tampilkan spinner di kanan bawah
-            $spinner.fadeIn();
+                                // Tampilkan alert sukses
+                                toastr.success("SPPB approved successfully!");
+                                window.location.href = "/sppbs";
+                            } else {
+                                toastr.error(response.message);
+                            }
+                        },
+                        error: function(xhr) {
+                            console.error(xhr.responseText);
 
-            $.ajax({
-                url: `/changesto/${docid}/approve`,
-                type: "POST",
-                data: {
-                    _token: "{{ csrf_token() }}",
-                    docid: docid
-                },
-                success: function(response) {
-                    if (response.success) {
-                        // Update status di UI
-                        $("#xstatus").text("Approved")
-                            .removeClass()
-                            .addClass(
-                                "w-full max-w-32 bg-green-300/30 dark:bg-green-300 text-green-600 flex justify-items-center focus:outline-none pointer-events-none border-none font-semibold px-2 py-0.5 rounded"
-                            );
-
-                        // Tampilkan alert sukses
-                        toastr.success("ChangeSto approved successfully!");
-                        window.location.href = "/changestos";
-                    } else {
-                        toastr.error(response.message);
-                    }
-                },
-                error: function(xhr) {
-                    console.error(xhr.responseText);
-
-                    if (xhr.status === 403) {
-                        toastr.error("You are not authorized to approve this changesto.");
-                    } else {
-                        toastr.error("Error: Unable to approve changesto.");
-                    }
-                },
-                complete: function() {
-                    // Sembunyikan spinner setelah request selesai
-                    $spinner.fadeOut();
-                }
-            });
-        }
-    </script>
-
-
-    <script>
-        $(document).ready(function() {
-            // Saat tombol "Reject" ditekan, tampilkan modal Reject di depan
-            $(document).on("click", "#rejectBtn", function() {
-                $("#rejectReason").val(""); // Reset alasan reject
-                // $("#rejectTaskModal").removeClass("hidden").css("z-index", "60");
-                let docid = "{{ $changesto->changerequest_id }}";
-                checkApproval(docid, "reject");
-
-            });
-
-            // Saat tombol "Cancel" ditekan, tutup modal Reject
-            $(document).on("click", "#cancelRejectBtn", function() {
-                $("#rejectTaskModal").addClass("hidden");
-            });
-
-            // Saat tombol "Reject" ditekan, proses perubahan status
-            $(document).on("click", "#confirmRejectBtn", function() {
-                let docid = "{{ $changesto->changerequest_id }}"; // Ambil ID tugas dari modal detail
-                let rejectReason = $("#rejectReason").val().trim();
-
-                if (rejectReason === "") {
-                    toastr.error("Please provide a reason for rejection.");
-                    return;
-                }
-
-                let $spinner = $("#loadingSpinnerContainer"); // Ambil elemen spinner        
-                // Tampilkan spinner di kanan bawah
-                $spinner.fadeIn();
-
-                $.ajax({
-                    url: `/changesto/${docid}/reject`,
-                    type: "POST",
-                    data: {
-                        _token: "{{ csrf_token() }}",
-                        docid: docid,
-                        reason: rejectReason
-                    },
-                    success: function(response) {
-                        if (response.success) {
-                            // alert("Task has been rejected successfully.");
-
-                            // Update status di modal changesto
-                            $("#xstatus").text("Rejected")
-                                .removeClass()
-                                .addClass(
-                                    "w-full max-w-32 bg-red-300/30 dark:bg-red-300 text-red-600 flex justify-items-center focus:outline-none pointer-events-none border-none font-semibold px-2 py-0.5 rounded"
-                                );
+                            if (xhr.status === 403) {
+                                toastr.error("You are not authorized to approve this sppb.");
+                            } else {
+                                toastr.error("Error: Unable to approve sppb.");
+                            }
+                        },
+                        complete: function() {
+                            // Sembunyikan spinner setelah request selesai
                             $spinner.fadeOut();
-
-                            window.location.href = "/changestos";
-                        } else {
-                            alert("Failed to reject changesto.");
                         }
-                    },
-                    error: function(xhr) {
-                        console.error(xhr.responseText);
-
-                        if (xhr.status === 403) {
-                            alert("You Can't Rejected!"); // Popup jika user tidak berhak
-                        } else {
-                            alert("Error: Unable to reject changesto status.");
-                        }
-                    },
-                });
-            });
-        });
-    </script>
-    <script>
-        $(document).ready(function() {
-            // Saat tombol "Revise" ditekan, tampilkan modal Revise di depan
-            $(document).on("click", "#reviseBtn", function() {
-                $("#reviseReason").val(""); // Reset alasan revise
-                // $("#reviseTaskModal").removeClass("hidden").css("z-index", "60");
-                let docid = "{{ $changesto->changerequest_id }}";
-                checkApproval(docid, "revise");
-
-            });
-
-            // Saat tombol "Cancel" ditekan, tutup modal Revise
-            $(document).on("click", "#cancelReviseBtn", function() {
-                $("#reviseTaskModal").addClass("hidden");
-            });
-
-            // Saat tombol "Revise" ditekan, proses perubahan status
-            $(document).on("click", "#confirmReviseBtn", function() {
-                let docid = "{{ $changesto->changerequest_id }}"; // Ambil ID tugas dari modal detail
-                let reviseReason = $("#reviseReason").val().trim();
-
-                if (reviseReason === "") {
-                    toastr.error("Please provide a reason for revise.");
-                    return;
+                    });
                 }
-                let $spinner = $("#loadingSpinnerContainer"); // Ambil elemen spinner        
-                // Tampilkan spinner di kanan bawah
-                $spinner.fadeIn();
+            </script>
 
-                $.ajax({
-                    url: `/changesto/${docid}/revise`,
-                    type: "POST",
-                    data: {
-                        _token: "{{ csrf_token() }}",
-                        docid: docid,
-                        reason: reviseReason
-                    },
-                    success: function(response) {
-                        if (response.success) {
-                            // alert("Task has been reviseed successfully.");
 
-                            // Update status di modal changesto
-                            $("#xstatus").text("Revised")
-                                .removeClass()
-                                .addClass(
-                                    "w-full max-w-32 bg-red-300/30 dark:bg-red-300 text-red-600 flex justify-items-center focus:outline-none pointer-events-none border-none font-semibold px-2 py-0.5 rounded"
-                                );
-                            $spinner.fadeOut();
-                            window.location.href = "/changestos";
-                        } else {
-                            alert("Failed to revise changesto.");
+            <script>
+                $(document).ready(function() {
+                    // Saat tombol "Reject" ditekan, tampilkan modal Reject di depan
+                    $(document).on("click", "#rejectBtn", function() {
+                        $("#rejectReason").val(""); // Reset alasan reject
+                        // $("#rejectTaskModal").removeClass("hidden").css("z-index", "60");
+                        let sppbid = "{{ $sppb->sppbid }}";
+                        checkApproval(sppbid, "reject");
+
+                    });
+
+                    // Saat tombol "Cancel" ditekan, tutup modal Reject
+                    $(document).on("click", "#cancelRejectBtn", function() {
+                        $("#rejectTaskModal").addClass("hidden");
+                    });
+
+                    // Saat tombol "Reject" ditekan, proses perubahan status
+                    $(document).on("click", "#confirmRejectBtn", function() {
+                        let sppbid = "{{ $sppb->sppbid }}"; // Ambil ID tugas dari modal detail
+                        let rejectReason = $("#rejectReason").val().trim();
+
+                        if (rejectReason === "") {
+                            toastr.error("Please provide a reason for rejection.");
+                            return;
                         }
-                    },
-                    error: function(xhr) {
-                        console.error(xhr.responseText);
 
-                        if (xhr.status === 403) {
-                            alert("You Can't Revised!"); // Popup jika user tidak berhak
-                        } else {
-                            alert("Error: Unable to revise changesto status.");
-                        }
-                    },
+                        let $spinner = $("#loadingSpinnerContainer"); // Ambil elemen spinner        
+                        // Tampilkan spinner di kanan bawah
+                        $spinner.fadeIn();
+
+                        $.ajax({
+                            url: `/sppb/${sppbid}/reject`,
+                            type: "POST",
+                            data: {
+                                _token: "{{ csrf_token() }}",
+                                docid: sppbid,
+                                reason: rejectReason
+                            },
+                            success: function(response) {
+                                if (response.success) {
+                                    // alert("Task has been rejected successfully.");
+
+                                    // Update status di modal sppb
+                                    $("#xstatus").text("Rejected")
+                                        .removeClass()
+                                        .addClass(
+                                            "w-full max-w-32 bg-red-300/30 dark:bg-red-300 text-red-600 flex justify-items-center focus:outline-none pointer-events-none border-none font-semibold px-2 py-0.5 rounded"
+                                        );
+                                    $spinner.fadeOut();
+
+                                    window.location.href = "/sppbs";
+                                } else {
+                                    alert("Failed to reject sppb.");
+                                }
+                            },
+                            error: function(xhr) {
+                                console.error(xhr.responseText);
+
+                                if (xhr.status === 403) {
+                                    alert("You Can't Rejected!"); // Popup jika user tidak berhak
+                                } else {
+                                    alert("Error: Unable to reject sppb status.");
+                                }
+                            },
+                        });
+                    });
                 });
-            });
-        });
-    </script>
+            </script>
+            <script>
+                $(document).ready(function() {
+                    // Saat tombol "Revise" ditekan, tampilkan modal Revise di depan
+                    $(document).on("click", "#reviseBtn", function() {
+                        $("#reviseReason").val(""); // Reset alasan revise
+                        // $("#reviseTaskModal").removeClass("hidden").css("z-index", "60");
+                        let sppbid = "{{ $sppb->sppbid }}";
+                        checkApproval(sppbid, "revise");
 
-    <!-- Toastr CSS -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
-    <!-- Toastr JS -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
-    <script>
-        function checkApproval(docid, action) {
-            console.log(docid, '-', action);
-            $.ajax({
-                url: `/changesto/${docid}/check-approval/${action}`,
-                type: "GET",
-                success: function(response) {
-                    if (response.canPerformAction) {
-                        // Jika user bisa melakukan aksi, tampilkan modal atau langsung proses approval
-                        if (action === "reject") {
-                            $("#rejectReason").val(""); // Reset alasan reject
-                            $("#rejectTaskModal").removeClass("hidden").css("z-index", "60");
-                        } else if (action === "revise") {
-                            $("#reviseReason").val(""); // Reset alasan revise
-                            $("#reviseTaskModal").removeClass("hidden").css("z-index", "60");
-                            // } else if (action === "approve") {
-                            //     approveChangeSto(docid); // Jika approve, langsung jalankan proses approval
+                    });
+
+                    // Saat tombol "Cancel" ditekan, tutup modal Revise
+                    $(document).on("click", "#cancelReviseBtn", function() {
+                        $("#reviseTaskModal").addClass("hidden");
+                    });
+
+                    // Saat tombol "Revise" ditekan, proses perubahan status
+                    $(document).on("click", "#confirmReviseBtn", function() {
+                        let sppbid = "{{ $sppb->sppbid }}"; // Ambil ID tugas dari modal detail
+                        let reviseReason = $("#reviseReason").val().trim();
+
+                        if (reviseReason === "") {
+                            toastr.error("Please provide a reason for revise.");
+                            return;
                         }
-                    } else {
-                        // Jika user tidak boleh melakukan aksi, tampilkan popup toastr
-                        toastr.error("You are not authorized to " + action + " this changesto.");
-                    }
-                },
-                error: function() {
-                    toastr.error("Error checking approval status.");
-                }
-            });
-        }
-    </script>
-    <style>
-        /* Styling untuk loading spinner di kanan bawah */
-        #loadingSpinnerContainer {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: rgba(0, 0, 0, 0.7);
-            padding: 10px;
-            border-radius: 50%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            width: 50px;
-            height: 50px;
-            z-index: 1000;
-            display: none;
-            /* Tersembunyi saat tidak digunakan */
-        }
+                        let $spinner = $("#loadingSpinnerContainer"); // Ambil elemen spinner        
+                        // Tampilkan spinner di kanan bawah
+                        $spinner.fadeIn();
 
-        #loadingSpinnerContainer svg {
-            width: 30px;
-            height: 30px;
-            color: white;
-        }
-    </style>
+                        $.ajax({
+                            url: `/sppb/${sppbid}/revise`,
+                            type: "POST",
+                            data: {
+                                _token: "{{ csrf_token() }}",
+                                docid: sppbid,
+                                reason: reviseReason
+                            },
+                            success: function(response) {
+                                if (response.success) {
+                                    // alert("Task has been reviseed successfully.");
+
+                                    // Update status di modal sppb
+                                    $("#xstatus").text("Revised")
+                                        .removeClass()
+                                        .addClass(
+                                            "w-full max-w-32 bg-red-300/30 dark:bg-red-300 text-red-600 flex justify-items-center focus:outline-none pointer-events-none border-none font-semibold px-2 py-0.5 rounded"
+                                        );
+                                    $spinner.fadeOut();
+                                    window.location.href = "/sppbs";
+                                } else {
+                                    alert("Failed to revise sppb.");
+                                }
+                            },
+                            error: function(xhr) {
+                                console.error(xhr.responseText);
+
+                                if (xhr.status === 403) {
+                                    alert("You Can't Revised!"); // Popup jika user tidak berhak
+                                } else {
+                                    alert("Error: Unable to revise sppb status.");
+                                }
+                            },
+                        });
+                    });
+                });
+            </script>
+
+            <!-- Toastr CSS -->
+            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+            <!-- Toastr JS -->
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+            <script>
+                function checkApproval(sppbid, action) {
+                    console.log(sppbid, '-', action);
+                    $.ajax({
+                        url: `/sppb/${sppbid}/check-approval/${action}`,
+                        type: "GET",
+                        success: function(response) {
+                            if (response.canPerformAction) {
+                                // Jika user bisa melakukan aksi, tampilkan modal atau langsung proses approval
+                                if (action === "reject") {
+                                    $("#rejectReason").val(""); // Reset alasan reject
+                                    $("#rejectTaskModal").removeClass("hidden").css("z-index", "60");
+                                } else if (action === "revise") {
+                                    $("#reviseReason").val(""); // Reset alasan revise
+                                    $("#reviseTaskModal").removeClass("hidden").css("z-index", "60");
+                                    // } else if (action === "approve") {
+                                    //     approveSPPB(sppbid); // Jika approve, langsung jalankan proses approval
+                                }
+                            } else {
+                                // Jika user tidak boleh melakukan aksi, tampilkan popup toastr
+                                toastr.error("You are not authorized to " + action + " this sppb.");
+                            }
+                        },
+                        error: function() {
+                            toastr.error("Error checking approval status.");
+                        }
+                    });
+                }
+            </script>
+            <style>
+                /* Styling untuk loading spinner di kanan bawah */
+                #loadingSpinnerContainer {
+                    position: fixed;
+                    bottom: 20px;
+                    right: 20px;
+                    background: rgba(0, 0, 0, 0.7);
+                    padding: 10px;
+                    border-radius: 50%;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    width: 50px;
+                    height: 50px;
+                    z-index: 1000;
+                    display: none;
+                    /* Tersembunyi saat tidak digunakan */
+                }
+
+                #loadingSpinnerContainer svg {
+                    width: 30px;
+                    height: 30px;
+                    color: white;
+                }
+            </style>
+
+            {{-- <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/lucide.min.js"></script> --}}
+
+
 
 </x-app-layout>

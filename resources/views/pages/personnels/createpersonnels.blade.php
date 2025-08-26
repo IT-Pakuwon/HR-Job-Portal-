@@ -49,8 +49,7 @@
                                 </select>
                             </div>
                             <div class="flex flex-col gap-2">
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Lokasi
-                                    Kerja</label>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Placement Location</label>
                                 <select
                                     class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                     name="siteid" id="siteid" required>
@@ -614,7 +613,7 @@
 
                             $.each(data, function(key, value) {
                                 $siteSelect.append(
-                                    `<option value="${value.id}">${value.site}</option>`
+                                    `<option value="${value.site}">${value.site}</option>`
                                 );
                             });
                         }

@@ -1100,8 +1100,8 @@ class StrukturOrgController extends Controller
             $validator = Validator::make($request->all(), [
                 'approval_line' => 'required|integer',
                 'sto_id' => 'required|string',
-                'job_purpose' => 'required|array|min:1',
-                'job_purpose.*' => 'required|string|max:255',
+                // 'job_purpose' => 'required|array|min:1',
+                // 'job_purpose.*' => 'required|string|max:255',
                 'education_level' => 'required|string|max:50',
                 'education_major' => 'required|string|max:100',
                 'experience_years' => 'required|integer|min:0',
@@ -1116,16 +1116,36 @@ class StrukturOrgController extends Controller
                 ->where('refid', $request->sto_id)
                 ->max('no_job_purpose') ?? 0;
 
-            foreach ($request->job_purpose as $index => $purpose) {
-                $jobProfile = new StoJobProfile(); 
-                $jobProfile->departement_id = $request->approval_line;
-                $jobProfile->refid = $request->sto_id;
-                $jobProfile->created_user = $user->username;
-                $jobProfile->job_purpose = $purpose;   
-                $jobProfile->job_level = $request->job_level;  
-                $jobProfile->no_job_purpose = $lastNumber + $index + 1;
-                $jobProfile->status = 'P';
-                $jobProfile->save();
+            // foreach ($request->job_purpose as $index => $purpose) {
+            //     $jobProfile = new StoJobProfile(); 
+            //     $jobProfile->departement_id = $request->approval_line;
+            //     $jobProfile->refid = $request->sto_id;
+            //     $jobProfile->created_user = $user->username;
+            //     $jobProfile->job_purpose = $purpose;   
+            //     $jobProfile->job_level = $request->job_level;  
+            //     $jobProfile->no_job_purpose = $lastNumber + $index + 1;
+            //     $jobProfile->status = 'P';
+            //     $jobProfile->save();
+            // }
+
+            $purposes = collect($request->input('job_purpose', []))
+                ->map(fn ($p) => is_string($p) ? trim($p) : '')
+                ->filter(fn ($p) => $p !== '' && !in_array(strtolower($p), ['null', 'undefined', '-']));
+
+            if ($purposes->isNotEmpty()) {
+                $no = (int) $lastNumber; // nomor terakhir di DB
+                foreach ($purposes as $purpose) {
+                    $no++; // increment dulu agar mulai dari lastNumber+1
+                    $jobProfile = new StoJobProfile();
+                    $jobProfile->departement_id  = $request->approval_line;
+                    $jobProfile->refid           = $request->sto_id;
+                    $jobProfile->created_user    = $user->username;
+                    $jobProfile->job_purpose     = $purpose;
+                    $jobProfile->job_level       = $request->job_level;
+                    $jobProfile->no_job_purpose  = $no;
+                    $jobProfile->status          = 'P';
+                    $jobProfile->save();
+                }
             }
 
             $jobSpec = new StoJobSpec();
@@ -1514,7 +1534,8 @@ class StrukturOrgController extends Controller
                     'name' => $m->employee_name,
                     'company' => $m->employee_company,
                     // 'position' => $m->employee_level,                   
-                    'image' => $m->image ? asset('avatar/' . ltrim($m->image, '/')) : 'https://cdn-icons-png.flaticon.com/512/149/149071.png',
+                    // 'image' => $m->image ? asset('avatar/' . ltrim($m->image, '/')) : 'https://cdn-icons-png.flaticon.com/512/149/149071.png',
+                    'image' => $m->image ? asset($m->image) : 'https://cdn-icons-png.flaticon.com/512/149/149071.png',
 
                 ];
             });
@@ -1623,7 +1644,7 @@ class StrukturOrgController extends Controller
 
     }
 
-
+   
 
 
 

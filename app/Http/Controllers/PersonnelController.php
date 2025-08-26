@@ -33,6 +33,8 @@ use App\Models\StoDepartement;
 use App\Models\StoJobProfile;
 use App\Models\StoJobSpec;
 use App\Models\Division;
+use App\Models\CompanyAddress;
+
 use Mail;
 
 
@@ -177,9 +179,9 @@ class PersonnelController extends Controller
             $tglbln = substr($year, 2) . $month;
             $docid = $doctype . $tglbln . sprintf("%03d", $urutan);
            
-            $site = Site::where('id', $request->siteid)              
-                ->where('status', 'A')
-                ->first();
+            // $site = Site::where('id', $request->siteid)              
+            //     ->where('status', 'A')
+            //     ->first();
 
             $title = StoDepartement::where('departement_id', $request->job_title)              
                 ->where('status', 'A')
@@ -190,7 +192,7 @@ class PersonnelController extends Controller
                 'cpnyid' => $request->cpnyid,
                 'departementid' => $request->departementid,
                 'division_id' => $request->division,
-                'locationname' => $site->site ?? null,
+                'locationname' => $request->siteid ?? null,
                 'date' => $datenow,
                 'user' => $user->username,
                 'job_title' => $title->departement_name,
@@ -952,6 +954,7 @@ class PersonnelController extends Controller
                 'cpnyid' => $personnel->cpnyid,
                 'departementid' => $personnel->departementid,
                 'division_id' => optional($personnel->divisionRef)->division_name,
+                'locationname' => $personnel->locationname,
                 'date' => $datenow,
                 'job_title' => $personnel->job_title,
                 'subgrade_id' => $personnel->subgrade_id,
@@ -982,7 +985,55 @@ class PersonnelController extends Controller
                     'created_user' => $jr->created_user,
                     'status' => 'P'                                               
                 ]);
-            }            
+            }   
+            
+            if (!$personnel) {
+                throw new \RuntimeException('Personnel tidak ditemukan');
+            }
+
+            // nomor awal untuk qualification
+            $no = 1;
+
+            // Education
+            $eduParts = array_filter([
+                $personnel->education ?? null,
+                $personnel->education_jurusan ?? null,
+            ], fn ($v) => filled($v));
+
+            if (count($eduParts)) {
+                JobpostingQualification::create([
+                    'docid' => $docid,
+                    'refid' => $personnel->docid,
+                    'no_job_qualification' => $no++,
+                    'job_qualification_descr' => 'Minimum Education ' . implode(' ', $eduParts),
+                    'created_user' => $user->username,
+                    'status' => 'P',
+                ]);
+            }
+
+            // Experience
+            $start = $personnel->experience_start ?? null;
+            $role  = $personnel->experience_position ?? null;
+
+            $desc = null;
+            if (filled($start) && filled($role)) {
+                $desc = "Having Experience {$start} years as {$role}";
+            } elseif (filled($start)) {
+                $desc = "Having Experience {$start} years";
+            } elseif (filled($role)) {
+                $desc = "Having Experience as {$role}";
+            }
+
+            if ($desc) {
+                JobpostingQualification::create([
+                    'docid'                   => $docid,
+                    'refid'                   => $personnel->docid,
+                    'no_job_qualification'    => $no++,
+                    'job_qualification_descr' => $desc,
+                    'created_user'            => $user->username,
+                    'status'                  => 'P',
+                ]);
+            }
 
             $jobqua = JobQualification::where('docid', $id)          
                 ->get();
@@ -1025,8 +1076,16 @@ class PersonnelController extends Controller
         //     ->select('id', 'site')         
         //     ->get();
 
-        $sites = Site::select('id', 'site')         
+        // $sites = Site::select('id', 'site')         
+        //     ->get();
+        $sites = CompanyAddress::where('status', 'A')
+            ->whereNotNull('sitelocation')
+            ->where('sitelocation', '<>', '')        // optional: hindari string kosong
+            ->select('sitelocation as site')
+            ->distinct()
             ->get();
+
+
 
         return response()->json($sites);
     }

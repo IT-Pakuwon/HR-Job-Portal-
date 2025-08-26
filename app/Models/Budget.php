@@ -20,7 +20,8 @@ class Budget extends Model
         'totalbudget',        
         'status',
         'created_by',
-        'updated_by'
+        'updated_by',
+        'completed_by',
 
     ];
 

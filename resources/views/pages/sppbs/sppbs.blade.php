@@ -317,15 +317,11 @@
                                 </th>
                                 <th scope="col"
                                     class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
-                                    Sub Department
-                                </th>
+                                    Request Type
+                                </th>                               
                                 <th scope="col"
                                     class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
-                                    Sub Gradename
-                                </th>
-                                 <th scope="col"
-                                    class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
-                                    Note
+                                    Description
                                 </th>
                                 <th scope="col"
                                     class="w-32 px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
@@ -339,152 +335,88 @@
                     </table>
                 </div>
             </div>
+           
+
             <script>
                 var currentUser = "{{ auth()->user()->username }}";
-            </script>
+                $(document).ready(function () {
+                // simpan status filter global
+                let statusFilter = 'P'; // default
 
+                const table = $('#sppbsTable').DataTable({
+                    processing: true,
+                    serverSide: true,
+                    deferRender: true,
+                    // ==== SCROLLER OPSIONAL (butuh plugin DataTables Scroller) ====
+                    // scrollY: '60vh',
+                    // scroller: true,
 
-            <script>
-                $(document).ready(function() {
-                    // Hanya inisialisasi tabel sppbsTable
-                    let sppbsTable = $('#sppbsTable').DataTable({
-                        ajax: "{{ route('sppbs.json') }}?status=P",
-                        processing: true,
-                        serverSide: false,
-                        responsive: true,
-                        order: [
-                            [2, 'asc'], // Urutkan berdasarkan 'Company' (index 2) untuk pengelompokan
-                            [0, 'desc'] // Kemudian berdasarkan DocID (index 0)
-                        ],
-                        rowGroup: {
-                            dataSrc: 'cpnyid', // Kelompokkan berdasarkan kolom 'cpnyid'
-                            startRender: function(rows, group) {
-                                // Cek apakah semua baris dalam grup saat ini tersembunyi (collapsed)
-                                let isCollapsed = rows.nodes().to$().filter('.collapsed-group-row').length ===
-                                    rows.count();
-                                let icon = isCollapsed ? '<i class="fas fa-plus-circle"></i>' :
-                                    '<i class="fas fa-minus-circle"></i>';
+                    pageLength: 25,
+                    lengthMenu: [10, 25, 50, 100, 250],
 
-                                // Mengembalikan baris grup dengan ikon dan jumlah catatan
-                                return $('<tr/>')
-                                    .append('<td colspan="' + rows.columns().count() + '">' + icon + ' ' +
-                                        group + ' (' + rows.count() + ' records)</td>')
-                                    .attr('data-group', group)
-                                    .addClass('group-row');
-                            }
-                        },
-                        columns: [{
-                                data: 'id',
-                                render: function(data, type, row) {
-                                    let url = `/showsppbs/${row.id}`;
-                                    let buttonClass =
-                                        'px-4 py-2.5 bg-indigo-500 text-white rounded hover:bg-indigo-700';
-                                    let buttonText = row.changerequest_id; // Menggunakan row.changerequest_id untuk teks tombol
+                    ajax: {
+                    url: "{{ route('sppbs.json') }}",
+                    type: "GET",
+                    data: function (d) {
+                        d.status = statusFilter ?? ''; // kirim status ke server
+                    }
+                    },
 
-                                    // Cek apakah user yang login sama dengan created_user dan status = D (Revise/Draft)
-                                    if (row.status === 'D' && row.created_user === currentUser) {
-                                        url = `/editsppbs/${row.id}`;
-                                        buttonClass =
-                                            'px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-700';
-                                    }
+                    order: [[1, 'desc'], [0, 'desc']], // Date desc, lalu DocID desc
 
-                                    return `<a href="${url}" class="px-3 py-1 ${buttonClass} text-white rounded">${buttonText}</a>`;
-                                }
-                            },
-                            {
-                                data: 'changerequest_date',
-                                className: 'no-pointer'
-                            },
-                            {
-                                data: 'cpnyid',
-                                className: 'no-pointer'
-                            },
-                            {
-                                data: 'departementid',
-                                className: 'no-pointer'
-                            },
-                            {
-                                data: 'departement_name',
-                                className: 'no-pointer'
-                            },
-                            {
-                                data: 'subgrade_name',
-                                className: 'no-pointer'
-                            },
-                            {
-                                data: 'changerequest_note',
-                                className: 'no-pointer'
-                            },
-                            {
-                                data: 'status',
-                                className: 'no-pointer',
-                                render: function(data) {
-                                    let statusText = "";
-                                    let badgeClass = "";
-
-                                    if (data === 'D') {
-                                        statusText = "Revise";
-                                        badgeClass =
-                                            "w-32 bg-gray-300/30 dark:bg-gray-300 text-gray-600 focus:outline-none pointer-events-none border-none font-semibold px-4 py-2 text-center rounded";
-                                    } else if (data === 'P') {
-                                        statusText = "On Progress";
-                                        badgeClass =
-                                            "w-32 bg-blue-300/30 dark:bg-blue-300 text-blue-600 focus:outline-none pointer-events-none border-none font-semibold px-4 py-2 text-center rounded";
-                                    } else if (data === 'C') {
-                                        statusText = "Completed";
-                                        badgeClass =
-                                            "w-32 bg-green-300/30 dark:bg-green-300 text-green-600 focus:outline-none pointer-events-none border-none font-semibold px-4 py-2 text-center rounded";
-                                    } else if (data === 'X') {
-                                        statusText = "Cancel";
-                                        badgeClass =
-                                            "w-32 bg-red-300/30 dark:bg-red-300 text-red-600 focus:outline-none pointer-events-none border-none font-semibold px-4 py-2 text-center rounded";
-                                    } else if (data === 'R') {
-                                        statusText = "Rejected";
-                                        badgeClass =
-                                            "w-32 bg-red-300/30 dark:bg-red-300 text-red-600 focus:outline-none pointer-events-none border-none font-semibold px-4 py-2 text-center rounded";
-                                    } else {
-                                        badgeClass =
-                                            "  w-full max-w-32 bg-gray-300/30  bg-gray-300  text-gray-600 flex justify-items-center  focus:outline-none pointer-events-none border-none font-semibold px-4 py-2 text-center rounded";
-                                    }
-                                    return `<span class="${badgeClass}">${statusText}</span>`;
-                                }
-                            }
-                        ]
-                    });
-
-                    // Event listener untuk klik pada baris grup (collapse/expand) untuk sppbsTable
-                    $('#sppbsTable tbody').on('click', 'tr.group-row', function() {
-                        let groupName = $(this).data('group');
-                        let iconElement = $(this).find('i');
-
-                        sppbsTable.rows().every(function() {
-                            if (this.data().cpnyid ===
-                                groupName
-                            ) { // Sesuaikan dengan nama properti data yang digunakan untuk grouping
-                                $(this.node()).toggleClass('collapsed-group-row');
-                            }
-                        });
-
-                        // Mengganti ikon plus/minus
-                        if (iconElement.hasClass('fa-plus-circle')) {
-                            iconElement.removeClass('fa-plus-circle').addClass('fa-minus-circle');
-                        } else {
-                            iconElement.removeClass('fa-minus-circle').addClass('fa-plus-circle');
+                    columns: [
+                    // DocID (button link)
+                    {
+                        data: 'sppbid',
+                        render: function (data, type, row) {
+                        let url = `/showsppbs/${row.id}`;
+                        let cls = 'px-4 py-2.5 bg-indigo-500 text-white rounded hover:bg-indigo-700';
+                        let text = data || row.id;
+                        if (row.status === 'D' && row.created_by === currentUser) {
+                            url = `/editsppbs/${row.id}`;
+                            cls = 'px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-700';
                         }
-                    });
+                        return `<a href="${url}" class="${cls}">${text}</a>`;
+                        }
+                    },
+                    { data: 'sppbdate',       className: 'text-center' },
+                    { data: 'cpny_id',        className: 'text-center' },
+                    { data: 'department_id',  className: 'text-center' },
+                    { data: 'requesttype_name', defaultContent: '-', className: 'text-center' },
+                    { data: 'keperluan' },
+                    {
+                        data: 'status',
+                        className: 'text-center',
+                        render: function (data) {
+                        const map = {
+                            'D': { t: 'Revise',      c: 'bg-gray-300/30 text-gray-600' },
+                            'P': { t: 'On Progress', c: 'bg-blue-300/30 text-blue-600' },
+                            'C': { t: 'Completed',   c: 'bg-green-300/30 text-green-600' },
+                            'X': { t: 'Cancel',      c: 'bg-red-300/30 text-red-600' },
+                            'R': { t: 'Rejected',    c: 'bg-red-300/30 text-red-600' },
+                        };
+                        const it = map[data] || { t: data || '-', c: 'bg-gray-300/30 text-gray-600' };
+                        return `<span class="w-32 inline-block ${it.c} font-semibold px-4 py-2 text-center rounded">${it.t}</span>`;
+                        }
+                    }
+                    ],
 
+                    // Tweak untuk kinerja
+                    searchDelay: 400,       // debounce search
+                    stateSave: true,        // simpan state tabel (opsional)
+                    responsive: true
+                });
 
-                    // Filter status akan memfilter data di sppbsTable
-                    $('.status-filter').on('click', function(e) {
-                        e.preventDefault();
-                        let selectedStatus = $(this).data('status');
-                        let newUrl = "{{ route('sppbs.json') }}";
-                        newUrl += "?status=" + encodeURIComponent(selectedStatus ?? '');
-                        console.log("Loading sppbsTable with URL:", newUrl);
-                        sppbsTable.ajax.url(newUrl).load();
-                    });
+                // Ganti status filter → reload data tanpa rebuild tabel
+                $('.status-filter').on('click', function (e) {
+                    e.preventDefault();
+                    statusFilter = $(this).data('status') || '';
+                    table.ajax.reload(null, true); // reset ke page 1
+                });
                 });
             </script>
+
+
         </div>
     </div>
 </x-app-layout>

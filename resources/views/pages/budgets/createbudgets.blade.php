@@ -1,4 +1,44 @@
 <x-app-layout>
+    <style>
+  /* Samakan tinggi Select2 single dengan input lain (42px) */
+  .select2-container { width: 100% !important; }
+
+  .select2-container--default .select2-selection--single {
+    height: 42px !important;
+    border: 1px solid #d1d5db;        /* = border-gray-300 */
+    border-radius: 0.375rem;           /* = rounded-md */
+    background-color: #fff;
+  }
+  .select2-container--default .select2-selection--single .select2-selection__rendered {
+    line-height: 42px !important;
+    padding-left: 10px;                /* biar sejajar dengan p-2.5 */
+    padding-right: 28px;
+    color: #111827;                    /* text-gray-900 */
+  }
+  .select2-container--default .select2-selection--single .select2-selection__arrow {
+    height: 42px !important;
+    right: 6px;
+  }
+
+  /* Optional: Dark mode */
+  .dark .select2-container--default .select2-selection--single {
+    background-color: #1f2937;         /* gray-800 */
+    border-color: #4b5563;             /* gray-600 */
+  }
+  .dark .select2-container--default .select2-selection--single .select2-selection__rendered {
+    color: #e5e7eb;                    /* gray-200 */
+  }
+  .dark .select2-dropdown {
+    background-color: #111827;         /* gray-900 */
+    color: #e5e7eb;
+    border-color: #374151;              /* gray-700 */
+  }
+  .dark .select2-results__option--highlighted {
+    background-color: #2563eb;         /* blue-600 */
+    color: #fff;
+  }
+</style>
+
     <div class="max-w-9xl mx-auto w-full py-6">       
         <div class="max-w-9xl mx-auto w-full px-4">
             <div class="gap-6">
@@ -7,48 +47,61 @@
                     <form id="budgetForm" action="{{ route('budget.import.post') }}" method="POST" enctype="multipart/form-data" class="flex flex-col gap-4">
                         @csrf
                         <div class="rounded-2xl bg-white p-4 dark:bg-gray-800 shadow border">
-                            <div class="flex justify-between border-b pb-2 dark:border-gray-600 mb-4">
+                            <div class="mb-4 flex items-center justify-between border-b pb-2 dark:border-gray-600">
                                 <h2 class="text-xl font-bold">📥 Import Budget</h2>
                             </div>
 
-                            <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
-                                <div class="flex items-center gap-4">
-                                    <label class="block w-40 font-medium text-gray-700 dark:text-gray-300">Company</label>
-                                    <select name="cpny_id" required class="w-full rounded-sm border border-gray-200/50 bg-gray-200/10 p-3 focus:ring focus:ring-blue-300 dark:bg-gray-800">
-                                        @foreach ($companies as $p)
-                                            <option value="{{ $p->cpny_id }}">{{ $p->cpny_name }}</option>
-                                        @endforeach
-                                    </select>
-                                </div>
-
-                                <div class="flex items-center gap-4">
-                                    <label class="block w-40 font-medium text-gray-700 dark:text-gray-300">Business Unit</label>
-                                    <select name="business_unit_id" required class="w-full rounded-sm border border-gray-200/50 bg-gray-200/10 p-3 focus:ring focus:ring-blue-300 dark:bg-gray-800">
-                                        
-                                    </select>
-                                </div>
-
-                                <div class="flex items-center gap-4">
-                                    <label class="block w-40 font-medium text-gray-700 dark:text-gray-300">Department</label>
-                                   <select name="department_fin_id" id="department_select" required class="select2 w-full rounded-sm border border-gray-200/50 bg-gray-200/10 p-3 focus:ring focus:ring-blue-300 dark:bg-gray-800">
-                                    @foreach ($departements as $p)
-                                        <option value="{{ $p->deptname }}">{{ $p->deptname }}</option>
+                            <!-- Header fields: rapi & sejajar -->
+                            <div class="grid grid-cols-1 gap-4 md:grid-cols-5 items-end">
+                                <!-- Company -->
+                                <div>
+                                <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Company</label>
+                                <select name="cpny_id" required
+                                        class="w-full rounded-md border border-gray-300 bg-white p-2.5 focus:ring focus:ring-blue-300 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100">                                        
+                                        <option value="" disabled selected>Select Company</option>
+                                    @foreach ($companies as $p)
+                                        <option value="{{ $p->cpny_id }}">{{ $p->cpny_name }}</option>
                                     @endforeach
                                 </select>
-
                                 </div>
 
-                                <div class="flex items-center gap-4 col-span-2">
-                                    <label class="block w-40 font-medium text-gray-700 dark:text-gray-300">Import Excel</label>
-                                    <input type="file" name="file" id="file" required class="w-full rounded-sm border border-gray-200/50 bg-gray-200/10 p-3 focus:ring focus:ring-blue-300 dark:bg-gray-800">
-                                </div>                                 
-                                <div class="col-span-2 flex justify-end">
-                                    <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700">
-                                        Import
-                                    </button>
+                                <!-- Business Unit -->
+                                <div>
+                                <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Business Unit</label>
+                                <select name="business_unit_id" required
+                                        class="w-full rounded-md border border-gray-300 bg-white p-2.5 focus:ring focus:ring-blue-300 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100">
+                                    <option value="">Pilih Unit</option>
+                                </select>
+                                </div>
+
+                                <!-- Department (Select2) -->
+                                <div>
+                                <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Department</label>
+                                <select name="department_fin_id" id="department_select" required
+                                        class="select2 w-full rounded-md border border-gray-300 bg-white p-2.5 focus:ring focus:ring-blue-300 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100">
+                                    @foreach ($departements as $p)
+                                    <option value="{{ $p->deptname }}">{{ $p->deptname }}</option>
+                                    @endforeach
+                                </select>
+                                </div>
+
+                                <!-- File -->
+                                <div class="md:col-span-1">
+                                <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Import Excel</label>
+                                <input type="file" name="file" id="file" required
+                                        class="w-full rounded-md border border-gray-300 bg-white p-2.5 focus:ring focus:ring-blue-300 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100">
+                                </div>
+
+                                <!-- Button -->
+                                <div class="flex md:justify-end">
+                                <button type="submit"
+                                        class="h-[42px] inline-flex items-center rounded-md bg-blue-600 px-6 text-white hover:bg-blue-700">
+                                    Import
+                                </button>
                                 </div>
                             </div>
-                        </div>
+                            </div>
+
                     </form>
 
                     {{-- Table Preview Import --}}
@@ -300,20 +353,85 @@
             });
         });
     </script>
+
     <script>
         $(function () {
+            // Init Select2 sekali
             $('#department_select').select2({
-                width: '100%',              // biar tetap full
+                width: '100%',
                 placeholder: 'Cari Department',
-                allowClear: true            // ✖ tombol hapus
+                allowClear: true,
+                // dropdownAutoWidth: true
             });
 
-            // Opsional: dark‑mode tweaking
+            function loadDepartmentsByCompany(cpnyId, selectedVal = '') {
+            const $dept = $('#department_select');
+
+            // kosongkan opsi dulu
+            $dept.empty().append(new Option('Memuat...', '', true, true)).trigger('change');
+
+            if (!cpnyId) {
+                $dept.empty().append(new Option('Pilih Department', '', false, false)).trigger('change');
+                return;
+            }
+
+            $.ajax({
+                url: '/departments/' + encodeURIComponent(cpnyId),
+                type: 'GET',
+                dataType: 'json'
+            })
+            .done(function (list) {
+                $dept.empty().append(new Option('Pilih Department', '', false, false));
+                if (Array.isArray(list) && list.length) {
+                list.forEach(function (row) {
+                    // value = department_fin_id, text = department_name
+                    const opt = new Option(row.department_name, row.department_fin_id, false, false);
+                    $dept.append(opt);
+                });
+                if (selectedVal) {
+                    $dept.val(String(selectedVal)).trigger('change');
+                } else {
+                    $dept.trigger('change');
+                }
+                } else {
+                $dept.append(new Option('Tidak ada department', '', false, false)).trigger('change');
+                }
+            })
+            .fail(function () {
+                $dept.empty().append(new Option('Gagal memuat', '', false, false)).trigger('change');
+            });
+            }
+
+            // Saat Company berubah → reload Department (dan opsional: kosongkan business unit bila perlu)
+            $('select[name="cpny_id"]').on('change', function () {
+            const cpnyId = $(this).val();
+            loadDepartmentsByCompany(cpnyId);
+
+            // (opsional) kosongkan business unit juga
+            const $bu = $('select[name="business_unit_id"]');
+            $bu.empty().append('<option value="">Pilih Unit</option>');
+            });
+
+            // Load awal (kalau cpny sudah preselected dari server)
+            const initialCpny = $('select[name="cpny_id"]').val();
+            if (initialCpny) {
+            // Kalau ada old value untuk department, isi di sini:
+            const selectedDept = '{{ old('department_fin_id') }}';
+            loadDepartmentsByCompany(initialCpny, selectedDept);
+            } else {
+            // default kosong
+            $('#department_select').empty().append(new Option('Pilih Department', '', false, false)).trigger('change');
+            }
+
+            // (opsional) dark mode tweak untuk select2
             if (document.documentElement.classList.contains('dark')) {
-                $('.select2-container--default .select2-selection--single').addClass('bg-gray-800 text-gray-200');
+            $('.select2-container--default .select2-selection--single')
+                .addClass('bg-gray-800 text-gray-200 border-gray-600');
+            $('.select2-container--default .select2-results>.select2-results__options')
+                .addClass('bg-gray-800 text-gray-200');
             }
         });
-    </script>
+        </script>
 
 
 

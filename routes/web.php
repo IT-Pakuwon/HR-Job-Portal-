@@ -41,6 +41,7 @@ use App\Http\Controllers\BudgetController;
 use App\Http\Controllers\VendorController;
 use App\Http\Controllers\CanvassController;
 use App\Http\Controllers\ChangeStoController;
+use App\Http\Controllers\MasterController;
 use App\Http\Controllers\SppbController;  
 
 
@@ -291,6 +292,10 @@ Route::post('/logout', function () {
     Route::post('/signconfirm/update', [CareerController::class, 'updateSign'])->name('signconfirm.update');
     Route::get('/signconfirm/{id}', [CareerController::class, 'editSign'])->name('signconfirm.edit');
     Route::delete('/signconfirm/{id}', [CareerController::class, 'destroySign'])->name('signconfirm.destroy');
+   
+    Route::post('/onboarding/schedule/update', [CareerController::class, 'updateSchedule'])
+     ->name('onboarding.schedule.update');
+
 
 
 
@@ -302,6 +307,9 @@ Route::post('/logout', function () {
     Route::get('/jobapplicant/json', [JobapplicantController::class, 'json'])->name('jobapplicant.json'); 
     Route::get('/jobapplicant/applicants/{jobId}', [JobapplicantController::class, 'JobApplicants'])->name('jobapplicant.applicants');
     // Route::get('/jobapplicant/counts', [JobapplicantController::class, 'getCounts'])->name('jobapplicant.counts');
+    
+    Route::get('/job-filters/tl', [JobapplicantController::class, 'jobTitleLevels'])->name('jobfilters.tl');
+
 
 
     Route::get('/applicants', [ApplicantController::class, 'index'])->name('applicants');    
@@ -352,7 +360,8 @@ Route::post('/logout', function () {
     Route::delete('/orgchart/job-profile/{id}', [StrukturOrgController::class, 'deleteJobProfile']);
     Route::post('/orgchart/change-parent', [StrukturOrgController::class, 'changeParent'])->name('orgchart.change-parent');
     Route::get('/departement/detail/{id}', [StrukturOrgController::class, 'getDepartmentDetail']);
-    Route::get('/orgchart/fullscreen/{sto}', [StrukturOrgController::class, 'fullscreen'])->name('orgchart.fullscreen');
+    Route::get('/orgchart/fullscreen/{sto}', [StrukturOrgController::class, 'fullscreen'])->name('orgchart.fullscreen'); 
+
 
     
     Route::get('/changestos', [ChangeStoController::class, 'index'])->name('changestos');
@@ -383,7 +392,14 @@ Route::post('/logout', function () {
     Route::get('/editsppbs/{id}', [SppbController::class, 'editSppb']);
     Route::put('/sppbs/{id}', [SppbController::class, 'updateSppb'])->name('sppbs.update');
     Route::put('/sppbs/remove-attachment/{id}', [SppbController::class, 'removeAttachment']);    
-    Route::get('/sppb/{id}/check-approval/{action}', [SppbController::class, 'checkApproval']);  
+    Route::get('/sppb/{id}/check-approval/{action}', [SppbController::class, 'checkApproval']);     
+
+    Route::get('/inventory/list', [MasterController::class, 'InventoryList'])->name('inventory.list');
+    Route::get('/request-types/by-company', [MasterController::class, 'RequestType'])->name('requesttypes.byCompany');
+    Route::get('/locations/by-company', [MasterController::class, 'Location'])->name('locations.byCompany'); 
+    Route::get('/sublocations/by-location', [MasterController::class, 'SubLocation'])->name('sublocations.byLocation');
+    Route::get('/departments/{cpny_id}', [MasterController::class, 'DepartmentFin'])->name('finance.departments.byCompany');
+    Route::get('/coa/by-dept', [MasterController::class, 'CoaBudget'])->name('coa.byDept');
 
 
     Route::get('/eng/users', [UsersEngController::class, 'index'])->name('userseng');

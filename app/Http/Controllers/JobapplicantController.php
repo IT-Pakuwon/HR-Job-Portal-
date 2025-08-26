@@ -43,78 +43,169 @@ class JobapplicantController extends Controller
     
     public function json(Request $request)
     {
-        $status = $request->query('status');
-        $cpnyid = $request->query('cpnyid');
+        $jobTLExact = trim((string) $request->input('job_tl_exact', ''));
+        $status     = $request->query('status');
+        $cpnyid     = $request->query('cpnyid');
+        
 
-        $start = $request->input('start', 0);
-        $length = $request->input('length', 10);
-        $search = $request->input('search.value', '');
-        $orderColumnIndex = $request->input('order.0.column', 0);
-        $orderDir = $request->input('order.0.dir', 'desc');
+        $start      = (int) $request->input('start', 0);
+        $length     = (int) $request->input('length', 10);
+        $global     = trim((string) $request->input('search.value', ''));
+        $orderIdx   = (int) $request->input('order.0.column', 0);
+        $orderDir   = strtolower($request->input('order.0.dir', 'desc')) === 'asc' ? 'asc' : 'desc';
 
-        // Kolom yang bisa diurutkan
-        $columns = [
-            'vc.docid', 'vc.apply_date', 'vc.fullname', 'vc.education_name', 'vc.religion',
-            'vc.height', 'vc.weight', 'vc.company_name', 'vs.match_score_percentage', 'vc.prev_apply_step'
+        // Peta nama kolom DataTables -> kolom DB
+        $nameToDb = [
+            'docid'                  => 'vc.docid',
+            'apply_date'             => 'vc.apply_date',
+            'fullname'               => 'vc.fullname',
+            'education_name'         => 'vc.education_name',
+            'religion'               => 'vc.religion',
+            'height'                 => 'vc.height',
+            'weight'                 => 'vc.weight',
+            'company_name'           => 'vc.company_name',
+            'match_score_percentage' => 'vs.match_score_percentage',
+            'prev_apply_step'        => 'vc.prev_apply_step',
         ];
-        $orderColumn = $columns[$orderColumnIndex] ?? 'vc.docid';
 
-        $query = DB::connection('mysql3')->table('viewtrxcareer as vc')
+        // Base query
+        $base = DB::connection('mysql3')
+            ->table('viewtrxcareer as vc')
             ->leftJoin('viewtrxcareer_scoring as vs', 'vc.docid', '=', 'vs.docid');
 
-        // if (!empty($status)) {
-        //     $query->where('vc.status', $status);
-        // }
-
+        // Filter "tetap" (status, cpnyid) – ini memang bagian dari dataset
         if (!empty($status)) {
             if ($status === 'is_read_Y') {
-                $query->where('vc.is_read', 'Y');
+                $base->where('vc.is_read', 'Y');
             } elseif ($status === 'is_read_N') {
-                $query->where('vc.is_read', 'N');
+                $base->where('vc.is_read', 'N');
             } else {
-                $query->where('vc.status', $status);
+                $base->where('vc.status', $status);
             }
         }
-
-
         if (!empty($cpnyid)) {
-            $query->where('vc.cpnyid', $cpnyid);
+            $base->where('vc.cpnyid', $cpnyid);
         }
 
-        if (!empty($search)) {
-            $query->where(function($q) use ($search) {
-                $q->where('vc.fullname', 'like', "%$search%")
-                  ->orWhere('vc.education_name', 'like', "%$search%")
-                  ->orWhere('vc.religion', 'like', "%$search%")
-                  ->orWhere('vc.company_name', 'like', "%$search%")
-                  ->orWhere('vc.docid', 'like', "%$search%")
-                  ->orWhere('vc.prev_apply_step', 'like', "%$search%")
-                  ->orWhere('vs.match_score_percentage', 'like', "%$search%")
-                  ;
+        
+        // Total sebelum global/column search
+        $recordsTotal = (clone $base)->count();
+
+        // Query yang akan diberi filter pencarian
+        $query = (clone $base);
+
+        // Global search
+        if ($global !== '') {
+            $query->where(function ($q) use ($global) {
+                $like = "%{$global}%";
+                $q->where('vc.fullname', 'like', $like)
+                ->orWhere('vc.education_name', 'like', $like)
+                ->orWhere('vc.religion', 'like', $like)
+                ->orWhere('vc.company_name', 'like', $like)
+                ->orWhere('vc.docid', 'like', $like)
+                ->orWhere('vc.prev_apply_step', 'like', $like)
+                ->orWhereRaw('CAST(IFNULL(vs.match_score_percentage,0) AS CHAR) LIKE ?', [$like]);
             });
         }
 
-        $totalRecords = ViewCareer::count();
-        $filteredRecords = $query->count();
+        // Per-kolom search (columns[i][name], columns[i][search][value])
+        $cols = $request->input('columns', []);
+        foreach ($cols as $c) {
+            $name = $c['name'] ?? null;
+            $val  = isset($c['search']['value']) ? trim((string)$c['search']['value']) : '';
+            if (!$name || $val === '') continue;
 
-        $applicants = $query->select(
-            'vc.*',
-            DB::raw('IFNULL(vs.total_tags, 0) as total_tags'),
-            DB::raw('IFNULL(vs.matched_count, 0) as matched_count'),
-            DB::raw('IFNULL(vs.match_score_percentage, 0) as match_score_percentage')
-        )
-        ->orderByRaw($orderColumn . ' ' . $orderDir)
-        ->skip($start)
-        ->take($length)
-        ->get();
+            $dbcol = $nameToDb[$name] ?? null;
+            if (!$dbcol) continue;
+
+            if ($name === 'prev_apply_step') {
+                // dropdown kode step → exact
+                $query->where($dbcol, $val);
+            } elseif ($name === 'match_score_percentage') {
+                // dukung >=80, <=90, 70-85, atau fallback LIKE
+                if (preg_match('/^\s*(>=|<=|>|<)\s*(\d+)\s*$/', $val, $m)) {
+                    $op  = $m[1]; $num = (int)$m[2];
+                    $query->where('vs.match_score_percentage', $op, $num);
+                } elseif (preg_match('/^\s*(\d+)\s*-\s*(\d+)\s*$/', $val, $m)) {
+                    $a = (int)$m[1]; $b = (int)$m[2];
+                    if ($a > $b) [$a,$b] = [$b,$a];
+                    $query->whereBetween('vs.match_score_percentage', [$a, $b]);
+                } else {
+                    $query->whereRaw('CAST(IFNULL(vs.match_score_percentage,0) AS CHAR) LIKE ?', ["%{$val}%"]);
+                }
+            } else {
+                // default LIKE
+                $query->where($dbcol, 'like', "%{$val}%");
+            }
+        }
+
+        if ($jobTLExact !== '') {
+            [$exactTitle, $exactLevel] = array_pad(explode('|||', $jobTLExact, 2), 2, '');
+            if ($exactTitle !== '' && $exactLevel !== '') {
+                $query->where('vc.job_title', $exactTitle)
+                    ->where('vc.job_level', $exactLevel);
+            }
+        }
+
+        // Sorting – pakai nama kolom yg dikirim DataTables agar robust
+        $orderName = $request->input("columns.$orderIdx.name");
+        $orderBy   = $nameToDb[$orderName] ?? 'vc.docid';
+
+        // Hitung setelah filter
+        $recordsFiltered = (clone $query)->count();
+
+        // Ambil data (paging)
+        if ($length !== -1) {
+            $query->skip($start)->take($length);
+        }
+
+        $data = $query->select(
+                'vc.*',
+                DB::raw('IFNULL(vs.total_tags, 0) as total_tags'),
+                DB::raw('IFNULL(vs.matched_count, 0) as matched_count'),
+                DB::raw('IFNULL(vs.match_score_percentage, 0) as match_score_percentage')
+            )
+            ->orderBy($orderBy, $orderDir)
+            ->get();
 
         return response()->json([
-            'draw' => intval($request->input('draw')),
-            'recordsTotal' => $totalRecords,
-            'recordsFiltered' => $filteredRecords,
-            'data' => $applicants
+            'draw'            => intval($request->input('draw')),
+            'recordsTotal'    => $recordsTotal,
+            'recordsFiltered' => $recordsFiltered,
+            'data'            => $data,
         ]);
     }
+
+    public function jobTitleLevels(Request $request)
+    {
+        $q = trim((string) $request->query('q', ''));
+
+        $rows = DB::connection('mysql3')->table('viewtrxcareer as vc')
+            ->when($q !== '', function ($qq) use ($q) {
+                $qq->where(function ($w) use ($q) {
+                    $w->where('vc.job_title', 'like', "%{$q}%")
+                    ->orWhere('vc.job_level', 'like', "%{$q}%");
+                });
+            })
+            ->whereNotNull('vc.job_title')->where('vc.job_title', '!=', '')
+            ->whereNotNull('vc.job_level')->where('vc.job_level', '!=', '')
+            ->distinct()
+            ->orderBy('vc.job_title')
+            ->orderBy('vc.job_level')
+            ->limit(50)
+            ->get(['vc.job_title','vc.job_level']);
+
+        // Select2 butuh {id, text}. id berisi "title|||level" (delimiter aman)
+        $data = $rows->map(function ($r) {
+            return [
+                'id'   => $r->job_title . '|||' . $r->job_level,
+                'text' => $r->job_title . ' — ' . $r->job_level,
+            ];
+        });
+
+        return response()->json($data);
+    }
+
 
     public function getCounts(Request $request)
     {

@@ -289,6 +289,21 @@
                 .edu-col.hidden {
                     display: none;
                 }
+
+                /* Header row filter */
+                #applicantsTable thead tr.filters th { padding: 6px 8px; }
+                #applicantsTable thead .col-filter { width: 100%; box-sizing: border-box; }
+                #applicantsTable thead .input-filter {
+                padding: 6px 8px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 12px;
+                }
+                #applicantsTable thead .select-filter {
+                padding: 6px 8px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 12px; background: white;
+                }
+                .dark #applicantsTable thead .input-filter,
+                .dark #applicantsTable thead .select-filter {
+                background: #374151; color: #e5e7eb; border-color: #4b5563;
+                }
+
             </style>
             <div class="mt-6 rounded-2xl bg-white dark:bg-gray-800">
                 <div
@@ -299,9 +314,17 @@
                         class="inline-flex items-center rounded-xl bg-indigo-600 px-6 py-2 text-base font-semibold text-white transition-colors duration-200 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
                         List Job Posting
                         </a> --}}
-                </div>
-
-                <div class="overflow-x-auto p-6"> {{-- Padding applied here instead of outer container --}}
+                </div> 
+                <div class="overflow-x-auto p-6"> {{-- Padding applied here instead of outer container --}}               
+                   
+                    <div class="mb-4 flex flex-wrap items-center gap-3">
+                    <select id="filterJobTL" class="w-96"></select>
+                    <button id="btnResetFilters"
+                            class="rounded-md border px-3 py-2 text-sm hover:bg-gray-50">
+                        Reset
+                    </button>
+                    </div>
+                    
                     <table id="applicantsTable" class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                         <thead class="bg-gray-50 dark:bg-gray-700">
                             <tr>
@@ -360,7 +383,7 @@
             </script>
 
 
-            <script>
+            {{-- <script>
                 $(document).ready(function() {
                     let currentStatus = '';
                     let applicantTable = $('#applicantsTable').DataTable({
@@ -455,7 +478,177 @@
                         applicantTable.ajax.reload();
                     });
                 });
-            </script>
+            </script> --}}
+
+
+            <script>
+                $(document).ready(function () {
+                let currentStatus = '';
+
+                // Definisi kolom (data + name HARUS diisi untuk server-side)
+                const colDefs = [
+                    { data: 'docid',                   name: 'docid',                   type: 'text',  title: 'DocID' },
+                    { data: 'apply_date',              name: 'apply_date',              type: 'text',  title: 'Date' },
+                    { data: 'fullname',                name: 'fullname',                type: 'text',  title: 'Name' },
+                    { data: 'education_name',          name: 'education_name',          type: 'text',  title: 'Education' },
+                    { data: 'religion',                name: 'religion',                type: 'text',  title: 'Religion' },
+                    { data: 'height',                  name: 'height',                  type: 'text',  title: 'Height' },
+                    { data: 'weight',                  name: 'weight',                  type: 'text',  title: 'Weight' },
+                    { data: 'company_name',            name: 'company_name',            type: 'text',  title: 'Last Working' },
+                    { data: 'match_score_percentage',  name: 'match_score_percentage',  type: 'text',  title: 'Score' },
+                    { data: 'prev_apply_step',         name: 'prev_apply_step',         type: 'select',title: 'Step' },
+                ];
+
+                const stepLabelMap = {
+                    'JOAPHC': 'Job Apply HC',
+                    'JOAPUS': 'Job Apply User',
+                    'WIHC'  : 'Create Schedule Interview HC',
+                    'IHC'   : 'Interview HC',
+                    'WIU'   : 'Create Schedule Interview User',
+                    'IU'    : 'Interview User',
+                    'WPT'   : 'Waiting Psycho Test',
+                    'PT'    : 'Psycho Test',
+                    'OFF'   : 'Offering',
+                    'JOIN'  : 'Join'
+                };
+
+                // ===== Tambah baris filter kedua di THEAD, berbasis nama kolom =====
+                const $thead = $('#applicantsTable thead');
+                const $filterRow = $('<tr class="filters"></tr>');
+                colDefs.forEach(def => {
+                    let ctl = '';
+                    if (def.type === 'select' && def.name === 'prev_apply_step') {
+                    ctl = `
+                        <select class="col-filter select-filter" data-colname="${def.name}">
+                        <option value="">All</option>
+                        ${Object.entries(stepLabelMap).map(([k,v]) => `<option value="${k}">${v}</option>`).join('')}
+                        </select>`;
+                    } else {
+                    ctl = `<input type="text" class="col-filter input-filter" data-colname="${def.name}" placeholder="Search ${def.title}">`;
+                    }
+                    $filterRow.append($('<th>').html(ctl));
+                });
+                $thead.append($filterRow);
+
+                // ===== Init DataTable =====
+                const applicantTable = $('#applicantsTable').DataTable({
+                    responsive: true,
+                    processing: true,
+                    serverSide: true,
+                    searching: true,     // global search tetap bisa
+                    paging: true,
+                    info: true,
+                    lengthChange: true,
+                    pageLength: 10,
+                    orderCellsTop: true, // penting utk 2 baris thead
+                    ajax: {
+                    url: "{{ route('jobapplicant.json') }}",
+                    type: 'GET',
+                    data: function (d) {
+                        d.status = currentStatus;
+                        d.job_tl_exact  = $('#filterJobTL').val() || '';
+                    }
+                    },
+                    order: [[8, 'desc']],
+                    columns: [
+                    {
+                        data: 'docid', name: 'docid',
+                        render: function (data, type, row) {
+                        return `<a href="/showcareers/${row.id}" target="_blank" class="px-4 py-2.5 bg-indigo-500 text-white rounded hover:bg-indigo-700">${data}</a>`;
+                        }
+                    },
+                    { data: 'apply_date', name: 'apply_date' },
+                    { data: 'fullname', name: 'fullname' },
+                    { data: 'education_name', name: 'education_name' },
+                    { data: 'religion', name: 'religion' },
+                    { data: 'height', name: 'height', className: 'small-col' },
+                    { data: 'weight', name: 'weight', className: 'small-col' },
+                    { data: 'company_name', name: 'company_name' },
+                    { data: 'match_score_percentage', name: 'match_score_percentage', className: 'small-col' },
+                    {
+                        data: 'prev_apply_step', name: 'prev_apply_step',
+                        render: function (data) {
+                        const label = stepLabelMap[data] || data;
+                        return `<span class="w-32 bg-blue-300/30 text-blue-600 text-base font-semibold px-4 py-2 text-center rounded">${label}</span>`;
+                        }
+                    }
+                    ],
+                    rowCallback: function (row, data) {
+                    $(row).css('color', data.is_read === 'N' ? 'blue' : 'black');
+                    },
+                    initComplete: function () {
+                    const api = this.api();
+
+                    // Input text → debounce
+                    let debounce;
+                    $('#applicantsTable thead').on('input', 'input.col-filter', function () {
+                        const colName = $(this).data('colname');
+                        const val = this.value;
+                        clearTimeout(debounce);
+                        debounce = setTimeout(function () {
+                        api.column(colName + ':name').search(val).draw(); // <-- pakai selector :name
+                        }, 300);
+                    });
+
+                    // Select (Step)
+                    $('#applicantsTable thead').on('change', 'select.col-filter', function () {
+                        const colName = $(this).data('colname');
+                        api.column(colName + ':name').search(this.value).draw(); // <-- pakai selector :name
+                    });
+                    }
+                });                
+
+                // kecilkan tiga header kolom numerik
+                $('#applicantsTable thead tr:eq(0) th').eq(5).addClass('small-col');
+                $('#applicantsTable thead tr:eq(0) th').eq(6).addClass('small-col');
+                $('#applicantsTable thead tr:eq(0) th').eq(8).addClass('small-col');
+
+                $('#filterJobTL').select2({
+                    placeholder: 'Pilih Job Title — Job Level',
+                    allowClear: true,
+                    width: 'resolve',
+                    ajax: {
+                    url: "{{ route('jobfilters.tl') }}",   // endpoint gabungan
+                    dataType: 'json',
+                    delay: 200,
+                    data: params => ({ q: params.term || '' }), // pencarian server (opsional)
+                    processResults: data => ({
+                        // server sudah kirim {id:'Title|||Level', text:'Title — Level'}
+                        results: data
+                    }),
+                    cache: true
+                    }
+                });
+
+                // reload tabel saat filter berubah
+                $('#filterJobTL').on('change', function () {
+                    applicantTable.ajax.reload();
+                });
+
+                // reset
+                $('#btnResetFilters').on('click', function () {
+                    $('#filterJobTL').val(null).trigger('change');
+                    applicantTable.ajax.reload();
+                });
+
+
+                // Filter tombol status (All/Unchecked/Checked/Reject/Approved)
+                $('.status-filter').on('click', function (e) {
+                    e.preventDefault();
+                    $('.status-filter').removeClass('active');
+                    $(this).addClass('active');
+                    currentStatus = $(this).data('status') || '';
+                    applicantTable.ajax.reload();
+                });
+                });
+                </script>
+
+                <!-- Select2 CSS -->
+                <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet"/>
+
+                <!-- Select2 JS -->
+                <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
 
         </div>
     </div>

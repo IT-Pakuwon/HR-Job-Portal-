@@ -151,8 +151,9 @@
                             </ul>
                         </div>
                     </li>
-
-                    {{-- <li class="py-2 pl-4 pr-3 text-xs font-semibold uppercase tracking-wider text-gray-500 last:mb-0"
+                    @auth
+                    @if (auth()->user()->username === 'rikiparahat')
+                    <li class="py-2 pl-4 pr-3 text-xs font-semibold uppercase tracking-wider text-gray-500 last:mb-0"
                         :class="{ 'lg:block': sidebarExpanded, 'lg:hidden': !sidebarExpanded }">
                         Purchasing
                     </li>
@@ -252,8 +253,9 @@
                                 </li>
                             </ul>
                         </div>
-                    </li> --}}
-
+                    </li>
+                    @endif
+                    @endauth
                 </ul>
             </div>
         </div>

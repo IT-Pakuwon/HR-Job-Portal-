@@ -250,31 +250,62 @@ class BudgetController extends Controller
                        
             foreach ($tempData as $row) {
                 BudgetDetail::create([
-                    'budget_id' => $docid,
-                    'perpost' => $row->perpost,
-                    'cpny_id' => $row->cpny_id,
-                    'business_unit_id' => $row->business_unit_id,
-                    'department_fin_id' => $row->department_fin_id,
-                    'account_id' => $row->account_id,
-                    'activity_id' => $row->activity_id,
-                    'activity_detail' => $row->activity_detail,
-                    'totalbudget' => $row->totalbudget,
-                    'period01_budget' => $row->period01_budget,
-                    'period02_budget' => $row->period02_budget,
-                    'period03_budget' => $row->period03_budget,
-                    'period04_budget' => $row->period04_budget,
-                    'period05_budget' => $row->period05_budget,
-                    'period06_budget' => $row->period06_budget,
-                    'period07_budget' => $row->period07_budget,
-                    'period08_budget' => $row->period08_budget,
-                    'period09_budget' => $row->period09_budget,
-                    'period10_budget' => $row->period10_budget,
-                    'period11_budget' => $row->period11_budget,
-                    'period12_budget' => $row->period12_budget,
-                    'created_by' => $user->username,
-                    'status' => 'P'
+                    'budget_id'          => $docid,
+                    'perpost'            => $row->perpost,
+                    'cpny_id'            => $row->cpny_id,
+                    'business_unit_id'   => $row->business_unit_id,
+                    'department_fin_id'  => $row->department_fin_id,
+                    'account_id'         => $row->account_id,
+                    'activity_id'        => $row->activity_id,
+                    'activity_detail'    => $row->activity_detail,
+                    'totalbudget'        => $row->totalbudget,
+
+                    'period01_budget'    => $row->period01_budget,
+                    'period02_budget'    => $row->period02_budget,
+                    'period03_budget'    => $row->period03_budget,
+                    'period04_budget'    => $row->period04_budget,
+                    'period05_budget'    => $row->period05_budget,
+                    'period06_budget'    => $row->period06_budget,
+                    'period07_budget'    => $row->period07_budget,
+                    'period08_budget'    => $row->period08_budget,
+                    'period09_budget'    => $row->period09_budget,
+                    'period10_budget'    => $row->period10_budget,
+                    'period11_budget'    => $row->period11_budget,
+                    'period12_budget'    => $row->period12_budget,
+
+                    // ===== NEW: reserve (default 0)
+                    'period01_reserve'   => 0,
+                    'period02_reserve'   => 0,
+                    'period03_reserve'   => 0,
+                    'period04_reserve'   => 0,
+                    'period05_reserve'   => 0,
+                    'period06_reserve'   => 0,
+                    'period07_reserve'   => 0,
+                    'period08_reserve'   => 0,
+                    'period09_reserve'   => 0,
+                    'period10_reserve'   => 0,
+                    'period11_reserve'   => 0,
+                    'period12_reserve'   => 0,
+
+                    // ===== NEW: used (default 0)
+                    'period01_used'      => 0,
+                    'period02_used'      => 0,
+                    'period03_used'      => 0,
+                    'period04_used'      => 0,
+                    'period05_used'      => 0,
+                    'period06_used'      => 0,
+                    'period07_used'      => 0,
+                    'period08_used'      => 0,
+                    'period09_used'      => 0,
+                    'period10_used'      => 0,
+                    'period11_used'      => 0,
+                    'period12_used'      => 0,
+
+                    'created_by'         => $user->username,
+                    'status'             => 'P',
                 ]);
             }
+
 
             MsBudgetTemp::where('temp_id', $temp_id)->delete();
            
@@ -668,7 +699,7 @@ class BudgetController extends Controller
         $count_approval = T_approval::where('docid', '=', $budget->budget_id)
             ->where('status', '=', 'P')
             ->count();
-    
+       
         // Cek apakah user memiliki akses untuk approve
         $t_approval = T_approval::where('docid', $budget->budget_id)
             ->where('status', 'P')
@@ -687,7 +718,7 @@ class BudgetController extends Controller
 
         if ($count_approval == 1) {
             $budget->status = 'C';
-            $budget->completed_user = $user->username;
+            $budget->completed_by = $user->username;
             $budget->completed_at = $datestamp;
             $budget->save();           
         }

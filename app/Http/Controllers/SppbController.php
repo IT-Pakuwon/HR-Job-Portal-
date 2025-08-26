@@ -34,6 +34,10 @@ use App\Models\StoJobProfile;
 use App\Models\StoJobSpec;
 use App\Models\Division;
 use App\Models\StoSubGrading;
+use App\Models\TrSPPB;
+use App\Models\TrSPPBdetail;
+use App\Models\MsLocationPG;
+use App\Models\MsSubLocationPG;
 use Mail;
 
 
@@ -41,35 +45,95 @@ class SppbController extends Controller
 {
     public function index()
     {
-        $all = Sppb::count();
-        $onProgress = Sppb::where('status', 'P')->count();
-        $reject = Sppb::where('status', 'R')->count();
-        $revise = Sppb::where('status', 'D')->count();
-        $completed = Sppb::where('status', 'C')->count();
+        $all = TrSPPB::count();
+        $onProgress = TrSPPB::where('status', 'P')->count();
+        $reject = TrSPPB::where('status', 'R')->count();
+        $revise = TrSPPB::where('status', 'D')->count();
+        $completed = TrSPPB::where('status', 'C')->count();
        
         return view('pages.sppbs.sppbs', compact('all', 'onProgress', 'reject', 'revise', 'completed'));
     }
-    
+
     public function json(Request $request)
     {
-        // $status = $request->query('status', 'P');
-        $status = $request->has('status') ? $request->query('status') : 'P';
+        $draw   = (int) $request->input('draw', 1);
+        $start  = (int) $request->input('start', 0);
+        $length = (int) $request->input('length', 25);
+        $search = trim((string) $request->input('search.value', ''));
+        $status = (string) $request->query('status', ''); // '' = all
 
-        $query = Sppb::query();
+        // Dapatkan nama tabel fisik dari model lalu alias ke "sppb"
+        $baseTable = (new TrSPPB)->getTable(); // contoh: "tr_sppb"
 
-        if (!empty($status)) {
-            $query->where('status', $status);
+        $columns = [
+            0 => 'sppb.sppbid',
+            1 => 'sppb.sppbdate',
+            2 => 'sppb.cpny_id',
+            3 => 'sppb.department_id',
+            4 => 'rt.requesttype_name',
+            5 => 'sppb.keperluan',
+            6 => 'sppb.status',
+        ];
+        $orderIdx = (int) $request->input('order.0.column', 1);
+        $orderDir = $request->input('order.0.dir', 'desc') === 'asc' ? 'asc' : 'desc';
+        $orderCol = $columns[$orderIdx] ?? 'sppb.sppbdate';
+
+        // FROM tr_sppb AS sppb
+        $base = TrSPPB::from($baseTable.' as sppb')
+            ->leftJoin('ms_request_type as rt', function ($join) {
+                $join->on('rt.requesttypeid', '=', 'sppb.requesttypeid')
+                    ->on('rt.cpny_id',       '=', 'sppb.cpny_id');
+            });
+
+        if ($status !== '') {
+            $base->where('sppb.status', $status);
         }
 
-        $sppb = $query->orderBy('id', 'desc')->get();
+        // total tanpa filter
+        $recordsTotal = (clone $base)->distinct('sppb.sppbid')->count('sppb.sppbid');
 
-        return response()->json(['data' => $sppb]);
+        // filter global
+        if ($search !== '') {
+            $base->where(function ($q) use ($search) {
+                $q->where('sppb.sppbid',       'like', "%{$search}%")
+                ->orWhere('sppb.cpny_id',    'like', "%{$search}%")
+                ->orWhere('sppb.department_id','like', "%{$search}%")
+                ->orWhere('rt.requesttype_name','like', "%{$search}%")
+                ->orWhere('sppb.keperluan',  'like', "%{$search}%")
+                ->orWhere('sppb.status',     'like', "%{$search}%");
+            });
+        }
+
+        $recordsFiltered = (clone $base)->distinct('sppb.sppbid')->count('sppb.sppbid');
+
+        $data = $base->select(
+                    'sppb.id',
+                    'sppb.sppbid',
+                    'sppb.sppbdate',
+                    'sppb.cpny_id',
+                    'sppb.department_id',
+                    'sppb.requesttypeid',
+                    'rt.requesttype_name',
+                    'sppb.keperluan',
+                    'sppb.status',
+                    'sppb.created_by'
+                )
+                ->orderBy($orderCol, $orderDir)
+                ->skip($start)
+                ->take($length)
+                ->get();
+
+        return response()->json([
+            'draw'            => $draw,
+            'recordsTotal'    => $recordsTotal,
+            'recordsFiltered' => $recordsFiltered,
+            'data'            => $data,
+        ]);
     }
 
-
-
+    
     public function createSppb()
-    {
+    {        
         $user = request()->user();
         $usercpny = Usercpny::where('username', '=', $user->username)
             ->get();
@@ -78,32 +142,41 @@ class SppbController extends Controller
         $userdept = Userdept::where('username', '=', $user->username)
             ->get();
         $userdept2 = Userdept::where('username', '=', $user->username)
-            ->first();       
-        $subgrading = StoSubGrading::select('subgrade_id','subgrade_name')->get();        
+            ->first();                     
        
-        return view('pages.sppbs.createsppbs', compact('subgrading','usercpny','usercpny2','userdept','userdept2'));
+        return view('pages.sppbs.createsppbs', compact('usercpny','usercpny2','userdept','userdept2'));
     }
 
     
-   public function storeSppb(Request $request)
+    
+    public function storeSppb(Request $request)
     {
-        $request->validate([
-            'cpnyid' => 'required|string',
-            'departementid' => 'required|string',
-            'departement_name' => 'required|string',
-            'subgrade_name' => 'required|string',            
-            'changerequest_note' => 'required|string',
-            'attachments.*' => 'file|max:2048'
-        ]);
+        // dd($request->all()); // Debugging: check request data
+        // kumpulkan array dari form
+        $inventoryIds  = $request->input('inventoryid',  $request->input('inventory_id', []));
+        $productNames  = $request->input('product_name', []);
+        $qtys          = $request->input('qty', []);
+        $uoms          = $request->input('stock_unit',   $request->input('uom', [])); // <- penting
+        $notes         = $request->input('note', []);
+        $locations     = $request->input('location', []);
+        $locationIds   = $request->input('location_id', $request->input('locationid', [])); // <- kalau perlu simpan
+        $subLocIds     = $request->input('sub_location_id', $request->input('sublocationid', []));
+        $subLocations  = $request->input('sub_location', []);
+        $activities    = $request->input('activity', []);
+        $coas          = $request->input('coa_id', []);
+        $busUnits      = $request->input('business_unit', []);
+        $departements  = $request->input('departement', []);
 
-        $doctype = 'CSO';
-        $user = $request->user();
-        $datenow = Carbon::now()->format('Y-m-d');
-        $dt = Carbon::now();
-        $year = $dt->year;
-        $month = str_pad($dt->month, 2, '0', STR_PAD_LEFT);
-        $datestamp = Carbon::now()->toDateTimeString();
+        $doctype  = 'PB';
+        $user     = $request->user();
+        $username = $user->username ?? 'system';
 
+        $dt        = Carbon::now();
+        $year      = $dt->year;
+        $month     = str_pad($dt->month, 2, '0', STR_PAD_LEFT);
+        $datestamp = $dt->toDateTimeString();
+
+        // pastikan line approval ada
         $approvalCount = M_approval::where([
             ['status', '=', 'A'],
             ['aprvcpnyid', '=', $request->cpnyid],
@@ -113,13 +186,13 @@ class SppbController extends Controller
 
         if ($approvalCount === 0) {
             return response()->json([
-                'message' => 'Approval line belum di-setup, Please contact IT!'
+                'message' => 'Approval line belum di-setup, Please contact IT!',
             ], 422);
         }
 
         DB::beginTransaction();
         try {
-            // Generate autonbr dan docid
+            // === generate autonbr & docid (lock) ===
             $autonbr = Autonbr::lockForUpdate()
                 ->where('doctype', $doctype)
                 ->where('year', $year)
@@ -129,10 +202,10 @@ class SppbController extends Controller
             if (!$autonbr) {
                 $autonbr = Autonbr::create([
                     'doctype' => $doctype,
-                    'year' => $year,
-                    'month' => $month,
-                    'status' => 'A',
-                    'number' => 1
+                    'year'    => $year,
+                    'month'   => $month,
+                    'status'  => 'A',
+                    'number'  => 1,
                 ]);
                 $urutan = 1;
             } else {
@@ -140,24 +213,81 @@ class SppbController extends Controller
                 $autonbr->update(['number' => $urutan]);
             }
 
-            $tglbln = substr($year, 2) . $month;
-            $docid = $doctype . $tglbln . sprintf("%03d", $urutan);
-            // dd($docid);
-            // Simpan ke sppb
-            $sppb = Sppb::create([
-                'changerequest_id' => $docid,
-                'cpnyid' => $request->cpnyid,
-                'departementid' => $request->departementid,
-                'departement_name' => $request->departement_name,
-                'subgrade_name' => $request->subgrade_name,
-                'changerequest_note' => $request->changerequest_note,
-                'changerequest_date' => $datenow,
-                'user' => $user->username,
-                'created_user' => $user->username,
-                'status' => 'P'
-            ]);
+            $tglbln = substr($year, 2) . $month;               // YYMM
+            $docid  = $doctype . $tglbln . sprintf("%03d", $urutan);
+            $sppbNo = $docid;                                   // atau 'SPPB-'.$docid
 
-            // Simpan approval dari M_approval ke T_approval
+            // === 1) header dulu (totalqty sementara 0) ===
+            $header = new TrSPPB();
+            $header->sppbid            = $docid;                // PK string
+            $header->sppbdate          = $dt->toDateString();
+            $header->cpny_id           = $request->input('cpnyid');
+            $header->department_id     = $request->input('departementid');
+            $header->requesttypeid     = $request->input('requesttypeid');
+            $header->keperluan         = $request->input('keperluan');
+            $header->woid              = $request->input('woid');
+            $header->spbid             = null;
+            $header->totalopenordered  = 0;
+            $header->totalqty          = 0;
+            $header->assignby          = null;
+            $header->assigndate        = null;
+            $header->assignpurchasing  = null;
+            $header->csjobs            = null;
+            $header->cs                = null;
+            $header->status            = 'P';
+            $header->created_by        = $username;
+            $header->save();
+
+            // === 2) detail ===
+            $totalQty         = 0;
+            $totalOpenOrdered = 0;
+            $rowCount = max(count($inventoryIds), count($qtys));
+           
+            for ($i = 0; $i < $rowCount; $i++) {
+                $invId = $inventoryIds[$i] ?? null;
+                $productName = $productNames[$i] ?? null;
+                // qty: sudah kamu konversi koma->titik di JS; tetap jaga-jaga:
+                $qty   = (float) str_replace(',', '.', (string) ($qtys[$i] ?? 0));
+                $uom   = $uoms[$i] ?? null;
+
+                if (empty($invId) || $qty <= 0) continue;
+
+                $detail = new TrSPPBdetail();
+                $detail->sppbid                   = $header->sppbid;
+                $detail->sppb_no                  = $i + 1;   // nomor urut detail
+                $detail->inventoryid              = $invId;
+                $detail->inventory_descr          = $productName;
+                $detail->qty                      = $qty;
+                $detail->uom                      = $uom;
+                $detail->note                     = $notes[$i]   ?? null;
+                $detail->base_multiplier          = 1;
+                $detail->base_uom                 = $uom;
+                $detail->base_qty                 = $qty;
+                $detail->budget_cpny_id           = $request->cpnyid;
+                $detail->budget_business_unit_id  = $busUnits[$i]     ?? $request->cpnyid;
+                $detail->budget_department_fin_id = $request->departementid;
+                $detail->budget_account_id        = $coas[$i]         ?? null;
+                $detail->budget_activity_id       = $activities[$i]   ?? null;               
+                $detail->location_id              = $locationIds[$i]  ?? null;
+                $detail->sub_location_id          = $subLocIds[$i]    ?? null;
+                $detail->assignby                 = null;
+                $detail->assigndate               = null;
+                $detail->assignpurchasing         = null;
+                $detail->openordered              = 0;
+                $detail->ordered                  = 0;
+                $detail->status                   = 'P';
+                $detail->created_by               = $username;
+                $detail->save();
+
+                $totalQty += $qty;
+            }
+
+            // update totalqty di header
+            $header->totalqty = $totalQty;
+            $header->totalopenordered = $totalQty;
+            $header->save();
+
+            // === 4) copy line approval (M_approval -> T_approval) ===
             $approvals = M_approval::where([
                 ['status', '=', 'A'],
                 ['aprvcpnyid', '=', $request->cpnyid],
@@ -167,21 +297,21 @@ class SppbController extends Controller
 
             foreach ($approvals as $a) {
                 T_approval::create([
-                    'docid' => $docid,
-                    'aprvid' => $a->aprvid,
-                    'aprvdoctype' => $a->aprvdoctype,
-                    'aprvcpnyid' => $a->aprvcpnyid,
-                    'aprvdeptid' => $a->aprvdeptid,
-                    'aprvusername' => $a->aprvusername,
-                    'name' => $a->name,
+                    'docid'          => $docid,
+                    'aprvid'         => $a->aprvid,
+                    'aprvdoctype'    => $a->aprvdoctype,
+                    'aprvcpnyid'     => $a->aprvcpnyid,
+                    'aprvdeptid'     => $a->aprvdeptid,
+                    'aprvusername'   => $a->aprvusername,
+                    'name'           => $a->name,
                     'aprvdatebefore' => $a->aprvid == 1 ? $datestamp : null,
-                    'aprvtotalday' => 1,
-                    'status' => 'P',
-                    'created_user' => $user->username
+                    'aprvtotalday'   => 1,
+                    'status'         => 'P',
+                    'created_user'   => $username,
                 ]);
             }
 
-            // Upload attachments jika ada
+            // === 5) attachments (opsional) ===
             if ($request->hasfile('attachments')) {
                 foreach ($request->file('attachments') as $file) {
                     $randomNumber = random_int(10000000, 99999999);
@@ -212,9 +342,9 @@ class SppbController extends Controller
                     $attach->created_user = $user->username;
                     $attach->save();
                 }
-            }
+            }            
 
-            // Kirim email ke approver pertama
+            // === 6) kirim email ke approver pertama ===
             $firstApproval = T_approval::where('docid', $docid)
                 ->where('status', 'P')
                 ->orderBy('aprvid')
@@ -222,46 +352,53 @@ class SppbController extends Controller
 
             if ($firstApproval) {
                 $data = [
-                    'docid' => $firstApproval->docid,
-                    'cpnyid' => $firstApproval->aprvcpnyid,
+                    'docid'    => $firstApproval->docid,
+                    'cpnyid'   => $firstApproval->aprvcpnyid,
                     'deptname' => $firstApproval->aprvdeptid,
-                    'date' => $firstApproval->aprvdatebefore,
-                    'name' => $user->username,
-                    'info' => $request->changerequest_note,
-                    'url' => url('/showsppbs/' . $sppb->id)
+                    'date'     => $firstApproval->aprvdatebefore,
+                    'name'     => $username,
+                    'info'     => $request->changerequest_note,
+                    'url'      => url('/showsppbs/' . $header->id), // FIX: pakai sppbid header
                 ];
 
-                $approvers = explode(',', $firstApproval->aprvusername);
+                $approvers = array_filter(array_map('trim', explode(',', (string)$firstApproval->aprvusername)));
                 $emails = User::whereIn('username', $approvers)
                     ->where('status', 'A')
                     ->pluck('test_email');
 
                 foreach ($emails as $email) {
-                    Mail::send('emails.mailapprove', $data, function ($message) use ($email, $data) {
+                    \Mail::send('emails.mailapprove', $data, function ($message) use ($email, $data) {
                         $message->to($email)
-                            ->subject($data['docid'] . ' - Waiting Approval Candidate')
+                            ->subject($data['docid'].' - Waiting Approval SPPB')
                             ->from('digitalserver@pakuwon.com', 'Pakuwon System');
                     });
                 }
             }
 
             DB::commit();
-            return response()->json(['success' => true, 'task' => $sppb]);
 
-        } catch (\Exception $e) {
-            DB::rollBack();
             return response()->json([
-                'error' => 'Gagal menyimpan data',
-                'message' => $e->getMessage()
+                'message'  => 'SPPB created successfully',
+                'sppbid'   => $docid,
+                'sppb_no'  => $sppbNo,
+                'totalqty' => $totalQty,
+            ]);
+
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            report($e);
+
+            return response()->json([
+                'message' => 'Failed to create SPPB',
+                'error'   => config('app.debug') ? $e->getMessage() : null,
             ], 500);
         }
     }
-
-
+   
 
     public function editSppb($id)
     {
-        $sppb = Sppb::findOrFail($id);
+        $sppb = TrSPPB::findOrFail($id);
         $user = request()->user();
         $usercpny = Usercpny::where('username', '=', $user->username)
             ->get();
@@ -273,7 +410,7 @@ class SppbController extends Controller
             ->first();
         $subgrading = StoSubGrading::select('subgrade_id','subgrade_name')->get();   
 
-        $attachment = Attachment::where('docid', $sppb->changerequest_id)  
+        $attachment = Attachment::where('docid', $sppb->sppbid)  
             ->where('status','A')         
             ->get();
        
@@ -304,7 +441,7 @@ class SppbController extends Controller
             $datestamp = Carbon::now()->toDateTimeString();
             $user = request()->user();
 
-            $sppb = Sppb::findOrFail($id);
+            $sppb = TrSPPB::findOrFail($id);
                                    
             $sppb -> update([              
                 'cpnyid' => $request->cpnyid,
@@ -329,7 +466,7 @@ class SppbController extends Controller
             foreach ($m_approval as $mp) {
                 $aprvdatebefore = ($mp->aprvid == 1) ? $datestamp : null; 
                 T_approval::create([
-                    'docid' => $sppb->changerequest_id,
+                    'docid' => $sppb->sppbid,
                     'aprvid' => $mp->aprvid,
                     'aprvdoctype' => $mp->aprvdoctype,
                     'aprvcpnyid' => $mp->aprvcpnyid,
@@ -367,7 +504,7 @@ class SppbController extends Controller
 
                     //insert to table attachments
                     $attach = new Attachment();
-                    $attach->docid = $sppb->changerequest_id;
+                    $attach->docid = $sppb->sppbid;
                     $attach->name = $filename;
                     $attach->attachfile = $attachfile;
                     $attach->status = 'A';
@@ -377,7 +514,7 @@ class SppbController extends Controller
                 }
             }
 
-            $t_approval_next = T_approval::where('docid', $sppb->changerequest_id)
+            $t_approval_next = T_approval::where('docid', $sppb->sppbid)
                 ->where('status', 'P')
                 ->orderby('aprvid','ASC')
                 ->first();
@@ -429,20 +566,34 @@ class SppbController extends Controller
 
     public function showSppb($id)
     {        
-        $sppb = Sppb::findOrFail($id);
-        // $sppb = Sppb::with('departement.subgrading')->findOrFail($id);
-        $approval = T_approval::where('docid', $sppb->changerequest_id)
+        $sppb = TrSPPB::findOrFail($id);
+        $sppb = TrSPPB::with([
+            'requestType:requesttypeid,requesttype_name',
+            'creator:username,name'
+        ])
+        ->findOrFail($id);
+
+        
+
+        $sppbdetail = TrSPPBdetail::with([
+            'location:location_id,location_name',
+            'subLocation:sub_location_id,sub_location_name'
+        ])
+        ->where('sppbid', $sppb->sppbid)
+        ->get();
+        
+        $approval = T_approval::where('docid', $sppb->sppbid)
             ->where('status','<>','X')      
             ->orderBy('created_at')
             ->orderBy('aprvid')      
             ->get();
        
-        $attachment = Attachment::where('docid', $sppb->changerequest_id)    
+        $attachment = Attachment::where('docid', $sppb->sppbid)    
             ->where('status','A')        
             ->get();
        
        
-        return view('pages.sppbs.showsppbs', compact('sppb','approval','attachment'));
+        return view('pages.sppbs.showsppbs', compact('sppb','approval','attachment','sppbdetail'));
     }
 
     
@@ -487,18 +638,18 @@ class SppbController extends Controller
         $datestamp = Carbon::now()->toDateTimeString();       
         $user = request()->user(); // Ambil user yang login
         
-        $sppb = Sppb::where('changerequest_id', $docid)->first();   
+        $sppb = TrSPPB::where('sppbid', $docid)->first();   
 
         if (!$sppb) {
             return response()->json(['success' => false, 'message' => 'Prf not found'], 404);
         }        
 
-        $count_approval = T_approval::where('docid', '=', $sppb->changerequest_id)
+        $count_approval = T_approval::where('docid', '=', $sppb->sppbid)
             ->where('status', '=', 'P')
             ->count();
     
         // Cek apakah user memiliki akses untuk approve
-        $t_approval = T_approval::where('docid', $sppb->changerequest_id)
+        $t_approval = T_approval::where('docid', $sppb->sppbid)
             ->where('status', 'P')
             ->where('aprvusername', 'like', "%" . $user->username . "%")
             ->first();
@@ -521,7 +672,7 @@ class SppbController extends Controller
             app('App\Http\Controllers\SppbController')->insert_jobposting($docid);
         }
 
-        $t_approval_next = T_approval::where('docid', $sppb->changerequest_id)
+        $t_approval_next = T_approval::where('docid', $sppb->sppbid)
             ->where('status', 'P')
             ->orderby('aprvid','ASC')
             ->first();
@@ -568,7 +719,7 @@ class SppbController extends Controller
         $datestamp = Carbon::now()->toDateTimeString();       
         $user = request()->user(); // Ambil user yang login
 
-        $sppb = Sppb::where('changerequest_id', $docid)->first();  
+        $sppb = TrSPPB::where('sppbid', $docid)->first();  
         
         
         if (!$sppb) {
@@ -576,7 +727,7 @@ class SppbController extends Controller
         }
 
         // Cek apakah user memiliki akses untuk approve
-        $t_approval = T_approval::where('docid', $sppb->changerequest_id)
+        $t_approval = T_approval::where('docid', $sppb->sppbid)
             ->where('status', 'P')
             ->where('aprvusername', 'like', "%" . $user->username . "%")
             ->first();
@@ -592,7 +743,7 @@ class SppbController extends Controller
             $sppb->save();
         }   
                        
-        $t_aprv_sisa = T_approval::where('docid', '=', $sppb->changerequest_id)
+        $t_aprv_sisa = T_approval::where('docid', '=', $sppb->sppbid)
             ->where('status', '=', 'P')
             ->get();
 
@@ -641,7 +792,7 @@ class SppbController extends Controller
         $datestamp = Carbon::now()->toDateTimeString();       
         $user = request()->user(); // Ambil user yang login
 
-        $sppb = Sppb::where('changerequest_id', $docid)->first();  
+        $sppb = TrSPPB::where('sppbid', $docid)->first();  
         
         
         if (!$sppb) {
@@ -649,7 +800,7 @@ class SppbController extends Controller
         }
 
         // Cek apakah user memiliki akses untuk approve
-        $t_approval = T_approval::where('docid', $sppb->changerequest_id)
+        $t_approval = T_approval::where('docid', $sppb->sppbid)
             ->where('status', 'P')
             ->where('aprvusername', 'like', "%" . $user->username . "%")
             ->first();
@@ -665,7 +816,7 @@ class SppbController extends Controller
             $sppb->save();
         }   
                        
-        $t_aprv_sisa = T_approval::where('docid', '=', $sppb->changerequest_id)
+        $t_aprv_sisa = T_approval::where('docid', '=', $sppb->sppbid)
             ->where('status', '=', 'P')
             ->get();
 
