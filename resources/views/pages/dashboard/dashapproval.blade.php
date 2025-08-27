@@ -119,7 +119,7 @@
                 }
 
                 #agendasxTable tbody tr:hover td {
-                    color: black;
+                    /* color: black; */
                 }
             </style>
             <style>
@@ -182,21 +182,21 @@
                     text-align: center;
                 }
             </style>
-                <div class="rounded-lg bg-white dark:bg-gray-800">
-                    <table id="agendasxTable" class="mt-5 min-w-full rounded">
-                        <thead class="bg-white-200 dark:text-white">
-                            <tr>
-                                <th class="w-32 px-4 py-3 text-left">DocID</th>
-                                <th class="px-4 py-3 text-center">Date</th>
-                                <th class="px-4 py-3 text-center">Company</th>
-                                <th class="px-4 py-3 text-center">Departement</th>
-                                <th class="px-4 py-3 text-center">Info</th>                                       
-                                <th class="w-32 px-4 py-3 text-center">Status</th>
-                            </tr>
-                        </thead>
-                        <tbody></tbody>
-                    </table>
-                </div>     
+            <div class="rounded-lg bg-white dark:bg-gray-800">
+                <table id="agendasxTable" class="mt-5 min-w-full rounded">
+                    <thead class="bg-white-200 dark:text-white">
+                        <tr>
+                            <th class="w-32 px-4 py-3 text-left">DocID</th>
+                            <th class="px-4 py-3 text-center">Date</th>
+                            <th class="px-4 py-3 text-center">Company</th>
+                            <th class="px-4 py-3 text-center">Departement</th>
+                            <th class="px-4 py-3 text-center">Info</th>
+                            <th class="w-32 px-4 py-3 text-center">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
             {{-- <script>
                 var currentUser = "{{ auth()->user()->username }}";
             </script> --}}
@@ -239,7 +239,7 @@
                             {
                                 data: 'infohd',
                                 className: 'no-pointer'
-                            },                           
+                            },
                             {
                                 data: 'status',
                                 className: 'no-pointer',
@@ -280,5 +280,3 @@
                 });
             </script>
         </div>
-
-

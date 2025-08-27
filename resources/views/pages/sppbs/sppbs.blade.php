@@ -180,7 +180,7 @@
                 }
 
                 #sppbsTable tbody tr:hover td {
-                    color: black;
+                    /* color: black; */
                 }
 
                 #sppbsTable th:nth-child(1),
@@ -318,7 +318,7 @@
                                 <th scope="col"
                                     class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
                                     Request Type
-                                </th>                               
+                                </th>
                                 <th scope="col"
                                     class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
                                     Description
@@ -335,84 +335,122 @@
                     </table>
                 </div>
             </div>
-           
+
 
             <script>
                 var currentUser = "{{ auth()->user()->username }}";
-                $(document).ready(function () {
-                // simpan status filter global
-                let statusFilter = 'P'; // default
+                $(document).ready(function() {
+                    // simpan status filter global
+                    let statusFilter = 'P'; // default
 
-                const table = $('#sppbsTable').DataTable({
-                    processing: true,
-                    serverSide: true,
-                    deferRender: true,
-                    // ==== SCROLLER OPSIONAL (butuh plugin DataTables Scroller) ====
-                    // scrollY: '60vh',
-                    // scroller: true,
+                    const table = $('#sppbsTable').DataTable({
+                        processing: true,
+                        serverSide: true,
+                        deferRender: true,
+                        // ==== SCROLLER OPSIONAL (butuh plugin DataTables Scroller) ====
+                        // scrollY: '60vh',
+                        // scroller: true,
 
-                    pageLength: 25,
-                    lengthMenu: [10, 25, 50, 100, 250],
+                        pageLength: 25,
+                        lengthMenu: [10, 25, 50, 100, 250],
 
-                    ajax: {
-                    url: "{{ route('sppbs.json') }}",
-                    type: "GET",
-                    data: function (d) {
-                        d.status = statusFilter ?? ''; // kirim status ke server
-                    }
-                    },
+                        ajax: {
+                            url: "{{ route('sppbs.json') }}",
+                            type: "GET",
+                            data: function(d) {
+                                d.status = statusFilter ?? ''; // kirim status ke server
+                            }
+                        },
 
-                    order: [[1, 'desc'], [0, 'desc']], // Date desc, lalu DocID desc
+                        order: [
+                            [1, 'desc'],
+                            [0, 'desc']
+                        ], // Date desc, lalu DocID desc
 
-                    columns: [
-                    // DocID (button link)
-                    {
-                        data: 'sppbid',
-                        render: function (data, type, row) {
-                        let url = `/showsppbs/${row.id}`;
-                        let cls = 'px-4 py-2.5 bg-indigo-500 text-white rounded hover:bg-indigo-700';
-                        let text = data || row.id;
-                        if (row.status === 'D' && row.created_by === currentUser) {
-                            url = `/editsppbs/${row.id}`;
-                            cls = 'px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-700';
-                        }
-                        return `<a href="${url}" class="${cls}">${text}</a>`;
-                        }
-                    },
-                    { data: 'sppbdate',       className: 'text-center' },
-                    { data: 'cpny_id',        className: 'text-center' },
-                    { data: 'department_id',  className: 'text-center' },
-                    { data: 'requesttype_name', defaultContent: '-', className: 'text-center' },
-                    { data: 'keperluan' },
-                    {
-                        data: 'status',
-                        className: 'text-center',
-                        render: function (data) {
-                        const map = {
-                            'D': { t: 'Revise',      c: 'bg-gray-300/30 text-gray-600' },
-                            'P': { t: 'On Progress', c: 'bg-blue-300/30 text-blue-600' },
-                            'C': { t: 'Completed',   c: 'bg-green-300/30 text-green-600' },
-                            'X': { t: 'Cancel',      c: 'bg-red-300/30 text-red-600' },
-                            'R': { t: 'Rejected',    c: 'bg-red-300/30 text-red-600' },
-                        };
-                        const it = map[data] || { t: data || '-', c: 'bg-gray-300/30 text-gray-600' };
-                        return `<span class="w-32 inline-block ${it.c} font-semibold px-4 py-2 text-center rounded">${it.t}</span>`;
-                        }
-                    }
-                    ],
+                        columns: [
+                            // DocID (button link)
+                            {
+                                data: 'sppbid',
+                                render: function(data, type, row) {
+                                    let url = `/showsppbs/${row.id}`;
+                                    let cls =
+                                        'px-4 py-2.5 bg-indigo-500 text-white rounded hover:bg-indigo-700';
+                                    let text = data || row.id;
+                                    if (row.status === 'D' && row.created_by === currentUser) {
+                                        url = `/editsppbs/${row.id}`;
+                                        cls =
+                                            'px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-700';
+                                    }
+                                    return `<a href="${url}" class="${cls}">${text}</a>`;
+                                }
+                            },
+                            {
+                                data: 'sppbdate',
+                                className: 'text-center'
+                            },
+                            {
+                                data: 'cpny_id',
+                                className: 'text-center'
+                            },
+                            {
+                                data: 'department_id',
+                                className: 'text-center'
+                            },
+                            {
+                                data: 'requesttype_name',
+                                defaultContent: '-',
+                                className: 'text-center'
+                            },
+                            {
+                                data: 'keperluan'
+                            },
+                            {
+                                data: 'status',
+                                className: 'text-center',
+                                render: function(data) {
+                                    const map = {
+                                        'D': {
+                                            t: 'Revise',
+                                            c: 'bg-gray-300/30 text-gray-600'
+                                        },
+                                        'P': {
+                                            t: 'On Progress',
+                                            c: 'bg-blue-300/30 text-blue-600'
+                                        },
+                                        'C': {
+                                            t: 'Completed',
+                                            c: 'bg-green-300/30 text-green-600'
+                                        },
+                                        'X': {
+                                            t: 'Cancel',
+                                            c: 'bg-red-300/30 text-red-600'
+                                        },
+                                        'R': {
+                                            t: 'Rejected',
+                                            c: 'bg-red-300/30 text-red-600'
+                                        },
+                                    };
+                                    const it = map[data] || {
+                                        t: data || '-',
+                                        c: 'bg-gray-300/30 text-gray-600'
+                                    };
+                                    return `<span class="w-32 inline-block ${it.c} font-semibold px-4 py-2 text-center rounded">${it.t}</span>`;
+                                }
+                            }
+                        ],
 
-                    // Tweak untuk kinerja
-                    searchDelay: 400,       // debounce search
-                    stateSave: true,        // simpan state tabel (opsional)
-                    responsive: true
-                });
+                        // Tweak untuk kinerja
+                        searchDelay: 400, // debounce search
+                        stateSave: true, // simpan state tabel (opsional)
+                        responsive: true
+                    });
 
-                // Ganti status filter → reload data tanpa rebuild tabel
-                $('.status-filter').on('click', function (e) {
-                    e.preventDefault();
-                    statusFilter = $(this).data('status') || '';
-                    table.ajax.reload(null, true); // reset ke page 1
-                });
+                    // Ganti status filter → reload data tanpa rebuild tabel
+                    $('.status-filter').on('click', function(e) {
+                        e.preventDefault();
+                        statusFilter = $(this).data('status') || '';
+                        table.ajax.reload(null, true); // reset ke page 1
+                    });
                 });
             </script>
 

@@ -180,7 +180,7 @@
                 }
 
                 #personnelsTable tbody tr:hover td {
-                    color: black;
+                    /* color: black; */
                 }
 
                 #personnelsTable th:nth-child(1),

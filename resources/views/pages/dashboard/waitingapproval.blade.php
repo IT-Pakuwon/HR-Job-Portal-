@@ -1,5 +1,5 @@
-<x-app-layout>  
-    <div class="max-w-9xl mx-auto w-full px-2 py-2 sm:px-6 lg:px-2">        
+<x-app-layout>
+    <div class="max-w-9xl mx-auto w-full px-2 py-2 sm:px-6 lg:px-2">
         <script src="//unpkg.com/alpinejs" defer></script>
         <div class="grid">
             <style>
@@ -122,7 +122,7 @@
                 }
 
                 #agendasTable tbody tr:hover td {
-                    color: black;
+                    /* color: black; */
                 }
             </style>
             <style>
@@ -188,7 +188,7 @@
             <div class="mt-2 overflow-y-auto rounded-xl bg-white p-4 dark:bg-gray-800">
                 <div class="flex flex-col items-center justify-between gap-4 sm:flex-row">
                     <h1 class="align-middle text-2xl font-bold dark:text-white"></h1>
-                    
+
                 </div>
                 <div x-data="{ tab: 'waitingapp' }" class="mt-4">
                     <div class="mb-4 flex space-x-4">
@@ -212,7 +212,7 @@
                                         <th class="px-4 py-3 text-center">Date</th>
                                         <th class="px-4 py-3 text-center">Company</th>
                                         <th class="px-4 py-3 text-center">Departement</th>
-                                        <th class="px-4 py-3 text-center">Info</th>                                       
+                                        <th class="px-4 py-3 text-center">Info</th>
                                         <th class="w-32 px-4 py-3 text-center">Status</th>
                                     </tr>
                                 </thead>
@@ -230,7 +230,7 @@
             </div>
             <script>
                 var currentUser = "{{ auth()->user()->username }}";
-            </script>         
+            </script>
             <script>
                 $(document).ready(function() {
                     let table = $('#agendasTable').DataTable({
@@ -268,7 +268,7 @@
                             {
                                 data: 'infohd',
                                 className: 'no-pointer'
-                            },                           
+                            },
                             {
                                 data: 'status',
                                 className: 'no-pointer',
@@ -305,7 +305,7 @@
 
                             }
                         ]
-                    });      
+                    });
 
                 });
             </script>

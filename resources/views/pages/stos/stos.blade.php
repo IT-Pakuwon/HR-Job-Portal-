@@ -194,7 +194,7 @@
                 }
 
                 #stosTable tbody tr:hover td {
-                    color: black;
+                    /* color: black; */
                 }
 
                 /* ✅ Custom Switch Button */
@@ -349,7 +349,8 @@
                                     // Jika status H, arahkan ke /createstos?id=...
                                     if (row.status === 'H' && row.created_user === currentUser) {
                                         url = `/createstos?id=${row.id}`;
-                                        buttonClass = 'px-4 py-2 bg-green-500 text-white rounded hover:bg-green-700';
+                                        buttonClass =
+                                            'px-4 py-2 bg-green-500 text-white rounded hover:bg-green-700';
                                     }
 
                                     return `<a href="${url}" class="px-3 py-1 ${buttonClass} text-white rounded">${buttonText}</a>`;

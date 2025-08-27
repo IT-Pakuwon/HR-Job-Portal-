@@ -95,7 +95,7 @@
                                     ],
                                     [
                                         'label' => 'Department',
-                                        'value' => $personnel->departementid,
+                                        'value' => ucwords(strtolower($personnel->departementid)),
                                     ],
                                     [
                                         'label' => 'Job Title',
@@ -371,7 +371,7 @@
                         </nav>
                     </header>
 
-                    <div class="flex-grow overflow-y-auto rounded-b-xl bg-white p-6 dark:bg-gray-800">
+                    <div class="flex-grow overflow-y-auto rounded-b-xl bg-white px-6 py-2 dark:bg-gray-800">
                         <div x-show="activeTab === 'approval'" x-transition:enter="transition ease-out duration-300"
                             x-transition:enter-start="opacity-0 translate-y-2"
                             x-transition:enter-end="opacity-100 translate-y-0"
