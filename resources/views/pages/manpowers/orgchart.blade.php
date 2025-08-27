@@ -129,7 +129,7 @@
                 }
 
                 #manpowersTable tbody tr:hover td {
-                    color: black;
+                    /* color: black; */
                 }
             </style>
             <style>
@@ -421,11 +421,11 @@
                                         <strong>Employee:</strong>
                                         <div style="margin-top:10px;">
                                             ${members.map(m => `
-                                                            <div style="display:flex;align-items:center;margin-bottom:6px;">
-                                                                <img src="${m.image}" style="width:20px;height:20px;border-radius:50%;margin-right:8px;" />
-                                                                <span style="font-size:12px;">${m.name} (${m.company} - ${m.position})</span>
-                                                            </div>
-                                                        `).join('')}
+                                                                        <div style="display:flex;align-items:center;margin-bottom:6px;">
+                                                                            <img src="${m.image}" style="width:20px;height:20px;border-radius:50%;margin-right:8px;" />
+                                                                            <span style="font-size:12px;">${m.name} (${m.company} - ${m.position})</span>
+                                                                        </div>
+                                                                    `).join('')}
                                         </div>
                                     </div>
                                 </div>

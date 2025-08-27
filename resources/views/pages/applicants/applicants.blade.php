@@ -184,6 +184,7 @@
 
                 #applicantsTable tbody tr {
                     transition: background-color 0.3s ease, color 0.3s ease;
+
                 }
 
                 #applicantsTable tbody tr:hover {
@@ -193,7 +194,7 @@
                 }
 
                 #applicantsTable tbody tr:hover td {
-                    color: black;
+                    /* color: black; */
                 }
             </style>
             <style>

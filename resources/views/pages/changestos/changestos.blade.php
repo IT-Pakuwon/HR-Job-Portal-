@@ -180,7 +180,7 @@
                 }
 
                 #changestosTable tbody tr:hover td {
-                    color: black;
+                    /* color: black; */
                 }
 
                 #changestosTable th:nth-child(1),
@@ -323,7 +323,7 @@
                                     class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
                                     Sub Gradename
                                 </th>
-                                 <th scope="col"
+                                <th scope="col"
                                     class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
                                     Note
                                 </th>
@@ -379,7 +379,8 @@
                                     let url = `/showchangestos/${row.id}`;
                                     let buttonClass =
                                         'px-4 py-2.5 bg-indigo-500 text-white rounded hover:bg-indigo-700';
-                                    let buttonText = row.changerequest_id; // Menggunakan row.changerequest_id untuk teks tombol
+                                    let buttonText = row
+                                    .changerequest_id; // Menggunakan row.changerequest_id untuk teks tombol
 
                                     // Cek apakah user yang login sama dengan created_user dan status = D (Revise/Draft)
                                     if (row.status === 'D' && row.created_user === currentUser) {
