@@ -85,7 +85,7 @@
     <div class="mt-6 flex justify-end">
         <button type="submit" id="btnSaveSchedule"
                 class="inline-flex items-center rounded-xl bg-emerald-600 px-6 py-2 text-base font-semibold text-white shadow-md transition-colors duration-200 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800">
-        <span class="sch-text">Save Schedule</span>
+        <span class="sch-text">Save Schedule & Send Email</span>
         <svg class="sch-spin ml-2 hidden h-5 w-5 animate-spin" viewBox="0 0 24 24" fill="none">
             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>

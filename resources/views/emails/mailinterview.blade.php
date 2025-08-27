@@ -2,28 +2,28 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>Pakuwon Career</title>
+    <title>Pakuwon Careers</title>
 </head>
 <body style="font-family: Arial, sans-serif; background-color: #f5f5f5; padding: 20px;">
     <div style="background-color: #ffffff; padding: 30px; border-radius: 10px;">
-        <h2>Halo {{ $name }},</h2>
+        <h2>Dear {{ $name }},</h2>
 
         <br>
 
-        <p>Kami mengundang Anda untuk Interview sebagai {{ $jobtitle }} pada: </p>
-        <p><strong>Hari/Tanggal:</strong> {{ $startdate }}</p>
-        <p><strong>Waktu:</strong> {{ $starttime }} - {{ $endtime }} WIB</p>
-        <p><strong>Lokasi:</strong>  {{ $location }} - {{ $address }}</p>
-        <p>Setelah menerima Email ini, mohon untuk konfirmasi atas untuk kehadiran.
-            <br>Atas perhatiannya kami ucapkan terima kasih.
-        </p>
-    
-        <p style="margin-top: 30px;">Jika Anda memiliki pertanyaan, silakan hubungi kami melalui email ini. </p><br>
+        <p>We are pleased to invite you for an interview for the <strong>{{ $jobtitle }}</strong> position, scheduled as follows:</p>
+        <p><strong>Date:</strong> {{ $startdate }}</p>
+        <p><strong>Time:</strong> {{ $starttime }} – {{ $endtime }} WIB (Western Indonesia Time)</p>
+        <p><strong>Location:</strong> {{ $location }} – {{ $address }}</p>
 
-        <p>Salam hangat,</p>
-        <p><strong>Tim Pakuwon Career</strong></p>
+        <p>
+            After receiving this email, please confirm your attendance by replying to this message.
+            <br>Thank you for your attention.
+        </p>
+
+        <p style="margin-top: 30px;">If you have any questions, feel free to contact us by replying to this email.</p><br>
+
+        <p>Warm regards,</p>
+        <p><strong>Pakuwon Careers Team</strong></p>
     </div>
 </body>
-
-  
 </html>

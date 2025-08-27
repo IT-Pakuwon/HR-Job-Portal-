@@ -29,8 +29,17 @@ use Mail;
 
 class JobapplicantController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
+        $user = auth()->user(); // atau $request->user()
+
+        if (!$user) {
+            // Session habis / belum login
+            return $request->expectsJson()
+                ? response()->json(['message' => 'Your session has expired. Please sign in again.'], 401)
+                : redirect()->route('login')->with('error', 'Your session has expired. Please sign in again.');
+        }
+
         // Ambil jumlah total pelamar dari viewtrxcareer     
         $all = ViewCareer::count();
         $unchecked = ViewCareer::where('is_read', 'N')->count();

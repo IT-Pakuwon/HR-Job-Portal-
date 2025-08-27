@@ -538,7 +538,7 @@ class SppbController extends Controller
     
             foreach ($email_it as $emailsit) {
                 Mail::send('emails.mailapprove', $data, function ($message) use ($data, $emailsit) {
-                    $message->to($emailsit->test_email)->subject($data['docid'] . ' - Waiting Approval Change STOs');
+                    $message->to($emailsit->test_email)->subject($data['docid'] . ' - Waiting Approval SPPBs');
                     $message->from('digitalserver@pakuwon.com', 'Pakuwon System');
                 });
             }
@@ -641,7 +641,7 @@ class SppbController extends Controller
         $sppb = TrSPPB::where('sppbid', $docid)->first();   
 
         if (!$sppb) {
-            return response()->json(['success' => false, 'message' => 'Prf not found'], 404);
+            return response()->json(['success' => false, 'message' => 'SPPB not found'], 404);
         }        
 
         $count_approval = T_approval::where('docid', '=', $sppb->sppbid)
@@ -703,7 +703,7 @@ class SppbController extends Controller
             foreach ($email_it as $emailsit) {
                 Mail::send('emails.mailapprove', $data, function ($message) use ($data, $emailsit) {
 
-                    $message->to($emailsit->test_email)->subject($data['docid'] . ' - Waiting Approval Change STO');
+                    $message->to($emailsit->test_email)->subject($data['docid'] . ' - Waiting Approval SPPB');
                     $message->from('digitalserver@pakuwon.com', 'Pakuwon System');
                 });
             }

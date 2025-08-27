@@ -1924,10 +1924,9 @@ class CareerController extends Controller
         return response()->json(['success' => true]);
     }
 
+
     public function updateSchedule(Request $request)
     {
-
-        // dd($request->all());
         $data = $request->validate([
             'applicant_id'      => ['required','string'],
             'jobapply_id'       => ['nullable','string'],
@@ -1937,38 +1936,67 @@ class CareerController extends Controller
 
         DB::beginTransaction();
         try {
-            // Update / create di payrollconfirm
-            PayrollConfirm::updateOrCreate(
-                [
-                    'applicant_id' => $data['applicant_id'],
-                    'jobapply_id'  => $data['jobapply_id'] ?? null,
-                ],
-                [
-                    'availability_date' => $data['availability_date'],
-                    'work_start_date'   => $data['work_start_date'],
-                    'updated_at'        => now(),
-                ]
-            );
+            $user = $request->user();
 
-            // Kirim email kandidat
-            $applicant = Applicant::where('applicant_id', $data['applicant_id'])->first();
-            if ($applicant && !empty($applicant->email_address)) {
-                Mail::to($applicant->email_address)
-                    ->send(new CandidateScheduleMail(
-                        $applicant,
-                        $data['availability_date'],
-                        $data['work_start_date']
-                    ));
+            // Ambil payroll berdasar applicant_id, dan tambahkan filter jobapply_id kalau ada
+            $payrollQuery = PayrollConfirm::where('applicant_id', $data['applicant_id']);
+            if (!empty($data['jobapply_id'])) {
+                $payrollQuery->where('jobapply_id', $data['jobapply_id']);
             }
+            $payroll = $payrollQuery->firstOrFail();
+
+            $payroll->availability_date = $data['availability_date'];
+            $payroll->work_start_date   = $data['work_start_date'];
+            $payroll->updated_user      = $user->username ?? $user->name ?? 'system';
+            $payroll->save();
+
+            // Pastikan applicant ada
+            $applicant = Applicant::where('applicant_id', $data['applicant_id'])->firstOrFail();
+
+            // Tentukan penerima email:
+            // kalau mapping User->test_email ada, pakai itu; kalau tidak, fallback ke email applicant
+            $mapped = User::where('username', $applicant->email_address)
+                ->where('status', 'A')
+                ->pluck('test_email')
+                ->filter()
+                ->all();
+
+            $recipients = !empty($mapped) ? $mapped : [$applicant->email_address];
+
+            // Data untuk email (format tanggal yang rapi)
+            $emailData = [
+                'full_name'         => $applicant->full_name,
+                'availability_date' => Carbon::parse($data['availability_date'])->format('F j, Y'),
+                'work_start_date'   => Carbon::parse($data['work_start_date'])->format('F j, Y'),
+            ];
+
+            Mail::send('emails.mailjoinapplicant', $emailData, function ($message) use ($recipients) {
+                $message->to($recipients)
+                    ->subject('Your Employment Start Schedule')
+                    ->from('digitalserver@pakuwon.com', 'Pakuwon System');
+            });
 
             DB::commit();
-            return response()->json(['success' => true, 'message' => 'Jadwal tersimpan & email terkirim.']);
+            return response()->json([
+                'success' => true,
+                'message' => 'Schedule saved & email sent.'
+            ]);
+        } catch (ModelNotFoundException $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Payroll or Applicant not found.'
+            ], 404);
         } catch (\Throwable $e) {
             DB::rollBack();
             report($e);
-            return response()->json(['success' => false, 'message' => 'Gagal menyimpan: '.$e->getMessage()], 500);
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to save: '.$e->getMessage()
+            ], 500);
         }
     }
+
 
 
 

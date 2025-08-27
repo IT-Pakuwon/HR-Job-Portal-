@@ -1,44 +1,39 @@
 <!doctype html>
-<html lang="id">
+<html lang="en">
   <body style="margin:0;padding:16px;font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#111;">
-    <p>Yth. <strong>{{ $hod }}</strong>,</p>
+    <p>Dear <strong>{{ $hod }}</strong>,</p>
     <p>
-      Mohon kehadiran Bapak/Ibu pada sesi <strong>Interview Kandidat</strong> berikut:
+      We kindly invite you to attend the following <strong>Candidate Interview</strong> session:
     </p>
 
     <table cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:520px;border:1px solid #e5e7eb;border-collapse:collapse;">
       <tr>
-        <td style="padding:8px;background:#f9fafb;width:140px;">Nama Kandidat</td>
-        <td style="padding:8px;">: <strong>{{$full_name}}</strong></td>
+        <td style="padding:8px;background:#f9fafb;width:140px;">Candidate Name</td>
+        <td style="padding:8px;">: <strong>{{ $full_name }}</strong></td>
       </tr>
       <tr>
-        <td style="padding:8px;background:#f9fafb;">Posisi</td>
-        <td style="padding:8px;">: {{$job_title}}</td>
+        <td style="padding:8px;background:#f9fafb;">Position</td>
+        <td style="padding:8px;">: {{ $job_title }}</td>
       </tr>
       <tr>
-        <td style="padding:8px;background:#f9fafb;">Hari/Tanggal</td>
-        <td style="padding:8px;">: {{$interview_date}}</td>
+        <td style="padding:8px;background:#f9fafb;">Date</td>
+        <td style="padding:8px;">: {{ $interview_date }}</td>
       </tr>
       <tr>
-        <td style="padding:8px;background:#f9fafb;">Waktu</td>
-        <td style="padding:8px;">: {{$starttime}} - {{$endtime}} WIB </td>
+        <td style="padding:8px;background:#f9fafb;">Time</td>
+        <td style="padding:8px;">: {{ $starttime }} – {{ $endtime }} WIB (Western Indonesia Time)</td>
       </tr>
       <tr>
-        <td style="padding:8px;background:#f9fafb;">Tempat/Ruangan</td>
-        <td style="padding:8px;">: {{$location}} </td>
-      </tr>    
+        <td style="padding:8px;background:#f9fafb;">Location/Room</td>
+        <td style="padding:8px;">: {{ $location }}</td>
+      </tr>
       <tr>
-        <td style="padding:8px;background:#f9fafb;">Cek Kandidat</td>
-        <td style="padding:8px;">:  <a href={{ $url }}>{{ $url }}</a></td>
+        <td style="padding:8px;background:#f9fafb;">View Candidate</td>
+        <td style="padding:8px;">: <a href="{{ $url }}">{{ $url }}</a></td>
       </tr>
     </table>
-  
 
-    <p>Salam hangat,</p>
-
-    <hr style="border:none;border-top:1px solid #e5e7eb;margin:12px 0;">
-    <p style="font-size:12px;color:#6b7280;">
-        Tim Pakuwon Career
-    </p>
+    <p>Warm regards,</p>
+    <strong>Talent Acquisition Pakuwon Group Jakarta</strong>
   </body>
 </html>

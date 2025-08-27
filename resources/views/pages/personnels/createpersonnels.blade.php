@@ -1,4 +1,11 @@
 <x-app-layout>
+<style>
+  /* tinggi ~42px seperti p-2.5 Tailwind */
+  .select2-container .select2-selection--single { height:42px; border-radius:0.5rem; }
+  .select2-container--default .select2-selection--single .select2-selection__rendered { line-height:42px; padding-left:.75rem; }
+  .select2-container--default .select2-selection--single .select2-selection__arrow { height:42px; right:.5rem; }
+</style>
+
     <div class="max-w-9xl mx-auto w-full px-4 py-4 sm:px-6 lg:px-8">
         <div class="grid grid-cols-1 gap-8 lg:grid-cols-2 lg:grid-rows-[minmax(0,auto)_1fr]">
             <div class="flex flex-col gap-8 lg:col-span-2 lg:row-span-1">
@@ -16,10 +23,13 @@
                                 <select
                                     class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                     name="cpnyid" required>
-                                    @foreach ($usercpny as $p)
+                                    {{-- @foreach ($usercpny as $p)
                                         <option value="{{ $p->cpnyid }}"
                                             {{ $p->cpnyid == $usercpny2->cpnyid ? 'selected' : '' }}>
                                             {{ $p->cpnyid }}</option>
+                                    @endforeach --}}
+                                     @foreach ($companies as $p)
+                                          <option value="{{ $p->cpnyid }}">{{ $p->cpnyid }}</option>
                                     @endforeach
                                 </select>
                             </div>
@@ -41,9 +51,13 @@
                                 <select
                                     class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                     name="departementid" required>
-                                    @foreach ($userdept as $p)
+                                    {{-- @foreach ($userdept as $p)
                                         <option value="{{ $p->deptname }}"
                                             {{ $p->deptname == $userdept2->deptname ? 'selected' : '' }}>
+                                            {{ $p->deptname }}</option>
+                                    @endforeach --}}
+                                    @foreach ($departements as $p)
+                                        <option value="{{ $p->deptname }}">
                                             {{ $p->deptname }}</option>
                                     @endforeach
                                 </select>
@@ -630,38 +644,7 @@
     </script>
     <script>
         $(document).ready(function() {
-            // $('select[name="departementid"]').on('change', function() {
-            //     let deptId = $(this).val();
-            //     let $jobTitle = $('#job_title');
-            //     $jobTitle.empty().append('<option value="">Loading...</option>');
 
-            //     if (deptId) {
-            //         $.ajax({
-            //             url: `/api/vacant-employees/${deptId}`,
-            //             type: 'GET',
-            //             dataType: 'json',
-            //             success: function(data) {
-            //                 $jobTitle.empty().append(
-            //                     '<option value="">-- Select Vacant Position --</option>');
-            //                 if (data.length > 0) {
-            //                     $.each(data, function(key, emp) {
-            //                         $jobTitle.append(
-            //                             `<option value="${emp.departement_id}" data-title-level="${emp.subgrade_name}" data-parent-id="${emp.parent_id}">${emp.departement_name}-${emp.subgrade_name}</option>`
-            //                         );
-            //                     });
-            //                 } else {
-            //                     $jobTitle.append('<option value="">No vacant found</option>');
-            //                 }
-            //             },
-            //             error: function() {
-            //                 $jobTitle.empty().append(
-            //                     '<option value="">Error loading data</option>');
-            //             }
-            //         });
-            //     } else {
-            //         $jobTitle.empty().append('<option value="">-- Select Vacant Position --</option>');
-            //     }
-            // });
 
             function loadJobTitles() {
                 let deptId = $('select[name="departementid"]').val();
@@ -788,6 +771,40 @@
             $('select[name="departementid"]').trigger('change');
         });
     </script>
+    {{-- <script>
+        $(function () {
+            const $cpny = $('select[name="cpnyid"]');
+            const $dept = $('select[name="departementid"]');
+
+            // Jadikan searchable
+            $cpny.select2({
+            placeholder: 'Select Company',
+            width: '100%',
+            allowClear: true
+            });
+
+            $dept.select2({
+            placeholder: 'Select Department',
+            width: '100%',
+            allowClear: true
+            });
+
+            // Catatan: event .on('change') yang sudah Anda tulis tetap bekerja dengan Select2.
+            // Jika dropdown berada di dalam modal/elemen ber-z-index tinggi, set:
+            // dropdownParent: $('#id-modal-anda')
+        });
+    </script> --}}
+    <script>
+  $(function () {
+    const $cpny = $('select[name="cpnyid"]');
+    const $dept = $('select[name="departementid"]');
+
+    $cpny.select2({ placeholder:'Select Company', width:'100%', allowClear:true });
+    $dept.select2({ placeholder:'Select Department', width:'100%', allowClear:true });
+  });
+</script>
+
+
 
 
 

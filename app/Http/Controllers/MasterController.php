@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\MsInventoryPG;
+use App\Models\MsInventoryStockPG;
 use App\Models\MsRequestType;
 use App\Models\MsLocationPG;
 use App\Models\MsSubLocationPG;
@@ -15,39 +16,47 @@ class MasterController extends Controller
 {
     public function InventoryList(Request $request)
     {
-        $type    = strtoupper($request->get('type', 'stock')); // 'stock' | 'nonstock' | (opsional) 'all'
+        // dd($request->all());
+        $type    = strtoupper($request->get('type', 'STOCK')); // STOCK | NONSTOCK | JASA | ALL
         $search  = trim($request->get('search', ''));
         $page    = max((int) $request->get('page', 1), 1);
         $perPage = max((int) $request->get('per_page', 10), 1);
 
-        // Mapping ke nilai di kolom item_sub_type (string)
-        // Kalau kamu ingin "nonstock" juga menampilkan "JASA", pakai IN untuk tipe nonstock.
-        $query = MsInventoryPG::select('inventoryid', 'inventory_descr', 'stock_unit');
+        // Gunakan ILIKE utk Postgres, LIKE utk selain itu
+        $driver = config('database.connections.'.config('database.default').'.driver');
+        $LIKE   = $driver === 'pgsql' ? 'ILIKE' : 'LIKE';
 
+        // === Pilih sumber data ===
         if ($type === 'STOCK') {
-            $query->where('item_sub_type', 'STOCK');
-        } elseif ($type === 'NONSTOCK') {
-            $query->where('item_sub_type', 'NONSTOCK'); // sesuaikan kebijakanmu
-        } elseif ($type === 'JASA') {
-            $query->where('item_sub_type', 'JASA');
+            // Ambil dari tabel stok
+            $query = MsInventoryStockPG::query()
+                ->select('inventoryid', 'inventory_descr', 'stock_unit')
+                ->where('item_sub_type', $type);
         } else {
-            // optional: 'all' -> tanpa filter tipe
+            // Ambil dari master inventory umum
+            $query = MsInventoryPG::query()
+                ->select('inventoryid', 'inventory_descr', 'stock_unit');
+
+            // Filter tipe jika spesifik
+            if (in_array($type, ['NONSTOCK', 'JASA'], true)) {
+                $query->where('item_sub_type', $type);
+            }
+            // 'ALL' atau tipe tidak dikenali → tanpa filter item_sub_type
         }
 
+        // Pencarian
         if ($search !== '') {
-            // Postgres: LIKE case-insensitive -> ILIKE. Kalau koneksi PG, bisa pakai ilike:
-            $query->where(function ($q) use ($search) {
-                $q->where('inventoryid', 'ILIKE', "%{$search}%")
-                ->orWhere('inventory_descr', 'ILIKE', "%{$search}%")
-                ->orWhere('stock_unit', 'ILIKE', "%{$search}%");
+            $query->where(function ($q) use ($search, $LIKE) {
+                $q->where('inventoryid',     $LIKE, "%{$search}%")
+                ->orWhere('inventory_descr',$LIKE, "%{$search}%")
+                ->orWhere('stock_unit',    $LIKE, "%{$search}%");
             });
-            // Jika bukan PG, ganti ke LOWER(... LIKE ...) sesuai kebutuhan.
         }
 
+        // Hitung total & pagination
         $total = (clone $query)->count();
 
-        $rows = $query
-            ->orderBy('inventory_descr')
+        $rows = $query->orderBy('inventory_descr')
             ->offset(($page - 1) * $perPage)
             ->limit($perPage)
             ->get();
@@ -59,6 +68,7 @@ class MasterController extends Controller
             'per_page' => $perPage,
         ]);
     }
+
 
     public function RequestType(Request $request)
     {

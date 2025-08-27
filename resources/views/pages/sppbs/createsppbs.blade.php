@@ -1186,7 +1186,8 @@
                 const id   = item.account_id   ?? item.budget_account_id ?? '';
                 const activity_detail = item.activity_detail ?? item.coa_activity_detail ?? '';
                 const totalbudget = item.totalbudget ?? item.coa_totalbudget ?? '';
-                const label = (activity_detail ? activity_detail+' - ' : '') + totalbudget;
+                // const label = (activity_detail ? activity_detail+' - ' : '') + totalbudget;
+                const label = id;
 
                 return `
                 <tr>

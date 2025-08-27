@@ -552,40 +552,7 @@
                             })
                         // .render()
                         chart.compact(false).render().fit();
-                        // Tambahkan garis horizontal untuk setiap level
-                        // setTimeout(() => {
-                        //     const svg = d3.select('.chart-container').select('svg');
-                        //     if (!svg.node()) return;
-
-                        //     const svgWidth = svg.node().getBoundingClientRect().width || 102000;
-                        //     const levelY = {};
-
-                        //     svg.selectAll('.node').each(function() {
-                        //         const d = d3.select(this).datum();
-                        //         const y = d.y;
-
-                        //         if (!levelY[d.depth]) {
-                        //             levelY[d.depth] = [];
-                        //         }
-                        //         levelY[d.depth].push(y);
-                        //     });
-
-                        //     Object.keys(levelY).forEach(depth => {
-                        //         const yVals = levelY[depth];
-                        //         if (yVals.length) {
-                        //             // Garis tepat di tengah node level tsb:
-                        //             const avgY = yVals.reduce((a, b) => a + b, 0) / yVals.length;
-                        //             svg.append('line')
-                        //                 .attr('x1', 0)
-                        //                 .attr('x2', svgWidth)
-                        //                 .attr('y1', avgY)
-                        //                 .attr('y2', avgY)
-                        //                 .attr('stroke', '#999')
-                        //                 .attr('stroke-width', 1)
-                        //                 .attr('stroke-dasharray', '4,2');
-                        //         }
-                        //     });
-                        // }, 400);
+                       
                     },
 
                     error: function(xhr) {
