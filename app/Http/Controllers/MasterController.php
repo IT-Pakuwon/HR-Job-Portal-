@@ -30,7 +30,7 @@ class MasterController extends Controller
         if ($type === 'STOCK') {
             // Ambil dari tabel stok
             $query = MsInventoryStockPG::query()
-                ->select('inventoryid', 'inventory_descr', 'stock_unit')
+                ->select('inventoryid', 'inventory_descr', 'stock_unit', 'account_id')
                 ->where('item_sub_type', $type);
         } else {
             // Ambil dari master inventory umum
