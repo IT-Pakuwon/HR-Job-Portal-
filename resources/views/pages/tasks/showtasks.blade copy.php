@@ -46,7 +46,7 @@
                                     x-transition:enter-start="translate-x-full" x-transition:enter-end="translate-x-0"
                                     x-transition:leave="transform transition ease-in-out duration-300"
                                     x-transition:leave-start="translate-x-0" x-transition:leave-end="translate-x-full"
-                                    class="fixed top-16 right-0 w-full h-255 md:w-1/3 dark:bg-gray-700 bg-white shadow-lg p-6 z-50 overflow-y-auto">
+                                    class="fixed top-16 right-0 w-full h-255 md:w-1/3 dark:bg-gray-700 bg-white   p-6 z-50 overflow-y-auto">
                                         <header class="flex justify-end items-center px-6 py-4">
                                             <button @click="open = false" class="text-gray-500 hover:text-gray-700 dark:hover:text-white dark:text-gray-50 transition-all duration-200">
                                                 Close
@@ -168,7 +168,7 @@
                                                             class="flex-1 p-3 rounded-lg bg-gray-100 dark:bg-gray-800 dark:text-white focus:ring-2 focus:ring-indigo-400 focus:outline-none transition-all duration-200">
                                                         <button 
                                                             id="postCommentBtn" 
-                                                            class="bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 shadow-md hover:shadow-lg active:scale-95">
+                                                            class="bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 shadow-md hover:  active:scale-95">
                                                             Post 🚀
                                                         </button>
                                                     </div>
@@ -449,7 +449,7 @@
                                         <input id="commentInput" type="text" placeholder="Write a comment..."
                                             class="flex-1 rounded-lg bg-gray-100 p-3 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-400 dark:bg-gray-800 dark:text-white" />
                                         <button id="postCommentBtn"
-                                            class="rounded-lg bg-indigo-500 px-4 py-2 text-sm font-semibold text-white shadow-md transition-all duration-200 hover:bg-indigo-600 hover:shadow-lg active:scale-95">
+                                            class="rounded-lg bg-indigo-500 px-4 py-2 text-sm font-semibold text-white shadow-md transition-all duration-200 hover:bg-indigo-600 hover:  active:scale-95">
                                             Post 🚀
                                         </button>
                                     </div>
@@ -469,7 +469,7 @@
             </div>
 
             <div id="rejectTaskModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50">
-                <div class="w-full max-w-md rounded-lg bg-white p-6 shadow-lg dark:bg-gray-700">
+                <div class="w-full max-w-md rounded-lg bg-white p-6   dark:bg-gray-700">
                     <h2 class="mb-4 text-xl font-semibold text-gray-800 dark:text-white">Reject Task</h2>
                     <textarea id="rejectReason"
                         class="mt-2 w-full rounded-lg border p-3 focus:outline-none dark:bg-gray-800 dark:text-white"
@@ -488,7 +488,7 @@
                 </div>
             </div>
             <div id="reviseTaskModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50">
-                <div class="w-full max-w-md rounded-lg bg-white p-6 shadow-lg dark:bg-gray-700">
+                <div class="w-full max-w-md rounded-lg bg-white p-6   dark:bg-gray-700">
                     <h2 class="mb-4 text-xl font-semibold text-gray-800 dark:text-white">Revise Task</h2>
                     <textarea id="reviseReason"
                         class="mt-2 w-full rounded-lg border p-3 focus:outline-none dark:bg-gray-800 dark:text-white"

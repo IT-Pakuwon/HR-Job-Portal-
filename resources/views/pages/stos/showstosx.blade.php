@@ -58,7 +58,7 @@
                                             x-transition:leave="transform transition ease-in-out duration-300"
                                             x-transition:leave-start="translate-x-0"
                                             x-transition:leave-end="translate-x-full"
-                                            class="fixed right-0 top-0 z-50 h-full w-full overflow-y-auto bg-white p-4 shadow-lg md:w-1/3 dark:bg-gray-700">
+                                            class="fixed right-0 top-0 z-50 h-full w-full overflow-y-auto bg-white p-4 md:w-1/3 dark:bg-gray-700">
                                             <header class="flex items-center justify-end px-6 py-4">
                                                 <button @click="open = false"
                                                     class="text-gray-500 transition-all duration-200 hover:text-gray-700 dark:text-gray-50 dark:hover:text-white">
@@ -381,7 +381,7 @@
                                                             placeholder="Write a comment..."
                                                             class="flex-1 rounded-lg bg-gray-100 p-3 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-400 dark:bg-gray-800 dark:text-white">
                                                         <button id="postCommentBtn"
-                                                            class="rounded-lg bg-indigo-500 px-4 py-2 text-sm font-semibold text-white shadow-md transition-all duration-200 hover:bg-indigo-600 hover:shadow-lg active:scale-95">
+                                                            class="hover: rounded-lg bg-indigo-500 px-4 py-2 text-sm font-semibold text-white shadow-md transition-all duration-200 hover:bg-indigo-600 active:scale-95">
                                                             Post 🚀
                                                         </button>
                                                     </div>
@@ -458,7 +458,7 @@
             </div>
 
             <div id="rejectTaskModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50">
-                <div class="w-full max-w-md rounded-lg bg-white p-6 shadow-lg dark:bg-gray-700">
+                <div class="w-full max-w-md rounded-lg bg-white p-6 dark:bg-gray-700">
                     <h2 class="mb-4 text-xl font-semibold text-gray-800 dark:text-white">Reject Task</h2>
                     <textarea id="rejectReason"
                         class="mt-2 w-full rounded-lg border p-3 focus:outline-none dark:bg-gray-800 dark:text-white"
@@ -477,7 +477,7 @@
                 </div>
             </div>
             <div id="reviseTaskModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50">
-                <div class="w-full max-w-md rounded-lg bg-white p-6 shadow-lg dark:bg-gray-700">
+                <div class="w-full max-w-md rounded-lg bg-white p-6 dark:bg-gray-700">
                     <h2 class="mb-4 text-xl font-semibold text-gray-800 dark:text-white">Revise Task</h2>
                     <textarea id="reviseReason"
                         class="mt-2 w-full rounded-lg border p-3 focus:outline-none dark:bg-gray-800 dark:text-white"
@@ -903,11 +903,11 @@
                                             <strong>Employee:</strong>
                                             <div style="margin-top:10px;">
                                                 ${members.map(m => `
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                <div style="display:flex;align-items:center;margin-bottom:6px;">
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                <img src="${m.image}" style="width:20px;height:20px;border-radius:50%;margin-right:8px;" />
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                <span style="font-size:12px;">${m.name} (${m.company} - ${m.position})</span>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                </div>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                `).join('')}
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            <div style="display:flex;align-items:center;margin-bottom:6px;">
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            <img src="${m.image}" style="width:20px;height:20px;border-radius:50%;margin-right:8px;" />
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            <span style="font-size:12px;">${m.name} (${m.company} - ${m.position})</span>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            </div>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            `).join('')}
                                             </div>
                                         </div>
                                     </div>

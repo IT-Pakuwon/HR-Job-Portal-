@@ -20,7 +20,7 @@
                     </button>
                   
                     <ul x-show="open" @click.away="open = false"
-                        class="absolute left-0 mt-2 w-48 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded shadow-lg z-10">
+                        class="absolute left-0 mt-2 w-48 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded   z-10">
                         <li><a href="{{ route('account') }}" class="block px-4 py-2 hover:bg-gray-200 dark:hover:bg-gray-700">My Account</a></li>
                         <li><a href="{{ route('users') }}" class="block px-4 py-2 hover:bg-gray-200 dark:hover:bg-gray-700">Master User</a></li>
                         <li><a href="{{ route('applications') }}" class="block px-4 py-2 hover:bg-gray-200 dark:hover:bg-gray-700">Master Application</a></li>
@@ -219,7 +219,7 @@
                     text-align: center;
                 }
             </style>
-            <div class="mt-6 rounded-xl bg-white p-4 shadow-lg dark:bg-gray-800">
+            <div class="mt-6 rounded-xl bg-white p-4 dark:bg-gray-800">
                 <div class="mb-4 flex items-center justify-between">
                     <h2 class="text-xl font-bold text-gray-800 dark:text-white">📌 Users List</h2>
                     <button id="addAppBtn" class="rounded-lg bg-indigo-500 px-5 py-2 text-white">

@@ -61,7 +61,7 @@
       </button>
     </div>
     {{-- <div id="payrollModal" class="hidden fixed inset-0 z-50 bg-gray-800 bg-opacity-50 flex justify-center items-center">
-      <div class="bg-white p-6 rounded-md w-[500px] shadow-lg">
+      <div class="bg-white p-6 rounded-md w-[500px]  ">
         <h3 class="font-bold mb-4">Form Payroll</h3>
         <form id="payrollForm">
           @csrf

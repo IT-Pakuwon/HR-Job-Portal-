@@ -58,7 +58,7 @@
         <div class="mb-6 flex items-center justify-between">
             <h3 class="text-xl font-bold text-gray-800 dark:text-gray-100">Payroll Confirmation Data</h3>
             <button id="addPayrollBtn"
-                class="inline-flex items-center rounded-xl bg-indigo-600 px-6 py-2 text-base font-semibold text-white shadow-md transition-colors duration-200 hover:bg-indigo-700 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800">
+                class="hover: inline-flex items-center rounded-xl bg-indigo-600 px-6 py-2 text-base font-semibold text-white shadow-md transition-colors duration-200 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800">
                 <i class="fas fa-plus pr-2"></i>Add
             </button>
         </div>
@@ -171,9 +171,9 @@
 
                     <div class="mt-8 flex justify-end gap-3">
                         <button type="submit"
-                            class="inline-flex items-center rounded-lg bg-green-600 px-5 py-2 text-base font-semibold text-white shadow-md transition-colors duration-200 hover:bg-green-700 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800">Simpan</button>
+                            class="hover: inline-flex items-center rounded-lg bg-green-600 px-5 py-2 text-base font-semibold text-white shadow-md transition-colors duration-200 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800">Simpan</button>
                         <button type="button" id="closeModal"
-                            class="inline-flex items-center rounded-lg bg-gray-200 px-5 py-2 text-base font-semibold text-gray-700 shadow-md transition-colors duration-200 hover:bg-gray-300 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 dark:bg-gray-600 dark:text-white dark:hover:bg-gray-500 dark:focus:ring-offset-gray-800">Batal</button>
+                            class="hover: inline-flex items-center rounded-lg bg-gray-200 px-5 py-2 text-base font-semibold text-gray-700 shadow-md transition-colors duration-200 hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 dark:bg-gray-600 dark:text-white dark:hover:bg-gray-500 dark:focus:ring-offset-gray-800">Batal</button>
                     </div>
                 </form>
             </div>
@@ -261,7 +261,7 @@
         <div class="mb-6 flex items-center justify-between">
             <h3 class="text-xl font-bold text-gray-800 dark:text-gray-100">Payroll Sign</h3>
             <button id="addSignBtn"
-                class="inline-flex items-center rounded-xl bg-indigo-600 px-6 py-2 text-base font-semibold text-white shadow-md transition-colors duration-200 hover:bg-indigo-700 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800">
+                class="hover: inline-flex items-center rounded-xl bg-indigo-600 px-6 py-2 text-base font-semibold text-white shadow-md transition-colors duration-200 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800">
                 <i class="fas fa-plus pr-2"></i>Add Sign
             </button>
         </div>

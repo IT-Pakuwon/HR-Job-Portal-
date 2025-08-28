@@ -1,9 +1,9 @@
 <table class="min-w-full border border-gray-300 text-sm dark:border-gray-600">
-    <thead class="bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-200">
-        <tr>
-            <th class="border px-3 py-2">No</th>
-            <th class="border px-3 py-2">Checklist Item</th>
-            <th class="border px-3 py-2">Document</th>
+    <thead>
+        <tr class="bg-gray-50 text-gray-600 dark:bg-gray-700 dark:text-gray-700">
+            <th class="px-4 py-3 text-left font-semibold">No</th>
+            <th class="px-4 py-3 text-left font-semibold">Checklist Item</th>
+            <th class="px-4 py-3 text-left font-semibold">Document</th>
             {{-- <th class="border px-3 py-2">Action</th> --}}
         </tr>
     </thead>
@@ -35,7 +35,7 @@
     </tbody>
 </table>
 <div id="uploadModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50">
-    <div class="w-full max-w-md rounded-lg bg-white p-6 shadow-lg dark:bg-gray-800">
+    <div class="w-full max-w-md rounded-lg bg-white p-6 dark:bg-gray-800">
         <h3 class="mb-4 text-lg font-semibold text-gray-800 dark:text-white" id="modalTitle">Upload Document</h3>
         <form id="uploadForm" enctype="multipart/form-data">
             @csrf

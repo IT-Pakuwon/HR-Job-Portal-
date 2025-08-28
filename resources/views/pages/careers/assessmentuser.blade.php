@@ -80,9 +80,9 @@
     <div class="overflow-x-auto">
         <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
             <thead class="bg-gray-50 dark:bg-gray-700">
-                <tr>
+                <tr class="bg-gray-50 text-gray-600 dark:bg-gray-700 dark:text-gray-700">
                     <th colspan="2"
-                        class="rounded-t-lg px-6 py-3 text-center text-sm font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                        class="px-6 py-3 text-center text-sm font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-700">
                         STANDARD SCORING
                     </th>
                 </tr>
@@ -114,7 +114,7 @@
 
     <div class="mt-6 flex justify-end"> {{-- Container to align button to the right --}}
         <button type="submit"
-            class="inline-flex items-center rounded-xl bg-indigo-600 px-6 py-2 text-base font-semibold text-white shadow-md transition-colors duration-200 hover:bg-indigo-700 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800">
+            class="hover: inline-flex items-center rounded-xl bg-indigo-600 px-6 py-2 text-base font-semibold text-white shadow-md transition-colors duration-200 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800">
             Save
         </button>
     </div>

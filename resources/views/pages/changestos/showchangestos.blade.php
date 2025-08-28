@@ -108,12 +108,11 @@
                                     [
                                         'label' => 'Subgrade Name',
                                         'value' => $changesto->subgrade_name,
-                                    ],                                                                 
+                                    ],
                                     [
                                         'label' => 'Created By',
                                         'value' => $changesto->user,
                                     ],
-                                                                
                                 ];
                             @endphp
                             @foreach ($jobDetails as $detail)
@@ -128,7 +127,7 @@
                                     </div>
                                 </div>
                             @endforeach
-                        </div>  
+                        </div>
 
                         <div
                             class="rounded-xl border border-gray-200 bg-gray-50 p-6 dark:border-gray-700 dark:bg-gray-800">
@@ -143,7 +142,7 @@
                     </div>
                 </div>
             </div>
-            <div class="flex flex-col gap-4 sm:w-1/2 md:w-full">                
+            <div class="flex flex-col gap-4 sm:w-1/2 md:w-full">
                 <div x-data="{ activeTab: 'approval' }" class="rounded-xl bg-white duration-300 dark:bg-gray-800">
                     <header
                         class="flex items-center rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
@@ -300,7 +299,7 @@
                                         class="flex-1 rounded-lg border border-transparent bg-gray-100 p-3 text-gray-800 transition-all duration-200 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white dark:focus:ring-indigo-400">
                                     <button id="postCommentBtn"
                                         @click="if(newComment.trim()) { comments.push({ text: newComment, user: currentUser }); newComment = ''; }"
-                                        class="rounded-lg bg-indigo-600 px-5 py-3 text-sm font-semibold text-white shadow-md transition-all duration-200 hover:bg-indigo-700 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 active:scale-95 dark:focus:ring-offset-gray-800">
+                                        class="hover: rounded-lg bg-indigo-600 px-5 py-3 text-sm font-semibold text-white shadow-md transition-all duration-200 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 active:scale-95 dark:focus:ring-offset-gray-800">
                                         Post 🚀
                                     </button>
                                 </div>

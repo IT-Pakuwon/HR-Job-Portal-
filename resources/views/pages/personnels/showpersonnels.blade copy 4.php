@@ -221,7 +221,7 @@
                             </div>
 
                             <div x-data="{ isOpen: true }"
-                                class="rounded-xl bg-white shadow-lg transition-shadow duration-300 hover:shadow-xl dark:bg-gray-800">
+                                class="rounded-xl bg-white   transition-shadow duration-300 hover:shadow-xl dark:bg-gray-800">
                                 {{-- Consistent card styling --}}
                                 <header
                                     class="flex cursor-pointer items-center justify-between rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700"
@@ -276,7 +276,7 @@
                             </div>
 
                             <div x-data="{ isOpen: true }"
-                                class="rounded-xl bg-white shadow-lg transition-shadow duration-300 hover:shadow-xl dark:bg-gray-800">
+                                class="rounded-xl bg-white   transition-shadow duration-300 hover:shadow-xl dark:bg-gray-800">
                                 {{-- Consistent card styling --}}
                                 <header
                                     class="flex cursor-pointer items-center justify-between rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700"
@@ -356,7 +356,7 @@
 
                     </div>
                     <div x-data="{ activeTab: 'approval' }"
-                        class="rounded-xl bg-white shadow-lg transition-shadow duration-300 hover:shadow-xl dark:bg-gray-800">
+                        class="rounded-xl bg-white   transition-shadow duration-300 hover:shadow-xl dark:bg-gray-800">
 
                         <header
                             class="flex items-center rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
@@ -517,7 +517,7 @@
                                             class="flex-1 rounded-lg border border-transparent bg-gray-100 p-3 text-gray-800 transition-all duration-200 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white dark:focus:ring-indigo-400">
                                         <button id="postCommentBtn"
                                             @click="if(newComment.trim()) { comments.push({ text: newComment, user: currentUser }); newComment = ''; }"
-                                            class="rounded-lg bg-indigo-600 px-5 py-3 text-sm font-semibold text-white shadow-md transition-all duration-200 hover:bg-indigo-700 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 active:scale-95 dark:focus:ring-offset-gray-800">
+                                            class="rounded-lg bg-indigo-600 px-5 py-3 text-sm font-semibold text-white shadow-md transition-all duration-200 hover:bg-indigo-700 hover:  focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 active:scale-95 dark:focus:ring-offset-gray-800">
                                             Post 🚀
                                         </button>
                                     </div>
@@ -540,7 +540,7 @@
 
             <div id="rejectTaskModal"
                 class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50 p-4">
-                <div class="w-full max-w-md rounded-lg bg-white p-6 shadow-lg dark:bg-gray-700">
+                <div class="w-full max-w-md rounded-lg bg-white p-6   dark:bg-gray-700">
                     <h2 class="mb-4 text-xl font-bold text-gray-800 dark:text-white">Reject Task</h2>
                     <textarea id="rejectReason"
                         class="mt-2 w-full rounded-lg border border-gray-300 p-3 focus:outline-none focus:ring-2 focus:ring-red-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
@@ -561,7 +561,7 @@
 
             <div id="reviseTaskModal"
                 class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50 p-4">
-                <div class="w-full max-w-md rounded-lg bg-white p-6 shadow-lg dark:bg-gray-700">
+                <div class="w-full max-w-md rounded-lg bg-white p-6   dark:bg-gray-700">
                     <h2 class="mb-4 text-xl font-bold text-gray-800 dark:text-white">Revise Task</h2>
                     <textarea id="reviseReason"
                         class="mt-2 w-full rounded-lg border border-gray-300 p-3 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"

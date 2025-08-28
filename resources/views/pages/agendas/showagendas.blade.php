@@ -259,7 +259,7 @@
                                             <input id="commentInput" type="text" placeholder="Write a comment..."
                                                 class="flex-1 rounded-lg bg-gray-100 p-3 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-400 dark:bg-gray-800 dark:text-white">
                                             <button id="postCommentBtn"
-                                                class="rounded-lg bg-indigo-500 px-4 py-2 text-sm font-semibold text-white shadow-md transition-all duration-200 hover:bg-indigo-600 hover:shadow-lg active:scale-95">
+                                                class="hover: rounded-lg bg-indigo-500 px-4 py-2 text-sm font-semibold text-white shadow-md transition-all duration-200 hover:bg-indigo-600 active:scale-95">
                                                 Post 🚀
                                             </button>
                                         </div>
@@ -281,7 +281,7 @@
 
             <div id="rejectAgendaModal"
                 class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50">
-                <div class="w-full max-w-md rounded-lg bg-white p-6 shadow-lg dark:bg-gray-700">
+                <div class="w-full max-w-md rounded-lg bg-white p-6 dark:bg-gray-700">
                     <h2 class="mb-4 text-xl font-semibold text-gray-800 dark:text-white">Reject Agenda</h2>
                     <textarea id="rejectReason"
                         class="mt-2 w-full rounded-lg border p-3 focus:outline-none dark:bg-gray-800 dark:text-white"
@@ -301,7 +301,7 @@
             </div>
             <div id="reviseAgendaModal"
                 class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50">
-                <div class="w-full max-w-md rounded-lg bg-white p-6 shadow-lg dark:bg-gray-700">
+                <div class="w-full max-w-md rounded-lg bg-white p-6 dark:bg-gray-700">
                     <h2 class="mb-4 text-xl font-semibold text-gray-800 dark:text-white">Revise Agenda</h2>
                     <textarea id="reviseReason"
                         class="mt-2 w-full rounded-lg border p-3 focus:outline-none dark:bg-gray-800 dark:text-white"

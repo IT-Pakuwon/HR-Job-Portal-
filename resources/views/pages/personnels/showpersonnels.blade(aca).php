@@ -36,7 +36,7 @@
                                     x-transition:enter-start="translate-x-full" x-transition:enter-end="translate-x-0"
                                     x-transition:leave="transform transition ease-in-out duration-300"
                                     x-transition:leave-start="translate-x-0" x-transition:leave-end="translate-x-full"
-                                    class="fixed top-0 right-0 w-full h-full md:w-1/3 dark:bg-gray-700 bg-white shadow-lg p-6 z-50 overflow-y-auto">
+                                    class="fixed top-0 right-0 w-full h-full md:w-1/3 dark:bg-gray-700 bg-white   p-6 z-50 overflow-y-auto">
                                         <header class="flex justify-end items-center px-6 py-4">
                                             <button @click="open = false" class="text-gray-500 hover:text-gray-700 dark:hover:text-white dark:text-gray-50 transition-all duration-200">
                                                 Close
@@ -158,7 +158,7 @@
                                                             class="flex-1 p-3 rounded-lg bg-gray-100 dark:bg-gray-800 dark:text-white focus:ring-2 focus:ring-indigo-400 focus:outline-none transition-all duration-200">
                                                         <button 
                                                             id="postCommentBtn" 
-                                                            class="bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 shadow-md hover:shadow-lg active:scale-95">
+                                                            class="bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 shadow-md hover:  active:scale-95">
                                                             Post 🚀
                                                         </button>
                                                     </div>
@@ -309,7 +309,7 @@
             </div>
             
             <div id="rejectTaskModal" class="fixed inset-0 flex items-center justify-center bg-black/50 z-50 hidden">
-                <div class="bg-white dark:bg-gray-700 p-6 rounded-lg shadow-lg w-full max-w-md">
+                <div class="bg-white dark:bg-gray-700 p-6 rounded-lg   w-full max-w-md">
                     <h2 class="text-xl font-semibold text-gray-800 dark:text-white mb-4">Reject Task</h2>
                     <textarea id="rejectReason" class="w-full mt-2 p-3 border rounded-lg focus:outline-none dark:bg-gray-800 dark:text-white"
                             placeholder="Enter rejection reason..."></textarea>
@@ -325,7 +325,7 @@
                 </div>
             </div>
             <div id="reviseTaskModal" class="fixed inset-0 flex items-center justify-center bg-black/50 z-50 hidden">
-                <div class="bg-white dark:bg-gray-700 p-6 rounded-lg shadow-lg w-full max-w-md">
+                <div class="bg-white dark:bg-gray-700 p-6 rounded-lg   w-full max-w-md">
                     <h2 class="text-xl font-semibold text-gray-800 dark:text-white mb-4">Revise Task</h2>
                     <textarea id="reviseReason" class="w-full mt-2 p-3 border rounded-lg focus:outline-none dark:bg-gray-800 dark:text-white"
                             placeholder="Enter revise reason..."></textarea>

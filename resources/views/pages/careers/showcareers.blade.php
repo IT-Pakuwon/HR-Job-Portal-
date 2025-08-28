@@ -37,7 +37,7 @@
                                 x-transition:leave="transition ease-in duration-200 transform"
                                 x-transition:leave-start="opacity-100 scale-100"
                                 x-transition:leave-end="opacity-0 scale-95" x-init="$nextTick(() => { initializeComponent() })"
-                                class="rounded-b-lg bg-white p-4 shadow-lg dark:bg-gray-800">
+                                class="rounded-b-lg bg-white p-4 dark:bg-gray-800">
                                 @include('pages.careers.approval')
                             </div>
 
@@ -48,7 +48,7 @@
                                 x-transition:leave="transition ease-in duration-200 transform"
                                 x-transition:leave-start="opacity-100 scale-100"
                                 x-transition:leave-end="opacity-0 scale-95"
-                                class="rounded-b-lg bg-white p-4 shadow-lg dark:bg-gray-800">
+                                class="rounded-b-lg bg-white p-4 dark:bg-gray-800">
                                 <template x-if="content2Loaded">
                                     @include('pages.applicants.applicantscareer')
                                 </template>
@@ -61,7 +61,7 @@
                                 x-transition:leave="transition ease-in duration-200 transform"
                                 x-transition:leave-start="opacity-100 scale-100"
                                 x-transition:leave-end="opacity-0 scale-95"
-                                class="rounded-b-lg bg-white p-4 shadow-lg dark:bg-gray-800">
+                                class="rounded-b-lg bg-white p-4 dark:bg-gray-800">
                                 <template x-if="content3Loaded">
                                     @include('pages.jobpostings.jobinformationcareers')
                                 </template>

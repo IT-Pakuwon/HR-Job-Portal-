@@ -60,7 +60,7 @@
         <div class="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:grid-rows-[minmax(0,auto)_1fr]">
 
             <div class="flex flex-col gap-8 lg:col-span-1">
-                <div class="w-full rounded-xl bg-white p-6 shadow-lg dark:bg-gray-800">
+                <div class="w-full rounded-xl bg-white p-6   dark:bg-gray-800">
                     <details class="group" open>
                         <summary
                             class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-xl font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
@@ -98,7 +98,7 @@
                             </div>
 
                             <div
-                                class="absolute bottom-4 right-4 flex items-center space-x-2 rounded-lg bg-gray-900/60 p-2 shadow-lg backdrop-blur-sm">
+                                class="absolute bottom-4 right-4 flex items-center space-x-2 rounded-lg bg-gray-900/60 p-2   backdrop-blur-sm">
                                 <button onclick="window.open('{{ route('orgchart.fullscreen') }}', '_blank')"
                                     class="flex h-10 w-10 items-center justify-center rounded-md bg-blue-600 text-white shadow-md transition-colors hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
@@ -127,7 +127,7 @@
                             <div id="modalForm"
                                 class="fixed inset-0 z-50 flex hidden items-center justify-center bg-gray-500/10 bg-opacity-50 backdrop-blur-md">
                                 <div
-                                    class="relative w-full max-w-xl rounded-lg bg-white p-6 shadow-lg dark:bg-gray-800">
+                                    class="relative w-full max-w-xl rounded-lg bg-white p-6   dark:bg-gray-800">
                                     <div
                                         class="mb-4 flex items-center justify-between border-b border-gray-200 pb-4 dark:border-gray-700">
                                         <ul class="flex flex-wrap text-center font-medium" id="tabs">
@@ -191,7 +191,7 @@
             </div>
 
             <div class="flex flex-col gap-4 lg:col-span-1">
-                <div class="w-full rounded-xl bg-white p-6 shadow-lg dark:bg-gray-800">
+                <div class="w-full rounded-xl bg-white p-6   dark:bg-gray-800">
                     <div class="tab-container"> {{-- Added a container for CSS targeting --}}
                         <input type="radio" name="tabs" id="tab-radio-structure-details" checked
                             class="peer/structure-details hidden">

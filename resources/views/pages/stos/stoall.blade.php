@@ -10,8 +10,7 @@
     </style> --}}
     <div class="max-w-9xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
         <div class="flex flex-col gap-6">
-            <form id="stoForm" class="flex flex-col rounded-xl bg-white shadow-lg dark:bg-gray-800"
-                enctype="multipart/form-data">
+            <form id="stoForm" class="flex flex-col rounded-xl bg-white dark:bg-gray-800" enctype="multipart/form-data">
                 @csrf
                 {{-- Form Header with Title and Filters --}}
                 <div
@@ -54,7 +53,7 @@
                 <div class="flex w-full flex-col rounded-b-xl bg-white p-6 dark:bg-gray-800"> {{-- Removed 'shadow' from here --}}
                     <div class="mb-6 flex justify-end"> {{-- Aligns button to the right --}}
                         <button type="button"
-                            class="inline-flex items-center rounded-xl bg-indigo-600 px-6 py-2 text-base font-semibold text-white shadow-md transition-colors duration-200 hover:bg-indigo-700 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800"
+                            class="hover: inline-flex items-center rounded-xl bg-indigo-600 px-6 py-2 text-base font-semibold text-white shadow-md transition-colors duration-200 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800"
                             onclick="chart.exportImg({full:true})">Export Image Full</button>
                     </div>
                     {{-- <button onclick="chart.exportImg({full:true})">Export Full</button> --}}
@@ -470,11 +469,11 @@
                             </thead>
                             <tbody>
                                 ${legendCompany.map(item => `
-                                                                                                                                                                                                                                                                                        <tr>
-                                                                                                                                                                                                                                                                                            <td class="pr-4">${item.company}</td>
-                                                                                                                                                                                                                                                                                            <td>${item.count}</td>
-                                                                                                                                                                                                                                                                                        </tr>
-                                                                                                                                                                                                                                                                                        `).join('')}
+                                                                                                                                                                                                                                                                                                <tr>
+                                                                                                                                                                                                                                                                                                    <td class="pr-4">${item.company}</td>
+                                                                                                                                                                                                                                                                                                    <td>${item.count}</td>
+                                                                                                                                                                                                                                                                                                </tr>
+                                                                                                                                                                                                                                                                                                `).join('')}
                             </tbody>
                             </table>
                         </div>
@@ -526,13 +525,13 @@
                                             <div style="font-size:12px;color:#333">                                    
                                                 <div style="margin-top:10px;">
                                                     ${members.map(m => `
-                                                                                                                                                                                                                                                                                                                <div style="display:flex;align-items:center;margin-bottom:2px;">
-                                                                                                                                                                                                                                                                                                                    <img src="${m.image}" style="width:30px;height:30px;border-radius:50%;margin-right:8px;" />
-                                                                                                                                                                                                                                                                                                                    <span style="font-size:12px; color:${m.name.toUpperCase() === 'VACANT' ? 'red' : '#000'};">
-                                                                                                                                                                                                                                                                                                                        ${m.name} (${m.company})
-                                                                                                                                                                                                                                                                                                                    </span>
-                                                                                                                                                                                                                                                                                                                </div>
-                                                                                                                                                                                                                                                                                                            `).join('')}
+                                                                                                                                                                                                                                                                                                                        <div style="display:flex;align-items:center;margin-bottom:2px;">
+                                                                                                                                                                                                                                                                                                                            <img src="${m.image}" style="width:30px;height:30px;border-radius:50%;margin-right:8px;" />
+                                                                                                                                                                                                                                                                                                                            <span style="font-size:12px; color:${m.name.toUpperCase() === 'VACANT' ? 'red' : '#000'};">
+                                                                                                                                                                                                                                                                                                                                ${m.name} (${m.company})
+                                                                                                                                                                                                                                                                                                                            </span>
+                                                                                                                                                                                                                                                                                                                        </div>
+                                                                                                                                                                                                                                                                                                                    `).join('')}
                                                 </div>
                                             </div>
                                         </div>
