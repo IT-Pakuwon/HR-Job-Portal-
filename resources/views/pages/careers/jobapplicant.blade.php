@@ -219,7 +219,7 @@
                 }
 
                 #applicantsTable tbody tr:hover td {
-                    color: black;
+                    /* color: black; */
                 }
             </style>
             <style>

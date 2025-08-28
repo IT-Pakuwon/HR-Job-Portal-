@@ -76,11 +76,12 @@
 
                     <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
                         <div class="flex flex-col">
-                            <label for="tax_liability" class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Tanggungan</label>
+                            <label for="tax_liability"
+                                class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Dependants</label>
                             <select name="tax_liability" id="tax_liability"
                                 class="w-full rounded-lg border border-gray-300 p-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
                                 required>
-                                <option value="">-- Pilih Tanggungan --</option>
+                                <option value="">Select</option>
                                 <option value="TK0">TK0</option>
                                 <option value="K1">K1</option>
                                 <option value="K2">K2</option>
@@ -105,22 +106,26 @@
                         </div>
 
                         <div class="flex flex-col">
-                            <label for="bank_name" class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Bank</label>                           
+                            <label for="bank_name"
+                                class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Bank</label>
                             <select name="bank_name" id="bank_name"
                                 class="w-full rounded-lg border border-gray-300 p-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
                                 required>
                                 <option value="">-- Pilih Bank --</option>
                                 <option value="BCA">BCA</option>
-                                <option value="MANDIRI">MANDIRI</option>                           
+                                <option value="MANDIRI">MANDIRI</option>
                             </select>
                         </div>
 
                         <div class="flex flex-col">
-                            <label for="net_salary" class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Salary</label>
+                            <label for="net_salary"
+                                class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Salary</label>
                             {{-- <input type="number" name="net_salary" id="net_salary"
                                 class="w-full rounded-lg border border-gray-300 p-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
                                 required> --}}
-                            <input type="text" name="net_salary" id="net_salary" inputmode="numeric" class="money-separator w-full rounded-lg border border-gray-300 p-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white" placeholder="0" required>
+                            <input type="text" name="net_salary" id="net_salary" inputmode="numeric"
+                                class="money-separator w-full rounded-lg border border-gray-300 p-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                                placeholder="0" required>
                         </div>
 
                         <div class="flex flex-col">
@@ -152,13 +157,14 @@
 
                     <div class="mt-6 flex flex-col">
                         <label for="employment_status"
-                            class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Status Kepegawaian</label>                      
+                            class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Status
+                            Kepegawaian</label>
                         <select name="employment_status" id="employment_status"
                             class="w-full rounded-lg border border-gray-300 p-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
                             required>
                             <option value="">-- Pilih Bank --</option>
                             <option value="PKWT">PKWT</option>
-                            <option value="PKWTT">PKWTT</option>                           
+                            <option value="PKWTT">PKWTT</option>
                         </select>
                     </div>
 
@@ -296,42 +302,51 @@
 
                 <!-- Template baris (tidak terlihat) -->
                 <template id="signRowTemplate">
-                <div class="sign-row grid gap-6 grid-cols-1 md:grid-cols-[120px_1fr_1fr] items-end relative">
-                    <!-- Urutan -->
-                    <div class="flex flex-col">
-                    <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Urutan</label>
-                    <select name="aprvid[]" class="w-full rounded-lg border border-gray-300 p-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white" required>
-                        <option value="" disabled selected>Urutan</option>
-                        @for ($i = 1; $i <= 10; $i++)
-                        <option value="{{ $i }}">{{ $i }}</option>
-                        @endfor
-                    </select>
-                    </div>
+                    <div class="sign-row relative grid grid-cols-1 items-end gap-6 md:grid-cols-[120px_1fr_1fr]">
+                        <!-- Urutan -->
+                        <div class="flex flex-col">
+                            <label
+                                class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Urutan</label>
+                            <select name="aprvid[]"
+                                class="w-full rounded-lg border border-gray-300 p-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                                required>
+                                <option value="" disabled selected>Urutan</option>
+                                @for ($i = 1; $i <= 10; $i++)
+                                    <option value="{{ $i }}">{{ $i }}</option>
+                                @endfor
+                            </select>
+                        </div>
 
-                    <!-- Nama -->
-                    <div class="flex flex-col">
-                    <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Nama</label>
-                    <select name="aprvusername[]" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300" required>
-                        <option value="" disabled selected>-- Select Employee --</option>
-                        @foreach ($userlist as $u)
-                        <option value="{{ $u->username }}" data-npk="{{ $u->name }}">{{ $u->name }}</option>
-                        @endforeach
-                    </select>
-                    <input type="hidden" name="aprvname[]" class="aprvname-input">
-                    </div>
+                        <!-- Nama -->
+                        <div class="flex flex-col">
+                            <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Nama</label>
+                            <select name="aprvusername[]"
+                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                required>
+                                <option value="" disabled selected>-- Select Employee --</option>
+                                @foreach ($userlist as $u)
+                                    <option value="{{ $u->username }}" data-npk="{{ $u->name }}">
+                                        {{ $u->name }}</option>
+                                @endforeach
+                            </select>
+                            <input type="hidden" name="aprvname[]" class="aprvname-input">
+                        </div>
 
-                    <!-- Jabatan -->
-                    <div class="flex flex-col">
-                    <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Jabatan</label>
-                    <input type="text" name="jabatan[]" class="w-full rounded-lg border border-gray-300 p-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white" required>
-                    </div>
+                        <!-- Jabatan -->
+                        <div class="flex flex-col">
+                            <label
+                                class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Jabatan</label>
+                            <input type="text" name="jabatan[]"
+                                class="w-full rounded-lg border border-gray-300 p-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                                required>
+                        </div>
 
-                    <!-- Tombol hapus baris -->
-                    <button type="button"
-                    class="removeSignRow absolute -top-3 -right-3 rounded-full bg-red-600 px-2.5 py-1 text-xs font-semibold text-white shadow hover:bg-red-700">
-                    Hapus
-                    </button>
-                </div>
+                        <!-- Tombol hapus baris -->
+                        <button type="button"
+                            class="removeSignRow absolute -right-3 -top-3 rounded-full bg-red-600 px-2.5 py-1 text-xs font-semibold text-white shadow hover:bg-red-700">
+                            Hapus
+                        </button>
+                    </div>
                 </template>
 
 
@@ -353,7 +368,7 @@
                             Nama</th>
                         <th
                             class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300">
-                            Jabatan</th>                       
+                            Jabatan</th>
                         <th
                             class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300">
                             Aksi</th>
@@ -368,8 +383,8 @@
                             <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-700 dark:text-gray-300">
                                 {{ $p->name }}</td>
                             <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-700 dark:text-gray-300">
-                                {{ $p->jabatan }}</td>                            
-                            <td class="whitespace-nowrap px-6 py-4 text-sm space-x-2">
+                                {{ $p->jabatan }}</td>
+                            <td class="space-x-2 whitespace-nowrap px-6 py-4 text-sm">
                                 <button
                                     class="editsignBtn inline-flex items-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors duration-200 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800">
                                     Edit
@@ -479,8 +494,8 @@
 
         // --- bersihkan net_salary sebelum serialize ---
         const $net = $('#net_salary');
-        const displayedSalary = $net.val();               // simpan tampilan "1.234.567"
-        const cleanedSalary   = displayedSalary.replace(/\D/g, ''); // "1234567"
+        const displayedSalary = $net.val(); // simpan tampilan "1.234.567"
+        const cleanedSalary = displayedSalary.replace(/\D/g, ''); // "1234567"
         $net.val(cleanedSalary);
 
         let url = form.find('#payroll_id').val() ?
@@ -526,7 +541,8 @@
         var id = $(this).closest('tr').data('id');
         $.get('/signconfirm/' + id, function(data) {
             $('[name="aprvid"]').val(data.aprvid);
-            $('[name="aprvusername"]').val(data.name); // atau data.aprvusername sesuai field yang dikirim
+            $('[name="aprvusername"]').val(data
+                .name); // atau data.aprvusername sesuai field yang dikirim
             $('[name="jabatan"]').val(data.jabatan);
             $('#sign_id').val(data.id);
             $('#signModal').removeClass('hidden');
@@ -570,196 +586,197 @@
 </script>
 
 <script>
-// Guard global kecil utk cegah double submit
-let submittingSign = false;
+    // Guard global kecil utk cegah double submit
+    let submittingSign = false;
 
-$(document)
-  .off('submit.sign', '#signForm')
-  .on('submit.sign', '#signForm', function (e) {
-    e.preventDefault();
+    $(document)
+        .off('submit.sign', '#signForm')
+        .on('submit.sign', '#signForm', function(e) {
+            e.preventDefault();
 
-    // kalau sedang submit, abaikan
-    if (submittingSign) return;
-    submittingSign = true;
+            // kalau sedang submit, abaikan
+            if (submittingSign) return;
+            submittingSign = true;
 
-    const $form = $(this);
-    const $btn  = $form.find('button[type="submit"]');
-    const btnHtml = $btn.html(); // simpan isi tombol
+            const $form = $(this);
+            const $btn = $form.find('button[type="submit"]');
+            const btnHtml = $btn.html(); // simpan isi tombol
 
-    // Kunci tombol
-    $btn.prop('disabled', true)
-        .addClass('opacity-60 cursor-not-allowed')
-        .html('Menyimpan…');
+            // Kunci tombol
+            $btn.prop('disabled', true)
+                .addClass('opacity-60 cursor-not-allowed')
+                .html('Menyimpan…');
 
-    const url = $form.find('#sign_id').val()
-      ? "{{ route('signconfirm.update') }}"
-      : "{{ route('signconfirm.store') }}";
+            const url = $form.find('#sign_id').val() ?
+                "{{ route('signconfirm.update') }}" :
+                "{{ route('signconfirm.store') }}";
 
-    $.ajax({
-      type: 'POST',
-      url,
-      data: $form.serialize(),
-      success: function (resp) {
-        if (resp && resp.success) {
-          toastr.success('Data sign berhasil disimpan.');
-          // tidak perlu re-enable; kita reload
-          setTimeout(() => location.reload(), 600);
-        } else {
-          toastr.error('Gagal menyimpan data sign.');
+            $.ajax({
+                type: 'POST',
+                url,
+                data: $form.serialize(),
+                success: function(resp) {
+                    if (resp && resp.success) {
+                        toastr.success('Data sign berhasil disimpan.');
+                        // tidak perlu re-enable; kita reload
+                        setTimeout(() => location.reload(), 600);
+                    } else {
+                        toastr.error('Gagal menyimpan data sign.');
+                    }
+                },
+                error: function(xhr) {
+                    if (xhr.status === 409 && xhr.responseJSON?.message) {
+                        toastr.warning(xhr.responseJSON.message);
+                    } else {
+                        toastr.error('Terjadi kesalahan sistem. Coba lagi.');
+                    }
+                },
+                complete: function() {
+                    // Kalau tidak reload (karena error), kembalikan tombol & guard
+                    $btn.prop('disabled', false)
+                        .removeClass('opacity-60 cursor-not-allowed')
+                        .html(btnHtml);
+                    submittingSign = false;
+                }
+            });
+        });
+</script>
+
+
+<script>
+    (function() {
+        const rows = $('#signRows');
+        const tpl = document.getElementById('signRowTemplate');
+
+        function addRow() {
+            const node = tpl.content.cloneNode(true);
+            rows.append(node);
+            toggleRemoveButtons();
         }
-      },
-      error: function (xhr) {
-        if (xhr.status === 409 && xhr.responseJSON?.message) {
-          toastr.warning(xhr.responseJSON.message);
-        } else {
-          toastr.error('Terjadi kesalahan sistem. Coba lagi.');
+
+        function toggleRemoveButtons() {
+            const total = rows.find('.sign-row').length;
+            rows.find('.removeSignRow').toggleClass('hidden', total <= 1);
         }
-      },
-      complete: function () {
-        // Kalau tidak reload (karena error), kembalikan tombol & guard
-        $btn.prop('disabled', false)
-            .removeClass('opacity-60 cursor-not-allowed')
-            .html(btnHtml);
-        submittingSign = false;
-      }
+
+        // Add Row
+        $('#addSignRow').on('click', addRow);
+
+        // Remove Row (event delegation)
+        $(document).on('click', '.removeSignRow', function() {
+            $(this).closest('.sign-row').remove();
+            toggleRemoveButtons();
+        });
+
+        // Buka modal: jika belum ada baris, buat satu baris
+        $('#addSignBtn').on('click', function() {
+            rows.empty();
+            addRow();
+            $('#sign_id').val('');
+            $('#signModal').removeClass('hidden');
+        });
+
+        // (Opsional) Prefill saat edit single: isi baris pertama
+        $('.editsignBtn').on('click', function() {
+            const id = $(this).closest('tr').data('id');
+            $.get('/signconfirm/' + id, function(data) {
+                rows.empty();
+                addRow();
+                const row = rows.find('.sign-row').first();
+                row.find('[name="aprvid[]"]').val(data.aprvid);
+                row.find('[name="aprvusername[]"]').val(data.aprvusername ?? data.aprvusername);
+                row.find('[name="jabatan[]"]').val(data.jabatan);
+                $('#sign_id').val(data.id);
+                $('#signModal').removeClass('hidden');
+            });
+        });
+
+        // Tutup modal
+        $('#closeModalsign').on('click', function() {
+            $('#signModal').addClass('hidden');
+        });
+
+        // Init: jaga2 kalau user buka modal pertama kali
+        toggleRemoveButtons();
+    })();
+</script>
+
+<script>
+    // isi hidden saat user memilih nama
+    $(document).on('change', 'select[name="aprvusername[]"]', function() {
+        const opt = $(this).find('option:selected');
+        const name = opt.data('name') ?? opt.text();
+
+        const row = $(this).closest('.sign-row').length ?
+            $(this).closest('.sign-row') :
+            $(this).parent(); // fallback jika bukan repeatable
+
+        row.find('input.aprvname-input').val(name);
+
     });
-  });
-</script>
 
-
-<script>
-(function() {
-  const rows = $('#signRows');
-  const tpl = document.getElementById('signRowTemplate');
-
-  function addRow() {
-    const node = tpl.content.cloneNode(true);
-    rows.append(node);
-    toggleRemoveButtons();
-  }
-
-  function toggleRemoveButtons() {
-    const total = rows.find('.sign-row').length;
-    rows.find('.removeSignRow').toggleClass('hidden', total <= 1);
-  }
-
-  // Add Row
-  $('#addSignRow').on('click', addRow);
-
-  // Remove Row (event delegation)
-  $(document).on('click', '.removeSignRow', function() {
-    $(this).closest('.sign-row').remove();
-    toggleRemoveButtons();
-  });
-
-  // Buka modal: jika belum ada baris, buat satu baris
-  $('#addSignBtn').on('click', function() {
-    rows.empty();
-    addRow();
-    $('#sign_id').val('');
-    $('#signModal').removeClass('hidden');
-  });
-
-  // (Opsional) Prefill saat edit single: isi baris pertama
-  $('.editsignBtn').on('click', function() {
-    const id = $(this).closest('tr').data('id');
-    $.get('/signconfirm/' + id, function(data) {
-      rows.empty();
-      addRow();
-      const row = rows.find('.sign-row').first();
-      row.find('[name="aprvid[]"]').val(data.aprvid);
-      row.find('[name="aprvusername[]"]').val(data.aprvusername ?? data.aprvusername);
-      row.find('[name="jabatan[]"]').val(data.jabatan);
-      $('#sign_id').val(data.id);
-      $('#signModal').removeClass('hidden');
+    // opsional: saat buka modal, trigger change agar hidden terisi kalau ada default value
+    $('#addSignBtn').on('click', function() {
+        $('select[name="aprvusername[]"]').trigger('change');
     });
-  });
-
-  // Tutup modal
-  $('#closeModalsign').on('click', function() {
-    $('#signModal').addClass('hidden');
-  });
-
-  // Init: jaga2 kalau user buka modal pertama kali
-  toggleRemoveButtons();
-})();
 </script>
 
 <script>
-  // isi hidden saat user memilih nama
-  $(document).on('change', 'select[name="aprvusername[]"]', function () {
-    const opt  = $(this).find('option:selected');
-    const name = opt.data('name') ?? opt.text();    
+    // Hapus row Sign
+    $(document).on('click', '.deletesignBtn', function() {
+        const $tr = $(this).closest('tr');
+        const id = $tr.data('id');
 
-    const row = $(this).closest('.sign-row').length 
-                ? $(this).closest('.sign-row') 
-                : $(this).parent(); // fallback jika bukan repeatable
+        if (!confirm('Hapus data sign ini?')) return;
 
-    row.find('input.aprvname-input').val(name);
+        $.ajax({
+            url: '/signconfirm/' + id, // sesuaikan bila pakai route name
+            type: 'DELETE',
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            },
+            success: function(resp) {
+                if (resp && resp.success) {
+                    toastr.success('Data sign berhasil dihapus.');
+                    $tr.remove();
 
-  });
-
-  // opsional: saat buka modal, trigger change agar hidden terisi kalau ada default value
-  $('#addSignBtn').on('click', function() {
-    $('select[name="aprvusername[]"]').trigger('change');
-  });
-</script>
-
-<script>
-  // Hapus row Sign
-  $(document).on('click', '.deletesignBtn', function () {
-    const $tr = $(this).closest('tr');
-    const id  = $tr.data('id');
-
-    if (!confirm('Hapus data sign ini?')) return;
-
-    $.ajax({
-      url: '/signconfirm/' + id,       // sesuaikan bila pakai route name
-      type: 'DELETE',
-      headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
-      success: function (resp) {
-        if (resp && resp.success) {
-          toastr.success('Data sign berhasil dihapus.');
-          $tr.remove();
-
-          // Jika kosong, tampilkan row "No Sign data found."
-          if ($('#signTable tbody tr').length === 0) {
-            $('#signTable tbody').html(`
+                    // Jika kosong, tampilkan row "No Sign data found."
+                    if ($('#signTable tbody tr').length === 0) {
+                        $('#signTable tbody').html(`
               <tr>
                 <td colspan="10" class="py-6 text-center text-sm italic text-gray-500 dark:text-gray-400">
                   No Sign data found.
                 </td>
               </tr>
             `);
-          }
-        } else {
-          toastr.error('Gagal menghapus data sign.');
-        }
-      },
-      error: function (xhr) {
-        toastr.error('Terjadi kesalahan sistem. Coba lagi.');
-      }
+                    }
+                } else {
+                    toastr.error('Gagal menghapus data sign.');
+                }
+            },
+            error: function(xhr) {
+                toastr.error('Terjadi kesalahan sistem. Coba lagi.');
+            }
+        });
     });
-  });
 </script>
 
 <script>
-  // Format ribuan dengan titik (1.234.567)
-  function formatThousandsID(nStr) {
-    // Ambil hanya digit
-    const digits = (nStr || '').toString().replace(/\D/g, '');
-    if (!digits) return '';
-    // Sisipkan titik per 3 digit
-    return digits.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-  }
+    // Format ribuan dengan titik (1.234.567)
+    function formatThousandsID(nStr) {
+        // Ambil hanya digit
+        const digits = (nStr || '').toString().replace(/\D/g, '');
+        if (!digits) return '';
+        // Sisipkan titik per 3 digit
+        return digits.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    }
 
-  // Hook untuk net_salary: ketik → auto format
-  $(document).on('input', '#net_salary.money-separator', function () {
-    const caretToEnd = document.activeElement === this; // caret akan ke akhir; cukup oke
-    const formatted = formatThousandsID($(this).val());
-    $(this).val(formatted);
-  });
-
+    // Hook untuk net_salary: ketik → auto format
+    $(document).on('input', '#net_salary.money-separator', function() {
+        const caretToEnd = document.activeElement === this; // caret akan ke akhir; cukup oke
+        const formatted = formatThousandsID($(this).val());
+        $(this).val(formatted);
+    });
 </script>
 
 <!-- Toastr CSS -->

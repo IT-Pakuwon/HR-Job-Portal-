@@ -22,7 +22,7 @@
                     <div class="flex flex-col items-start gap-4 md:flex-row md:items-end"> {{-- Filters container --}}
                         <div class="flex items-center gap-2">
                             <label for="selectCompany"
-                                class="mb-1 block text-lg font-semibold text-gray-700 dark:text-gray-300">Company:</label>
+                                class="mb-1 block text-lg font-semibold text-gray-700 dark:text-gray-100">Company:</label>
                             <select id="selectCompany"
                                 class="w-full min-w-[150px] rounded-lg border border-gray-300 bg-white p-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-900 dark:text-white"
                                 name="company_filter">
@@ -35,9 +35,9 @@
 
                         <div class="flex items-center gap-2">
                             <label for="selectdeptname"
-                                class="mb-1 block text-lg font-semibold text-gray-700 dark:text-gray-300">Department:</label>
+                                class="mb-1 block text-lg font-semibold text-gray-700 dark:text-gray-100">Department:</label>
                             <select id="selectdeptname"
-                                class="w-full min-w-[200px] rounded-lg border border-gray-300 bg-white p-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-900 dark:text-white"
+                                class="w-full min-w-[200px] rounded-lg border border-gray-300 bg-white p-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                                 name="departementid" required>
                                 <option value="">All</option>
                                 @foreach ($departements as $p)
@@ -60,8 +60,7 @@
                     {{-- <button onclick="chart.exportImg({full:true})">Export Full</button> --}}
 
                     {{-- <div id="chartExportArea" style="position:relative;"> --}}
-                    <div id="chartExportArea"
-                        style="position:relative; background: #fff; min-height:1100px; padding-bottom:200px;">
+                    <div id="chartExportArea" class="min-h[1100px] relative bg-gray-50 pb-[200px] dark:bg-gray-700">
                         {{-- <div class="chart-container w-full" style="width:100%; min-height:420px;"></div> --}}
                         <div class="chart-container w-full" style="width: 100%;"></div>
                         <!-- Legend di pojok kanan bawah -->
@@ -274,7 +273,7 @@
                 }
                 $('#departement_name_select').select2({
                     tags: true, // Memungkinkan input baru
-                    placeholder: "Pilih atau ketik departemen",
+                    placeholder: "Select",
                     width: '100%'
                 });
             });
@@ -471,11 +470,11 @@
                             </thead>
                             <tbody>
                                 ${legendCompany.map(item => `
-                                        <tr>
-                                            <td class="pr-4">${item.company}</td>
-                                            <td>${item.count}</td>
-                                        </tr>
-                                        `).join('')}
+                                                                                                                                                                                                                                                                                        <tr>
+                                                                                                                                                                                                                                                                                            <td class="pr-4">${item.company}</td>
+                                                                                                                                                                                                                                                                                            <td>${item.count}</td>
+                                                                                                                                                                                                                                                                                        </tr>
+                                                                                                                                                                                                                                                                                        `).join('')}
                             </tbody>
                             </table>
                         </div>
@@ -507,7 +506,7 @@
 
                                 console.log('Level:', level); // Debugging line
                                 console.log('Node Width:', d.width, 'Height:', d
-                                .height); // Debugging line
+                                    .height); // Debugging line
                                 console.log('Node Data:', d.data); // Debugging line
                                 return `
                                     <div style='width:${d.width}px;height:${d.height}px;padding-top:25px;padding-left:25px;padding-right:10px'>
@@ -527,13 +526,13 @@
                                             <div style="font-size:12px;color:#333">                                    
                                                 <div style="margin-top:10px;">
                                                     ${members.map(m => `
-                                                                <div style="display:flex;align-items:center;margin-bottom:2px;">
-                                                                    <img src="${m.image}" style="width:30px;height:30px;border-radius:50%;margin-right:8px;" />
-                                                                    <span style="font-size:12px; color:${m.name.toUpperCase() === 'VACANT' ? 'red' : '#000'};">
-                                                                        ${m.name} (${m.company})
-                                                                    </span>
-                                                                </div>
-                                                            `).join('')}
+                                                                                                                                                                                                                                                                                                                <div style="display:flex;align-items:center;margin-bottom:2px;">
+                                                                                                                                                                                                                                                                                                                    <img src="${m.image}" style="width:30px;height:30px;border-radius:50%;margin-right:8px;" />
+                                                                                                                                                                                                                                                                                                                    <span style="font-size:12px; color:${m.name.toUpperCase() === 'VACANT' ? 'red' : '#000'};">
+                                                                                                                                                                                                                                                                                                                        ${m.name} (${m.company})
+                                                                                                                                                                                                                                                                                                                    </span>
+                                                                                                                                                                                                                                                                                                                </div>
+                                                                                                                                                                                                                                                                                                            `).join('')}
                                                 </div>
                                             </div>
                                         </div>
@@ -547,12 +546,12 @@
                             .connections(connections)
                             .linkUpdate((d, i, arr) => {
                                 d3.select(arr[i])
-                                .attr('stroke-width', 2)   // tebal garis parent-child
-                                .attr('stroke', '#374151'); // opsional: warna
+                                    .attr('stroke-width', 2) // tebal garis parent-child
+                                    .attr('stroke', '#374151'); // opsional: warna
                             })
                         // .render()
                         chart.compact(false).render().fit();
-                       
+
                     },
 
                     error: function(xhr) {
@@ -574,7 +573,7 @@
         <script>
             $(document).ready(function() {
                 $('#selectdeptname').select2({
-                    placeholder: "Pilih Departement Name...",
+                    placeholder: "Select",
                     allowClear: true,
                     width: 'resolve',
                     dropdownAutoWidth: true
@@ -585,7 +584,7 @@
 
                 // Aktifkan select2 untuk Company
                 $('#selectCompany').select2({
-                    placeholder: "Pilih Company...",
+                    placeholder: "Select",
                     allowClear: true,
                     width: 'resolve',
                     dropdownAutoWidth: true

@@ -76,7 +76,7 @@
                                         class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Company</label>
                                     <select name="cpny_id" required
                                         class="w-full rounded-md border border-gray-300 bg-white p-2.5 focus:ring focus:ring-blue-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
-                                        <option value="" disabled selected>Select Company</option>
+                                        <option value="" disabled selected>Select</option>
                                         @foreach ($companies as $p)
                                             <option value="{{ $p->cpny_id }}">{{ $p->cpny_name }}</option>
                                         @endforeach
@@ -90,7 +90,7 @@
                                         Unit</label>
                                     <select name="business_unit_id" required
                                         class="w-full rounded-md border border-gray-300 bg-white p-2.5 focus:ring focus:ring-blue-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
-                                        <option value="">Pilih Unit</option>
+                                        <option value="">Select</option>
                                     </select>
                                 </div>
 
@@ -130,7 +130,7 @@
                     {{-- Table Preview Import --}}
                     @if (isset($tempData) && count($tempData) > 0)
                         <div class="rounded-2xl border bg-white p-4 shadow dark:bg-gray-800">
-                            <h2 class="mb-4 text-lg font-bold">📊 Hasil Import Sementara</h2>
+                            <h2 class="mb-4 text-lg font-bold">📊 Import</h2>
 
                             {{-- ✅ Scroll Container --}}
                             <div class="w-full overflow-x-auto">
@@ -395,7 +395,7 @@
             // Init Select2 sekali
             $('#department_select').select2({
                 width: '100%',
-                placeholder: 'Cari Department',
+                placeholder: 'Select',
                 allowClear: true,
                 // dropdownAutoWidth: true
             });

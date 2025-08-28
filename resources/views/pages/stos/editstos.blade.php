@@ -78,8 +78,8 @@
                                     @foreach ($attachment as $attach)
                                         <div class="attachment-row flex items-center gap-2"
                                             data-attachid="{{ $attach->id }}">
-                                            <a href="{{ url('/attachments/' . $attach->attachfile) }}"
-                                                target="_blank" class="mt-4 w-full border p-3 text-lg">📎
+                                            <a href="{{ url('/attachments/' . $attach->attachfile) }}" target="_blank"
+                                                class="mt-4 w-full border p-3 text-lg">📎
                                                 {{ $attach->name }}</a>
                                             <button type="button"
                                                 class="removeAttachment2 mt-4 rounded border border-red-700 bg-red-200/10 px-3 py-3 text-white hover:border-red-700 hover:bg-red-400/30 dark:bg-red-700/30"
@@ -243,7 +243,7 @@
                                 <h4 class="text-lg font-semibold">Parent Department: <span id="parentDeptLabel"
                                         class="text-lg font-semibold text-gray-800"></span></h4>
                                 <button id="btnChangeParentDept"
-                                    class="flex items-center gap-1 rounded px-3 py-1.5 text-sm text-black">
+                                    class="flex items-center gap-1 rounded px-3 py-1.5 text-sm text-black dark:text-white">
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                         stroke-width="1.5" stroke="currentColor" class="size-6">
                                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -258,7 +258,7 @@
                                     Dept: <!-- Dynamic text will be inserted via JS -->
                                 </h4>
                                 <button id="btnChangeDept"
-                                    class="flex items-center gap-1 rounded px-3 py-1.5 text-sm text-black">
+                                    class="flex items-center gap-1 rounded px-3 py-1.5 text-sm text-black dark:text-white">
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                         stroke-width="1.5" stroke="currentColor" class="size-6">
                                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -451,8 +451,9 @@
                                         <textarea name="job_purpose[]"
                                             class="flex-grow rounded-md border-gray-300 p-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                             placeholder="Describe job purpose" required rows="3"></textarea>
-                                        <button type="button" class="removePurpose hidden">
-                                            🗑️
+                                        <button type="button"
+                                            class="removePurpose mt-4 hidden rounded border border-red-600 bg-red-200/30 p-2 text-red-600 transition hover:bg-red-600 hover:text-white">
+                                            Delete
                                         </button>
                                     </div>
                                 </div>
@@ -851,13 +852,13 @@
                                         <div style="font-size:12px;color:#333">                                    
                                             <div style="margin-top:10px;">
                                                 ${members.map(m => `
-                                                        <div style="display:flex;align-items:center;margin-bottom:6px;">
-                                                            <img src="${m.image}" style="width:30px;height:30px;border-radius:50%;margin-right:8px;" />
-                                                            <span style="font-size:12px; color:${m.name.toUpperCase() === 'VACANT' ? 'red' : '#000'};">
-                                                                ${m.name} (${m.company})
-                                                            </span>
-                                                        </div>
-                                                    `).join('')}
+                                                                                                        <div style="display:flex;align-items:center;margin-bottom:6px;">
+                                                                                                            <img src="${m.image}" style="width:30px;height:30px;border-radius:50%;margin-right:8px;" />
+                                                                                                            <span style="font-size:12px; color:${m.name.toUpperCase() === 'VACANT' ? 'red' : '#000'};">
+                                                                                                                ${m.name} (${m.company})
+                                                                                                            </span>
+                                                                                                        </div>
+                                                                                                    `).join('')}
                                             </div>
                                         </div>
                                     </div>
@@ -1149,13 +1150,13 @@
                                         <div style="font-size:12px;color:#333">                                    
                                             <div style="margin-top:10px;">
                                                 ${members.map(m => `
-                                                        <div style="display:flex;align-items:center;margin-bottom:6px;">
-                                                            <img src="${m.image}" style="width:30px;height:30px;border-radius:50%;margin-right:8px;" />
-                                                            <span style="font-size:12px; color:${m.name.toUpperCase() === 'VACANT' ? 'red' : '#000'};">
-                                                                ${m.name} (${m.company})
-                                                            </span>
-                                                        </div>
-                                                    `).join('')}
+                                                                                                        <div style="display:flex;align-items:center;margin-bottom:6px;">
+                                                                                                            <img src="${m.image}" style="width:30px;height:30px;border-radius:50%;margin-right:8px;" />
+                                                                                                            <span style="font-size:12px; color:${m.name.toUpperCase() === 'VACANT' ? 'red' : '#000'};">
+                                                                                                                ${m.name} (${m.company})
+                                                                                                            </span>
+                                                                                                        </div>
+                                                                                                    `).join('')}
                                             </div>
                                         </div>
                                     </div>
@@ -1453,8 +1454,8 @@
             $('#addJobPurpose').on('click', function() {
                 $('#jobPurposeList').append(`
                     <div class="flex gap-2">
-                        <textarea name="job_purpose[]" class="w-full border border-gray-300  rounded p-2" placeholder="Deskripsikan tujuan pekerjaan" required></textarea>
-                        <button type="button" class="removePurpose text-red-600">🗑️</button>
+                        <textarea name="job_purpose[]" class="flex-grow rounded-md border-gray-300 p-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300" placeholder="Describe job purpose" required></textarea>
+                        <button type="button" class="removePurpose bg-red-200/30 mt-4 text-red-600 p-2 rounded border border-red-600 hover:text-white hover:bg-red-600 transition">Delete</button>
                     </div>
                 `);
                 toggleRemoveButtons();
@@ -1493,7 +1494,7 @@
                         // ✅ Reset inputan
                         form.trigger('reset'); // reset semua input biasa
                         $('#selectFullName').val(null).trigger(
-                        'change'); // jika select2 atau select biasa
+                            'change'); // jika select2 atau select biasa
                         $('#position').val(''); // reset input readonly
                         $('#vacantCheckbox').prop('checked', true).trigger('change'); // default VACANT
 
@@ -1533,7 +1534,7 @@
                                 <td class="border   px-2 py-1">${i + 1}</td>                                
                                 <td class="border   px-2 py-1">${p.job_purpose || ''}</td>  
                                 <td class="border   px-2 py-1 text-center">
-                                    <button class="btn-delete-jobpurpose bg-red-500 text-white px-2 py-1 rounded text-xs hover:bg-red-700"
+                                    <button class="btn-delete-jobpurpose bg-red-200/30 text-red-600 p-2 rounded border border-red-600 hover:text-white hover:bg-red-600 transition"
                                         data-id="${p.id}">
                                         🗑️ Delete
                                     </button>
@@ -1660,6 +1661,6 @@
             }, 0);
         });
     </script>
-    
+
 
 </x-app-layout>

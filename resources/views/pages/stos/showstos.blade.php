@@ -51,11 +51,11 @@
                             🆔 {{ $sto->sto_id }}
                         </h1>
                         <span
-                            class="@if ($sto->status === 'D') bg-gray-300/30 text-gray-600
-                            @elseif($sto->status === 'P') bg-blue-300/30 text-blue-600
-                            @elseif($sto->status === 'A') bg-green-300/30 text-green-600
-                            @elseif($sto->status === 'R') bg-red-300/30 text-red-600
-                            @else bg-gray-300/30 text-gray-600 @endif rounded-full px-3 py-1 text-sm font-semibold">
+                            class="@if ($sto->status === 'D') bg-gray-300/30 text-gray-600 dark:text-gray-300
+                            @elseif($sto->status === 'P') bg-blue-300/30 text-blue-600 dark:text-blue-400
+                            @elseif($sto->status === 'A') bg-green-300/30 text-green-600 dark:text-green-400
+                            @elseif($sto->status === 'R') bg-red-300/30 text-red-600 dark:text-red-400
+                            @else bg-gray-300/30 text-gray-600 dark:text-white @endif rounded-full px-3 py-1 text-sm font-semibold">
                             @if ($sto->status === 'D')
                                 Draft
                             @elseif($sto->status === 'P')
@@ -75,7 +75,8 @@
 
                         <div
                             class="absolute bottom-4 right-7 flex items-center space-x-2 rounded-xl bg-gray-900/60 p-2 shadow-xl backdrop-blur-sm">
-                            <button onclick="window.open('{{ route('orgchart.fullscreen', ['sto' => $sto->id]) }}', '_blank')"
+                            <button
+                                onclick="window.open('{{ route('orgchart.fullscreen', ['sto' => $sto->id]) }}', '_blank')"
                                 class="flex h-10 w-10 items-center justify-center rounded-full bg-blue-600 text-white shadow-md transition-colors hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
                                     viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -459,8 +460,7 @@
         class="fixed inset-0 z-50 flex hidden items-center justify-center bg-gray-900/40 backdrop-blur-sm">
         <div
             class="relative max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-lg bg-white p-6 shadow-xl dark:bg-gray-800">
-            <div
-                class="mb-4 flex items-center justify-between border-b border-gray-200 pb-4 dark:border-gray-700">
+            <div class="mb-4 flex items-center justify-between border-b border-gray-200 pb-4 dark:border-gray-700">
                 <h3 class="text-xl font-semibold text-gray-800 dark:text-white">
                     Job Profile <span id="jobLevelLabel"
                         class="font-bold text-indigo-600 dark:text-indigo-400"></span>
@@ -471,8 +471,7 @@
                 </button>
             </div>
 
-            <div
-                class="mb-6 overflow-x-auto rounded-lg border border-gray-200 shadow-sm dark:border-gray-700">
+            <div class="mb-6 overflow-x-auto rounded-lg border border-gray-200 shadow-sm dark:border-gray-700">
                 <table
                     class="min-w-full divide-y divide-gray-200 text-sm text-gray-800 dark:divide-gray-700 dark:text-gray-200">
                     <thead class="bg-gray-50 dark:bg-gray-700">
@@ -483,7 +482,7 @@
                             <th scope="col"
                                 class="border-r border-gray-200 px-4 py-2 text-left font-semibold tracking-wider dark:border-gray-600">
                                 Job Purpose</th>
-                           
+
                         </tr>
                     </thead>
                     <tbody id="jobProfileBody"
@@ -496,7 +495,7 @@
             </div>
         </div>
     </div>
-        <style>
+    <style>
         /* Styling untuk loading spinner di kanan bawah */
         #loadingSpinnerContainer {
             position: fixed;
@@ -910,13 +909,13 @@
                                 <div style="font-size:12px;color:#333">
                                     <div style="margin-top:10px;">
                                         ${members.map(m => `
-                                            <div style="display:flex;align-items:center;margin-bottom:6px;">
-                                                <img src="${m.image}" style="width:30px;height:30px;border-radius:50%;margin-right:8px;" />
-                                                <span style="font-size:12px; color:${m.name.toUpperCase() === 'VACANT' ? 'red' : '#000'};">
-                                                    ${m.name} (${m.company})
-                                                </span>
-                                            </div>
-                                        `).join('')}
+                                                                <div style="display:flex;align-items:center;margin-bottom:6px;">
+                                                                    <img src="${m.image}" style="width:30px;height:30px;border-radius:50%;margin-right:8px;" />
+                                                                    <span style="font-size:12px; color:${m.name.toUpperCase() === 'VACANT' ? 'red' : '#000'};">
+                                                                        ${m.name} (${m.company})
+                                                                    </span>
+                                                                </div>
+                                                            `).join('')}
                                     </div>
                                 </div>
                             </div>
@@ -930,8 +929,8 @@
                 .data(data)
                 .linkUpdate((d, i, arr) => {
                     d3.select(arr[i])
-                    .attr('stroke-width', 2)   // tebal garis parent-child
-                    .attr('stroke', '#374151'); // opsional: warna
+                        .attr('stroke-width', 2) // tebal garis parent-child
+                        .attr('stroke', '#374151'); // opsional: warna
                 })
                 // .disableZoom()
                 .render();
