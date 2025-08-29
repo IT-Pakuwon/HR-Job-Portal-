@@ -322,7 +322,7 @@
                                 <th scope="col"
                                     class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
                                     Description
-                                </th>
+                                </th>                               
                                 <th scope="col"
                                     class="w-32 px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
                                     Status
@@ -335,6 +335,219 @@
                     </table>
                 </div>
             </div>
+
+            <!-- ================== TRACKING MODAL ================== -->
+            <div id="trackingModal"
+                class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50">
+            <div class="w-[95vw] max-w-none sm:max-w-3xl md:max-w-5xl lg:max-w-6xl xl:max-w-7xl max-h-[90vh] overflow-y-auto rounded-2xl bg-white p-6 shadow-xl dark:bg-gray-800">
+
+                <!-- Header -->
+                <div class="mb-4 flex items-center justify-between">
+                <h3 class="text-lg font-semibold text-gray-800 dark:text-white">
+                    SPPB Tracking <span id="trackDoc" class="font-bold text-indigo-600"></span>
+                </h3>
+                <button id="closeTracking"
+                        class="text-2xl leading-none text-gray-400 hover:text-gray-600 dark:text-gray-400 dark:hover:text-gray-200">
+                    &times;
+                </button>
+                </div>
+
+                <!-- Controls (opsional) -->
+                <div class="mb-3 flex items-center justify-end gap-2">
+                <button type="button" id="tlPrev"
+                    class="rounded-lg border px-3 py-1 text-sm hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700">
+                    ‹ Prev
+                </button>
+                <button type="button" id="tlNext"
+                    class="rounded-lg border px-3 py-1 text-sm hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700">
+                    Next ›
+                </button>
+                </div>
+
+                <!-- Timeline -->
+                <ul id="tlList"
+                    class="flex snap-x snap-mandatory overflow-x-auto whitespace-nowrap py-6 pr-6 -mx-4 px-4">
+                <!-- items di-inject via JS -->
+                </ul>
+
+                <!-- Hide scrollbar -->
+                <style>
+                #tlList::-webkit-scrollbar { display: none; }
+                #tlList { scrollbar-width: none; }
+                </style>
+            </div>
+            </div>
+
+            <script>
+                function renderTimeline(steps = []) {
+                const list = document.getElementById('tlList');
+                if (!list) return;
+
+                if (!Array.isArray(steps) || steps.length === 0) {
+                    list.innerHTML = `<p class="text-sm text-gray-500">No tracking history found.</p>`;
+                    return;
+                }
+
+                // Map status -> label + warna
+                const STATUS = {
+                    C: { label: 'Completed', colorDot: 'bg-green-600',  colorBorder: 'border-green-600',  colorText: 'text-green-700'  },
+                    P: { label: 'Waiting approval / in progress', colorDot: 'bg-yellow-500', colorBorder: 'border-yellow-500', colorText: 'text-yellow-700' },
+                    R: { label: 'Rejected',  colorDot: 'bg-red-600',    colorBorder: 'border-red-600',    colorText: 'text-red-700'    },
+                    D: { label: 'Revise',    colorDot: 'bg-blue-600',   colorBorder: 'border-blue-600',   colorText: 'text-blue-700'   },
+                    _: { label: '',          colorDot: 'bg-gray-400',   colorBorder: 'border-gray-400',   colorText: 'text-gray-700'   }
+                };
+
+                list.innerHTML = steps.map((s, i) => {
+                    // Ambil status (optional)
+                    const st = (s.status || '').toUpperCase();
+                    const S  = STATUS[st] || STATUS._;
+
+                    // Jika kamu masih kirim "done", tetap dipakai sebagai fallback warna
+                    const useDone = typeof s.done === 'boolean';
+                    const border  = useDone ? (s.done ? 'border-green-600' : 'border-gray-400') : S.colorBorder;
+                    const dot     = useDone ? (s.done ? 'bg-green-600'     : 'bg-gray-400')     : S.colorDot;
+                    const title   = (s.title && String(s.title).trim()) || 'SPPB';
+
+                    // Subtitle prioritas: s.subtitle -> s.status_label -> label dari status -> gabungan at/by
+                    let subtitle = (s.subtitle && String(s.subtitle).trim()) 
+                                || (s.status_label && String(s.status_label).trim())
+                                || S.label;
+
+                    // Tambahkan waktu & user jika ada
+                    const when  = (s.at && String(s.at).trim()) || '';
+                    const by    = (s.by && String(s.by).trim()) ? ` by ${s.by}` : '';
+                    if (!s.subtitle && (when || by)) {
+                    subtitle = subtitle ? `${subtitle} • ${when}${by}` : `${when}${by}`;
+                    }
+
+                    const isLast = i === steps.length - 1;
+                    const line   = !isLast
+                    ? 'after:absolute after:top-1/2 after:left-7 after:h-0.5 after:w-[calc(100%-1.75rem)] after:-translate-y-1/2 after:bg-gray-300 dark:after:bg-gray-600'
+                    : '';
+
+                    return `
+                    <li class="relative mr-12 flex shrink-0 snap-start pr-12 last:mr-0 last:pr-0 ${line}">
+                        <div class="flex items-center">
+                        <div class="grid h-6 w-6 place-items-center rounded-full border-2 ${border} bg-white dark:bg-gray-800">
+                            <div class="h-2 w-2 rounded-full ${dot}"></div>
+                        </div>
+                        <div class="ml-3">
+                            <p class="text-sm font-semibold ${S.colorText}">${title}</p>
+                            <p class="text-xs text-gray-700 dark:text-gray-300">${subtitle || ''}</p>
+                        </div>
+                        </div>
+                    </li>
+                    `;
+                }).join('');
+                }
+                </script>
+
+
+
+
+            <script>
+            // Helpers render timeline items
+            // function renderTimeline(steps = []) {
+            //     const list = document.getElementById('tlList');
+            //     if (!steps.length) {
+            //     list.innerHTML = `<p class="text-sm text-gray-500">No tracking history found.</p>`;
+            //     return;
+            //     }
+
+            //     list.innerHTML = steps.map((s, i) => {
+            //     const isLast = i === steps.length - 1;
+            //     const border = s.done ? 'border-green-600' : 'border-gray-400';
+            //     const dot    = s.done ? 'bg-green-600'     : 'bg-gray-400';
+            //     const line   = 'after:absolute after:top-1/2 after:left-7 after:h-0.5 ' +
+            //                     'after:w-[calc(100%-1.75rem)] after:-translate-y-1/2 ' +
+            //                     'after:bg-gray-300 dark:after:bg-gray-600';
+
+            //     return `
+            //         <li class="relative mr-12 flex shrink-0 snap-start pr-12 last:mr-0 last:pr-0
+            //                 ${!isLast ? line : ''}">
+            //         <div class="flex items-center">
+            //             <div class="grid h-6 w-6 place-items-center rounded-full border-2 ${border} bg-white dark:bg-gray-800">
+            //             <div class="h-2 w-2 rounded-full ${dot}"></div>
+            //             </div>
+            //             <div class="ml-3">
+            //             <p class="text-sm font-semibold">${s.title || ''}</p>
+            //             <p class="text-xs text-gray-500">${s.subtitle || ''}</p>
+            //             </div>
+            //         </div>
+            //         </li>
+            //     `;
+            //     }).join('');
+            // }
+
+            // Scroll controls
+            (function(){
+                const scroller = document.getElementById('tlList');
+                document.getElementById('tlPrev')?.addEventListener('click', () =>
+                scroller.scrollBy({ left: -300, behavior: 'smooth' })
+                );
+                document.getElementById('tlNext')?.addEventListener('click', () =>
+                scroller.scrollBy({ left: 300, behavior: 'smooth' })
+                );
+            })();
+
+            // Open/Close modal
+            function openTrackingModal(docText) {
+                document.getElementById('trackDoc').textContent = docText ? `(${docText})` : '';
+                const modal = document.getElementById('trackingModal');
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+            }
+
+            function closeTrackingModal() {
+                const modal = document.getElementById('trackingModal');
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }
+            document.getElementById('closeTracking').addEventListener('click', closeTrackingModal);
+            document.getElementById('trackingModal').addEventListener('click', (e) => {
+                if (e.target.id === 'trackingModal') closeTrackingModal();
+            });
+
+            
+
+            // Handler tombol "Track" (DataTables row)
+            $(document).on('click', '.tracking-btn', function () {
+                const id  = $(this).data('id');
+                const doc = $(this).data('doc') || '';
+
+                // Tampilkan modal dulu
+                openTrackingModal(doc);
+
+                // Ambil data tracking via API kamu (silakan sesuaikan endpoint & struktur respons)
+                // Expected response example:
+                // { steps: [ { title:'Submitted', subtitle:'2025-08-10 09:00 by alice', done:true }, ... ] }
+                $.ajax({
+                url: `/sppbs/${id}/tracking`,
+                method: 'GET',
+                dataType: 'json',
+                success: function(res) {
+                    const steps = (res.steps || []).map(s => ({
+                    title: s.title || s.status_name || '-',
+                    subtitle: s.subtitle || `${s.at || ''}${s.by ? ' by ' + s.by : ''}`,
+                    done: s.done ?? true
+                    }));
+                    renderTimeline(steps);
+                },
+                error: function() {
+                    // fallback demo agar kamu bisa lihat tampilannya
+                    renderTimeline([
+                    { title: 'SPPP',  subtitle: '2025-08-10 09:00 by Williem Halim', done: true },
+                    { title: 'Canvass Sheet',    subtitle: '2025-08-10 11:35 by Sugiarto',     done: true },
+                    { title: 'Purchase Order',   subtitle: '2025-08-11 08:10 by Sugiarto',   done: true },
+                    { title: 'Receive Goods',  subtitle: 'Waiting in receive queue',   done: false },
+                    { title: 'Payment',  subtitle: 'Waiting in payment queue',   done: false },
+                    ]);
+                }
+                });
+            });
+            </script>
+            
+
 
 
             <script>
@@ -362,8 +575,7 @@
                             }
                         },
 
-                        order: [
-                            [1, 'desc'],
+                        order: [                          
                             [0, 'desc']
                         ], // Date desc, lalu DocID desc
 
@@ -371,19 +583,33 @@
                             // DocID (button link)
                             {
                                 data: 'sppbid',
-                                render: function(data, type, row) {
+                                render: function (data, type, row) {
                                     let url = `/showsppbs/${row.id}`;
                                     let cls =
-                                        'px-4 py-2.5 bg-indigo-500 text-white rounded hover:bg-indigo-700';
-                                    let text = data || row.id;
+                                    'shrink-0 px-3 py-1.5 bg-indigo-500 text-white rounded hover:bg-indigo-700 text-sm';
+                                    const text = data || row.id;
+
+                                    // jika status Draft & milik current user → ke halaman edit
                                     if (row.status === 'D' && row.created_by === currentUser) {
-                                        url = `/editsppbs/${row.id}`;
-                                        cls =
-                                            'px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-700';
+                                    url = `/editsppbs/${row.id}`;
+                                    cls =
+                                        'shrink-0 px-3 py-1.5 bg-yellow-500 text-white rounded hover:bg-yellow-700 text-sm';
                                     }
-                                    return `<a href="${url}" class="${cls}">${text}</a>`;
+
+                                    return `
+                                    <div class="flex items-center gap-2 whitespace-nowrap">
+                                        <a href="${url}" class="${cls}">${text}</a>
+                                        <button type="button"
+                                        class="tracking-btn inline-flex items-center justify-center rounded-full p-2
+                                                text-red-600 hover:text-red-700 hover:bg-red-50"
+                                        data-id="${row.id}" aria-label="Tracking" title="Tracking">
+                                        <i class="fa-solid fa-paper-plane"></i>
+                                        </button>
+                                    </div>
+                                    `;
                                 }
                             },
+
                             {
                                 data: 'sppbdate',
                                 className: 'text-center'
@@ -403,7 +629,8 @@
                             },
                             {
                                 data: 'keperluan'
-                            },
+                            },                          
+                            
                             {
                                 data: 'status',
                                 className: 'text-center',

@@ -582,6 +582,12 @@ class PersonnelController extends Controller
 
     public function showPersonnel($id)
     {        
+        $user = Auth::user();       
+
+        if (!$user) {
+            return redirect()->route('login');
+        }
+        
         $personnel = Personnel::findOrFail($id);
         // $personnel = Personnel::with('departement.subgrading')->findOrFail($id);
         $approval = T_approval::where('docid', $personnel->docid)

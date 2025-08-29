@@ -556,6 +556,12 @@ class StrukturOrgController extends Controller
 
     public function showSto($id)
     {        
+        $user = Auth::user();       
+
+        if (!$user) {
+            return redirect()->route('login');
+        }
+        
         $sto = TrSto::findOrFail($id);
         $approval = T_approval::where('docid', $sto->sto_id)
             ->where('status','<>','X')      

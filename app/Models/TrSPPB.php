@@ -17,6 +17,7 @@ class TrSPPB extends Model
         'department_id',
         'requesttypeid',
         'keperluan',
+        'budget_perpost',
         'woid',
         'spbid',
         'totalopenordered',

@@ -42,8 +42,20 @@
                                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Request Type</label>
                                 <select id="requesttypeid" name="requesttypeid"
                                         class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
-                                        required>
+                                        required>                                    
                                     <option value="" disabled selected>Loading...</option>
+                                </select>
+                            </div>
+                            <div class="flex flex-col gap-2">
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Perpost</label>
+                                <select id="perpost" name="perpost"
+                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                    required>
+                                    @php
+                                        $year = \Carbon\Carbon::now()->year;
+                                    @endphp                                    
+                                    <option value="{{ $year }}">{{ $year }}</option>
+                                    <option value="{{ $year + 1 }}">{{ $year + 1 }}</option>
                                 </select>
                             </div>
                         </div>
@@ -94,6 +106,8 @@
                                     <td class="border p-3">
                                     <div class="flex items-center gap-2">
                                         <input type="hidden" name="inventoryid[]" class="inventoryIdField">
+                                        <input type="hidden" name="item_type[]"     class="prodItemTypeField">
+                                        <input type="hidden" name="item_category[]" class="prodItemCategoryField">
                                         <input type="text" name="product_name[]" class="productNameField w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0" placeholder="Select product..." readonly>
                                         <button type="button" class="openInventoryModal rounded border border-gray-500 px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-700" title="Lookup">🔎</button>
                                     </div>
@@ -139,7 +153,10 @@
                                     <!-- Coa (lookup modal) -->
                                     <td class="border p-3">
                                     <div class="flex items-center gap-2">
-                                        <input type="hidden" name="coa_id[]" class="coaIdField">  {{-- budget_account_id --}}
+                                        <input type="hidden" name="activity_id[]" class="activityIdField">
+                                        <input type="hidden" name="business_unit_id[]"   class="businessUnitIdField">
+                                        <input type="hidden" name="department_fin_id[]"  class="departmentFinIdField">
+                                        <input type="hidden" name="coa_id[]" class="coaIdField">  
                                         <input type="text"   name="coa[]"    class="coaNameField w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0" placeholder="Select COA..." readonly>
                                         <button type="button" class="openCoaModal rounded border border-gray-500 px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-700" title="Lookup">🔎</button>
                                     </div>
@@ -189,7 +206,7 @@
                                 <tr>
                                     <th class="border p-2">Inventory ID</th>
                                     <th class="border p-2">Description</th>
-                                    <th class="border p-2">UoM</th>
+                                    <th class="border p-2">UoM</th>                                    
                                     <th class="w-24 border p-2 text-center">Action</th>
                                 </tr>
                                 </thead>
@@ -299,6 +316,7 @@
                             <div class="ml-auto flex items-center gap-3">
                                 <span>Company: <b id="coaCpnyBadge"></b></span>
                                 <span>Dept: <b id="coaDeptBadge"></b></span>
+                                <span>Perpost: <b id="coaPerpostBadge"></b></span>
                             </div>
                             </div>
 
@@ -509,6 +527,8 @@
                 <td class="p-3 border">
                 <div class="flex items-center gap-2">
                     <input type="hidden" name="inventoryid[]" class="inventoryIdField">
+                    <input type="hidden" name="item_type[]"     class="prodItemTypeField">
+                    <input type="hidden" name="item_category[]" class="prodItemCategoryField">
                     <input type="text" name="product_name[]" class="productNameField w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0" placeholder="Select product..." readonly>
                     <button type="button" class="openInventoryModal rounded border border-gray-500 px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-700" title="Lookup">🔎</button>
                 </div>
@@ -548,6 +568,9 @@
              
                 <td class="p-3 border">
                     <div class="flex items-center gap-2">
+                        <input type="hidden" name="activity_id[]" class="activityIdField">
+                        <input type="hidden" name="business_unit_id[]"   class="businessUnitIdField">
+                        <input type="hidden" name="department_fin_id[]"  class="departmentFinIdField">                      
                         <input type="hidden" name="coa_id[]" class="coaIdField">
                         <input type="text"   name="coa[]"    class="coaNameField w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0" placeholder="Select COA..." readonly>
                         <button type="button" class="openCoaModal rounded border border-gray-500 px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-700" title="Lookup">🔎</button>
@@ -652,17 +675,22 @@
             // { data: [{inventoryid, inventory_descr, stock_unit}], total: 123, page:1, per_page:10 }
             const rows = (res.data || []).map(item => `
                 <tr>
-                <td class="border p-2">${item.inventoryid}</td>
-                <td class="border p-2">${item.inventory_descr}</td>
-                <td class="border p-2">${item.stock_unit || ''}</td>
-                <td class="border p-2 text-center">
+                    <td class="border p-2">${item.inventoryid}</td>
+                    <td class="border p-2">${item.inventory_descr}</td>
+                    <td class="border p-2">${item.stock_unit || ''}</td>
+                    <td class="border p-2 text-center">
                     <button type="button" class="chooseInventory rounded border px-2 py-1 hover:bg-gray-100"
-                    data-id="${item.inventoryid}"
-                    data-name="${$('<div>').text(item.inventory_descr).html()}"
-                    data-stock_unit="${item.stock_unit || ''}">Choose</button>
-                </td>
+                        data-id="${item.inventoryid}"
+                        data-name="${$('<div>').text(item.inventory_descr).html()}"
+                        data-stock_unit="${item.stock_unit || ''}"
+                        data-account_id="${item.account_id || ''}"
+                        data-item_type="${$('<div>').text(item.item_type || '').html()}"         
+                        data-item_category="${$('<div>').text(item.item_category || '').html()}">
+                        Choose
+                    </button>
+                    </td>
                 </tr>
-            `).join('');
+                `).join('');
 
             $tbody.html(rows || `<tr><td colspan="4" class="p-3 text-center">No data</td></tr>`);
             invState.total = res.total || 0;
@@ -682,16 +710,36 @@
         // Choose Inventory -> fill current row
         $(document).on('click', '.chooseInventory', function () {
             if (!currentRow) return;
-            const id = $(this).data('id');
-            const name = $(this).data('name');
-            const stock_unit = $(this).data('stock_unit');
+
+            const id           = $(this).data('id');
+            const name         = $(this).data('name');
+            const stock_unit   = $(this).data('stock_unit');
+            const account_id   = ($(this).data('account_id') || '').toString().trim();
+
+            // NEW: item meta dari inventory
+            const item_type     = $(this).data('item_type') || '';
+            const item_category = $(this).data('item_category') || '';
 
             currentRow.find('.inventoryIdField').val(id);
             currentRow.find('.productNameField').val(name);
             currentRow.find('.stock_unitField').val(stock_unit || '-');
 
+            // simpan hidden baru
+            currentRow.find('.prodItemTypeField').val(item_type);
+            currentRow.find('.prodItemCategoryField').val(item_category);
+
+            // opsional: auto-isi COA bila inventory bawa default account_id (seperti sebelumnya)
+            if (account_id) {
+                currentRow.find('.coaIdField').val(account_id);
+                currentRow.find('.coaNameField').val(account_id);
+            } else {
+                currentRow.find('.coaIdField').val('');
+                currentRow.find('.coaNameField').val('');
+            }
+
             closeModal();
         });
+
         });
     </script>
 
@@ -1104,6 +1152,7 @@
         const $coaCount   = $('#coaCount');
         const $coaCpny    = $('#coaCpnyBadge');
         const $coaDept    = $('#coaDeptBadge');
+        const $coaPerpost = $('#coaPerpostBadge');
 
         let currentCoaRow = null; // row penerima data
         let coaState = {
@@ -1112,7 +1161,8 @@
             per_page: 10,
             total: 0,
             cpnyid: null,
-            deptid: null
+            deptid: null,
+            perpost: null,
         };
 
         function openCoaModal(forRow) {
@@ -1121,17 +1171,20 @@
             // baca cpny & dept dari header
             const cpny = $('select[name="cpnyid"]').val();
             const dept = $('select[name="departementid"]').val();
+            const perpost = $('#perpost').val();
 
             if (!cpny) { if (window.toastr) toastr.warning('Pilih Company terlebih dahulu.'); return; }
             if (!dept) { if (window.toastr) toastr.warning('Pilih Department terlebih dahulu.'); return; }
 
             coaState.cpnyid = cpny;
             coaState.deptid = dept;
+            coaState.perpost = perpost;
             coaState.page   = 1;
             coaState.search = '';
 
             $coaCpny.text(coaState.cpnyid);
             $coaDept.text(coaState.deptid);
+            $coaPerpost.text(coaState.perpost);
             $('#coaSearch').val('');
 
             $coaModal.removeClass('hidden').addClass('flex');
@@ -1176,32 +1229,41 @@
             $.getJSON("{{ route('coa.byDept') }}", {
             cpnyid:   coaState.cpnyid,
             deptid:   coaState.deptid,
+            perpost:  coaState.perpost,
             search:   coaState.search,
             page:     coaState.page,
             per_page: coaState.per_page
             })
             .done(function (res) {
             // Expected: { data: [{account_id, activity_detail, totalbudget}], total, ... }
-            const rows = (res.data || []).map(item => {
-                const id   = item.account_id   ?? item.budget_account_id ?? '';
-                const activity_detail = item.activity_detail ?? item.coa_activity_detail ?? '';
-                const totalbudget = item.totalbudget ?? item.coa_totalbudget ?? '';
-                // const label = (activity_detail ? activity_detail+' - ' : '') + totalbudget;
-                const label = id;
+           const rows = (res.data || []).map(item => {
+                const id         = item.account_id ?? '';
+                const actId      = item.activity_id ?? '';
+                const buId       = item.business_unit_id ?? '';
+                const deptFinId  = item.department_fin_id ?? '';
+                const actDetail  = item.activity_detail ?? '';
+                const totalbudget= item.totalbudget ?? '';
+                const label      = id; // atau `${id} - ${actDetail}`
 
                 return `
-                <tr>
+                    <tr>
                     <td class="border p-2">${id}</td>
-                    <td class="border p-2">${activity_detail}</td>
+                    <td class="border p-2">${actDetail}</td>
                     <td class="border p-2">${totalbudget}</td>
                     <td class="border p-2 text-center">
-                    <button type="button" class="chooseCoa rounded border px-2 py-1 hover:bg-gray-100"
+                        <button type="button" class="chooseCoa rounded border px-2 py-1 hover:bg-gray-100"
                         data-id="${id}"
-                        data-label="${$('<div>').text(label).html()}">Choose</button>
+                        data-activity_id="${actId}"
+                        data-business_unit_id="${buId}"
+                        data-department_fin_id="${deptFinId}"
+                        data-label="${$('<div>').text(label).html()}">
+                        Choose
+                        </button>
                     </td>
-                </tr>
+                    </tr>
                 `;
             }).join('');
+
 
             $coaTbody.html(rows || '<tr><td colspan="4" class="p-3 text-center">No data</td></tr>');
             coaState.total = res.total || 0;
@@ -1222,21 +1284,30 @@
         $(document).on('click', '.chooseCoa', function () {
             if (!currentCoaRow) return;
             const id    = $(this).data('id');
+            const actId = $(this).data('activity_id');
             const label = $(this).data('label');
+            const buId       = $(this).data('business_unit_id');
+            const deptFinId  = $(this).data('department_fin_id');
 
             currentCoaRow.find('.coaIdField').val(id);
+            currentCoaRow.find('.activityIdField').val(actId);   // ⬅️ simpan activity_id hidden
             currentCoaRow.find('.coaNameField').val(label);
+            currentCoaRow.find('.businessUnitIdField').val(buId);
+            currentCoaRow.find('.departmentFinIdField').val(deptFinId);
 
             closeCoaModal();
         });
 
+
         // Jika company/department berubah saat modal terbuka → refresh
-        $('select[name="cpnyid"], select[name="departementid"]').on('change', function () {
+         $('select[name="cpnyid"], select[name="departementid"], #perpost').on('change', function () {
             if ($coaModal.is(':visible')) {
-            coaState.cpnyid = $('select[name="cpnyid"]').val();
-            coaState.deptid = $('select[name="departementid"]').val();
+            coaState.cpnyid  = $('select[name="cpnyid"]').val();
+            coaState.deptid  = $('select[name="departementid"]').val();
+            coaState.perpost = $('#perpost').val();
             $coaCpny.text(coaState.cpnyid || '-');
             $coaDept.text(coaState.deptid || '-');
+            $coaPerpost.text(coaState.perpost || '-');
             coaState.page = 1;
             loadCoa();
             }

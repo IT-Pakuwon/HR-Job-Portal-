@@ -53,15 +53,15 @@
                         <span
                             class="@if ($sto->status === 'D') bg-gray-300/30 text-gray-600
                             @elseif($sto->status === 'P') bg-blue-300/30 text-blue-600
-                            @elseif($sto->status === 'A') bg-green-300/30 text-green-600
+                            @elseif($sto->status === 'C') bg-green-300/30 text-green-600
                             @elseif($sto->status === 'R') bg-red-300/30 text-red-600
                             @else bg-gray-300/30 text-gray-600 @endif rounded-full px-3 py-1 text-sm font-semibold">
                             @if ($sto->status === 'D')
                                 Draft
                             @elseif($sto->status === 'P')
                                 Pending
-                            @elseif($sto->status === 'A')
-                                Approved
+                            @elseif($sto->status === 'C')
+                                Completed
                             @elseif($sto->status === 'R')
                                 Rejected
                             @else
