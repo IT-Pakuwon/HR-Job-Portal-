@@ -393,6 +393,7 @@ Route::post('/logout', function () {
     Route::put('/sppbs/{id}', [SppbController::class, 'updateSppb'])->name('sppbs.update');
     Route::put('/sppbs/remove-attachment/{id}', [SppbController::class, 'removeAttachment']);    
     Route::get('/sppb/{id}/check-approval/{action}', [SppbController::class, 'checkApproval']);     
+    Route::get('/sppbs/{id}/tracking', [SppbController::class, 'tracking'])->name('sppbs.tracking');
 
     Route::get('/inventory/list', [MasterController::class, 'InventoryList'])->name('inventory.list');
     Route::get('/request-types/by-company', [MasterController::class, 'RequestType'])->name('requesttypes.byCompany');

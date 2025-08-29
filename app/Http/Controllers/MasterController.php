@@ -23,8 +23,8 @@ class MasterController extends Controller
         $perPage = max((int) $request->get('per_page', 10), 1);
 
         // Gunakan ILIKE utk Postgres, LIKE utk selain itu
-        $driver = config('database.connections.'.config('database.default').'.driver');
-        $LIKE   = $driver === 'pgsql' ? 'ILIKE' : 'LIKE';
+        // $driver = config('database.connections.'.config('database.default').'.driver');
+        // $LIKE   = $driver === 'pgsql' ? 'ilike' : 'like';
 
         // === Pilih sumber data ===
         if ($type === 'STOCK') {
@@ -35,7 +35,7 @@ class MasterController extends Controller
         } else {
             // Ambil dari master inventory umum
             $query = MsInventoryPG::query()
-                ->select('inventoryid', 'inventory_descr', 'stock_unit');
+                ->select('inventoryid', 'inventory_descr', 'stock_unit','item_type','item_category');
 
             // Filter tipe jika spesifik
             if (in_array($type, ['NONSTOCK', 'JASA'], true)) {
@@ -46,10 +46,10 @@ class MasterController extends Controller
 
         // Pencarian
         if ($search !== '') {
-            $query->where(function ($q) use ($search, $LIKE) {
-                $q->where('inventoryid',     $LIKE, "%{$search}%")
-                ->orWhere('inventory_descr',$LIKE, "%{$search}%")
-                ->orWhere('stock_unit',    $LIKE, "%{$search}%");
+            $query->where(function ($q) use ($search) {
+                $q->where('inventoryid',     'ilike', "%{$search}%")
+                ->orWhere('inventory_descr','ilike', "%{$search}%")
+                ->orWhere('stock_unit',    'ilike', "%{$search}%");
             });
         }
 
@@ -108,8 +108,8 @@ class MasterController extends Controller
 
         if ($search !== '') {
             $q->where(function ($w) use ($search) {
-                $w->where('location_id', 'like', "%{$search}%")
-                  ->orWhere('location_name', 'like', "%{$search}%");
+                $w->where('location_id', 'ilike', "%{$search}%")
+                  ->orWhere('location_name', 'ilike', "%{$search}%");
             });
         }
 
@@ -151,8 +151,8 @@ class MasterController extends Controller
 
         if ($search !== '') {
             $q->where(function ($w) use ($search) {
-                $w->where('sub_location_id', 'like', "%{$search}%")
-                  ->orWhere('sub_location_name', 'like', "%{$search}%");
+                $w->where('sub_location_id', 'ilike', "%{$search}%")
+                  ->orWhere('sub_location_name', 'ilike', "%{$search}%");
             });
         }
 
@@ -189,6 +189,7 @@ class MasterController extends Controller
     {
         $cpnyid   = $request->get('cpnyid');
         $deptid   = $request->get('deptid');
+        $perpost  = $request->get('perpost'); // ⬅️ ambil perpost (tahun)
         $search   = trim($request->get('search', ''));
         $page     = max((int)$request->get('page', 1), 1);
         $perPage  = max((int)$request->get('per_page', 10), 1);
@@ -199,22 +200,32 @@ class MasterController extends Controller
             ]);
         }
 
+        // Ambil budget aktif untuk company+dept (dan perpost jika ada)
         $budget = Budget::where('status', 'C')
             ->where('cpny_id', $cpnyid)
             ->where('department_fin_id', $deptid)
+            ->when($perpost, function ($q) use ($perpost) {
+                $q->where('perpost', $perpost);
+            })
             ->first();
 
+
         $budgetDetail = BudgetDetail::query()
-            ->where('budget_id', $budget->budget_id ?? null)
+            ->when($budget, function ($q) use ($budget) {
+                $q->where('budget_id', $budget->budget_id);
+            })
             ->where('cpny_id', $cpnyid)
-            ->where('department_fin_id', $deptid);
+            ->where('department_fin_id', $deptid)
             // ->where('status', 'A') // aktifkan jika ada kolom status
+            ->when($perpost, function ($q) use ($perpost) {
+                $q->where('perpost', $perpost);
+            });
 
         if ($search !== '') {
             $budgetDetail->where(function ($w) use ($search) {
-                $w->where('account_id',   'like', "%{$search}%")
-                  ->orWhere('activity_detail','like', "%{$search}%")
-                  ->orWhere('totalbudget','like', "%{$search}%");
+                $w->where('account_id',     'ilike', "%{$search}%")
+                ->orWhere('activity_detail','ilike', "%{$search}%")
+                ->orWhere('totalbudget',  'ilike', "%{$search}%");
             });
         }
 
@@ -223,7 +234,7 @@ class MasterController extends Controller
         $rows = $budgetDetail->orderBy('activity_detail')
             ->offset(($page - 1) * $perPage)
             ->limit($perPage)
-            ->get(['account_id', 'activity_detail', 'totalbudget']);
+            ->get(['account_id', 'activity_id', 'activity_detail', 'totalbudget','business_unit_id','department_fin_id']);
 
         return response()->json([
             'data'     => $rows,
@@ -232,4 +243,5 @@ class MasterController extends Controller
             'per_page' => $perPage,
         ]);
     }
+
 }
