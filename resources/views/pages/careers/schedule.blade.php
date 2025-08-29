@@ -240,7 +240,7 @@
 <script>
     $(document).ready(function() {
         $('.select2').select2({
-            placeholder: "Select Participants",
+            placeholder: "Select",
             allowClear: true,
             width: '100%',
             dropdownParent: $('#agendaModal') // ⬅️ ini penting!

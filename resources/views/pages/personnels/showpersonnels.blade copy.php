@@ -258,7 +258,7 @@
         </div>
     </div>
     <div id="rejectTaskModal" class="fixed inset-0 flex items-center justify-center bg-black/50 z-50 hidden">
-        <div class="bg-white dark:bg-gray-700 p-6 rounded-lg shadow-lg w-full max-w-md">
+        <div class="bg-white dark:bg-gray-700 p-6 rounded-lg   w-full max-w-md">
             <h2 class="text-xl font-semibold text-gray-800 dark:text-white mb-4">Reject Task</h2>
     
             <label for="rejectReason" class="text-gray-600 dark:text-white text-sm">Reason for Rejection:</label>
@@ -276,7 +276,7 @@
         </div>
     </div>
     <div id="reviseTaskModal" class="fixed inset-0 flex items-center justify-center bg-black/50 z-50 hidden">
-        <div class="bg-white dark:bg-gray-700 p-6 rounded-lg shadow-lg w-full max-w-md">
+        <div class="bg-white dark:bg-gray-700 p-6 rounded-lg   w-full max-w-md">
             <h2 class="text-xl font-semibold text-gray-800 dark:text-white mb-4">Revise Task</h2>
     
             <label for="reviseReason" class="text-gray-600 dark:text-white text-sm">Reason for Revise:</label>
@@ -313,7 +313,7 @@
                             x-transition:enter-start="translate-x-full" x-transition:enter-end="translate-x-0"
                             x-transition:leave="transform transition ease-in-out duration-300"
                             x-transition:leave-start="translate-x-0" x-transition:leave-end="translate-x-full"
-                            class="fixed top-0 right-0 w-full h-full md:w-1/3 bg-white shadow-lg p-6 z-50">
+                            class="fixed top-0 right-0 w-full h-full md:w-1/3 bg-white   p-6 z-50">
                         
                                 
                                 <button @click="open = false" class="absolute top-4 right-4 text-gray-500">✖</button>

@@ -324,6 +324,10 @@
                                     Level
                                 </th>
                                 <th scope="col"
+                                    class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                                    User
+                                </th>
+                                <th scope="col"
                                     class="w-32 px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
                                     Status
                                 </th>
@@ -405,6 +409,10 @@
                             },
                             {
                                 data: 'job_level',
+                                className: 'no-pointer'
+                            },
+                            {
+                                data: 'created_user',
                                 className: 'no-pointer'
                             },
                             {

@@ -51,11 +51,11 @@
                             🆔 {{ $sto->sto_id }}
                         </h1>
                         <span
-                            class="@if ($sto->status === 'D') bg-gray-300/30 text-gray-600
-                            @elseif($sto->status === 'P') bg-blue-300/30 text-blue-600
-                            @elseif($sto->status === 'C') bg-green-300/30 text-green-600
-                            @elseif($sto->status === 'R') bg-red-300/30 text-red-600
-                            @else bg-gray-300/30 text-gray-600 @endif rounded-full px-3 py-1 text-sm font-semibold">
+                            class="@if ($sto->status === 'D') bg-gray-300/30 text-gray-600 dark:text-gray-300
+                            @elseif($sto->status === 'P') bg-blue-300/30 text-blue-600 dark:text-blue-400
+                            @elseif($sto->status === 'C') bg-green-300/30 text-green-600 dark:text-green-400
+                            @elseif($sto->status === 'R') bg-red-300/30 text-red-600 dark:text-red-400
+                            @else bg-gray-300/30 text-gray-600 dark:text-white @endif rounded-full px-3 py-1 text-sm font-semibold">
                             @if ($sto->status === 'D')
                                 Draft
                             @elseif($sto->status === 'P')
@@ -75,7 +75,8 @@
 
                         <div
                             class="absolute bottom-4 right-7 flex items-center space-x-2 rounded-xl bg-gray-900/60 p-2 shadow-xl backdrop-blur-sm">
-                            <button onclick="window.open('{{ route('orgchart.fullscreen', ['sto' => $sto->id]) }}', '_blank')"
+                            <button
+                                onclick="window.open('{{ route('orgchart.fullscreen', ['sto' => $sto->id]) }}', '_blank')"
                                 class="flex h-10 w-10 items-center justify-center rounded-full bg-blue-600 text-white shadow-md transition-colors hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
                                     viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -85,11 +86,10 @@
                                 <span class="sr-only">Open Fullscreen</span>
                             </button>
                         </div>
-
                         <div id="modalForm"
                             class="fixed inset-0 z-50 flex hidden items-center justify-center bg-gray-900/40 backdrop-blur-sm">
                             <div
-                                class="card-container relative w-full max-w-2xl transform overflow-hidden rounded-md bg-white">
+                                class="card-container relative w-full max-w-2xl transform overflow-hidden rounded-md bg-white dark:bg-gray-800">
                                 <div
                                     class="card-header flex flex-col items-start justify-between border-b border-gray-200 p-4 sm:flex-row sm:items-center dark:border-gray-700">
                                     <button onclick="closeModal()"
@@ -101,7 +101,8 @@
                                         </svg>
                                         Back
                                     </button>
-                                    <h3 class="card-title !mb-0 !text-lg">Employee List</h3>
+                                    <h3 class="card-title !mb-0 !text-lg text-gray-900 dark:text-gray-100">Employee List
+                                    </h3>
                                     <h4 id="departmentLabel" class="text-lg text-gray-600 dark:text-gray-300">
                                     </h4>
 
@@ -114,29 +115,29 @@
                                                 <thead class="bg-gray-50 dark:bg-gray-700">
                                                     <tr>
                                                         <th
-                                                            class="table-header-cell border border-gray-200 dark:border-gray-600">
+                                                            class="table-header-cell border border-gray-200 dark:border-gray-600 dark:text-gray-200">
                                                             No</th>
                                                         <th
-                                                            class="table-header-cell border border-gray-200 dark:border-gray-600">
+                                                            class="table-header-cell border border-gray-200 dark:border-gray-600 dark:text-gray-200">
                                                             Name</th>
                                                         <th
-                                                            class="table-header-cell border border-gray-200 dark:border-gray-600">
+                                                            class="table-header-cell border border-gray-200 dark:border-gray-600 dark:text-gray-200">
                                                             Company</th>
                                                         <th
-                                                            class="table-header-cell border border-gray-200 dark:border-gray-600">
-                                                            Jabatan
+                                                            class="table-header-cell border border-gray-200 dark:border-gray-600 dark:text-gray-200">
+                                                            Position
                                                         </th>
                                                         <th
-                                                            class="table-header-cell border border-gray-200 dark:border-gray-600">
-                                                            Foto</th>
+                                                            class="table-header-cell border border-gray-200 dark:border-gray-600 dark:text-gray-200">
+                                                            Photo</th>
                                                         <th
-                                                            class="table-header-cell border border-gray-200 dark:border-gray-600">
+                                                            class="table-header-cell border border-gray-200 dark:border-gray-600 dark:text-gray-200">
                                                             Action
                                                         </th>
                                                     </tr>
                                                 </thead>
                                                 <tbody id="employeeTableBody"
-                                                    class="divide-y divide-gray-200 border-gray-200 dark:divide-gray-600">
+                                                    class="divide-y divide-gray-200 border-gray-200 dark:divide-gray-600 dark:border-gray-600 dark:text-gray-300">
                                                 </tbody>
                                             </table>
                                         </div>
@@ -401,7 +402,7 @@
                                         class="flex-1 rounded-lg border border-transparent bg-gray-100 p-3 text-gray-800 transition-all duration-200 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white dark:focus:ring-indigo-400">
                                     <button id="postCommentBtn"
                                         @click="if(newComment.trim()) { comments.push({ text: newComment, user: currentUser }); newComment = ''; }"
-                                        class="rounded-lg bg-indigo-600 px-5 py-3 text-sm font-semibold text-white shadow-md transition-all duration-200 hover:bg-indigo-700 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 active:scale-95 dark:focus:ring-offset-gray-800">
+                                        class="hover: rounded-lg bg-indigo-600 px-5 py-3 text-sm font-semibold text-white shadow-md transition-all duration-200 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 active:scale-95 dark:focus:ring-offset-gray-800">
                                         Post 🚀
                                     </button>
                                 </div>
@@ -422,7 +423,7 @@
     </div>
 
     <div id="rejectTaskModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50">
-        <div class="w-full max-w-md rounded-lg bg-white p-6 shadow-lg dark:bg-gray-700">
+        <div class="w-full max-w-md rounded-lg bg-white p-6 dark:bg-gray-700">
             <h2 class="mb-4 text-xl font-semibold text-gray-800 dark:text-white">Reject Task</h2>
             <textarea id="rejectReason"
                 class="mt-2 w-full rounded-lg border p-3 focus:outline-none dark:bg-gray-800 dark:text-white"
@@ -439,7 +440,7 @@
         </div>
     </div>
     <div id="reviseTaskModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50">
-        <div class="w-full max-w-md rounded-lg bg-white p-6 shadow-lg dark:bg-gray-700">
+        <div class="w-full max-w-md rounded-lg bg-white p-6 dark:bg-gray-700">
             <h2 class="mb-4 text-xl font-semibold text-gray-800 dark:text-white">Revise Task</h2>
             <textarea id="reviseReason"
                 class="mt-2 w-full rounded-lg border p-3 focus:outline-none dark:bg-gray-800 dark:text-white"
@@ -459,8 +460,7 @@
         class="fixed inset-0 z-50 flex hidden items-center justify-center bg-gray-900/40 backdrop-blur-sm">
         <div
             class="relative max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-lg bg-white p-6 shadow-xl dark:bg-gray-800">
-            <div
-                class="mb-4 flex items-center justify-between border-b border-gray-200 pb-4 dark:border-gray-700">
+            <div class="mb-4 flex items-center justify-between border-b border-gray-200 pb-4 dark:border-gray-700">
                 <h3 class="text-xl font-semibold text-gray-800 dark:text-white">
                     Job Profile <span id="jobLevelLabel"
                         class="font-bold text-indigo-600 dark:text-indigo-400"></span>
@@ -471,23 +471,21 @@
                 </button>
             </div>
 
-            <div
-                class="mb-6 overflow-x-auto rounded-lg border border-gray-200 shadow-sm dark:border-gray-700">
+            <div class="mb-6 overflow-x-auto shadow-sm">
                 <table
                     class="min-w-full divide-y divide-gray-200 text-sm text-gray-800 dark:divide-gray-700 dark:text-gray-200">
                     <thead class="bg-gray-50 dark:bg-gray-700">
                         <tr>
                             <th scope="col"
-                                class="border-r border-gray-200 px-4 py-2 text-left font-semibold tracking-wider dark:border-gray-600">
+                                class="border-gray-200 px-4 py-2 text-left font-semibold tracking-wider dark:border-gray-600">
                                 No</th>
                             <th scope="col"
-                                class="border-r border-gray-200 px-4 py-2 text-left font-semibold tracking-wider dark:border-gray-600">
+                                class="border-gray-200 px-4 py-2 text-left font-semibold tracking-wider dark:border-gray-600">
                                 Job Purpose</th>
-                           
+
                         </tr>
                     </thead>
-                    <tbody id="jobProfileBody"
-                        class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-800">
+                    <tbody id="jobProfileBody" class="bg-white dark:bg-gray-800">
                     </tbody>
                 </table>
             </div>
@@ -496,7 +494,7 @@
             </div>
         </div>
     </div>
-        <style>
+    <style>
         /* Styling untuk loading spinner di kanan bawah */
         #loadingSpinnerContainer {
             position: fixed;
@@ -910,13 +908,13 @@
                                 <div style="font-size:12px;color:#333">
                                     <div style="margin-top:10px;">
                                         ${members.map(m => `
-                                            <div style="display:flex;align-items:center;margin-bottom:6px;">
-                                                <img src="${m.image}" style="width:30px;height:30px;border-radius:50%;margin-right:8px;" />
-                                                <span style="font-size:12px; color:${m.name.toUpperCase() === 'VACANT' ? 'red' : '#000'};">
-                                                    ${m.name} (${m.company})
-                                                </span>
-                                            </div>
-                                        `).join('')}
+                                                                                                                                    <div style="display:flex;align-items:center;margin-bottom:6px;">
+                                                                                                                                        <img src="${m.image}" style="width:30px;height:30px;border-radius:50%;margin-right:8px;" />
+                                                                                                                                        <span style="font-size:12px; color:${m.name.toUpperCase() === 'VACANT' ? 'red' : '#000'};">
+                                                                                                                                            ${m.name} (${m.company})
+                                                                                                                                        </span>
+                                                                                                                                    </div>
+                                                                                                                                `).join('')}
                                     </div>
                                 </div>
                             </div>
@@ -930,8 +928,8 @@
                 .data(data)
                 .linkUpdate((d, i, arr) => {
                     d3.select(arr[i])
-                    .attr('stroke-width', 2)   // tebal garis parent-child
-                    .attr('stroke', '#374151'); // opsional: warna
+                        .attr('stroke-width', 2) // tebal garis parent-child
+                        .attr('stroke', '#374151'); // opsional: warna
                 })
                 // .disableZoom()
                 .render();
@@ -977,14 +975,14 @@
                     employees.forEach((emp, index) => {
                         html += `
                         <tr>
-                            <td class="border   px-2 py-1">${index + 1}</td>
-                            <td class="border   px-2 py-1">${emp.employee_name}</td>
-                            <td class="border   px-2 py-1">${emp.employee_company}</td>
-                            <td class="border   px-2 py-1">${emp.employee_level}</td>
-                            <td class="border   px-2 py-1 text-center">
+                            <td class="border dark:border-gray-700  px-2 py-1">${index + 1}</td>
+                            <td class="border dark:border-gray-700  px-2 py-1">${emp.employee_name}</td>
+                            <td class="border dark:border-gray-700  px-2 py-1">${emp.employee_company}</td>
+                            <td class="border dark:border-gray-700  px-2 py-1">${emp.employee_level}</td>
+                            <td class="border dark:border-gray-700  px-2 py-1 text-center">
                                 <img src="${emp.image || 'https://cdn-icons-png.flaticon.com/512/149/149071.png'}" class="w-25 h-25 rounded-full mx-auto">
                             </td>
-                            <td class="border   px-2 py-1 text-center">
+                            <td class="border dark:border-gray-700  px-2 py-1 text-center">
                                 <div class="inline-flex gap-2">
                                     <!-- Job Profile Button -->
                                     <button
@@ -1107,8 +1105,8 @@
                     profiles.forEach((p, i) => {
                         rows += `
                             <tr>
-                                <td class="border   px-2 py-1">${i + 1}</td>                                
-                                <td class="border   px-2 py-1">${p.job_purpose || ''}</td>                                                                                       
+                                <td class="border dark:border-gray-700 px-2 py-1">${i + 1}</td>                                
+                                <td class="border dark:border-gray-700 px-2 py-1">${p.job_purpose || ''}</td>                                                                                       
                             </tr>
                         `;
                     });

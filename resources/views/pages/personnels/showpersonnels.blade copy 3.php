@@ -308,7 +308,7 @@
                                                 <button 
                                                     id="postCommentBtn" 
                                                     @click="if(newComment.trim()) { comments.push({ text: newComment, user: currentUser }); newComment = ''; }" 
-                                                    class="bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 shadow-md hover:shadow-lg active:scale-95">
+                                                    class="bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 shadow-md hover:  active:scale-95">
                                                     Post 🚀
                                                 </button>
                                             </div>
@@ -330,7 +330,7 @@
             </div>
             
             <div id="rejectTaskModal" class="fixed inset-0 flex items-center justify-center bg-black/50 z-50 hidden">
-                <div class="bg-white dark:bg-gray-700 p-6 rounded-lg shadow-lg w-full max-w-md">
+                <div class="bg-white dark:bg-gray-700 p-6 rounded-lg   w-full max-w-md">
                     <h2 class="text-xl font-semibold text-gray-800 dark:text-white mb-4">Reject Task</h2>
                     <textarea id="rejectReason" class="w-full mt-2 p-3 border rounded-lg focus:outline-none dark:bg-gray-800 dark:text-white"
                             placeholder="Enter rejection reason..."></textarea>
@@ -346,7 +346,7 @@
                 </div>
             </div>
             <div id="reviseTaskModal" class="fixed inset-0 flex items-center justify-center bg-black/50 z-50 hidden">
-                <div class="bg-white dark:bg-gray-700 p-6 rounded-lg shadow-lg w-full max-w-md">
+                <div class="bg-white dark:bg-gray-700 p-6 rounded-lg   w-full max-w-md">
                     <h2 class="text-xl font-semibold text-gray-800 dark:text-white mb-4">Revise Task</h2>
                     <textarea id="reviseReason" class="w-full mt-2 p-3 border rounded-lg focus:outline-none dark:bg-gray-800 dark:text-white"
                             placeholder="Enter revise reason..."></textarea>

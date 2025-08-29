@@ -55,7 +55,7 @@
 
         <div class="mt-8 flex justify-end">
             <button type="submit"
-                class="inline-flex items-center rounded-xl bg-indigo-600 px-6 py-2 text-base font-semibold text-white shadow-md transition-colors duration-200 hover:bg-indigo-700 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800">
+                class="hover: inline-flex items-center rounded-xl bg-indigo-600 px-6 py-2 text-base font-semibold text-white shadow-md transition-colors duration-200 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800">
                 Save Checklist
             </button>
         </div>
@@ -63,35 +63,40 @@
 
     {{-- ===== Jadwal Onboarding (Form Terpisah) ===== --}}
     <form id="scheduleForm" class="mt-10 rounded-xl border border-gray-200 p-6 dark:border-gray-700">
-    @csrf
-    <input type="hidden" name="applicant_id" value="{{ $applicant->applicant_id ?? '' }}">
-    <input type="hidden" name="jobapply_id"  value="{{ $career->docid ?? '' }}">
+        @csrf
+        <input type="hidden" name="applicant_id" value="{{ $applicant->applicant_id ?? '' }}">
+        <input type="hidden" name="jobapply_id" value="{{ $career->docid ?? '' }}">
 
-    <h3 class="mb-4 text-lg font-semibold text-gray-800 dark:text-gray-100">Jadwal Onboarding</h3>
+        <h3 class="mb-4 text-lg font-semibold text-gray-800 dark:text-gray-100">Jadwal Onboarding</h3>
 
-    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <div class="flex flex-col">
-        <label for="sch_availability_date" class="mb-1 text-sm font-medium text-gray-700 dark:text-gray-300">Tanggal Kesediaan</label>
-        <input type="date" id="sch_availability_date" name="availability_date"
-                class="w-full rounded-lg border border-gray-300 p-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white" required>
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div class="flex flex-col">
+                <label for="sch_availability_date"
+                    class="mb-1 text-sm font-medium text-gray-700 dark:text-gray-300">Tanggal Kesediaan</label>
+                <input type="date" id="sch_availability_date" name="availability_date"
+                    class="w-full rounded-lg border border-gray-300 p-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                    required>
+            </div>
+            <div class="flex flex-col">
+                <label for="sch_work_start_date"
+                    class="mb-1 text-sm font-medium text-gray-700 dark:text-gray-300">Tanggal Mulai Kerja</label>
+                <input type="date" id="sch_work_start_date" name="work_start_date"
+                    class="w-full rounded-lg border border-gray-300 p-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                    required>
+            </div>
         </div>
-        <div class="flex flex-col">
-        <label for="sch_work_start_date" class="mb-1 text-sm font-medium text-gray-700 dark:text-gray-300">Tanggal Mulai Kerja</label>
-        <input type="date" id="sch_work_start_date" name="work_start_date"
-                class="w-full rounded-lg border border-gray-300 p-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white" required>
-        </div>
-    </div>
 
-    <div class="mt-6 flex justify-end">
-        <button type="submit" id="btnSaveSchedule"
+        <div class="mt-6 flex justify-end">
+            <button type="submit" id="btnSaveSchedule"
                 class="inline-flex items-center rounded-xl bg-emerald-600 px-6 py-2 text-base font-semibold text-white shadow-md transition-colors duration-200 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800">
-        <span class="sch-text">Save Schedule & Send Email</span>
-        <svg class="sch-spin ml-2 hidden h-5 w-5 animate-spin" viewBox="0 0 24 24" fill="none">
-            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
-        </svg>
-        </button>
-    </div>
+                <span class="sch-text">Save Schedule & Send Email</span>
+                <svg class="sch-spin ml-2 hidden h-5 w-5 animate-spin" viewBox="0 0 24 24" fill="none">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
+                        stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+                </svg>
+            </button>
+        </div>
     </form>
 
 
@@ -197,58 +202,63 @@
 </script>
 
 <script>
-    $(function () {
-    function setScheduleSaving(isSaving) {
-        const $btn = $('#btnSaveSchedule');
-        $btn.prop('disabled', isSaving);
-        $btn.find('.sch-spin').toggleClass('hidden', !isSaving);
-        $btn.find('.sch-text').text(isSaving ? 'Saving...' : 'Save Schedule');
-    }
-
-    $('#scheduleForm').on('submit', function (e) {
-        e.preventDefault();
-
-        const payload = {
-            _token: $(this).find('input[name="_token"]').val(),
-            applicant_id: $(this).find('input[name="applicant_id"]').val(),
-            jobapply_id:  $(this).find('input[name="jobapply_id"]').val(),
-            availability_date: $('#sch_availability_date').val(),
-            work_start_date:   $('#sch_work_start_date').val()
-        };
-
-        if (!payload.availability_date || !payload.work_start_date) {
-        toastr.error('Tanggal Kesediaan dan Tanggal Mulai Kerja wajib diisi.');
-        return;
+    $(function() {
+        function setScheduleSaving(isSaving) {
+            const $btn = $('#btnSaveSchedule');
+            $btn.prop('disabled', isSaving);
+            $btn.find('.sch-spin').toggleClass('hidden', !isSaving);
+            $btn.find('.sch-text').text(isSaving ? 'Saving...' : 'Save Schedule');
         }
 
-        setScheduleSaving(true);
+        $('#scheduleForm').on('submit', function(e) {
+            e.preventDefault();
 
-        $.ajax({
-        url: "{{ route('onboarding.schedule.update') }}",
-        type: 'POST',
-        data: payload,
-        headers: { 'Accept': 'application/json' }
-        })
-        .done(function (resp) {
-        if (resp && resp.success) {
-            toastr.success(resp.message || 'Jadwal berhasil disimpan & email terkirim.');
-        } else {
-            toastr.error(resp.message || 'Gagal menyimpan jadwal.');
-        }
-        })
-        .fail(function (xhr) {
-        if (xhr.status === 422 && xhr.responseJSON?.errors) {
-            const msgs = [];
-            Object.values(xhr.responseJSON.errors).forEach(arr => arr[0] && msgs.push(arr[0]));
-            toastr.error(msgs.join('<br>'), 'Validation Error', { escapeHtml: true });
-        } else {
-            toastr.error('Terjadi kesalahan saat menyimpan jadwal.');
-        }
-        })
-        .always(function () {
-        setScheduleSaving(false);
+            const payload = {
+                _token: $(this).find('input[name="_token"]').val(),
+                applicant_id: $(this).find('input[name="applicant_id"]').val(),
+                jobapply_id: $(this).find('input[name="jobapply_id"]').val(),
+                availability_date: $('#sch_availability_date').val(),
+                work_start_date: $('#sch_work_start_date').val()
+            };
+
+            if (!payload.availability_date || !payload.work_start_date) {
+                toastr.error('Tanggal Kesediaan dan Tanggal Mulai Kerja wajib diisi.');
+                return;
+            }
+
+            setScheduleSaving(true);
+
+            $.ajax({
+                    url: "{{ route('onboarding.schedule.update') }}",
+                    type: 'POST',
+                    data: payload,
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                })
+                .done(function(resp) {
+                    if (resp && resp.success) {
+                        toastr.success(resp.message ||
+                        'Jadwal berhasil disimpan & email terkirim.');
+                    } else {
+                        toastr.error(resp.message || 'Gagal menyimpan jadwal.');
+                    }
+                })
+                .fail(function(xhr) {
+                    if (xhr.status === 422 && xhr.responseJSON?.errors) {
+                        const msgs = [];
+                        Object.values(xhr.responseJSON.errors).forEach(arr => arr[0] && msgs.push(
+                            arr[0]));
+                        toastr.error(msgs.join('<br>'), 'Validation Error', {
+                            escapeHtml: true
+                        });
+                    } else {
+                        toastr.error('Terjadi kesalahan saat menyimpan jadwal.');
+                    }
+                })
+                .always(function() {
+                    setScheduleSaving(false);
+                });
         });
     });
-    });
 </script>
-

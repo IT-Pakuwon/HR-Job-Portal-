@@ -1,29 +1,31 @@
-@import 'flatpickr/dist/flatpickr.min.css';
+@import "flatpickr/dist/flatpickr.min.css";
 
 /* Customise flatpickr */
 * {
     --calendarPadding: 24px;
     --daySize: 36px;
-    --daysWidth: calc(var(--daySize)*7);
+    --daysWidth: calc(var(--daySize) * 7);
 }
 
 @keyframes fpFadeInDown {
-  from {
-    opacity: 0;
-    transform: translate3d(0, -8px, 0);
-  }
-  to {
-    opacity: 1;
-    transform: translate3d(0, 0, 0);
-  }
+    from {
+        opacity: 0;
+        transform: translate3d(0, -8px, 0);
+    }
+    to {
+        opacity: 1;
+        transform: translate3d(0, 0, 0);
+    }
 }
 
 .flatpickr-calendar {
     border: inherit;
-    @apply bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700/60 left-1/2;
-    margin-left: calc(calc(var(--daysWidth) + calc(var(--calendarPadding)*2))*0.5*-1);
+    @apply bg-white dark:bg-gray-800 rounded-lg   border border-gray-200 dark:border-gray-700/60 left-1/2;
+    margin-left: calc(
+        calc(var(--daysWidth) + calc(var(--calendarPadding) * 2)) * 0.5 * -1
+    );
     padding: var(--calendarPadding);
-    width: calc(var(--daysWidth) + calc(var(--calendarPadding)*2));
+    width: calc(var(--daysWidth) + calc(var(--calendarPadding) * 2));
 }
 
 @media (width >= theme(--breakpoint-lg)) {
@@ -84,8 +86,8 @@
     @apply bg-transparent;
 }
 
-.flatpickr-day, 
-.flatpickr-day.prevMonthDay, 
+.flatpickr-day,
+.flatpickr-day.prevMonthDay,
 .flatpickr-day.nextMonthDay,
 .flatpickr-day.selected.startRange,
 .flatpickr-day.startRange.startRange,
@@ -152,9 +154,9 @@
 }
 
 .flatpickr-day.inRange,
-.flatpickr-day.selected.startRange + .endRange:not(:nth-child(7n+1)),
-.flatpickr-day.startRange.startRange + .endRange:not(:nth-child(7n+1)),
-.flatpickr-day.endRange.startRange + .endRange:not(:nth-child(7n+1)) {
+.flatpickr-day.selected.startRange + .endRange:not(:nth-child(7n + 1)),
+.flatpickr-day.startRange.startRange + .endRange:not(:nth-child(7n + 1)),
+.flatpickr-day.endRange.startRange + .endRange:not(:nth-child(7n + 1)) {
     box-shadow: none;
 }
 
@@ -168,7 +170,7 @@
 .flatpickr-months .flatpickr-next-month {
     position: static;
     height: auto;
-    @apply text-gray-400 hover:text-gray-900 dark:text-gray-500 dark:hover:text-gray-300;    
+    @apply text-gray-400 hover:text-gray-900 dark:text-gray-500 dark:hover:text-gray-300;
 }
 
 .flatpickr-months .flatpickr-prev-month svg,

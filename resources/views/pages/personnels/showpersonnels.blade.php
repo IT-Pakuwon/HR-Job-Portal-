@@ -42,7 +42,7 @@
                 </button>
             </div>
         </div>
-        <div class="flex w-full flex-col gap-2 overflow-hidden sm:col-span-1 lg:row-span-1 xl:row-span-1 xl:flex-row">
+        <div class="flex w-full flex-col gap-6 overflow-hidden sm:col-span-1 lg:row-span-1 xl:row-span-1 xl:flex-row">
             <div class="flex flex-col gap-6 sm:w-1/2 md:w-full">
                 <div class="rounded-xl bg-white duration-300 dark:bg-gray-800">
                     <header
@@ -304,9 +304,10 @@
                                         <span
                                             class="flex-shrink-0 text-xl text-indigo-500 dark:text-indigo-400">🎓</span>
                                         {{-- Larger icon --}}
-                                        <span class="font-semibold text-gray-800 dark:text-gray-100">Pendidikan
-                                            minimum
-                                            <span class="font-bold">{{ $personnel->education }}</span></span>
+                                        <span class="font-semibold text-gray-800 dark:text-gray-100">Minimum
+                                            <span class="font-bold">{{ $personnel->education }}</span> Educational
+                                            Background From {{ $personnel->education_jurusan }}.</span>
+
                                         {{-- Bolder value --}}
                                     </li>
                                     <li
@@ -315,10 +316,10 @@
                                         <span
                                             class="flex-shrink-0 text-xl text-indigo-500 dark:text-indigo-400">💼</span>
                                         {{-- Larger icon --}}
-                                        <span class="font-semibold text-gray-800 dark:text-gray-100">Pengalaman
-                                            minimum
+                                        <span class="font-semibold text-gray-800 dark:text-gray-100">Minimum
                                             <span class="font-bold">{{ $personnel->experience_start }}
-                                                Tahun</span></span>
+                                                Year of experience as
+                                                {{ $personnel->experience_position }}.</span></span>
                                         {{-- Bolder value --}}
                                     </li>
                                 </div>
@@ -496,7 +497,7 @@
                                         class="flex-1 rounded-lg border border-transparent bg-gray-100 p-3 text-gray-800 transition-all duration-200 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white dark:focus:ring-indigo-400">
                                     <button id="postCommentBtn"
                                         @click="if(newComment.trim()) { comments.push({ text: newComment, user: currentUser }); newComment = ''; }"
-                                        class="rounded-lg bg-indigo-600 px-5 py-3 text-sm font-semibold text-white shadow-md transition-all duration-200 hover:bg-indigo-700 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 active:scale-95 dark:focus:ring-offset-gray-800">
+                                        class="hover: rounded-lg bg-indigo-600 px-5 py-3 text-sm font-semibold text-white shadow-md transition-all duration-200 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 active:scale-95 dark:focus:ring-offset-gray-800">
                                         Post 🚀
                                     </button>
                                 </div>

@@ -238,7 +238,7 @@
 
                             <div id="modalChangeDept"
                                 class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black bg-opacity-50">
-                                <div class="w-full max-w-md rounded-lg bg-white p-6 shadow-lg">
+                                <div class="w-full max-w-md rounded-lg bg-white p-6  ">
                                     <h3 class="mb-4 text-lg font-semibold">Change Department</h3>
                                     <label class="mb-2 block text-sm font-medium text-gray-700">Select
                                         Department</label>

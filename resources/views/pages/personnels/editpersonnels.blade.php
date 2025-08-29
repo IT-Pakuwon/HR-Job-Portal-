@@ -6,7 +6,8 @@
                     @csrf
                     <div class="w-full rounded-xl bg-white p-6 shadow-md dark:bg-gray-800">
                         <div class="mb-6 border-b border-gray-200 pb-4 dark:border-gray-700">
-                            <h2 class="text-xl font-extrabold text-gray-800 dark:text-white">Edit Personnel Requisition - {{ $personnel->docid ?? '' }}
+                            <h2 class="text-xl font-extrabold text-gray-800 dark:text-white">Edit Personnel Requisition -
+                                {{ $personnel->docid ?? '' }}
                             </h2>
                         </div>
                         <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
@@ -31,7 +32,9 @@
                                     name="division" required>
                                     <option value="" disabled>Select Division</option>
                                     @foreach ($division as $p)
-                                        <option value="{{ $p->division_id }}" {{ $p->division_id == $personnel->division_id ? 'selected' : '' }}>{{ $p->division_name }}</option>
+                                        <option value="{{ $p->division_id }}"
+                                            {{ $p->division_id == $personnel->division_id ? 'selected' : '' }}>
+                                            {{ $p->division_name }}</option>
                                     @endforeach
                                 </select>
                             </div>
@@ -53,7 +56,7 @@
                                     Kerja</label>
                                 <select
                                     class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
-                                    name="siteid" id="siteid" required>                                 
+                                    name="siteid" id="siteid" required>
                                 </select>
                             </div>
                         </div>
@@ -73,12 +76,17 @@
                             <div class="pt-6">
                                 <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-2">
                                     <div class="flex flex-col gap-2">
-                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Job Type</label>
+                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Job
+                                            Type</label>
                                         <select name="job_type" id="job_type"
                                             class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                             required>
-                                            <option value="New" {{ (old('job_type', $personnel->job_type ?? '') == 'New') ? 'selected' : '' }}>New</option>
-                                            <option value="Replacement" {{ (old('job_type', $personnel->job_type ?? '') == 'Replacement') ? 'selected' : '' }}>Replacement</option>
+                                            <option value="New"
+                                                {{ old('job_type', $personnel->job_type ?? '') == 'New' ? 'selected' : '' }}>
+                                                New</option>
+                                            <option value="Replacement"
+                                                {{ old('job_type', $personnel->job_type ?? '') == 'Replacement' ? 'selected' : '' }}>
+                                                Replacement</option>
                                         </select>
                                     </div>
                                     <div class="flex flex-col gap-2">
@@ -87,7 +95,7 @@
                                         <select name="job_title" id="job_title"
                                             class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                             required>
-                                            <option value="">-- Select Vacant Position --</option>
+                                            <option value="">Select</option>
                                         </select>
                                     </div>
                                     <div class="flex flex-col gap-2">
@@ -100,19 +108,22 @@
                                     </div>
                                     <div class="flex flex-col gap-2">
                                         <label
-                                            class="block text-sm font-medium text-gray-700 dark:text-gray-300">Immediate Superior</label>
+                                            class="block text-sm font-medium text-gray-700 dark:text-gray-300">Immediate
+                                            Superior</label>
                                         <input type="text" name="immediate_superior" id="immediate_superior"
                                             class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                             value="{{ old('immediate_superior', $personnel->immediate_superior ?? '') }}">
                                     </div>
                                     <div class="flex flex-col gap-2">
-                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">State Position</label>
+                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">State
+                                            Position</label>
                                         <input type="text" name="state_position" id="state_position"
                                             class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                             value="{{ old('state_position', $personnel->state_position ?? '') }}">
-                                    </div>                                    
+                                    </div>
                                     <div class="flex flex-col gap-2">
-                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Reason for Vacancy</label>
+                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Reason
+                                            for Vacancy</label>
                                         <textarea name="reason_vacancy" id="reason_vacancy"
                                             class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                             required>{{ old('reason_vacancy', $personnel->reason_vacancy ?? '') }}</textarea>
@@ -403,7 +414,6 @@
                 }
             });
         });
-
     </script>
 
     <script>
@@ -443,7 +453,8 @@
 
                 if (confirmDelete) {
                     $.ajax({
-                        url: "/personnels/remove-attachment/" + attachmentId, // Endpoint ke controller
+                        url: "/personnels/remove-attachment/" +
+                            attachmentId, // Endpoint ke controller
                         type: "POST",
                         data: {
                             _method: "PUT",
@@ -521,9 +532,9 @@
     </script>
 
     <script>
-        $(document).ready(function () {
+        $(document).ready(function() {
             // Hitung jumlah baris existing saat halaman dimuat
-            let qualificationCount = $('#qualificationTable .qualification-row').length || 0;   
+            let qualificationCount = $('#qualificationTable .qualification-row').length || 0;
 
             $('#addQualification').click(function() {
                 // Hitung ulang total baris yang ada saat ini (termasuk baris dari data AJAX)
@@ -545,7 +556,7 @@
 
 
             // Fungsi untuk Menghapus Baris Qualification
-            $(document).on('click', '.removeQualification', function () {
+            $(document).on('click', '.removeQualification', function() {
                 $(this).closest('.qualification-row').remove();
                 updateRowNumbers();
                 updateRemoveButtons();
@@ -554,7 +565,7 @@
             // Fungsi untuk Memperbarui Nomor pada Tabel
             function updateRowNumbers() {
                 qualificationCount = 0;
-                $('#qualificationTable .qualification-row').each(function (index) {
+                $('#qualificationTable .qualification-row').each(function(index) {
                     qualificationCount++;
                     $(this).find('td:first').text(qualificationCount);
                 });
@@ -670,7 +681,7 @@
             $('select[name="cpnyid"]').trigger('change');
         });
     </script>
-    
+
 
     <script>
         $(document).ready(function() {
@@ -685,7 +696,7 @@
             //             type: 'GET',
             //             dataType: 'json',
             //             success: function(data) {
-                            
+
             //                 $jobTitle.empty().append(
             //                     '<option value="">-- Select Vacant Position --</option>');
             //                 if (data.length > 0) {
@@ -709,36 +720,40 @@
             // });
 
             const selectedJobTitleId = "{{ $personnel->job_title }}";
-           
+
             function loadJobTitles() {
                 let deptId = $('select[name="departementid"]').val();
                 let jobType = $('#job_type').val();
-                let $jobTitle = $('#job_title');                       
-                console.log("Selected Job Title ID:", selectedJobTitleId);         
+                let $jobTitle = $('#job_title');
+                console.log("Selected Job Title ID:", selectedJobTitleId);
                 $jobTitle.empty().append('<option value="">Loading...</option>');
 
                 if (!deptId || !jobType) {
-                    $jobTitle.html('<option value="">-- Select Vacant Position --</option>');
+                    $jobTitle.html('<option value="">Select</option>');
                     return;
                 }
 
                 let url =
-                    jobType === 'New'
-                        ? `/api/vacant-employees/${deptId}`
-                        : `/api/replacement-employees/${deptId}`;
+                    jobType === 'New' ?
+                    `/api/vacant-employees/${deptId}` :
+                    `/api/replacement-employees/${deptId}`;
 
                 $.ajax({
                     url: url,
                     type: 'GET',
                     dataType: 'json',
                     success: function(data) {
-                        $jobTitle.empty().append('<option value="">-- Select Vacant Position --</option>');
+                        $jobTitle.empty().append(
+                            '<option value="">Select</option>');
 
                         if (data.length > 0) {
                             $.each(data, function(key, emp) {
                                 const subgradeId = emp.subgrade_id ?? '';
-                                const isSelected = emp.departement_name == selectedJobTitleId ? 'selected' : '';
-                                console.log("Adding job title option:", emp.departement_name, emp.subgrade_name, isSelected);                                $jobTitle.append(`
+                                const isSelected = emp.departement_name == selectedJobTitleId ?
+                                    'selected' : '';
+                                console.log("Adding job title option:", emp.departement_name,
+                                    emp.subgrade_name, isSelected);
+                                $jobTitle.append(`
                                     <option value="${emp.departement_id}" 
                                             data-title-level="${emp.subgrade_name}" 
                                             data-parent-id="${emp.parent_id}"        
@@ -785,7 +800,7 @@
                         url: `/api/job-parent-info-edit/${parentId}/${selected.val()}/${deptId}?docid=${docid}`,
                         type: 'GET',
                         dataType: 'json',
-                        success: function(data) {                         
+                        success: function(data) {
 
                             console.log("Skill:", data.skill);
                             console.log("Tags:", data.tags);
@@ -825,7 +840,7 @@
                             }
 
                             // ✅ Tampilkan skill ke qualificationTable
-                           let $skillTable = $('#qualificationTable');
+                            let $skillTable = $('#qualificationTable');
                             $skillTable.empty(); // kosongkan isi sebelumnya
 
                             if (data.skill && data.skill.length > 0) {
@@ -847,7 +862,9 @@
                                     `);
                                 });
                             } else {
-                                $skillTable.append('<tr><td colspan="3" class="text-center p-2 border">No skill found</td></tr>');
+                                $skillTable.append(
+                                    '<tr><td colspan="3" class="text-center p-2 border">No skill found</td></tr>'
+                                );
                             }
 
 
@@ -857,7 +874,9 @@
 
                             if (data.tags && data.tags.length > 0) {
                                 $.each(data.tags, function(i, tag) {
-                                    $tagsInput.append(`<option selected value="${tag.job_tags}">${tag.job_tags}</option>`);
+                                    $tagsInput.append(
+                                        `<option selected value="${tag.job_tags}">${tag.job_tags}</option>`
+                                    );
                                 });
                                 $tagsInput.trigger('change'); // jika pakai Select2
                             }

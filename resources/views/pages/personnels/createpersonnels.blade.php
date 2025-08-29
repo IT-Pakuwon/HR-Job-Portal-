@@ -1,10 +1,21 @@
 <x-app-layout>
-<style>
-  /* tinggi ~42px seperti p-2.5 Tailwind */
-  .select2-container .select2-selection--single { height:42px; border-radius:0.5rem; }
-  .select2-container--default .select2-selection--single .select2-selection__rendered { line-height:42px; padding-left:.75rem; }
-  .select2-container--default .select2-selection--single .select2-selection__arrow { height:42px; right:.5rem; }
-</style>
+    <style>
+        /* tinggi ~42px seperti p-2.5 Tailwind */
+        .select2-container .select2-selection--single {
+            height: 42px;
+            border-radius: 0.5rem;
+        }
+
+        .select2-container--default .select2-selection--single .select2-selection__rendered {
+            line-height: 42px;
+            padding-left: .75rem;
+        }
+
+        .select2-container--default .select2-selection--single .select2-selection__arrow {
+            height: 42px;
+            right: .5rem;
+        }
+    </style>
 
     <div class="max-w-9xl mx-auto w-full px-4 py-4 sm:px-6 lg:px-8">
         <div class="grid grid-cols-1 gap-8 lg:grid-cols-2 lg:grid-rows-[minmax(0,auto)_1fr]">
@@ -28,8 +39,8 @@
                                             {{ $p->cpnyid == $usercpny2->cpnyid ? 'selected' : '' }}>
                                             {{ $p->cpnyid }}</option>
                                     @endforeach --}}
-                                     @foreach ($companies as $p)
-                                          <option value="{{ $p->cpnyid }}">{{ $p->cpnyid }}</option>
+                                    @foreach ($companies as $p)
+                                        <option value="{{ $p->cpnyid }}">{{ $p->cpnyid }}</option>
                                     @endforeach
                                 </select>
                             </div>
@@ -63,7 +74,8 @@
                                 </select>
                             </div>
                             <div class="flex flex-col gap-2">
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Placement Location</label>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Placement
+                                    Location</label>
                                 <select
                                     class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                     name="siteid" id="siteid" required>
@@ -103,7 +115,7 @@
                                         <select name="job_title" id="job_title"
                                             class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                             required>
-                                            <option value="">-- Select Vacant Position --</option>
+                                            <option value="">Select/option>
                                         </select>
                                     </div>
                                     <div class="flex flex-col gap-2">
@@ -126,7 +138,7 @@
                                             Position</label>
                                         <input type="text" name="state_position" id="state_position"
                                             class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
-                                    </div>                                   
+                                    </div>
                                     <div class="flex flex-col gap-2">
                                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Reason
                                             for
@@ -274,7 +286,7 @@
                                                     <td
                                                         class="border border-gray-200 p-3 text-center dark:border-gray-700">
                                                         <button type="button"
-                                                            class="removeQualification bg-red-200/10  hover:border-red-700  hover:bg-red-400/30  border-red-700 border text-white px-3 py-3 rounded">
+                                                            class="removeQualification rounded border border-red-700 bg-red-200/10 px-3 py-3 text-white hover:border-red-700 hover:bg-red-400/30">
                                                             🗑️
                                                         </button>
                                                     </td>
@@ -571,7 +583,7 @@
             });
         });
     </script>
-   
+
 
     <script>
         $(document).ready(function() {
@@ -654,26 +666,28 @@
                 $jobTitle.empty().append('<option value="">Loading...</option>');
 
                 if (!deptId || !jobType) {
-                    $jobTitle.html('<option value="">-- Select Vacant Position --</option>');
+                    $jobTitle.html('<option value="">Select</option>');
                     return;
                 }
 
                 let url =
-                    jobType === 'New'
-                        ? `/api/vacant-employees/${deptId}`         // Untuk VACANT (default)
-                        : `/api/replacement-employees/${deptId}`;   // Untuk pengganti (non-VACANT)
+                    jobType === 'New' ?
+                    `/api/vacant-employees/${deptId}` // Untuk VACANT (default)
+                    :
+                    `/api/replacement-employees/${deptId}`; // Untuk pengganti (non-VACANT)
 
                 $.ajax({
                     url: url,
                     type: 'GET',
                     dataType: 'json',
                     success: function(data) {
-                        $jobTitle.empty().append('<option value="">-- Select Vacant Position --</option>');
+                        $jobTitle.empty().append(
+                            '<option value="">Select</option>');
 
                         if (data.length > 0) {
                             $.each(data, function(key, emp) {
                                 const subgradeId = emp.subgrade_id ?? '';
-                                                               
+
                                 $jobTitle.append(`
                                     <option value="${emp.departement_id}" 
                                             data-title-level="${emp.subgrade_name}" 
@@ -715,7 +729,7 @@
                         url: `/api/job-parent-info/${parentId}/${selected.val()}/${deptId}`,
                         type: 'GET',
                         dataType: 'json',
-                        success: function(data) {                       
+                        success: function(data) {
                             // Isi experience dan education
                             $('#experience_start').val(data.experience_min || '').prop(
                                 'readonly', true);
@@ -795,14 +809,22 @@
         });
     </script> --}}
     <script>
-  $(function () {
-    const $cpny = $('select[name="cpnyid"]');
-    const $dept = $('select[name="departementid"]');
+        $(function() {
+            const $cpny = $('select[name="cpnyid"]');
+            const $dept = $('select[name="departementid"]');
 
-    $cpny.select2({ placeholder:'Select Company', width:'100%', allowClear:true });
-    $dept.select2({ placeholder:'Select Department', width:'100%', allowClear:true });
-  });
-</script>
+            $cpny.select2({
+                placeholder: 'Select Company',
+                width: '100%',
+                allowClear: true
+            });
+            $dept.select2({
+                placeholder: 'Select Department',
+                width: '100%',
+                allowClear: true
+            });
+        });
+    </script>
 
 
 

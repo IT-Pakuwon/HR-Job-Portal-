@@ -52,7 +52,7 @@
     <div x-show="showModal" x-transition
         class="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4 backdrop-blur-sm"
         style="display: none">
-        <div class="relative w-full max-w-2xl rounded-2xl bg-white p-6 shadow-lg dark:bg-gray-800">
+        <div class="relative w-full max-w-2xl rounded-2xl bg-white p-6 dark:bg-gray-800">
             {{-- Close Button --}}
             <button @click="closeModal()"
                 class="absolute right-3 top-3 text-gray-400 hover:text-gray-600 dark:hover:text-white">

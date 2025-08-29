@@ -11,7 +11,8 @@
                                 <!-- Main Content -->
                                 <div>
                                     <div class="chart-container"></div>
-                                    <div id="modalForm" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-gray-500/10 bg-opacity-50 backdrop-blur-md">
+                                    <div id="modalForm"
+                                        class="fixed inset-0 z-50 flex hidden items-center justify-center bg-gray-500/10 bg-opacity-50 backdrop-blur-md">
                                         <div class="relative w-[95vw] max-w-6xl rounded-lg bg-white p-6 md:w-auto">
                                             <div class="border-gray-200s mb-4 flex justify-between border-b">
                                                 <ul class="text-md flex flex-wrap text-center font-medium"
@@ -73,7 +74,7 @@
             </div>
 
             <div id="rejectTaskModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50">
-                <div class="w-full max-w-md rounded-lg bg-white p-6 shadow-lg dark:bg-gray-700">
+                <div class="w-full max-w-md rounded-lg bg-white p-6 dark:bg-gray-700">
                     <h2 class="mb-4 text-xl font-semibold text-gray-800 dark:text-white">Reject Task</h2>
                     <textarea id="rejectReason"
                         class="mt-2 w-full rounded-lg border p-3 focus:outline-none dark:bg-gray-800 dark:text-white"
@@ -92,7 +93,7 @@
                 </div>
             </div>
             <div id="reviseTaskModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50">
-                <div class="w-full max-w-md rounded-lg bg-white p-6 shadow-lg dark:bg-gray-700">
+                <div class="w-full max-w-md rounded-lg bg-white p-6 dark:bg-gray-700">
                     <h2 class="mb-4 text-xl font-semibold text-gray-800 dark:text-white">Revise Task</h2>
                     <textarea id="reviseReason"
                         class="mt-2 w-full rounded-lg border p-3 focus:outline-none dark:bg-gray-800 dark:text-white"
@@ -127,8 +128,7 @@
                         </button>
                     </div>
 
-                    <div
-                        class="mb-6 overflow-x-auto rounded-lg border border-gray-200 shadow-sm dark:border-gray-700">
+                    <div class="mb-6 overflow-x-auto rounded-lg border border-gray-200 shadow-sm dark:border-gray-700">
                         <table
                             class="min-w-full divide-y divide-gray-200 text-sm text-gray-800 dark:divide-gray-700 dark:text-gray-200">
                             <thead class="bg-gray-50 dark:bg-gray-700">
@@ -139,7 +139,7 @@
                                     <th scope="col"
                                         class="border-r border-gray-200 px-4 py-2 text-left font-semibold tracking-wider dark:border-gray-600">
                                         Job Purpose</th>
-                                
+
                                 </tr>
                             </thead>
                             <tbody id="jobProfileBody"
@@ -276,13 +276,13 @@
                                         <div style="font-size:12px;color:#333">
                                             <div style="margin-top:10px;">
                                                 ${members.map(m => `
-                                                                                                                                <div style="display:flex;align-items:center;margin-bottom:6px;">
-                                                                                                                                    <img src="${m.image}" style="width:30px;height:30px;border-radius:50%;margin-right:8px;" />
-                                                                                                                                    <span style="font-size:12px; color:${m.name.toUpperCase() === 'VACANT' ? 'red' : '#000'};">
-                                                                                                                                        ${m.name} (${m.company})
-                                                                                                                                    </span>
-                                                                                                                                </div>
-                                                                                                                            `).join('')}
+                                                                                                                                            <div style="display:flex;align-items:center;margin-bottom:6px;">
+                                                                                                                                                <img src="${m.image}" style="width:30px;height:30px;border-radius:50%;margin-right:8px;" />
+                                                                                                                                                <span style="font-size:12px; color:${m.name.toUpperCase() === 'VACANT' ? 'red' : '#000'};">
+                                                                                                                                                    ${m.name} (${m.company})
+                                                                                                                                                </span>
+                                                                                                                                            </div>
+                                                                                                                                        `).join('')}
                                             </div>
                                         </div>
                                     </div>
@@ -297,8 +297,8 @@
                         // .disableZoom()
                         .linkUpdate((d, i, arr) => {
                             d3.select(arr[i])
-                            .attr('stroke-width', 2)   // tebal garis parent-child
-                            .attr('stroke', '#374151'); // opsional: warna
+                                .attr('stroke-width', 2) // tebal garis parent-child
+                                .attr('stroke', '#374151'); // opsional: warna
                         })
                         .render();
 
@@ -480,45 +480,45 @@
                     });
                 });
             </script>
-       
-        <script>
-        $(document).on('click', '.btn-profile', function() {
-            const empId = $(this).data('id');
 
-            $.ajax({
-                url: `/orgchart/job-profile/${empId}`,
-                method: 'GET',
-                success: function(res) {
-                    const profiles = res.profiles || [];
-                    const spec = res.spec || {};
+            <script>
+                $(document).on('click', '.btn-profile', function() {
+                    const empId = $(this).data('id');
 
-                    let rows = '';
-                    profiles.forEach((p, i) => {
-                        rows += `
+                    $.ajax({
+                        url: `/orgchart/job-profile/${empId}`,
+                        method: 'GET',
+                        success: function(res) {
+                            const profiles = res.profiles || [];
+                            const spec = res.spec || {};
+
+                            let rows = '';
+                            profiles.forEach((p, i) => {
+                                rows += `
                             <tr>
                                 <td class="border   px-2 py-1">${i + 1}</td>                                
                                 <td class="border   px-2 py-1">${p.job_purpose || ''}</td>                                                                                       
                             </tr>
                         `;
-                    });
+                            });
 
-                    $('#jobProfileBody').html(rows);
-                    $('#jobLevelLabel').text(spec.subgrade_name || '');
+                            $('#jobProfileBody').html(rows);
+                            $('#jobLevelLabel').text(spec.subgrade_name || '');
 
-                    $('#jobSpecInfo').html(`
+                            $('#jobSpecInfo').html(`
                         <h4 class="font-semibold">Job Spec Detail:</h4>                       
                         <p><strong>Education:</strong> ${spec.education_min || ''} - ${spec.education_jurusan || ''}</p>
                         <p><strong>Experience:</strong> ${spec.experience_min || ''} years as ${spec.experience_position || ''}</p>
                     `);
 
-                    $('#modalJobProfile').removeClass('hidden');
-                },
-                error: function() {
-                    toastr.error('Gagal memuat job profile.');
-                }
-            });
-        });
-    </script>
+                            $('#modalJobProfile').removeClass('hidden');
+                        },
+                        error: function() {
+                            toastr.error('Gagal memuat job profile.');
+                        }
+                    });
+                });
+            </script>
 
 
 

@@ -25,7 +25,7 @@
 
                     <!-- Dropdown -->
                     <ul x-show="open" @click.away="open = false"
-                        class="absolute left-0 z-10 mt-2 w-48 rounded border border-gray-300 bg-white shadow-lg dark:border-gray-700 dark:bg-gray-800">
+                        class="absolute left-0 z-10 mt-2 w-48 rounded border border-gray-300 bg-white dark:border-gray-700 dark:bg-gray-800">
                         <li><a href="{{ route('account') }}"
                                 class="block px-4 py-2 hover:bg-gray-200 dark:hover:bg-gray-700">My Account</a></li>
                         <li><a href="{{ route('screens') }}"
@@ -230,7 +230,7 @@
                     text-align: center;
                 }
             </style>
-            <div class="mt-6 rounded-xl bg-white p-4 shadow-lg dark:bg-gray-800">
+            <div class="mt-6 rounded-xl bg-white p-4 dark:bg-gray-800">
                 <div class="mb-4 flex items-center justify-between">
                     <h2 class="text-xl font-bold text-gray-800 dark:text-white">Task Management</h2>
                     {{-- <button id="addAppBtn" class="px-5 py-2 bg-indigo-500 text-white rounded-lg">

@@ -34,14 +34,14 @@
                            class="whitespace-nowrap px-3 py-3 text-sm font-medium transition-colors duration-200 focus:outline-none sm:px-4 sm:text-base">
                            Checklist
                        </button>
-                       @if($canAccessAssessment)
-                       <button @click="subtab = 'assessment'"
-                           :class="subtab === 'assessment' ?
-                               'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400' :
-                               'text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200'"
-                           class="whitespace-nowrap px-3 py-3 text-sm font-medium transition-colors duration-200 focus:outline-none sm:px-4 sm:text-base">
-                           Assessment HC
-                       </button>
+                       @if ($canAccessAssessment)
+                           <button @click="subtab = 'assessment'"
+                               :class="subtab === 'assessment' ?
+                                   'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400' :
+                                   'text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200'"
+                               class="whitespace-nowrap px-3 py-3 text-sm font-medium transition-colors duration-200 focus:outline-none sm:px-4 sm:text-base">
+                               Assessment HC
+                           </button>
                        @endif
                        <button @click="subtab = 'assessmentuser'"
                            :class="subtab === 'assessmentuser' ?
@@ -50,23 +50,23 @@
                            class="whitespace-nowrap px-3 py-3 text-sm font-medium transition-colors duration-200 focus:outline-none sm:px-4 sm:text-base">
                            Assessment User
                        </button>
-                       @if($canAccessPayroll)
-                        <button @click="subtab = 'payroll'"
-                            :class="subtab === 'payroll' ?
-                                'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400' :
-                                'text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200'"
-                            class="whitespace-nowrap px-3 py-3 text-sm font-medium transition-colors duration-200 focus:outline-none sm:px-4 sm:text-base">
-                            Payroll
-                        </button>
+                       @if ($canAccessPayroll)
+                           <button @click="subtab = 'payroll'"
+                               :class="subtab === 'payroll' ?
+                                   'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400' :
+                                   'text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200'"
+                               class="whitespace-nowrap px-3 py-3 text-sm font-medium transition-colors duration-200 focus:outline-none sm:px-4 sm:text-base">
+                               Payroll
+                           </button>
                        @endif
-                        @if($canAccessAssessment)
-                        <button @click="subtab = 'join'"
-                            :class="subtab === 'join' ?
-                                'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400' :
-                                'text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200'"
-                            class="whitespace-nowrap px-3 py-3 text-sm font-medium transition-colors duration-200 focus:outline-none sm:px-4 sm:text-base">
-                            Join
-                        </button>
+                       @if ($canAccessAssessment)
+                           <button @click="subtab = 'join'"
+                               :class="subtab === 'join' ?
+                                   'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400' :
+                                   'text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200'"
+                               class="whitespace-nowrap px-3 py-3 text-sm font-medium transition-colors duration-200 focus:outline-none sm:px-4 sm:text-base">
+                               Join
+                           </button>
                        @endif
                    </div>
 
@@ -84,8 +84,8 @@
                                        class="w-full overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700">
                                        {{-- Added w-full here --}}
                                        <table class="w-full text-sm">
-                                           <thead class="bg-gray-50 dark:bg-gray-700">
-                                               <tr class="text-gray-600 dark:text-gray-700">
+                                           <thead>
+                                               <tr class="bg-gray-50 text-gray-600 dark:bg-gray-700 dark:text-gray-700">
                                                    <th class="px-4 py-3 text-left font-semibold">No</th>
                                                    <th class="px-4 py-3 text-left font-semibold">Activity</th>
                                                    <th class="px-4 py-3 text-left font-semibold">User</th>
@@ -95,66 +95,79 @@
                                            </thead>
                                            <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
                                                @php
-                                                    $firstPendingShown = false;
+                                                   $firstPendingShown = false;
 
-                                                    // status gatekeeper
-                                                    $step3 = $jobapplystep->firstWhere('step_order', 3);
-                                                    $step5 = $jobapplystep->firstWhere('step_order', 5);
-                                                    $step3Approved = $step3 ? $step3->status === 'A' : true; // jika tidak ada step 3, jangan blok
-                                                    $step5Approved = $step5 ? $step5->status === 'A' : true; // jika tidak ada step 5, jangan blok
-                                                @endphp
+                                                   // status gatekeeper
+                                                   $step3 = $jobapplystep->firstWhere('step_order', 3);
+                                                   $step5 = $jobapplystep->firstWhere('step_order', 5);
+                                                   $step3Approved = $step3 ? $step3->status === 'A' : true; // jika tidak ada step 3, jangan blok
+                                                   $step5Approved = $step5 ? $step5->status === 'A' : true; // jika tidak ada step 5, jangan blok
+                                               @endphp
 
-                                                @foreach ($jobapplystep as $step)
-                                                    @php
-                                                        $order = (int) $step->step_order;
+                                               @foreach ($jobapplystep as $step)
+                                                   @php
+                                                       $order = (int) $step->step_order;
 
-                                                        // blokir tombol jika:
-                                                        // - ini step 3 atau 5, atau
-                                                        // - step > 3 saat step 3 belum approved, atau
-                                                        // - step > 5 saat step 5 belum approved
-                                                        $blockedByGate = (!$step3Approved && $order > 3) || (!$step5Approved && $order > 5);
-                                                        $isGateStep    = in_array($order, [3, 5], true);
-                                                        $shouldHideBtn = $isGateStep || $blockedByGate;
-                                                    @endphp
+                                                       // blokir tombol jika:
+                                                       // - ini step 3 atau 5, atau
+                                                       // - step > 3 saat step 3 belum approved, atau
+                                                       // - step > 5 saat step 5 belum approved
+                                                       $blockedByGate =
+                                                           (!$step3Approved && $order > 3) ||
+                                                           (!$step5Approved && $order > 5);
+                                                       $isGateStep = in_array($order, [3, 5], true);
+                                                       $shouldHideBtn = $isGateStep || $blockedByGate;
+                                                   @endphp
 
-                                                    <tr class="text-gray-800 transition-colors duration-150 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700">
-                                                        <td class="whitespace-nowrap px-4 py-3">{{ $step->step_order }}</td>
-                                                        <td class="whitespace-nowrap px-4 py-3">{{ $step->step_descr }}</td>
-                                                        <td class="whitespace-nowrap px-4 py-3">{{ $step->aprvusername }}</td>
-                                                        <td class="whitespace-nowrap px-4 py-3">{{ $step->aprvuserdate }}</td>
-                                                        <td class="whitespace-nowrap px-4 py-3">
-                                                            @if ($step->status === 'P')
-                                                                @if (!$shouldHideBtn && !$firstPendingShown)
-                                                                    @php $firstPendingShown = true; @endphp
-                                                                    <div class="flex flex-col gap-2 sm:flex-row sm:gap-2">
-                                                                        <button id="approveBtn"
-                                                                                class="inline-flex items-center gap-1 rounded-md bg-green-500/15 px-3 py-2 text-sm font-medium text-green-700 transition hover:bg-green-600 hover:text-white focus:outline-none">
-                                                                            Approve
-                                                                        </button>
-                                                                        <button id="rejectBtn"
-                                                                                class="inline-flex items-center gap-1 rounded-md bg-red-500/15 px-3 py-2 text-sm font-medium text-red-700 transition hover:bg-red-600 hover:text-white focus:outline-none">
-                                                                            Reject
-                                                                        </button>
-                                                                    </div>
-                                                                @else
-                                                                    <span class="inline-flex items-center rounded-md bg-gray-100 px-2 py-1 text-xs font-medium text-gray-600 ring-1 ring-inset ring-gray-500/10">
-                                                                        Pending
-                                                                    </span>
-                                                                @endif
-                                                            @elseif ($step->status === 'A')
-                                                                <span class="inline-flex items-center rounded-md bg-green-100 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">Approved</span>
-                                                            @elseif ($step->status === 'R')
-                                                                <span class="inline-flex items-center rounded-md bg-red-100 px-2 py-1 text-xs font-medium text-red-700 ring-1 ring-inset ring-red-600/10">Rejected</span>
-                                                            @elseif ($step->status === 'D')
-                                                                <span class="inline-flex items-center rounded-md bg-blue-100 px-2 py-1 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-600/10">Revised</span>
-                                                            @else
-                                                                <span class="inline-flex items-center rounded-md bg-gray-100 px-2 py-1 text-xs font-medium text-gray-600 ring-1 ring-inset ring-gray-500/10">Pending</span>
-                                                            @endif
-                                                        </td>
-                                                    </tr>
-                                                @endforeach
+                                                   <tr
+                                                       class="text-gray-800 transition-colors duration-150 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700">
+                                                       <td class="whitespace-nowrap px-4 py-3">{{ $step->step_order }}
+                                                       </td>
+                                                       <td class="whitespace-nowrap px-4 py-3">{{ $step->step_descr }}
+                                                       </td>
+                                                       <td class="whitespace-nowrap px-4 py-3">{{ $step->aprvusername }}
+                                                       </td>
+                                                       <td class="whitespace-nowrap px-4 py-3">{{ $step->aprvuserdate }}
+                                                       </td>
+                                                       <td class="whitespace-nowrap px-4 py-3">
+                                                           @if ($step->status === 'P')
+                                                               @if (!$shouldHideBtn && !$firstPendingShown)
+                                                                   @php $firstPendingShown = true; @endphp
+                                                                   <div
+                                                                       class="flex flex-col gap-2 sm:flex-row sm:gap-2">
+                                                                       <button id="approveBtn"
+                                                                           class="inline-flex items-center gap-1 rounded-md bg-green-500/15 px-3 py-2 text-sm font-medium text-green-700 transition hover:bg-green-600 hover:text-white focus:outline-none">
+                                                                           Approve
+                                                                       </button>
+                                                                       <button id="rejectBtn"
+                                                                           class="inline-flex items-center gap-1 rounded-md bg-red-500/15 px-3 py-2 text-sm font-medium text-red-700 transition hover:bg-red-600 hover:text-white focus:outline-none">
+                                                                           Reject
+                                                                       </button>
+                                                                   </div>
+                                                               @else
+                                                                   <span
+                                                                       class="inline-flex items-center rounded-md bg-gray-100 px-2 py-1 text-xs font-medium text-gray-600 ring-1 ring-inset ring-gray-500/10">
+                                                                       Pending
+                                                                   </span>
+                                                               @endif
+                                                           @elseif ($step->status === 'A')
+                                                               <span
+                                                                   class="inline-flex items-center rounded-md bg-green-100 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">Approved</span>
+                                                           @elseif ($step->status === 'R')
+                                                               <span
+                                                                   class="inline-flex items-center rounded-md bg-red-100 px-2 py-1 text-xs font-medium text-red-700 ring-1 ring-inset ring-red-600/10">Rejected</span>
+                                                           @elseif ($step->status === 'D')
+                                                               <span
+                                                                   class="inline-flex items-center rounded-md bg-blue-100 px-2 py-1 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-600/10">Revised</span>
+                                                           @else
+                                                               <span
+                                                                   class="inline-flex items-center rounded-md bg-gray-100 px-2 py-1 text-xs font-medium text-gray-600 ring-1 ring-inset ring-gray-500/10">Pending</span>
+                                                           @endif
+                                                       </td>
+                                                   </tr>
+                                               @endforeach
 
-                                            </tbody>
+                                           </tbody>
                                        </table>
                                    </div>
                                </div>

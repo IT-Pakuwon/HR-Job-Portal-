@@ -7,7 +7,6 @@
             overflow-y: auto;
             border-bottom-left-radius: 1rem;
             border-bottom-right-radius: 1rem;
-            background-color: #fff;
         }
 
         .sticky-header thead {
@@ -15,14 +14,6 @@
             top: 0;
             /* Optional: Ensure the header is above the body content when scrolling */
             z-index: 10;
-        }
-
-        .sticky-header th {
-            /* Optional: Add a background color to the header to prevent content from showing through */
-            background-color: #f9fafb;
-            /* For dark mode, you might need a different color */
-            /* You may need to adjust the padding to match your original design */
-            padding: 1rem;
         }
     </style>
     <div class="max-w-9xl mx-auto px-4 py-4 sm:px-6 lg:px-8">
@@ -70,79 +61,92 @@
         </div>
         <div class="flex w-full flex-row gap-6 overflow-hidden sm:col-span-1 lg:row-span-1 xl:col-span-1 xl:flex-col">
             <div class="flex w-full flex-row gap-6">
-                <div class="flex max-h-96 min-h-[12rem] flex-col gap-6 rounded-2xl bg-white sm:w-1/2 md:w-full">
+                <div class="flex max-h-96 min-h-[12rem] flex-col gap-6 rounded-2xl sm:w-1/2 md:w-full">
                     <div class="flex h-full flex-col rounded-2xl bg-white dark:bg-gray-800">
                         <header
-                            class="flex flex-row justify-between rounded-t-2xl border-b border-gray-300/10 bg-gray-50 px-6 py-4 dark:border-gray-600">
-                            <div class="flex w-full justify-between gap-2">
-                                <h1 class="text-xl font-semibold text-gray-700 dark:text-gray-100">🆔
-                                    {{ $budget->budget_id }}</h1>
-                                <span
-                                    class="text-l @if ($budget->status === 'D') bg-gray-300/30 text-gray-600
-                                                @elseif($budget->status === 'P') bg-blue-300/30 text-blue-600
-                                                @elseif($budget->status === 'C') bg-green-300/30 text-green-600
-                                                @elseif(in_array($budget->status, ['X', 'R'])) bg-red-300/30 text-red-600
-                                                @else bg-gray-500/30 text-gray-700 @endif rounded-lg px-3 py-1 font-semibold">
-                                    @php
-                                        $statusText = match ($budget->status) {
-                                            'D' => 'Revise',
-                                            'P' => 'On Progress',
-                                            'C' => 'Completed',
-                                            'X' => 'Cancel',
-                                            'R' => 'Rejected',
-                                            default => 'Unknown',
-                                        };
-                                    @endphp
-                                    {{ $statusText }}
-                                </span>
-                            </div>
+                            class="flex items-center justify-between rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
+                            {{-- Rounded-t-xl, stronger border, and darker background for header --}}
+                            <h1 class="flex items-center gap-2 text-2xl font-bold text-gray-800 dark:text-gray-100">
+                                {{-- Larger, bolder title --}}
+                                <span class="text-indigo-500">🆔</span> {{-- Iconic color for the ID icon --}}
+                                {{ $budget->budget_id }}
+                            </h1>
+                            @php
+                                // Define the status text
+                                $statusText = match ($budget->status) {
+                                    'D' => 'Revise',
+                                    'P' => 'On Progress',
+                                    'C' => 'Completed',
+                                    'X' => 'Cancelled',
+                                    'R' => 'Rejected',
+                                    default => 'Unknown',
+                                };
+
+                                // Define the status badge classes based on the status
+                                $statusClasses = '';
+                                if ($budget->status === 'D') {
+                                    $statusClasses = 'bg-blue-100 text-blue-700 dark:bg-blue-800/30 dark:text-blue-300';
+                                } elseif ($budget->status === 'P') {
+                                    $statusClasses =
+                                        'bg-yellow-100 text-yellow-700 dark:bg-yellow-800/30 dark:text-yellow-300';
+                                } elseif ($budget->status === 'C') {
+                                    $statusClasses =
+                                        'bg-green-100 text-green-700 dark:bg-green-800/30 dark:text-green-300';
+                                } elseif (in_array($budget->status, ['X', 'R'])) {
+                                    $statusClasses = 'bg-red-100 text-red-700 dark:bg-red-800/30 dark:text-red-300';
+                                } else {
+                                    $statusClasses = 'bg-gray-100 text-gray-700 dark:bg-gray-800/30 dark:text-gray-300';
+                                }
+                            @endphp
+                            <span
+                                class="{{ $statusClasses }} inline-flex items-center rounded-full px-4 py-1 text-sm font-semibold transition-colors duration-200">
+                                {{ $statusText }}
+                            </span>
                         </header>
                         <!-- Main Content -->
-                        <div class="p-4">
-                            <div class="flex flex-col gap-4">
-                                <div class="grid grid-cols-1 gap-6 md:grid-cols-3">
-                                    @php
-                                        $jobDetails = [
-                                            [
-                                                'label' => 'Company',
-                                                'value' => $budget->cpny_id,
-                                            ],
-                                            [
-                                                'label' => 'Creted By',
-                                                'value' => $budget->created_by,
-                                            ],
-                                            [
-                                                'label' => 'Date',
-                                                'value' => $budget->budget_date,
-                                            ],
-                                            [
-                                                'label' => 'Business Unit',
-                                                'value' => ucwords(strtolower($budget->business_unit_id)),
-                                            ],
-                                            [
-                                                'label' => 'Department',
-                                                'value' => $budget->department_fin_id,
-                                            ],
+                        <div class="space-y-4 p-4">
+                            <div class="grid grid-cols-1 gap-6 md:grid-cols-3">
+                                @php
+                                    $jobDetails = [
+                                        [
+                                            'label' => 'Company',
+                                            'value' => $budget->cpny_id,
+                                        ],
+                                        [
+                                            'label' => 'Creted By',
+                                            'value' => $budget->created_by,
+                                        ],
+                                        [
+                                            'label' => 'Date',
+                                            'value' => date('jS, F Y', strtotime($budget->budget_date)),
+                                        ],
+                                        [
+                                            'label' => 'Business Unit',
+                                            'value' => ucwords(strtolower($budget->business_unit_id)),
+                                        ],
+                                        [
+                                            'label' => 'Department',
+                                            'value' => $budget->department_fin_id,
+                                        ],
 
-                                            [
-                                                'label' => 'Perpost',
-                                                'value' => $budget->perpost,
-                                            ],
-                                        ];
-                                    @endphp
-                                    @foreach ($jobDetails as $detail)
-                                        <div
-                                            class="flex items-center gap-4 rounded-lg border border-gray-200 bg-gray-200/10 p-3 dark:border-gray-700 dark:bg-gray-800">
-                                            <div>
-                                                <p class="text-base font-medium text-gray-900 dark:text-gray-100">
-                                                    <span
-                                                        class="mr-1 text-xs text-gray-500 dark:text-gray-400">{{ $detail['label'] }}:</span>
-                                                    {{ $detail['value'] }}
-                                                </p>
-                                            </div>
+                                        [
+                                            'label' => 'Perpost',
+                                            'value' => $budget->perpost,
+                                        ],
+                                    ];
+                                @endphp
+                                @foreach ($jobDetails as $detail)
+                                    <div
+                                        class="flex items-center gap-4 rounded-lg border border-gray-200 bg-gray-200/10 p-3 dark:border-gray-700 dark:bg-gray-800">
+                                        <div>
+                                            <p class="text-base font-medium text-gray-900 dark:text-gray-100">
+                                                <span
+                                                    class="mr-1 text-xs text-gray-500 dark:text-gray-400">{{ $detail['label'] }}:</span>
+                                                {{ $detail['value'] }}
+                                            </p>
                                         </div>
-                                    @endforeach
-                                </div>
+                                    </div>
+                                @endforeach
                             </div>
                         </div>
 
@@ -150,18 +154,10 @@
                 </div>
 
                 <div class="flex flex-col gap-4 sm:w-1/2 md:w-full">
-                    <div x-data="{ activeTab: 'approval' }" class="rounded-xl bg-white duration-300 dark:bg-gray-800">
+                    <div x-data="{ activeTab: 'attachment' }" class="rounded-xl bg-white duration-300 dark:bg-gray-800">
                         <header
-                            class="flex items-center rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
+                            class="flex items-center justify-between rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
                             <nav class="-mb-px flex flex-grow"> {{-- Added -mb-px to negative margin to overlap border --}}
-                                <button @click="activeTab = 'approval'"
-                                    :class="{
-                                        'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400': activeTab === 'approval',
-                                        'border-b-2 border-transparent text-gray-600 hover:text-gray-800 hover:border-gray-300 dark:text-gray-300 dark:hover:text-gray-100 dark:hover:border-gray-600': activeTab !== 'approval'
-                                    }"
-                                    class="flex-1 whitespace-nowrap px-4 py-2 text-center text-sm font-medium transition-colors duration-200 focus:outline-none">
-                                    Approval Details
-                                </button>
                                 <button @click="activeTab = 'attachment'"
                                     :class="{
                                         'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400': activeTab === 'attachment',
@@ -170,6 +166,15 @@
                                     class="flex-1 whitespace-nowrap px-4 py-2 text-center text-sm font-medium transition-colors duration-200 focus:outline-none">
                                     Attachment
                                 </button>
+                                <button @click="activeTab = 'approval'"
+                                    :class="{
+                                        'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400': activeTab === 'approval',
+                                        'border-b-2 border-transparent text-gray-600 hover:text-gray-800 hover:border-gray-300 dark:text-gray-300 dark:hover:text-gray-100 dark:hover:border-gray-600': activeTab !== 'approval'
+                                    }"
+                                    class="flex-1 whitespace-nowrap px-4 py-2 text-center text-sm font-medium transition-colors duration-200 focus:outline-none">
+                                    Approval Details
+                                </button>
+
                                 <button @click="activeTab = 'comments'"
                                     :class="{
                                         'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400': activeTab === 'comments',
@@ -310,7 +315,7 @@
                                             class="flex-1 rounded-lg border border-transparent bg-gray-100 p-3 text-gray-800 transition-all duration-200 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white dark:focus:ring-indigo-400">
                                         <button id="postCommentBtn"
                                             @click="if(newComment.trim()) { comments.push({ text: newComment, user: currentUser }); newComment = ''; }"
-                                            class="rounded-lg bg-indigo-600 px-5 py-3 text-sm font-semibold text-white shadow-md transition-all duration-200 hover:bg-indigo-700 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 active:scale-95 dark:focus:ring-offset-gray-800">
+                                            class="hover: rounded-lg bg-indigo-600 px-5 py-3 text-sm font-semibold text-white shadow-md transition-all duration-200 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 active:scale-95 dark:focus:ring-offset-gray-800">
                                             Post 🚀
                                         </button>
                                     </div>
@@ -322,13 +327,13 @@
             </div>
             <div class="flex max-h-[50rem] min-h-[12rem] flex-col rounded-2xl dark:bg-gray-800">
                 <header
-                    class="flex items-center justify-between rounded-t-2xl border-b border-gray-300/10 bg-gray-50 px-6 py-4 dark:border-gray-600 dark:text-gray-100">
+                    class="flex items-center justify-between rounded-t-2xl border-b border-gray-300/10 bg-gray-50 px-6 py-4 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
                     <h2 class="text-xl font-semibold">📝 Budget Detail</h2>
                 </header>
                 <div class="table-container flex-grow">
-                    <table class="sticky-header w-full text-sm">
+                    <table class="sticky-header w-full text-sm dark:text-gray-200">
                         <thead>
-                            <tr>
+                            <tr class="dark:bg-gray-700 dark:text-white">
                                 <th class="px-4 py-2">Account</th>
                                 <th class="px-4 py-2">Activity</th>
                                 <th class="px-4 py-2">Detail</th>
@@ -342,7 +347,8 @@
                         </thead>
                         <tbody>
                             @foreach ($budgetdetail as $item)
-                                <tr class="border-t hover:bg-gray-50">
+                                <tr
+                                    class="border-t bg-gray-50 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-600 dark:text-gray-300 dark:hover:bg-gray-700">
                                     <td class="px-4 py-2">{{ $item->account_id }}</td>
                                     <td class="px-4 py-2">{{ $item->activity_id }}</td>
                                     <td class="px-4 py-2">{{ $item->activity_detail }}</td>
@@ -375,7 +381,7 @@
     </div>
 
     <div id="rejectTaskModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50">
-        <div class="w-full max-w-md rounded-lg bg-white px-6 py-2 shadow-lg dark:bg-gray-700">
+        <div class="w-full max-w-md rounded-lg bg-white px-6 py-2 dark:bg-gray-700">
             <h2 class="mb-4 text-xl font-semibold text-gray-800 dark:text-white">Reject</h2>
             <textarea id="rejectReason"
                 class="mt-2 w-full rounded-lg border p-3 focus:outline-none dark:bg-gray-800 dark:text-white"
@@ -392,7 +398,7 @@
         </div>
     </div>
     <div id="reviseTaskModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50">
-        <div class="w-full max-w-md rounded-lg bg-white p-6 shadow-lg dark:bg-gray-700">
+        <div class="w-full max-w-md rounded-lg bg-white p-6 dark:bg-gray-700">
             <h2 class="mb-4 text-xl font-semibold text-gray-800 dark:text-white">Revise Task</h2>
             <textarea id="reviseReason"
                 class="mt-2 w-full rounded-lg border p-3 focus:outline-none dark:bg-gray-800 dark:text-white"

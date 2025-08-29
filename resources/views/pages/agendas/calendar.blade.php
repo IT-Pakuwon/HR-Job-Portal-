@@ -35,7 +35,7 @@
             <div x-show="view === 'yearly'" x-transition class="grid grid-cols-3 gap-6">
                 <template x-for="m in 12" :key="m">
                     <section
-                        class="cursor-pointer rounded-lg border bg-white p-4 shadow transition duration-300 hover:shadow-lg dark:bg-gray-800"
+                        class="hover: cursor-pointer rounded-lg border bg-white p-4 shadow transition duration-300 dark:bg-gray-800"
                         @click="selectDayYearly(year, m - 1, 1)">
                         <header class="mb-2 text-center text-lg font-semibold text-indigo-600 dark:text-indigo-400"
                             x-text="monthNames[m - 1]"></header>
@@ -52,7 +52,7 @@
                             <template x-for="day in daysInMonthYearly(m - 1)" :key="day">
                                 <div class="select-none rounded py-1 transition"
                                     :class="{
-                                        'bg-indigo-600 text-white font-semibold shadow-lg': isTodayYearly(year, m - 1,
+                                        'bg-indigo-600 text-white font-semibold  ': isTodayYearly(year, m - 1,
                                             day),
                                         'hover:bg-indigo-100 dark:hover:bg-indigo-700 cursor-pointer': !isTodayYearly(
                                             year, m - 1, day)
@@ -79,21 +79,18 @@
                     </template>
 
                     <template x-for="day in days" :key="day">
-                        <div
-                            x-init="$el.dataset.month = month; $el.dataset.year = year"
-                            @click="selectDay(day)"
+                        <div x-init="$el.dataset.month = month;
+                        $el.dataset.year = year" @click="selectDay(day)"
                             class="relative cursor-pointer select-none rounded py-4 text-lg transition"
                             :class="{
-                                'bg-indigo-600 text-white font-bold shadow-lg': isToday(day),
+                                'bg-indigo-600 text-white font-bold  ': isToday(day),
                                 'hover:bg-indigo-100 dark:hover:bg-indigo-700': !isToday(day),
-                                'ring-2 ring-indigo-400 ring-offset-2': selectedDate === formatDateString(day, +$el.dataset.month, +$el.dataset.year)
-                            }"
-                        >
+                                'ring-2 ring-indigo-400 ring-offset-2': selectedDate === formatDateString(day, +$el
+                                    .dataset.month, +$el.dataset.year)
+                            }">
                             <span x-text="day"></span>
-                            <span
-                                class="absolute bottom-2 right-2 h-3 w-3 rounded-full bg-red-500 shadow-lg"
-                                x-show="events[formatDateString(day, +$el.dataset.month, +$el.dataset.year)]?.length > 0"
-                            ></span>
+                            <span class="absolute bottom-2 right-2 h-3 w-3 rounded-full bg-red-500"
+                                x-show="events[formatDateString(day, +$el.dataset.month, +$el.dataset.year)]?.length > 0"></span>
                         </div>
                     </template>
 

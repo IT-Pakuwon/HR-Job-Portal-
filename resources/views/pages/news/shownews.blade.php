@@ -43,7 +43,7 @@
                                         x-transition:leave="transform transition ease-in-out duration-300"
                                         x-transition:leave-start="translate-x-0"
                                         x-transition:leave-end="translate-x-full"
-                                        class="h-255 z-100 fixed right-0 top-16 w-full bg-white p-6 shadow-lg md:w-1/3 dark:bg-gray-700">
+                                        class="h-255 z-100 fixed right-0 top-16 w-full bg-white p-6 md:w-1/3 dark:bg-gray-700">
                                         <header class="flex items-center justify-end px-6 py-1">
                                             <button @click="open = false"
                                                 class="text-gray-500 transition-all duration-200 hover:text-gray-700 dark:text-gray-50 dark:hover:text-white">
@@ -232,7 +232,7 @@
                                                             class="flex-1 rounded-lg bg-gray-100 p-3 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-400 dark:bg-gray-800 dark:text-white">
                                                         <button id="postCommentBtn"
                                                             @click="if(newComment.trim()) { comments.push({ text: newComment, user: currentUser }); newComment = ''; }"
-                                                            class="rounded-lg bg-indigo-500 px-4 py-2 text-sm font-semibold text-white shadow-md transition-all duration-200 hover:bg-indigo-600 hover:shadow-lg active:scale-95">
+                                                            class="hover: rounded-lg bg-indigo-500 px-4 py-2 text-sm font-semibold text-white shadow-md transition-all duration-200 hover:bg-indigo-600 active:scale-95">
                                                             Post 🚀
                                                         </button>
                                                     </div>
@@ -281,7 +281,7 @@
             </div>
 
             <div id="rejectTaskModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50">
-                <div class="w-full max-w-md rounded-lg bg-white p-6 shadow-lg dark:bg-gray-700">
+                <div class="w-full max-w-md rounded-lg bg-white p-6 dark:bg-gray-700">
                     <h2 class="mb-4 text-xl font-semibold text-gray-800 dark:text-white">Reject Task</h2>
                     <textarea id="rejectReason"
                         class="mt-2 w-full rounded-lg border p-3 focus:outline-none dark:bg-gray-800 dark:text-white"
@@ -300,7 +300,7 @@
                 </div>
             </div>
             <div id="reviseTaskModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50">
-                <div class="w-full max-w-md rounded-lg bg-white p-6 shadow-lg dark:bg-gray-700">
+                <div class="w-full max-w-md rounded-lg bg-white p-6 dark:bg-gray-700">
                     <h2 class="mb-4 text-xl font-semibold text-gray-800 dark:text-white">Revise Task</h2>
                     <textarea id="reviseReason"
                         class="mt-2 w-full rounded-lg border p-3 focus:outline-none dark:bg-gray-800 dark:text-white"
@@ -345,11 +345,11 @@
                                 if (response.comments.length === 0) {
                                     commentList.append(
                                         '<p class="text-gray-500 italic">No comments yet. Be the first to comment!</p>'
-                                        );
+                                    );
                                 } else {
                                     response.comments.forEach(comment => {
                                         let timeAgo = moment(comment.created_at)
-                                    .fromNow(); // Format waktu seperti "4 days ago"
+                                            .fromNow(); // Format waktu seperti "4 days ago"
 
                                         commentList.append(`
                                     <div class="p-3 bg-gray-100 dark:bg-gray-800 rounded-lg mb-2 border border-gray-300 dark:border-gray-700">
@@ -403,7 +403,7 @@
                             },
                             complete: function() {
                                 $('#postCommentBtn').prop('disabled', false).text(
-                                'Post'); // Aktifkan kembali tombol
+                                    'Post'); // Aktifkan kembali tombol
                             }
                         });
                     }
@@ -448,7 +448,7 @@
                                     .removeClass()
                                     .addClass(
                                         "w-full max-w-32 bg-green-300/30 dark:bg-green-300 text-green-600 flex justify-items-center focus:outline-none pointer-events-none border-none font-semibold px-2 py-0.5 rounded"
-                                        );
+                                    );
 
                                 // Tampilkan alert sukses
                                 toastr.success("News approved successfully!");
@@ -522,7 +522,7 @@
                                         .removeClass()
                                         .addClass(
                                             "w-full max-w-32 bg-red-300/30 dark:bg-red-300 text-red-600 flex justify-items-center focus:outline-none pointer-events-none border-none font-semibold px-2 py-0.5 rounded"
-                                            );
+                                        );
                                     $spinner.fadeOut();
 
                                     window.location.href = "/news";
@@ -589,7 +589,7 @@
                                         .removeClass()
                                         .addClass(
                                             "w-full max-w-32 bg-red-300/30 dark:bg-red-300 text-red-600 flex justify-items-center focus:outline-none pointer-events-none border-none font-semibold px-2 py-0.5 rounded"
-                                            );
+                                        );
                                     $spinner.fadeOut();
                                     window.location.href = "/news";
                                 } else {

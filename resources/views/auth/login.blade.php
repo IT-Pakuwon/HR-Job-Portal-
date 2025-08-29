@@ -43,7 +43,7 @@
 
             <div class="mt-8">
                 <button type="submit"
-                    class="w-full transform rounded-lg bg-indigo-600 px-4 py-3 text-lg font-semibold text-white shadow-md transition-all duration-300 ease-in-out hover:scale-105 hover:bg-indigo-700 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 active:scale-95 dark:focus:ring-offset-gray-800">
+                    class="hover: w-full transform rounded-lg bg-indigo-600 px-4 py-3 text-lg font-semibold text-white shadow-md transition-all duration-300 ease-in-out hover:scale-105 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 active:scale-95 dark:focus:ring-offset-gray-800">
                     Login
                 </button>
             </div>
