@@ -1018,53 +1018,109 @@ class SppbController extends Controller
     {
         $sppb = TrSPPB::findOrFail($id);
 
-        // Siapkan info "by"
-        $byUsername = $sppb->completed_by;
-        $byName = null;
-        if ($byUsername) {
-            $u = User::where('username', $byUsername)->first();
-            $byName = $u->name ?? $byUsername;
-        }
+        $getName = function (?string $username) {
+            if (!$username) return null;
+            $u = \App\Models\User::where('username', $username)->first();
+            return $u->name ?? $username;
+        };
 
-        $at = $sppb->completed_at
-            ? Carbon::parse($sppb->completed_at)->format('Y-m-d H:i')
-            : null;
+        $createdByName = $getName($sppb->created_by ?? null);
+        $createdAt     = $sppb->created_at ? \Carbon\Carbon::parse($sppb->created_at)->format('Y-m-d H:i') : null;
 
-        // Map status -> label
-        $status = (string) $sppb->status;
-        switch ($status) {
-            case 'P':
-                $statusLabel = 'Waiting approval';
-                break;
-            case 'R':
-                $statusLabel = 'Rejected';
-                break;
-            case 'D':
-                $statusLabel = 'Revise';
-                break;
-            case 'C':
-                $statusLabel = 'Completed';
-                break;
-            default:
-                $statusLabel = $status;
-                break;
-        }
+        $completedByName = $getName($sppb->completed_by ?? null);
+        $completedAt     = $sppb->completed_at ? \Carbon\Carbon::parse($sppb->completed_at)->format('Y-m-d H:i') : null;
 
-        // Kirim status & label ke FE (warna dikelola di view)
+        // kolom opsional, kalau tidak ada biarkan null
+        $rejectedByName  = $getName($sppb->rejected_by ?? null);
+        $rejectedAt      = isset($sppb->rejected_at) ? \Carbon\Carbon::parse($sppb->rejected_at)->format('Y-m-d H:i') : null;
+
+        $revisedByName   = $getName($sppb->revised_by ?? null);
+        $revisedAt       = isset($sppb->revised_at) ? \Carbon\Carbon::parse($sppb->revised_at)->format('Y-m-d H:i') : null;
+
+        $status = (string) ($sppb->status ?? '');
+        $labelMap = [
+            'P' => 'Waiting approval',
+            'R' => 'Rejected',
+            'D' => 'Revise',
+            'C' => 'Completed',
+        ];
+        $statusLabel = $labelMap[$status] ?? $status;
+
+        // selalu mulai dari Submitted
         $steps = [[
-            'key'          => 'sppb',
+            'key'          => 'submitted',
             'title'        => 'SPPB',
-            'status'       => $status,        // <- 'P' | 'R' | 'D' | 'C'
-            'status_label' => $statusLabel,   // <- teks untuk ditampilkan
-            'by'           => $byName,
-            'at'           => $at,
+            'status'       => 'C',              // dibuat = completed
+            'status_label' => 'Submitted',
+            'by'           => $createdByName,
+            'at'           => $createdAt,
         ]];
 
+        switch ($status) {
+            case 'P':
+                // masih menunggu/berjalan → tampilkan Approval saja
+                $steps[] = [
+                    'key'          => 'approval',
+                    'title'        => 'Approval',
+                    'status'       => 'P',
+                    'status_label' => 'Waiting approval',
+                    'by'           => $completedByName,
+                    'at'           => $completedAt,
+                ];
+                break;
+
+            case 'R':
+                // DITOLAK → langsung Submitted → Rejected (tanpa Approval)
+                $steps[] = [
+                    'key'          => 'rejected',
+                    'title'        => 'Rejected',
+                    'status'       => 'R',
+                    'status_label' => 'Rejected',
+                    'by'           => $completedByName,
+                    'at'           => $completedAt,
+                ];
+                break;
+
+            case 'D':
+                // REVISE → Submitted → Revise
+                $steps[] = [
+                    'key'          => 'revise',
+                    'title'        => 'Revise',
+                    'status'       => 'D',
+                    'status_label' => 'Revise',
+                    'by'           => $completedByName,
+                    'at'           => $completedAt,
+                ];
+                break;
+
+            case 'C':
+                // SELESAI → bisa langsung Submitted → Completed
+                // (kalau kamu ingin menampilkan Approval yang sudah dilalui,
+                // tambahkan step 'approval' sebelum 'completed')
+                $steps[] = [
+                    'key'          => 'completed',
+                    'title'        => 'Completed',
+                    'status'       => 'C',
+                    'status_label' => 'Completed',
+                    'by'           => $completedByName,
+                    'at'           => $completedAt,
+                ];
+                break;
+
+            default:
+                // status tidak dikenal → biarkan hanya Submitted
+                break;
+        }
+
         return response()->json([
-            'doc'   => $sppb->sppbid,
+            'doc'   => $sppb->sppbid ?? (string)$sppb->id,
             'steps' => $steps,
+            'status'=> $status,
+            'status_label' => $statusLabel,
         ]);
     }
+
+
 
 
     

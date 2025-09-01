@@ -378,106 +378,122 @@
             </div>
             </div>
 
-            <script>
+           <script>
+                // function renderTimeline(steps = []) {
+                // const list = document.getElementById('tlList');
+                // if (!list) return;
+
+                // if (!Array.isArray(steps) || steps.length === 0) {
+                //     list.innerHTML = `<p class="text-sm text-gray-500">No tracking history found.</p>`;
+                //     return;
+                // }
+
+                // // Peta status -> warna Tailwind
+                // const MAP = {
+                //     C: { label: 'Completed', colorDot: 'bg-green-600',  colorBorder: 'border-green-600',  colorTitle: 'text-green-700'  },
+                //     P: { label: 'Waiting approval / in progress', colorDot: 'bg-yellow-500', colorBorder: 'border-yellow-500', colorTitle: 'text-yellow-700' },
+                //     R: { label: 'Rejected',  colorDot: 'bg-red-600',    colorBorder: 'border-red-600',    colorTitle: 'text-red-700'    },
+                //     D: { label: 'Revise',    colorDot: 'bg-blue-600',   colorBorder: 'border-blue-600',   colorTitle: 'text-blue-700'   },
+                //     _: { label: '',          colorDot: 'bg-gray-400',   colorBorder: 'border-gray-400',   colorTitle: 'text-gray-700'   },
+                // };
+
+                // list.innerHTML = steps.map((s, i) => {
+                //     const st = String(s.status || '').toUpperCase();
+                //     const C  = MAP[st] || MAP._;
+                //     console.log({st, C});
+                //     const title = (s.title && String(s.title).trim()) || 'SPPB';
+
+                //     // Subtitle prioritas: status_label -> subtitle -> gabungan waktu/by
+                //     let subtitle = (s.status_label && String(s.status_label).trim())
+                //                 || (s.subtitle && String(s.subtitle).trim())
+                //                 || C.label;
+                //     // console.log({subtitle});
+                //     const when = (s.at && String(s.at).trim()) || '';
+                //     const by   = (s.by && String(s.by).trim()) ? ` by ${s.by}` : '';
+                //     if (!s.subtitle && (when || by)) {
+                //     subtitle = subtitle ? `${subtitle} • ${when}${by}` : `${when}${by}`;
+                //     }
+
+                //     const isLast = i === steps.length - 1;
+                //     const connector = !isLast
+                //     ? 'after:absolute after:top-1/2 after:left-7 after:h-0.5 after:w-[calc(100%-1.75rem)] after:-translate-y-1/2 after:bg-gray-300 dark:after:bg-gray-600'
+                //     : '';
+
+                //     return `
+                //     <li class="relative mr-12 flex shrink-0 snap-start pr-12 last:mr-0 last:pr-0 ${connector}">
+                //         <div class="flex items-center">
+                //         <div class="grid h-6 w-6 place-items-center rounded-full border-2 ${C.colorBorder} bg-white dark:bg-gray-800">
+                //             <div class="h-2 w-2 rounded-full ${C.colorDot}"></div>
+                //         </div>
+                //         <div class="ml-3">
+                //             <p class="text-sm font-semibold ${C.colorTitle}">${title}</p>
+                //             <p class="text-xs text-gray-700 dark:text-gray-300">${subtitle || ''}</p>
+                //         </div>
+                //         </div>
+                //     </li>
+                //     `;
+                // }).join('');
+                // }
                 function renderTimeline(steps = []) {
-                const list = document.getElementById('tlList');
-                if (!list) return;
+                    const list = document.getElementById('tlList');
+                    if (!list) return;
 
-                if (!Array.isArray(steps) || steps.length === 0) {
-                    list.innerHTML = `<p class="text-sm text-gray-500">No tracking history found.</p>`;
-                    return;
-                }
-
-                // Map status -> label + warna
-                const STATUS = {
-                    C: { label: 'Completed', colorDot: 'bg-green-600',  colorBorder: 'border-green-600',  colorText: 'text-green-700'  },
-                    P: { label: 'Waiting approval / in progress', colorDot: 'bg-yellow-500', colorBorder: 'border-yellow-500', colorText: 'text-yellow-700' },
-                    R: { label: 'Rejected',  colorDot: 'bg-red-600',    colorBorder: 'border-red-600',    colorText: 'text-red-700'    },
-                    D: { label: 'Revise',    colorDot: 'bg-blue-600',   colorBorder: 'border-blue-600',   colorText: 'text-blue-700'   },
-                    _: { label: '',          colorDot: 'bg-gray-400',   colorBorder: 'border-gray-400',   colorText: 'text-gray-700'   }
-                };
-
-                list.innerHTML = steps.map((s, i) => {
-                    // Ambil status (optional)
-                    const st = (s.status || '').toUpperCase();
-                    const S  = STATUS[st] || STATUS._;
-
-                    // Jika kamu masih kirim "done", tetap dipakai sebagai fallback warna
-                    const useDone = typeof s.done === 'boolean';
-                    const border  = useDone ? (s.done ? 'border-green-600' : 'border-gray-400') : S.colorBorder;
-                    const dot     = useDone ? (s.done ? 'bg-green-600'     : 'bg-gray-400')     : S.colorDot;
-                    const title   = (s.title && String(s.title).trim()) || 'SPPB';
-
-                    // Subtitle prioritas: s.subtitle -> s.status_label -> label dari status -> gabungan at/by
-                    let subtitle = (s.subtitle && String(s.subtitle).trim()) 
-                                || (s.status_label && String(s.status_label).trim())
-                                || S.label;
-
-                    // Tambahkan waktu & user jika ada
-                    const when  = (s.at && String(s.at).trim()) || '';
-                    const by    = (s.by && String(s.by).trim()) ? ` by ${s.by}` : '';
-                    if (!s.subtitle && (when || by)) {
-                    subtitle = subtitle ? `${subtitle} • ${when}${by}` : `${when}${by}`;
+                    if (!Array.isArray(steps) || steps.length === 0) {
+                        list.innerHTML = `<p class="text-sm text-gray-500">No tracking history found.</p>`;
+                        return;
                     }
 
-                    const isLast = i === steps.length - 1;
-                    const line   = !isLast
-                    ? 'after:absolute after:top-1/2 after:left-7 after:h-0.5 after:w-[calc(100%-1.75rem)] after:-translate-y-1/2 after:bg-gray-300 dark:after:bg-gray-600'
-                    : '';
+                    const MAP = {
+                        C: { label: 'Completed', colorDot: 'bg-green-600', colorBorder: 'border-green-600', colorTitle: 'text-green-700' },
+                        P: { label: 'Waiting approval / in progress', colorDot: 'bg-yellow-500', colorBorder: 'border-yellow-500', colorTitle: 'text-yellow-700' },
+                        R: { label: 'Rejected', colorDot: 'bg-red-600', colorBorder: 'border-red-600', colorTitle: 'text-red-700' },
+                        D: { label: 'Revise', colorDot: 'bg-blue-600', colorBorder: 'border-blue-600', colorTitle: 'text-blue-700' },
+                        _: { label: '', colorDot: 'bg-gray-400', colorBorder: 'border-gray-400', colorTitle: 'text-gray-700' },
+                    };
 
-                    return `
-                    <li class="relative mr-12 flex shrink-0 snap-start pr-12 last:mr-0 last:pr-0 ${line}">
-                        <div class="flex items-center">
-                        <div class="grid h-6 w-6 place-items-center rounded-full border-2 ${border} bg-white dark:bg-gray-800">
-                            <div class="h-2 w-2 rounded-full ${dot}"></div>
-                        </div>
-                        <div class="ml-3">
-                            <p class="text-sm font-semibold ${S.colorText}">${title}</p>
-                            <p class="text-xs text-gray-700 dark:text-gray-300">${subtitle || ''}</p>
-                        </div>
-                        </div>
-                    </li>
-                    `;
-                }).join('');
-                }
+                    list.innerHTML = steps.map((s, i) => {
+                        const st = String(s.status || '').toUpperCase();
+                        const C  = MAP[st] || MAP._;
+                        const title = (s.title && String(s.title).trim()) || 'SPPB';
+
+                        const when = (s.at && String(s.at).trim()) || '';
+                        const by   = (s.by && String(s.by).trim()) || '';
+                        const statusText = (s.status_label && String(s.status_label).trim()) || C.label;
+
+                        // tampilkan jadi multi-line: status, nama, waktu
+                        let detailHtml = '';
+                        if (statusText) detailHtml += `<p class="text-xs text-gray-500">${statusText}</p>`;
+                        if (by)         detailHtml += `<p class="text-xs text-gray-500">${by}</p>`;
+                        if (when)       detailHtml += `<p class="text-xs text-gray-500">${when}</p>`;
+
+                        const isLast = i === steps.length - 1;
+                        const connector = !isLast
+                        ? 'after:absolute after:top-1/2 after:left-7 after:h-0.5 after:w-[calc(100%-1.75rem)] after:-translate-y-1/2 after:bg-gray-300 dark:after:bg-gray-600'
+                        : '';
+
+                        return `
+                        <li class="relative mr-12 flex shrink-0 snap-start pr-12 last:mr-0 last:pr-0 ${connector}">
+                            <div class="flex items-center">
+                            <div class="grid h-6 w-6 place-items-center rounded-full border-2 ${C.colorBorder} bg-white dark:bg-gray-800">
+                                <div class="h-2 w-2 rounded-full ${C.colorDot}"></div>
+                            </div>
+                            <div class="ml-3">
+                                <p class="text-sm font-semibold ${C.colorTitle}">${title}</p>
+                                ${detailHtml}
+                            </div>
+                            </div>
+                        </li>
+                        `;
+                    }).join('');
+                    }
+
                 </script>
 
 
 
 
-            <script>
-            // Helpers render timeline items
-            // function renderTimeline(steps = []) {
-            //     const list = document.getElementById('tlList');
-            //     if (!steps.length) {
-            //     list.innerHTML = `<p class="text-sm text-gray-500">No tracking history found.</p>`;
-            //     return;
-            //     }
 
-            //     list.innerHTML = steps.map((s, i) => {
-            //     const isLast = i === steps.length - 1;
-            //     const border = s.done ? 'border-green-600' : 'border-gray-400';
-            //     const dot    = s.done ? 'bg-green-600'     : 'bg-gray-400';
-            //     const line   = 'after:absolute after:top-1/2 after:left-7 after:h-0.5 ' +
-            //                     'after:w-[calc(100%-1.75rem)] after:-translate-y-1/2 ' +
-            //                     'after:bg-gray-300 dark:after:bg-gray-600';
-
-            //     return `
-            //         <li class="relative mr-12 flex shrink-0 snap-start pr-12 last:mr-0 last:pr-0
-            //                 ${!isLast ? line : ''}">
-            //         <div class="flex items-center">
-            //             <div class="grid h-6 w-6 place-items-center rounded-full border-2 ${border} bg-white dark:bg-gray-800">
-            //             <div class="h-2 w-2 rounded-full ${dot}"></div>
-            //             </div>
-            //             <div class="ml-3">
-            //             <p class="text-sm font-semibold">${s.title || ''}</p>
-            //             <p class="text-xs text-gray-500">${s.subtitle || ''}</p>
-            //             </div>
-            //         </div>
-            //         </li>
-            //     `;
-            //     }).join('');
-            // }
+            <script>          
 
             // Scroll controls
             (function(){
@@ -507,10 +523,8 @@
             document.getElementById('trackingModal').addEventListener('click', (e) => {
                 if (e.target.id === 'trackingModal') closeTrackingModal();
             });
-
             
-
-            // Handler tombol "Track" (DataTables row)
+           
             $(document).on('click', '.tracking-btn', function () {
                 const id  = $(this).data('id');
                 const doc = $(this).data('doc') || '';
@@ -518,33 +532,24 @@
                 // Tampilkan modal dulu
                 openTrackingModal(doc);
 
-                // Ambil data tracking via API kamu (silakan sesuaikan endpoint & struktur respons)
-                // Expected response example:
-                // { steps: [ { title:'Submitted', subtitle:'2025-08-10 09:00 by alice', done:true }, ... ] }
                 $.ajax({
-                url: `/sppbs/${id}/tracking`,
-                method: 'GET',
-                dataType: 'json',
-                success: function(res) {
-                    const steps = (res.steps || []).map(s => ({
-                    title: s.title || s.status_name || '-',
-                    subtitle: s.subtitle || `${s.at || ''}${s.by ? ' by ' + s.by : ''}`,
-                    done: s.done ?? true
-                    }));
-                    renderTimeline(steps);
-                },
-                error: function() {
-                    // fallback demo agar kamu bisa lihat tampilannya
+                    url: `/sppbs/${id}/tracking`,
+                    method: 'GET',
+                    dataType: 'json',
+                    success: function(res) {
+                    // langsung pakai struktur dari controller
+                    renderTimeline(res.steps || []);
+                    },
+                    error: function() {
+                    // fallback demo
                     renderTimeline([
-                    { title: 'SPPP',  subtitle: '2025-08-10 09:00 by Williem Halim', done: true },
-                    { title: 'Canvass Sheet',    subtitle: '2025-08-10 11:35 by Sugiarto',     done: true },
-                    { title: 'Purchase Order',   subtitle: '2025-08-11 08:10 by Sugiarto',   done: true },
-                    { title: 'Receive Goods',  subtitle: 'Waiting in receive queue',   done: false },
-                    { title: 'Payment',  subtitle: 'Waiting in payment queue',   done: false },
+                        { key:'submitted', title:'SPPB',            status:'C', status_label:'Submitted', by:'Williem Halim', at:'2025-08-10 09:00' },
+                        { key:'approval',  title:'Approval',        status:'P', status_label:'Waiting approval / in progress', by:null, at:null },
                     ]);
-                }
+                    }
                 });
-            });
+                });
+
             </script>
             
 
