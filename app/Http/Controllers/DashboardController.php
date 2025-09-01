@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\CompanyPG;
 use App\Models\ViewJobApply;
 use App\Models\ViewtrPurch;
+use App\Models\ViewDasAll;
 use Illuminate\Support\Facades\Log;
 
 class DashboardController extends Controller
@@ -260,56 +261,54 @@ class DashboardController extends Controller
 
         // Models
         $trxM   = new ViewTrxAll();   // iamsys (server A)
+        $dasM   = new ViewDasAll();   // das_voucher (server A)  <-- TAMBAHAN
         $appM   = new ViewJobApply(); // jobportal (server A/B)
         $aprM   = new T_approval();   // das_voucher (server A dengan ViewTrxAll)
         $purchM = new ViewtrPurch();  // purchasing (server B)
 
         // koneksi & table
         $trxConn   = $trxM->getConnectionName()   ?: config('database.default');
+        $dasConn   = $dasM->getConnectionName()   ?: config('database.default'); // <-- TAMBAHAN
         $appConn   = $appM->getConnectionName()   ?: config('database.default');
         $aprConn   = $aprM->getConnectionName()   ?: config('database.default');
         $purchConn = $purchM->getConnectionName() ?: config('database.default');
 
         $tblTrx   = $trxM->getTable();
+        $tblDas   = $dasM->getTable();   // <-- TAMBAHAN
         $tblApp   = $appM->getTable();
         $tblApr   = $aprM->getTable();
         $tblPurch = $purchM->getTable();
 
-        // 1) ambil DOCID yang perlu user approve (P = Pending)
+        // 1) ambil DOCID pending
         $docids = DB::connection($aprConn)->table($tblApr)
             ->where('aprvusername', 'like', "%{$user->username}%")
             ->where('status', 'P')
             ->whereNotNull('aprvdatebefore')
-            ->pluck('docid')
-            ->unique()
-            ->values();
+            ->pluck('docid')->unique()->values();
 
         if ($docids->isEmpty()) {
             $tr_approval = collect();
         } else {
-            // helper ambil data per sumber + chunk
-            $selectCols = [
-                'id', 'docdate', 'cpnyid', 'departementid', 'infohd', 'url', 'docid'
-            ];
+            $selectCols = ['id','docdate','cpnyid','departementid','infohd','url','docid'];
 
             $fetchByDocids = function (string $conn, string $table) use ($docids, $selectCols) {
                 $out = collect();
                 foreach ($docids->chunk(500) as $chunk) {
                     $out = $out->concat(
                         DB::connection($conn)->table($table)
-                            ->whereIn('docid', $chunk->all())
-                            ->select($selectCols)
-                            ->get()
+                        ->whereIn('docid', $chunk->all())
+                        ->select($selectCols)
+                        ->get()
                     );
                 }
                 return $out;
             };
 
-            // 2) tarik dari masing-masing server
-            $rowsTrx   = $fetchByDocids($trxConn,   $tblTrx);
-            $rowsApp   = $fetchByDocids($appConn,   $tblApp);
+            // 2) tarik dari masing-masing sumber
+            $rowsTrx = $fetchByDocids($trxConn, $tblTrx);
+            $rowsDas = $fetchByDocids($dasConn, $tblDas);   // <-- TAMBAHAN
+            $rowsApp = $fetchByDocids($appConn, $tblApp);
 
-            // purchasing bisa gagal (beda server), tangkap & log
             try {
                 $rowsPurch = $fetchByDocids($purchConn, $tblPurch);
             } catch (\Throwable $e) {
@@ -318,13 +317,18 @@ class DashboardController extends Controller
             }
 
             // 3) merge
-            $tr_approval = $rowsTrx->concat($rowsApp)->concat($rowsPurch)->values();
+            $tr_approval = $rowsTrx
+                ->concat($rowsDas)   // <-- TAMBAHAN
+                ->concat($rowsApp)
+                ->concat($rowsPurch)
+                ->values();
 
             Log::info('Dashboard approvals', [
                 'user'          => $user->username,
                 'docids_count'  => $docids->count(),
                 'docids_sample' => $docids->take(5)->values(),
                 'rows_trx'      => $rowsTrx->count(),
+                'rows_das'      => $rowsDas->count(),   // <-- TAMBAHAN
                 'rows_app'      => $rowsApp->count(),
                 'rows_purch'    => $rowsPurch->count(),
             ]);
@@ -345,22 +349,26 @@ class DashboardController extends Controller
         return view('pages/dashboard/dashboard', compact('dataFeed','tr_approval','agendas','news'));
     }
 
+
     public function Waitingjson(Request $request)
     {
         $user = request()->user();
         if (!$user) return response()->json(['data' => []], 401);
 
         $trxM   = new ViewTrxAll();
+        $dasM   = new ViewDasAll();  // <-- TAMBAHAN
         $appM   = new ViewJobApply();
         $aprM   = new T_approval();
         $purchM = new ViewtrPurch();
 
         $trxConn   = $trxM->getConnectionName()   ?: config('database.default');
+        $dasConn   = $dasM->getConnectionName()   ?: config('database.default'); // <-- TAMBAHAN
         $appConn   = $appM->getConnectionName()   ?: config('database.default');
         $aprConn   = $aprM->getConnectionName()   ?: config('database.default');
         $purchConn = $purchM->getConnectionName() ?: config('database.default');
 
         $tblTrx   = $trxM->getTable();
+        $tblDas   = $dasM->getTable();  // <-- TAMBAHAN
         $tblApp   = $appM->getTable();
         $tblApr   = $aprM->getTable();
         $tblPurch = $purchM->getTable();
@@ -389,6 +397,7 @@ class DashboardController extends Controller
 
         $data = collect();
         $data = $data->concat($fetch($trxConn, $tblTrx));
+        $data = $data->concat($fetch($dasConn, $tblDas)); // <-- TAMBAHAN
         $data = $data->concat($fetch($appConn, $tblApp));
 
         try { $data = $data->concat($fetch($purchConn, $tblPurch)); }
@@ -397,22 +406,26 @@ class DashboardController extends Controller
         return response()->json(['data' => $data->values()]);
     }
 
+
     public function Approvejson(Request $request)
     {
         $user = request()->user();
         if (!$user) return response()->json(['data' => []], 401);
 
         $trxM   = new ViewTrxAll();
+        $dasM   = new ViewDasAll();  // <-- TAMBAHAN
         $appM   = new ViewJobApply();
         $aprM   = new T_approval();
         $purchM = new ViewtrPurch();
 
         $trxConn   = $trxM->getConnectionName()   ?: config('database.default');
+        $dasConn   = $dasM->getConnectionName()   ?: config('database.default'); // <-- TAMBAHAN
         $appConn   = $appM->getConnectionName()   ?: config('database.default');
         $aprConn   = $aprM->getConnectionName()   ?: config('database.default');
         $purchConn = $purchM->getConnectionName() ?: config('database.default');
 
         $tblTrx   = $trxM->getTable();
+        $tblDas   = $dasM->getTable();  // <-- TAMBAHAN
         $tblApp   = $appM->getTable();
         $tblApr   = $aprM->getTable();
         $tblPurch = $purchM->getTable();
@@ -441,12 +454,15 @@ class DashboardController extends Controller
 
         $data = collect();
         $data = $data->concat($fetch($trxConn, $tblTrx));
+        $data = $data->concat($fetch($dasConn, $tblDas)); // <-- TAMBAHAN
         $data = $data->concat($fetch($appConn, $tblApp));
+
         try { $data = $data->concat($fetch($purchConn, $tblPurch)); }
         catch (\Throwable $e) { Log::warning('Approvejson: purchasing fetch failed', ['err'=>$e->getMessage()]); }
 
         return response()->json(['data' => $data->values()]);
     }
+
 
 
   
