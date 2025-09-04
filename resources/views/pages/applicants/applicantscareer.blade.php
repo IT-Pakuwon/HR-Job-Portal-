@@ -228,20 +228,37 @@
                                                     </div>
                                                 </div>
                                                 <div
-                                                    class="grid grid-cols-1 gap-4 rounded-lg border border-gray-200 bg-gray-200/10 p-3 dark:border-gray-700 dark:bg-gray-800">
+                                                    class="grid grid-cols-2 gap-4 rounded-lg border border-gray-200 bg-gray-200/10 p-3 dark:border-gray-700 dark:bg-gray-800">
                                                     <div class="flex items-center gap-2">
                                                         <i
                                                             class="lucide lucide-bar-chart-2 h-6 w-6 text-gray-600 dark:text-gray-300"></i>
                                                         <div>
                                                             <span
-                                                                class="text-xs text-gray-500 dark:text-gray-400">Address</span>
+                                                                class="text-xs text-gray-500 dark:text-gray-400">Domicile
+                                                                Address</span>
+                                                            <p class="text-xs italic text-gray-400">Listed on
+                                                                official ID (KTP).</p>
                                                             <p
                                                                 class="w-full break-all text-base font-medium text-gray-900 dark:text-gray-100">
-                                                                {{ $applicant->id_address }}
+                                                                {{ $applicant->id_address }}</p>
+                                                        </div>
+                                                    </div>
+                                                    <div class="flex items-center gap-2">
+                                                        <i
+                                                            class="lucide lucide-bar-chart-2 h-6 w-6 text-gray-600 dark:text-gray-300"></i>
+                                                        <div>
+                                                            <span
+                                                                class="text-xs text-gray-500 dark:text-gray-400">Residential
+                                                                Address</span>
+                                                            <p class="text-xs italic text-gray-400">Current
+                                                                residential address.</p>
+                                                            <p
+                                                                class="w-full break-all text-base font-medium text-gray-900 dark:text-gray-100">
                                                                 {{ $applicant->domicile_address }}
                                                                 {{ $applicant->domicile_city }}</p>
                                                         </div>
                                                     </div>
+
                                                 </div>
                                                 <div class="grid grid-cols-1 gap-4">
                                                     <div
