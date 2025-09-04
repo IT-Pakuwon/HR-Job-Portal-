@@ -1,4 +1,60 @@
 <x-app-layout> 
+    <style>
+        .is-invalid { border-color:#ef4444 !important; }
+        .error-feedback { display:block; color:#dc2626; font-size:12px; margin-top:6px; }
+    </style>
+    <style>
+        .req::after { content:" *"; color:#dc2626; font-weight:700; }
+    </style>
+    <style>
+        /* Overlay full-screen */
+        #loadingSpinnerContainer{
+            position: fixed;
+            inset: 0;
+            display: none;                 /* akan ditampilkan via JS */
+            background: rgba(17,24,39,.55);
+            backdrop-filter: blur(2px);
+            z-index: 2000;
+        }
+
+        /* Kartu spinner di tengah */
+        #loadingSpinnerContainer .loading-card{
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%,-50%);
+            display: flex; flex-direction: column; align-items: center; gap: 10px;
+            padding: 18px 22px;
+            border-radius: 16px;
+            background: linear-gradient(180deg, rgba(31,41,55,.9), rgba(17,24,39,.9));
+            border: 1px solid rgba(255,255,255,.08);
+            box-shadow: 0 10px 30px rgba(0,0,0,.35), inset 0 0 0 1px rgba(255,255,255,.04);
+        }
+
+        /* Spinner dual ring */
+        #loadingSpinnerContainer .loading-spinner{
+            width: 54px; height: 54px; border-radius: 50%;
+            border: 4px solid transparent; border-top-color: #6366f1; /* indigo-500 */
+            animation: spin 1s linear infinite; position: relative;
+        }
+        #loadingSpinnerContainer .loading-spinner::after{
+            content: ""; position: absolute; inset: 6px; border-radius: 50%;
+            border: 4px solid transparent; border-left-color: #a5b4fc; /* indigo-200 */
+            animation: spinReverse .75s linear infinite;
+        }
+
+        #loadingSpinnerContainer .loading-text{ color:#e5e7eb; font-weight:600; letter-spacing:.02em; }
+        #loadingSpinnerContainer .loading-ellipsis span{ display:inline-block; animation: blink 1.4s infinite both; }
+        #loadingSpinnerContainer .loading-ellipsis span:nth-child(2){ animation-delay:.2s; }
+        #loadingSpinnerContainer .loading-ellipsis span:nth-child(3){ animation-delay:.4s; }
+
+        @keyframes spin{ to{ transform: rotate(360deg); } }
+        @keyframes spinReverse{ to{ transform: rotate(-360deg); } }
+        @keyframes blink{
+            0%{ opacity:.3; transform: translateY(0); }
+            20%{ opacity:1; transform: translateY(-2px); }
+            100%{ opacity:.3; transform: translateY(0); }
+        }
+    </style>
     <div class="max-w-9xl mx-auto w-full px-4 py-4 sm:px-6 lg:px-8">
         <div class="grid grid-cols-1 gap-8 lg:grid-cols-2 lg:grid-rows-[minmax(0,auto)_1fr]">
             <div class="flex flex-col gap-8 lg:col-span-2 lg:row-span-1">
@@ -21,7 +77,7 @@
 
                             {{-- Company --}}
                             <div class="flex flex-col gap-2">
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Company</label>
+                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Company</label>
                                 <select name="cpnyid"
                                     class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                     required>
@@ -36,7 +92,7 @@
 
                             {{-- Department --}}
                             <div class="flex flex-col gap-2">
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Department</label>
+                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Department</label>
                                 <select name="departementid"
                                     class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                     required>
@@ -51,7 +107,7 @@
 
                             {{-- Request Type (AJAX, auto select) --}}
                             <div class="flex flex-col gap-2">
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Request Type</label>
+                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Request Type</label>
                                 <select id="requesttypeid" name="requesttypeid"
                                         class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                         required>
@@ -61,7 +117,7 @@
 
                             {{-- Perpost (tahun berjalan & +1) --}}
                             <div class="flex flex-col gap-2">
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Perpost</label>
+                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Perpost</label>
                                 @php $year = \Carbon\Carbon::now()->year; @endphp
                                 <select id="perpost" name="perpost"
                                         class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
@@ -76,7 +132,7 @@
                         <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4 mt-6">
                             <div class="flex flex-col gap-2 lg:col-span-4">
                                 <label for="keperluan" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Description</label>
-                                <textarea name="keperluan" id="keperluan" rows="3" required
+                                <textarea name="keperluan" id="keperluan" rows="3" 
                                     class="w-full rounded-lg border border-gray-300 bg-white p-3 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">{{ old('keperluan', $sppb->keperluan) }}</textarea>
                             </div>
                         </div>
@@ -98,13 +154,13 @@
                                             <thead class="bg-gray-100/10">
                                             <tr>
                                                 <th class="w-12 border p-3 text-center">No</th>
-                                                <th class="border p-3 w-[20%]">Product Name</th>
-                                                <th class="w-28 border p-3 text-center">Qty</th>
-                                                <th class="w-28 border p-3">UoM</th>
-                                                <th class="border p-3">Note</th>
-                                                <th class="border p-3">Location</th>
-                                                <th class="border p-3">Sub Location</th>
-                                                <th class="border p-3">Coa</th>
+                                                <th class="req border p-3 w-[25%]">Product Name</th>
+                                                <th class="req w-28 border p-3 w-[6%] text-center">Qty</th>
+                                                <th class="req w-28 border p-3 w-[8%]">UoM</th>
+                                                <th class="border p-3 w-[15%]">Note</th>
+                                                <th class="req border p-3">Location</th>
+                                                <th class="req border p-3">Sub Location</th>                                   
+                                                <th class="req border p-3 w-[10%]">Coa</th>                                   
                                                 <th class="w-16 border p-3 text-center"></th>
                                             </tr>
                                             </thead>
@@ -130,18 +186,31 @@
                                                             <input type="hidden" name="item_type[]" class="prodItemTypeField" value="{{ $d->sppb_type }}">
                                                             <input type="hidden" name="item_category[]" class="prodItemCategoryField" value="{{ $d->sppb_category }}">
                                                             <input type="text" name="product_name[]" class="productNameField w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0" placeholder="Select product..." readonly value="{{ $d->inventory_descr }}">
-                                                            <button type="button" class="openInventoryModal rounded border border-gray-500 px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-700" title="Lookup">🔎</button>
+                                                            <button type="button" class="openInventoryModal rounded border border-gray-500 px-1 py-1 hover:bg-gray-100 dark:hover:bg-gray-700" title="Lookup">🔎</button>
                                                         </div>
                                                     </td>
 
                                                     {{-- Qty --}}
                                                     <td class="border p-3 text-center">
                                                         <input type="text" name="qty[]" class="qtyField w-full border-none bg-transparent p-2 text-right focus:outline-none focus:ring-0" placeholder="0,00" value="{{ $qtyDisp }}">
-                                                    </td>
+                                                    </td>                                                    
 
                                                     {{-- UoM --}}
-                                                    <td class="border p-3">
+                                                    {{-- <td class="border p-3">
                                                         <input type="text" name="stock_unit[]" readonly class="stock_unitField w-full cursor-not-allowed border-none bg-gray-50 p-2 text-gray-600 focus:outline-none" value="{{ $d->uom ?? '-' }}">
+                                                    </td> --}}
+                                                    <td class="border p-3">
+                                                        <div class="flex items-center gap-2">
+                                                            <!-- Hidden untuk kirim detail UoM -->
+                                                            <input type="hidden" name="uom_from_unit[]"      class="uomFromField">
+                                                            <input type="hidden" name="uom_to_unit[]"        class="uomToField">
+                                                            <input type="hidden" name="uom_unitmultdiv[]"    class="uomMultDivField">
+                                                            <input type="hidden" name="uom_unitrate[]"       class="uomRateField">
+                                                            <input type="text" name="stock_unit[]" class="stock_unitField w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0" placeholder="-" value="{{ $d->uom ?? '-' }}">
+                                                            <button type="button"
+                                                                    class="openUomModal rounded border border-gray-500 px-1 py-1 hover:bg-gray-100 dark:hover:bg-gray-700"
+                                                                    title="Lookup">🔎</button>
+                                                        </div>
                                                     </td>
 
                                                     {{-- Note --}}
@@ -154,7 +223,7 @@
                                                         <div class="flex items-center gap-2">
                                                             <input type="hidden" name="location_id[]" class="locationIdField" value="{{ $d->location_id }}">
                                                             <input type="text" name="location[]" class="locationNameField w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0" placeholder="Select location..." readonly value="{{ $d->location_name ?? $d->locationid ?? $d->location_id ?? '' }}">
-                                                            <button type="button" class="openLocationModal rounded border border-gray-500 px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-700" title="Lookup">🔎</button>
+                                                            <button type="button" class="openLocationModal rounded border border-gray-500 px-1 py-1 hover:bg-gray-100 dark:hover:bg-gray-700" title="Lookup">🔎</button>
                                                         </div>
                                                     </td>
 
@@ -163,7 +232,7 @@
                                                         <div class="flex items-center gap-2">
                                                             <input type="hidden" name="sub_location_id[]" class="subLocationIdField" value="{{ $d->sub_location_id }}">
                                                             <input type="text" name="sub_location[]" class="subLocationNameField w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0" placeholder="Select sub location..." readonly value="{{ $d->sub_location_name ?? $d->sublocationid ?? $d->sub_location_id ?? '' }}">
-                                                            <button type="button" class="openSubLocationModal rounded border border-gray-500 px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-700" title="Lookup">🔎</button>
+                                                            <button type="button" class="openSubLocationModal rounded border border-gray-500 px-1 py-1 hover:bg-gray-100 dark:hover:bg-gray-700" title="Lookup">🔎</button>
                                                         </div>
                                                     </td>
 
@@ -175,7 +244,7 @@
                                                             <input type="hidden" name="department_fin_id[]" class="departmentFinIdField" value="{{ $d->budget_department_fin_id }}">
                                                             <input type="hidden" name="coa_id[]" class="coaIdField" value="{{ $d->budget_account_id }}">
                                                             <input type="text" name="coa[]" class="coaNameField w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0" placeholder="Select COA..." readonly value="{{ $d->budget_account_id }}">
-                                                            <button type="button" class="openCoaModal rounded border border-gray-500 px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-700" title="Lookup">🔎</button>
+                                                            <button type="button" class="openCoaModal rounded border border-gray-500 px-1 py-1 hover:bg-gray-100 dark:hover:bg-gray-700" title="Lookup">🔎</button>
                                                         </div>
                                                     </td>
 
@@ -194,14 +263,27 @@
                                                             <input type="hidden" name="item_type[]"     class="prodItemTypeField">
                                                             <input type="hidden" name="item_category[]" class="prodItemCategoryField">
                                                             <input type="text" name="product_name[]" class="productNameField w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0" placeholder="Select product..." readonly>
-                                                            <button type="button" class="openInventoryModal rounded border border-gray-500 px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-700" title="Lookup">🔎</button>
+                                                            <button type="button" class="openInventoryModal rounded border border-gray-500 px-1 py-1 hover:bg-gray-100 dark:hover:bg-gray-700" title="Lookup">🔎</button>
                                                         </div>
                                                     </td>
                                                     <td class="border p-3 text-center">
                                                         <input type="text" name="qty[]" class="qtyField w-full border-none bg-transparent p-2 text-right focus:outline-none focus:ring-0" placeholder="0,00">
                                                     </td>
-                                                    <td class="border p-3">
+                                                    {{-- <td class="border p-3">
                                                         <input type="text" name="stock_unit[]" readonly class="stock_unitField w-full cursor-not-allowed border-none bg-gray-50 p-2 text-gray-600 focus:outline-none" placeholder="-">
+                                                    </td> --}}
+                                                    <td class="border p-3">
+                                                        <div class="flex items-center gap-2">
+                                                            <!-- Hidden untuk kirim detail UoM -->
+                                                            <input type="hidden" name="uom_from_unit[]"      class="uomFromField">
+                                                            <input type="hidden" name="uom_to_unit[]"        class="uomToField">
+                                                            <input type="hidden" name="uom_unitmultdiv[]"    class="uomMultDivField">
+                                                            <input type="hidden" name="uom_unitrate[]"       class="uomRateField">
+                                                            <input type="text" name="stock_unit[]" class="stock_unitField w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0" placeholder="-" >
+                                                            <button type="button"
+                                                                    class="openUomModal rounded border border-gray-500 px-1 py-1 hover:bg-gray-100 dark:hover:bg-gray-700"
+                                                                    title="Lookup">🔎</button>
+                                                        </div>
                                                     </td>
                                                     <td class="border p-3">
                                                         <input type="text" name="note[]" class="w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0" placeholder="Note">
@@ -210,14 +292,14 @@
                                                         <div class="flex items-center gap-2">
                                                             <input type="hidden" name="location_id[]" class="locationIdField">
                                                             <input type="text" name="location[]" class="locationNameField w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0" placeholder="Select location..." readonly>
-                                                            <button type="button" class="openLocationModal rounded border border-gray-500 px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-700" title="Lookup">🔎</button>
+                                                            <button type="button" class="openLocationModal rounded border border-gray-500 px-1 py-1 hover:bg-gray-100 dark:hover:bg-gray-700" title="Lookup">🔎</button>
                                                         </div>
                                                     </td>
                                                     <td class="p-3 border">
                                                         <div class="flex items-center gap-2">
                                                             <input type="hidden" name="sub_location_id[]" class="subLocationIdField">
                                                             <input type="text" name="sub_location[]" class="subLocationNameField w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0" placeholder="Select sub location..." readonly>
-                                                            <button type="button" class="openSubLocationModal rounded border border-gray-500 px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-700" title="Lookup">🔎</button>
+                                                            <button type="button" class="openSubLocationModal rounded border border-gray-500 px-1 py-1 hover:bg-gray-100 dark:hover:bg-gray-700" title="Lookup">🔎</button>
                                                         </div>
                                                     </td>
                                                     <td class="p-3 border">
@@ -227,7 +309,7 @@
                                                             <input type="hidden" name="department_fin_id[]" class="departmentFinIdField">
                                                             <input type="hidden" name="coa_id[]" class="coaIdField">
                                                             <input type="text" name="coa[]" class="coaNameField w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0" placeholder="Select COA..." readonly>
-                                                            <button type="button" class="openCoaModal rounded border border-gray-500 px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-700" title="Lookup">🔎</button>
+                                                            <button type="button" class="openCoaModal rounded border border-gray-500 px-1 py-1 hover:bg-gray-100 dark:hover:bg-gray-700" title="Lookup">🔎</button>
                                                         </div>
                                                     </td>
                                                     <td class="border p-3 text-center">
@@ -416,6 +498,48 @@
                         </div>
                     </div>
 
+                    <!-- ===== Modal Lookup UoM ===== -->
+                    <div id="uomModal" class="fixed inset-0 z-[1000] hidden items-center justify-center bg-black/40 p-4">
+                    <div class="w-full max-w-3xl rounded-xl bg-white p-4 shadow-lg dark:bg-gray-800">
+                        <div class="mb-3 flex items-center justify-between">
+                        <h3 class="text-lg font-bold text-gray-800 dark:text-white">Select UoM</h3>
+                        <button type="button" id="closeUomModal" class="rounded px-3 py-1 hover:bg-gray-100 dark:hover:bg-gray-700">✖</button>
+                        </div>
+
+                        <div class="mb-3 flex items-center gap-2 text-sm">
+                        <input id="uomSearch" type="text" placeholder="Search from/to..."
+                                class="rounded border border-gray-300 bg-white px-3 py-1 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
+                        <button id="uomRefresh" type="button" class="rounded border px-3 py-1 hover:bg-gray-100 dark:hover:bg-gray-700">↻</button>
+                        <div class="ml-auto flex items-center gap-3">
+                            <span>Inventory: <b id="uomInvBadge"></b></span>
+                        </div>
+                        </div>
+
+                        <div class="max-h-[60vh] overflow-auto">
+                        <table class="w-full text-left">
+                            <thead class="sticky top-0 bg-gray-50 text-sm dark:bg-gray-900">
+                            <tr>
+                                <th class="border p-2">From</th>
+                                <th class="border p-2">To</th>
+                                <th class="border p-2">Mult/Div</th>
+                                <th class="border p-2">Rate</th>
+                                <th class="w-24 border p-2 text-center">Action</th>
+                            </tr>
+                            </thead>
+                            <tbody id="uomTableBody" class="text-sm"></tbody>
+                        </table>
+                        </div>
+
+                        <div class="mt-3 flex items-center justify-between text-sm">
+                        <span id="uomCount" class="opacity-80"></span>
+                        <div class="space-x-2">
+                            <button id="uomPrev" class="rounded border px-3 py-1 disabled:opacity-40">Prev</button>
+                            <button id="uomNext" class="rounded border px-3 py-1 disabled:opacity-40">Next</button>
+                        </div>
+                        </div>
+                    </div>
+                    </div>
+
                     {{-- ===== Attachments (optional ditampilkan sesuai kebutuhan) ===== --}}
                     <div class="w-full rounded-xl bg-white p-6 shadow-md dark:bg-gray-800">
                         <details class="group" open>
@@ -483,128 +607,157 @@
         </div>
     </div>
 
-{{-- ================== JS ================== --}}
-
-<script>
-/** ===== Request Type (prefill selected) ===== */
-$(function () {
-    const $cpny = $('select[name="cpnyid"]');
-    const $requestType = $('#requesttypeid');
-    const selectedRT = @json($sppb->requesttypeid);
-
-    function buildOptions(list, selected) {
-        let opts = '<option value="" disabled>Select Request Type</option>';
-        list.forEach(rt => {
-            const sel = String(selected) === String(rt.requesttypeid) ? 'selected' : '';
-            opts += `<option value="${rt.requesttypeid}" ${sel}>${rt.requesttype_name || rt.requesttypeid}</option>`;
-        });
-        return opts;
-    }
-    function loadRequestTypes(cpnyid) {
-        if (!cpnyid) { $requestType.html('<option value="" disabled>Choose company first</option>'); return; }
-        $requestType.html('<option value="" disabled>Loading...</option>');
-        $.getJSON("{{ route('requesttypes.byCompany') }}", { cpnyid })
-            .done(res => {
-                const data = res.data || [];
-                $requestType.html(data.length ? buildOptions(data, selectedRT)
-                                              : '<option value="" disabled>No request type</option>');
-            })
-            .fail(() => $requestType.html('<option value="" disabled>Failed to load</option>'));
-    }
-    loadRequestTypes($cpny.val());
-    $cpny.on('change', function(){ loadRequestTypes(this.value); });
-});
-</script>
-
-<script>
-/** ===== Edit: add/remove row & keep deleted ids ===== */
-$(function(){
-    let sppbcount = $('#sppbTable tr.sppb-row').length || 1;
-    const $deleted = $('#deletedDetails');
-
-    function renumber(){
-        let i = 1;
-        $('#sppbTable tr.sppb-row').each(function(){ $(this).find('td:first').text(i++); });
-        // toggle delete button visibility
-        if ($('.sppb-row').length > 1) $('.removeSppb').removeClass('hidden'); else $('.removeSppb').addClass('hidden');
-    }
-    renumber();
-
-    $('#addSppb').on('click', function(){
-        sppbcount++;
-        const row = `
-        <tr class="sppb-row">
-            <td class="p-3 border text-center">${sppbcount}</td>
-            <input type="hidden" name="detail_id[]">
-            <td class="p-3 border">
-                <div class="flex items-center gap-2">
-                    <input type="hidden" name="inventoryid[]" class="inventoryIdField">
-                    <input type="hidden" name="item_type[]"     class="prodItemTypeField">
-                    <input type="hidden" name="item_category[]" class="prodItemCategoryField">
-                    <input type="text" name="product_name[]" class="productNameField w-full border-none bg-transparent p-2" placeholder="Select product..." readonly>
-                    <button type="button" class="openInventoryModal rounded border border-gray-500 px-3 py-2">🔎</button>
-                </div>
-            </td>
-            <td class="border p-3 text-center">
-                <input type="text" name="qty[]" class="qtyField w-full border-none bg-transparent p-2 text-right" placeholder="0,00">
-            </td>
-            <td class="p-3 border">
-                <input type="text" name="stock_unit[]" readonly class="stock_unitField w-full cursor-not-allowed border-none bg-gray-50 p-2" placeholder="-">
-            </td>
-            <td class="p-3 border"><input type="text" name="note[]" class="w-full border-none bg-transparent p-2" placeholder="Note"></td>
-            <td class="p-3 border">
-                <div class="flex items-center gap-2">
-                    <input type="hidden" name="location_id[]" class="locationIdField">
-                    <input type="text" name="location[]" class="locationNameField w-full border-none bg-transparent p-2" placeholder="Select location..." readonly>
-                    <button type="button" class="openLocationModal rounded border border-gray-500 px-3 py-2">🔎</button>
-                </div>
-            </td>
-            <td class="p-3 border">
-                <div class="flex items-center gap-2">
-                    <input type="hidden" name="sub_location_id[]" class="subLocationIdField">
-                    <input type="text" name="sub_location[]" class="subLocationNameField w-full border-none bg-transparent p-2" placeholder="Select sub location..." readonly>
-                    <button type="button" class="openSubLocationModal rounded border border-gray-500 px-3 py-2">🔎</button>
-                </div>
-            </td>
-            <td class="p-3 border">
-                <div class="flex items-center gap-2">
-                    <input type="hidden" name="activity_id[]" class="activityIdField">
-                    <input type="hidden" name="business_unit_id[]" class="businessUnitIdField">
-                    <input type="hidden" name="department_fin_id[]" class="departmentFinIdField">
-                    <input type="hidden" name="coa_id[]" class="coaIdField">
-                    <input type="text" name="coa[]" class="coaNameField w-full border-none bg-transparent p-2" placeholder="Select COA..." readonly>
-                    <button type="button" class="openCoaModal rounded border border-gray-500 px-3 py-2">🔎</button>
-                </div>
-            </td>
-            <td class="p-3 border text-center">
-                <button type="button" class="removeSppb rounded border border-red-700 bg-red-200/10 px-3 py-3 text-red-700">🗑️</button>
-            </td>
-        </tr>`;
-        $('#sppbTable').append(row);
-        renumber();
-    });
-
-    $(document).on('click', '.removeSppb', function(){
-        const $tr = $(this).closest('tr');
-        const detailId = $tr.data('detail-id'); // hanya ada untuk baris existing
-        if (detailId) {
-            // tambahkan ke hidden deleted ids (comma separated)
-            const curr = $deleted.val();
-            $deleted.val(curr ? (curr + ',' + detailId) : String(detailId));
-        }
-        $tr.remove();
-        renumber();
-    });
-});
-</script>
-
-{{-- ====== Qty numeric (angka & koma), Inventory/Location/Sub/COA modal scripts, COA perpost badge, dll:
-      gunakan blok JS kamu yang sudah ada pada view create (tidak berubah). ====== --}}
-
-
-
+    <div id="loadingSpinnerContainer" role="status" aria-live="polite" aria-label="Loading">
+        <div class="loading-card">
+            <div class="loading-spinner"></div>
+            <div class="loading-text">
+            Processing
+            <span class="loading-ellipsis"><span>.</span><span>.</span><span>.</span></span>
+            </div>
+        </div>
+    </div>
 
     <script>
+        function showOverlay(text='Processing'){
+            const $ov = $('#loadingSpinnerContainer');
+            $ov.find('.loading-text').html(
+            (text || 'Processing') +
+            '<span class="loading-ellipsis"><span>.</span><span>.</span><span>.</span></span>'
+            );
+            // pastikan tampil (tetap bisa fadeIn)
+            $ov.stop(true,true).fadeIn(120);
+        }
+        function hideOverlay(){
+            $('#loadingSpinnerContainer').stop(true,true).fadeOut(120);
+        }
+    </script>
+ 
+
+    <script>
+        /** ===== Request Type (prefill selected) ===== */
+        $(function () {
+            const $cpny = $('select[name="cpnyid"]');
+            const $requestType = $('#requesttypeid');
+            const selectedRT = @json($sppb->requesttypeid);
+
+            function buildOptions(list, selected) {
+                let opts = '<option value="" disabled>Select Request Type</option>';
+                list.forEach(rt => {
+                    const sel = String(selected) === String(rt.requesttypeid) ? 'selected' : '';
+                    opts += `<option value="${rt.requesttypeid}" ${sel}>${rt.requesttype_name || rt.requesttypeid}</option>`;
+                });
+                return opts;
+            }
+            function loadRequestTypes(cpnyid) {
+                if (!cpnyid) { $requestType.html('<option value="" disabled>Choose company first</option>'); return; }
+                $requestType.html('<option value="" disabled>Loading...</option>');
+                $.getJSON("{{ route('requesttypes.byCompany') }}", { cpnyid })
+                    .done(res => {
+                        const data = res.data || [];
+                        $requestType.html(data.length ? buildOptions(data, selectedRT)
+                                                    : '<option value="" disabled>No request type</option>');
+                    })
+                    .fail(() => $requestType.html('<option value="" disabled>Failed to load</option>'));
+            }
+            loadRequestTypes($cpny.val());
+            $cpny.on('change', function(){ loadRequestTypes(this.value); });
+        });
+    </script>
+
+    <script>
+    /** ===== Edit: add/remove row & keep deleted ids ===== */
+        $(function(){
+            let sppbcount = $('#sppbTable tr.sppb-row').length || 1;
+            const $deleted = $('#deletedDetails');
+
+            function renumber(){
+                let i = 1;
+                $('#sppbTable tr.sppb-row').each(function(){ $(this).find('td:first').text(i++); });
+                // toggle delete button visibility
+                if ($('.sppb-row').length > 1) $('.removeSppb').removeClass('hidden'); else $('.removeSppb').addClass('hidden');
+            }
+            renumber();
+
+            $('#addSppb').on('click', function(){
+                sppbcount++;
+                const row = `
+                <tr class="sppb-row">
+                    <td class="p-3 border text-center">${sppbcount}</td>
+                    <input type="hidden" name="detail_id[]">
+                    <td class="p-3 border">
+                        <div class="flex items-center gap-2">
+                            <input type="hidden" name="inventoryid[]" class="inventoryIdField">
+                            <input type="hidden" name="item_type[]"     class="prodItemTypeField">
+                            <input type="hidden" name="item_category[]" class="prodItemCategoryField">
+                            <input type="text" name="product_name[]" class="productNameField w-full border-none bg-transparent p-2" placeholder="Select product..." readonly>
+                            <button type="button" class="openInventoryModal rounded border border-gray-500 px-1 py-1">🔎</button>
+                        </div>
+                    </td>
+                    <td class="border p-3 text-center">
+                        <input type="text" name="qty[]" class="qtyField w-full border-none bg-transparent p-2 text-right" placeholder="0,00">
+                    </td>
+                    <td class="border p-3">
+                        <div class="flex items-center gap-2">
+                            <!-- Hidden untuk kirim detail UoM -->
+                            <input type="hidden" name="uom_from_unit[]"      class="uomFromField">
+                            <input type="hidden" name="uom_to_unit[]"        class="uomToField">
+                            <input type="hidden" name="uom_unitmultdiv[]"    class="uomMultDivField">
+                            <input type="hidden" name="uom_unitrate[]"       class="uomRateField">
+                            <input type="text" name="stock_unit[]" class="stock_unitField w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0" placeholder="-" >
+                            <button type="button"
+                                    class="openUomModal rounded border border-gray-500 px-1 py-1 hover:bg-gray-100 dark:hover:bg-gray-700"
+                                    title="Lookup">🔎</button>
+                        </div>
+                    </td>
+                    <td class="p-3 border"><input type="text" name="note[]" class="w-full border-none bg-transparent p-2" placeholder="Note"></td>
+                    <td class="p-3 border">
+                        <div class="flex items-center gap-2">
+                            <input type="hidden" name="location_id[]" class="locationIdField">
+                            <input type="text" name="location[]" class="locationNameField w-full border-none bg-transparent p-2" placeholder="Select location..." readonly>
+                            <button type="button" class="openLocationModal rounded border border-gray-500 px-1 py-1">🔎</button>
+                        </div>
+                    </td>
+                    <td class="p-3 border">
+                        <div class="flex items-center gap-2">
+                            <input type="hidden" name="sub_location_id[]" class="subLocationIdField">
+                            <input type="text" name="sub_location[]" class="subLocationNameField w-full border-none bg-transparent p-2" placeholder="Select sub location..." readonly>
+                            <button type="button" class="openSubLocationModal rounded border border-gray-500 px-1 py-1">🔎</button>
+                        </div>
+                    </td>
+                    <td class="p-3 border">
+                        <div class="flex items-center gap-2">
+                            <input type="hidden" name="activity_id[]" class="activityIdField">
+                            <input type="hidden" name="business_unit_id[]" class="businessUnitIdField">
+                            <input type="hidden" name="department_fin_id[]" class="departmentFinIdField">
+                            <input type="hidden" name="coa_id[]" class="coaIdField">
+                            <input type="text" name="coa[]" class="coaNameField w-full border-none bg-transparent p-2" placeholder="Select COA..." readonly>
+                            <button type="button" class="openCoaModal rounded border border-gray-500 px-1 py-1">🔎</button>
+                        </div>
+                    </td>
+                    <td class="p-3 border text-center">
+                        <button type="button" class="removeSppb rounded border border-red-700 bg-red-200/10 px-3 py-3 text-red-700">🗑️</button>
+                    </td>
+                </tr>`;
+                $('#sppbTable').append(row);
+                renumber();
+            });
+
+            $(document).on('click', '.removeSppb', function(){
+                const $tr = $(this).closest('tr');
+                const detailId = $tr.data('detail-id'); // hanya ada untuk baris existing
+                if (detailId) {
+                    // tambahkan ke hidden deleted ids (comma separated)
+                    const curr = $deleted.val();
+                    $deleted.val(curr ? (curr + ',' + detailId) : String(detailId));
+                }
+                $tr.remove();
+                renumber();
+            });
+        });
+    </script>
+
+
+    {{-- <script>
         // ===== Simpan Form =====
         $(function () {
         $('#sppbForm').on('submit', function (e) {
@@ -676,7 +829,185 @@ $(function(){
             }
         });
         });
-    </script>
+    </script> --}}
+
+    <script>
+        // ===== Simpan Form (EDIT) =====
+        $(function () {
+
+            // hapus tanda error saat user mengubah input
+            $(document).on('input change', '#sppbTable input, #sppbTable textarea', function(){
+            $(this).removeClass('is-invalid');
+            $(this).next('.error-feedback').remove();
+            });
+
+            function clearDetailErrors(){
+            $('#sppbTable .is-invalid').removeClass('is-invalid');
+            $('#sppbTable .error-feedback').remove();
+            }
+            function addDetailError($el, msg){
+            if(!$el || !$el.length) return;
+            $el.addClass('is-invalid');
+            if($el.next('.error-feedback').length === 0){
+                $el.after('<small class="error-feedback">'+msg+'</small>');
+            }
+            }
+
+            $('#sppbForm').on('submit', function (e) {
+            e.preventDefault();
+
+            // normalisasi qty (koma -> titik)
+            $('.qtyField').each(function () {
+                if (this.value.includes(',')) this.value = this.value.replace(',', '.');
+            });
+
+            // validasi minimal 1 detail valid (punya product & qty>0)
+            const hasValid = $('#sppbTable tr.sppb-row').toArray().some(tr => {
+                const $tr = $(tr);
+                const invId = ($tr.find('.inventoryIdField').val() || '').trim();
+                const qty   = parseFloat(($tr.find('input[name="qty[]"]').val() || '0').replace(',', '.'));
+                return invId !== '' && qty > 0;
+            });
+            if (!hasValid) {
+                toastr.error('Minimal 1 item detail harus dipilih (Product Name & Qty > 0).');
+                return;
+            }
+
+            // ===== VALIDASI SETIAP BARIS (wajib: Product, Qty, UoM, Location, Sub Location, COA) =====
+            clearDetailErrors();
+            let anyInvalid = false;
+
+            $('#sppbTable tr.sppb-row').each(function(){
+                const $tr = $(this);
+
+                const $prodHidden = $tr.find('.inventoryIdField');
+                const $prodVis    = $tr.find('.productNameField');
+
+                const $qty        = $tr.find('input[name="qty[]"]');
+
+                const $uomVis     = $tr.find('.stock_unitField'); // yang terlihat
+                const $uomTo      = $tr.find('.uomToField');      // hidden (hasil pilih UoM)
+
+                const $locHidden  = $tr.find('.locationIdField');
+                const $locVis     = $tr.find('.locationNameField');
+
+                const $subHidden  = $tr.find('.subLocationIdField');
+                const $subVis     = $tr.find('.subLocationNameField');
+
+                const $coaHidden  = $tr.find('.coaIdField');
+                const $coaVis     = $tr.find('.coaNameField');
+
+                // Anggap baris "aktif" kalau ada salah satu kolom terisi
+                const active = [
+                $prodHidden.val(), $qty.val(),
+                $locHidden.val(), $subHidden.val(), $coaHidden.val()
+                ].some(v => (v||'').toString().trim() !== '');
+
+                if (!active) return; // baris kosong → lewati
+
+                // Product
+                if (($prodHidden.val()||'').trim() === '') {
+                addDetailError($prodVis,'Product wajib dipilih.');
+                anyInvalid = true;
+                }
+
+                // Qty
+                const qNum = parseFloat(($qty.val()||'').replace(',', '.'));
+                if (!(qNum > 0)) {
+                addDetailError($qty,'Qty harus > 0.');
+                anyInvalid = true;
+                }
+
+                // UoM (cek visible & hidden)
+                const uomText = ($uomVis.val()||'').trim();
+                if ((uomText === '' || uomText === '-') && (($uomTo.val()||'').trim() === '')) {
+                addDetailError($uomVis,'UoM wajib dipilih.');
+                anyInvalid = true;
+                }
+
+                // Location
+                if (($locHidden.val()||'').trim() === '') {
+                addDetailError($locVis,'Location wajib dipilih.');
+                anyInvalid = true;
+                }
+
+                // Sub Location
+                if (($subHidden.val()||'').trim() === '') {
+                addDetailError($subVis,'Sub Location wajib dipilih.');
+                anyInvalid = true;
+                }
+
+                // COA
+                if (($coaHidden.val()||'').trim() === '') {
+                addDetailError($coaVis,'COA wajib dipilih.');
+                anyInvalid = true;
+                }
+            });
+
+            if (anyInvalid) {
+                const $first = $('#sppbTable .is-invalid').first();
+                if ($first.length){
+                $('html,body').animate({scrollTop: $first.offset().top - 120}, 300);
+                $first.trigger('focus');
+                }
+                toastr.error('Mohon lengkapi field wajib di SPPB Detail (bertanda *).');
+                return;
+            }
+
+            // ============== lock UI ==============
+            $('#submitBtn, #cancelBtn').prop('disabled', true);
+            $('#btnText').text('Processing...');
+            // $('#loadingSpinner').removeClass('hidden');
+            showOverlay('Submitting');
+
+            // Kirim ke route update (pakai action form sendiri)
+            const form = document.getElementById('sppbForm');
+            const formData = new FormData(form);
+            formData.set('_method','PUT'); // penting!
+
+            $.ajax({
+                url: form.action,        // route('sppbs.update', $sppb->id)
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function (res) {
+                toastr.success(res.message || "SPPB updated successfully!");
+                window.location.href = "/sppbs";
+                },
+                error: function (xhr) {
+                if (xhr.status === 422 && xhr.responseJSON && xhr.responseJSON.errors) {
+                    const errors = xhr.responseJSON.errors;
+                    let msg = 'Mohon periksa input:<br>';
+                    Object.keys(errors).forEach(k => { msg += `- ${errors[k].join(', ')}<br>`; });
+                    toastr.error(msg);
+                } else if (xhr.responseJSON && xhr.responseJSON.message) {
+                    toastr.error(xhr.responseJSON.message);
+                } else {
+                    toastr.error('Error! Please check the input.');
+                }
+                },
+                complete: function () {
+                $('#submitBtn, #cancelBtn').prop('disabled', false);
+                $('#btnText').text('Submit Approval');
+                // $('#loadingSpinner').addClass('hidden');
+                hideOverlay();
+                }
+            });
+            });
+
+            // ===== Cancel Button =====
+            $('#cancelBtn').click(function () {
+            const confirmed = confirm("Are you sure you want to cancel? Unsaved changes will be lost.");
+            if (confirmed) {
+                $('#cancelBtn').prop('disabled', true);
+                $('#cancelText').text('Cancelling...');
+                $('#cancelSpinner').removeClass('hidden');
+                window.location.href = "{{ route('sppbs') }}";
+            }
+            });
+        });
+        </script>
 
 
    <script>
@@ -775,6 +1106,7 @@ $(function(){
                         data-stock_unit="${item.stock_unit || ''}"
                         data-account_id="${item.account_id || ''}"
                         data-item_type="${$('<div>').text(item.item_type || '').html()}"         
+                        data-purchase_unit="${item.purchase_unit || item.purchaseunit || ''}"
                         data-item_category="${$('<div>').text(item.item_category || '').html()}">
                         Choose
                     </button>
@@ -809,23 +1141,28 @@ $(function(){
             // NEW: item meta dari inventory
             const item_type     = $(this).data('item_type') || '';
             const item_category = $(this).data('item_category') || '';
+            const purchase_unit = $(this).data('purchase_unit') || '';
 
             currentRow.find('.inventoryIdField').val(id);
             currentRow.find('.productNameField').val(name);
             currentRow.find('.stock_unitField').val(stock_unit || '-');
+            currentRow.find('.purchaseUnitField').val(purchase_unit);
 
-            // hanya set kalau ada
-            if (item_type)     currentRow.find('.prodItemTypeField').val(item_type);
-            if (item_category) currentRow.find('.prodItemCategoryField').val(item_category);
+            // simpan hidden baru
+            currentRow.find('.prodItemTypeField').val(item_type);
+            currentRow.find('.prodItemCategoryField').val(item_category);
 
-            // opsional: auto-isi COA bila inventory bawa default account_id (seperti sebelumnya)
-            if (account_id) {
-                currentRow.find('.coaIdField').val(account_id);
-                currentRow.find('.coaNameField').val(account_id);
-            } else {
-                currentRow.find('.coaIdField').val('');
-                currentRow.find('.coaNameField').val('');
-            }
+            currentRow.find('.coaIdField').val('');
+            currentRow.find('.coaNameField').val('');
+
+            // //opsional: auto-isi COA bila inventory bawa default account_id (seperti sebelumnya)
+            // if (account_id) {
+            //     currentRow.find('.coaIdField').val(account_id);
+            //     currentRow.find('.coaNameField').val(account_id);
+            // } else {
+            //     currentRow.find('.coaIdField').val('');
+            //     currentRow.find('.coaNameField').val('');
+            // }
 
             closeModal();
         });
@@ -1434,6 +1771,158 @@ $(function(){
             loadCoa();
             }
         });
+        });
+    </script>
+
+    <script>
+        $(function () {
+        // ====== UoM modal state ======
+        const $uomModal  = $('#uomModal');
+        const $uomTbody  = $('#uomTableBody');
+        const $uomCount  = $('#uomCount');
+        const $uomInvBad = $('#uomInvBadge');
+
+        let currentUomRow = null; // tr baris yang akan menerima pilihan UoM
+        let uomState = {
+            search: '',
+            page: 1,
+            per_page: 10,
+            total: 0,
+            inventoryid: null
+        };
+
+        function openUomModal(forRow) {
+            currentUomRow = forRow;
+
+            const invId = (forRow.find('.inventoryIdField').val() || '').trim();
+            if (!invId) {
+            if (window.toastr) toastr.warning('Pilih Inventory terlebih dahulu di baris ini.');
+            return;
+            }
+
+            uomState.inventoryid = invId;
+            uomState.page = 1;
+            uomState.search = '';
+            $('#uomSearch').val('');
+            $uomInvBad.text(invId);
+
+            $uomModal.removeClass('hidden').addClass('flex');
+            loadUoms();
+        }
+        function closeUomModal() {
+            $uomModal.addClass('hidden').removeClass('flex');
+        }
+
+        // Open/close handlers
+        $(document).on('click', '.openUomModal', function () {
+            openUomModal($(this).closest('tr'));
+        });
+        $('#closeUomModal').on('click', closeUomModal);
+        $(document).on('keydown', function (e) {
+            if (e.key === 'Escape' && $uomModal.is(':visible')) closeUomModal();
+        });
+
+        // Search & refresh
+        $('#uomSearch').on('input', function () {
+            uomState.search = $(this).val().trim();
+            uomState.page = 1;
+            loadUoms();
+        });
+        $('#uomRefresh').on('click', function () {
+            $('#uomSearch').val('');
+            uomState.search = '';
+            uomState.page = 1;
+            loadUoms();
+        });
+
+        // Pagination
+        $('#uomPrev').on('click', function () {
+            if (uomState.page > 1) {
+            uomState.page--;
+            loadUoms();
+            }
+        });
+        $('#uomNext').on('click', function () {
+            const maxPage = Math.ceil(uomState.total / uomState.per_page);
+            if (uomState.page < maxPage) {
+            uomState.page++;
+            loadUoms();
+            }
+        });
+
+        // Load UoM list by inventoryid
+        function loadUoms() {
+            $uomTbody.html('<tr><td colspan="5" class="p-3 text-center">Loading...</td></tr>');
+            $.getJSON("{{ route('uom.byInventory') }}", {
+            inventoryid: uomState.inventoryid,
+            search:      uomState.search,
+            page:        uomState.page,
+            per_page:    uomState.per_page
+            })
+            .done(function (res) {
+            // Expected:
+            // { data: [{inventoryid, from_unit, to_unit, unitmultdiv, unitrate}], total, page, per_page }
+            const rows = (res.data || []).map(item => {
+                const from = item.from_unit || '';
+                const to   = item.to_unit   || '';
+                const md   = item.unitmultdiv || '';
+                const rate = item.unitrate != null ? item.unitrate : '';
+
+                return `
+                <tr>
+                    <td class="border p-2">${from}</td>
+                    <td class="border p-2">${to}</td>
+                    <td class="border p-2">${md}</td>
+                    <td class="border p-2">${rate}</td>
+                    <td class="border p-2 text-center">
+                    <button type="button" class="chooseUom rounded border px-2 py-1 hover:bg-gray-100"
+                            data-from="${$('<div>').text(from).html()}"
+                            data-to="${$('<div>').text(to).html()}"
+                            data-md="${$('<div>').text(md).html()}"
+                            data-rate="${rate}">
+                        Choose
+                    </button>
+                    </td>
+                </tr>
+                `;
+            }).join('');
+
+            $uomTbody.html(rows || '<tr><td colspan="5" class="p-3 text-center">No data</td></tr>');
+            uomState.total = res.total || 0;
+            $uomCount.text(`Showing ${rows ? (res.data.length) : 0} of ${uomState.total} items`);
+
+            const maxPage = Math.ceil((uomState.total || 0) / uomState.per_page) || 1;
+            $('#uomPrev').prop('disabled', uomState.page <= 1);
+            $('#uomNext').prop('disabled', uomState.page >= maxPage);
+            })
+            .fail(function () {
+            $uomTbody.html('<tr><td colspan="5" class="p-3 text-center text-red-600">Failed to load</td></tr>');
+            $uomCount.text('');
+            $('#uomPrev, #uomNext').prop('disabled', true);
+            });
+        }
+
+        // Choose → isi ke baris aktif
+        $(document).on('click', '.chooseUom', function () {
+            if (!currentUomRow) return;
+
+            const from = $(this).data('from') || '';
+            const to   = $(this).data('to')   || '';
+            const md   = $(this).data('md')   || '';
+            const rate = $(this).data('rate') ?? '';
+
+            // tampilkan nama UoM: gunakan 'to_unit' sebagai UoM yang dipakai
+            // currentUomRow.find('.uomNameField').val(to);
+
+            // simpan detail UoM di hidden field
+            currentUomRow.find('.stock_unitField').val(from);
+            currentUomRow.find('.uomToField').val(to);
+            currentUomRow.find('.uomMultDivField').val(md);
+            currentUomRow.find('.uomRateField').val(rate);
+
+            closeUomModal();
+        });
+        
         });
     </script>
 

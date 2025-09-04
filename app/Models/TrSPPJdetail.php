@@ -5,16 +5,16 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class TrSPPBdetail extends Model
+class TrSPPJdetail extends Model
 {
     protected $connection = 'pgsql';
-    protected $table = "tr_sppb_detail";
+    protected $table = "tr_sppj_detail";
 
     protected $fillable = [
-        'sppbid',
-        'sppb_no',
-        'sppb_type',
-        'sppb_category',
+        'sppjid',
+        'sppj_no',
+        'sppj_type',
+        'sppj_category',
         'inventoryid',
         'inventory_descr',
         'qty',

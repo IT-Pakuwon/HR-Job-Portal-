@@ -11,10 +11,67 @@ use App\Models\MsSubLocationPG;
 use App\Models\DepartmentFin;
 use App\Models\BudgetDetail;
 use App\Models\Budget;
+use App\Models\MsUom;
 
 class MasterController extends Controller
 {
+
     public function InventoryList(Request $request)
+    {
+        $type    = strtoupper($request->get('type', 'STOCK')); // STOCK | NONSTOCK | JASA | ALL
+        $search  = trim($request->get('search', ''));
+        $page    = max((int) $request->get('page', 1), 1);
+        $perPage = max((int) $request->get('per_page', 10), 1);
+
+        // Selalu pakai MsInventoryPG
+        $query = MsInventoryPG::query()
+            ->select(
+                'inventoryid',
+                'inventory_descr',
+                'stock_unit',
+                'item_type',
+                'item_category',
+                // 'account_id',     // pastikan kolom ada di MsInventoryPG
+                'purchase_unit',  // untuk dikirim ke view
+                'item_sub_type',                
+            );
+
+        // If hanya untuk STOCK, else untuk tipe lain
+        if ($type === 'STOCK') {
+            $query->where('item_sub_type', 'STOCK');
+        } else {
+            // semua selain STOCK
+            $query->where('item_sub_type', '<>', 'STOCK');
+        }
+
+        // Jika ALL → tanpa filter item_sub_type
+
+        // Pencarian (Postgres ILIKE)
+        if ($search !== '') {
+            $query->where(function ($q) use ($search) {
+                $q->where('inventoryid',      'ilike', "%{$search}%")
+                ->orWhere('inventory_descr','ilike', "%{$search}%")
+                ->orWhere('stock_unit',     'ilike', "%{$search}%")
+                ->orWhere('purchase_unit',  'ilike', "%{$search}%");
+            });
+        }
+
+        $total = (clone $query)->count();
+
+        $rows = $query->orderBy('inventory_descr')
+            ->offset(($page - 1) * $perPage)
+            ->limit($perPage)
+            ->get();
+
+        return response()->json([
+            'data'     => $rows,
+            'total'    => $total,
+            'page'     => $page,
+            'per_page' => $perPage,
+        ]);
+    }
+
+    public function InventoryList_xxx(Request $request)
     {
         // dd($request->all());
         $type    = strtoupper($request->get('type', 'STOCK')); // STOCK | NONSTOCK | JASA | ALL
@@ -30,12 +87,12 @@ class MasterController extends Controller
         if ($type === 'STOCK') {
             // Ambil dari tabel stok
             $query = MsInventoryStockPG::query()
-                ->select('inventoryid', 'inventory_descr', 'stock_unit', 'account_id')
+                ->select('inventoryid', 'inventory_descr', 'stock_unit','item_type','item_category','account_id', 'purchase_unit')
                 ->where('item_sub_type', $type);
         } else {
             // Ambil dari master inventory umum
             $query = MsInventoryPG::query()
-                ->select('inventoryid', 'inventory_descr', 'stock_unit','item_type','item_category');
+                ->select('inventoryid', 'inventory_descr', 'stock_unit','item_type','item_category', 'purchase_unit');
 
             // Filter tipe jika spesifik
             if (in_array($type, ['NONSTOCK', 'JASA'], true)) {
@@ -72,20 +129,24 @@ class MasterController extends Controller
 
     public function RequestType(Request $request)
     {
-        $cpnyid = $request->get('cpnyid');
-
-        if (!$cpnyid) {
-            return response()->json(['data' => []]);
+        $doctype = $request->query('doctype');
+        
+        if (!$doctype) {
+            return response()->json([
+                'message' => 'Parameter "doctype" wajib diisi.'
+            ], 400);
         }
-   
+
+        // Opsional: normalisasi huruf besar
+        $doctype = strtoupper(trim($doctype));
+
         $rows = MsRequestType::query()
             ->select('requesttypeid', 'requesttype_name')
-            ->where('cpny_id', $cpnyid)
-            ->where('doctype', 'SPPB')
+            ->where('doctype', $doctype)
             ->where('status', 'A')
             ->orderBy('requesttype_name')
             ->get();
-
+            
         return response()->json(['data' => $rows]);
     }
 
@@ -243,5 +304,45 @@ class MasterController extends Controller
             'per_page' => $perPage,
         ]);
     }
+
+    public function UomInventory(Request $req)
+    {
+        $inventoryid = $req->get('inventoryid');
+        $search      = trim($req->get('search', ''));
+        $page        = max(1, (int)$req->get('page', 1));
+        $perPage     = max(1, (int)$req->get('per_page', 10));
+
+        if (!$inventoryid) {
+            return response()->json([
+                'data' => [],
+                'total' => 0,
+                'page' => $page,
+                'per_page' => $perPage,
+            ]);
+        }
+
+        $q = MsUom::query()->where('inventoryid', $inventoryid);
+
+        if ($search !== '') {
+            $q->where(function($w) use ($search) {
+                $w->where('from_unit', 'ilike', "%{$search}%")
+                ->orWhere('to_unit', 'ilike', "%{$search}%");
+            });
+        }
+
+        $total  = $q->count();
+        $items  = $q->orderBy('from_unit')->orderBy('to_unit')
+                    ->skip(($page-1)*$perPage)->take($perPage)->get([
+                        'inventoryid','from_unit','to_unit','unitmultdiv','unitrate'
+                    ]);
+
+        return response()->json([
+            'data'     => $items,
+            'total'    => $total,
+            'page'     => $page,
+            'per_page' => $perPage,
+        ]);
+    }
+
 
 }

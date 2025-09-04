@@ -510,7 +510,7 @@
                            if (xhr.status === 403) {
                                toastr.error("You are not authorized to approve this career.");
                            } else {
-                               toastr.error("Error: Unable to approve career.");
+                            //    toastr.error("Error: Unable to approve career.");
                            }
                        },
                        complete: function() {
@@ -594,7 +594,7 @@
                                if (xhr.status === 403) {
                                    alert("You Can't Rejected!"); // Popup jika user tidak berhak
                                } else {
-                                   alert("Error: Unable to reject career status.");
+                                //    alert("Error: Unable to reject career status.");
                                }
                            },
                        });

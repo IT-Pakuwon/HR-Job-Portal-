@@ -1,4 +1,4 @@
-<x-app-layout>
+<x-app-layout> 
     <style>
         .is-invalid { border-color:#ef4444 !important; }
         .error-feedback { display:block; color:#dc2626; font-size:12px; margin-top:6px; }
@@ -55,207 +55,285 @@
             100%{ opacity:.3; transform: translateY(0); }
         }
     </style>
-
-
     <div class="max-w-9xl mx-auto w-full px-4 py-4 sm:px-6 lg:px-8">
         <div class="grid grid-cols-1 gap-8 lg:grid-cols-2 lg:grid-rows-[minmax(0,auto)_1fr]">
             <div class="flex flex-col gap-8 lg:col-span-2 lg:row-span-1">
-                <form id="sppbForm" class="flex flex-col gap-4" enctype="multipart/form-data">
+
+                {{-- ====== EDIT FORM ====== --}}
+                <form id="sppjForm" class="flex flex-col gap-4" enctype="multipart/form-data"
+                      action="{{ route('sppjs.update', $sppj->id) }}" method="POST">
                     @csrf
+                    @method('PUT')
+
                     <div class="w-full rounded-xl bg-white p-6 shadow-md dark:bg-gray-800">
                         <div class="mb-6 border-b border-gray-200 pb-4 dark:border-gray-700">
-                            <h2 class="text-xl font-extrabold text-gray-800 dark:text-white">Create SPPB</h2>
+                            <h2 class="text-xl font-extrabold text-gray-800 dark:text-white">
+                                Edit SPPJ — {{ $sppj->sppjid }}
                             </h2>
                         </div>
+
+                        {{-- ===== Header fields ===== --}}
                         <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
+
+                            {{-- Company --}}
                             <div class="flex flex-col gap-2">
                                 <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Company</label>
-                                <select
-                                    class="reqw-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
-                                    name="cpnyid" required>
+                                <select name="cpnyid"
+                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                    required>
                                     @foreach ($usercpny as $p)
                                         <option value="{{ $p->cpnyid }}"
-                                            {{ $p->cpnyid == $usercpny2->cpnyid ? 'selected' : '' }}>
-                                            {{ $p->cpnyid }}</option>
+                                            {{ $p->cpnyid == $sppj->cpny_id ? 'selected' : '' }}>
+                                            {{ $p->cpnyid }}
+                                        </option>
                                     @endforeach
-                                </select>                                
+                                </select>
                             </div>
+
+                            {{-- Department --}}
                             <div class="flex flex-col gap-2">
                                 <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Department</label>
-                                <select class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300" name="departementid" required>
+                                <select name="departementid"
+                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                    required>
                                     @foreach ($userdept as $p)
                                         <option value="{{ $p->deptname }}"
-                                            {{ $p->deptname == $userdept2->deptname ? 'selected' : '' }}>
-                                            {{ $p->deptname }}</option>
+                                            {{ $p->deptname == $sppj->department_id ? 'selected' : '' }}>
+                                            {{ $p->deptname }}
+                                        </option>
                                     @endforeach
                                 </select>
-                            </div>   
-                            {{-- <div class="flex flex-col gap-2">
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Wo ID</label>
-                                <select class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300" name="woid" required>
-                                  
-                                </select>
-                            </div>    --}}
+                            </div>
+
+                            {{-- Request Type (AJAX, auto select) --}}
                             <div class="flex flex-col gap-2">
                                 <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Request Type</label>
                                 <select id="requesttypeid" name="requesttypeid"
                                         class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
-                                        required>                                    
-                                    <option value="" disabled selected>Loading...</option>
+                                        required>
+                                    <option value="" disabled>Loading...</option>
                                 </select>
                             </div>
+
+                            {{-- Perpost (tahun berjalan & +1) --}}
                             <div class="flex flex-col gap-2">
                                 <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Perpost</label>
+                                @php $year = \Carbon\Carbon::now()->year; @endphp
                                 <select id="perpost" name="perpost"
-                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
-                                    required>
-                                    @php
-                                        $year = \Carbon\Carbon::now()->year;
-                                    @endphp                                    
-                                    <option value="{{ $year }}">{{ $year }}</option>
-                                    <option value="{{ $year + 1 }}">{{ $year + 1 }}</option>
+                                        class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                        required>
+                                    <option value="{{ $year }}" {{ (string)$sppj->budget_perpost === (string)$year ? 'selected' : '' }}>{{ $year }}</option>
+                                    <option value="{{ $year + 1 }}" {{ (string)$sppj->budget_perpost === (string)($year+1) ? 'selected' : '' }}>{{ $year + 1 }}</option>
                                 </select>
                             </div>
                         </div>
-                        <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
+
+                        {{-- Description --}}
+                        <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4 mt-6">
                             <div class="flex flex-col gap-2 lg:col-span-4">
                                 <label for="keperluan" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Description</label>
-                                <textarea name="keperluan" id="keperluan"
-                                    class="w-full rounded-lg border border-gray-300 bg-white p-3 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
-                                    rows="3" ></textarea>
+                                <textarea name="keperluan" id="keperluan" rows="3" 
+                                    class="w-full rounded-lg border border-gray-300 bg-white p-3 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">{{ old('keperluan', $sppj->keperluan) }}</textarea>
                             </div>
                         </div>
-
-                    </div>    
-                    
-                    <!-- ... header & form atas tetap ... -->
-                    <div class="flex w-full flex-col gap-2 rounded-2xl border-b bg-white dark:bg-gray-800">
-                    <div class="flex w-full flex-col rounded-2xl p-4">
-                        <details class="group" open>                     
-                        <summary
-                            class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-xl font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
-                            <span>SPPB Detail</span>
-                            <span class="text-sm font-medium text-gray-500 transition-all group-open:hidden">See
-                                details &rarr;</span>
-                            <span class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline">Hide
-                                details &darr;</span>
-                        </summary>
-                        <div class="flex h-auto flex-col justify-start">
-                            <div class="overflow-x-auto">
-                            <table class="mb-4 mt-3 w-full">
-                                <thead class="bg-gray-100/10">
-                                <tr>
-                                    <th class="w-12 border p-3 text-center">No</th>
-                                    <th class="req border p-3 w-[25%]">Product Name</th>
-                                    <th class="req w-28 border p-3 w-[6%] text-center">Qty</th>
-                                    <th class="req w-28 border p-3 w-[8%]">UoM</th>
-                                    <th class="border p-3 w-[15%]">Note</th>
-                                    <th class="req border p-3">Location</th>
-                                    <th class="req border p-3">Sub Location</th>                                   
-                                    <th class="req border p-3 w-[10%]">Coa</th>                                   
-                                    <th class="w-16 border p-3 text-center"></th>
-                                </tr>
-                                </thead>
-                                <tbody id="sppbTable">
-                                <tr class="sppb-row">
-                                    <td class="border p-3 text-center">1</td>
-
-                                    <!-- Product Name (text + zoom button + hidden id) -->
-                                    <td class="border p-3">
-                                    <div class="flex items-center gap-2">
-                                        <input type="hidden" name="inventoryid[]" class="inventoryIdField">
-                                        <input type="hidden" name="item_type[]"     class="prodItemTypeField">
-                                        <input type="hidden" name="item_category[]" class="prodItemCategoryField">
-                                        <input type="hidden" name="purchase_unit[]" class="purchaseUnitField">
-                                        <input type="text" name="product_name[]" class="productNameField w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0" placeholder="Select product..." readonly>
-                                        <button type="button" class="openInventoryModal rounded border border-gray-500 px-1 py-1 hover:bg-gray-100 dark:hover:bg-gray-700" title="Lookup">🔎</button>
-                                    </div>
-                                    </td>
-
-                                    <!-- Qty -->
-                                    <td class="border p-3 text-center">
-                                    <input type="text" name="qty[]" 
-                                            class="qtyField w-full border-none bg-transparent p-2 text-right focus:outline-none focus:ring-0" placeholder="0,00" >
-                                    </td>
-
-                                    <!-- UoM auto-filled -->
-                                    {{-- <td class="border p-3">
-                                    <input type="text" name="stock_unit[]" readonly
-                                            class="stock_unitField w-full cursor-not-allowed border-none bg-gray-50 p-2 text-gray-600 focus:outline-none"
-                                            placeholder="-">
-                                             <button type="button"
-                                                class="openUomModal rounded border border-gray-500 px-1 py-1 hover:bg-gray-100 dark:hover:bg-gray-700"
-                                                title="Lookup">🔎</button>
-                                    </td> --}}
-                                    {{-- UoM --}}
-                                    <td class="border p-3">
-                                        <div class="flex items-center gap-2">
-                                            <!-- Hidden untuk kirim detail UoM -->
-                                            <input type="hidden" name="uom_from_unit[]"      class="uomFromField">
-                                            <input type="hidden" name="uom_to_unit[]"        class="uomToField">
-                                            <input type="hidden" name="uom_unitmultdiv[]"    class="uomMultDivField">
-                                            <input type="hidden" name="uom_unitrate[]"       class="uomRateField">
-                                            <input type="text" name="stock_unit[]" class="stock_unitField w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0" 
-                                                placeholder="-" readonly>
-                                            <button type="button"
-                                                    class="openUomModal rounded border border-gray-500 px-1 py-1 hover:bg-gray-100 dark:hover:bg-gray-700"
-                                                    title="Lookup">🔎</button>
-                                        </div>
-                                    </td>
-
-                                    <!-- Note -->
-                                    <td class="border p-3">
-                                    <input type="text" name="note[]" placeholder="Note"
-                                            class="w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0">
-                                    </td>
-
-                                    <!-- Location & Sub Location -->
-                                    <td class="p-3 border">
-                                        <div class="flex items-center gap-2">
-                                            <input type="hidden" name="location_id[]" class="locationIdField">
-                                            <input type="text" name="location[]" class="locationNameField w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0" placeholder="Select location..." readonly>
-                                            <button type="button" class="openLocationModal rounded border border-gray-500 px-1 py-1 hover:bg-gray-100 dark:hover:bg-gray-700" title="Lookup">🔎</button>
-                                        </div>
-                                    </td>
-
-                                    <td class="p-3 border">
-                                        <div class="flex items-center gap-2">
-                                            <input type="hidden" name="sub_location_id[]" class="subLocationIdField">
-                                            <input type="text"   name="sub_location[]"    class="subLocationNameField w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0" placeholder="Select sub location..." readonly>
-                                            <button type="button" class="openSubLocationModal rounded border border-gray-500 px-1 py-1 hover:bg-gray-100 dark:hover:bg-gray-700" title="Lookup">🔎</button>
-                                        </div>
-                                    </td>
-                                  
-                                    <!-- Coa (lookup modal) -->
-                                    <td class="border p-3">
-                                    <div class="flex items-center gap-2">
-                                        <input type="hidden" name="activity_id[]" class="activityIdField">
-                                        <input type="hidden" name="business_unit_id[]"   class="businessUnitIdField">
-                                        <input type="hidden" name="department_fin_id[]"  class="departmentFinIdField">
-                                        <input type="hidden" name="coa_id[]" class="coaIdField">  
-                                        <input type="text"   name="coa[]"    class="coaNameField w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0" placeholder="Select COA..." readonly>
-                                        <button type="button" class="openCoaModal rounded border border-gray-500 px-1 py-1 hover:bg-gray-100 dark:hover:bg-gray-700" title="Lookup">🔎</button>
-                                    </div>
-                                    </td>                               
-
-                                    <td class="border p-3 text-center">
-                                    <button type="button" class="removeSppb hidden rounded border border-red-700 bg-red-200/10 px-3 py-3 text-white hover:border-red-700 hover:bg-red-400/30">🗑️</button>
-                                    </td>
-                                </tr>
-                                </tbody>
-                            </table>
-                            </div>
-
-                            <button type="button" id="addSppb"
-                            class="mb-4 mt-4 flex items-center justify-center gap-2 rounded border border-gray-700 bg-gray-200/10 p-2 text-gray-800 hover:border-red-700 hover:bg-red-200/10 hover:font-medium hover:text-red-800">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                <path fill-rule="evenodd" d="M10 2a1 1 0 011 1v6h6a1 1 0 110 2h-6v6a1 1 0 11-2 0v-6H3a1 1 0 110-2h6V3a1 1 0 011-1z" clip-rule="evenodd" />
-                            </svg>
-                            Add Row
-                            </button>
-                        </div>
-                        </details>
                     </div>
+
+                    {{-- ===== Detail ===== --}}
+                    <div class="flex w-full flex-col gap-2 rounded-2xl border-b bg-white dark:bg-gray-800">
+                        <div class="flex w-full flex-col rounded-2xl p-4">
+                            <details class="group" open>
+                                <summary class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-xl font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
+                                    <span>SPPJ Detail</span>
+                                    <span class="text-sm font-medium text-gray-500 transition-all group-open:hidden">See details &rarr;</span>
+                                    <span class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline">Hide details &darr;</span>
+                                </summary>
+
+                                <div class="flex h-auto flex-col justify-start">
+                                    <div class="overflow-x-auto">
+                                        <table class="mb-4 mt-3 w-full">
+                                            <thead class="bg-gray-100/10">
+                                            <tr>
+                                                <th class="w-12 border p-3 text-center">No</th>
+                                                <th class="req border p-3 w-[25%]">Product Name</th>
+                                                <th class="req w-28 border p-3 w-[6%] text-center">Qty</th>
+                                                <th class="req w-28 border p-3 w-[8%]">UoM</th>
+                                                <th class="border p-3 w-[15%]">Note</th>
+                                                <th class="req border p-3">Location</th>
+                                                <th class="req border p-3">Sub Location</th>                                   
+                                                <th class="req border p-3 w-[10%]">Coa</th>                                   
+                                                <th class="w-16 border p-3 text-center"></th>
+                                            </tr>
+                                            </thead>
+
+                                            <tbody id="sppjTable">
+                                            @php $rowNo = 0; @endphp
+                                            @forelse ($sppjdetail as $d)
+                                                @php
+                                                    $rowNo++;
+                                                    // tampilkan qty dengan koma
+                                                    $qtyDisp = str_replace('.', ',', rtrim(rtrim((string)$d->qty, '0'), '.'));
+                                                @endphp
+                                                <tr class="sppj-row" data-detail-id="{{ $d->id }}">
+                                                    <td class="border p-3 text-center">{{ $rowNo }}</td>
+
+                                                    {{-- hidden: detail_id[] agar backend tahu mana yg update --}}
+                                                    <input type="hidden" name="detail_id[]" value="{{ $d->id }}"/>
+
+                                                    {{-- Product --}}
+                                                    <td class="border p-3">
+                                                        <div class="flex items-center gap-2">
+                                                            <input type="hidden" name="inventoryid[]" class="inventoryIdField" value="{{ $d->inventoryid }}">
+                                                            <input type="hidden" name="item_type[]" class="prodItemTypeField" value="{{ $d->sppj_type }}">
+                                                            <input type="hidden" name="item_category[]" class="prodItemCategoryField" value="{{ $d->sppj_category }}">
+                                                            <input type="text" name="product_name[]" class="productNameField w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0" placeholder="Select product..." readonly value="{{ $d->inventory_descr }}">
+                                                            <button type="button" class="openInventoryModal rounded border border-gray-500 px-1 py-1 hover:bg-gray-100 dark:hover:bg-gray-700" title="Lookup">🔎</button>
+                                                        </div>
+                                                    </td>
+
+                                                    {{-- Qty --}}
+                                                    <td class="border p-3 text-center">
+                                                        <input type="text" name="qty[]" class="qtyField w-full border-none bg-transparent p-2 text-right focus:outline-none focus:ring-0" placeholder="0,00" value="{{ $qtyDisp }}">
+                                                    </td>                                                    
+
+                                                    {{-- UoM --}}
+                                                    {{-- <td class="border p-3">
+                                                        <input type="text" name="stock_unit[]" readonly class="stock_unitField w-full cursor-not-allowed border-none bg-gray-50 p-2 text-gray-600 focus:outline-none" value="{{ $d->uom ?? '-' }}">
+                                                    </td> --}}
+                                                    <td class="border p-3">
+                                                        <div class="flex items-center gap-2">
+                                                            <!-- Hidden untuk kirim detail UoM -->
+                                                            <input type="hidden" name="uom_from_unit[]"      class="uomFromField">
+                                                            <input type="hidden" name="uom_to_unit[]"        class="uomToField">
+                                                            <input type="hidden" name="uom_unitmultdiv[]"    class="uomMultDivField">
+                                                            <input type="hidden" name="uom_unitrate[]"       class="uomRateField">
+                                                            <input type="text" name="stock_unit[]" class="stock_unitField w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0" placeholder="-" value="{{ $d->uom ?? '-' }}">
+                                                            <button type="button"
+                                                                    class="openUomModal rounded border border-gray-500 px-1 py-1 hover:bg-gray-100 dark:hover:bg-gray-700"
+                                                                    title="Lookup">🔎</button>
+                                                        </div>
+                                                    </td>
+
+                                                    {{-- Note --}}
+                                                    <td class="border p-3">
+                                                        <input type="text" name="note[]" class="w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0" value="{{ $d->note }}">
+                                                    </td>
+
+                                                    {{-- Location --}}
+                                                    <td class="p-3 border">
+                                                        <div class="flex items-center gap-2">
+                                                            <input type="hidden" name="location_id[]" class="locationIdField" value="{{ $d->location_id }}">
+                                                            <input type="text" name="location[]" class="locationNameField w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0" placeholder="Select location..." readonly value="{{ $d->location_name ?? $d->locationid ?? $d->location_id ?? '' }}">
+                                                            <button type="button" class="openLocationModal rounded border border-gray-500 px-1 py-1 hover:bg-gray-100 dark:hover:bg-gray-700" title="Lookup">🔎</button>
+                                                        </div>
+                                                    </td>
+
+                                                    {{-- Sub Location --}}
+                                                    <td class="p-3 border">
+                                                        <div class="flex items-center gap-2">
+                                                            <input type="hidden" name="sub_location_id[]" class="subLocationIdField" value="{{ $d->sub_location_id }}">
+                                                            <input type="text" name="sub_location[]" class="subLocationNameField w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0" placeholder="Select sub location..." readonly value="{{ $d->sub_location_name ?? $d->sublocationid ?? $d->sub_location_id ?? '' }}">
+                                                            <button type="button" class="openSubLocationModal rounded border border-gray-500 px-1 py-1 hover:bg-gray-100 dark:hover:bg-gray-700" title="Lookup">🔎</button>
+                                                        </div>
+                                                    </td>
+
+                                                    {{-- COA + hidden budget fields --}}
+                                                    <td class="border p-3">
+                                                        <div class="flex items-center gap-2">
+                                                            <input type="hidden" name="activity_id[]" class="activityIdField" value="{{ $d->budget_activity_id }}">
+                                                            <input type="hidden" name="business_unit_id[]" class="businessUnitIdField" value="{{ $d->budget_business_unit_id }}">
+                                                            <input type="hidden" name="department_fin_id[]" class="departmentFinIdField" value="{{ $d->budget_department_fin_id }}">
+                                                            <input type="hidden" name="coa_id[]" class="coaIdField" value="{{ $d->budget_account_id }}">
+                                                            <input type="text" name="coa[]" class="coaNameField w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0" placeholder="Select COA..." readonly value="{{ $d->budget_account_id }}">
+                                                            <button type="button" class="openCoaModal rounded border border-gray-500 px-1 py-1 hover:bg-gray-100 dark:hover:bg-gray-700" title="Lookup">🔎</button>
+                                                        </div>
+                                                    </td>
+
+                                                    <td class="border p-3 text-center">
+                                                        <button type="button" class="removeSppj rounded border border-red-700 bg-red-200/10 px-3 py-3 text-red-700 hover:bg-red-400/30">🗑️</button>
+                                                    </td>
+                                                </tr>
+                                            @empty
+                                                {{-- fallback 1 row kosong kalau tidak ada detail --}}
+                                                <tr class="sppj-row">
+                                                    <td class="border p-3 text-center">1</td>
+                                                    <input type="hidden" name="detail_id[]">
+                                                    <td class="border p-3">
+                                                        <div class="flex items-center gap-2">
+                                                            <input type="hidden" name="inventoryid[]" class="inventoryIdField">
+                                                            <input type="hidden" name="item_type[]"     class="prodItemTypeField">
+                                                            <input type="hidden" name="item_category[]" class="prodItemCategoryField">
+                                                            <input type="text" name="product_name[]" class="productNameField w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0" placeholder="Select product..." readonly>
+                                                            <button type="button" class="openInventoryModal rounded border border-gray-500 px-1 py-1 hover:bg-gray-100 dark:hover:bg-gray-700" title="Lookup">🔎</button>
+                                                        </div>
+                                                    </td>
+                                                    <td class="border p-3 text-center">
+                                                        <input type="text" name="qty[]" class="qtyField w-full border-none bg-transparent p-2 text-right focus:outline-none focus:ring-0" placeholder="0,00">
+                                                    </td>
+                                                    {{-- <td class="border p-3">
+                                                        <input type="text" name="stock_unit[]" readonly class="stock_unitField w-full cursor-not-allowed border-none bg-gray-50 p-2 text-gray-600 focus:outline-none" placeholder="-">
+                                                    </td> --}}
+                                                    <td class="border p-3">
+                                                        <div class="flex items-center gap-2">
+                                                            <!-- Hidden untuk kirim detail UoM -->
+                                                            <input type="hidden" name="uom_from_unit[]"      class="uomFromField">
+                                                            <input type="hidden" name="uom_to_unit[]"        class="uomToField">
+                                                            <input type="hidden" name="uom_unitmultdiv[]"    class="uomMultDivField">
+                                                            <input type="hidden" name="uom_unitrate[]"       class="uomRateField">
+                                                            <input type="text" name="stock_unit[]" class="stock_unitField w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0" placeholder="-" >
+                                                            <button type="button"
+                                                                    class="openUomModal rounded border border-gray-500 px-1 py-1 hover:bg-gray-100 dark:hover:bg-gray-700"
+                                                                    title="Lookup">🔎</button>
+                                                        </div>
+                                                    </td>
+                                                    <td class="border p-3">
+                                                        <input type="text" name="note[]" class="w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0" placeholder="Note">
+                                                    </td>
+                                                    <td class="p-3 border">
+                                                        <div class="flex items-center gap-2">
+                                                            <input type="hidden" name="location_id[]" class="locationIdField">
+                                                            <input type="text" name="location[]" class="locationNameField w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0" placeholder="Select location..." readonly>
+                                                            <button type="button" class="openLocationModal rounded border border-gray-500 px-1 py-1 hover:bg-gray-100 dark:hover:bg-gray-700" title="Lookup">🔎</button>
+                                                        </div>
+                                                    </td>
+                                                    <td class="p-3 border">
+                                                        <div class="flex items-center gap-2">
+                                                            <input type="hidden" name="sub_location_id[]" class="subLocationIdField">
+                                                            <input type="text" name="sub_location[]" class="subLocationNameField w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0" placeholder="Select sub location..." readonly>
+                                                            <button type="button" class="openSubLocationModal rounded border border-gray-500 px-1 py-1 hover:bg-gray-100 dark:hover:bg-gray-700" title="Lookup">🔎</button>
+                                                        </div>
+                                                    </td>
+                                                    <td class="p-3 border">
+                                                        <div class="flex items-center gap-2">
+                                                            <input type="hidden" name="activity_id[]" class="activityIdField">
+                                                            <input type="hidden" name="business_unit_id[]" class="businessUnitIdField">
+                                                            <input type="hidden" name="department_fin_id[]" class="departmentFinIdField">
+                                                            <input type="hidden" name="coa_id[]" class="coaIdField">
+                                                            <input type="text" name="coa[]" class="coaNameField w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0" placeholder="Select COA..." readonly>
+                                                            <button type="button" class="openCoaModal rounded border border-gray-500 px-1 py-1 hover:bg-gray-100 dark:hover:bg-gray-700" title="Lookup">🔎</button>
+                                                        </div>
+                                                    </td>
+                                                    <td class="border p-3 text-center">
+                                                        <button type="button" class="removeSppj rounded border border-red-700 bg-red-200/10 px-3 py-3 text-red-700 hover:bg-red-400/30 hidden">🗑️</button>
+                                                    </td>
+                                                </tr>
+                                            @endforelse
+                                            </tbody>
+                                        </table>
+                                    </div>
+
+                                    {{-- daftar id detail yang dihapus --}}
+                                    <input type="hidden" id="deletedDetails" name="deleted_detail_ids">
+
+                                    <button type="button" id="addSppj"
+                                        class="mb-4 mt-4 flex items-center justify-center gap-2 rounded border border-gray-700 bg-gray-200/10 p-2 text-gray-800 hover:border-red-700 hover:bg-red-200/10 hover:font-medium hover:text-red-800">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fill-rule="evenodd" d="M10 2a1 1 0 011 1v6h6a1 1 0 110 2h-6v6a1 1 0 11-2 0v-6H3a1 1 0 110-2h6V3a1 1 0 011-1z" clip-rule="evenodd" />
+                                        </svg>
+                                        Add Row
+                                    </button>
+                                </div>
+                            </details>
+                        </div>
                     </div>
 
                     <!-- ===== Modal Lookup Inventory ===== -->
@@ -462,7 +540,7 @@
                     </div>
                     </div>
 
-                    {{-- ===== Attachment ===== --}}
+                    {{-- ===== Attachments (optional ditampilkan sesuai kebutuhan) ===== --}}
                     <div class="w-full rounded-xl bg-white p-6 shadow-md dark:bg-gray-800">
                         <details class="group" open>
                             <summary
@@ -474,15 +552,20 @@
                                     class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline">Hide
                                     details &darr;</span>
                             </summary>
-                            <div class="flex flex-col pt-6">
+                            <div class="flex h-auto flex-col justify-start">
                                 <div id="attachmentsContainer">
-                                    <div class="attachment-row flex items-center gap-2">
-                                        <input type="file" name="attachments[]"
-                                            class="flex-grow rounded-md border border-gray-200 bg-white px-4 py-2 text-sm text-gray-700 file:mr-4 file:rounded-full file:border-0 file:bg-indigo-100 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-indigo-700 hover:file:bg-indigo-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:file:bg-indigo-700 dark:file:text-white dark:hover:file:bg-indigo-600">
-                                        <button type="button"
-                                            class="removeAttachment hidden rounded border border-red-600 bg-red-200/30 p-3 text-red-600 transition-colors hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">🗑️
-                                        </button>
-                                    </div>
+                                    @foreach ($attachment as $attach)
+                                        <div class="attachment-row flex items-center gap-2"
+                                            data-attachid="{{ $attach->id }}">
+                                            <a href="{{ url('/attachments/' . $attach->attachfile) }}"
+                                                target="_blank" class="mt-4 w-full border p-3 text-lg">📎
+                                                {{ $attach->name }}</a>
+                                            <button type="button"
+                                                class="removeAttachment2 mt-4 rounded border border-red-700 bg-red-200/10 px-3 py-3 text-white hover:border-red-700 hover:bg-red-400/30 dark:bg-red-700/30"
+                                                data-id="{{ $attach->id }}">🗑️
+                                            </button>
+                                        </div>
+                                    @endforeach
                                 </div>
                             </div>
                             <button type="button" id="addAttachment"
@@ -518,12 +601,8 @@
                                 </svg>
                             </button>
                         </div>
-                    </div>
+                    </div>                    
                 </form>
-            </div>
-
-            <div id="successMessage" class="mt-4 hidden font-bold text-green-600 lg:col-span-2">
-                Sppb Created Successfully!
             </div>
         </div>
     </div>
@@ -552,254 +631,390 @@
             $('#loadingSpinnerContainer').stop(true,true).fadeOut(120);
         }
     </script>
+ 
 
-
-
-    
     <script>
+        /** ===== Request Type (prefill selected) ===== */
         $(function () {
-        // helper: bersihkan error
-        function clearAllErrors(scope = '#sppbForm') {
-            $(scope).find('.is-invalid').removeClass('is-invalid').removeAttr('aria-invalid');
-            $(scope).find('.error-feedback').remove();
-        }
-        function addError($el, message) {
-            if (!$el || !$el.length) return;
-            $el.addClass('is-invalid').attr('aria-invalid', 'true');
-            if ($el.next('.error-feedback').length === 0) {
-            $el.after('<small class="error-feedback">'+message+'</small>');
-            }
-        }
-        // hapus error saat user memperbaiki input
-        $(document).on('input change', '#sppbForm input, #sppbForm textarea, #sppbForm select', function () {
-            $(this).removeClass('is-invalid').removeAttr('aria-invalid');
-            $(this).next('.error-feedback').remove();
-        });
+            const $cpny = $('select[name="cpnyid"]');
+            const $requestType = $('#requesttypeid');
+            const selectedRT = @json($sppj->requesttypeid);
 
-        // validasi detail per-baris (Note tidak wajib)
-        function validateDetails() {
-            clearAllErrors();
-
-            let validRows = 0;
-
-            $('#sppbTable tr.sppb-row').each(function () {
-            const $row  = $(this);
-
-            const invId = ($row.find('.inventoryIdField').val() || '').trim();
-            const $prod = $row.find('.productNameField');
-
-            const $qty  = $row.find('input[name="qty[]"]');
-            const rawQty = ($qty.val() || '').replace(/\./g,'').replace(',', '.');
-            const qty   = parseFloat(rawQty);
-
-            const $uom  = $row.find('.stock_unitField');
-
-            const locId = ($row.find('.locationIdField').val() || '').trim();
-            const $locN = $row.find('.locationNameField');
-
-            const subId = ($row.find('.subLocationIdField').val() || '').trim();
-            const $subN = $row.find('.subLocationNameField');
-
-            const coaId = ($row.find('.coaIdField').val() || '').trim();
-            const $coaN = $row.find('.coaNameField');
-
-            // baris dianggap kosong (abaikan) jika semua utama kosong
-            const isEmptyRow =
-                !invId && !($qty.val()||'').trim() && !locId && !subId && !coaId;
-
-            if (isEmptyRow) return; // lewati baris kosong
-
-            // baris aktif → semua wajib (kecuali Note)
-            let rowErr = false;
-            if (!invId) { addError($prod, 'Pilih Product.'); rowErr = true; }
-            if (!rawQty || isNaN(qty) || qty <= 0) { addError($qty, 'Qty harus > 0.'); rowErr = true; }
-            if (!$uom.val() || $uom.val() === '-') { addError($uom, 'UoM wajib.'); rowErr = true; }
-            if (!locId) { addError($locN, 'Pilih Location.'); rowErr = true; }
-            if (!subId) { addError($subN, 'Pilih Sub Location.'); rowErr = true; }
-            if (!coaId) { addError($coaN, 'Pilih COA.'); rowErr = true; }
-
-            if (!rowErr) validRows++;
-            });
-
-            if (validRows === 0) {
-            toastr.error('Minimal 1 baris detail harus lengkap (Product, Qty, UoM, Location, Sub Location, COA).');
-            return false;
-            }
-
-            // scroll ke error pertama jika ada
-            const $first = $('#sppbForm .is-invalid').first();
-            if ($first.length) {
-            $('html,body').animate({ scrollTop: $first.offset().top - 120 }, 300);
-            $first.trigger('focus');
-            toastr.error('Mohon perbaiki field yang ditandai merah pada detail SPPB.');
-            return false;
-            }
-            return true;
-        }
-
-        $('#sppbForm').on('submit', function (e) {
-            e.preventDefault();
-
-            // Validasi detail dulu
-            if (!validateDetails()) return;
-
-            // konversi qty: koma → titik setelah lolos validasi
-            $('.qtyField').each(function () {
-            this.value = (this.value || '').replace(/\./g,'').replace(',', '.');
-            });
-
-            // --- Lock UI
-            $('#submitBtn').prop('disabled', true);
-            $('#cancelBtn').prop('disabled', true);
-            $('#btnText').text('Processing...');
-            // $('#loadingSpinner').removeClass('hidden');
-            showOverlay('Submitting');
-
-            const formData = new FormData(document.getElementById('sppbForm'));
-
-            $.ajax({
-            url: "{{ route('sppbs.store') }}",
-            type: "POST",
-            data: formData,
-            processData: false,
-            contentType: false
-            })
-            .done(function (res) {
-            toastr.success(res.message || "Sppb Requisition Submit Successfully!");
-            window.location.href = "/sppbs";
-            })
-            .fail(function (xhr) {
-            // tampilkan pesan validasi 422 (Laravel)
-            if (xhr.status === 422 && xhr.responseJSON && xhr.responseJSON.errors) {
-                let msg = 'Mohon periksa input:<br>';
-                Object.keys(xhr.responseJSON.errors).forEach(k => {
-                msg += `- ${xhr.responseJSON.errors[k].join(', ')}<br>`;
+            function buildOptions(list, selected) {
+                let opts = '<option value="" disabled>Select Request Type</option>';
+                list.forEach(rt => {
+                    const sel = String(selected) === String(rt.requesttypeid) ? 'selected' : '';
+                    opts += `<option value="${rt.requesttypeid}" ${sel}>${rt.requesttype_name || rt.requesttypeid}</option>`;
                 });
-                toastr.error(msg);
-            } else if (xhr.responseJSON && xhr.responseJSON.message) {
-                toastr.error(xhr.responseJSON.message);
-            } else {
-                toastr.error('Error! Please check the input.');
+                return opts;
             }
-            })
-            .always(function () {
-            // --- Unlock UI
-            $('#submitBtn').prop('disabled', false);
-            $('#cancelBtn').prop('disabled', false);
-            $('#btnText').text('Submit Approval');
-            // $('#loadingSpinner').addClass('hidden');
-            hideOverlay();
-            });
+            function loadRequestTypes(cpnyid) {
+                if (!cpnyid) { $requestType.html('<option value="" disabled>Choose company first</option>'); return; }
+                $requestType.html('<option value="" disabled>Loading...</option>');
+                $.getJSON("{{ route('requesttypes.byCompany') }}", { cpnyid })
+                    .done(res => {
+                        const data = res.data || [];
+                        $requestType.html(data.length ? buildOptions(data, selectedRT)
+                                                    : '<option value="" disabled>No request type</option>');
+                    })
+                    .fail(() => $requestType.html('<option value="" disabled>Failed to load</option>'));
+            }
+            loadRequestTypes($cpny.val());
+            $cpny.on('change', function(){ loadRequestTypes(this.value); });
         });
+    </script>
+
+    <script>
+    /** ===== Edit: add/remove row & keep deleted ids ===== */
+        $(function(){
+            let sppjcount = $('#sppjTable tr.sppj-row').length || 1;
+            const $deleted = $('#deletedDetails');
+
+            function renumber(){
+                let i = 1;
+                $('#sppjTable tr.sppj-row').each(function(){ $(this).find('td:first').text(i++); });
+                // toggle delete button visibility
+                if ($('.sppj-row').length > 1) $('.removeSppj').removeClass('hidden'); else $('.removeSppj').addClass('hidden');
+            }
+            renumber();
+
+            $('#addSppj').on('click', function(){
+                sppjcount++;
+                const row = `
+                <tr class="sppj-row">
+                    <td class="p-3 border text-center">${sppjcount}</td>
+                    <input type="hidden" name="detail_id[]">
+                    <td class="p-3 border">
+                        <div class="flex items-center gap-2">
+                            <input type="hidden" name="inventoryid[]" class="inventoryIdField">
+                            <input type="hidden" name="item_type[]"     class="prodItemTypeField">
+                            <input type="hidden" name="item_category[]" class="prodItemCategoryField">
+                            <input type="text" name="product_name[]" class="productNameField w-full border-none bg-transparent p-2" placeholder="Select product..." readonly>
+                            <button type="button" class="openInventoryModal rounded border border-gray-500 px-1 py-1">🔎</button>
+                        </div>
+                    </td>
+                    <td class="border p-3 text-center">
+                        <input type="text" name="qty[]" class="qtyField w-full border-none bg-transparent p-2 text-right" placeholder="0,00">
+                    </td>
+                    <td class="border p-3">
+                        <div class="flex items-center gap-2">
+                            <!-- Hidden untuk kirim detail UoM -->
+                            <input type="hidden" name="uom_from_unit[]"      class="uomFromField">
+                            <input type="hidden" name="uom_to_unit[]"        class="uomToField">
+                            <input type="hidden" name="uom_unitmultdiv[]"    class="uomMultDivField">
+                            <input type="hidden" name="uom_unitrate[]"       class="uomRateField">
+                            <input type="text" name="stock_unit[]" class="stock_unitField w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0" placeholder="-" >
+                            <button type="button"
+                                    class="openUomModal rounded border border-gray-500 px-1 py-1 hover:bg-gray-100 dark:hover:bg-gray-700"
+                                    title="Lookup">🔎</button>
+                        </div>
+                    </td>
+                    <td class="p-3 border"><input type="text" name="note[]" class="w-full border-none bg-transparent p-2" placeholder="Note"></td>
+                    <td class="p-3 border">
+                        <div class="flex items-center gap-2">
+                            <input type="hidden" name="location_id[]" class="locationIdField">
+                            <input type="text" name="location[]" class="locationNameField w-full border-none bg-transparent p-2" placeholder="Select location..." readonly>
+                            <button type="button" class="openLocationModal rounded border border-gray-500 px-1 py-1">🔎</button>
+                        </div>
+                    </td>
+                    <td class="p-3 border">
+                        <div class="flex items-center gap-2">
+                            <input type="hidden" name="sub_location_id[]" class="subLocationIdField">
+                            <input type="text" name="sub_location[]" class="subLocationNameField w-full border-none bg-transparent p-2" placeholder="Select sub location..." readonly>
+                            <button type="button" class="openSubLocationModal rounded border border-gray-500 px-1 py-1">🔎</button>
+                        </div>
+                    </td>
+                    <td class="p-3 border">
+                        <div class="flex items-center gap-2">
+                            <input type="hidden" name="activity_id[]" class="activityIdField">
+                            <input type="hidden" name="business_unit_id[]" class="businessUnitIdField">
+                            <input type="hidden" name="department_fin_id[]" class="departmentFinIdField">
+                            <input type="hidden" name="coa_id[]" class="coaIdField">
+                            <input type="text" name="coa[]" class="coaNameField w-full border-none bg-transparent p-2" placeholder="Select COA..." readonly>
+                            <button type="button" class="openCoaModal rounded border border-gray-500 px-1 py-1">🔎</button>
+                        </div>
+                    </td>
+                    <td class="p-3 border text-center">
+                        <button type="button" class="removeSppj rounded border border-red-700 bg-red-200/10 px-3 py-3 text-red-700">🗑️</button>
+                    </td>
+                </tr>`;
+                $('#sppjTable').append(row);
+                renumber();
+            });
+
+            $(document).on('click', '.removeSppj', function(){
+                const $tr = $(this).closest('tr');
+                const detailId = $tr.data('detail-id'); // hanya ada untuk baris existing
+                if (detailId) {
+                    // tambahkan ke hidden deleted ids (comma separated)
+                    const curr = $deleted.val();
+                    $deleted.val(curr ? (curr + ',' + detailId) : String(detailId));
+                }
+                $tr.remove();
+                renumber();
+            });
         });
     </script>
 
 
+    {{-- <script>
+        // ===== Simpan Form =====
+        $(function () {
+        $('#sppjForm').on('submit', function (e) {
+            e.preventDefault();
+
+            // normalisasi qty (koma -> titik)
+            $('.qtyField').each(function () {
+            if (this.value.includes(',')) this.value = this.value.replace(',', '.');
+            });
+
+            // validasi minimal 1 detail valid
+            const hasValid = $('#sppjTable tr.sppj-row').toArray().some(tr => {
+            const $tr = $(tr);
+            const invId = ($tr.find('.inventoryIdField').val() || '').trim();
+            const qty   = parseFloat($tr.find('input[name="qty[]"]').val() || '0');
+            return invId !== '' && qty > 0;
+            });
+            if (!hasValid) { toastr.error('Minimal 1 item detail harus dipilih (Product Name & Qty > 0).'); return; }
+
+            // lock UI
+            $('#submitBtn, #cancelBtn').prop('disabled', true);
+            $('#btnText').text('Processing...');
+            $('#loadingSpinner').removeClass('hidden');
+
+            // kirim ke route update (pakai action form sendiri)
+            const form   = document.getElementById('sppjForm');
+            const formData = new FormData(form);
+            formData.set('_method','PUT'); // penting!
+
+            $.ajax({
+            url: form.action,        // <-- otomatis: route('sppjs.update', $sppj->id)
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function (res) {
+                toastr.success(res.message || "SPPJ updated successfully!");
+                window.location.href = "/sppjs";
+            },
+            error: function (xhr) {
+                if (xhr.status === 422 && xhr.responseJSON && xhr.responseJSON.errors) {
+                const errors = xhr.responseJSON.errors;
+                let msg = 'Mohon periksa input:<br>';
+                Object.keys(errors).forEach(k => { msg += `- ${errors[k].join(', ')}<br>`; });
+                toastr.error(msg);
+                } else if (xhr.responseJSON && xhr.responseJSON.message) {
+                toastr.error(xhr.responseJSON.message);
+                } else {
+                toastr.error('Error! Please check the input.');
+                }
+            },
+            complete: function () {
+                $('#submitBtn, #cancelBtn').prop('disabled', false);
+                $('#btnText').text('Submit Approval');
+                $('#loadingSpinner').addClass('hidden');
+            }
+            });
+        });
+        
+
+        // ===== Cancel Button =====
+        $('#cancelBtn').click(function () {
+            const confirmed = confirm("Are you sure you want to cancel? Unsaved changes will be lost.");
+            if (confirmed) {
+            $('#cancelBtn').prop('disabled', true);
+            $('#cancelText').text('Cancelling...');
+            $('#cancelSpinner').removeClass('hidden');
+            window.location.href = "{{ route('sppjs') }}";
+            }
+        });
+        });
+    </script> --}}
+
+    <script>
+        // ===== Simpan Form (EDIT) =====
+        $(function () {
+
+            // hapus tanda error saat user mengubah input
+            $(document).on('input change', '#sppjTable input, #sppjTable textarea', function(){
+            $(this).removeClass('is-invalid');
+            $(this).next('.error-feedback').remove();
+            });
+
+            function clearDetailErrors(){
+            $('#sppjTable .is-invalid').removeClass('is-invalid');
+            $('#sppjTable .error-feedback').remove();
+            }
+            function addDetailError($el, msg){
+            if(!$el || !$el.length) return;
+            $el.addClass('is-invalid');
+            if($el.next('.error-feedback').length === 0){
+                $el.after('<small class="error-feedback">'+msg+'</small>');
+            }
+            }
+
+            $('#sppjForm').on('submit', function (e) {
+            e.preventDefault();
+
+            // normalisasi qty (koma -> titik)
+            $('.qtyField').each(function () {
+                if (this.value.includes(',')) this.value = this.value.replace(',', '.');
+            });
+
+            // validasi minimal 1 detail valid (punya product & qty>0)
+            const hasValid = $('#sppjTable tr.sppj-row').toArray().some(tr => {
+                const $tr = $(tr);
+                const invId = ($tr.find('.inventoryIdField').val() || '').trim();
+                const qty   = parseFloat(($tr.find('input[name="qty[]"]').val() || '0').replace(',', '.'));
+                return invId !== '' && qty > 0;
+            });
+            if (!hasValid) {
+                toastr.error('Minimal 1 item detail harus dipilih (Product Name & Qty > 0).');
+                return;
+            }
+
+            // ===== VALIDASI SETIAP BARIS (wajib: Product, Qty, UoM, Location, Sub Location, COA) =====
+            clearDetailErrors();
+            let anyInvalid = false;
+
+            $('#sppjTable tr.sppj-row').each(function(){
+                const $tr = $(this);
+
+                const $prodHidden = $tr.find('.inventoryIdField');
+                const $prodVis    = $tr.find('.productNameField');
+
+                const $qty        = $tr.find('input[name="qty[]"]');
+
+                const $uomVis     = $tr.find('.stock_unitField'); // yang terlihat
+                const $uomTo      = $tr.find('.uomToField');      // hidden (hasil pilih UoM)
+
+                const $locHidden  = $tr.find('.locationIdField');
+                const $locVis     = $tr.find('.locationNameField');
+
+                const $subHidden  = $tr.find('.subLocationIdField');
+                const $subVis     = $tr.find('.subLocationNameField');
+
+                const $coaHidden  = $tr.find('.coaIdField');
+                const $coaVis     = $tr.find('.coaNameField');
+
+                // Anggap baris "aktif" kalau ada salah satu kolom terisi
+                const active = [
+                $prodHidden.val(), $qty.val(),
+                $locHidden.val(), $subHidden.val(), $coaHidden.val()
+                ].some(v => (v||'').toString().trim() !== '');
+
+                if (!active) return; // baris kosong → lewati
+
+                // Product
+                if (($prodHidden.val()||'').trim() === '') {
+                addDetailError($prodVis,'Product wajib dipilih.');
+                anyInvalid = true;
+                }
+
+                // Qty
+                const qNum = parseFloat(($qty.val()||'').replace(',', '.'));
+                if (!(qNum > 0)) {
+                addDetailError($qty,'Qty harus > 0.');
+                anyInvalid = true;
+                }
+
+                // UoM (cek visible & hidden)
+                const uomText = ($uomVis.val()||'').trim();
+                if ((uomText === '' || uomText === '-') && (($uomTo.val()||'').trim() === '')) {
+                addDetailError($uomVis,'UoM wajib dipilih.');
+                anyInvalid = true;
+                }
+
+                // Location
+                if (($locHidden.val()||'').trim() === '') {
+                addDetailError($locVis,'Location wajib dipilih.');
+                anyInvalid = true;
+                }
+
+                // Sub Location
+                if (($subHidden.val()||'').trim() === '') {
+                addDetailError($subVis,'Sub Location wajib dipilih.');
+                anyInvalid = true;
+                }
+
+                // COA
+                if (($coaHidden.val()||'').trim() === '') {
+                addDetailError($coaVis,'COA wajib dipilih.');
+                anyInvalid = true;
+                }
+            });
+
+            if (anyInvalid) {
+                const $first = $('#sppjTable .is-invalid').first();
+                if ($first.length){
+                $('html,body').animate({scrollTop: $first.offset().top - 120}, 300);
+                $first.trigger('focus');
+                }
+                toastr.error('Mohon lengkapi field wajib di SPPJ Detail (bertanda *).');
+                return;
+            }
+
+            // ============== lock UI ==============
+            $('#submitBtn, #cancelBtn').prop('disabled', true);
+            $('#btnText').text('Processing...');
+            // $('#loadingSpinner').removeClass('hidden');
+            showOverlay('Submitting');
+
+            // Kirim ke route update (pakai action form sendiri)
+            const form = document.getElementById('sppjForm');
+            const formData = new FormData(form);
+            formData.set('_method','PUT'); // penting!
+
+            $.ajax({
+                url: form.action,        // route('sppjs.update', $sppj->id)
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function (res) {
+                toastr.success(res.message || "SPPJ updated successfully!");
+                window.location.href = "/sppjs";
+                },
+                error: function (xhr) {
+                if (xhr.status === 422 && xhr.responseJSON && xhr.responseJSON.errors) {
+                    const errors = xhr.responseJSON.errors;
+                    let msg = 'Mohon periksa input:<br>';
+                    Object.keys(errors).forEach(k => { msg += `- ${errors[k].join(', ')}<br>`; });
+                    toastr.error(msg);
+                } else if (xhr.responseJSON && xhr.responseJSON.message) {
+                    toastr.error(xhr.responseJSON.message);
+                } else {
+                    toastr.error('Error! Please check the input.');
+                }
+                },
+                complete: function () {
+                $('#submitBtn, #cancelBtn').prop('disabled', false);
+                $('#btnText').text('Submit Approval');
+                // $('#loadingSpinner').addClass('hidden');
+                hideOverlay();
+                }
+            });
+            });
+
+            // ===== Cancel Button =====
+            $('#cancelBtn').click(function () {
+            const confirmed = confirm("Are you sure you want to cancel? Unsaved changes will be lost.");
+            if (confirmed) {
+                $('#cancelBtn').prop('disabled', true);
+                $('#cancelText').text('Cancelling...');
+                $('#cancelSpinner').removeClass('hidden');
+                window.location.href = "{{ route('sppjs') }}";
+            }
+            });
+        });
+        </script>
+
 
    <script>
-        // ===== SPPB Detail =====
+        // ===== SPPJ Detail =====
         $(function () {       
-        let sppbcount = 1;
-        let currentRow = null; // row yang sedang aktif untuk receive pilihan inventory
-
-        function updateRowNumbers() {
-            sppbcount = 0;
-            $('#sppbTable tr').each(function () {
-            sppbcount++;
-            $(this).find('td:first').text(sppbcount);
-            });
-        }
-        function updateRemoveButtons() {
-            if ($('.sppb-row').length > 1) $('.removeSppb').removeClass('hidden');
-            else $('.removeSppb').addClass('hidden');
-        }
-
-        $('#addSppb').on('click', function () {
-            sppbcount++;
-            const row = `
-            <tr class="sppb-row">
-                <td class="p-3 border text-center">${sppbcount}</td>
-
-                <td class="p-3 border">
-                <div class="flex items-center gap-2">
-                    <input type="hidden" name="inventoryid[]" class="inventoryIdField">
-                    <input type="hidden" name="item_type[]"     class="prodItemTypeField">
-                    <input type="hidden" name="item_category[]" class="prodItemCategoryField">
-                    <input type="hidden" name="purchase_unit[]" class="purchaseUnitField">
-                    <input type="text" name="product_name[]" class="productNameField w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0" placeholder="Select product..." readonly>
-                    <button type="button" class="openInventoryModal rounded border border-gray-500 px-1 py-1 hover:bg-gray-100 dark:hover:bg-gray-700" title="Lookup">🔎</button>
-                </div>
-                </td>
-
-                <td class="border p-3 text-center">
-                <input type="text" name="qty[]" 
-                        class="qtyField w-full border-none bg-transparent p-2 text-right focus:outline-none focus:ring-0"
-                        placeholder="0,00">
-                </td>
-
-                <td class="border p-3">
-                    <div class="flex items-center gap-2">
-                        <!-- Hidden untuk kirim detail UoM -->
-                        <input type="hidden" name="uom_from_unit[]"      class="uomFromField">
-                        <input type="hidden" name="uom_to_unit[]"        class="uomToField">
-                        <input type="hidden" name="uom_unitmultdiv[]"    class="uomMultDivField">
-                        <input type="hidden" name="uom_unitrate[]"       class="uomRateField">
-                        <input type="text" name="stock_unit[]" class="stock_unitField w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0" 
-                            placeholder="-" readonly>
-                        <button type="button"
-                                class="openUomModal rounded border border-gray-500 px-1 py-1 hover:bg-gray-100 dark:hover:bg-gray-700"
-                                title="Lookup">🔎</button>
-                    </div>
-                </td>
-
-                <td class="p-3 border">
-                <input type="text" name="note[]" placeholder="Note"
-                        class="w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0">
-                </td>
-
-                <td class="p-3 border">
-                    <div class="flex items-center gap-2">
-                        <input type="hidden" name="location_id[]" class="locationIdField">
-                        <input type="text" name="location[]" class="locationNameField w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0" placeholder="Select location..." readonly>
-                        <button type="button" class="openLocationModal rounded border border-gray-500 px-1 py-1 hover:bg-gray-100 dark:hover:bg-gray-700" title="Lookup">🔎</button>
-                    </div>
-                </td>
-                <td class="p-3 border">
-                    <div class="flex items-center gap-2">
-                        <input type="hidden" name="sub_location_id[]" class="subLocationIdField">
-                        <input type="text"   name="sub_location[]"    class="subLocationNameField w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0" placeholder="Select sub location..." readonly>
-                        <button type="button" class="openSubLocationModal rounded border border-gray-500 px-1 py-1 hover:bg-gray-100 dark:hover:bg-gray-700" title="Lookup">🔎</button>
-                    </div>
-                </td>
-             
-                <td class="p-3 border">
-                    <div class="flex items-center gap-2">
-                        <input type="hidden" name="activity_id[]" class="activityIdField">
-                        <input type="hidden" name="business_unit_id[]"   class="businessUnitIdField">
-                        <input type="hidden" name="department_fin_id[]"  class="departmentFinIdField">                      
-                        <input type="hidden" name="coa_id[]" class="coaIdField">
-                        <input type="text"   name="coa[]"    class="coaNameField w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0" placeholder="Select COA..." readonly>
-                        <button type="button" class="openCoaModal rounded border border-gray-500 px-1 py-1 hover:bg-gray-100 dark:hover:bg-gray-700" title="Lookup">🔎</button>
-                    </div>
-                </td>
-
-
-                <td class="p-3 border text-center">
-                <button type="button" class="removeSppb bg-red-200/10 hover:border-red-700 hover:bg-red-400/30 border-red-700 border text-white px-3 py-3 rounded hidden">🗑️</button>
-                </td>
-            </tr>`;
-            $('#sppbTable').append(row);
-            updateRemoveButtons();
-        });
-
-        $(document).on('click', '.removeSppb', function () {
-            $(this).closest('.sppb-row').remove();
-            updateRowNumbers();
-            updateRemoveButtons();
-        });
-
-        updateRemoveButtons();
-
+      
+        
         // ===== Modal Logic =====
         const $modal = $('#inventoryModal');
         const $tbody = $('#invTableBody');
@@ -888,7 +1103,8 @@
                     <button type="button" class="chooseInventory rounded border px-2 py-1 hover:bg-gray-100"
                         data-id="${item.inventoryid}"
                         data-name="${$('<div>').text(item.inventory_descr).html()}"
-                        data-stock_unit="${item.stock_unit || ''}"                        
+                        data-stock_unit="${item.stock_unit || ''}"
+                        data-account_id="${item.account_id || ''}"
                         data-item_type="${$('<div>').text(item.item_type || '').html()}"         
                         data-purchase_unit="${item.purchase_unit || item.purchaseunit || ''}"
                         data-item_category="${$('<div>').text(item.item_category || '').html()}">
@@ -920,7 +1136,7 @@
             const id           = $(this).data('id');
             const name         = $(this).data('name');
             const stock_unit   = $(this).data('stock_unit');
-            // const account_id   = ($(this).data('account_id') || '').toString().trim();
+            const account_id   = ($(this).data('account_id') || '').toString().trim();
 
             // NEW: item meta dari inventory
             const item_type     = $(this).data('item_type') || '';
@@ -939,11 +1155,6 @@
             currentRow.find('.coaIdField').val('');
             currentRow.find('.coaNameField').val('');
 
-            // setelah set product & stock_unit
-            currentRow.find('.productNameField').removeClass('is-invalid').next('.error-feedback').remove();
-            currentRow.find('.stock_unitField').removeClass('is-invalid').next('.error-feedback').remove();
-
-
             // //opsional: auto-isi COA bila inventory bawa default account_id (seperti sebelumnya)
             // if (account_id) {
             //     currentRow.find('.coaIdField').val(account_id);
@@ -955,13 +1166,11 @@
 
             closeModal();
         });
-
         });
     </script>
 
 
     <script>
-        // ===== Attachment =====
         $(document).ready(function() {
             // Fungsi Tambah Attachment
             $('#addAttachment').click(function() {
@@ -988,30 +1197,65 @@
                     $('.removeAttachment').addClass('hidden');
                 }
             }
+
+            $(document).on('click', '.removeAttachment2', function() {
+                let attachmentId = $(this).data('id'); // Ambil ID attachment
+                let row = $(this).closest('.attachment-row'); // Dapatkan row attachment
+
+                // Cek konfirmasi pengguna
+                let confirmDelete = confirm('Are you sure you want to remove this attachment?');
+
+                if (confirmDelete) {
+                    $.ajax({
+                        url: "/sppjs/remove-attachment/" + attachmentId, // Endpoint ke controller
+                        type: "POST",
+                        data: {
+                            _method: "PUT",
+                            _token: "{{ csrf_token() }}"
+                        },
+                        success: function(response) {
+                            if (response.success) {
+                                row.remove(); // Hapus dari tampilan jika berhasil
+                                alert("Attachment removed successfully!");
+                            } else {
+                                alert("Failed to remove attachment.");
+                            }
+                        },
+                        error: function(xhr) {
+                            alert("Error! Unable to remove attachment.");
+                            console.error(xhr.responseText);
+                        }
+                    });
+                } else {
+                    // **TIDAK ADA AKSI JIKA USER MEMBATALKAN**
+                    return false;
+                }
+            });
         });
-    </script>   
+    </script>
 
     <script>
         // ===== Request Type =====
         $(function () {
+        const $cpny = $('select[name="cpnyid"]');
         const $requestType = $('#requesttypeid');
-        const DOCTYPE = 'SPPB';
 
         function buildRequestTypeOptions(list, selected) {
             let opts = '<option value="" disabled>Select Request Type</option>';
             list.forEach(rt => {
             const sel = (selected && String(selected) === String(rt.requesttypeid)) ? 'selected' : '';
-            opts += `<option value="${rt.requesttypeid}" ${sel}>
-                        ${rt.requesttype_name || rt.name || rt.requesttypeid}
-                    </option>`;
+            opts += `<option value="${rt.requesttypeid}" ${sel}>${rt.requesttype_name || rt.name || rt.requesttypeid}</option>`;
             });
             return opts;
         }
 
-        function loadRequestTypes(selected = null) {
+        function loadRequestTypes(cpnyid, selected = null) {
+            if (!cpnyid) {
+            $requestType.html('<option value="" disabled selected>Choose company first</option>');
+            return;
+            }
             $requestType.html('<option value="" disabled selected>Loading...</option>');
-            // ⇩⇩ gunakan route yang filter by doctype
-            $.getJSON("{{ route('requesttypes.byDoctype') }}", { doctype: DOCTYPE })
+            $.getJSON("{{ route('requesttypes.byCompany') }}", { cpnyid })
             .done(function (res) {
                 const data = res.data || [];
                 if (data.length === 0) {
@@ -1025,11 +1269,14 @@
             });
         }
 
-        // initial load sekali saja (tidak tergantung company)
-        loadRequestTypes();
+        // initial load (pakai value yg sudah selected di header)
+        const initialCpny = $cpny.val();
+        loadRequestTypes(initialCpny);
 
-        // Tidak perlu lagi listen perubahan company:
-        // $('select[name="cpnyid"]').on('change', ...) — DIHAPUS
+        // reload saat company berubah
+        $cpny.on('change', function () {
+            loadRequestTypes($(this).val());
+        });
         });
     </script>
 
@@ -1153,9 +1400,6 @@
 
             currentLocRow.find('.locationIdField').val(id);
             currentLocRow.find('.locationNameField').val(name);
-
-            currentLocRow.find('.locationNameField').removeClass('is-invalid').next('.error-feedback').remove();
-
 
             closeLocModal();
         });
@@ -1315,8 +1559,6 @@
 
             currentSubLocRow.find('.subLocationIdField').val(id);
             currentSubLocRow.find('.subLocationNameField').val(name);
-
-            currentSubLocRow.find('.subLocationNameField').removeClass('is-invalid').next('.error-feedback').remove();
 
             closeSubLocModal();
         });
@@ -1512,8 +1754,6 @@
             currentCoaRow.find('.businessUnitIdField').val(buId);
             currentCoaRow.find('.departmentFinIdField').val(deptFinId);
 
-            currentCoaRow.find('.coaNameField').removeClass('is-invalid').next('.error-feedback').remove();
-
             closeCoaModal();
         });
 
@@ -1680,14 +1920,11 @@
             currentUomRow.find('.uomMultDivField').val(md);
             currentUomRow.find('.uomRateField').val(rate);
 
-            currentUomRow.find('.stock_unitField').removeClass('is-invalid').next('.error-feedback').remove();
-
             closeUomModal();
         });
         
         });
     </script>
-
 
     
     <!-- Toastr CSS -->
