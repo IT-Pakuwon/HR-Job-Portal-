@@ -92,41 +92,7 @@ class BudgetController extends Controller
        
         return view('pages.budgets.createbudgets', compact('companies','departements','tempData','temp_id'));
     }
-
-    public function import_xxx(Request $request)
-    {
-        $request->validate([
-            'file' => 'required|mimes:xlsx,xls,csv',
-            'cpny_id' => 'required',
-            'business_unit_id' => 'required',
-            'department_fin_id' => 'required',
-        ]);
-
-        try {
-            $username = Auth::user()->username; // ambil email user yang login
-            $temp_id = Str::uuid()->toString(); // generate UUID untuk temp_id
-
-            // 🔴 Hapus data sebelumnya yang diimport oleh user yang sama
-            MsBudgetTemp::where('created_by', $username)->delete();
-
-            // ✅ Lakukan import Excel
-            Excel::import(new MsBudgetTempImport(
-                $temp_id,
-                $request->cpny_id,
-                $request->business_unit_id,
-                $request->department_fin_id,
-                $username // dikirimkan ke Import
-            ), $request->file('file'));
-
-            // Simpan temp_id ke session
-            session(['import_temp_id' => $temp_id]);
-
-            return redirect()->route('budget.create')->with('success', 'Data berhasil diimport.');
-        } catch (\Throwable $e) {
-            return back()->with('error', 'Gagal import: ' . $e->getMessage());
-        }
-    }
-
+   
     public function import(Request $request, Budget $budget = null)
     {
         $request->validate([
@@ -371,14 +337,29 @@ class BudgetController extends Controller
                 ->where('status', 'P')
                 ->orderby('aprvid','ASC')
                 ->first();
+
+            $status = 'P'; // 'P' | 'R' | 'D' | 'A' | 'C'
+            
+            $subjectMap = [
+                'P' => 'Waiting Approval',
+                'R' => 'Rejected Approval',
+                'D' => 'Revise Approval',
+                'A' => 'Approved',
+                'C' => 'Completed',
+            ];
+            $subjectSuffix = $subjectMap[$status] ?? 'Notification';
+
             $id = $budget->id;
             $data = array(
                 'docid' => $t_approval_next->docid,
                 'cpnyid' => $t_approval_next->aprvcpnyid,
                 'deptname' => $t_approval_next->aprvdeptid,                
                 'date' => $t_approval_next->aprvdatebefore,
-                'name' => $t_approval_next->created_user,       
-                'info' => 'Budget Company ' . $tempHead->cpny_id . ' Department ' . $tempHead->department_fin_id . ' ' . $tempHead->perpost,      
+                'name' => $t_approval_next->name,    
+                'createdby'=> $budget->created_by,   
+                'docname'  => 'SPPB',
+                'info' => 'Budget Company ' . $tempHead->cpny_id . ' Department ' . $tempHead->department_fin_id . ' ' . $tempHead->perpost,     
+                'status'   => $status, 
                 'url' => url('/showbudgets_')  . $id
     
             );
@@ -390,7 +371,7 @@ class BudgetController extends Controller
                 ->get();
     
             foreach ($email_it as $emailsit) {
-                Mail::send('emails.mailapprove', $data, function ($message) use ($data, $emailsit) {
+                Mail::send('emails.mailapprovenew', $data, function ($message) use ($data, $emailsit) {
                     $message->to($emailsit->test_email)->subject($data['docid'] . ' - Waiting Approval Budgets');
                     $message->from('digitalserver@pakuwon.com', 'Pakuwon Smart System');
                 });
@@ -582,14 +563,28 @@ class BudgetController extends Controller
                 ->where('status', 'P')
                 ->orderby('aprvid','ASC')
                 ->first();
+
+            $status = 'P'; 
+            
+            $subjectMap = [
+                'P' => 'Waiting Approval',
+                'R' => 'Rejected Approval',
+                'D' => 'Revise Approval',
+                'A' => 'Approved',
+                'C' => 'Completed',
+            ];
+            $subjectSuffix = $subjectMap[$status] ?? 'Notification';
            
             $data = array(
                 'docid' => $t_approval_next->docid,
                 'cpnyid' => $t_approval_next->aprvcpnyid,
                 'deptname' => $t_approval_next->aprvdeptid,                
                 'date' => $t_approval_next->aprvdatebefore,
-                'name' => $t_approval_next->created_user,                          
-                'info' => $request->job_title,           
+                'name' => $t_approval_next->name,    
+                'createdby'=> $budget->created_by,   
+                'docname'  => 'SPPB',
+                'info' => 'Budget Company ' . $tempHead->cpny_id . ' Department ' . $tempHead->department_fin_id . ' ' . $tempHead->perpost,     
+                'status'   => $status,             
                 'url' => url('/showbudgets_') . $budget->id
     
             );
@@ -601,7 +596,7 @@ class BudgetController extends Controller
                 ->get();
     
             foreach ($email_it as $emailsit) {
-                Mail::send('emails.mailapprove', $data, function ($message) use ($data, $emailsit) {
+                Mail::send('emails.mailapprovenew', $data, function ($message) use ($data, $emailsit) {
                     $message->to($emailsit->test_email)->subject($data['docid'] . ' - Waiting Approval Budgets');
                     $message->from('digitalserver@pakuwon.com', 'Pakuwon Smart System');
                 });
@@ -752,7 +747,7 @@ class BudgetController extends Controller
                 ->get();
 
             foreach ($email_it as $emailsit) {
-                Mail::send('emails.mailapprove', $data, function ($message) use ($data, $emailsit) {
+                Mail::send('emails.mailapprovenew', $data, function ($message) use ($data, $emailsit) {
 
                     $message->to($emailsit->test_email)->subject($data['docid'] . ' - Waiting Approval Budget');
                     $message->from('digitalserver@pakuwon.com', 'Pakuwon Smart System');
@@ -770,8 +765,12 @@ class BudgetController extends Controller
         $datestamp = Carbon::now()->toDateTimeString();       
         $user = request()->user(); // Ambil user yang login
 
-        $budget = Budget::where('budget_id', $docid)->first();  
-        
+        // $budget = Budget::where('budget_id', $docid)->first();  
+        $budget = Budget::with('creator')
+            ->where('budget_id', $docid)
+            ->first();
+        $fullname = data_get($budget, 'creator.name') ?: $budget->created_by;
+
         
         if (!$budget) {
             return response()->json(['success' => false, 'message' => 'Task not found'], 404);
@@ -803,14 +802,27 @@ class BudgetController extends Controller
             $t_aprv->save();
         }
 
+        $status = 'R'; // Rejected
+        $subjectMap = [
+            'P' => 'Waiting Approval',
+            'R' => 'Rejected Approval',
+            'D' => 'Revise Approval',
+            'A' => 'Approved',
+            'C' => 'Completed',
+        ];
+        $subjectSuffix = $subjectMap[$status] ?? 'Notification';
+
         //send email 
         $data = array(
             'docid' => $t_approval->docid,
             'cpnyid' => $t_approval->aprvcpnyid,
-            'deptname' => $t_approval->aprvdeptid,
-            // 'locationname' => $ms_site->site,
+            'deptname' => $t_approval->aprvdeptid,           
             'date' => $t_approval->aprvdatebefore,
-            'name' => $t_approval->created_user,
+            'fullname'  => $fullname,               
+            'name'      => $fullname,               
+            'createdby' => $fullname,
+            'docname'   => 'Budget',
+            'status'    => $status,
             'info' => 'Budget Company ' . $budget->cpny_id . ' Department ' . $budget->department_fin_id . ' ' . $budget->perpost,                 
             'url' => url('/showbudgets/') . $budget->id
 
@@ -822,7 +834,7 @@ class BudgetController extends Controller
                 ->get();
 
         foreach ($email_it as $emailsit) {
-            Mail::send('emails.mailapprove', $data, function ($message) use ($data, $emailsit) {
+            Mail::send('emails.mailapprovenew', $data, function ($message) use ($data, $emailsit) {
 
                 $message->to($emailsit->test_email)->subject($data['docid'] . ' - Rejected Budget');
                 $message->from('digitalserver@pakuwon.com', 'Pakuwon Smart System');
@@ -843,7 +855,11 @@ class BudgetController extends Controller
         $datestamp = Carbon::now()->toDateTimeString();       
         $user = request()->user(); // Ambil user yang login
 
-        $budget = Budget::where('budget_id', $docid)->first();  
+        // $budget = Budget::where('budget_id', $docid)->first();  
+        $budget = Budget::with('creator')
+            ->where('budget_id', $docid)
+            ->first();
+        $fullname = data_get($budget, 'creator.name') ?: $budget->created_by;
         
         
         if (!$budget) {
@@ -876,14 +892,27 @@ class BudgetController extends Controller
             $t_aprv->save();
         }
 
+        $status = 'D'; // Revise
+        $subjectMap = [
+            'P' => 'Waiting Approval',
+            'R' => 'Rejected Approval',
+            'D' => 'Revise Approval',
+            'A' => 'Approved',
+            'C' => 'Completed',
+        ];
+        $subjectSuffix = $subjectMap[$status] ?? 'Notification';
+
         //send email 
         $data = array(
             'docid' => $t_approval->docid,
             'cpnyid' => $t_approval->aprvcpnyid,
-            'deptname' => $t_approval->aprvdeptid,
-            // 'locationname' => $ms_site->site,
+            'deptname' => $t_approval->aprvdeptid,           
             'date' => $t_approval->aprvdatebefore,
-            'name' => $t_approval->created_user,
+            'fullname'  => $fullname,             
+            'name'      => $fullname,             
+            'createdby' => $fullname,
+            'docname'   => 'Budget',
+            'status'    => $status,
             'info' => 'Budget Company ' . $budget->cpny_id . ' Department ' . $budget->department_fin_id . ' ' . $budget->perpost,               
             'url' => url('/showbudgets/') . $budget->id
 
@@ -895,7 +924,7 @@ class BudgetController extends Controller
                 ->get();
 
         foreach ($email_it as $emailsit) {
-            Mail::send('emails.mailapprove', $data, function ($message) use ($data, $emailsit) {
+            Mail::send('emails.mailapprovenew', $data, function ($message) use ($data, $emailsit) {
 
                 $message->to($emailsit->test_email)->subject($data['docid'] . ' - Revise Budget');
                 $message->from('digitalserver@pakuwon.com', 'Pakuwon Smart System');

@@ -57,7 +57,7 @@ use App\Models\MJobApplyStep;
 use App\Models\SignPayroll;
 use App\Models\GroupAccspecific;
 use App\Models\CompanyAddress;
-
+use Illuminate\Support\Facades\Log;
 
 
 class CareerController extends Controller
@@ -157,7 +157,7 @@ class CareerController extends Controller
             ->where('group_access_id', 'STEP')
             ->where('status', 'A')
             ->first();
-
+        // dd($hasGroupAccess);
         if ($hasGroupAccess) {           
             $job_apply->is_read = 'Y';
             $job_apply->save();
@@ -489,16 +489,12 @@ class CareerController extends Controller
         if (!$cek_approval && !$hasGroupAccess) {
             return response()->json(['success' => false, 'message' => "You Can't Approve!"], 403);
         }
-
-        // if (!$cek_approval) {
-        //     return response()->json(['success' => false, 'message' => "You Can't Approve!"], 403);
-        // }
-
+     
         $t_approval = JobApplyStep::where('docid', $career->docid)
             ->where('status', 'P')           
             ->orderBy('step_order', 'ASC')
             ->first();
-
+        
         if($hasGroupAccess){
             $user_step_pic = 'HC';
         }else{
@@ -514,7 +510,7 @@ class CareerController extends Controller
         if ($t_approval->step_pic !== $user_step_pic) {
             return response()->json(['success' => false, 'message' => "You can't approve this step"], 403);
         }
-    
+        
         if ($t_approval->step_order == 2) {    
             $this->insert_checklist($career, $user);
             $this->insert_assessment($career, $user);   
@@ -562,9 +558,92 @@ class CareerController extends Controller
 
         return response()->json(['success' => true, 'message' => 'Career approved successfully']);
     }
-     
 
     public function rejectCareer(Request $request, $docid)
+    {
+        $datestamp = Carbon::now()->toDateTimeString();       
+        $user = request()->user(); // Ambil user yang login
+        
+        $career = Career::where('docid', $docid)->first();  
+        if (!$career) {
+            return response()->json(['success' => false, 'message' => 'Career not found'], 404);
+        }
+
+        $jobposting = Jobposting::where('docid', $career->jobid)->first();
+        if (!$jobposting) {
+            return response()->json(['success' => false, 'message' => 'Job Posting not found'], 404);
+        }
+
+        // Cek apakah user termasuk dalam daftar approval
+        $cek_approval = T_approval::where('docid', $jobposting->refid)
+            ->where(function ($q) use ($user) {
+                $q->where('aprvusername', $user->username)
+                ->orWhere('aprvusername', 'like', '%'.$user->username.'%');
+            })
+            ->exists();
+
+        $hasGroupAccess = GroupAccspecific::where('username', $user->username)
+            ->where('group_access_id', 'STEP')
+            ->where('status', 'A')
+            ->exists();
+
+        if (!$cek_approval && !$hasGroupAccess) {
+            return response()->json(['success' => false, 'message' => "You can't reject!"], 403);
+        }
+    
+        $t_approval = JobApplyStep::where('docid', $career->docid)
+            ->where('status', 'P')           
+            ->orderBy('step_order', 'ASC')
+            ->first();
+
+        if (!$t_approval) {
+            return response()->json(['success' => false, 'message' => 'No pending step to reject'], 404);
+        }
+
+        // Role PIC user untuk validasi step_pic
+        $user_step_pic = $hasGroupAccess ? 'HC' : 'USER';
+
+        // Validasi step_pic harus sama
+        if ($t_approval->step_pic !== $user_step_pic) {
+            return response()->json(['success' => false, 'message' => "You can't reject this step"], 403);
+        }
+            
+        // Reject step berjalan
+        $t_approval->status = 'R';
+        $t_approval->aprvuserdate = $datestamp;
+        $t_approval->aprvusername = $user->username;
+        $t_approval->save();
+
+        // Set career jadi Rejected
+        $career->status = 'R';
+        $career->updated_user = $user->username;
+        $career->updated_at = $datestamp;
+        $career->save();
+
+        // Tutup semua step pending lainnya
+        $t_aprv_sisa = JobApplyStep::where('docid', $career->docid)
+            ->where('status', 'P')
+            ->get();
+
+        foreach ($t_aprv_sisa as $t_aprv) {
+            $t_aprv->status = 'X';
+            $t_aprv->save();
+        }
+
+        // Kirim notifikasi internal (comment) bila ada
+        $id = $career->id;
+        $doctype = 'JAP';
+        app('App\Http\Controllers\SendCommentController')->sendmsg($id, $doctype, $request);
+   
+        // Kirim email reject ke applicant
+        $this->sendemail_rejected_applicant($career, $user);
+
+        return response()->json(['success' => true, 'message' => 'Career rejected successfully']);
+    }
+
+     
+
+    public function rejectCareerxxx(Request $request, $docid)
     {
         $datestamp = Carbon::now()->toDateTimeString();       
         $user = request()->user(); // Ambil user yang login
@@ -586,19 +665,37 @@ class CareerController extends Controller
             ->where('aprvusername', 'like', '%' . $user->username . '%')
             ->get();
 
-        if ($cek_approval->isEmpty()) {
+        $hasGroupAccess = GroupAccspecific::where('username', $user->username)
+            ->where('group_access_id', 'STEP')
+            ->where('status', 'A')
+            ->first();
+        // dd($hasGroupAccess);
+        if (!$cek_approval && !$hasGroupAccess) {
             return response()->json(['success' => false, 'message' => "You Can't Approve!"], 403);
         }
-
+     
         $t_approval = JobApplyStep::where('docid', $career->docid)
-            ->where('status', 'P')
+            ->where('status', 'P')           
             ->orderBy('step_order', 'ASC')
             ->first();
+        
+        if($hasGroupAccess){
+            $user_step_pic = 'HC';
+        }else{
+            $user_step_pic = 'USER';
+        }
+        // perbaiki disini jika $t_approval->step_pic = $user_step_pic maka bisa approve, jika tidak sama tdk bisa approve
 
         if (!$t_approval) {
             return response()->json(['success' => false, 'message' => 'No pending step to approve'], 404);
         }
 
+        // Tambahkan validasi step_pic
+        if ($t_approval->step_pic !== $user_step_pic) {
+            return response()->json(['success' => false, 'message' => "You can't approve this step"], 403);
+        }
+            
+       
         $t_approval->status = 'R';
         $t_approval->aprvuserdate = $datestamp;
         $t_approval->aprvusername = $user->username;
@@ -625,7 +722,7 @@ class CareerController extends Controller
     }
        
 
-    public function checkApproval($id, $action)
+    public function checkApprovalxxx($id, $action)
     {
         $user = Auth::user(); // Ambil user yang login
 
@@ -659,6 +756,48 @@ class CareerController extends Controller
             'message' => $canPerformAction ? 'Authorized' : 'Unauthorized'
         ]);
     }
+
+    public function checkApproval($id, $action)
+    {
+        $user = Auth::user(); // user login
+
+        $career = Career::where('docid', $id)->first();
+        if (!$career) {
+            return response()->json(['canPerformAction' => false, 'message' => 'Career not found'], 404);
+        }
+
+        $jobposting = Jobposting::where('docid', $career->jobid)->first();
+        if (!$jobposting) {
+            return response()->json(['canPerformAction' => false, 'message' => 'Job posting not found'], 404);
+        }
+
+        // Apakah user ada di daftar approval dokumen ini?
+        $isInApprovalList = T_approval::where('docid', $jobposting->refid)
+            ->where(function ($q) use ($user) {
+                $q->where('aprvusername', $user->username)
+                ->orWhere('aprvusername', 'like', '%'.$user->username.'%');
+            })
+            ->exists();
+
+        // Apakah user punya akses group STEP aktif?
+        $hasGroupAccess = GroupAccspecific::where('username', $user->username)
+            ->where('group_access_id', 'STEP')
+            ->where('status', 'A')
+            ->exists();
+
+        // Jika butuh logika tambahan per action, bisa ditaruh di sini
+        if (in_array($action, ['approve', 'reject', 'revise'])) {
+            // Tambahkan logika spesifik jika diperlukan
+        }
+
+        $canPerformAction = $isInApprovalList || $hasGroupAccess;
+
+        return response()->json([
+            'canPerformAction' => $canPerformAction,
+            'message' => $canPerformAction ? 'Authorized' : 'Unauthorized'
+        ]);
+    }
+
 
     public function insert_checklist($career, $user)
     {
@@ -1737,13 +1876,14 @@ class CareerController extends Controller
         try {
 
             $jobposting = Jobposting::where('docid', $career->jobid)->first();
-           
+       
             // Cek apakah user termasuk dalam daftar approval
             $approvals = T_approval::where('docid', $jobposting->refid)
                 ->where('aprvid',1)    
+                ->where('status','A') 
                 ->orderBy('aprvid', 'ASC')            
                 ->first();
-            // dd($approvals);
+        //    dd($approvals);
         
             T_approval::create([
                 'docid' => $career->docid,
@@ -1997,6 +2137,46 @@ class CareerController extends Controller
         }
     }
 
+    public function sendemail_rejected_applicant($career, $user)
+    {
+        // Ambil data applicant
+        $applicant = Applicant::where('applicant_id', $career->applicant_id)->first();
+        if (!$applicant || empty($applicant->email_address)) {
+            // Jangan gagal total — log saja dan keluar
+            \Log::warning('Applicant email not found for rejection notice', [
+                'career_docid' => $career->docid ?? null,
+                'applicant_id' => $career->applicant_id ?? null,
+            ]);
+            return;
+        }
+
+        // Ambil info job (untuk subjek/konten)
+        $jobposting = Jobposting::where('docid', $career->jobid)->first();
+        $jobTitle = $jobposting->job_title ?? 'Your Application';
+        
+        $careerPortalUrl = url("https://careerjakarta.pakuwon.com"); 
+             
+
+        $data = [
+            'name'        => $applicant->full_name ?? 'Candidate',
+            'job_title'   => $jobTitle,           
+            'career_url'  => $careerPortalUrl,
+            'company'     => 'Pakuwon Group Jakarta',
+        ];
+
+        // Kirim email pakai blade "emails.mailapplicant_rejected"
+        Mail::send('emails.mailapplicant_rejected', $data, function ($message) use ($applicant, $jobTitle) {
+            $message->to($applicant->email_address)
+                    ->subject("📩 Application Update – {$jobTitle}")
+                    ->from('recruitment@pakuwon.com', 'Pakuwon Career');
+        });
+
+        // (Opsional) return info sukses (tidak perlu response JSON di sini)
+        \Log::info('Rejection email sent to applicant', [
+            'email' => $applicant->email_address,
+            'career_docid' => $career->docid ?? null,
+        ]);
+    }
 
 
 

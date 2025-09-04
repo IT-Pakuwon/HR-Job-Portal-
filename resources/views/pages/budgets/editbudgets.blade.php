@@ -1,10 +1,117 @@
 <x-app-layout>
+    <style>
+        .select2-container {
+            width: 100% !important;
+        }
+
+        .select2-container--default .select2-selection--single {
+            height: 40px !important;
+            border: 1px solid #d1d5db;
+            /* = border-gray-300 */
+            border-radius: 0.375rem;
+            /* = rounded-md */
+            background-color: #fff;
+        }
+
+        .select2-container--default .select2-selection--single .select2-selection__rendered {
+            line-height: 40px !important;
+            padding-left: 10px;
+            /* biar sejajar dengan p-2.5 */
+            padding-right: 28px;
+            color: #111827;
+            /* text-gray-900 */
+        }
+
+        .select2-container--default .select2-selection--single .select2-selection__arrow {
+            height: 42px !important;
+            right: 6px;
+        }
+
+        /* Optional: Dark mode */
+        .dark .select2-container--default .select2-selection--single {
+            background-color: #1f2937;
+            /* gray-800 */
+            border-color: #4b5563;
+            /* gray-600 */
+        }
+
+        .dark .select2-container--default .select2-selection--single .select2-selection__rendered {
+            color: #e5e7eb;
+            /* gray-200 */
+        }
+
+        .dark .select2-dropdown {
+            background-color: #111827;
+            /* gray-900 */
+            color: #e5e7eb;
+            border-color: #374151;
+            /* gray-700 */
+        }
+
+        .dark .select2-results__option--highlighted {
+            background-color: #2563eb;
+            /* blue-600 */
+            color: #fff;
+        }
+    </style>
+
+    <style>
+        /* Overlay full-screen */
+        #loadingSpinnerContainer{
+            position: fixed;
+            inset: 0;
+            display: none;                 /* akan ditampilkan via JS */
+            background: rgba(17,24,39,.55);
+            backdrop-filter: blur(2px);
+            z-index: 2000;
+        }
+
+        /* Kartu spinner di tengah */
+        #loadingSpinnerContainer .loading-card{
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%,-50%);
+            display: flex; flex-direction: column; align-items: center; gap: 10px;
+            padding: 18px 22px;
+            border-radius: 16px;
+            background: linear-gradient(180deg, rgba(31,41,55,.9), rgba(17,24,39,.9));
+            border: 1px solid rgba(255,255,255,.08);
+            box-shadow: 0 10px 30px rgba(0,0,0,.35), inset 0 0 0 1px rgba(255,255,255,.04);
+        }
+
+        /* Spinner dual ring */
+        #loadingSpinnerContainer .loading-spinner{
+            width: 54px; height: 54px; border-radius: 50%;
+            border: 4px solid transparent; border-top-color: #6366f1; /* indigo-500 */
+            animation: spin 1s linear infinite; position: relative;
+        }
+        #loadingSpinnerContainer .loading-spinner::after{
+            content: ""; position: absolute; inset: 6px; border-radius: 50%;
+            border: 4px solid transparent; border-left-color: #a5b4fc; /* indigo-200 */
+            animation: spinReverse .75s linear infinite;
+        }
+
+        #loadingSpinnerContainer .loading-text{ color:#e5e7eb; font-weight:600; letter-spacing:.02em; }
+        #loadingSpinnerContainer .loading-ellipsis span{ display:inline-block; animation: blink 1.4s infinite both; }
+        #loadingSpinnerContainer .loading-ellipsis span:nth-child(2){ animation-delay:.2s; }
+        #loadingSpinnerContainer .loading-ellipsis span:nth-child(3){ animation-delay:.4s; }
+
+        @keyframes spin{ to{ transform: rotate(360deg); } }
+        @keyframes spinReverse{ to{ transform: rotate(-360deg); } }
+        @keyframes blink{
+            0%{ opacity:.3; transform: translateY(0); }
+            20%{ opacity:1; transform: translateY(-2px); }
+            100%{ opacity:.3; transform: translateY(0); }
+        }
+    </style>
+
     <div class="max-w-9xl mx-auto w-full py-6">       
         <div class="max-w-9xl mx-auto w-full px-4">
             <div class="gap-6">
                 <div class="flex flex-col gap-10">
                     {{-- Form Import --}}                   
-                    <form id="budgetForm" action="{{ route('budget.import.edit', $budget->id) }}" method="POST" enctype="multipart/form-data">
+                    {{-- <form id="budgetForm" action="{{ route('budget.import.edit', $budget->id) }}" method="POST" enctype="multipart/form-data"> --}}
+                    <form id="budgetForm" action="{{ $budget ? route('budgets.import.edit', $budget->id) : route('budgets.import') }}" method="POST" enctype="multipart/form-data">
                         @csrf
                         <div class="rounded-2xl bg-white p-4 dark:bg-gray-800 shadow border">
                             <div class="flex justify-between border-b pb-2 dark:border-gray-600 mb-4">
@@ -56,7 +163,7 @@
                                     <input type="file" name="file" id="file" required class="w-full rounded-sm border border-gray-200/50 bg-gray-200/10 p-3 focus:ring focus:ring-blue-300 dark:bg-gray-800">
                                 </div>                                 
                                 <div class="col-span-2 flex justify-end">
-                                    <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700">
+                                    <button type="submit" id="importBtn" class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700">
                                         Import
                                     </button>
                                 </div>
@@ -203,6 +310,41 @@
         </div>       
     </div>
 
+    <div id="loadingSpinnerContainer" role="status" aria-live="polite" aria-label="Loading">
+        <div class="loading-card">
+            <div class="loading-spinner"></div>
+            <div class="loading-text">
+            Processing
+            <span class="loading-ellipsis"><span>.</span><span>.</span><span>.</span></span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showOverlay(text='Processing'){
+            const $ov = $('#loadingSpinnerContainer');
+            $ov.find('.loading-text').html(
+            (text || 'Processing') +
+            '<span class="loading-ellipsis"><span>.</span><span>.</span><span>.</span></span>'
+            );
+            // pastikan tampil (tetap bisa fadeIn)
+            $ov.stop(true,true).fadeIn(120);
+        }
+        function hideOverlay(){
+            $('#loadingSpinnerContainer').stop(true,true).fadeOut(120);
+        }
+    </script>
+
+    <script>
+        $(function(){
+            $('#budgetForm').on('submit', function(){
+            $('#importBtn').prop('disabled', true).text('Uploading…');
+            showOverlay('Uploading');
+            });
+        });
+    </script>
+
+
     <!-- Toastr CSS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
     <!-- Toastr JS -->
@@ -289,8 +431,10 @@
                 const url = "{{ route('budgets.update', $budget->id) }}";
 
                 $('#submitBtn').attr('disabled', true);
+                $('#cancelBtn').prop('disabled', true);
                 $('#btnText').text('Processing...');
-                $('#loadingSpinner').removeClass('hidden');
+                // $('#loadingSpinner').removeClass('hidden');
+                showOverlay('Submitting');
 
                 $.ajax({
                     url,
@@ -313,8 +457,10 @@
                             alert('Error! Please check the input.');
                         }
                         $('#submitBtn').attr('disabled', false);
+                        $('#cancelBtn').prop('disabled', false);
                         $('#btnText').text('Submit Approval');
-                        $('#loadingSpinner').addClass('hidden');
+                        // $('#loadingSpinner').addClass('hidden');
+                        hideOverlay();
                     }
                 });
             });

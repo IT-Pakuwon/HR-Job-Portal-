@@ -60,11 +60,11 @@
     <div class="max-w-9xl mx-auto w-full px-4 py-4 sm:px-6 lg:px-8">
         <div class="grid grid-cols-1 gap-8 lg:grid-cols-2 lg:grid-rows-[minmax(0,auto)_1fr]">
             <div class="flex flex-col gap-8 lg:col-span-2 lg:row-span-1">
-                <form id="sppbForm" class="flex flex-col gap-4" enctype="multipart/form-data">
+                <form id="sppjForm" class="flex flex-col gap-4" enctype="multipart/form-data">
                     @csrf
                     <div class="w-full rounded-xl bg-white p-6 shadow-md dark:bg-gray-800">
                         <div class="mb-6 border-b border-gray-200 pb-4 dark:border-gray-700">
-                            <h2 class="text-xl font-extrabold text-gray-800 dark:text-white">Create SPPB</h2>
+                            <h2 class="text-xl font-extrabold text-gray-800 dark:text-white">Create SPPJ</h2>
                             </h2>
                         </div>
                         <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
@@ -134,7 +134,7 @@
                         <details class="group" open>                     
                         <summary
                             class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-xl font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
-                            <span>SPPB Detail</span>
+                            <span>SPPJ Detail</span>
                             <span class="text-sm font-medium text-gray-500 transition-all group-open:hidden">See
                                 details &rarr;</span>
                             <span class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline">Hide
@@ -156,8 +156,8 @@
                                     <th class="w-16 border p-3 text-center"></th>
                                 </tr>
                                 </thead>
-                                <tbody id="sppbTable">
-                                <tr class="sppb-row">
+                                <tbody id="sppjTable">
+                                <tr class="sppj-row">
                                     <td class="border p-3 text-center">1</td>
 
                                     <!-- Product Name (text + zoom button + hidden id) -->
@@ -239,14 +239,14 @@
                                     </td>                               
 
                                     <td class="border p-3 text-center">
-                                    <button type="button" class="removeSppb hidden rounded border border-red-700 bg-red-200/10 px-3 py-3 text-white hover:border-red-700 hover:bg-red-400/30">🗑️</button>
+                                    <button type="button" class="removeSppj hidden rounded border border-red-700 bg-red-200/10 px-3 py-3 text-white hover:border-red-700 hover:bg-red-400/30">🗑️</button>
                                     </td>
                                 </tr>
                                 </tbody>
                             </table>
                             </div>
 
-                            <button type="button" id="addSppb"
+                            <button type="button" id="addSppj"
                             class="mb-4 mt-4 flex items-center justify-center gap-2 rounded border border-gray-700 bg-gray-200/10 p-2 text-gray-800 hover:border-red-700 hover:bg-red-200/10 hover:font-medium hover:text-red-800">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                                 <path fill-rule="evenodd" d="M10 2a1 1 0 011 1v6h6a1 1 0 110 2h-6v6a1 1 0 11-2 0v-6H3a1 1 0 110-2h6V3a1 1 0 011-1z" clip-rule="evenodd" />
@@ -268,7 +268,7 @@
 
                             <!-- Tabs -->
                             <div class="mb-3 flex border-b border-gray-200 dark:border-gray-700">
-                            <button type="button" class="invTab px-4 py-2 font-semibold border-b-2 border-indigo-600" data-type="stock">Stock</button>
+                            {{-- <button type="button" class="invTab px-4 py-2 font-semibold border-b-2 border-indigo-600" data-type="stock">Stock</button> --}}
                             <button type="button" class="invTab px-4 py-2 font-semibold border-b-2 border-transparent" data-type="nonstock">Non-Stock</button>
                             <div class="ml-auto flex items-center gap-2">
                                 <input id="invSearch" type="text" placeholder="Search..." class="rounded border border-gray-300 bg-white px-3 py-1 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
@@ -523,7 +523,7 @@
             </div>
 
             <div id="successMessage" class="mt-4 hidden font-bold text-green-600 lg:col-span-2">
-                Sppb Created Successfully!
+                Sppj Created Successfully!
             </div>
         </div>
     </div>
@@ -559,7 +559,7 @@
     <script>
         $(function () {
         // helper: bersihkan error
-        function clearAllErrors(scope = '#sppbForm') {
+        function clearAllErrors(scope = '#sppjForm') {
             $(scope).find('.is-invalid').removeClass('is-invalid').removeAttr('aria-invalid');
             $(scope).find('.error-feedback').remove();
         }
@@ -571,7 +571,7 @@
             }
         }
         // hapus error saat user memperbaiki input
-        $(document).on('input change', '#sppbForm input, #sppbForm textarea, #sppbForm select', function () {
+        $(document).on('input change', '#sppjForm input, #sppjForm textarea, #sppjForm select', function () {
             $(this).removeClass('is-invalid').removeAttr('aria-invalid');
             $(this).next('.error-feedback').remove();
         });
@@ -582,7 +582,7 @@
 
             let validRows = 0;
 
-            $('#sppbTable tr.sppb-row').each(function () {
+            $('#sppjTable tr.sppj-row').each(function () {
             const $row  = $(this);
 
             const invId = ($row.find('.inventoryIdField').val() || '').trim();
@@ -627,17 +627,17 @@
             }
 
             // scroll ke error pertama jika ada
-            const $first = $('#sppbForm .is-invalid').first();
+            const $first = $('#sppjForm .is-invalid').first();
             if ($first.length) {
             $('html,body').animate({ scrollTop: $first.offset().top - 120 }, 300);
             $first.trigger('focus');
-            toastr.error('Mohon perbaiki field yang ditandai merah pada detail SPPB.');
+            toastr.error('Mohon perbaiki field yang ditandai merah pada detail SPPJ.');
             return false;
             }
             return true;
         }
 
-        $('#sppbForm').on('submit', function (e) {
+        $('#sppjForm').on('submit', function (e) {
             e.preventDefault();
 
             // Validasi detail dulu
@@ -655,18 +655,18 @@
             // $('#loadingSpinner').removeClass('hidden');
             showOverlay('Submitting');
 
-            const formData = new FormData(document.getElementById('sppbForm'));
+            const formData = new FormData(document.getElementById('sppjForm'));
 
             $.ajax({
-            url: "{{ route('sppbs.store') }}",
+            url: "{{ route('sppjs.store') }}",
             type: "POST",
             data: formData,
             processData: false,
             contentType: false
             })
             .done(function (res) {
-            toastr.success(res.message || "Sppb Requisition Submit Successfully!");
-            window.location.href = "/sppbs";
+            toastr.success(res.message || "Sppj Requisition Submit Successfully!");
+            window.location.href = "/sppjs";
             })
             .fail(function (xhr) {
             // tampilkan pesan validasi 422 (Laravel)
@@ -697,28 +697,28 @@
 
 
    <script>
-        // ===== SPPB Detail =====
+        // ===== SPPJ Detail =====
         $(function () {       
-        let sppbcount = 1;
+        let sppjcount = 1;
         let currentRow = null; // row yang sedang aktif untuk receive pilihan inventory
 
         function updateRowNumbers() {
-            sppbcount = 0;
-            $('#sppbTable tr').each(function () {
-            sppbcount++;
-            $(this).find('td:first').text(sppbcount);
+            sppjcount = 0;
+            $('#sppjTable tr').each(function () {
+            sppjcount++;
+            $(this).find('td:first').text(sppjcount);
             });
         }
         function updateRemoveButtons() {
-            if ($('.sppb-row').length > 1) $('.removeSppb').removeClass('hidden');
-            else $('.removeSppb').addClass('hidden');
+            if ($('.sppj-row').length > 1) $('.removeSppj').removeClass('hidden');
+            else $('.removeSppj').addClass('hidden');
         }
 
-        $('#addSppb').on('click', function () {
-            sppbcount++;
+        $('#addSppj').on('click', function () {
+            sppjcount++;
             const row = `
-            <tr class="sppb-row">
-                <td class="p-3 border text-center">${sppbcount}</td>
+            <tr class="sppj-row">
+                <td class="p-3 border text-center">${sppjcount}</td>
 
                 <td class="p-3 border">
                 <div class="flex items-center gap-2">
@@ -785,15 +785,15 @@
 
 
                 <td class="p-3 border text-center">
-                <button type="button" class="removeSppb bg-red-200/10 hover:border-red-700 hover:bg-red-400/30 border-red-700 border text-white px-3 py-3 rounded hidden">🗑️</button>
+                <button type="button" class="removeSppj bg-red-200/10 hover:border-red-700 hover:bg-red-400/30 border-red-700 border text-white px-3 py-3 rounded hidden">🗑️</button>
                 </td>
             </tr>`;
-            $('#sppbTable').append(row);
+            $('#sppjTable').append(row);
             updateRemoveButtons();
         });
 
-        $(document).on('click', '.removeSppb', function () {
-            $(this).closest('.sppb-row').remove();
+        $(document).on('click', '.removeSppj', function () {
+            $(this).closest('.sppj-row').remove();
             updateRowNumbers();
             updateRemoveButtons();
         });
@@ -806,7 +806,7 @@
         const $invCount = $('#invCount');
 
         let invState = {
-            type: 'stock',     // 'stock' | 'nonstock'
+            type: 'nonstock',     // 'stock' | 'nonstock'
             search: '',
             page: 1,
             per_page: 10,
@@ -888,7 +888,8 @@
                     <button type="button" class="chooseInventory rounded border px-2 py-1 hover:bg-gray-100"
                         data-id="${item.inventoryid}"
                         data-name="${$('<div>').text(item.inventory_descr).html()}"
-                        data-stock_unit="${item.stock_unit || ''}"                        
+                        data-stock_unit="${item.stock_unit || ''}"
+                        data-account_id="${item.account_id || ''}"
                         data-item_type="${$('<div>').text(item.item_type || '').html()}"         
                         data-purchase_unit="${item.purchase_unit || item.purchaseunit || ''}"
                         data-item_category="${$('<div>').text(item.item_category || '').html()}">
@@ -920,7 +921,7 @@
             const id           = $(this).data('id');
             const name         = $(this).data('name');
             const stock_unit   = $(this).data('stock_unit');
-            // const account_id   = ($(this).data('account_id') || '').toString().trim();
+            const account_id   = ($(this).data('account_id') || '').toString().trim();
 
             // NEW: item meta dari inventory
             const item_type     = $(this).data('item_type') || '';
@@ -995,7 +996,7 @@
         // ===== Request Type =====
         $(function () {
         const $requestType = $('#requesttypeid');
-        const DOCTYPE = 'SPPB';
+        const DOCTYPE = 'SPPJ';
 
         function buildRequestTypeOptions(list, selected) {
             let opts = '<option value="" disabled>Select Request Type</option>';
@@ -1031,7 +1032,8 @@
         // Tidak perlu lagi listen perubahan company:
         // $('select[name="cpnyid"]').on('change', ...) — DIHAPUS
         });
-    </script>
+</script>
+
 
 
     <script>

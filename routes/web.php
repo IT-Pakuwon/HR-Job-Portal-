@@ -43,7 +43,7 @@ use App\Http\Controllers\CanvassController;
 use App\Http\Controllers\ChangeStoController;
 use App\Http\Controllers\MasterController;
 use App\Http\Controllers\SppbController;  
-
+use App\Http\Controllers\SppjController; 
 
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Response;
@@ -395,13 +395,29 @@ Route::post('/logout', function () {
     Route::get('/sppb/{id}/check-approval/{action}', [SppbController::class, 'checkApproval']);     
     Route::get('/sppbs/{id}/tracking', [SppbController::class, 'tracking'])->name('sppbs.tracking');
 
+    Route::get('/sppjs', [SppjController::class, 'index'])->name('sppjs');
+    Route::get('/sppjs/json', [SppjController::class, 'json'])->name('sppjs.json');
+    Route::get('/createsppjs', [SppjController::class, 'createSppj']);
+    Route::post('/sppjs', [SppjController::class, 'storeSppj'])->name('sppjs.store');
+    Route::get('/showsppjs/{id}', [SppjController::class, 'showSppj']);
+    Route::get('/sppj/{id}/comments', [SppjController::class, 'fetchComments']);
+    Route::post('/sppj/{id}/comments', [SppjController::class, 'storeComment']);
+    Route::post('/sppj/{id}/approve', [SppjController::class, 'approveSppj']);
+    Route::post('/sppj/{id}/reject', [SppjController::class, 'rejectSppj']);
+    Route::post('/sppj/{id}/revise', [SppjController::class, 'reviseSppj']);
+    Route::get('/editsppjs/{id}', [SppjController::class, 'editSppj']);
+    Route::put('/sppjs/{id}', [SppjController::class, 'updateSppj'])->name('sppjs.update');
+    Route::put('/sppjs/remove-attachment/{id}', [SppjController::class, 'removeAttachment']);    
+    Route::get('/sppj/{id}/check-approval/{action}', [SppjController::class, 'checkApproval']);     
+    Route::get('/sppjs/{id}/tracking', [SppjController::class, 'tracking'])->name('sppjs.tracking');
+
     Route::get('/inventory/list', [MasterController::class, 'InventoryList'])->name('inventory.list');
-    Route::get('/request-types/by-company', [MasterController::class, 'RequestType'])->name('requesttypes.byCompany');
+    Route::get('/request-types/by-doctype', [MasterController::class, 'RequestType'])->name('requesttypes.byDoctype');
     Route::get('/locations/by-company', [MasterController::class, 'Location'])->name('locations.byCompany'); 
     Route::get('/sublocations/by-location', [MasterController::class, 'SubLocation'])->name('sublocations.byLocation');
     Route::get('/departments/{cpny_id}', [MasterController::class, 'DepartmentFin'])->name('finance.departments.byCompany');
-    Route::get('/coa/by-dept', [MasterController::class, 'CoaBudget'])->name('coa.byDept');
-
+    Route::get('/coa/by-dept', [MasterController::class, 'CoaBudget'])->name('coa.byDept');   
+    Route::get('/uom/by-inventory', [MasterController::class, 'UomInventory'])->name('uom.byInventory');
 
     Route::get('/eng/users', [UsersEngController::class, 'index'])->name('userseng');
     Route::get('/eng/users/json', [UsersEngController::class, 'json'])->name('userseng.json');
@@ -441,9 +457,13 @@ Route::post('/logout', function () {
     // Route::get('/api/job-parent-info/{parentId}/{departementId}/{deptId}', [BudgetController::class, 'getParentJobInfo']);
     // Route::get('/api/vacant-employees/{deptId}', [BudgetController::class, 'getVacantByTopParent']);  
     
-    Route::post('/import-budget', [BudgetController::class, 'import'])->name('budget.import.post');
+    // Route::post('/import-budget', [BudgetController::class, 'import'])->name('budget.import.post');
     Route::get('/get-business-units/{cpny_id}', [BudgetController::class, 'getBusinessUnits']);
-    Route::post('/import-budget/{budget}', [BudgetController::class, 'import'])->name('budget.import.edit');
+    // Route::post('/import-budget/{budget}', [BudgetController::class, 'import'])->name('budget.import.edit'); 
+
+    Route::post('/budgets/import', [BudgetController::class, 'import'])->name('budgets.import');
+    Route::post('/budgets/{budget}/import', [BudgetController::class, 'import'])->name('budgets.import.edit');
+
 
 
     Route::get('/canvasssheet', [BudgetController::class, 'CanvassSheet'])->name('canvasssheet');

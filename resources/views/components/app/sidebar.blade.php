@@ -304,15 +304,15 @@
                                             </a>
                                         </li>
                                         <li class="mb-1 last:mb-0">
-                                            <a class="@if (Route::is('#')) {{ 'text-violet-500!' }} @endif block truncate text-gray-500/90 transition hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-                                                href="{{ route('budgets') }}">
+                                            <a class="@if (Route::is('sppjs')) {{ 'text-violet-500!' }} @endif block truncate text-gray-500/90 transition hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                                                href="{{ route('sppjs') }}">
                                                 <span
                                                     class="lg:sidebar-expanded:opacity-100 text-m font-medium duration-200 lg:opacity-0 2xl:opacity-100">SPP
                                                     Jasa</span>
                                             </a>
                                         </li>
                                         <li class="mb-1 last:mb-0">
-                                            <a class="@if (Route::is('#')) {{ 'text-violet-500!' }} @endif block truncate text-gray-500/90 transition hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                                            <a class="@if (Route::is('sppks')) {{ 'text-violet-500!' }} @endif block truncate text-gray-500/90 transition hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
                                                 href="{{ route('sppbs') }}">
                                                 <span
                                                     class="lg:sidebar-expanded:opacity-100 text-m font-medium duration-200 lg:opacity-0 2xl:opacity-100">SPP
@@ -320,7 +320,7 @@
                                             </a>
                                         </li>
                                         <li class="mb-1 last:mb-0">
-                                            <a class="@if (Route::is('#')) {{ 'text-violet-500!' }} @endif block truncate text-gray-500/90 transition hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                                            <a class="@if (Route::is('sppts')) {{ 'text-violet-500!' }} @endif block truncate text-gray-500/90 transition hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
                                                 href="{{ route('sppbs') }}">
                                                 <span
                                                     class="lg:sidebar-expanded:opacity-100 text-m font-medium duration-200 lg:opacity-0 2xl:opacity-100">SPP
