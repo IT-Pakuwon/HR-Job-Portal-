@@ -358,7 +358,7 @@
                                                         <div :class="comment.user === currentUser ?
                                                             'self-end bg-indigo-500 text-white' :
                                                             'self-start bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200'"
-                                                            class="max-w-xs rounded-lg p-3 shadow-md">
+                                                            class="max-w-xs rounded-lg p-3  ">
                                                             <p class="text-sm"><strong
                                                                     x-text="comment.user"></strong>:
                                                                 <span x-text="comment.text"></span>
@@ -376,7 +376,7 @@
                                                         class="flex-1 rounded-lg bg-gray-100 p-3 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-400 dark:bg-gray-800 dark:text-white">
                                                     <button id="postCommentBtn"
                                                         @click="if(newComment.trim()) { comments.push({ text: newComment, user: currentUser }); newComment = ''; }"
-                                                        class="rounded-lg bg-indigo-500 px-4 py-2 text-sm font-semibold text-white shadow-md transition-all duration-200 hover:bg-indigo-600 hover:  active:scale-95">
+                                                        class="rounded-lg bg-indigo-500 px-4 py-2 text-sm font-semibold text-white   transition-all duration-200 hover:bg-indigo-600 hover:  active:scale-95">
                                                         Post 🚀
                                                     </button>
                                                 </div>

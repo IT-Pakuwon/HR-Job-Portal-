@@ -92,7 +92,7 @@
                             </div>
 
                             <div id="modalJobProfile" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-gray-500/10 backdrop-blur-md">
-                                <div class="w-full max-w-4xl rounded-lg bg-white p-6 shadow-xl overflow-y-auto max-h-[90vh]">
+                                <div class="w-full max-w-4xl rounded-lg bg-white p-6    overflow-y-auto max-h-[90vh]">
                                     <div class="flex justify-between items-center mb-4">
                                         <h3 class="text-lg font-semibold">
                                             Job Profile - <span id="jobLevelLabel" class="text-blue-600 font-semibold"></span>

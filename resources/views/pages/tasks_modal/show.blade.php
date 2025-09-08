@@ -79,7 +79,7 @@
 
                         <!-- Task Actions -->
                         <div class="rounded-lg bg-gray-100 p-4 dark:bg-gray-700">
-                            <div class="overflow-hidden rounded-lg bg-white shadow-md dark:bg-gray-800">
+                            <div class="overflow-hidden rounded-lg bg-white dark:bg-gray-800">
                                 <div class="border-b px-6 py-4">
                                     <h2 class="text-2xl font-semibold text-gray-800 dark:text-white">Approval</h2>
                                 </div>

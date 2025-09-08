@@ -1,73 +1,109 @@
 <x-app-layout>
     <style>
-  /* Overlay full-screen di tengah */
-  #loadingSpinnerContainer {
-    position: fixed;
-    inset: 0;                       /* = top/right/bottom/left: 0 */
-    display: none;                  /* ditampilkan via JS .fadeIn() */
-    display: grid;
-    place-items: center;            /* center horizontal + vertical */
-    background: rgba(17,24,39,.55); /* #111827 dengan transparansi */
-    backdrop-filter: blur(2px);     /* efek blur background */
-    z-index: 2000;
-  }
+        /* Overlay full-screen di tengah */
+        #loadingSpinnerContainer {
+            position: fixed;
+            inset: 0;
+            /* = top/right/bottom/left: 0 */
+            display: none;
+            /* ditampilkan via JS .fadeIn() */
+            display: grid;
+            place-items: center;
+            /* center horizontal + vertical */
+            background: rgba(17, 24, 39, .55);
+            /* #111827 dengan transparansi */
+            backdrop-filter: blur(2px);
+            /* efek blur background */
+            z-index: 2000;
+        }
 
-  /* Kartu spinner */
-  .loading-card {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 10px;
-    padding: 18px 22px;
-    border-radius: 16px;
-    background: linear-gradient(180deg, rgba(31,41,55,.9), rgba(17,24,39,.9));
-    border: 1px solid rgba(255,255,255,.08);
-    box-shadow: 0 10px 30px rgba(0,0,0,.35), inset 0 0 0 1px rgba(255,255,255,.04);
-  }
+        /* Kartu spinner */
+        .loading-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            padding: 18px 22px;
+            border-radius: 16px;
+            background: linear-gradient(180deg, rgba(31, 41, 55, .9), rgba(17, 24, 39, .9));
+            border: 1px solid rgba(255, 255, 255, .08);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, .35), inset 0 0 0 1px rgba(255, 255, 255, .04);
+        }
 
-  /* Spinner dual ring */
-  .loading-spinner {
-    width: 54px;
-    height: 54px;
-    border-radius: 50%;
-    border: 4px solid transparent;
-    border-top-color: #6366f1;      /* indigo-500 */
-    animation: spin 1s linear infinite;
-    position: relative;
-  }
-  .loading-spinner::after {
-    content: "";
-    position: absolute;
-    inset: 6px;
-    border-radius: 50%;
-    border: 4px solid transparent;
-    border-left-color: #a5b4fc;     /* indigo-200 */
-    animation: spinReverse .75s linear infinite;
-  }
+        /* Spinner dual ring */
+        .loading-spinner {
+            width: 54px;
+            height: 54px;
+            border-radius: 50%;
+            border: 4px solid transparent;
+            border-top-color: #6366f1;
+            /* indigo-500 */
+            animation: spin 1s linear infinite;
+            position: relative;
+        }
 
-  /* Teks */
-  .loading-text {
-    color: #e5e7eb;                 /* gray-200 */
-    font-weight: 600;
-    letter-spacing: .02em;
-  }
+        .loading-spinner::after {
+            content: "";
+            position: absolute;
+            inset: 6px;
+            border-radius: 50%;
+            border: 4px solid transparent;
+            border-left-color: #a5b4fc;
+            /* indigo-200 */
+            animation: spinReverse .75s linear infinite;
+        }
 
-  /* Dots animasi */
-  .loading-ellipsis span {
-    display: inline-block;
-    animation: blink 1.4s infinite both;
-  }
-  .loading-ellipsis span:nth-child(2) { animation-delay: .2s; }
-  .loading-ellipsis span:nth-child(3) { animation-delay: .4s; }
+        /* Teks */
+        .loading-text {
+            color: #e5e7eb;
+            /* gray-200 */
+            font-weight: 600;
+            letter-spacing: .02em;
+        }
 
-  @keyframes spin        { to { transform: rotate(360deg); } }
-  @keyframes spinReverse { to { transform: rotate(-360deg);} }
-  @keyframes blink {
-    0%   { opacity:.3; transform: translateY(0); }
-    20%  { opacity:1;  transform: translateY(-2px); }
-    100% { opacity:.3; transform: translateY(0); }
-  }
-</style>
+        /* Dots animasi */
+        .loading-ellipsis span {
+            display: inline-block;
+            animation: blink 1.4s infinite both;
+        }
+
+        .loading-ellipsis span:nth-child(2) {
+            animation-delay: .2s;
+        }
+
+        .loading-ellipsis span:nth-child(3) {
+            animation-delay: .4s;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        @keyframes spinReverse {
+            to {
+                transform: rotate(-360deg);
+            }
+        }
+
+        @keyframes blink {
+            0% {
+                opacity: .3;
+                transform: translateY(0);
+            }
+
+            20% {
+                opacity: 1;
+                transform: translateY(-2px);
+            }
+
+            100% {
+                opacity: .3;
+                transform: translateY(0);
+            }
+        }
+    </style>
 
     <div class="max-w-9xl mx-auto px-4 py-4 sm:px-6 lg:px-8">
         <div class="mb-4 flex items-center justify-between">
@@ -389,12 +425,12 @@
                                             class="flex-1 rounded-lg border border-transparent bg-gray-100 p-3 text-gray-800 transition-all duration-200 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white dark:focus:ring-indigo-400">
                                         {{-- <button id="postCommentBtn"
                                             @click="if(newComment.trim()) { comments.push({ text: newComment, user: currentUser }); newComment = ''; }"
-                                            class="hover: rounded-lg bg-indigo-600 px-5 py-3 text-sm font-semibold text-white shadow-md transition-all duration-200 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 active:scale-95 dark:focus:ring-offset-gray-800">
+                                            class="hover: rounded-lg bg-indigo-600 px-5 py-3 text-sm font-semibold text-white   transition-all duration-200 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 active:scale-95 dark:focus:ring-offset-gray-800">
                                             Post 🚀
                                         </button> --}}
                                         <button id="postCommentBtn" type="button"
-                                        class="hover: rounded-lg bg-indigo-600 px-5 py-3 text-sm font-semibold text-white shadow-md transition-all duration-200 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 active:scale-95 dark:focus:ring-offset-gray-800">
-                                        Post 🚀
+                                            class="hover: rounded-lg bg-indigo-600 px-5 py-3 text-sm font-semibold text-white transition-all duration-200 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 active:scale-95 dark:focus:ring-offset-gray-800">
+                                            Post 🚀
                                         </button>
                                     </div>
                                 </div>
@@ -460,7 +496,7 @@
         <div class="loading-card">
             <div class="loading-spinner"></div>
             <div class="loading-text">
-            Processing<span class="loading-ellipsis"><span>.</span><span>.</span><span>.</span></span>
+                Processing<span class="loading-ellipsis"><span>.</span><span>.</span><span>.</span></span>
             </div>
         </div>
     </div>
@@ -509,11 +545,9 @@
         dayjs.extend(dayjs_plugin_relativeTime);
 
         const $spinner = $("#loadingSpinnerContainer");
-        $spinner.fadeIn();   // tampilkan saat mulai proses
+        $spinner.fadeIn(); // tampilkan saat mulai proses
         // ...
-        $spinner.fadeOut();  // sembunyikan saat selesai
-
-
+        $spinner.fadeOut(); // sembunyikan saat selesai
     </script>
 
     <script>
@@ -561,7 +595,7 @@
                 });
             }
 
-            $(document).on('click', '#postCommentBtn', function (e) {
+            $(document).on('click', '#postCommentBtn', function(e) {
                 e.preventDefault();
                 addComment();
             });
@@ -840,7 +874,7 @@
             });
         }
     </script>
-   
+
 
 
 

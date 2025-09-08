@@ -245,7 +245,7 @@
                                                    placeholder="Write a comment..."
                                                    class="flex-1 rounded-lg border-gray-300 bg-white p-2 text-gray-800 focus:border-indigo-400 focus:ring-indigo-400 dark:border-gray-600 dark:bg-gray-800 dark:text-white">
                                                <button @click="addComment()"
-                                                   class="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-md transition-all duration-200 hover:bg-indigo-700 active:scale-95">
+                                                   class="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition-all duration-200 hover:bg-indigo-700 active:scale-95">
                                                    Post 🚀
                                                </button>
                                            </div>
@@ -510,7 +510,7 @@
                            if (xhr.status === 403) {
                                toastr.error("You are not authorized to approve this career.");
                            } else {
-                            //    toastr.error("Error: Unable to approve career.");
+                               //    toastr.error("Error: Unable to approve career.");
                            }
                        },
                        complete: function() {
@@ -594,7 +594,7 @@
                                if (xhr.status === 403) {
                                    alert("You Can't Rejected!"); // Popup jika user tidak berhak
                                } else {
-                                //    alert("Error: Unable to reject career status.");
+                                   //    alert("Error: Unable to reject career status.");
                                }
                            },
                        });

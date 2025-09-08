@@ -298,7 +298,7 @@
         <div class="grid">
             <div class="px-4 sm:px-6 lg:px-8 py-4 w-full max-w-9xl mx-auto">
                 <div class="grid grid-cols-12 gap-6">    
-                    <div class="flex flex-col col-span-full sm:col-span-6 xl:col-span-6 bg-white dark:bg-gray-800 rounded-2xl shadow-md overflow-hidden">
+                    <div class="flex flex-col col-span-full sm:col-span-6 xl:col-span-6 bg-white dark:bg-gray-800 rounded-2xl   overflow-hidden">
                         
                         <header class="px-6 py-4 flex justify-between items-center border-b border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700">
                             <h1 class="text-2xl font-semibold text-gray-700 dark:text-gray-100">{{ $personnels->docid }}</h1>

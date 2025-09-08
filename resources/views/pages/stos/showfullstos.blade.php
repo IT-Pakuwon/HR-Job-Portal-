@@ -115,7 +115,7 @@
             <div id="modalJobProfile"
                 class="fixed inset-0 z-50 flex hidden items-center justify-center bg-gray-900/40 backdrop-blur-sm">
                 <div
-                    class="relative max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-lg bg-white p-6 shadow-xl dark:bg-gray-800">
+                    class="relative max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-lg bg-white p-6 dark:bg-gray-800">
                     <div
                         class="mb-4 flex items-center justify-between border-b border-gray-200 pb-4 dark:border-gray-700">
                         <h3 class="text-xl font-semibold text-gray-800 dark:text-white">
@@ -276,13 +276,13 @@
                                         <div style="font-size:12px;color:#333">
                                             <div style="margin-top:10px;">
                                                 ${members.map(m => `
-                                                                                                                                            <div style="display:flex;align-items:center;margin-bottom:6px;">
-                                                                                                                                                <img src="${m.image}" style="width:30px;height:30px;border-radius:50%;margin-right:8px;" />
-                                                                                                                                                <span style="font-size:12px; color:${m.name.toUpperCase() === 'VACANT' ? 'red' : '#000'};">
-                                                                                                                                                    ${m.name} (${m.company})
-                                                                                                                                                </span>
-                                                                                                                                            </div>
-                                                                                                                                        `).join('')}
+                                                                                                                                                        <div style="display:flex;align-items:center;margin-bottom:6px;">
+                                                                                                                                                            <img src="${m.image}" style="width:30px;height:30px;border-radius:50%;margin-right:8px;" />
+                                                                                                                                                            <span style="font-size:12px; color:${m.name.toUpperCase() === 'VACANT' ? 'red' : '#000'};">
+                                                                                                                                                                ${m.name} (${m.company})
+                                                                                                                                                            </span>
+                                                                                                                                                        </div>
+                                                                                                                                                    `).join('')}
                                             </div>
                                         </div>
                                     </div>

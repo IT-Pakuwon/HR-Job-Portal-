@@ -21,7 +21,7 @@
     </div>
     <!-- Tab Content -->
     <div id="tab-content-waiting" class="tab-content">
-        <div class="flex flex-col items-center justify-between gap-4 sm:flex-row">
+        <div class="flex flex-col justify-between gap-4 sm:flex-row">
             <div>
                 <h1 class="text-2xl font-bold dark:text-white">📝 Waiting Approval</h1>
                 <p class="text-m ml-8 mt-2 dark:text-white">See what's your task for today!</p>
@@ -35,11 +35,11 @@
             <table class="w-full min-w-full rounded" id="waitingTable">
                 <thead class="bg-gray-200 text-xs text-gray-700 dark:bg-gray-700 dark:text-white">
                     <tr>
-                        <th class="px-4 py-2 text-left uppercase">DocID</th>
-                        <th class="px-4 py-2 text-left uppercase">Date</th>
+                        <th class="px-4 py-2 text-center uppercase">DocID</th>
+                        <th class="px-4 py-2 text-center uppercase">Date</th>
                         <th class="px-4 py-2 text-center uppercase">Company</th>
-                        <th class="px-4 py-2 text-right uppercase">Department</th>
-                        <th class="px-4 py-2 text-right uppercase">Info</th>
+                        <th class="px-4 py-2 text-center uppercase">Department</th>
+                        <th class="px-4 py-2 text-center uppercase">Info</th>
                     </tr>
                 </thead>
                 <tbody class="text-sm text-gray-800 dark:text-gray-300">
@@ -58,7 +58,7 @@
         </div>
     </div>
     <div id="tab-content-approved" class="tab-content hidden">
-        <div class="flex flex-col items-center justify-between gap-4 sm:flex-row">
+        <div class="flex flex-col justify-between gap-4 sm:flex-row">
             <div>
                 <h1 class="text-2xl font-bold dark:text-white">✅ Approval</h1>
                 <p class="text-m ml-8 mt-2 dark:text-white">See your approved tasks!</p>
@@ -72,11 +72,11 @@
             <table class="w-full min-w-full rounded" id="approvedTable">
                 <thead class="bg-gray-200 text-xs text-gray-700 dark:bg-gray-700 dark:text-white">
                     <tr>
-                        <th class="px-4 py-2 text-left uppercase">DocID</th>
-                        <th class="px-4 py-2 text-left uppercase">Date</th>
+                        <th class="px-4 py-2 text-center uppercase">DocID</th>
+                        <th class="px-4 py-2 text-center uppercase">Date</th>
                         <th class="px-4 py-2 text-center uppercase">Company</th>
-                        <th class="px-4 py-2 text-right uppercase">Department</th>
-                        <th class="px-4 py-2 text-right uppercase">Info</th>
+                        <th class="px-4 py-2 text-center uppercase">Department</th>
+                        <th class="px-4 py-2 text-center uppercase">Info</th>
                     </tr>
                 </thead>
                 <tbody class="text-sm text-gray-800 dark:text-gray-300">
@@ -142,9 +142,9 @@
                             <a href="${ap.url}/${ap.id}" target="_blank" class="rounded-md bg-blue-500 px-3 py-1 text-white transition hover:bg-blue-600">${ap.docid}</a>
                         </td>
                         <td class="whitespace-nowrap p-3 text-left">${ap.docdate ?? '-'}</td>
-                        <td class="whitespace-nowrap p-3 text-center">${ap.cpnyid ?? '-'}</td>
-                        <td class="whitespace-nowrap p-3 text-right">${ap.departementid ?? '-'}</td>
-                        <td class="whitespace-nowrap p-3 text-right">${ap.infohd ?? '-'}</td>
+                        <td class="whitespace-nowrap p-3 text-left">${ap.cpnyid ?? '-'}</td>
+                        <td class="whitespace-nowrap p-3 text-left">${ap.departementid ?? '-'}</td>
+                        <td class="whitespace-nowrap p-3 text-left">${ap.infohd ?? '-'}</td>
                     </tr>
                 `;
             });

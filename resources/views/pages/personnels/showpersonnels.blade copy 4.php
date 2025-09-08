@@ -75,7 +75,7 @@
                                         @endphp
                                         @foreach ($jobDetails as $detail)
                                             <div
-                                                class="flex flex-row items-center gap-4 rounded-lg border border-gray-200 bg-gray-50 p-4 transition-shadow duration-200 hover:shadow-md dark:border-gray-700 dark:bg-gray-800">
+                                                class="flex flex-row items-center gap-4 rounded-lg border border-gray-200 bg-gray-50 p-4 transition-shadow duration-200 hover:  dark:border-gray-700 dark:bg-gray-800">
                                                 {{-- Rounded-lg, subtle background, shadow, and hover effect --}}
                                                 <div>
                                                     <p class="text-xs font-medium text-gray-500 dark:text-gray-400">
@@ -105,7 +105,7 @@
                                             @endphp
                                             @foreach ($jobDetail as $details)
                                                 <div
-                                                    class="flex items-center gap-4 rounded-lg border border-gray-200 bg-gray-50 p-4 transition-shadow duration-200 hover:shadow-md dark:border-gray-700 dark:bg-gray-800">
+                                                    class="flex items-center gap-4 rounded-lg border border-gray-200 bg-gray-50 p-4 transition-shadow duration-200 hover:  dark:border-gray-700 dark:bg-gray-800">
                                                     <i
                                                         class="lucide lucide-{{ $details['icon'] }} h-7 w-7 flex-shrink-0 text-indigo-500 dark:text-indigo-400"></i>
                                                     <div>
@@ -135,7 +135,7 @@
                                             @endphp
                                             @foreach ($jobDetail2 as $details)
                                                 <div
-                                                    class="flex items-center gap-4 rounded-lg border border-gray-200 bg-gray-50 p-4 transition-shadow duration-200 hover:shadow-md dark:border-gray-700 dark:bg-gray-800">
+                                                    class="flex items-center gap-4 rounded-lg border border-gray-200 bg-gray-50 p-4 transition-shadow duration-200 hover:  dark:border-gray-700 dark:bg-gray-800">
                                                     <i
                                                         class="lucide lucide-{{ $details['icon'] }} h-7 w-7 flex-shrink-0 text-indigo-500 dark:text-indigo-400"></i>
                                                     <div>
@@ -169,7 +169,7 @@
 
                                             @foreach ($jobNumbers as $job)
                                                 <div
-                                                    class="flex flex-row items-center justify-between space-y-1 rounded-lg border border-gray-200 bg-white p-2 transition-all duration-200 hover:shadow-md dark:border-gray-700 dark:bg-gray-900">
+                                                    class="flex flex-row items-center justify-between space-y-1 rounded-lg border border-gray-200 bg-white p-2 transition-all duration-200 hover:  dark:border-gray-700 dark:bg-gray-900">
                                                     {{-- Flex-col for stacking, space-y, larger padding, rounded-lg, darker bg in dark mode, hover effect --}}
                                                     <span class="text-xs font-medium text-gray-500 dark:text-gray-400">
                                                         {{ $job['label'] }}</span>
@@ -208,7 +208,7 @@
                                                 {{-- Added margin-top for mobile, consistent gap --}}
                                                 @foreach ($jobtag as $jt)
                                                     <span
-                                                        class="inline-block cursor-pointer rounded-full bg-purple-100 px-4 py-1.5 text-sm font-semibold text-purple-700 shadow-sm transition-all duration-300 hover:bg-purple-200 hover:shadow-md dark:bg-purple-800/30 dark:text-purple-300 dark:hover:bg-purple-800">
+                                                        class="inline-block cursor-pointer rounded-full bg-purple-100 px-4 py-1.5 text-sm font-semibold text-purple-700 shadow-sm transition-all duration-300 hover:bg-purple-200 hover:  dark:bg-purple-800/30 dark:text-purple-300 dark:hover:bg-purple-800">
                                                         {{-- Adjusted colors for tags, hover effects --}}
                                                         {{ $jt->job_tags }}
                                                     </span>
@@ -221,7 +221,7 @@
                             </div>
 
                             <div x-data="{ isOpen: true }"
-                                class="rounded-xl bg-white   transition-shadow duration-300 hover:shadow-xl dark:bg-gray-800">
+                                class="rounded-xl bg-white   transition-shadow duration-300 hover:   dark:bg-gray-800">
                                 {{-- Consistent card styling --}}
                                 <header
                                     class="flex cursor-pointer items-center justify-between rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700"
@@ -276,7 +276,7 @@
                             </div>
 
                             <div x-data="{ isOpen: true }"
-                                class="rounded-xl bg-white   transition-shadow duration-300 hover:shadow-xl dark:bg-gray-800">
+                                class="rounded-xl bg-white   transition-shadow duration-300 hover:   dark:bg-gray-800">
                                 {{-- Consistent card styling --}}
                                 <header
                                     class="flex cursor-pointer items-center justify-between rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700"
@@ -356,7 +356,7 @@
 
                     </div>
                     <div x-data="{ activeTab: 'approval' }"
-                        class="rounded-xl bg-white   transition-shadow duration-300 hover:shadow-xl dark:bg-gray-800">
+                        class="rounded-xl bg-white   transition-shadow duration-300 hover:   dark:bg-gray-800">
 
                         <header
                             class="flex items-center rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
@@ -517,7 +517,7 @@
                                             class="flex-1 rounded-lg border border-transparent bg-gray-100 p-3 text-gray-800 transition-all duration-200 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white dark:focus:ring-indigo-400">
                                         <button id="postCommentBtn"
                                             @click="if(newComment.trim()) { comments.push({ text: newComment, user: currentUser }); newComment = ''; }"
-                                            class="rounded-lg bg-indigo-600 px-5 py-3 text-sm font-semibold text-white shadow-md transition-all duration-200 hover:bg-indigo-700 hover:  focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 active:scale-95 dark:focus:ring-offset-gray-800">
+                                            class="rounded-lg bg-indigo-600 px-5 py-3 text-sm font-semibold text-white   transition-all duration-200 hover:bg-indigo-700 hover:  focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 active:scale-95 dark:focus:ring-offset-gray-800">
                                             Post 🚀
                                         </button>
                                     </div>

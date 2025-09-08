@@ -311,7 +311,7 @@
                                             <input id="commentInput" type="text" placeholder="Write a comment..."
                                                 class="flex-1 rounded-lg bg-gray-100 p-3 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-400 dark:bg-gray-800 dark:text-white" />
                                             <button id="postCommentBtn"
-                                                class="hover: rounded-lg bg-indigo-500 px-4 py-2 text-sm font-semibold text-white shadow-md transition-all duration-200 hover:bg-indigo-600 active:scale-95">
+                                                class="hover: rounded-lg bg-indigo-500 px-4 py-2 text-sm font-semibold text-white transition-all duration-200 hover:bg-indigo-600 active:scale-95">
                                                 Post 🚀
                                             </button>
                                         </div>
