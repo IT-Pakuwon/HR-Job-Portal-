@@ -5,7 +5,6 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth; 
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
-use App\Models\Sppj;
 use App\Models\Autonbr;
 use App\Models\T_Message;
 use App\Models\Attachment;
@@ -23,8 +22,10 @@ use App\Models\MsLocationPG;
 use App\Models\MsSubLocationPG;
 use Mail;
 use Illuminate\Support\Facades\Log;
-
-
+use App\Models\CompanyPG;
+use App\Models\Bq;
+use App\Models\BqDetail;
+use App\Models\BqDetailTemp;
 
 
 class SppjController extends Controller
@@ -812,7 +813,7 @@ class SppjController extends Controller
             return redirect()->route('login');
         }
 
-        $sppj = TrSPPJ::findOrFail($id);
+        // $sppj = TrSPPJ::findOrFail($id);
         $sppj = TrSPPJ::with([
             'requestType:requesttypeid,requesttype_name',
             'creator:username,name'
@@ -834,9 +835,12 @@ class SppjController extends Controller
        
         $attachment = Attachment::where('docid', $sppj->sppjid)    
             ->where('status','A')        
-            ->get();       
+            ->get();    
+            
+        $bq = Bq::where('bqid', $sppj->bqid)   
+            ->first();            
        
-        return view('pages.sppjs.showsppjs', compact('sppj','approval','attachment','sppjdetail'));
+        return view('pages.sppjs.showsppjs', compact('sppj','approval','attachment','sppjdetail','bq'));
     }
 
     
@@ -1387,10 +1391,83 @@ class SppjController extends Controller
         ]);
     }
 
+    public function showBQ($id)
+    {        
+        $user = Auth::user();       
+
+        if (!$user) {
+            return redirect()->route('login');
+        }
+
+        // $sppj = TrSPPJ::findOrFail($id);
+        $bq = Bq::with([            
+            'creator:username,name'
+        ])
+        ->findOrFail($id);        
+
+        $bqdetail = BqDetail::where('bqid', $bq->bqid)
+            ->get();      
+              
+        $attachment = Attachment::where('docid', $bq->bqid)    
+            ->where('status','A')        
+            ->get();    
+       
+        return view('pages.sppjs.showbqsppjs', compact('bq','attachment','bqdetail'));
+    }
+
+    public function editBQ($id)
+    {
+        // kalau $id adalah PRIMARY KEY tabel tr_bq:
+        $bq = Bq::with(['creator:username,name'])->findOrFail($id);
+
+        // kalau $id itu bqid (string) ganti ke:
+        // $bq = Bq::with(['creator:username,name'])->where('bqid', $id)->firstOrFail();
+
+        $bq_detail = BqDetail::where('bqid', $bq->bqid)
+            ->orderBy('bq_no') // biar urut
+            ->get();
+
+        $temp_id  = session('import_temp_id');
+        $tempData = $temp_id ? BqDetailTemp::where('temp_id', $temp_id)->get() : [];
+
+        $attachment = Attachment::where('docid', $bq->bqid)
+            ->where('status','A')
+            ->get();
+
+        return view('pages.sppjs.editbqsppjs', compact(
+            'bq',
+            'bq_detail',
+            'temp_id',
+            'tempData',
+            'attachment'
+        ));
+    }
 
 
+    public function editBQ_xxx($id)
+    {
+        $bq = Bq::with([            
+            'creator:username,name'
+        ])
+        ->findOrFail($id);
+        
+        $bqdetail = BqDetail::where('bqid', $bq->bqid)
+            ->get();    
+        $temp_id  = session('import_temp_id');
+        $tempData = $temp_id ? MsBudgetTemp::where('temp_id', $temp_id)->get() : [];  
+              
+        $attachment = Attachment::where('docid', $bq->bqid)    
+            ->where('status','A')        
+            ->get();   
 
-    
+        return view('pages.sppjs.editbqsppjs', compact(
+            'bq',
+            'bq_detail',
+            'temp_id',
+            'tempData',
+            'attachment'
+        ));
+    }
 
 
 

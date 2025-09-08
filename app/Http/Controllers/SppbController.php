@@ -829,7 +829,7 @@ class SppbController extends Controller
             return redirect()->route('login');
         }
 
-        $sppb = TrSPPB::findOrFail($id);
+        // $sppb = TrSPPB::findOrFail($id);
         $sppb = TrSPPB::with([
             'requestType:requesttypeid,requesttype_name',
             'creator:username,name'
