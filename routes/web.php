@@ -410,6 +410,16 @@ Route::post('/logout', function () {
     Route::put('/sppjs/remove-attachment/{id}', [SppjController::class, 'removeAttachment']);    
     Route::get('/sppj/{id}/check-approval/{action}', [SppjController::class, 'checkApproval']);     
     Route::get('/sppjs/{id}/tracking', [SppjController::class, 'tracking'])->name('sppjs.tracking');
+    Route::get('/showbqsppjs/{id}', [SppjController::class, 'showBQ']);
+    Route::get('/editbqsppjs/{id}', [SppjController::class, 'editBQ'])->name('bqsppj.edit');
+    Route::put('/bqs/{id}', [SppjController::class, 'updateBudget'])->name('bqs.update');
+    Route::put('/bqs/remove-attachment/{id}', [SppjController::class, 'removeAttachment']);
+
+    Route::get('/createbqs/{id}', [MasterController::class, 'createBQ'])->name('bqs.create');   
+    Route::post('/bqs/import', [MasterController::class, 'import'])->name('bqs.import');
+    Route::post('/bqs/{bq}/import', [MasterController::class, 'import'])->name('bqs.import.edit');
+    Route::post('/bqs', [MasterController::class, 'storeBQ'])->name('bqs.store');
+    
 
     Route::get('/inventory/list', [MasterController::class, 'InventoryList'])->name('inventory.list');
     Route::get('/request-types/by-doctype', [MasterController::class, 'RequestType'])->name('requesttypes.byDoctype');
@@ -452,14 +462,8 @@ Route::post('/logout', function () {
     Route::get('/editbudgets/{id}', [BudgetController::class, 'editBudget'])->name('budget.edit');
     Route::put('/budgets/{id}', [BudgetController::class, 'updateBudget'])->name('budgets.update');
     Route::put('/budgets/remove-attachment/{id}', [BudgetController::class, 'removeAttachment']);    
-    Route::get('/budget/{id}/check-approval/{action}', [BudgetController::class, 'checkApproval']);   
-    // Route::get('/api/sites/{cpnyid}', [BudgetController::class, 'getSitesByCompany']);
-    // Route::get('/api/job-parent-info/{parentId}/{departementId}/{deptId}', [BudgetController::class, 'getParentJobInfo']);
-    // Route::get('/api/vacant-employees/{deptId}', [BudgetController::class, 'getVacantByTopParent']);  
-    
-    // Route::post('/import-budget', [BudgetController::class, 'import'])->name('budget.import.post');
-    Route::get('/get-business-units/{cpny_id}', [BudgetController::class, 'getBusinessUnits']);
-    // Route::post('/import-budget/{budget}', [BudgetController::class, 'import'])->name('budget.import.edit'); 
+    Route::get('/budget/{id}/check-approval/{action}', [BudgetController::class, 'checkApproval']);  
+    Route::get('/get-business-units/{cpny_id}', [BudgetController::class, 'getBusinessUnits']);  
 
     Route::post('/budgets/import', [BudgetController::class, 'import'])->name('budgets.import');
     Route::post('/budgets/{budget}/import', [BudgetController::class, 'import'])->name('budgets.import.edit');

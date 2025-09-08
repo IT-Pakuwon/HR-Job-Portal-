@@ -155,32 +155,7 @@
                                 class="{{ $statusClasses }} inline-flex items-center rounded-full px-4 py-1 text-sm font-semibold transition-colors duration-200">
                                 {{ $statusText }}
                             </span>
-                        </header>
-                        {{-- <header
-                            class="flex flex-row justify-between rounded-t-2xl border-b border-gray-300/10 bg-gray-50 px-6 py-4 dark:border-gray-600">
-                            <div class="flex w-full justify-between gap-2">
-                                <h1 class="text-xl font-semibold text-gray-700 dark:text-gray-100">🆔
-                                    {{ $sppj->sppjid }}</h1>
-                                <span
-                                    class="text-l @if ($sppj->status === 'D') bg-gray-300/30 text-gray-600
-                                                @elseif($sppj->status === 'P') bg-blue-300/30 text-blue-600
-                                                @elseif($sppj->status === 'C') bg-green-300/30 text-green-600
-                                                @elseif(in_array($sppj->status, ['X', 'R'])) bg-red-300/30 text-red-600
-                                                @else bg-gray-500/30 text-gray-700 @endif rounded-lg px-3 py-1 font-semibold">
-                                    @php
-                                        $statusText = match ($sppj->status) {
-                                            'D' => 'Revise',
-                                            'P' => 'On Progress',
-                                            'C' => 'Completed',
-                                            'X' => 'Cancel',
-                                            'R' => 'Rejected',
-                                            default => 'Unknown',
-                                        };
-                                    @endphp
-                                    {{ $statusText }}
-                                </span>
-                            </div>
-                        </header> --}}
+                        </header>                        
                         <!-- Main Content -->
                         <div class="p-4">
                             <div class="flex flex-col gap-4">
@@ -210,18 +185,32 @@
                                         ];
                                     @endphp
                                     @foreach ($sppjDetails as $detail)
-                                        <div
-                                            class="flex items-center gap-4 rounded-lg border border-gray-200 bg-gray-200/10 p-3 dark:border-gray-700 dark:bg-gray-800">
+                                        <div class="flex items-center gap-4 rounded-lg border border-gray-200 bg-gray-200/10 p-3 dark:border-gray-700 dark:bg-gray-800">
                                             <div>
                                                 <p class="text-base font-medium text-gray-900 dark:text-gray-100">
-                                                    <span
-                                                        class="mr-1 text-xs text-gray-500 dark:text-gray-400">{{ $detail['label'] }}:</span>
+                                                    <span class="mr-1 text-xs text-gray-500 dark:text-gray-400">{{ $detail['label'] }}:</span>
                                                     {{ $detail['value'] }}
                                                 </p>
                                             </div>
+                                            
                                         </div>
                                     @endforeach
+                                    @php
+                                        $bqId  = $sppj->bqid ?? '';
+                                        $bqIdx  = $bq->id ?? '';
+                                        $sppjId  = $sppj->id ?? '';
+                                        $hasBq = filled($bqId);
+                                    @endphp
+
+                                    <a href="{{ $hasBq ? url('/showbqsppjs/'.$bqIdx) : url('/createbqs/'.$sppjId) }}" target="_blank" rel="noopener noreferrer"
+                                        class="ml-auto inline-flex items-center rounded-lg px-3 py-1.5 text-xs font-semibold text-white
+                                                focus:outline-none focus:ring-2 focus:ring-offset-2
+                                                {{ $hasBq ? 'bg-emerald-600 hover:bg-emerald-700 focus:ring-emerald-500'
+                                                        : 'bg-indigo-600 hover:bg-indigo-700 focus:ring-indigo-500' }}">
+                                        {{ $hasBq ? $bqId : 'Create BQ' }}
+                                    </a>
                                 </div>
+                                
                             </div>
                         </div>
 
