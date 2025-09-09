@@ -185,36 +185,26 @@
                                 $statusClasses = 'bg-gray-100 text-gray-700 dark:bg-gray-800/30 dark:text-gray-300';
                             }
                         @endphp
-                        <span
+                        <div class="flex items-center gap-3">
+                            <a href="{{ url('/pdf_sppbs') }}/{{ $sppb->id }}" target="_blank"
+                            class="inline-flex items-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                                {{-- ikon printer --}}
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 9V4h12v5M6 18h12v2H6v-2Zm12-9H6a3 3 0 0 0-3 3v4h3m12-7a3 3 0 0 1 3 3v4h-3M7 13h10"/>
+                                </svg>
+                                Print PDF
+                            </a>
+
+                            <span class="{{ $statusClasses }} inline-flex items-center rounded-full px-4 py-1 text-sm font-semibold transition-colors duration-200">
+                                {{ $statusText }}
+                            </span>
+                        </div>
+                        {{-- <span
                             class="{{ $statusClasses }} inline-flex items-center rounded-full px-4 py-1 text-sm font-semibold transition-colors duration-200">
                             {{ $statusText }}
-                        </span>
+                        </span> --}}
                     </header>
-                    {{-- <header
-                            class="flex flex-row justify-between rounded-t-2xl    -b    -gray-300/10 bg-gray-50 px-6 py-4 dark:   -gray-600">
-                            <div class="flex w-full justify-between gap-2">
-                                <h1 class="text-xl font-semibold text-gray-700 dark:text-gray-100">🆔
-                                    {{ $sppb->sppbid }}</h1>
-                                <span
-                                    class="text-l @if ($sppb->status === 'D') bg-gray-300/30 text-gray-600
-                                                @elseif($sppb->status === 'P') bg-blue-300/30 text-blue-600
-                                                @elseif($sppb->status === 'C') bg-green-300/30 text-green-600
-                                                @elseif(in_array($sppb->status, ['X', 'R'])) bg-red-300/30 text-red-600
-                                                @else bg-gray-500/30 text-gray-700 @endif rounded-lg px-3 py-1 font-semibold">
-                                    @php
-                                        $statusText = match ($sppb->status) {
-                                            'D' => 'Revise',
-                                            'P' => 'On Progress',
-                                            'C' => 'Completed',
-                                            'X' => 'Cancel',
-                                            'R' => 'Rejected',
-                                            default => 'Unknown',
-                                        };
-                                    @endphp
-                                    {{ $statusText }}
-                                </span>
-                            </div>
-                        </header> --}}
+                   
                     <!-- Main Content -->
                     <div class="p-4">
                         <div class="flex flex-col gap-4">
@@ -258,7 +248,6 @@
                             </div>
                         </div>
                     </div>
-
                 </div>
                 <div class="flex max-h-96 min-h-[12rem] flex-col gap-4 sm:w-1/2 md:w-full">
                     <div x-data="{ activeTab: 'attachment' }" class="rounded-xl bg-white duration-300 dark:bg-gray-800">

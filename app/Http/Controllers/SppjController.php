@@ -26,6 +26,7 @@ use App\Models\CompanyPG;
 use App\Models\Bq;
 use App\Models\BqDetail;
 use App\Models\BqDetailTemp;
+use PDF;
 
 
 class SppjController extends Controller
@@ -1468,6 +1469,96 @@ class SppjController extends Controller
             'attachment'
         ));
     }
+
+    public function printSppj(int $id)
+    {
+        $authUser = Auth::user();
+        if (!$authUser) {
+            return redirect()->route('login');
+        }
+
+        // Ambil SPPJ + relasi yang dibutuhkan
+        $sppj = TrSPPJ::with([
+                'requestType:requesttypeid,requesttype_name',
+                'creator:username,name',
+            ])
+            ->findOrFail($id);
+
+        // Detail baris SPPJ
+        $sppjdetail = TrSPPJdetail::with([
+                'location:location_id,location_name',
+                'subLocation:sub_location_id,sub_location_name',
+            ])
+            ->where('sppjid', $sppj->sppjid)
+            ->get();
+
+        // Approval list (non-cancelled)
+        $approval = T_approval::where('docid', $sppj->sppjid)
+            ->where('status', '<>', 'X')
+            ->orderBy('aprvid')
+            ->orderBy('created_at')
+            ->get();
+
+        $approve_count = $approval->count();
+
+        // Company (handle null)
+        $company = Company::where('cpnyid', $sppj->cpny_id)->first();
+
+        // Mapping status dokumen
+        switch ($sppj->status) {
+            case 'R':
+                $status_doc = 'Rejected';
+                break;
+            case 'C':
+                $status_doc = 'Completed';
+                break;
+            case 'D':
+                $status_doc = 'Hold';
+                break;
+            case 'X':
+                $status_doc = 'Cancel';
+                break;
+            default:
+                $status_doc = 'On Progress';
+                break;
+        }
+
+        $data = [
+            'title'               => ' Surat Permintaan Pekerjaan Jasa',
+            'doc_type'            => 'SPPJ',
+            'docid'               => $sppj->sppjid,
+            'department_id'       => $sppj->department_id,
+            'cpnyname'            => optional($company)->cpnyname,
+            'parent'              => optional($company)->parent,
+            'project'             => optional($company)->project,
+            // identitas & tanggal
+            'created_by_username' => $sppj->created_by,
+            'created_by_name'     => ucwords(strtolower(optional($sppj->creator)->name)),
+            'created_at_fmt'      => optional($sppj->created_at)->format('d F Y'),
+            'req_date_fmt'        => optional($sppj->created_at)->format('d M Y H:i'),
+            'sppjdate'            => \Carbon\Carbon::parse($sppj->sppjdate)->format('d F Y'),
+            // konten
+            'keperluan'           => $sppj->keperluan,
+            'status_doc'          => $status_doc,
+            'requesttype_name'    => optional($sppj->requestType)->requesttype_name,
+        ];
+
+        // Kirim ke view
+        $pdf = \PDF::loadView(
+            'pages.sppjs.pdf_sppjs',
+            array_merge($data, [
+                'detail'         => $sppjdetail,
+                'approval'       => $approval,
+                'approve_count'  => $approve_count,
+            ])
+        );
+
+        // Portrait jika <= 5 approver, else landscape
+        $pdf->setPaper('A4', ($approve_count <= 5) ? 'portrait' : 'landscape');
+
+        return $pdf->stream("pdf_sppjs_{$sppj->sppjid}.pdf");
+    }
+
 
 
 

@@ -185,10 +185,24 @@
                                 $statusClasses = 'bg-gray-100 text-gray-700 dark:bg-gray-800/30 dark:text-gray-300';
                             }
                         @endphp
-                        <span
+                        <div class="flex items-center gap-3">
+                            <a href="{{ url('/pdf_sppjs') }}/{{ $sppj->id }}" target="_blank"
+                            class="inline-flex items-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                                {{-- ikon printer --}}
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 9V4h12v5M6 18h12v2H6v-2Zm12-9H6a3 3 0 0 0-3 3v4h3m12-7a3 3 0 0 1 3 3v4h-3M7 13h10"/>
+                                </svg>
+                                Print PDF
+                            </a>
+
+                            <span class="{{ $statusClasses }} inline-flex items-center rounded-full px-4 py-1 text-sm font-semibold transition-colors duration-200">
+                                {{ $statusText }}
+                            </span>
+                        </div>
+                        {{-- <span
                             class="{{ $statusClasses }} inline-flex items-center rounded-full px-4 py-1 text-sm font-semibold transition-colors duration-200">
                             {{ $statusText }}
-                        </span>
+                        </span> --}}
                     </header>
                     <!-- Main Content -->
                     <div class="p-4">

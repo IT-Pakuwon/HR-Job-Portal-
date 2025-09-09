@@ -24,7 +24,7 @@ use App\Models\MsLocationPG;
 use App\Models\MsSubLocationPG;
 use Mail;
 use Illuminate\Support\Facades\Log;
-
+use PDF;
 
 
 
@@ -1387,6 +1387,96 @@ class SppbController extends Controller
             'status_label' => $statusLabel,
         ]);
     }
+
+    public function printSppb(int $id)
+    {
+        $authUser = Auth::user();
+        if (!$authUser) {
+            return redirect()->route('login');
+        }
+
+        // Ambil SPPB + relasi yang dibutuhkan
+        $sppb = TrSPPB::with([
+                'requestType:requesttypeid,requesttype_name',
+                'creator:username,name',
+            ])
+            ->findOrFail($id);
+
+        // Detail baris SPPB
+        $sppbdetail = TrSPPBdetail::with([
+                'location:location_id,location_name',
+                'subLocation:sub_location_id,sub_location_name',
+            ])
+            ->where('sppbid', $sppb->sppbid)
+            ->get();
+
+        // Approval list (non-cancelled)
+        $approval = T_approval::where('docid', $sppb->sppbid)
+            ->where('status', '<>', 'X')
+            ->orderBy('aprvid')
+            ->orderBy('created_at')
+            ->get();
+
+        $approve_count = $approval->count();
+
+        // Company (handle null)
+        $company = Company::where('cpnyid', $sppb->cpny_id)->first();
+
+        // Mapping status dokumen
+        switch ($sppb->status) {
+            case 'R':
+                $status_doc = 'Rejected';
+                break;
+            case 'C':
+                $status_doc = 'Completed';
+                break;
+            case 'D':
+                $status_doc = 'Hold';
+                break;
+            case 'X':
+                $status_doc = 'Cancel';
+                break;
+            default:
+                $status_doc = 'On Progress';
+                break;
+        }
+
+        $data = [
+            'title'               => 'Surat Permintaan Pembelian Barang',
+            'doc_type'            => 'SPPB',
+            'docid'               => $sppb->sppbid,
+            'department_id'       => $sppb->department_id,
+            'cpnyname'            => optional($company)->cpnyname,
+            'parent'              => optional($company)->parent,
+            'project'             => optional($company)->project,
+            // identitas & tanggal
+            'created_by_username' => $sppb->created_by,
+            'created_by_name'     => ucwords(strtolower(optional($sppb->creator)->name)),
+            'created_at_fmt'      => optional($sppb->created_at)->format('d F Y'),
+            'req_date_fmt'        => optional($sppb->created_at)->format('d M Y H:i'),
+            'sppbdate'            => \Carbon\Carbon::parse($sppb->sppbdate)->format('d F Y'),
+            // konten
+            'keperluan'           => $sppb->keperluan,
+            'status_doc'          => $status_doc,
+            'requesttype_name'    => optional($sppb->requestType)->requesttype_name,
+        ];
+
+        // Kirim ke view
+        $pdf = \PDF::loadView(
+            'pages.sppbs.pdf_sppbs',
+            array_merge($data, [
+                'detail'         => $sppbdetail,
+                'approval'       => $approval,
+                'approve_count'  => $approve_count,
+            ])
+        );
+
+        // Portrait jika <= 5 approver, else landscape
+        $pdf->setPaper('A4', ($approve_count <= 5) ? 'portrait' : 'landscape');
+
+        return $pdf->stream("pdf_sppbs_{$sppb->sppbid}.pdf");
+    }
+
 
 
 

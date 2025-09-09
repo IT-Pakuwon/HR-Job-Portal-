@@ -394,6 +394,7 @@ Route::post('/logout', function () {
     Route::put('/sppbs/remove-attachment/{id}', [SppbController::class, 'removeAttachment']);    
     Route::get('/sppb/{id}/check-approval/{action}', [SppbController::class, 'checkApproval']);     
     Route::get('/sppbs/{id}/tracking', [SppbController::class, 'tracking'])->name('sppbs.tracking');
+    Route::get('/pdf_sppbs/{id}', [SppbController::class, 'printSppb']);
 
     Route::get('/sppjs', [SppjController::class, 'index'])->name('sppjs');
     Route::get('/sppjs/json', [SppjController::class, 'json'])->name('sppjs.json');
@@ -414,6 +415,7 @@ Route::post('/logout', function () {
     Route::get('/editbqsppjs/{id}', [SppjController::class, 'editBQ'])->name('bqsppj.edit');
     Route::put('/bqs/{id}', [SppjController::class, 'updateBudget'])->name('bqs.update');
     Route::put('/bqs/remove-attachment/{id}', [SppjController::class, 'removeAttachment']);
+    Route::get('/pdf_sppjs/{id}', [SppjController::class, 'printSppj']);
 
     Route::get('/createbqs/{id}', [MasterController::class, 'createBQ'])->name('bqs.create');   
     Route::post('/bqs/import', [MasterController::class, 'import'])->name('bqs.import');
