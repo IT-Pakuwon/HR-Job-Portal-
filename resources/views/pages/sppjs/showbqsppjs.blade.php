@@ -147,63 +147,30 @@
 
             </div>
         </div>
-        <div class="flex w-full flex-col gap-6 overflow-hidden sm:col-span-1 lg:col-span-1 xl:col-span-1 xl:flex-col">
-            <div class="flex w-full flex-col gap-6 lg:row-span-1 xl:row-span-1 xl:flex-row">
-                <div class="rounded-xl bg-white duration-300 sm:w-1/2 md:w-full dark:bg-gray-800">
+        <div class="flex w-full flex-col gap-6 xl:flex-col">
+            <div class="flex h-[50vh] w-full flex-col gap-6 md:h-[30vh] xl:flex-row">
+                {{-- Left Card --}}
+                <div class="flex flex-1 flex-col overflow-y-auto rounded-xl bg-white dark:bg-gray-800">
                     <header
-                        class="dark: flex items-center justify-between rounded-t-xl border-b border-gray-200 border-gray-700 bg-gray-50 px-6 py-4 dark:bg-gray-700">
-                        {{-- Rounded-t-xl, stronger    , and darker background for header --}}
+                        class="flex items-center justify-between rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
                         <h1 class="flex items-center gap-2 text-2xl font-bold text-gray-800 dark:text-gray-100">
-                            {{-- Larger, bolder title --}}
-                            <span class="text-indigo-500">🆔</span> {{-- Iconic color for the ID icon --}}
+                            <span class="text-indigo-500">🆔</span>
                             {{ $bq->bqid }}
                         </h1>
-                        @php
-                            // Define the status text
-                            $statusText = match ($bq->status) {
-                                'D' => 'Revise',
-                                'P' => 'On Progress',
-                                'C' => 'Completed',
-                                'X' => 'Cancelled',
-                                'R' => 'Rejected',
-                                default => 'Unknown',
-                            };
-
-                            // Define the status badge classes based on the status
-                            $statusClasses = '';
-                            if ($bq->status === 'D') {
-                                $statusClasses = 'bg-blue-100 text-blue-700 dark:bg-blue-800/30 dark:text-blue-300';
-                            } elseif ($bq->status === 'P') {
-                                $statusClasses =
-                                    'bg-yellow-100 text-yellow-700 dark:bg-yellow-800/30 dark:text-yellow-300';
-                            } elseif ($bq->status === 'C') {
-                                $statusClasses = 'bg-green-100 text-green-700 dark:bg-green-800/30 dark:text-green-300';
-                            } elseif (in_array($bq->status, ['X', 'R'])) {
-                                $statusClasses = 'bg-red-100 text-red-700 dark:bg-red-800/30 dark:text-red-300';
-                            } else {
-                                $statusClasses = 'bg-gray-100 text-gray-700 dark:bg-gray-800/30 dark:text-gray-300';
-                            }
-                        @endphp
+                        <h1 class="flex items-center gap-2 text-2xl font-bold text-gray-800 dark:text-gray-100">
+                            <span class="text-indigo-500">🆔</span>
+                            {{ $bq->sppjtid }}
+                        </h1>
                     </header>
-                    <!-- Main Content -->
-                    <div class="space-y-4 p-4">
+
+                    <div class="flex flex-1 flex-col overflow-y-auto p-4">
                         <div class="grid grid-cols-1 gap-6 md:grid-cols-3">
                             @php
                                 $jobDetails = [
+                                    ['label' => 'Company', 'value' => $bq->cpny_id],
+                                    ['label' => 'Date', 'value' => date('j F Y', strtotime($bq->created_at))],
                                     [
-                                        'label' => 'Company',
-                                        'value' => $bq->cpny_id,
-                                    ],
-                                    [
-                                        'label' => 'SPPJ ID',
-                                        'value' => $bq->sppjtid,
-                                    ],
-                                    [
-                                        'label' => 'Date',
-                                        'value' => date('j F Y', strtotime($bq->created_at)),
-                                    ],
-                                    [
-                                        'label' => 'Creted By',
+                                        'label' => 'Created By',
                                         'value' => ucwords(strtolower(optional($bq->creator)->name)),
                                     ],
                                 ];
@@ -222,211 +189,115 @@
                             @endforeach
                         </div>
                     </div>
-
                 </div>
-                <div class="flex max-h-96 min-h-[12rem] flex-col gap-4 sm:w-1/2 md:w-full">
-                    <div x-data="{ activeTab: 'attachment' }" class="flex flex-1 flex-col">
-                        <header
-                            class="flex items-center rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
-                            <nav class="flex flex-grow">
-                                <button @click="activeTab = 'attachment'"
-                                    :class="activeTab === 'attachment'
-                                        ?
-                                        'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400' :
-                                        'border-b-2 border-transparent text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-gray-100'"
-                                    class="flex-1 px-4 py-2 text-center text-sm font-medium transition-colors duration-200">
-                                    Attachment
-                                </button>
-                                <button @click="activeTab = 'approval'"
-                                    :class="activeTab === 'approval'
-                                        ?
-                                        'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400' :
-                                        'border-b-2 border-transparent text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-gray-100'"
-                                    class="flex-1 px-4 py-2 text-center text-sm font-medium transition-colors duration-200">
-                                    Approval Details
-                                </button>
-                                <button @click="activeTab = 'comments'"
-                                    :class="activeTab === 'comments'
-                                        ?
-                                        'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400' :
-                                        'border-b-2 border-transparent text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-gray-100'"
-                                    class="flex-1 px-4 py-2 text-center text-sm font-medium transition-colors duration-200">
-                                    Comments
-                                </button>
-                            </nav>
-                        </header>
 
-                        {{-- Tabs Content --}}
-                        <div class="flex flex-1 flex-col rounded-b-xl bg-white dark:bg-gray-800">
-                            {{-- Approval tab --}}
-                            <div x-show="activeTab === 'approval'" class="flex-1 transition-all">
-                                <table class="w-full text-sm">
-                                    <thead>
-                                        <tr
-                                            class="border-b border-gray-200 text-gray-600 dark:border-gray-700 dark:text-gray-300">
-                                            <th class="p-3 text-left font-semibold">Level</th>
-                                            <th class="p-3 text-left font-semibold">Name</th>
-                                            <th class="p-3 text-left font-semibold">Date</th>
-                                            <th class="p-3 text-left font-semibold">Status</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @foreach ($approval as $ap)
-                                            <tr
-                                                class="border-b border-gray-100 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700">
-                                                <td class="p-3">{{ $ap->aprvid }}</td>
-                                                <td class="p-3">{{ $ap->name }}</td>
-                                                <td class="p-3">
-                                                    {{ \Carbon\Carbon::parse($ap->aprvdatebefore)->format('d M Y') }}
-                                                </td>
-                                                <td class="p-3">
-                                                    @php
-                                                        $statusText = '';
-                                                        $statusClass = '';
-                                                        switch ($ap->status) {
-                                                            case 'P':
-                                                                $statusText = 'Waiting Approval';
-                                                                $statusClass = 'bg-yellow-500 text-white';
-                                                                break;
-                                                            case 'A':
-                                                                $statusText = 'Approved';
-                                                                $statusClass = 'bg-green-500 text-white';
-                                                                break;
-                                                            case 'R':
-                                                                $statusText = 'Rejected';
-                                                                $statusClass = 'bg-red-500 text-white';
-                                                                break;
-                                                            case 'D':
-                                                                $statusText = 'Revise';
-                                                                $statusClass = 'bg-blue-500 text-white';
-                                                                break;
-                                                            default:
-                                                                $statusText = 'Unknown';
-                                                                $statusClass = 'bg-gray-500 text-white';
-                                                        }
-                                                    @endphp
-                                                    <span
-                                                        class="{{ $statusClass }} inline-block rounded-full px-3 py-1 text-xs font-semibold">
-                                                        {{ $statusText }}
-                                                    </span>
-                                                </td>
-                                            </tr>
-                                        @endforeach
-                                    </tbody>
-                                </table>
-                            </div>
+                {{-- Right Card (Photo Before) --}}
+                <div class="flex flex-1 flex-col overflow-y-auto rounded-xl bg-white dark:bg-gray-800">
+                    <header
+                        class="flex items-center rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
+                        <h2 class="text-lg font-semibold text-gray-800 dark:text-gray-100">📸 Photo Before</h2>
+                    </header>
 
-                            {{-- Attachment tab --}}
-                            <div x-show="activeTab === 'attachment'" class="flex-1 transition-all">
-                                <table class="w-full text-sm">
-                                    <thead class="text-gray-600 dark:text-gray-300">
-                                        <tr class="border-b border-gray-200 dark:border-gray-700">
-                                            <th class="p-3 text-left font-semibold">Filename</th>
-                                            <th class="p-3 text-left font-semibold">Created By</th>
-                                            <th class="p-3 text-left font-semibold">Date</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @forelse ($attachment as $at)
-                                            @php
-                                                $year = $at->created_at->year;
-                                                $fileUrl = url('/attachments/' . $year . '/' . $at->attachfile);
-                                            @endphp
-                                            <tr
-                                                class="border-b border-gray-100 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700">
-                                                <td class="p-3">
-                                                    <a href="{{ $fileUrl }}" target="_blank"
-                                                        class="flex items-center gap-2 font-medium text-indigo-600 hover:underline dark:text-indigo-400">
-                                                        📎 {{ $at->name }}
-                                                    </a>
-                                                </td>
-                                                <td class="p-3">{{ $at->created_user }}</td>
-                                                <td class="p-3">
-                                                    {{ \Carbon\Carbon::parse($at->created_at)->format('d M Y') }}</td>
-                                            </tr>
-                                        @empty
-                                            <tr>
-                                                <td colspan="3"
-                                                    class="p-4 text-center italic text-gray-500 dark:text-gray-400">
-                                                    No attachments found.
-                                                </td>
-                                            </tr>
-                                        @endforelse
-                                    </tbody>
-                                </table>
-                            </div>
+                    <div class="flex-1 overflow-y-auto px-4 py-3">
+                        <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+                            @forelse ($attachment as $at)
+                                @php
+                                    $year = $at->created_at->year;
+                                    $fileUrl = url('/attachments/' . $year . '/' . $at->attachfile);
+                                    $ext = strtolower(pathinfo($at->attachfile, PATHINFO_EXTENSION));
+                                    $isImg = in_array($ext, ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'svg']);
+                                @endphp
 
-                            {{-- Comments tab --}}
-                            <div x-show="activeTab === 'comments'" class="flex-1 transition-all">
-                                <div x-data="{ comments: [], newComment: '', currentUser: 'User1' }" class="flex h-full flex-col">
-                                    <div id="commentList"
-                                        class="custom-scrollbar flex-1 flex-col space-y-4 overflow-y-auto p-4">
-                                        <p class="py-4 text-center italic text-gray-500">Loading comments...</p>
-                                    </div>
-                                    <div
-                                        class="flex items-center gap-3 border-t border-gray-200 p-4 dark:border-gray-700">
-                                        <input id="commentInput" x-model="newComment" type="text"
-                                            placeholder="Write a comment..."
-                                            class="flex-1 rounded-lg bg-gray-100 p-3 text-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white dark:focus:ring-indigo-400">
-                                        <button id="postCommentBtn" type="button"
-                                            class="rounded-lg bg-indigo-600 px-5 py-3 text-sm font-semibold text-white transition-all duration-200 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 active:scale-95 dark:focus:ring-offset-gray-800">
-                                            Post 🚀
-                                        </button>
+                                <div
+                                    class="flex flex-col overflow-hidden rounded-lg bg-gray-50 transition-shadow duration-300 hover:shadow-md dark:bg-gray-700">
+                                    <a href="{{ $fileUrl }}" target="_blank"
+                                        class="group relative block aspect-[4/2] overflow-hidden">
+                                        @if ($isImg)
+                                            <img src="{{ $fileUrl }}" alt="{{ $at->name }}"
+                                                class="h-full w-full rounded-t-lg object-cover transition-transform duration-300 group-hover:scale-105"
+                                                loading="lazy" referrerpolicy="no-referrer">
+                                        @else
+                                            <div
+                                                class="flex h-full w-full items-center justify-center bg-gray-100 dark:bg-gray-600">
+                                                <span class="text-4xl">📄</span>
+                                            </div>
+                                        @endif
+                                        <div
+                                            class="absolute inset-0 rounded-t-lg bg-black/0 transition group-hover:bg-black/20">
+                                        </div>
+                                    </a>
+
+                                    <div class="px-3 py-2">
+                                        <div class="truncate text-sm font-medium text-gray-900 dark:text-gray-100"
+                                            title="{{ $at->name }}">
+                                            {{ $at->name }}
+                                        </div>
+                                        <div class="truncate text-xs text-gray-500 dark:text-gray-400">
+                                            {{ $at->created_user }} ·
+                                            {{ \Carbon\Carbon::parse($at->created_at)->format('d M Y') }}
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
+                            @empty
+                                <p class="col-span-full py-6 text-center italic text-gray-500 dark:text-gray-400">
+                                    No photos found.
+                                </p>
+                            @endforelse
                         </div>
                     </div>
                 </div>
-
-
             </div>
-            <div class="flex max-h-[50rem] min-h-[12rem] flex-col rounded-2xl bg-white dark:bg-gray-800">
+            <div class="flex max-h-[50rem] min-h-[12rem] flex-col rounded-2xl shadow dark:bg-gray-800">
+                {{-- Header --}}
                 <header
-                    class="flex items-center justify-between rounded-t-2xl border-b border-gray-300/10 bg-gray-50 px-6 py-4 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
+                    class="flex items-center justify-between rounded-t-2xl border-b border-gray-300/10 bg-white px-6 py-4 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
                     <h2 class="text-xl font-semibold">📝 Budget Detail</h2>
                 </header>
 
-                <table class="sticky-header w-full text-sm text-gray-700 dark:text-gray-200">
-                    <thead class="bg-gray-100 dark:bg-gray-700 dark:text-gray-100">
-                        <tr>
-                            <th class="px-4 py-2">Line No</th>
-                            <th class="px-4 py-2">Description</th>
-                            <th class="px-4 py-2 text-right">Qty</th>
-                            <th class="px-4 py-2">UoM</th>
-                            <th class="px-4 py-2 text-right">Est Mat Price</th>
-                            <th class="px-4 py-2 text-right">Total Est Mat</th>
-                            <th class="px-4 py-2 text-right">Est Jasa Price</th>
-                            <th class="px-4 py-2 text-right">Total Est Jasa</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach ($bqdetail as $item)
-                            <tr
-                                class="border-t border-gray-200 bg-gray-50 hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700">
-                                <td class="px-4 py-2">{{ $item->bq_line_no }}</td>
-                                <td class="px-4 py-2">{{ $item->bq_descr }}</td>
-                                <td class="px-4 py-2 text-right">
-                                    {{ is_null($item->qty) ? '' : number_format((float) $item->qty, 2) }}
-                                </td>
-                                <td class="px-4 py-2">{{ $item->uom }}</td>
-                                <td class="px-4 py-2 text-right">
-                                    {{ is_null($item->est_material_price) ? '' : number_format((float) $item->est_material_price, 2) }}
-                                </td>
-                                <td class="px-4 py-2 text-right">
-                                    {{ is_null($item->total_est_material_price) ? '' : number_format((float) $item->total_est_material_price, 2) }}
-                                </td>
-                                <td class="px-4 py-2 text-right">
-                                    {{ is_null($item->est_jasa_price) ? '' : number_format((float) $item->est_jasa_price, 2) }}
-                                </td>
-                                <td class="px-4 py-2 text-right">
-                                    {{ is_null($item->total_est_jasa_price) ? '' : number_format((float) $item->total_est_jasa_price, 2) }}
-                                </td>
+                {{-- Scrollable Table --}}
+                <div class="max-h-[calc(50rem-4rem)] overflow-x-auto overflow-y-auto"> {{-- adjust height --}}
+                    <table class="w-full border-collapse text-sm text-gray-700 dark:text-gray-200">
+                        <thead class="sticky top-0 z-10 bg-gray-100 dark:bg-gray-700 dark:text-gray-100">
+                            <tr>
+                                <th class="px-4 py-2 text-left">Line No</th>
+                                <th class="px-4 py-2 text-left">Description</th>
+                                <th class="px-4 py-2 text-right">Qty</th>
+                                <th class="px-4 py-2 text-left">UoM</th>
+                                <th class="px-4 py-2 text-right">Est Mat Price</th>
+                                <th class="px-4 py-2 text-right">Total Est Mat</th>
+                                <th class="px-4 py-2 text-right">Est Jasa Price</th>
+                                <th class="px-4 py-2 text-right">Total Est Jasa</th>
                             </tr>
-                        @endforeach
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            @foreach ($bqdetail as $item)
+                                <tr
+                                    class="border-t border-gray-200 bg-white hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700">
+                                    <td class="px-4 py-2">{{ $item->bq_line_no }}</td>
+                                    <td class="px-4 py-2">{{ $item->bq_descr }}</td>
+                                    <td class="px-4 py-2 text-right">
+                                        {{ is_null($item->qty) ? '' : number_format((float) $item->qty, 2) }}
+                                    </td>
+                                    <td class="px-4 py-2">{{ $item->uom }}</td>
+                                    <td class="px-4 py-2 text-right">
+                                        {{ is_null($item->est_material_price) ? '' : number_format((float) $item->est_material_price, 2) }}
+                                    </td>
+                                    <td class="px-4 py-2 text-right">
+                                        {{ is_null($item->total_est_material_price) ? '' : number_format((float) $item->total_est_material_price, 2) }}
+                                    </td>
+                                    <td class="px-4 py-2 text-right">
+                                        {{ is_null($item->est_jasa_price) ? '' : number_format((float) $item->est_jasa_price, 2) }}
+                                    </td>
+                                    <td class="px-4 py-2 text-right">
+                                        {{ is_null($item->total_est_jasa_price) ? '' : number_format((float) $item->total_est_jasa_price, 2) }}
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
             </div>
+
 
         </div>
 

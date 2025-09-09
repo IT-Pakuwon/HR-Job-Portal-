@@ -148,10 +148,10 @@
                 </button>
             </div>
         </div>
-        <div class="flex w-full flex-col gap-6">
-            <div class="flex w-full flex-col items-stretch gap-6 xl:flex-row">
+        <div class="flex w-full flex-col gap-6 xl:flex-col">
+            <div class="flex h-[50vh] w-full flex-col gap-6 md:h-[35vh] xl:flex-row">
                 {{-- Left card (SPPB Info) --}}
-                <div class="flex flex-1 flex-col rounded-xl bg-white dark:bg-gray-800">
+                <div class="flex flex-1 flex-col overflow-y-auto rounded-xl bg-white dark:bg-gray-800">
                     <header
                         class="flex items-center justify-between rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
                         <h1 class="flex items-center gap-2 text-2xl font-bold text-gray-800 dark:text-gray-100">
@@ -245,7 +245,7 @@
                 </div>
 
                 {{-- Right card (Tabs) --}}
-                <div class="flex max-h-[600px] flex-1 flex-col overflow-y-auto rounded-xl bg-white dark:bg-gray-800">
+                <div class="flex flex-1 flex-col overflow-y-auto rounded-xl bg-white dark:bg-gray-800">
                     <div x-data="{ activeTab: 'attachment' }" class="flex flex-1 flex-col">
                         <header
                             class="flex items-center rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
