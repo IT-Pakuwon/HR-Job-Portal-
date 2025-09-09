@@ -256,50 +256,45 @@
 
                 </div>
                 <div class="flex flex-col gap-4 sm:w-1/2 md:w-full">
-                    <div x-data="{ activeTab: 'attachment' }" class="rounded-xl bg-white duration-300 dark:bg-gray-800">
+                    <div x-data="{ activeTab: 'attachment' }" class="flex flex-1 flex-col">
                         <header
-                            class="dark: flex items-center justify-between rounded-t-xl border-b border-gray-200 border-gray-700 bg-gray-50 px-6 py-4 dark:bg-gray-700">
-                            <nav class="-mb-px flex flex-grow"> {{-- Added -mb-px to negative margin to overlap     --}}
+                            class="flex items-center rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
+                            <nav class="flex flex-grow">
                                 <button @click="activeTab = 'attachment'"
-                                    :class="{
-                                        '   -b-2    -indigo-500 text-indigo-600 dark:text-indigo-400': activeTab === 'attachment',
-                                        '   -b-2    -transparent text-gray-600 hover:text-gray-800 hover:   -gray-300 dark:text-gray-300 dark:hover:text-gray-100 dark:hover:   -gray-600': activeTab !== 'attachment'
-                                    }"
-                                    class="flex-1 whitespace-nowrap px-4 py-2 text-center text-sm font-medium transition-colors duration-200 focus:outline-none">
+                                    :class="activeTab === 'attachment'
+                                        ?
+                                        'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400' :
+                                        'border-b-2 border-transparent text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-gray-100'"
+                                    class="flex-1 px-4 py-2 text-center text-sm font-medium transition-colors duration-200">
                                     Attachment
                                 </button>
                                 <button @click="activeTab = 'approval'"
-                                    :class="{
-                                        '   -b-2    -indigo-500 text-indigo-600 dark:text-indigo-400': activeTab === 'approval',
-                                        '   -b-2    -transparent text-gray-600 hover:text-gray-800 hover:   -gray-300 dark:text-gray-300 dark:hover:text-gray-100 dark:hover:   -gray-600': activeTab !== 'approval'
-                                    }"
-                                    class="flex-1 whitespace-nowrap px-4 py-2 text-center text-sm font-medium transition-colors duration-200 focus:outline-none">
+                                    :class="activeTab === 'approval'
+                                        ?
+                                        'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400' :
+                                        'border-b-2 border-transparent text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-gray-100'"
+                                    class="flex-1 px-4 py-2 text-center text-sm font-medium transition-colors duration-200">
                                     Approval Details
                                 </button>
-
                                 <button @click="activeTab = 'comments'"
-                                    :class="{
-                                        '   -b-2    -indigo-500 text-indigo-600 dark:text-indigo-400': activeTab === 'comments',
-                                        '   -b-2    -transparent text-gray-600 hover:text-gray-800 hover:   -gray-300 dark:text-gray-300 dark:hover:text-gray-100 dark:hover:   -gray-600': activeTab !== 'comments'
-                                    }"
-                                    class="flex-1 whitespace-nowrap px-4 py-2 text-center text-sm font-medium transition-colors duration-200 focus:outline-none">
+                                    :class="activeTab === 'comments'
+                                        ?
+                                        'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400' :
+                                        'border-b-2 border-transparent text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-gray-100'"
+                                    class="flex-1 px-4 py-2 text-center text-sm font-medium transition-colors duration-200">
                                     Comments
                                 </button>
                             </nav>
                         </header>
 
-                        <div
-                            class="max-h-50 min-h-[12rem] flex-grow overflow-y-auto rounded-b-xl bg-white px-6 py-2 dark:bg-gray-800">
-                            <div x-show="activeTab === 'approval'" x-transition:enter="transition ease-out duration-300"
-                                x-transition:enter-start="opacity-0 translate-y-2"
-                                x-transition:enter-end="opacity-100 translate-y-0"
-                                x-transition:leave="transition ease-in duration-200"
-                                x-transition:leave-start="opacity-100 translate-y-0"
-                                x-transition:leave-end="opacity-0 translate-y-2">
+                        {{-- Tabs Content --}}
+                        <div class="flex flex-1 flex-col rounded-b-xl bg-white dark:bg-gray-800">
+                            {{-- Approval tab --}}
+                            <div x-show="activeTab === 'approval'" class="flex-1 transition-all">
                                 <table class="w-full text-sm">
                                     <thead>
                                         <tr
-                                            class="dark: border-b border-gray-200 border-gray-700 text-gray-600 dark:text-gray-300">
+                                            class="border-b border-gray-200 text-gray-600 dark:border-gray-700 dark:text-gray-300">
                                             <th class="p-3 text-left font-semibold">Level</th>
                                             <th class="p-3 text-left font-semibold">Name</th>
                                             <th class="p-3 text-left font-semibold">Date</th>
@@ -309,15 +304,13 @@
                                     <tbody>
                                         @foreach ($approval as $ap)
                                             <tr
-                                                class="-b -gray-100 dark: -gray-700 transition-colors hover:bg-gray-50 dark:hover:bg-gray-700">
-                                                <td class="p-3 text-left text-gray-800 dark:text-gray-200">
-                                                    {{ $ap->aprvid }}</td>
-                                                <td class="p-3 text-left text-gray-800 dark:text-gray-200">
-                                                    {{ $ap->name }}</td>
-                                                <td class="p-3 text-left text-gray-700 dark:text-gray-300">
+                                                class="border-b border-gray-100 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700">
+                                                <td class="p-3">{{ $ap->aprvid }}</td>
+                                                <td class="p-3">{{ $ap->name }}</td>
+                                                <td class="p-3">
                                                     {{ \Carbon\Carbon::parse($ap->aprvdatebefore)->format('d M Y') }}
                                                 </td>
-                                                <td class="p-3 text-left">
+                                                <td class="p-3">
                                                     @php
                                                         $statusText = '';
                                                         $statusClass = '';
@@ -344,7 +337,9 @@
                                                         }
                                                     @endphp
                                                     <span
-                                                        class="{{ $statusClass }} inline-block rounded-full px-3 py-1 text-xs font-semibold">{{ $statusText }}</span>
+                                                        class="{{ $statusClass }} inline-block rounded-full px-3 py-1 text-xs font-semibold">
+                                                        {{ $statusText }}
+                                                    </span>
                                                 </td>
                                             </tr>
                                         @endforeach
@@ -352,76 +347,60 @@
                                 </table>
                             </div>
 
-                            <div x-show="activeTab === 'attachment'"
-                                x-transition:enter="transition ease-out duration-300"
-                                x-transition:enter-start="opacity-0 translate-y-2"
-                                x-transition:enter-end="opacity-100 translate-y-0"
-                                x-transition:leave="transition ease-in duration-200"
-                                x-transition:leave-start="opacity-100 translate-y-0"
-                                x-transition:leave-end="opacity-0 translate-y-2">
+                            {{-- Attachment tab --}}
+                            <div x-show="activeTab === 'attachment'" class="flex-1 transition-all">
                                 <table class="w-full text-sm">
                                     <thead class="text-gray-600 dark:text-gray-300">
-                                        <tr class="dark: border-b border-gray-200 border-gray-700">
+                                        <tr class="border-b border-gray-200 dark:border-gray-700">
                                             <th class="p-3 text-left font-semibold">Filename</th>
                                             <th class="p-3 text-left font-semibold">Created By</th>
                                             <th class="p-3 text-left font-semibold">Date</th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        @foreach ($attachment as $at)
+                                        @forelse ($attachment as $at)
                                             @php
                                                 $year = $at->created_at->year;
                                                 $fileUrl = url('/attachments/' . $year . '/' . $at->attachfile);
                                             @endphp
                                             <tr
-                                                class="-b -gray-100 last: -b-0 dark: -gray-700 transition-colors hover:bg-gray-50 dark:hover:bg-gray-700">
+                                                class="border-b border-gray-100 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700">
                                                 <td class="p-3">
                                                     <a href="{{ $fileUrl }}" target="_blank"
-                                                        class="flex items-center gap-2 font-medium text-indigo-600 hover:underline dark:text-indigo-400">📎
-                                                        {{ $at->name }}</a>
+                                                        class="flex items-center gap-2 font-medium text-indigo-600 hover:underline dark:text-indigo-400">
+                                                        📎 {{ $at->name }}
+                                                    </a>
                                                 </td>
-                                                <td class="p-3 text-gray-800 dark:text-gray-200">
-                                                    {{ $at->created_user }}</td>
-                                                <td class="p-3 text-gray-700 dark:text-gray-300">
-                                                    {{ \Carbon\Carbon::parse($at->created_at)->format('d M Y') }}
-                                                </td>
+                                                <td class="p-3">{{ $at->created_user }}</td>
+                                                <td class="p-3">
+                                                    {{ \Carbon\Carbon::parse($at->created_at)->format('d M Y') }}</td>
                                             </tr>
-                                        @endforeach
-                                        @if ($attachment->isEmpty())
+                                        @empty
                                             <tr>
                                                 <td colspan="3"
                                                     class="p-4 text-center italic text-gray-500 dark:text-gray-400">
-                                                    No attachments found.</td>
+                                                    No attachments found.
+                                                </td>
                                             </tr>
-                                        @endif
+                                        @endforelse
                                     </tbody>
                                 </table>
                             </div>
 
-                            <div x-show="activeTab === 'comments'"
-                                x-transition:enter="transition ease-out duration-300"
-                                x-transition:enter-start="opacity-0 translate-y-2"
-                                x-transition:enter-end="opacity-100 translate-y-0"
-                                x-transition:leave="transition ease-in duration-200"
-                                x-transition:leave-start="opacity-100 translate-y-0"
-                                x-transition:leave-end="opacity-0 translate-y-2">
-                                <div x-data="{ comments: [], newComment: '', currentUser: 'User1' }" class="flex w-full flex-col justify-center">
+                            {{-- Comments tab --}}
+                            <div x-show="activeTab === 'comments'" class="flex-1 transition-all">
+                                <div x-data="{ comments: [], newComment: '', currentUser: 'User1' }" class="flex h-full flex-col">
                                     <div id="commentList"
-                                        class="custom-scrollbar flex max-h-60 flex-col space-y-4 overflow-y-auto p-4">
+                                        class="custom-scrollbar flex-1 flex-col space-y-4 overflow-y-auto p-4">
                                         <p class="py-4 text-center italic text-gray-500">Loading comments...</p>
                                     </div>
                                     <div
                                         class="flex items-center gap-3 border-t border-gray-200 p-4 dark:border-gray-700">
                                         <input id="commentInput" x-model="newComment" type="text"
                                             placeholder="Write a comment..."
-                                            class="-transparent focus: -indigo-500 flex-1 rounded-lg bg-gray-100 p-3 text-gray-800 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white dark:focus:ring-indigo-400">
-                                        {{-- <button id="postCommentBtn"
-                                            @click="if(newComment.trim()) { comments.push({ text: newComment, user: currentUser }); newComment = ''; }"
-                                            class="hover: rounded-lg bg-indigo-600 px-5 py-3 text-sm font-semibold text-white   transition-all duration-200 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 active:scale-95 dark:focus:ring-offset-gray-800">
-                                            Post 🚀
-                                        </button> --}}
+                                            class="flex-1 rounded-lg bg-gray-100 p-3 text-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white dark:focus:ring-indigo-400">
                                         <button id="postCommentBtn" type="button"
-                                            class="hover: rounded-lg bg-indigo-600 px-5 py-3 text-sm font-semibold text-white transition-all duration-200 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 active:scale-95 dark:focus:ring-offset-gray-800">
+                                            class="rounded-lg bg-indigo-600 px-5 py-3 text-sm font-semibold text-white transition-all duration-200 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 active:scale-95 dark:focus:ring-offset-gray-800">
                                             Post 🚀
                                         </button>
                                     </div>
