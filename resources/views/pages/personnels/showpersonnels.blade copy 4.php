@@ -75,7 +75,7 @@
                                         @endphp
                                         @foreach ($jobDetails as $detail)
                                             <div
-                                                class="flex flex-row items-center gap-4 rounded-lg border border-gray-200 bg-gray-50 p-4 transition-shadow duration-200 hover:  dark:border-gray-700 dark:bg-gray-800">
+                                                class="flex flex-row items-center gap-4 rounded-lg border border-gray-200 bg-gray-50 p-4  duration-200 hover:  dark:border-gray-700 dark:bg-gray-800">
                                                 {{-- Rounded-lg, subtle background, shadow, and hover effect --}}
                                                 <div>
                                                     <p class="text-xs font-medium text-gray-500 dark:text-gray-400">
@@ -105,7 +105,7 @@
                                             @endphp
                                             @foreach ($jobDetail as $details)
                                                 <div
-                                                    class="flex items-center gap-4 rounded-lg border border-gray-200 bg-gray-50 p-4 transition-shadow duration-200 hover:  dark:border-gray-700 dark:bg-gray-800">
+                                                    class="flex items-center gap-4 rounded-lg border border-gray-200 bg-gray-50 p-4  duration-200 hover:  dark:border-gray-700 dark:bg-gray-800">
                                                     <i
                                                         class="lucide lucide-{{ $details['icon'] }} h-7 w-7 flex-shrink-0 text-indigo-500 dark:text-indigo-400"></i>
                                                     <div>
@@ -135,7 +135,7 @@
                                             @endphp
                                             @foreach ($jobDetail2 as $details)
                                                 <div
-                                                    class="flex items-center gap-4 rounded-lg border border-gray-200 bg-gray-50 p-4 transition-shadow duration-200 hover:  dark:border-gray-700 dark:bg-gray-800">
+                                                    class="flex items-center gap-4 rounded-lg border border-gray-200 bg-gray-50 p-4  duration-200 hover:  dark:border-gray-700 dark:bg-gray-800">
                                                     <i
                                                         class="lucide lucide-{{ $details['icon'] }} h-7 w-7 flex-shrink-0 text-indigo-500 dark:text-indigo-400"></i>
                                                     <div>
@@ -221,7 +221,7 @@
                             </div>
 
                             <div x-data="{ isOpen: true }"
-                                class="rounded-xl bg-white   transition-shadow duration-300 hover:   dark:bg-gray-800">
+                                class="rounded-xl bg-white    duration-300 hover:   dark:bg-gray-800">
                                 {{-- Consistent card styling --}}
                                 <header
                                     class="flex cursor-pointer items-center justify-between rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700"
@@ -276,7 +276,7 @@
                             </div>
 
                             <div x-data="{ isOpen: true }"
-                                class="rounded-xl bg-white   transition-shadow duration-300 hover:   dark:bg-gray-800">
+                                class="rounded-xl bg-white    duration-300 hover:   dark:bg-gray-800">
                                 {{-- Consistent card styling --}}
                                 <header
                                     class="flex cursor-pointer items-center justify-between rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700"
@@ -356,7 +356,7 @@
 
                     </div>
                     <div x-data="{ activeTab: 'approval' }"
-                        class="rounded-xl bg-white   transition-shadow duration-300 hover:   dark:bg-gray-800">
+                        class="rounded-xl bg-white    duration-300 hover:   dark:bg-gray-800">
 
                         <header
                             class="flex items-center rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">

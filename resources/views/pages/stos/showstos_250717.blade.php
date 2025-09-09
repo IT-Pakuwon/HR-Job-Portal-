@@ -152,8 +152,7 @@
             </div>
 
             <div class="lg:col-span-1">
-                <div x-data="{ activeTab: 'structure' }"
-                    class="hover: rounded-xl bg-white transition-shadow duration-300 dark:bg-gray-800">
+                <div x-data="{ activeTab: 'structure' }" class="hover: rounded-xl bg-white duration-300 dark:bg-gray-800">
 
                     <header
                         class="flex items-center rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
@@ -884,13 +883,13 @@
                                     <div style="font-size:12px;color:#333">
                                         <div style="margin-top:10px;">
                                             ${members.map(m => `
-                                                                <div style="display:flex;align-items:center;margin-bottom:6px;">
-                                                                    <img src="${m.image}" style="width:30px;height:30px;border-radius:50%;margin-right:8px;" />
-                                                                    <span style="font-size:12px; color:${m.name.toUpperCase() === 'VACANT' ? 'red' : '#000'};">
-                                                                        ${m.name} (${m.company})
-                                                                    </span>
-                                                                </div>
-                                                            `).join('')}
+                                                                    <div style="display:flex;align-items:center;margin-bottom:6px;">
+                                                                        <img src="${m.image}" style="width:30px;height:30px;border-radius:50%;margin-right:8px;" />
+                                                                        <span style="font-size:12px; color:${m.name.toUpperCase() === 'VACANT' ? 'red' : '#000'};">
+                                                                            ${m.name} (${m.company})
+                                                                        </span>
+                                                                    </div>
+                                                                `).join('')}
                                         </div>
                                     </div>
                                 </div>

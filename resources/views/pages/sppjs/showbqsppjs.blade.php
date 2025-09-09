@@ -151,7 +151,7 @@
             <div class="flex w-full flex-col gap-6 lg:row-span-1 xl:row-span-1 xl:flex-row">
                 <div class="rounded-xl bg-white duration-300 sm:w-1/2 md:w-full dark:bg-gray-800">
                     <header
-                        class="-b -gray-200 dark: -gray-700 flex items-center justify-between rounded-t-xl bg-gray-50 px-6 py-4 dark:bg-gray-700">
+                        class="dark: flex items-center justify-between rounded-t-xl border-b border-gray-200 border-gray-700 bg-gray-50 px-6 py-4 dark:bg-gray-700">
                         {{-- Rounded-t-xl, stronger    , and darker background for header --}}
                         <h1 class="flex items-center gap-2 text-2xl font-bold text-gray-800 dark:text-gray-100">
                             {{-- Larger, bolder title --}}
@@ -210,7 +210,7 @@
                             @endphp
                             @foreach ($jobDetails as $detail)
                                 <div
-                                    class="-gray-200 dark: -gray-700 flex items-center gap-4 rounded-lg bg-gray-200/10 p-3 dark:bg-gray-800">
+                                    class="flex items-center gap-4 rounded-lg border-gray-200 bg-gray-200/10 p-3 dark:border-gray-700 dark:bg-gray-800">
                                     <div>
                                         <p class="text-base font-medium text-gray-900 dark:text-gray-100">
                                             <span
@@ -227,7 +227,7 @@
                 <div class="flex max-h-96 min-h-[12rem] flex-col gap-4 sm:w-1/2 md:w-full">
                     <div x-data="{ activeTab: 'attachment' }" class="rounded-xl bg-white duration-300 dark:bg-gray-800">
                         <header
-                            class="-b -gray-200 dark: -gray-700 flex items-center justify-between rounded-t-xl bg-gray-50 px-6 py-4 dark:bg-gray-700">
+                            class="dark: flex items-center justify-between rounded-t-xl border-b border-gray-200 border-gray-700 bg-gray-50 px-6 py-4 dark:bg-gray-700">
                             <nav class="-mb-px flex flex-grow"> {{-- Added -mb-px to negative margin to overlap     --}}
                                 <button @click="activeTab = 'attachment'"
                                     :class="{
@@ -268,7 +268,7 @@
 
                                         <div class="flex flex-col">
                                             <a href="{{ $fileUrl }}" target="_blank"
-                                                class="-gray-200 dark: -gray-700 group relative block aspect-[4/3] overflow-hidden rounded-lg">
+                                                class="group relative block aspect-[4/3] overflow-hidden rounded-lg border-gray-200 dark:border-gray-700">
                                                 @if ($isImg)
                                                     <img src="{{ $fileUrl }}" alt="{{ $at->name }}"
                                                         class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"

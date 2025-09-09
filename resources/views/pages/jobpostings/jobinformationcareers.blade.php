@@ -29,7 +29,7 @@
 
                                @foreach ($jobDetails as $detail)
                                    <div
-                                       class="hover: flex items-center gap-4 rounded-lg border border-gray-200 bg-gray-50 p-4 transition-shadow duration-200 dark:border-gray-700 dark:bg-gray-700/50">
+                                       class="hover: flex items-center gap-4 rounded-lg border border-gray-200 bg-gray-50 p-4 duration-200 dark:border-gray-700 dark:bg-gray-700/50">
 
                                        <div>
                                            <p class="text-xs font-medium text-gray-500 dark:text-gray-400">
@@ -42,7 +42,7 @@
                                @endforeach
 
                                <div
-                                   class="hover: grid grid-cols-1 gap-4 rounded-lg border border-gray-200 bg-gray-50 p-4 transition-shadow duration-200 sm:grid-cols-2 dark:border-gray-700 dark:bg-gray-700/50">
+                                   class="hover: grid grid-cols-1 gap-4 rounded-lg border border-gray-200 bg-gray-50 p-4 duration-200 sm:grid-cols-2 dark:border-gray-700 dark:bg-gray-700/50">
                                    <div class="flex items-center gap-2">
                                        <div>
                                            <p class="text-xs font-medium text-gray-500 dark:text-gray-400">Job Level</p>

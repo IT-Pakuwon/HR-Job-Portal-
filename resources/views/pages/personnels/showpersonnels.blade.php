@@ -133,7 +133,7 @@
                                 @endphp
                                 @foreach ($jobDetail as $details)
                                     <div
-                                        class="transition- hover:-md flex items-center gap-4 rounded-lg border border-gray-200 bg-gray-50 p-4 duration-200 dark:border-gray-700 dark:bg-gray-800">
+                                        class="flex items-center gap-4 rounded-lg border border-gray-200 bg-gray-50 p-4 duration-200 hover:shadow-md dark:border-gray-700 dark:bg-gray-800">
                                         <div>
                                             <p class="text-xs font-medium text-gray-500 dark:text-gray-400">
                                                 {{ $details['label'] }}</p>

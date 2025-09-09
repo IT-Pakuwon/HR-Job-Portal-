@@ -169,7 +169,7 @@
             <div class="flex flex-col gap-6 sm:w-1/2 md:w-full xl:flex-row">
                 <div class="rounded-xl bg-white duration-300 sm:w-1/2 md:w-full dark:bg-gray-800">
                     <header
-                        class="-b -gray-200 dark: -gray-700 flex items-center justify-between rounded-t-xl bg-gray-50 px-6 py-4 dark:bg-gray-700">
+                        class="dark: flex items-center justify-between rounded-t-xl border-b border-gray-200 border-gray-700 bg-gray-50 px-6 py-4 dark:bg-gray-700">
                         {{-- Rounded-t-xl, stronger    , and darker background for header --}}
                         <h1 class="flex items-center gap-2 text-2xl font-bold text-gray-800 dark:text-gray-100">
                             {{-- Larger, bolder title --}}
@@ -241,7 +241,7 @@
                             @endphp
                             @foreach ($jobDetails as $detail)
                                 <div
-                                    class="-gray-200 dark: -gray-700 flex items-center gap-4 rounded-lg bg-gray-200/10 p-3 dark:bg-gray-800">
+                                    class="flex items-center gap-4 rounded-lg border-gray-200 bg-gray-200/10 p-3 dark:border-gray-700 dark:bg-gray-800">
                                     <div>
                                         <p class="text-base font-medium text-gray-900 dark:text-gray-100">
                                             <span
@@ -258,7 +258,7 @@
                 <div class="flex flex-col gap-4 sm:w-1/2 md:w-full">
                     <div x-data="{ activeTab: 'attachment' }" class="rounded-xl bg-white duration-300 dark:bg-gray-800">
                         <header
-                            class="-b -gray-200 dark: -gray-700 flex items-center justify-between rounded-t-xl bg-gray-50 px-6 py-4 dark:bg-gray-700">
+                            class="dark: flex items-center justify-between rounded-t-xl border-b border-gray-200 border-gray-700 bg-gray-50 px-6 py-4 dark:bg-gray-700">
                             <nav class="-mb-px flex flex-grow"> {{-- Added -mb-px to negative margin to overlap     --}}
                                 <button @click="activeTab = 'attachment'"
                                     :class="{
@@ -298,7 +298,8 @@
                                 x-transition:leave-end="opacity-0 translate-y-2">
                                 <table class="w-full text-sm">
                                     <thead>
-                                        <tr class="-b -gray-200 dark: -gray-700 text-gray-600 dark:text-gray-300">
+                                        <tr
+                                            class="dark: border-b border-gray-200 border-gray-700 text-gray-600 dark:text-gray-300">
                                             <th class="p-3 text-left font-semibold">Level</th>
                                             <th class="p-3 text-left font-semibold">Name</th>
                                             <th class="p-3 text-left font-semibold">Date</th>
@@ -360,7 +361,7 @@
                                 x-transition:leave-end="opacity-0 translate-y-2">
                                 <table class="w-full text-sm">
                                     <thead class="text-gray-600 dark:text-gray-300">
-                                        <tr class="-b -gray-200 dark: -gray-700">
+                                        <tr class="dark: border-b border-gray-200 border-gray-700">
                                             <th class="p-3 text-left font-semibold">Filename</th>
                                             <th class="p-3 text-left font-semibold">Created By</th>
                                             <th class="p-3 text-left font-semibold">Date</th>
@@ -409,7 +410,8 @@
                                         class="custom-scrollbar flex max-h-60 flex-col space-y-4 overflow-y-auto p-4">
                                         <p class="py-4 text-center italic text-gray-500">Loading comments...</p>
                                     </div>
-                                    <div class="-t -gray-200 dark: -gray-700 flex items-center gap-3 p-4">
+                                    <div
+                                        class="flex items-center gap-3 border-t border-gray-200 p-4 dark:border-gray-700">
                                         <input id="commentInput" x-model="newComment" type="text"
                                             placeholder="Write a comment..."
                                             class="-transparent focus: -indigo-500 flex-1 rounded-lg bg-gray-100 p-3 text-gray-800 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white dark:focus:ring-indigo-400">
