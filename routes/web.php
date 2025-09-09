@@ -419,6 +419,11 @@ Route::post('/logout', function () {
     Route::post('/bqs/import', [MasterController::class, 'import'])->name('bqs.import');
     Route::post('/bqs/{bq}/import', [MasterController::class, 'import'])->name('bqs.import.edit');
     Route::post('/bqs', [MasterController::class, 'storeBQ'])->name('bqs.store');
+
+    Route::get('/receivedlist', [CanvassController::class, 'ReceivedList'])->name('receivedlist');
+    Route::get('/receivedlist/json', [CanvassController::class, 'ReceivedListJson'])->name('receivedlist.json');
+    Route::get('/receivedlist/users', [CanvassController::class, 'ReceivedListUsers'])->name('receivedlist.users');
+    Route::post('/receivedlist/assign', [CanvassController::class, 'AssignPurchasing'])->name('receivedlist.assign');
     
 
     Route::get('/inventory/list', [MasterController::class, 'InventoryList'])->name('inventory.list');

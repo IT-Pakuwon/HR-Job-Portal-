@@ -105,6 +105,15 @@
                                         Import
                                     </button>
                                 </div>
+                                <!-- Buttons -->
+                                <div class="flex md:justify-end md:col-span-2 gap-2">
+                                    <a href="{{ asset('templates/import_bq.xlsx') }}"
+                                    target="_blank" rel="noopener" download
+                                    class="inline-flex h-[42px] items-center rounded-md border border-gray-300 bg-white px-4 text-gray-700 hover:bg-gray-50
+                                            dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
+                                        Download Template BQ
+                                    </a>                                   
+                                </div>
                             </div>
                         </div>
                     </form>
