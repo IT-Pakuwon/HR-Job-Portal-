@@ -150,7 +150,7 @@
         </div>
         <div class="flex w-full flex-col gap-6">
             <div class="flex w-full flex-col items-stretch gap-6 xl:flex-row">
-                {{-- Left card (SPPJ Info) --}}
+                {{-- Left card (SPPB Info) --}}
                 <div class="flex flex-1 flex-col rounded-xl bg-white dark:bg-gray-800">
                     <header
                         class="flex items-center justify-between rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
@@ -184,7 +184,7 @@
                                 {{ $statusText }}
                             </span>
 
-                            <a href="{{ url('/pdf_sppjs') }}/{{ $sppb->id }}" target="_blank">
+                            <a href="{{ url('/pdf_sppbs') }}/{{ $sppb->id }}" target="_blank">
                                 <button
                                     class="inline-flex items-center gap-2 rounded-full bg-indigo-600 px-4 py-1 text-sm font-semibold text-white transition-colors duration-200 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
                                     Print PDF
@@ -245,7 +245,7 @@
                 </div>
 
                 {{-- Right card (Tabs) --}}
-                <div class="flex flex-1 flex-col rounded-xl bg-white dark:bg-gray-800">
+                <div class="flex max-h-[600px] flex-1 flex-col overflow-y-auto rounded-xl bg-white dark:bg-gray-800">
                     <div x-data="{ activeTab: 'attachment' }" class="flex flex-1 flex-col">
                         <header
                             class="flex items-center rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
@@ -400,6 +400,7 @@
                     </div>
                 </div>
             </div>
+
 
             {{-- SPPB Detail table --}}
             <div class="flex w-full flex-col rounded-2xl bg-white dark:bg-gray-800">
