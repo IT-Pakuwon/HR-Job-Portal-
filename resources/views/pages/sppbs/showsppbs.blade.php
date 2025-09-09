@@ -185,10 +185,12 @@
                             </span>
 
                             {{-- Print Button --}}
-                            <button onclick="window.print()"
-                                class="inline-flex items-center gap-2 rounded-full bg-indigo-600 px-4 py-1 text-sm font-semibold text-white transition-colors duration-200 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
-                                Print
-                            </button>
+                            <a href="{{ url('/pdf_sppbs') }}/{{ $sppb->id }}" target="_blank">
+                                <button onclick="window.print()"
+                                    class="inline-flex items-center gap-2 rounded-full bg-indigo-600 px-4 py-1 text-sm font-semibold text-white transition-colors duration-200 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                                    Print
+                                </button>
+                            </a>
                         </div>
                     </header>
 
