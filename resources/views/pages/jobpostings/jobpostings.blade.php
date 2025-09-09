@@ -13,7 +13,7 @@
                 <button>
                     <a href="#" class="status-filter" data-status="">
                         <div
-                            class="flex items-center gap-4 rounded-lg border border-orange-700 bg-orange-200/20 p-4 text-orange-600 shadow-md shadow-white">
+                            class="flex items-center gap-4 rounded-lg border border-orange-700 bg-orange-200/20 p-4 text-orange-600 shadow-white">
                             <span class="text-4xl">📄</span>
                             <div>
                                 <p class="text-lg font-medium">All</p>
@@ -25,7 +25,7 @@
                 <button>
                     <a href="#" class="status-filter" data-status="P">
                         <div
-                            class="flex items-center gap-4 rounded-lg border border-blue-700 bg-blue-200/20 p-4 text-blue-600 shadow-md shadow-white">
+                            class="flex items-center gap-4 rounded-lg border border-blue-700 bg-blue-200/20 p-4 text-blue-600 shadow-white">
                             <span class="text-4xl">⏳</span>
                             <div>
                                 <p class="text-lg font-medium">On Progress</p>
@@ -37,7 +37,7 @@
                 <button>
                     <a href="#" class="status-filter" data-status="R">
                         <div
-                            class="flex items-center gap-4 rounded-lg border border-red-700 bg-red-200/20 p-4 text-red-600 shadow-md shadow-white">
+                            class="flex items-center gap-4 rounded-lg border border-red-700 bg-red-200/20 p-4 text-red-600 shadow-white">
                             <span class="text-4xl">⛔️</span>
                             <div>
                                 <p class="text-lg font-medium">Reject</p>
@@ -49,7 +49,7 @@
                 <button>
                     <a href="#" class="status-filter" data-status="D">
                         <div
-                            class="flex items-center gap-4 rounded-lg border border-gray-700 bg-gray-200/20 p-4 text-gray-600 shadow-md shadow-white">
+                            class="flex items-center gap-4 rounded-lg border border-gray-700 bg-gray-200/20 p-4 text-gray-600 shadow-white">
                             <span class="text-4xl">✏️</span>
                             <div>
                                 <p class="text-lg font-medium">Revise</p>
@@ -61,7 +61,7 @@
                 <button>
                     <a href="#" class="status-filter" data-status="C">
                         <div
-                            class="flex items-center gap-4 rounded-lg border border-green-700 bg-green-200/20 p-4 text-green-600 shadow-md shadow-white">
+                            class="flex items-center gap-4 rounded-lg border border-green-700 bg-green-200/20 p-4 text-green-600 shadow-white">
                             <span class="text-4xl">✅</span>
                             <div>
                                 <p class="text-lg font-medium">Completed</p>

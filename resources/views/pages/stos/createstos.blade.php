@@ -34,7 +34,7 @@
                                     <label for="selectCompany"
                                         class="block text-sm font-medium text-gray-700 dark:text-gray-300">Company</label>
                                     <select id="selectCompany"
-                                        class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-700"
+                                        class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-700"
                                         name="cpnyid" required>
                                         <option value="" disabled selected>Select</option>
                                         @foreach ($companies as $p)
@@ -46,7 +46,7 @@
                                     <label for="selectdeptname"
                                         class="block text-sm font-medium text-gray-700 dark:text-gray-300">Department</label>
                                     <select id="selectdeptname"
-                                        class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-700"
+                                        class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-700"
                                         name="departementid" required>
                                         <option value="" disabled selected>Select</option>
                                         @foreach ($departements as $p)
@@ -83,7 +83,7 @@
                                 </div>
                             </div>
                             <button type="button" id="addAttachment"
-                                class="mt-4 flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 bg-gray-50 px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
+                                class="mt-4 flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 bg-gray-50 px-4 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20"
                                     fill="currentColor">
                                     <path fill-rule="evenodd"
@@ -94,7 +94,7 @@
                         </details>
                         <div class="flex w-full justify-end gap-4 pt-4">
                             <button type="button" id="cancelBtn"
-                                class="inline-flex items-center justify-center rounded-lg bg-red-600 px-6 py-3 text-base font-semibold text-white shadow-md transition-colors hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">
+                                class="inline-flex items-center justify-center rounded-lg bg-red-600 px-6 py-3 text-base font-semibold text-white transition-colors hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">
                                 <span id="cancelBtnText">Cancel</span>
                                 <svg id="cancelSpinner" class="ml-2 hidden h-5 w-5 animate-spin text-white"
                                     xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -104,7 +104,7 @@
                                 </svg>
                             </button>
                             <button type="submit" id="submitBtn" form="stoForm"
-                                class="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-6 py-3 text-base font-semibold text-white shadow-md transition-colors hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                                class="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-6 py-3 text-base font-semibold text-white transition-colors hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
                                 <span id="submitBtnText">Submit Approval</span>
                                 <svg id="loadingSpinner" class="ml-2 hidden h-5 w-5 animate-spin text-white"
                                     xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -138,7 +138,7 @@
         </div>
         <div id="modalForm"
             class="fixed inset-0 z-50 flex hidden items-center justify-center bg-gray-900/40 backdrop-blur-sm">
-            <div class="relative w-full max-w-5xl rounded-lg bg-white shadow-xl dark:bg-gray-800">
+            <div class="relative w-full max-w-5xl rounded-lg bg-white dark:bg-gray-800">
                 <div class="flex items-center justify-between border-b border-gray-200 p-4 dark:border-gray-700">
                     <ul class="-mb-px flex flex-wrap text-center text-sm font-medium" id="tabs">
                         <li class="mr-2">
@@ -233,7 +233,7 @@
                                 </button>
                             </div>
                         </div>
-                        <div class="overflow-x-auto rounded-lg border border-gray-200 shadow-sm dark:border-gray-700">
+                        <div class="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700">
                             <table
                                 class="min-w-full divide-y divide-gray-200 text-sm text-gray-800 dark:divide-gray-700 dark:text-gray-200">
                                 <thead class="bg-gray-50 dark:bg-gray-700">
@@ -277,7 +277,7 @@
                                 <label for="employeeCompany"
                                     class="block text-sm font-medium text-gray-700 dark:text-gray-300">Company</label>
                                 <select id="employeeCompany"
-                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                    class="mt-1 block w-full rounded-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                     name="cpnyid" required>
                                     @foreach ($companies as $p)
                                         <option value="{{ $p->cpnyid }}">{{ $p->cpnyid }}</option>
@@ -298,7 +298,7 @@
                                 <label for="selectFullName"
                                     class="block text-sm font-medium text-gray-700 dark:text-gray-300">Name</label>
                                 <select id="selectFullName" name="name"
-                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
+                                    class="mt-1 block w-full rounded-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
                                     <option value="" disabled selected>Select</option>
                                     @foreach ($users as $p)
                                         <option value="{{ $p->name }}" data-npk="{{ $p->npk }}">
@@ -319,7 +319,7 @@
                                 <label for="qty"
                                     class="block text-sm font-medium text-gray-700 dark:text-gray-300">Qty</label>
                                 <input type="number" name="qty" id="qty"
-                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                    class="mt-1 block w-full rounded-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                     value="{{ old('qty', 1) }}" required min="1">
                             </div>
 
@@ -327,7 +327,7 @@
 
                             <div class="border-t border-gray-200 pt-4 dark:border-gray-700">
                                 <button type="submit"
-                                    class="inline-flex items-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                                    class="inline-flex items-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
                                     Save Employee
                                 </button>
                             </div>
@@ -348,7 +348,7 @@
                                     class="block text-sm font-medium text-gray-700 dark:text-gray-300">Sub
                                     Department Name</label>
                                 <input type="text" name="departement_name" id="departement_name"
-                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                    class="mt-1 block w-full rounded-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                     required>
                             </div>
 
@@ -358,7 +358,7 @@
                                     Grading</label>
                                 <input type="hidden" name="subgrade_name" id="subgrade_name">
                                 <select name="subgrade_id" id="subgrade_id"
-                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                    class="mt-1 block w-full rounded-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                     required onchange="updateSubgradeName(this)">
                                     <option value="" disabled selected>Select</option>
                                     @foreach ($subgrading as $p)
@@ -370,7 +370,7 @@
 
                             <div class="border-t border-gray-200 pt-4 dark:border-gray-700">
                                 <button type="submit"
-                                    class="inline-flex items-center rounded-md border border-transparent bg-green-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2">
+                                    class="inline-flex items-center rounded-md border border-transparent bg-green-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2">
                                     Save Department
                                 </button>
                             </div>
@@ -391,7 +391,7 @@
                                 <label for="job_level"
                                     class="block text-sm font-medium text-gray-700 dark:text-gray-300">Position</label>
                                 {{-- <select name="job_level" id="job_level"
-                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                    class="mt-1 block w-full rounded-md border-gray-300    focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                     required>
                                     <option value="" disabled selected>-- Select Position --</option>
                                     @foreach ($subgrading as $p)
@@ -400,7 +400,7 @@
                                     @endforeach
                                 </select> --}}
                                 <input type="text" id="position" name="position"
-                                    class="mt-1 block w-full rounded-md border-gray-300 bg-gray-200 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-800 dark:text-gray-400"
+                                    class="mt-1 block w-full rounded-md border-gray-300 bg-gray-200 text-gray-700 focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-800 dark:text-gray-400"
                                     readonly>
 
 
@@ -412,7 +412,7 @@
                                 <div id="jobPurposeList" class="flex flex-col gap-3">
                                     <div class="flex items-center gap-2">
                                         <textarea name="job_purpose[]"
-                                            class="flex-grow rounded-md border-gray-300 p-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                            class="flex-grow rounded-md border-gray-300 p-2 focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                             placeholder="Describe job purpose" rows="3"></textarea>
                                         <button type="button"
                                             class="removePurpose mt-4 hidden rounded border border-red-600 bg-red-200/30 p-2 text-red-600 transition hover:bg-red-600 hover:text-white">
@@ -436,7 +436,7 @@
                                         class="block text-sm font-medium text-gray-700 dark:text-gray-300">Education
                                         Level</label>
                                     <select name="education_level" id="education_level"
-                                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                        class="mt-1 block w-full rounded-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                         required>
                                         <option value="" disabled selected>Select</option>
                                         <option value="SMP">SMP</option>
@@ -454,7 +454,7 @@
                                     <label for="education_major"
                                         class="block text-sm font-medium text-gray-700 dark:text-gray-300">Major</label>
                                     <input type="text" name="education_major" id="education_major"
-                                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                        class="mt-1 block w-full rounded-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                         placeholder="e.g., Computer Science" required>
                                 </div>
                             </div>
@@ -465,7 +465,7 @@
                                         class="block text-sm font-medium text-gray-700 dark:text-gray-300">Experience
                                         (Years)</label>
                                     <input type="number" name="experience_years" id="experience_years"
-                                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                        class="mt-1 block w-full rounded-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                         placeholder="e.g., 2" required min="0">
                                 </div>
                                 <div>
@@ -473,14 +473,14 @@
                                         class="block text-sm font-medium text-gray-700 dark:text-gray-300">Experience
                                         in Position</label>
                                     <input type="text" name="experience_position" id="experience_position"
-                                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                        class="mt-1 block w-full rounded-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                         placeholder="e.g., HR Supervisor" required>
                                 </div>
                             </div>
 
                             <div class="border-t border-gray-200 pt-4 dark:border-gray-700">
                                 <button type="submit"
-                                    class="inline-flex items-center rounded-md border border-transparent bg-green-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2">
+                                    class="inline-flex items-center rounded-md border border-transparent bg-green-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2">
                                     Save Job Profile
                                 </button>
                             </div>
@@ -490,7 +490,7 @@
 
                 <div id="editModal"
                     class="fixed inset-0 z-50 flex hidden items-center justify-center bg-gray-900/40 backdrop-blur-sm">
-                    <div class="relative w-full max-w-lg rounded-lg bg-white p-6 shadow-xl dark:bg-gray-800">
+                    <div class="relative w-full max-w-lg rounded-lg bg-white p-6 dark:bg-gray-800">
                         <button onclick="closeEditModal()"
                             class="absolute right-3 top-3 text-2xl leading-none text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
                             &times;
@@ -504,7 +504,7 @@
                                 <label for="edit_name"
                                     class="block text-sm font-medium text-gray-700 dark:text-gray-300">Name</label>
                                 <select name="employee_name" id="edit_name"
-                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
+                                    class="mt-1 block w-full rounded-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
                                     <option value="" disabled selected>-- Select Employee --</option>
                                     @foreach ($users as $p)
                                         <option value="{{ $p->name }}" data-npk="{{ $p->npk }}">
@@ -518,7 +518,7 @@
                                 <label for="edit_company"
                                     class="block text-sm font-medium text-gray-700 dark:text-gray-300">Company</label>
                                 <select name="employee_company" id="edit_company"
-                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
+                                    class="mt-1 block w-full rounded-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
                                     @foreach ($companies as $p)
                                         <option value="{{ $p->cpnyid }}"
                                             {{ $p->cpnyid == $usercpny2->cpnyid ? 'selected' : '' }}>
@@ -538,7 +538,7 @@
 
                             <div class="border-t border-gray-200 pt-4 dark:border-gray-700">
                                 <button type="submit"
-                                    class="inline-flex items-center rounded-md border border-transparent bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                                    class="inline-flex items-center rounded-md border border-transparent bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
                                     Update Employee
                                 </button>
                             </div>
@@ -548,7 +548,7 @@
 
                 <div id="modalChangeDept"
                     class="fixed inset-0 z-50 flex hidden items-center justify-center bg-gray-900/40 backdrop-blur-sm">
-                    <div class="relative w-full max-w-md rounded-lg bg-white p-6 shadow-xl dark:bg-gray-800">
+                    <div class="relative w-full max-w-md rounded-lg bg-white p-6 dark:bg-gray-800">
                         <h3 class="mb-6 text-xl font-bold text-gray-800 dark:text-white">Change Department</h3>
 
                         <div class="mb-4">
@@ -556,7 +556,7 @@
                                 class="block text-sm font-medium text-gray-700 dark:text-gray-300">Select
                                 Department</label>
                             <select id="selectNewDept"
-                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
+                                class="mt-1 block w-full rounded-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
                                 @foreach ($subdepartments as $dept)
                                     <option value="{{ $dept->departement_id }}">{{ $dept->departement_name }}
                                         -
@@ -567,11 +567,11 @@
 
                         <div class="flex justify-end space-x-3 border-t border-gray-200 pt-4 dark:border-gray-700">
                             <button id="btnCancelChange"
-                                class="inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
+                                class="inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
                                 Cancel
                             </button>
                             <button id="btnConfirmChange"
-                                class="inline-flex items-center rounded-md border border-transparent bg-green-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2">
+                                class="inline-flex items-center rounded-md border border-transparent bg-green-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2">
                                 Update
                             </button>
                         </div>
@@ -580,7 +580,7 @@
 
                 <div id="modalChangeParent"
                     class="fixed inset-0 z-50 flex hidden items-center justify-center bg-gray-900/40 backdrop-blur-sm">
-                    <div class="relative w-full max-w-md rounded-lg bg-white p-6 shadow-xl dark:bg-gray-800">
+                    <div class="relative w-full max-w-md rounded-lg bg-white p-6 dark:bg-gray-800">
                         <h3 class="mb-6 text-xl font-bold text-gray-800 dark:text-white">Change Parent
                             Department
                         </h3>
@@ -590,7 +590,7 @@
                                 class="block text-sm font-medium text-gray-700 dark:text-gray-300">Select New
                                 Parent Department</label>
                             <select id="selectNewParentDept"
-                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
+                                class="mt-1 block w-full rounded-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
                                 @foreach ($parentdepartments as $dept)
                                     <option value="{{ $dept->departement_id }}">{{ $dept->departement_name }}
                                         -
@@ -601,11 +601,11 @@
 
                         <div class="flex justify-end space-x-3 border-t border-gray-200 pt-4 dark:border-gray-700">
                             <button id="btnCancelChangeParent"
-                                class="inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
+                                class="inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
                                 Cancel
                             </button>
                             <button id="btnConfirmChangeParent"
-                                class="inline-flex items-center rounded-md border border-transparent bg-green-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2">
+                                class="inline-flex items-center rounded-md border border-transparent bg-green-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2">
                                 Update
                             </button>
                         </div>
@@ -615,7 +615,7 @@
                 <div id="modalJobProfile"
                     class="fixed inset-0 z-50 flex hidden items-center justify-center bg-gray-900/40 backdrop-blur-sm">
                     <div
-                        class="relative max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-lg bg-white p-6 shadow-xl dark:bg-gray-800">
+                        class="relative max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-lg bg-white p-6 dark:bg-gray-800">
                         <div
                             class="mb-4 flex items-center justify-between border-b border-gray-200 pb-4 dark:border-gray-700">
                             <h3 class="text-xl font-semibold text-gray-800 dark:text-white">
@@ -628,8 +628,7 @@
                             </button>
                         </div>
 
-                        <div
-                            class="mb-6 overflow-x-auto rounded-lg border border-gray-200 shadow-sm dark:border-gray-700">
+                        <div class="mb-6 overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700">
                             <table
                                 class="min-w-full divide-y divide-gray-200 text-sm text-gray-800 dark:divide-gray-700 dark:text-gray-200">
                                 <thead class="bg-gray-50 dark:bg-gray-700">
@@ -657,8 +656,7 @@
                 </div>
             </div>
         </div>
-        <div id="successMessage"
-            class="mt-4 hidden rounded-md bg-green-50 p-3 text-sm font-medium text-green-700 shadow-sm">
+        <div id="successMessage" class="mt-4 hidden rounded-md bg-green-50 p-3 text-sm font-medium text-green-700">
             STO created successfully!
         </div>
     </div>
@@ -802,13 +800,13 @@
                                         <div style="font-size:12px;color:#333">                                    
                                             <div style="margin-top:10px;">
                                                 ${members.map(m => `
-                                                                                                                                                                                                                    <div style="display:flex;align-items:center;margin-bottom:6px;">
-                                                                                                                                                                                                                        <img src="${m.image}" style="width:30px;height:30px;border-radius:50%;margin-right:8px;" />
-                                                                                                                                                                                                                        <span style="font-size:12px; color:${m.name.toUpperCase() === 'VACANT' ? 'red' : '#000'};">
-                                                                                                                                                                                                                            ${m.name} (${m.company})
-                                                                                                                                                                                                                        </span>
-                                                                                                                                                                                                                    </div>
-                                                                                                                                                                                                                `).join('')}
+                                                                                                                                                                                                                        <div style="display:flex;align-items:center;margin-bottom:6px;">
+                                                                                                                                                                                                                            <img src="${m.image}" style="width:30px;height:30px;border-radius:50%;margin-right:8px;" />
+                                                                                                                                                                                                                            <span style="font-size:12px; color:${m.name.toUpperCase() === 'VACANT' ? 'red' : '#000'};">
+                                                                                                                                                                                                                                ${m.name} (${m.company})
+                                                                                                                                                                                                                            </span>
+                                                                                                                                                                                                                        </div>
+                                                                                                                                                                                                                    `).join('')}
                                             </div>
                                         </div>
                                     </div>
@@ -1105,13 +1103,13 @@
                                         <div style="font-size:12px;color:#333">                                    
                                             <div style="margin-top:10px;">
                                                 ${members.map(m => `
-                                                                                                                                                                                                                    <div style="display:flex;align-items:center;margin-bottom:6px;">
-                                                                                                                                                                                                                        <img src="${m.image}" style="width:30px;height:30px;border-radius:50%;margin-right:8px;" />
-                                                                                                                                                                                                                        <span style="font-size:12px; color:${m.name.toUpperCase() === 'VACANT' ? 'red' : '#000'};">
-                                                                                                                                                                                                                            ${m.name} (${m.company})
-                                                                                                                                                                                                                        </span>
-                                                                                                                                                                                                                    </div>
-                                                                                                                                                                                                                `).join('')}
+                                                                                                                                                                                                                        <div style="display:flex;align-items:center;margin-bottom:6px;">
+                                                                                                                                                                                                                            <img src="${m.image}" style="width:30px;height:30px;border-radius:50%;margin-right:8px;" />
+                                                                                                                                                                                                                            <span style="font-size:12px; color:${m.name.toUpperCase() === 'VACANT' ? 'red' : '#000'};">
+                                                                                                                                                                                                                                ${m.name} (${m.company})
+                                                                                                                                                                                                                            </span>
+                                                                                                                                                                                                                        </div>
+                                                                                                                                                                                                                    `).join('')}
                                             </div>
                                         </div>
                                     </div>
@@ -1381,7 +1379,7 @@
             $('#addJobPurpose').on('click', function() {
                 $('#jobPurposeList').append(`
                     <div class="flex gap-2">
-                        <textarea name="job_purpose[]" class="flex-grow rounded-md border-gray-300 p-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300" placeholder="Describe job purpose" required></textarea>
+                        <textarea name="job_purpose[]" class="flex-grow rounded-md border-gray-300 p-2    focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300" placeholder="Describe job purpose" required></textarea>
                         <button type="button" class="removePurpose bg-red-200/30 mt-4 text-red-600 p-2 rounded border border-red-600 hover:text-white hover:bg-red-600 transition">Delete</button>
                     </div>
                 `);

@@ -111,7 +111,7 @@
                                             <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">                                                
                                                 @foreach ($employee as $p)
                                                     <div
-                                                        class="flex items-center justify-center space-x-2 rounded-xl border border-gray-200 bg-white px-5 py-3 text-sm font-semibold text-gray-700 shadow-sm transition hover:shadow-md dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100">
+                                                        class="flex items-center justify-center space-x-2 rounded-xl border border-gray-200 bg-white px-5 py-3 text-sm font-semibold text-gray-700 shadow-sm transition hover:  dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100">
                                                         <span class="whitespace-nowrap">{{ $p['employee_name'] }}:</span>
                                                         <span class="text-indigo-600 dark:text-indigo-400">{{ $p['employee_company'] }}</span>
                                                         <span class="text-indigo-600 dark:text-indigo-400">{{ $p['employee_position'] }}</span>
@@ -306,7 +306,7 @@
                                                 <template x-for="(comment, index) in comments" :key="index">
                                                     <div :class="comment.user === currentUser ? 'self-end bg-indigo-500 text-white' :
                                                         'self-start bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200'"
-                                                        class="max-w-xs rounded-lg p-3 shadow-md">
+                                                        class="max-w-xs rounded-lg p-3  ">
                                                         <p class="text-sm"><strong x-text="comment.user"></strong>:
                                                             <span x-text="comment.text"></span>
                                                         </p>
@@ -322,7 +322,7 @@
                                                     class="flex-1 rounded-lg bg-gray-100 p-3 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-400 dark:bg-gray-800 dark:text-white">
                                                 <button id="postCommentBtn"
                                                     @click="if(newComment.trim()) { comments.push({ text: newComment, user: currentUser }); newComment = ''; }"
-                                                    class="rounded-lg bg-indigo-500 px-4 py-2 text-sm font-semibold text-white shadow-md transition-all duration-200 hover:bg-indigo-600 hover:  active:scale-95">
+                                                    class="rounded-lg bg-indigo-500 px-4 py-2 text-sm font-semibold text-white   transition-all duration-200 hover:bg-indigo-600 hover:  active:scale-95">
                                                     Post 🚀
                                                 </button>
                                             </div>

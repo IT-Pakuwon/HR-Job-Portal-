@@ -97,7 +97,7 @@
                         </details>
                         <div class="flex w-full justify-end gap-4 pt-4">
                             <button type="button" id="cancelBtn"
-                                class="inline-flex items-center justify-center rounded-lg bg-red-600 px-6 py-3 text-base font-semibold text-white shadow-md transition-colors hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">
+                                class="inline-flex items-center justify-center rounded-lg bg-red-600 px-6 py-3 text-base font-semibold text-white   transition-colors hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">
                                 <span id="cancelBtnText">Cancel</span>
                                 <svg id="cancelSpinner" class="ml-2 hidden h-5 w-5 animate-spin text-white"
                                     xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -107,7 +107,7 @@
                                 </svg>
                             </button>
                             <button type="submit" id="submitBtn" form="stoForm"
-                                class="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-6 py-3 text-base font-semibold text-white shadow-md transition-colors hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                                class="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-6 py-3 text-base font-semibold text-white   transition-colors hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
                                 <span id="submitBtnText">Submit Approval</span>
                                 <svg id="loadingSpinner" class="ml-2 hidden h-5 w-5 animate-spin text-white"
                                     xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -141,7 +141,7 @@
         </div>
         <div id="modalForm"
             class="fixed inset-0 z-50 flex hidden items-center justify-center bg-gray-900/40 backdrop-blur-sm">
-            <div class="relative w-full max-w-5xl rounded-lg bg-white shadow-xl dark:bg-gray-800">
+            <div class="relative w-full max-w-5xl rounded-lg bg-white    dark:bg-gray-800">
                 <div class="flex items-center justify-between border-b border-gray-200 p-4 dark:border-gray-700">
                     <ul class="-mb-px flex flex-wrap text-center text-sm font-medium" id="tabs">
                         <li class="mr-2">
@@ -517,7 +517,7 @@
 
                 <div id="editModal"
                     class="fixed inset-0 z-50 flex hidden items-center justify-center bg-gray-900/40 backdrop-blur-sm">
-                    <div class="relative w-full max-w-lg rounded-lg bg-white p-6 shadow-xl dark:bg-gray-800">
+                    <div class="relative w-full max-w-lg rounded-lg bg-white p-6    dark:bg-gray-800">
                         <button onclick="closeEditModal()"
                             class="absolute right-3 top-3 text-2xl leading-none text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
                             &times;
@@ -574,7 +574,7 @@
 
                 <div id="modalChangeDept"
                     class="fixed inset-0 z-50 flex hidden items-center justify-center bg-gray-900/40 backdrop-blur-sm">
-                    <div class="relative w-full max-w-md rounded-lg bg-white p-6 shadow-xl dark:bg-gray-800">
+                    <div class="relative w-full max-w-md rounded-lg bg-white p-6    dark:bg-gray-800">
                         <h3 class="mb-6 text-xl font-bold text-gray-800 dark:text-white">Change Department</h3>
 
                         <div class="mb-4">
@@ -606,7 +606,7 @@
 
                 <div id="modalChangeParent"
                     class="fixed inset-0 z-50 flex hidden items-center justify-center bg-gray-900/40 backdrop-blur-sm">
-                    <div class="relative w-full max-w-md rounded-lg bg-white p-6 shadow-xl dark:bg-gray-800">
+                    <div class="relative w-full max-w-md rounded-lg bg-white p-6    dark:bg-gray-800">
                         <h3 class="mb-6 text-xl font-bold text-gray-800 dark:text-white">Change Parent
                             Department
                         </h3>
@@ -641,7 +641,7 @@
                 <div id="modalJobProfile"
                     class="fixed inset-0 z-50 flex hidden items-center justify-center bg-gray-900/40 backdrop-blur-sm">
                     <div
-                        class="relative max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-lg bg-white p-6 shadow-xl dark:bg-gray-800">
+                        class="relative max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-lg bg-white p-6    dark:bg-gray-800">
                         <div
                             class="mb-4 flex items-center justify-between border-b border-gray-200 pb-4 dark:border-gray-700">
                             <h3 class="text-xl font-semibold text-gray-800 dark:text-white">

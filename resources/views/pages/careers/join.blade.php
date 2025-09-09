@@ -55,7 +55,7 @@
 
         <div class="mt-8 flex justify-end">
             <button type="submit"
-                class="hover: inline-flex items-center rounded-xl bg-indigo-600 px-6 py-2 text-base font-semibold text-white shadow-md transition-colors duration-200 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800">
+                class="hover: inline-flex items-center rounded-xl bg-indigo-600 px-6 py-2 text-base font-semibold text-white transition-colors duration-200 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800">
                 Save Checklist
             </button>
         </div>
@@ -88,7 +88,7 @@
 
         <div class="mt-6 flex justify-end">
             <button type="submit" id="btnSaveSchedule"
-                class="inline-flex items-center rounded-xl bg-emerald-600 px-6 py-2 text-base font-semibold text-white shadow-md transition-colors duration-200 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800">
+                class="inline-flex items-center rounded-xl bg-emerald-600 px-6 py-2 text-base font-semibold text-white transition-colors duration-200 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800">
                 <span class="sch-text">Save Schedule & Send Email</span>
                 <svg class="sch-spin ml-2 hidden h-5 w-5 animate-spin" viewBox="0 0 24 24" fill="none">
                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
@@ -239,7 +239,7 @@
                 .done(function(resp) {
                     if (resp && resp.success) {
                         toastr.success(resp.message ||
-                        'Jadwal berhasil disimpan & email terkirim.');
+                            'Jadwal berhasil disimpan & email terkirim.');
                     } else {
                         toastr.error(resp.message || 'Gagal menyimpan jadwal.');
                     }

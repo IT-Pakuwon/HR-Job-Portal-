@@ -198,7 +198,7 @@
             weekDays: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
 
             // Button classes for active/inactive
-            activeBtnClass: 'px-3 py-1 rounded-md bg-indigo-600 text-white font-semibold shadow-md',
+            activeBtnClass: 'px-3 py-1 rounded-md bg-indigo-600 text-white font-semibold  ',
             inactiveBtnClass: 'px-3 py-1 rounded-md text-indigo-600 hover:bg-indigo-100 dark:hover:bg-indigo-700 cursor-pointer',
 
             init() {

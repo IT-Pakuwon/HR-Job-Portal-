@@ -44,7 +44,7 @@
                     <button>
                         <a href="#" class="status-filter" data-status="{{ $status['status'] }}">
                             <div
-                                class="border-{{ $status['color'] }}-700 bg-{{ $status['color'] }}-200/20 text-{{ $status['color'] }}-600 flex items-center gap-4 rounded-lg border p-4 shadow-md shadow-white">
+                                class="border-{{ $status['color'] }}-700 bg-{{ $status['color'] }}-200/20 text-{{ $status['color'] }}-600 flex items-center gap-4 rounded-lg border p-4   shadow-white">
                                 <span class="text-4xl">{{ $status['emoji'] }}</span>
                                 <div>
                                     <p class="text-lg font-medium">{{ $status['label'] }}</p>

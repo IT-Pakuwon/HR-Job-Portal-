@@ -292,7 +292,7 @@
                                         <div  class="overflow-hidden bg-white transition-all duration-300">
                                             <div id="commentList" class="p-4 h-auto space-y-3 flex flex-col">
                                                 <template x-for="(comment, index) in comments" :key="index">
-                                                    <div :class="comment.user === currentUser ? 'self-end bg-indigo-500 text-white' : 'self-start bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200'" class="p-3 rounded-lg max-w-xs shadow-md">
+                                                    <div :class="comment.user === currentUser ? 'self-end bg-indigo-500 text-white' : 'self-start bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200'" class="p-3 rounded-lg max-w-xs  ">
                                                         <p class="text-sm"><strong x-text="comment.user"></strong>: <span x-text="comment.text"></span></p>
                                                     </div>
                                                 </template>
@@ -308,7 +308,7 @@
                                                 <button 
                                                     id="postCommentBtn" 
                                                     @click="if(newComment.trim()) { comments.push({ text: newComment, user: currentUser }); newComment = ''; }" 
-                                                    class="bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 shadow-md hover:  active:scale-95">
+                                                    class="bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200   hover:  active:scale-95">
                                                     Post 🚀
                                                 </button>
                                             </div>

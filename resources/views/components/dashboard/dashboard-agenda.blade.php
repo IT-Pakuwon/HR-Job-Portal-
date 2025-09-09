@@ -20,7 +20,7 @@
     <div class="mt-4 overflow-x-auto rounded-lg bg-white p-2 dark:bg-gray-800">
         @if (count($agendas) > 0)
             @foreach ($agendas as $agenda)
-                <div class="mb-2 cursor-pointer rounded-lg bg-gray-100 p-4 shadow-sm transition-all duration-200 hover:bg-indigo-50 hover:shadow-md dark:bg-gray-700 dark:hover:bg-gray-600"
+                <div class="hover: mb-2 cursor-pointer rounded-lg bg-gray-100 p-4 shadow-sm transition-all duration-200 hover:bg-indigo-50 dark:bg-gray-700 dark:hover:bg-gray-600"
                     @click="openModal({
                         title: '{{ addslashes($agenda->title) }}',
                         time: '{{ \Carbon\Carbon::parse($agenda->startdate)->format('H:i') }} - {{ \Carbon\Carbon::parse($agenda->enddate)->format('H:i') }}',

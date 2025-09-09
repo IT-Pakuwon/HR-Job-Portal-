@@ -494,7 +494,7 @@
 
                     <div id="modalJobProfile"
                         class="fixed inset-0 z-50 flex hidden items-center justify-center bg-gray-500/10 backdrop-blur-md">
-                        <div class="max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-lg bg-white p-6 shadow-xl">
+                        <div class="max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-lg bg-white p-6   ">
                             <div class="mb-4 flex items-center justify-between">
                                 <h3 class="text-lg font-semibold">
                                     Job Profile - <span id="jobLevelLabel" class="font-semibold text-blue-600"></span>

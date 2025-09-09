@@ -180,7 +180,7 @@
                                                     placeholder="Write a comment..."
                                                     class="flex-1 rounded-lg bg-gray-100 p-3 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-400 dark:bg-gray-800 dark:text-white">
                                                 <button id="postCommentBtn"
-                                                    class="hover: rounded-lg bg-indigo-500 px-4 py-2 text-sm font-semibold text-white shadow-md transition-all duration-200 hover:bg-indigo-600 active:scale-95">
+                                                    class="hover: rounded-lg bg-indigo-500 px-4 py-2 text-sm font-semibold text-white transition-all duration-200 hover:bg-indigo-600 active:scale-95">
                                                     Post 🚀
                                                 </button>
                                             </div>
@@ -432,11 +432,11 @@
                                 if (response.comments.length === 0) {
                                     commentList.append(
                                         '<p class="text-gray-500 italic">No comments yet. Be the first to comment!</p>'
-                                        );
+                                    );
                                 } else {
                                     response.comments.forEach(comment => {
                                         let timeAgo = moment(comment.created_at)
-                                    .fromNow(); // Format waktu seperti "4 days ago"
+                                            .fromNow(); // Format waktu seperti "4 days ago"
 
                                         commentList.append(`
                                 <div class="p-3 bg-gray-100 dark:bg-gray-800 rounded-lg mb-2 border border-gray-300 dark:border-gray-700">
@@ -490,7 +490,7 @@
                             },
                             complete: function() {
                                 $('#postCommentBtn').prop('disabled', false).text(
-                                'Post'); // Aktifkan kembali tombol
+                                    'Post'); // Aktifkan kembali tombol
                             }
                         });
                     }
@@ -535,7 +535,7 @@
                                     .removeClass()
                                     .addClass(
                                         "w-full max-w-32 bg-green-300/30 dark:bg-green-300 text-green-600 flex justify-items-center focus:outline-none pointer-events-none border-none font-semibold px-2 py-0.5 rounded"
-                                        );
+                                    );
 
                                 // Tampilkan alert sukses
                                 toastr.success("Personnel approved successfully!");
@@ -609,7 +609,7 @@
                                         .removeClass()
                                         .addClass(
                                             "w-full max-w-32 bg-red-300/30 dark:bg-red-300 text-red-600 flex justify-items-center focus:outline-none pointer-events-none border-none font-semibold px-2 py-0.5 rounded"
-                                            );
+                                        );
                                     $spinner.fadeOut();
 
                                     window.location.href = "/personnels";
@@ -676,7 +676,7 @@
                                         .removeClass()
                                         .addClass(
                                             "w-full max-w-32 bg-red-300/30 dark:bg-red-300 text-red-600 flex justify-items-center focus:outline-none pointer-events-none border-none font-semibold px-2 py-0.5 rounded"
-                                            );
+                                        );
                                     $spinner.fadeOut();
                                     window.location.href = "/personnels";
                                 } else {

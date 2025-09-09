@@ -322,7 +322,7 @@
                                 <th scope="col"
                                     class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
                                     Description
-                                </th>                               
+                                </th>
                                 <th scope="col"
                                     class="w-32 px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
                                     Status
@@ -337,48 +337,53 @@
             </div>
 
             <!-- ================== TRACKING MODAL ================== -->
-            <div id="trackingModal"
-                class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50">
-            <div class="w-[95vw] max-w-none sm:max-w-3xl md:max-w-5xl lg:max-w-6xl xl:max-w-7xl max-h-[90vh] overflow-y-auto rounded-2xl bg-white p-6 shadow-xl dark:bg-gray-800">
+            <div id="trackingModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50">
+                <div
+                    class="max-h-[90vh] w-[95vw] max-w-none overflow-y-auto rounded-2xl bg-white p-6 sm:max-w-3xl md:max-w-5xl lg:max-w-6xl xl:max-w-7xl dark:bg-gray-800">
 
-                <!-- Header -->
-                <div class="mb-4 flex items-center justify-between">
-                <h3 class="text-lg font-semibold text-gray-800 dark:text-white">
-                    SPPJ Tracking <span id="trackDoc" class="font-bold text-indigo-600"></span>
-                </h3>
-                <button id="closeTracking"
-                        class="text-2xl leading-none text-gray-400 hover:text-gray-600 dark:text-gray-400 dark:hover:text-gray-200">
-                    &times;
-                </button>
+                    <!-- Header -->
+                    <div class="mb-4 flex items-center justify-between">
+                        <h3 class="text-lg font-semibold text-gray-800 dark:text-white">
+                            SPPJ Tracking <span id="trackDoc" class="font-bold text-indigo-600"></span>
+                        </h3>
+                        <button id="closeTracking"
+                            class="text-2xl leading-none text-gray-400 hover:text-gray-600 dark:text-gray-400 dark:hover:text-gray-200">
+                            &times;
+                        </button>
+                    </div>
+
+                    <!-- Controls (opsional) -->
+                    <div class="mb-3 flex items-center justify-end gap-2">
+                        <button type="button" id="tlPrev"
+                            class="rounded-lg border px-3 py-1 text-sm hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700">
+                            ‹ Prev
+                        </button>
+                        <button type="button" id="tlNext"
+                            class="rounded-lg border px-3 py-1 text-sm hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700">
+                            Next ›
+                        </button>
+                    </div>
+
+                    <!-- Timeline -->
+                    <ul id="tlList"
+                        class="-mx-4 flex snap-x snap-mandatory overflow-x-auto whitespace-nowrap px-4 py-6 pr-6">
+                        <!-- items di-inject via JS -->
+                    </ul>
+
+                    <!-- Hide scrollbar -->
+                    <style>
+                        #tlList::-webkit-scrollbar {
+                            display: none;
+                        }
+
+                        #tlList {
+                            scrollbar-width: none;
+                        }
+                    </style>
                 </div>
-
-                <!-- Controls (opsional) -->
-                <div class="mb-3 flex items-center justify-end gap-2">
-                <button type="button" id="tlPrev"
-                    class="rounded-lg border px-3 py-1 text-sm hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700">
-                    ‹ Prev
-                </button>
-                <button type="button" id="tlNext"
-                    class="rounded-lg border px-3 py-1 text-sm hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700">
-                    Next ›
-                </button>
-                </div>
-
-                <!-- Timeline -->
-                <ul id="tlList"
-                    class="flex snap-x snap-mandatory overflow-x-auto whitespace-nowrap py-6 pr-6 -mx-4 px-4">
-                <!-- items di-inject via JS -->
-                </ul>
-
-                <!-- Hide scrollbar -->
-                <style>
-                #tlList::-webkit-scrollbar { display: none; }
-                #tlList { scrollbar-width: none; }
-                </style>
-            </div>
             </div>
 
-           <script>
+            <script>
                 // function renderTimeline(steps = []) {
                 // const list = document.getElementById('tlList');
                 // if (!list) return;
@@ -420,18 +425,18 @@
                 //     : '';
 
                 //     return `
-                //     <li class="relative mr-12 flex shrink-0 snap-start pr-12 last:mr-0 last:pr-0 ${connector}">
-                //         <div class="flex items-center">
-                //         <div class="grid h-6 w-6 place-items-center rounded-full border-2 ${C.colorBorder} bg-white dark:bg-gray-800">
-                //             <div class="h-2 w-2 rounded-full ${C.colorDot}"></div>
-                //         </div>
-                //         <div class="ml-3">
-                //             <p class="text-sm font-semibold ${C.colorTitle}">${title}</p>
-                //             <p class="text-xs text-gray-700 dark:text-gray-300">${subtitle || ''}</p>
-                //         </div>
-                //         </div>
-                //     </li>
-                //     `;
+    //     <li class="relative mr-12 flex shrink-0 snap-start pr-12 last:mr-0 last:pr-0 ${connector}">
+    //         <div class="flex items-center">
+    //         <div class="grid h-6 w-6 place-items-center rounded-full border-2 ${C.colorBorder} bg-white dark:bg-gray-800">
+    //             <div class="h-2 w-2 rounded-full ${C.colorDot}"></div>
+    //         </div>
+    //         <div class="ml-3">
+    //             <p class="text-sm font-semibold ${C.colorTitle}">${title}</p>
+    //             <p class="text-xs text-gray-700 dark:text-gray-300">${subtitle || ''}</p>
+    //         </div>
+    //         </div>
+    //     </li>
+    //     `;
                 // }).join('');
                 // }
                 function renderTimeline(steps = []) {
@@ -444,32 +449,57 @@
                     }
 
                     const MAP = {
-                        C: { label: 'Completed', colorDot: 'bg-green-600', colorBorder: 'border-green-600', colorTitle: 'text-green-700' },
-                        P: { label: 'Waiting approval / in progress', colorDot: 'bg-yellow-500', colorBorder: 'border-yellow-500', colorTitle: 'text-yellow-700' },
-                        R: { label: 'Rejected', colorDot: 'bg-red-600', colorBorder: 'border-red-600', colorTitle: 'text-red-700' },
-                        D: { label: 'Revise', colorDot: 'bg-blue-600', colorBorder: 'border-blue-600', colorTitle: 'text-blue-700' },
-                        _: { label: '', colorDot: 'bg-gray-400', colorBorder: 'border-gray-400', colorTitle: 'text-gray-700' },
+                        C: {
+                            label: 'Completed',
+                            colorDot: 'bg-green-600',
+                            colorBorder: 'border-green-600',
+                            colorTitle: 'text-green-700'
+                        },
+                        P: {
+                            label: 'Waiting approval / in progress',
+                            colorDot: 'bg-yellow-500',
+                            colorBorder: 'border-yellow-500',
+                            colorTitle: 'text-yellow-700'
+                        },
+                        R: {
+                            label: 'Rejected',
+                            colorDot: 'bg-red-600',
+                            colorBorder: 'border-red-600',
+                            colorTitle: 'text-red-700'
+                        },
+                        D: {
+                            label: 'Revise',
+                            colorDot: 'bg-blue-600',
+                            colorBorder: 'border-blue-600',
+                            colorTitle: 'text-blue-700'
+                        },
+                        _: {
+                            label: '',
+                            colorDot: 'bg-gray-400',
+                            colorBorder: 'border-gray-400',
+                            colorTitle: 'text-gray-700'
+                        },
                     };
 
                     list.innerHTML = steps.map((s, i) => {
                         const st = String(s.status || '').toUpperCase();
-                        const C  = MAP[st] || MAP._;
+                        const C = MAP[st] || MAP._;
                         const title = (s.title && String(s.title).trim()) || 'SPPJ';
 
                         const when = (s.at && String(s.at).trim()) || '';
-                        const by   = (s.by && String(s.by).trim()) || '';
+                        const by = (s.by && String(s.by).trim()) || '';
                         const statusText = (s.status_label && String(s.status_label).trim()) || C.label;
 
                         // tampilkan jadi multi-line: status, nama, waktu
                         let detailHtml = '';
                         if (statusText) detailHtml += `<p class="text-xs text-gray-500">${statusText}</p>`;
-                        if (by)         detailHtml += `<p class="text-xs text-gray-500">${by}</p>`;
-                        if (when)       detailHtml += `<p class="text-xs text-gray-500">${when}</p>`;
+                        if (by) detailHtml += `<p class="text-xs text-gray-500">${by}</p>`;
+                        if (when) detailHtml += `<p class="text-xs text-gray-500">${when}</p>`;
 
                         const isLast = i === steps.length - 1;
-                        const connector = !isLast
-                        ? 'after:absolute after:top-1/2 after:left-7 after:h-0.5 after:w-[calc(100%-1.75rem)] after:-translate-y-1/2 after:bg-gray-300 dark:after:bg-gray-600'
-                        : '';
+                        const connector = !isLast ?
+                            'after:absolute after:top-1/2 after:left-7 after:h-0.5 after:w-[calc(100%-1.75rem)] after:-translate-y-1/2 after:bg-gray-300 dark:after:bg-gray-600' :
+                            '';
 
                         return `
                         <li class="relative mr-12 flex shrink-0 snap-start pr-12 last:mr-0 last:pr-0 ${connector}">
@@ -485,73 +515,89 @@
                         </li>
                         `;
                     }).join('');
-                    }
-
-                </script>
-
-
-
-
-
-            <script>          
-
-            // Scroll controls
-            (function(){
-                const scroller = document.getElementById('tlList');
-                document.getElementById('tlPrev')?.addEventListener('click', () =>
-                scroller.scrollBy({ left: -300, behavior: 'smooth' })
-                );
-                document.getElementById('tlNext')?.addEventListener('click', () =>
-                scroller.scrollBy({ left: 300, behavior: 'smooth' })
-                );
-            })();
-
-            // Open/Close modal
-            function openTrackingModal(docText) {
-                document.getElementById('trackDoc').textContent = docText ? `(${docText})` : '';
-                const modal = document.getElementById('trackingModal');
-                modal.classList.remove('hidden');
-                modal.classList.add('flex');
-            }
-
-            function closeTrackingModal() {
-                const modal = document.getElementById('trackingModal');
-                modal.classList.add('hidden');
-                modal.classList.remove('flex');
-            }
-            document.getElementById('closeTracking').addEventListener('click', closeTrackingModal);
-            document.getElementById('trackingModal').addEventListener('click', (e) => {
-                if (e.target.id === 'trackingModal') closeTrackingModal();
-            });
-            
-           
-            $(document).on('click', '.tracking-btn', function () {
-                const id  = $(this).data('id');
-                const doc = $(this).data('doc') || '';
-
-                // Tampilkan modal dulu
-                openTrackingModal(doc);
-
-                $.ajax({
-                    url: `/sppjs/${id}/tracking`,
-                    method: 'GET',
-                    dataType: 'json',
-                    success: function(res) {
-                    // langsung pakai struktur dari controller
-                    renderTimeline(res.steps || []);
-                    },
-                    error: function() {
-                    // fallback demo
-                    renderTimeline([
-                        { key:'submitted', title:'SPPJ',            status:'C', status_label:'Submitted', by:'Williem Halim', at:'2025-08-10 09:00' },
-                        { key:'approval',  title:'Approval',        status:'P', status_label:'Waiting approval / in progress', by:null, at:null },
-                    ]);
-                    }
-                });
-                });
-
+                }
             </script>
-            
+
+
+
+
+
+            <script>
+                // Scroll controls
+                (function() {
+                    const scroller = document.getElementById('tlList');
+                    document.getElementById('tlPrev')?.addEventListener('click', () =>
+                        scroller.scrollBy({
+                            left: -300,
+                            behavior: 'smooth'
+                        })
+                    );
+                    document.getElementById('tlNext')?.addEventListener('click', () =>
+                        scroller.scrollBy({
+                            left: 300,
+                            behavior: 'smooth'
+                        })
+                    );
+                })();
+
+                // Open/Close modal
+                function openTrackingModal(docText) {
+                    document.getElementById('trackDoc').textContent = docText ? `(${docText})` : '';
+                    const modal = document.getElementById('trackingModal');
+                    modal.classList.remove('hidden');
+                    modal.classList.add('flex');
+                }
+
+                function closeTrackingModal() {
+                    const modal = document.getElementById('trackingModal');
+                    modal.classList.add('hidden');
+                    modal.classList.remove('flex');
+                }
+                document.getElementById('closeTracking').addEventListener('click', closeTrackingModal);
+                document.getElementById('trackingModal').addEventListener('click', (e) => {
+                    if (e.target.id === 'trackingModal') closeTrackingModal();
+                });
+
+
+                $(document).on('click', '.tracking-btn', function() {
+                    const id = $(this).data('id');
+                    const doc = $(this).data('doc') || '';
+
+                    // Tampilkan modal dulu
+                    openTrackingModal(doc);
+
+                    $.ajax({
+                        url: `/sppjs/${id}/tracking`,
+                        method: 'GET',
+                        dataType: 'json',
+                        success: function(res) {
+                            // langsung pakai struktur dari controller
+                            renderTimeline(res.steps || []);
+                        },
+                        error: function() {
+                            // fallback demo
+                            renderTimeline([{
+                                    key: 'submitted',
+                                    title: 'SPPJ',
+                                    status: 'C',
+                                    status_label: 'Submitted',
+                                    by: 'Williem Halim',
+                                    at: '2025-08-10 09:00'
+                                },
+                                {
+                                    key: 'approval',
+                                    title: 'Approval',
+                                    status: 'P',
+                                    status_label: 'Waiting approval / in progress',
+                                    by: null,
+                                    at: null
+                                },
+                            ]);
+                        }
+                    });
+                });
+            </script>
+
 
 
 
@@ -580,7 +626,7 @@
                             }
                         },
 
-                        order: [                          
+                        order: [
                             [0, 'desc']
                         ], // Date desc, lalu DocID desc
 
@@ -588,17 +634,17 @@
                             // DocID (button link)
                             {
                                 data: 'sppjid',
-                                render: function (data, type, row) {
+                                render: function(data, type, row) {
                                     let url = `/showsppjs/${row.id}`;
                                     let cls =
-                                    'shrink-0 px-3 py-1.5 bg-indigo-500 text-white rounded hover:bg-indigo-700 text-sm';
+                                        'shrink-0 px-3 py-1.5 bg-indigo-500 text-white rounded hover:bg-indigo-700 text-sm';
                                     const text = data || row.id;
 
                                     // jika status Draft & milik current user → ke halaman edit
                                     if (row.status === 'D' && row.created_by === currentUser) {
-                                    url = `/editsppjs/${row.id}`;
-                                    cls =
-                                        'shrink-0 px-3 py-1.5 bg-yellow-500 text-white rounded hover:bg-yellow-700 text-sm';
+                                        url = `/editsppjs/${row.id}`;
+                                        cls =
+                                            'shrink-0 px-3 py-1.5 bg-yellow-500 text-white rounded hover:bg-yellow-700 text-sm';
                                     }
 
                                     return `
@@ -634,8 +680,8 @@
                             },
                             {
                                 data: 'keperluan'
-                            },                          
-                            
+                            },
+
                             {
                                 data: 'status',
                                 className: 'text-center',

@@ -58,7 +58,7 @@
                             <div
                                 class="absolute bottom-4 right-4 flex items-center space-x-2 rounded-lg bg-gray-900/60 p-2   backdrop-blur-sm">
                                 <button onclick="window.open('{{ route('orgchart.fullscreen') }}', '_blank')"
-                                    class="flex h-10 w-10 items-center justify-center rounded-md bg-blue-600 text-white shadow-md transition-colors hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                                    class="flex h-10 w-10 items-center justify-center rounded-md bg-blue-600 text-white   transition-colors hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
                                         viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -67,14 +67,14 @@
                                     <span class="sr-only">Open Full</span>
                                 </button>
                                 <button id="zoomInBtn"
-                                    class="flex h-10 w-10 items-center justify-center rounded-md bg-indigo-600 text-white shadow-md transition-colors hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                                    class="flex h-10 w-10 items-center justify-center rounded-md bg-indigo-600 text-white   transition-colors hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
                                         viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
                                     </svg>
                                 </button>
                                 <button id="zoomOutBtn"
-                                    class="flex h-10 w-10 items-center justify-center rounded-md bg-indigo-600 text-white shadow-md transition-colors hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                                    class="flex h-10 w-10 items-center justify-center rounded-md bg-indigo-600 text-white   transition-colors hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
                                         viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M20 12H4" />
@@ -221,7 +221,7 @@
                                     <div :class="comment.user === currentUser ?
                                         'self-end bg-indigo-500 text-white' :
                                         'self-start bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200'"
-                                        class="max-w-xs rounded-lg p-3 shadow-md">
+                                        class="max-w-xs rounded-lg p-3  ">
                                         <p class="text-sm"><strong x-text="comment.user"></strong>:
                                             <span x-text="comment.text"></span>
                                         </p>
@@ -238,7 +238,7 @@
                                     class="flex-1 rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
                                 <button id="postCommentBtn"
                                     @click="if(newComment.trim()) { comments.push({ text: newComment, user: currentUser }); newComment = ''; }"
-                                    class="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-md transition-colors hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                                    class="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white   transition-colors hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
                                     Post 🚀
                                 </button>
                             </div>
@@ -348,7 +348,7 @@
                                             class="mb-4 flex flex-wrap gap-2 border-b border-gray-200 pb-2 dark:border-gray-700">
                                             @foreach ($levels as $level)
                                                 <button @click="tab = '{{ $level }}'"
-                                                    :class="{ 'bg-indigo-600 text-white shadow-md': tab === '{{ $level }}', 'text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700': tab !== '{{ $level }}' }"
+                                                    :class="{ 'bg-indigo-600 text-white  ': tab === '{{ $level }}', 'text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700': tab !== '{{ $level }}' }"
                                                     class="rounded-md px-4 py-2 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
                                                     {{ $level }}
                                                 </button>
@@ -532,7 +532,7 @@
                                             <div :class="comment.user === currentUser ?
                                                 'self-end bg-indigo-500 text-white' :
                                                 'self-start bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200'"
-                                                class="max-w-xs rounded-lg p-3 shadow-md">
+                                                class="max-w-xs rounded-lg p-3  ">
                                                 <p class="text-sm"><strong x-text="comment.user"></strong>:
                                                     <span x-text="comment.text"></span>
                                                 </p>
@@ -550,7 +550,7 @@
                                             class="flex-1 rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
                                         <button id="postCommentBtn"
                                             @click="if(newComment.trim()) { comments.push({ text: newComment, user: currentUser }); newComment = ''; }"
-                                            class="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-md transition-colors hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                                            class="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white   transition-colors hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
                                             Post 🚀
                                         </button>
                                     </div>
@@ -591,7 +591,7 @@
                             Cancel
                         </button>
                         <button id="confirmRejectBtn"
-                            class="inline-flex items-center justify-center rounded-lg bg-red-600 px-5 py-2.5 text-sm font-semibold text-white shadow-md transition-colors hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">
+                            class="inline-flex items-center justify-center rounded-lg bg-red-600 px-5 py-2.5 text-sm font-semibold text-white   transition-colors hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">
                             Reject
                         </button>
                     </div>
@@ -613,7 +613,7 @@
                             Cancel
                         </button>
                         <button id="confirmReviseBtn"
-                            class="inline-flex items-center justify-center rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white shadow-md transition-colors hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                            class="inline-flex items-center justify-center rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white   transition-colors hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
                             Revise
                         </button>
                     </div>

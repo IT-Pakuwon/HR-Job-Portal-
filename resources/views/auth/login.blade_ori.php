@@ -59,7 +59,7 @@
                 {{-- <label class="relative inline-flex items-center cursor-pointer">
                     <input type="checkbox" name="remember" class="sr-only peer">
                     <div class="w-11 h-6 bg-gray-300 peer-checked:bg-violet-500 rounded-full relative transition duration-300">
-                        <div class="absolute top-1 left-1 w-4 h-4 bg-white rounded-full shadow-md transition-all duration-300 peer-checked:left-6"></div>
+                        <div class="absolute top-1 left-1 w-4 h-4 bg-white rounded-full   transition-all duration-300 peer-checked:left-6"></div>
                     </div>
                     <span class="ml-3 text-m text-gray-700 dark:text-gray-300">Remember Me</span>
                 </label> --}}

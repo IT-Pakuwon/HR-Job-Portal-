@@ -111,7 +111,7 @@
                                                         <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
                                                             @foreach ($employee as $p)
                                                                 <div
-                                                                    class="flex w-auto flex-wrap items-center justify-center space-x-2 whitespace-normal rounded-xl border border-gray-200 bg-white px-5 py-3 text-sm font-semibold text-gray-700 shadow-sm transition hover:shadow-md dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100">
+                                                                    class="flex w-auto flex-wrap items-center justify-center space-x-2 whitespace-normal rounded-xl border border-gray-200 bg-white px-5 py-3 text-sm font-semibold text-gray-700 shadow-sm transition hover:  dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100">
                                                                     <span>{{ $p['employee_name'] }}:</span>
                                                                     <span
                                                                         class="text-indigo-600 dark:text-indigo-400">{{ $p['employee_company'] }}</span>
@@ -295,7 +295,7 @@
                                                             placeholder="Write a comment..."
                                                             class="flex-1 rounded-lg bg-gray-100 p-3 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-400 dark:bg-gray-800 dark:text-white">
                                                         <button id="postCommentBtn"
-                                                            class="rounded-lg bg-indigo-500 px-4 py-2 text-sm font-semibold text-white shadow-md transition-all duration-200 hover:bg-indigo-600 hover:  active:scale-95">
+                                                            class="rounded-lg bg-indigo-500 px-4 py-2 text-sm font-semibold text-white   transition-all duration-200 hover:bg-indigo-600 hover:  active:scale-95">
                                                             Post 🚀
                                                         </button>
                                                     </div>
