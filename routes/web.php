@@ -379,6 +379,25 @@ Route::post('/logout', function () {
     Route::put('/changestos/remove-attachment/{id}', [ChangeStoController::class, 'removeAttachment']);    
     Route::get('/changesto/{id}/check-approval/{action}', [ChangeStoController::class, 'checkApproval']);   
 
+    Route::get('/budgets', [BudgetController::class, 'index'])->name('budgets');
+    Route::get('/budgets/json', [BudgetController::class, 'json'])->name('budgets.json');
+    Route::get('/createbudgets', [BudgetController::class, 'createBudget'])->name('budget.create');
+    Route::post('/budgets', [BudgetController::class, 'storeBudget'])->name('budgets.store');
+    Route::get('/showbudgets/{id}', [BudgetController::class, 'showBudget']);
+    Route::get('/budget/{id}/comments', [BudgetController::class, 'fetchComments']);
+    Route::post('/budget/{id}/comments', [BudgetController::class, 'storeComment']);
+    Route::post('/budget/{id}/approve', [BudgetController::class, 'approveBudget']);
+    Route::post('/budget/{id}/reject', [BudgetController::class, 'rejectBudget']);
+    Route::post('/budget/{id}/revise', [BudgetController::class, 'reviseBudget']);
+    Route::get('/editbudgets/{id}', [BudgetController::class, 'editBudget'])->name('budget.edit');
+    Route::put('/budgets/{id}', [BudgetController::class, 'updateBudget'])->name('budgets.update');
+    Route::put('/budgets/remove-attachment/{id}', [BudgetController::class, 'removeAttachment']);    
+    Route::get('/budget/{id}/check-approval/{action}', [BudgetController::class, 'checkApproval']);  
+    Route::get('/get-business-units/{cpny_id}', [BudgetController::class, 'getBusinessUnits']);  
+
+    Route::post('/budgets/import', [BudgetController::class, 'import'])->name('budgets.import');
+    Route::post('/budgets/{budget}/import', [BudgetController::class, 'import'])->name('budgets.import.edit');
+
     Route::get('/sppbs', [SppbController::class, 'index'])->name('sppbs');
     Route::get('/sppbs/json', [SppbController::class, 'json'])->name('sppbs.json');
     Route::get('/createsppbs', [SppbController::class, 'createSppb']);
@@ -412,8 +431,7 @@ Route::post('/logout', function () {
     Route::get('/sppj/{id}/check-approval/{action}', [SppjController::class, 'checkApproval']);     
     Route::get('/sppjs/{id}/tracking', [SppjController::class, 'tracking'])->name('sppjs.tracking');
     Route::get('/showbqsppjs/{id}', [SppjController::class, 'showBQ']);
-    Route::get('/editbqsppjs/{id}', [SppjController::class, 'editBQ'])->name('bqsppj.edit');
-    Route::put('/bqs/{id}', [SppjController::class, 'updateBudget'])->name('bqs.update');
+    Route::get('/editbqsppjs/{id}', [SppjController::class, 'editBQ'])->name('bqsppj.edit');    
     Route::put('/bqs/remove-attachment/{id}', [SppjController::class, 'removeAttachment']);
     Route::get('/pdf_sppjs/{id}', [SppjController::class, 'printSppj']);
 
@@ -421,11 +439,19 @@ Route::post('/logout', function () {
     Route::post('/bqs/import', [MasterController::class, 'import'])->name('bqs.import');
     Route::post('/bqs/{bq}/import', [MasterController::class, 'import'])->name('bqs.import.edit');
     Route::post('/bqs', [MasterController::class, 'storeBQ'])->name('bqs.store');
+    Route::put('/bqs/{id}', [MasterController::class, 'updateBQ'])->name('bqs.update');
 
     Route::get('/receivedlist', [CanvassController::class, 'ReceivedList'])->name('receivedlist');
     Route::get('/receivedlist/json', [CanvassController::class, 'ReceivedListJson'])->name('receivedlist.json');
     Route::get('/receivedlist/users', [CanvassController::class, 'ReceivedListUsers'])->name('receivedlist.users');
     Route::post('/receivedlist/assign', [CanvassController::class, 'AssignPurchasing'])->name('receivedlist.assign');
+
+    Route::get('/csjobs', [CanvassController::class, 'CsJobs'])->name('csjobs');
+    // Route::get('/csjobs/json', [CanvassController::class, 'CsJobsJson'])->name('csjobs.json');
+    Route::get('/csjobs/mine/json', [CanvassController::class, 'CsJobsMineJson'])->name('csjobs.mine.json');                 // CS Jobs (punya saya)
+    Route::get('/csjobs/all/json',  [CanvassController::class, 'CsJobsAllJson'])->name('csjobs.all.json');                   // All Jobs
+    Route::get('/csjobs/revision/json', [CanvassController::class, 'CsJobsRevisionJson'])->name('csjobs.revision.json');     // My Revision
+    Route::get('/csjobs/sppbjkt-progress/json', [CanvassController::class, 'SppbjktOnProgressJson'])->name('csjobs.sppbjkt.progress.json'); // SPPBJKT IN Progress
     
 
     Route::get('/inventory/list', [MasterController::class, 'InventoryList'])->name('inventory.list');
@@ -456,24 +482,7 @@ Route::post('/logout', function () {
     Route::post('/eng/workscategory/update', [WorksCategoryController::class, 'update'])->name('workscategory.update');
     Route::post('/eng/workscategory/delete/{id}', [WorksCategoryController::class, 'delete']);
 
-    Route::get('/budgets', [BudgetController::class, 'index'])->name('budgets');
-    Route::get('/budgets/json', [BudgetController::class, 'json'])->name('budgets.json');
-    Route::get('/createbudgets', [BudgetController::class, 'createBudget'])->name('budget.create');
-    Route::post('/budgets', [BudgetController::class, 'storeBudget'])->name('budgets.store');
-    Route::get('/showbudgets/{id}', [BudgetController::class, 'showBudget']);
-    Route::get('/budget/{id}/comments', [BudgetController::class, 'fetchComments']);
-    Route::post('/budget/{id}/comments', [BudgetController::class, 'storeComment']);
-    Route::post('/budget/{id}/approve', [BudgetController::class, 'approveBudget']);
-    Route::post('/budget/{id}/reject', [BudgetController::class, 'rejectBudget']);
-    Route::post('/budget/{id}/revise', [BudgetController::class, 'reviseBudget']);
-    Route::get('/editbudgets/{id}', [BudgetController::class, 'editBudget'])->name('budget.edit');
-    Route::put('/budgets/{id}', [BudgetController::class, 'updateBudget'])->name('budgets.update');
-    Route::put('/budgets/remove-attachment/{id}', [BudgetController::class, 'removeAttachment']);    
-    Route::get('/budget/{id}/check-approval/{action}', [BudgetController::class, 'checkApproval']);  
-    Route::get('/get-business-units/{cpny_id}', [BudgetController::class, 'getBusinessUnits']);  
-
-    Route::post('/budgets/import', [BudgetController::class, 'import'])->name('budgets.import');
-    Route::post('/budgets/{budget}/import', [BudgetController::class, 'import'])->name('budgets.import.edit');
+    
 
 
 

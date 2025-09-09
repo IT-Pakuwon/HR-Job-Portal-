@@ -4,10 +4,10 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class vReceivedList extends Model
+class vSppbjktOnProgress extends Model
 {
     protected $connection  = 'pgsql';
-    protected $table       = 'v_received_list';
+    protected $table       = 'v_sppbjkt_on_progress';
     protected $primaryKey  = 'row_id';
     public $incrementing   = false;
     protected $keyType     = 'string';

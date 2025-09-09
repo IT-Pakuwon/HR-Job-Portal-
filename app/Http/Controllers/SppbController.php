@@ -26,8 +26,6 @@ use Mail;
 use Illuminate\Support\Facades\Log;
 use PDF;
 
-
-
 class SppbController extends Controller
 {
     public function index()

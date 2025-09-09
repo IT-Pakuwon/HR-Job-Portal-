@@ -1443,33 +1443,7 @@ class SppjController extends Controller
             'attachment'
         ));
     }
-
-
-    public function editBQ_xxx($id)
-    {
-        $bq = Bq::with([            
-            'creator:username,name'
-        ])
-        ->findOrFail($id);
-        
-        $bqdetail = BqDetail::where('bqid', $bq->bqid)
-            ->get();    
-        $temp_id  = session('import_temp_id');
-        $tempData = $temp_id ? MsBudgetTemp::where('temp_id', $temp_id)->get() : [];  
-              
-        $attachment = Attachment::where('docid', $bq->bqid)    
-            ->where('status','A')        
-            ->get();   
-
-        return view('pages.sppjs.editbqsppjs', compact(
-            'bq',
-            'bq_detail',
-            'temp_id',
-            'tempData',
-            'attachment'
-        ));
-    }
-
+    
     public function printSppj(int $id)
     {
         $authUser = Auth::user();

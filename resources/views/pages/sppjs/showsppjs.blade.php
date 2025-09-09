@@ -149,7 +149,7 @@
             </div>
         </div>
         <div class="flex w-full flex-col gap-6 xl:flex-col">
-            <div class="flex h-[50vh] w-full flex-col gap-6 md:h-[35vh] xl:flex-row">
+            <div class="flex h-[35vh] w-full flex-col gap-6 xl:flex-row">
                 {{-- Left card (SPPJ Info) --}}
                 <div class="flex flex-1 flex-col overflow-y-auto rounded-xl bg-white dark:bg-gray-800">
                     <header
@@ -415,8 +415,7 @@
                 <header
                     class="flex items-center justify-between rounded-t-xl border-b border-gray-200 bg-white px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
                     <h2 class="text-xl font-semibold text-gray-800 dark:text-gray-100">📝 SPPJ Detail</h2>
-                    <a href="{{ $hasBq ? url('/showbqsppjs/' . $bqIdx) : url('/createbqs/' . $sppjId) }}"
-                        target="_blank"
+                    <a href="{{ $hasBq ? url('/showbqsppjs/' . $bqIdx) : url('/createbqs/' . $sppjId) }}"                        
                         class="{{ $hasBq
                             ? 'bg-emerald-600 hover:bg-emerald-700 focus:ring-emerald-500'
                             : 'bg-indigo-600 hover:bg-indigo-700 focus:ring-indigo-500' }} inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-semibold text-white focus:outline-none focus:ring-2 focus:ring-offset-2">

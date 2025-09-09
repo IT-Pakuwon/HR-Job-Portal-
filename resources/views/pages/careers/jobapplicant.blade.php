@@ -669,8 +669,19 @@
                                 }
                             }
                         ],
-                        rowCallback: function(row, data) {
-                            $(row).css('color', data.is_read === 'N' ? 'blue' : 'black');
+                        rowCallback: function (row, data) {
+                            // reset dulu
+                            $(row).css('color', '');
+
+                            if (data.status === 'R') {
+                                // merah (Tailwind red-600)
+                                $(row).css('color', '#dc2626');
+                            } else if (data.is_read === 'N') {
+                                // biru (Tailwind blue-600)
+                                $(row).css('color', '#2563eb');
+                            } else {
+                                $(row).css('color', 'black');
+                            }
                         },
                         initComplete: function() {
                             const api = this.api();

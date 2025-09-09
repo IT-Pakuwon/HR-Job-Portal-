@@ -516,6 +516,134 @@ class MasterController extends Controller
         }
     }
 
+    public function updateBQ(Request $request, int $id)
+    {
+        // temp_id boleh kosong → artinya tidak ada import baru (hanya simpan &/atau tambah lampiran)
+        $request->validate([
+            'temp_id' => 'nullable|string',
+            'bq_type' => 'nullable|string|max:20',
+            // 'attachments.*' => 'file|mimes:jpg,jpeg,png,webp,gif,bmp,svg|max:5120', // opsional validasi file
+        ]);
+
+        $username = Auth::user()->username ?? 'system';
+        $now      = Carbon::now();
+
+        $bq = Bq::findOrFail($id);
+        $bqid    = $bq->bqid;                 // <-- dipertahankan (tidak generate baru)
+        $sppjtid = $bq->sppjtid ?? $request->input('sppjtid');
+
+        // Ambil temp data jika ada
+        $tempId   = $request->input('temp_id');
+        $tempData = collect();
+        if ($tempId) {
+            $tempData = BqDetailTemp::where('temp_id', $tempId)
+                        ->orderBy('bq_line_no', 'asc')
+                        ->get();
+        }
+
+        DB::beginTransaction();
+        try {
+            // ===================== HEADER =====================
+            // Hitung grand total:
+            //  - jika ada tempData → pakai tempData
+            //  - jika tidak ada → hitung dari detail existing agar tetap konsisten
+            if ($tempData->isNotEmpty()) {
+                $grandMat  = $tempData->sum(fn($r) => (float) ($r->total_est_material_price ?? 0));
+                $grandJasa = $tempData->sum(fn($r) => (float) ($r->total_est_jasa_price ?? 0));
+            } else {
+                $grandMat  = (float) BqDetail::where('bqid', $bqid)->sum('total_est_material_price');
+                $grandJasa = (float) BqDetail::where('bqid', $bqid)->sum('total_est_jasa_price');
+            }
+
+            // Optional: update cpny_id dari SPPJ jika ingin sinkron lagi (bisa di-skip)
+            // $cpny_id = $bq->cpny_id;
+            // if ($sppjtid) {
+            //     $sppj    = TrSPPJ::where('sppjid', $sppjtid)->first();
+            //     $cpny_id = $sppj->cpny_id ?? $cpny_id;
+            // }
+
+            $bq->grand_total_est_material_price = $grandMat;
+            $bq->grand_total_est_jasa_price     = $grandJasa;
+            if ($request->filled('bq_type')) {
+                $bq->bq_type = $request->input('bq_type');
+            }
+            $bq->updated_by = $username;
+            $bq->updated_at = $now;
+            $bq->save();
+
+            // ===================== DETAIL (replace jika ada temp) =====================
+            if ($tempData->isNotEmpty()) {
+                // hapus semua detail lama bqid ini
+                BqDetail::where('bqid', $bqid)->delete();
+
+                // insert ulang dari temp (nomor urut bq_no dimulai 1)
+                $seq = 1;
+                foreach ($tempData as $row) {
+                    BqDetail::create([
+                        'bqid'                     => $bqid,
+                        'sppjtid'                  => $row->sppjtid,
+                        'bq_no'                    => $seq++,
+                        'bq_line_no'               => $row->bq_line_no,
+                        'bq_descr'                 => $row->bq_descr,
+                        'qty'                      => $row->qty,
+                        'uom'                      => $row->uom,
+                        'est_material_price'       => $row->est_material_price,
+                        'total_est_material_price' => $row->total_est_material_price,
+                        'est_jasa_price'           => $row->est_jasa_price,
+                        'total_est_jasa_price'     => $row->total_est_jasa_price,
+                        'status'                   => 'P',
+                        'created_by'               => $username,
+                        'updated_by'               => $username,
+                    ]);
+                }
+
+                // bersihkan temp batch setelah dipakai
+                BqDetailTemp::where('temp_id', $tempId)->delete();
+            }
+
+            // ===================== ATTACHMENTS (tambahan) =====================
+            if ($request->hasFile('attachments')) {
+                $year = $now->year;
+                $folder = public_path('attachments/' . $year);
+                if (!is_dir($folder)) {
+                    @mkdir($folder, 0755, true);
+                }
+
+                foreach ($request->file('attachments') as $file) {
+                    if (!$file || !$file->isValid()) continue;
+
+                    $original   = $file->getClientOriginalName();
+                    $baseName   = pathinfo($original, PATHINFO_FILENAME);
+                    $ext        = strtolower($file->getClientOriginalExtension());
+
+                    $safeName   = Str::limit(preg_replace('/[^A-Za-z0-9_\- ]/', '', $baseName), 120, '');
+                    $unique     = md5(uniqid('', true));
+                    $storedName = $unique . '-' . ($safeName !== '' ? Str::slug($safeName, '_') : 'photo') . '.' . $ext;
+
+                    $file->move($folder, $storedName);
+
+                    $attach = new Attachment();
+                    $attach->docid        = $bqid;
+                    $attach->name         = $safeName;
+                    $attach->attachfile   = $storedName;
+                    $attach->status       = 'A';
+                    $attach->extention    = $ext;
+                    $attach->created_user = $username;
+                    $attach->save();
+                }
+            }
+
+            DB::commit();
+            return response()->json(['success' => true, 'bq' => $bq]);
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            return response()->json([
+                'error'   => 'Gagal mengupdate BQ',
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
 
 
 }

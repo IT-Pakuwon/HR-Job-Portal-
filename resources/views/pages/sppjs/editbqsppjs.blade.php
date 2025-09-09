@@ -148,42 +148,10 @@
 
                                 <div class="flex w-full flex-col gap-2 rounded-2xl border-b bg-white dark:bg-gray-800">
                                     <div class="flex w-full flex-col gap-2 rounded-2xl pl-8 pr-8 pt-4">
-                                        <div class="flex w-full flex-col">
-                                            {{-- <details class="group mb-4" open>
-                                                <summary class="mb-4 flex cursor-pointer items-center justify-between rounded">
-                                                    <span class="text-lg font-semibold">Attachments</span>
-                                                    <span class="transition-all group-open:hidden">See details</span>
-                                                    <span class="hidden transition-all group-open:inline">Hide details</span>
-                                                </summary>
-                                                <div class="flex h-auto flex-col justify-start">
-                                                    <div id="attachmentsContainer">
-                                                        @foreach ($attachment as $attach)
-                                                            <div class="attachment-row flex items-center gap-2"
-                                                                data-attachid="{{ $attach->id }}">
-                                                                <a href="{{ url('/attachments/' . $attach->attachfile) }}"
-                                                                    target="_blank" class="mt-4 w-full border p-3 text-lg">📎
-                                                                    {{ $attach->name }}</a>
-                                                                <button type="button"
-                                                                    class="removeAttachment2 mt-4 rounded border border-red-700 bg-red-200/10 px-3 py-3 text-white hover:border-red-700 hover:bg-red-400/30 dark:bg-red-700/30"
-                                                                    data-id="{{ $attach->id }}">🗑️
-                                                                </button>
-                                                            </div>
-                                                        @endforeach
-                                                    </div>
-                                                    <button type="button" id="addAttachment"
-                                                        class="mb-4 mt-4 flex items-center justify-center gap-2 rounded border border-gray-700 bg-gray-200/10 p-2 text-gray-800 hover:border-indigo-700 hover:bg-indigo-200/10 hover:font-medium hover:text-indigo-800">
-                                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5"
-                                                            viewBox="0 0 20 20" fill="currentColor">
-                                                            <path fill-rule="evenodd"
-                                                                d="M10 2a1 1 0 011 1v6h6a1 1 0 110 2h-6v6a1 1 0 11-2 0v-6H3a1 1 0 110-2h6V3a1 1 0 011-1z"
-                                                                clip-rule="evenodd" />
-                                                        </svg> Add Attachment
-                                                    </button>
-                                                </div>
-                                            </details> --}}
+                                        <div class="flex w-full flex-col">                                           
                                             <details class="group mb-4" open>
                                                 <summary class="mb-4 flex cursor-pointer items-center justify-between rounded">
-                                                    <span class="text-lg font-semibold">Attachments</span>
+                                                    <span class="text-lg font-semibold">📸 Photo Before</span>
                                                     <span class="transition-all group-open:hidden">See details</span>
                                                     <span class="hidden transition-all group-open:inline">Hide details</span>
                                                 </summary>
@@ -296,10 +264,7 @@
                                     </div>
                                 </div>                               
                             </form>
-                        </div>
-                    {{-- @endif --}}
-
-                    
+                        </div>                    
 
                 </div>
             </div>
@@ -339,7 +304,6 @@
             });
         });
     </script>
-
 
     <!-- Toastr CSS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
@@ -384,36 +348,6 @@
             });
         });
     </script>
-
-    {{-- <script>
-        $(document).ready(function() {
-            // Fungsi Tambah Attachment
-            $('#addAttachment').click(function() {
-                $('#attachmentsContainer').append(`
-            <div class="attachment-row flex items-center gap-2">
-                <input type="file" name="attachments[]" class="w-full mt-4 p-3 text-lg border rounded mt-4">
-                    <button type="button" class="removeAttachment bg-red-200/30 mt-4 text-red-600 p-3 rounded hidden border border-red-600 hover:text-white hover:bg-red-600 transition">🗑️</button>
-            </div>
-        `);
-                toggleDeleteButton();
-            });
-
-            // Fungsi Hapus Attachment
-            $(document).on('click', '.removeAttachment', function() {
-                $(this).closest('.attachment-row').remove();
-                toggleDeleteButton();
-            });
-
-            // Fungsi untuk Menampilkan atau Menyembunyikan Tombol Delete
-            function toggleDeleteButton() {
-                if ($('.attachment-row').length > 1) {
-                    $('.removeAttachment').removeClass('hidden');
-                } else {
-                    $('.removeAttachment').addClass('hidden');
-                }
-            }
-        });
-    </script>    --}}
 
     <script>
         $(document).ready(function() {

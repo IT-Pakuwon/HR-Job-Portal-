@@ -390,7 +390,7 @@
                         },
 
                         { data: 'cpny_id',       className: 'text-center' },
-                        { data: 'created_by',    className: 'text-center' },
+                        { data: 'created_by_name',    className: 'text-center' },
                         { data: 'department_id', className: 'text-center' },
                         { data: 'keperluan',     className: 'text-left'   },
                     ],
