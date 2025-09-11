@@ -66,17 +66,35 @@
                                                                     {{ $applicant->email_address }}</p>
                                                             </div>
                                                         </div>
+                                                        <!-- Phone Number -->
                                                         <div
-                                                            class="flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-200/10 p-3 dark:border-gray-700 dark:bg-gray-800"">
+                                                            class="flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-200/10 p-3 dark:border-gray-700 dark:bg-gray-800">
                                                             <i
-                                                                class="lucide lucide-map-pin h-6 w-6 text-gray-600 dark:text-gray-300"></i>
+                                                                class="lucide lucide-phone h-6 w-6 text-gray-600 dark:text-gray-300"></i>
                                                             <div>
                                                                 <span
                                                                     class="text-xs text-gray-500 dark:text-gray-400">Phone
                                                                     Number</span>
                                                                 <p
                                                                     class="w-full break-all text-base font-medium text-gray-900 dark:text-gray-100">
-                                                                    {{ $applicant->phone_number }}</p>
+                                                                    {{ $applicant->phone_number }}
+                                                                </p>
+                                                            </div>
+                                                        </div>
+
+                                                        <!-- Mobile Number -->
+                                                        <div
+                                                            class="mt-2 flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-200/10 p-3 dark:border-gray-700 dark:bg-gray-800">
+                                                            <i
+                                                                class="lucide lucide-smartphone h-6 w-6 text-gray-600 dark:text-gray-300"></i>
+                                                            <div>
+                                                                <span
+                                                                    class="text-xs text-gray-500 dark:text-gray-400">Mobile
+                                                                    Number</span>
+                                                                <p
+                                                                    class="w-full break-all text-base font-medium text-gray-900 dark:text-gray-100">
+                                                                    {{ $applicant->mobile_phone }}
+                                                                </p>
                                                             </div>
                                                         </div>
                                                     </div>

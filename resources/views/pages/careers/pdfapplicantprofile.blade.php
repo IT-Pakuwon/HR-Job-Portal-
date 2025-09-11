@@ -126,7 +126,7 @@
             <td>Telepon Rumah <em>(Phone Number)</em>:</td>
             <td>{{ $applicant->phone_number }}</td>
             <td>Handphone <em>(Mobile Number)</em>:</td>
-            <td>{{ $applicant->phone_number }}</td>
+            <td>{{ $applicant->mobile_phone }}</td>
         </tr>
 
         <tr>
