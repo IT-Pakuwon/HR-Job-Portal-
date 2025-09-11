@@ -69,8 +69,7 @@ class SppjController extends Controller
 
         $base = TrSPPJ::from($baseTable.' as sppj')
             ->leftJoin('ms_request_type as rt', function ($join) {
-                $join->on('rt.requesttypeid', '=', 'sppj.requesttypeid')
-                    ->on('rt.cpny_id',       '=', 'sppj.cpny_id');
+                $join->on('rt.requesttypeid', '=', 'sppj.requesttypeid');
             });
 
         if ($status !== '') {
@@ -361,7 +360,7 @@ class SppjController extends Controller
                     'aprvdatebefore' => $a->aprvid == 1 ? $datestamp : null,
                     'aprvtotalday'   => 1,
                     'status'         => 'P',
-                    'created_by'   => $username,
+                    'created_user'   => $username,
                 ]);
             }
 
@@ -692,7 +691,7 @@ class SppjController extends Controller
                     'aprvdatebefore' => $a->aprvid == 1 ? $datestamp : null,
                     'aprvtotalday'   => 1,
                     'status'         => 'P',
-                    'created_by'   => $username,
+                    'created_user'   => $username,
                 ]);
             }
 
@@ -1404,8 +1403,18 @@ class SppjController extends Controller
         $bq = Bq::with([            
             'creator:username,name'
         ])
-        ->findOrFail($id);        
-
+        ->findOrFail($id);     
+        
+        $canEdit = T_approval::where('docid', $bq->sppjtid)
+            ->where('status', 'P')
+            ->whereNotNull('aprvdatebefore')
+            ->where(function ($q) use ($user) {
+                $q->where('created_user', $user->id)               // kalau stored id
+                  ->orWhere('created_user', $user->name)            // kalau stored name
+                  ->orWhere('created_user', $user->username ?? ''); // kalau stored username
+            })
+            ->exists();
+           
         $bqdetail = BqDetail::where('bqid', $bq->bqid)
             ->get();      
               
@@ -1413,7 +1422,7 @@ class SppjController extends Controller
             ->where('status','A')        
             ->get();    
        
-        return view('pages.sppjs.showbqsppjs', compact('bq','attachment','bqdetail'));
+        return view('pages.sppjs.showbqsppjs', compact('bq','attachment','bqdetail','canEdit'));
     }
 
     public function editBQ($id)
@@ -1512,6 +1521,7 @@ class SppjController extends Controller
             'req_date_fmt'        => optional($sppj->created_at)->format('d M Y H:i'),
             'sppjdate'            => \Carbon\Carbon::parse($sppj->sppjdate)->format('d F Y'),
             // konten
+            'bqid'                => $sppj->bqid,
             'keperluan'           => $sppj->keperluan,
             'status_doc'          => $status_doc,
             'requesttype_name'    => optional($sppj->requestType)->requesttype_name,

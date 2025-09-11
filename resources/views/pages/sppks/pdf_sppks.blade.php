@@ -154,23 +154,35 @@
 <table class="meta-table">
     <tbody>
         <tr>
-            <td class="meta-label">{{ $doc_type }} No</td>
+            <td class="meta-label">{{ $doc_type }} No </td>
             <td>{{ $docid }}</td>
             <td class="meta-label">Name</td>
             <td>{{ $created_by_name ?? $created_by_username }}</td>
         </tr>
         <tr>
             <td class="meta-label">{{ $doc_type }} Date</td>
-            <td>{{ $sppbdate }}</td>
+            <td>{{ $sppkdate }}</td>
             <td class="meta-label">Department</td>
             <td>{{ $department_id }}</td>
         </tr>
-        @if (!empty($requesttype_name))
+        <tr>
+            <td class="meta-label">Request Type</td>
+            <td>{{ $requesttype_name }}</td>
+            <td class="meta-label">No Polisi</td>
+            <td>{{ $no_polisi }}</td>
+        </tr>    
+        @if (!empty($namakendaraan))
             <tr>
-                <td class="meta-label">Request Type</td>
-                <td colspan="3">{{ $requesttype_name }}</td>
+                <td class="meta-label">Nama Kendaraan</td>
+                <td colspan="3">{{ $namakendaraan }}</td>
             </tr>
         @endif
+         <tr>            
+            <td class="meta-label">Pemilik</td>
+            <td>{{ $pemilikkendaraan }}</td>
+            <td class="meta-label">KM</td>
+            <td>{{ $km_kendaraan }}</td>
+        </tr>         
     </tbody>
 </table>
 

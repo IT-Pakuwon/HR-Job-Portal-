@@ -38,6 +38,8 @@
     {{-- <link rel="stylesheet" href="/resources/css/style.css"> --}}
 
 
+
+
     <!-- Buttons for DataTables -->
     <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.3.6/css/buttons.dataTables.min.css">
     <script src="https://cdn.datatables.net/buttons/2.3.6/js/dataTables.buttons.min.js"></script>

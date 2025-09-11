@@ -22,6 +22,7 @@ use App\Models\Bq;
 use App\Models\BqDetail;
 use App\Models\BqDetailTemp;
 use App\Models\Attachment;
+use App\Models\MsKendaraan;
 use Illuminate\Support\Str;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Imports\BqDetailTempImport; 
@@ -316,7 +317,47 @@ class MasterController extends Controller
         return view('pages.sppjs.createbqs', compact('sppj','tempData','temp_id'));
     }
 
-    public function import(Request $request)
+    public function importCreate(Request $request)
+    {
+        // dd($request->all());
+        $request->validate([
+            'file'    => 'required|mimes:xlsx,xls,csv',
+            'sppjtid' => 'required',
+        ]);
+
+        try {
+            $username = Auth::user()->username ?? 'system';
+            $temp_id  = (string) Str::uuid();
+
+            // Bersihkan temp milik user agar batch tidak tercampur
+            BqDetailTemp::where('created_by', $username)->delete();
+
+            $idx = $request->input('idx');
+            $sppjtid = $request->input('sppjtid');
+
+            // Import Excel ke tr_bq_detail_temp
+            Excel::import(
+                new BqDetailTempImport($temp_id, $sppjtid),
+                $request->file('file')
+            );
+
+            // Simpan temp_id ke session untuk dipakai di halaman create
+            session(['import_temp_id' => $temp_id]);
+
+            // ⬇️ Selalu redirect ke create
+            return redirect()
+                ->route('bqs.create', $idx)
+                ->with('success', 'Data berhasil di-import.');
+        } catch (\Throwable $e) {
+            // opsional: report($e);
+            return back()
+                ->withInput()
+                ->with('error', 'Gagal import: ' . $e->getMessage());
+        }
+    }
+
+
+    public function importEdit(Request $request)
     {
         $request->validate([
             'file'     => 'required|mimes:xlsx,xls,csv',
@@ -344,12 +385,14 @@ class MasterController extends Controller
             // Simpan temp_id ke session untuk dipakai di createBQ()
             session(['import_temp_id' => $temp_id]);
 
-           
-             return $idx
-                ? redirect()->route('bqsppj.edit', $idx)
-                            ->with('success', 'Data berhasil di‑import (edit mode).')
-                : redirect()->route('bqs.create')
-                            ->with('success', 'Data berhasil di‑import.');
+           return redirect()
+                ->route('bqsppj.edit', $idx)
+                ->with('success', 'Data berhasil di‑import (edit mode).');
+            //  return $idx
+            //     ? redirect()->route('bqsppj.edit', $idx)
+            //                 ->with('success', 'Data berhasil di‑import (edit mode).')
+            //     : redirect()->route('bqs.create')
+            //                 ->with('success', 'Data berhasil di‑import.');
             
             return back()->with('success', 'Data BQ berhasil di-import.');
         } catch (\Throwable $e) {
@@ -642,6 +685,41 @@ class MasterController extends Controller
                 'message' => $e->getMessage()
             ], 500);
         }
+    }
+
+    public function listKendaraan(Request $request)
+    {
+        $request->validate([
+            'search'   => 'nullable|string',
+            'page'     => 'nullable|integer|min:1',
+            'per_page' => 'nullable|integer|min:1|max:500',
+        ]);
+
+        $search  = $request->search ?? '';
+        $page    = (int)($request->page ?? 1);
+        $perPage = (int)($request->per_page ?? 100);
+
+        $q = MsKendaraan::query();
+
+        if ($search !== '') {
+            $q->where(function($w) use ($search) {
+                $w->where('no_polisi', 'ILIKE', "%{$search}%")
+                  ->orWhere('namakendaraan', 'ILIKE', "%{$search}%")
+                  ->orWhere('pemilikkendaraan', 'ILIKE', "%{$search}%");
+            });
+        }
+
+        $total = (clone $q)->count();
+        $rows  = $q->orderBy('no_polisi')
+                   ->forPage($page, $perPage)
+                   ->get(['no_polisi','namakendaraan','pemilikkendaraan']);
+
+        return response()->json([
+            'data'     => $rows,
+            'total'    => $total,
+            'page'     => $page,
+            'per_page' => $perPage,
+        ]);
     }
 
 

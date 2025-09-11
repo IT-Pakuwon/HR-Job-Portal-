@@ -237,6 +237,153 @@
                                             class="lg:sidebar-expanded:opacity-100 text-m ml-4 font-medium duration-200 lg:opacity-0 2xl:opacity-100">Budget</span>
                                     </div>
                                 </a>
+                            </li>                            
+                            <li class="bg-linear-to-r @if (in_array(Request::segment(1), [
+                                    'sppjs',
+                                    'createsppjs',
+                                    'showsppjs',
+                                    'editsppjs',
+                                    'sppbs',
+                                    'createsppbs',
+                                    'showsppbs',
+                                    'editsppbs',
+                                    'sppks',
+                                    'createsppks',
+                                    'showsppks',
+                                    'editsppks',
+                                ])) {{ 'from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]' }} @endif mb-0.5 rounded-lg py-2 pl-4 pr-3 last:mb-0"
+                                x-data="{ open: {{ in_array(Request::segment(1), [
+                                    'sppjs',
+                                    'createsppjs',
+                                    'showsppjs',
+                                    'editsppjs',
+                                    'sppbs',
+                                    'createsppbs',
+                                    'showsppbs',
+                                    'editsppbs',
+                                    'sppks',
+                                    'createsppks',
+                                    'showsppks',
+                                    'editsppks',
+                                ])
+                                    ? 1
+                                    : 0 }} }">
+                                <a class="@if (
+                                    !in_array(Request::segment(1), [
+                                        'sppjs',
+                                        'createsppjs',
+                                        'showsppjs',
+                                        'editsppjs',
+                                        'sppbs',
+                                        'createsppbs',
+                                        'showsppbs',
+                                        'editsppbs',
+                                        'sppks',
+                                        'createsppks',
+                                        'showsppks',
+                                        'editsppks',
+                                    ])) {{ 'hover:text-gray-900 dark:hover:text-white' }} @endif block truncate text-gray-800 transition dark:text-gray-100"
+                                    href="#0" @click.prevent="open = !open; sidebarExpanded = true">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center">
+                                            <svg class="@if (in_array(Request::segment(1), [
+                                                    'sppjs',
+                                                    'createsppjs',
+                                                    'showsppjs',
+                                                    'editsppjs',
+                                                    'sppbs',
+                                                    'createsppbs',
+                                                    'showsppbs',
+                                                    'editsppbs',
+                                                    'sppks',
+                                                    'createsppks',
+                                                    'showsppks',
+                                                    'editsppks',
+                                                ])) {{ 'text-violet-500' }}@else{{ 'text-gray-400 dark:text-gray-500' }} @endif shrink-0 fill-current"
+                                                xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                                stroke-width="1.5" stroke="currentColor" HEIGHT="16" WIDTH="16">
+                                                <path stroke-linecap="round" stroke-linejoin="round"
+                                                    d="M13.5 21v-7.5a.75.75 0 0 1 .75-.75h3a.75.75 0 0 1 .75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349M3.75 21V9.349m0 0a3.001 3.001 0 0 0 3.75-.615A2.993 2.993 0 0 0 9.75 9.75c.896 0 1.7-.393 2.25-1.016a2.993 2.993 0 0 0 2.25 1.016c.896 0 1.7-.393 2.25-1.015a3.001 3.001 0 0 0 3.75.614m-16.5 0a3.004 3.004 0 0 1-.621-4.72l1.189-1.19A1.5 1.5 0 0 1 5.378 3h13.243a1.5 1.5 0 0 1 1.06.44l1.19 1.189a3 3 0 0 1-.621 4.72M6.75 18h3.75a.75.75 0 0 0 .75-.75V13.5a.75.75 0 0 0-.75-.75H6.75a.75.75 0 0 0-.75.75v3.75c0 .414.336.75.75.75Z" />
+                                            </svg>
+
+                                            </svg>
+                                            <span
+                                                class="lg:sidebar-expanded:opacity-100 text-m ml-4 font-medium duration-200 lg:opacity-0 2xl:opacity-100">Request
+                                                Form</span>
+                                        </div>
+                                        <div
+                                            class="lg:sidebar-expanded:opacity-100 ml-2 flex shrink-0 duration-200 lg:opacity-0 2xl:opacity-100">
+                                            <svg class="@if (in_array(Request::segment(1), [
+                                                    'sppjs',
+                                                    'createsppjs',
+                                                    'showsppjs',
+                                                    'editsppjs',
+                                                    'sppbs',
+                                                    'createsppbs',
+                                                    'showsppbs',
+                                                    'editsppbs',
+                                                    'sppks',
+                                                    'createsppks',
+                                                    'showsppks',
+                                                    'editsppks',
+                                                ])) {{ 'rotate-180' }} @endif ml-1 h-3 w-3 shrink-0 fill-current text-gray-400 dark:text-gray-500"
+                                                :class="open ? 'rotate-180' : 'rotate-0'" viewBox="0 0 12 12">
+                                                <path d="M5.9 11.4L.5 6l1.4-1.4 4 4 4-4L11.3 6z" />
+                                            </svg>
+                                        </div>
+                                    </div>
+                                </a>
+                                <div class="lg:sidebar-expanded:block lg:hidden 2xl:block">
+                                    <ul class="@if (
+                                        !in_array(Request::segment(1), [
+                                            'sppjs',
+                                            'createsppjs',
+                                            'showsppjs',
+                                            'editsppjs',
+                                            'sppbs',
+                                            'createsppbs',
+                                            'showsppbs',
+                                            'editsppbs',
+                                            'sppks',
+                                            'createsppks',
+                                            'showsppks',
+                                            'editsppks',
+                                        ])) {{ 'hidden' }} @endif mt-1 pl-8"
+                                        :class="open ? 'block!' : 'hidden'">
+                                        <li class="mb-1 last:mb-0">
+                                            <a class="@if (Route::is('sppbs', 'createsppbs', 'showsppbs', 'editsppbs')) {{ 'text-violet-500!' }} @endif block truncate text-gray-500/90 transition hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                                                href="{{ route('sppbs') }}">
+                                                <span
+                                                    class="lg:sidebar-expanded:opacity-100 text-m font-medium duration-200 lg:opacity-0 2xl:opacity-100">SPP
+                                                    Barang</span>
+                                            </a>
+                                        </li>
+                                        <li class="mb-1 last:mb-0">
+                                            <a class="@if (Route::is('sppjs', 'createsppjs', 'showsppjs', 'editsppjs')) {{ 'text-violet-500!' }} @endif block truncate text-gray-500/90 transition hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                                                href="{{ route('sppjs') }}">
+                                                <span
+                                                    class="lg:sidebar-expanded:opacity-100 text-m font-medium duration-200 lg:opacity-0 2xl:opacity-100">SPP
+                                                    Jasa</span>
+                                            </a>
+                                        </li>
+                                        <li class="mb-1 last:mb-0">
+                                            <a class="@if (Route::is('sppks')) {{ 'text-violet-500!' }} @endif block truncate text-gray-500/90 transition hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                                                href="{{ route('sppks') }}">
+                                                <span
+                                                    class="lg:sidebar-expanded:opacity-100 text-m font-medium duration-200 lg:opacity-0 2xl:opacity-100">SPP
+                                                    Kendaran</span>
+                                            </a>
+                                        </li>
+                                        <li class="mb-1 last:mb-0">
+                                            <a class="@if (Route::is('sppts')) {{ 'text-violet-500!' }} @endif block truncate text-gray-500/90 transition hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                                                href="{{ route('sppbs') }}">
+                                                <span
+                                                    class="lg:sidebar-expanded:opacity-100 text-m font-medium duration-200 lg:opacity-0 2xl:opacity-100">SPP
+                                                    Tenant</span>
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </div>
                             </li>
                             <li class="bg-linear-to-r @if (in_array(Request::segment(1), ['#', '#', 'sppbs', 'createsppbs', 'showsppbs', 'editsppbs'])) {{ 'from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]' }} @endif mb-0.5 rounded-lg py-2 pl-4 pr-3 last:mb-0"
                                 x-data="{ open: {{ in_array(Request::segment(1), ['sppbs', 'createsppbs', 'showsppbs', 'editsppbs']) ? 1 : 0 }} }">
@@ -288,129 +435,6 @@
                                                 <span
                                                     class="lg:sidebar-expanded:opacity-100 text-m font-medium duration-200 lg:opacity-0 2xl:opacity-100">CS
                                                     List</span>
-                                            </a>
-                                        </li>
-                                    </ul>
-                                </div>
-                            </li>
-                            <li class="bg-linear-to-r @if (in_array(Request::segment(1), [
-                                    'sppjs',
-                                    'createsppjs',
-                                    'showsppjs',
-                                    'editsppjs',
-                                    'sppbs',
-                                    'createsppbs',
-                                    'showsppbs',
-                                    'editsppbs',
-                                ])) {{ 'from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]' }} @endif mb-0.5 rounded-lg py-2 pl-4 pr-3 last:mb-0"
-                                x-data="{ open: {{ in_array(Request::segment(1), [
-                                    'sppjs',
-                                    'createsppjs',
-                                    'showsppjs',
-                                    'editsppjs',
-                                    'sppbs',
-                                    'createsppbs',
-                                    'showsppbs',
-                                    'editsppbs',
-                                ])
-                                    ? 1
-                                    : 0 }} }">
-                                <a class="@if (
-                                    !in_array(Request::segment(1), [
-                                        'sppjs',
-                                        'createsppjs',
-                                        'showsppjs',
-                                        'editsppjs',
-                                        'sppbs',
-                                        'createsppbs',
-                                        'showsppbs',
-                                        'editsppbs',
-                                    ])) {{ 'hover:text-gray-900 dark:hover:text-white' }} @endif block truncate text-gray-800 transition dark:text-gray-100"
-                                    href="#0" @click.prevent="open = !open; sidebarExpanded = true">
-                                    <div class="flex items-center justify-between">
-                                        <div class="flex items-center">
-                                            <svg class="@if (in_array(Request::segment(1), [
-                                                    'sppjs',
-                                                    'createsppjs',
-                                                    'showsppjs',
-                                                    'editsppjs',
-                                                    'sppbs',
-                                                    'createsppbs',
-                                                    'showsppbs',
-                                                    'editsppbs',
-                                                ])) {{ 'text-violet-500' }}@else{{ 'text-gray-400 dark:text-gray-500' }} @endif shrink-0 fill-current"
-                                                xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                                stroke-width="1.5" stroke="currentColor" HEIGHT="16" WIDTH="16">
-                                                <path stroke-linecap="round" stroke-linejoin="round"
-                                                    d="M13.5 21v-7.5a.75.75 0 0 1 .75-.75h3a.75.75 0 0 1 .75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349M3.75 21V9.349m0 0a3.001 3.001 0 0 0 3.75-.615A2.993 2.993 0 0 0 9.75 9.75c.896 0 1.7-.393 2.25-1.016a2.993 2.993 0 0 0 2.25 1.016c.896 0 1.7-.393 2.25-1.015a3.001 3.001 0 0 0 3.75.614m-16.5 0a3.004 3.004 0 0 1-.621-4.72l1.189-1.19A1.5 1.5 0 0 1 5.378 3h13.243a1.5 1.5 0 0 1 1.06.44l1.19 1.189a3 3 0 0 1-.621 4.72M6.75 18h3.75a.75.75 0 0 0 .75-.75V13.5a.75.75 0 0 0-.75-.75H6.75a.75.75 0 0 0-.75.75v3.75c0 .414.336.75.75.75Z" />
-                                            </svg>
-
-                                            </svg>
-                                            <span
-                                                class="lg:sidebar-expanded:opacity-100 text-m ml-4 font-medium duration-200 lg:opacity-0 2xl:opacity-100">Request
-                                                Form</span>
-                                        </div>
-                                        <div
-                                            class="lg:sidebar-expanded:opacity-100 ml-2 flex shrink-0 duration-200 lg:opacity-0 2xl:opacity-100">
-                                            <svg class="@if (in_array(Request::segment(1), [
-                                                    'sppjs',
-                                                    'createsppjs',
-                                                    'showsppjs',
-                                                    'editsppjs',
-                                                    'sppbs',
-                                                    'createsppbs',
-                                                    'showsppbs',
-                                                    'editsppbs',
-                                                ])) {{ 'rotate-180' }} @endif ml-1 h-3 w-3 shrink-0 fill-current text-gray-400 dark:text-gray-500"
-                                                :class="open ? 'rotate-180' : 'rotate-0'" viewBox="0 0 12 12">
-                                                <path d="M5.9 11.4L.5 6l1.4-1.4 4 4 4-4L11.3 6z" />
-                                            </svg>
-                                        </div>
-                                    </div>
-                                </a>
-                                <div class="lg:sidebar-expanded:block lg:hidden 2xl:block">
-                                    <ul class="@if (
-                                        !in_array(Request::segment(1), [
-                                            'sppjs',
-                                            'createsppjs',
-                                            'showsppjs',
-                                            'editsppjs',
-                                            'sppbs',
-                                            'createsppbs',
-                                            'showsppbs',
-                                            'editsppbs',
-                                        ])) {{ 'hidden' }} @endif mt-1 pl-8"
-                                        :class="open ? 'block!' : 'hidden'">
-                                        <li class="mb-1 last:mb-0">
-                                            <a class="@if (Route::is('sppbs', 'createsppbs', 'showsppbs', 'editsppbs')) {{ 'text-violet-500!' }} @endif block truncate text-gray-500/90 transition hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-                                                href="{{ route('sppbs') }}">
-                                                <span
-                                                    class="lg:sidebar-expanded:opacity-100 text-m font-medium duration-200 lg:opacity-0 2xl:opacity-100">SPP
-                                                    Barang</span>
-                                            </a>
-                                        </li>
-                                        <li class="mb-1 last:mb-0">
-                                            <a class="@if (Route::is('sppjs', 'createsppjs', 'showsppjs', 'editsppjs')) {{ 'text-violet-500!' }} @endif block truncate text-gray-500/90 transition hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-                                                href="{{ route('sppjs') }}">
-                                                <span
-                                                    class="lg:sidebar-expanded:opacity-100 text-m font-medium duration-200 lg:opacity-0 2xl:opacity-100">SPP
-                                                    Jasa</span>
-                                            </a>
-                                        </li>
-                                        <li class="mb-1 last:mb-0">
-                                            <a class="@if (Route::is('sppks')) {{ 'text-violet-500!' }} @endif block truncate text-gray-500/90 transition hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-                                                href="{{ route('sppbs') }}">
-                                                <span
-                                                    class="lg:sidebar-expanded:opacity-100 text-m font-medium duration-200 lg:opacity-0 2xl:opacity-100">SPP
-                                                    Kendaran</span>
-                                            </a>
-                                        </li>
-                                        <li class="mb-1 last:mb-0">
-                                            <a class="@if (Route::is('sppts')) {{ 'text-violet-500!' }} @endif block truncate text-gray-500/90 transition hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-                                                href="{{ route('sppbs') }}">
-                                                <span
-                                                    class="lg:sidebar-expanded:opacity-100 text-m font-medium duration-200 lg:opacity-0 2xl:opacity-100">SPP
-                                                    Tenant</span>
                                             </a>
                                         </li>
                                     </ul>

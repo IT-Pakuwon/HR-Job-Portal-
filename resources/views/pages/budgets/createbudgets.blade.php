@@ -119,60 +119,71 @@
                             </div>
 
                             <!-- Header fields: rapi & sejajar -->
-                            <div class="grid grid-cols-1 items-end gap-4 md:grid-cols-5">
+                            <div class="grid grid-cols-1 gap-4 items-end md:grid-cols-6">
+
                                 <!-- Company -->
-                                <div>
-                                    <label
-                                        class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Company</label>
+                                <div class="col-span-1">
+                                    <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Company</label>
                                     <select name="cpny_id" required
-                                        class="w-full rounded-md border border-gray-300 bg-white p-2.5 focus:ring focus:ring-blue-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
-                                        <option value="" disabled selected>Select</option>
-                                        @foreach ($companies as $p)
-                                            <option value="{{ $p->cpny_id }}">{{ $p->cpny_name }}</option>
-                                        @endforeach
+                                            class="h-[42px] w-full rounded-md border border-gray-300 bg-white px-3 focus:ring focus:ring-blue-300
+                                                dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
+                                    <option value="" disabled selected>Select</option>
+                                    @foreach ($companies as $p)
+                                        <option value="{{ $p->cpny_id }}">{{ $p->cpny_name }}</option>
+                                    @endforeach
                                     </select>
                                 </div>
 
                                 <!-- Business Unit -->
-                                <div>
-                                    <label
-                                        class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Business
-                                        Unit</label>
+                                <div class="col-span-1">
+                                    <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Business Unit</label>
                                     <select name="business_unit_id" required
-                                        class="w-full rounded-md border border-gray-300 bg-white p-2.5 focus:ring focus:ring-blue-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
-                                        <option value="">Select</option>
+                                            class="h-[42px] w-full rounded-md border border-gray-300 bg-white px-3 focus:ring focus:ring-blue-300
+                                                dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
+                                    <option value="">Select</option>
                                     </select>
                                 </div>
 
                                 <!-- Department (Select2) -->
-                                <div>
-                                    <label
-                                        class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Department</label>
+                                <div class="col-span-1">
+                                    <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Department</label>
                                     <select name="department_fin_id" id="department_select" required
-                                        class="select2 w-full rounded-md border border-gray-300 bg-white p-2.5 focus:ring focus:ring-blue-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
-                                        @foreach ($departements as $p)
-                                            <option value="{{ $p->deptname }}">{{ $p->deptname }}</option>
-                                        @endforeach
+                                            class="select2 h-[42px] w-full rounded-md border border-gray-300 bg-white px-3 focus:ring focus:ring-blue-300
+                                                dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
+                                    @foreach ($departements as $p)
+                                        <option value="{{ $p->deptname }}">{{ $p->deptname }}</option>
+                                    @endforeach
                                     </select>
                                 </div>
 
                                 <!-- File -->
-                                <div class="md:col-span-1">
-                                    <label
-                                        class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Import
-                                        Excel</label>
+                                <div class="col-span-1">
+                                    <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Import Excel</label>
                                     <input type="file" name="file" id="file" required
-                                        class="w-full rounded-md border border-gray-300 bg-white p-2.5 focus:ring focus:ring-blue-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
+                                        class="h-[42px] w-full rounded-md border border-gray-300 bg-white px-3 py-2 focus:ring focus:ring-blue-300
+                                                dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
                                 </div>
 
-                                <!-- Button -->
-                                <div class="flex md:justify-end">
+                                <!-- Import Button -->
+                                <div class="col-span-1 flex justify-end">
                                     <button type="submit" id="importBtn"
-                                        class="inline-flex h-[42px] items-center rounded-md bg-blue-600 px-6 text-white hover:bg-blue-700">
-                                        Import
+                                            class="inline-flex h-[42px] items-center rounded-md bg-blue-600 px-6 text-white hover:bg-blue-700">
+                                    Import
                                     </button>
                                 </div>
+
+                                    <!-- Download Template -->
+                                <div class="col-span-1 flex justify-end">
+                                    <a href="{{ asset('templates/import_budget.xlsx') }}"
+                                    target="_blank" rel="noopener" download
+                                    class="inline-flex h-[42px] items-center rounded-md border border-green-600 bg-green-600 px-4 text-white hover:bg-green-700
+                                            focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2
+                                            dark:border-green-500 dark:bg-green-700 dark:hover:bg-green-600">
+                                    Download Template Budget
+                                    </a>
+                                </div>
                             </div>
+
                         </div>
 
                     </form>
@@ -180,7 +191,7 @@
                     {{-- Table Preview Import --}}
                     @if (isset($tempData) && count($tempData) > 0)
                         <div class="rounded-2xl border bg-white p-4 shadow dark:bg-gray-800">
-                            <h2 class="mb-4 text-lg font-bold">📊 Import</h2>
+                            <h2 class="mb-4 text-lg font-bold">📊 Import<span class="text-lg font-normal text-red-600"> (preview import)</span></h2> 
 
                             {{-- ✅ Scroll Container --}}
                             <div class="w-full overflow-x-auto">
@@ -244,7 +255,8 @@
                                                 <div id="attachmentsContainer">
                                                     <div class="attachment-row flex items-center gap-2">
                                                         <input type="file" name="attachments[]"
-                                                            class="mt-4 w-full border p-3 text-lg">
+                                                            {{-- class="mt-4 w-full border p-3 text-lg"> --}}
+                                                            class="flex-grow rounded-md border border-gray-200 bg-white px-4 py-2 text-sm text-gray-700 file:mr-4 file:rounded-full file:border-0 file:bg-indigo-100 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-indigo-700 hover:file:bg-indigo-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:file:bg-indigo-700 dark:file:text-white dark:hover:file:bg-indigo-600">
                                                         <button type="button"
                                                             class="removeAttachment mt-4 hidden rounded border border-red-600 bg-red-200/30 p-3 text-red-600 transition hover:bg-red-600 hover:text-white">
                                                             🗑️
@@ -394,7 +406,7 @@
             $('#addAttachment').click(function() {
                 $('#attachmentsContainer').append(`
             <div class="attachment-row flex items-center gap-2">
-                <input type="file" name="attachments[]" class="w-full mt-4 p-3 text-lg border rounded mt-4">
+                <input type="file" name="attachments[]" class="flex-grow rounded-md border border-gray-200 bg-white px-4 py-2 text-sm text-gray-700 file:mr-4 file:rounded-full file:border-0 file:bg-indigo-100 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-indigo-700 hover:file:bg-indigo-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:file:bg-indigo-700 dark:file:text-white dark:hover:file:bg-indigo-600">
                     <button type="button" class="removeAttachment bg-red-200/30 mt-4 text-red-600 p-3 rounded hidden border border-red-600 hover:text-white hover:bg-red-600 transition">🗑️</button>
             </div>
         `);

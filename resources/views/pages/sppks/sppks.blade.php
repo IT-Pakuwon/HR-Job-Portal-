@@ -1,6 +1,6 @@
 <x-app-layout>
     @php
-        $currentPage = Route::currentRouteName() == 'sppbs' ? 'HR' : '';
+        $currentPage = Route::currentRouteName() == 'sppks' ? 'HR' : '';
     @endphp
     <div class="max-w-9xl mx-auto w-full px-4 py-4 sm:px-6 lg:px-8">
         <div class="grid-col-1 grid gap-6 xl:grid-cols-5 xl:grid-rows-1">
@@ -105,55 +105,55 @@
                     }
                 }
 
-                /* Sppb Table Specific Styles */
-                #sppbsTable_filter {
+                /* Sppk Table Specific Styles */
+                #sppksTable_filter {
                     margin-bottom: 20px;
                     display: flex;
                     justify-content: flex-start;
                     align-items: center;
                 }
 
-                #sppbsTable_filter label {
+                #sppksTable_filter label {
                     margin-right: 2px;
                 }
 
-                #sppbsTable_filter input {
+                #sppksTable_filter input {
                     width: 200px;
                 }
 
-                #sppbsTable_wrapper {
+                #sppksTable_wrapper {
                     width: 100%;
                 }
 
-                #sppbsTable td {
+                #sppksTable td {
                     white-space: nowrap;
                     overflow: hidden;
                     text-overflow: ellipsis;
                 }
 
-                #sppbsTable th,
-                #sppbsTable td {
+                #sppksTable th,
+                #sppksTable td {
                     padding: 10px;
                     max-width: 200px;
                 }
 
-                #sppbsTable_length {
+                #sppksTable_length {
                     width: auto;
                     display: flex;
                     justify-content: flex-start;
                 }
 
-                #sppbsTable_length select {
+                #sppksTable_length select {
                     width: auto;
                     padding: 5px;
                     min-width: 80px;
                 }
 
-                #sppbsTable_length select option {
+                #sppksTable_length select option {
                     padding: 5px;
                 }
 
-                #sppbsTable_info {
+                #sppksTable_info {
                     margin-top: 10px;
                     margin-bottom: 10px;
                 }
@@ -164,45 +164,45 @@
                     margin-bottom: 10px;
                 }
 
-                #sppbsTable tbody tr td {
+                #sppksTable tbody tr td {
                     padding: 8px 8px;
                     line-height: 2;
                 }
 
-                #sppbsTable tbody tr {
+                #sppksTable tbody tr {
                     transition: background-color 0.3s ease, color 0.3s ease;
                 }
 
-                #sppbsTable tbody tr:hover {
+                #sppksTable tbody tr:hover {
                     background-color: #8f8f8f11;
                     opacity: 100%;
                     cursor: pointer;
                 }
 
-                #sppbsTable tbody tr:hover td {
+                #sppksTable tbody tr:hover td {
                     /* color: black; */
                 }
 
-                #sppbsTable th:nth-child(1),
-                #sppbsTable td:nth-child(1) {
+                #sppksTable th:nth-child(1),
+                #sppksTable td:nth-child(1) {
                     width: 120px;
                     text-align: center;
                 }
 
-                #sppbsTable th:nth-child(4),
-                #sppbsTable td:nth-child(4) {
+                #sppksTable th:nth-child(4),
+                #sppksTable td:nth-child(4) {
                     width: 120px;
                     text-align: center;
                 }
 
-                /* --- Custom Styles for RowGroup Collapse/Expand (Applied to sppbsTable) --- */
+                /* --- Custom Styles for RowGroup Collapse/Expand (Applied to sppksTable) --- */
                 /* Initially hide rows in collapsed groups */
-                #sppbsTable tbody tr.collapsed-group-row {
+                #sppksTable tbody tr.collapsed-group-row {
                     display: none;
                 }
 
                 /* Style for group rows */
-                #sppbsTable tr.group-row {
+                #sppksTable tr.group-row {
                     background-color: #e6e6e6;
                     /* Light gray background for group headers */
                     font-weight: bold;
@@ -213,13 +213,13 @@
                     /* Darker text for group headers */
                 }
 
-                #sppbsTable tr.group-row:hover {
+                #sppksTable tr.group-row:hover {
                     background-color: #d4d4d4;
                     /* Slightly darker on hover */
                 }
 
                 /* Icon styling */
-                #sppbsTable tr.group-row .fas {
+                #sppksTable tr.group-row .fas {
                     margin-right: 8px;
                     width: 16px;
                     /* Ensure consistent icon width */
@@ -227,14 +227,14 @@
                 }
 
                 /* Adjust padding for group rows to look consistent with other cells */
-                #sppbsTable tr.group-row td {
+                #sppksTable tr.group-row td {
                     padding: 10px !important;
                     border-bottom: 1px solid #ddd;
                     /* Separator for groups */
                 }
 
                 /* Remove border from the first td in group row to match the colspan */
-                #sppbsTable tr.group-row td:first-child {
+                #sppksTable tr.group-row td:first-child {
                     border-left: none;
                 }
 
@@ -288,15 +288,15 @@
                 <div
                     class="flex flex-col items-start justify-between gap-4 border-b border-gray-200 p-4 sm:flex-row sm:items-center dark:border-gray-700">
                     {{-- Changed text-3xl to text-xl --}}
-                    <h1 class="text-xl font-extrabold text-gray-700 dark:text-white">Request SPPB</h1>
-                    <a href="{{ url('/createsppbs') }}"
+                    <h1 class="text-xl font-extrabold text-gray-700 dark:text-white">Request SPPK</h1>
+                    <a href="{{ url('/createsppks') }}"
                         class="inline-flex items-center rounded-xl bg-indigo-600 px-6 py-2 text-base font-semibold text-white transition-colors duration-200 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
                         <i class="fas fa-plus pr-2"></i>Create
                     </a>
                 </div>
 
                 <div class="overflow-x-auto p-6"> {{-- Padding applied here instead of outer container --}}
-                    <table id="sppbsTable" class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                    <table id="sppksTable" class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                         <thead class="bg-gray-50 dark:bg-gray-700">
                             <tr>
                                 <th scope="col"
@@ -344,7 +344,7 @@
                     <!-- Header -->
                     <div class="mb-4 flex items-center justify-between">
                         <h3 class="text-lg font-semibold text-gray-800 dark:text-white">
-                            SPPB Tracking <span id="trackDoc" class="font-bold text-indigo-600"></span>
+                            SPPK Tracking <span id="trackDoc" class="font-bold text-indigo-600"></span>
                         </h3>
                         <button id="closeTracking"
                             class="text-2xl leading-none text-gray-400 hover:text-gray-600 dark:text-gray-400 dark:hover:text-gray-200">
@@ -384,7 +384,61 @@
             </div>
 
             <script>
-              
+                // function renderTimeline(steps = []) {
+                // const list = document.getElementById('tlList');
+                // if (!list) return;
+
+                // if (!Array.isArray(steps) || steps.length === 0) {
+                //     list.innerHTML = `<p class="text-sm text-gray-500">No tracking history found.</p>`;
+                //     return;
+                // }
+
+                // // Peta status -> warna Tailwind
+                // const MAP = {
+                //     C: { label: 'Completed', colorDot: 'bg-green-600',  colorBorder: 'border-green-600',  colorTitle: 'text-green-700'  },
+                //     P: { label: 'Waiting approval / in progress', colorDot: 'bg-yellow-500', colorBorder: 'border-yellow-500', colorTitle: 'text-yellow-700' },
+                //     R: { label: 'Rejected',  colorDot: 'bg-red-600',    colorBorder: 'border-red-600',    colorTitle: 'text-red-700'    },
+                //     D: { label: 'Revise',    colorDot: 'bg-blue-600',   colorBorder: 'border-blue-600',   colorTitle: 'text-blue-700'   },
+                //     _: { label: '',          colorDot: 'bg-gray-400',   colorBorder: 'border-gray-400',   colorTitle: 'text-gray-700'   },
+                // };
+
+                // list.innerHTML = steps.map((s, i) => {
+                //     const st = String(s.status || '').toUpperCase();
+                //     const C  = MAP[st] || MAP._;
+                //     console.log({st, C});
+                //     const title = (s.title && String(s.title).trim()) || 'SPPK';
+
+                //     // Subtitle prioritas: status_label -> subtitle -> gabungan waktu/by
+                //     let subtitle = (s.status_label && String(s.status_label).trim())
+                //                 || (s.subtitle && String(s.subtitle).trim())
+                //                 || C.label;
+                //     // console.log({subtitle});
+                //     const when = (s.at && String(s.at).trim()) || '';
+                //     const by   = (s.by && String(s.by).trim()) ? ` by ${s.by}` : '';
+                //     if (!s.subtitle && (when || by)) {
+                //     subtitle = subtitle ? `${subtitle} • ${when}${by}` : `${when}${by}`;
+                //     }
+
+                //     const isLast = i === steps.length - 1;
+                //     const connector = !isLast
+                //     ? 'after:absolute after:top-1/2 after:left-7 after:h-0.5 after:w-[calc(100%-1.75rem)] after:-translate-y-1/2 after:bg-gray-300 dark:after:bg-gray-600'
+                //     : '';
+
+                //     return `
+    //     <li class="relative mr-12 flex shrink-0 snap-start pr-12 last:mr-0 last:pr-0 ${connector}">
+    //         <div class="flex items-center">
+    //         <div class="grid h-6 w-6 place-items-center rounded-full border-2 ${C.colorBorder} bg-white dark:bg-gray-800">
+    //             <div class="h-2 w-2 rounded-full ${C.colorDot}"></div>
+    //         </div>
+    //         <div class="ml-3">
+    //             <p class="text-sm font-semibold ${C.colorTitle}">${title}</p>
+    //             <p class="text-xs text-gray-700 dark:text-gray-300">${subtitle || ''}</p>
+    //         </div>
+    //         </div>
+    //     </li>
+    //     `;
+                // }).join('');
+                // }
                 function renderTimeline(steps = []) {
                     const list = document.getElementById('tlList');
                     if (!list) return;
@@ -430,7 +484,7 @@
                     list.innerHTML = steps.map((s, i) => {
                         const st = String(s.status || '').toUpperCase();
                         const C = MAP[st] || MAP._;
-                        const title = (s.title && String(s.title).trim()) || 'SPPB';
+                        const title = (s.title && String(s.title).trim()) || 'SPPK';
 
                         const when = (s.at && String(s.at).trim()) || '';
                         const by = (s.by && String(s.by).trim()) || '';
@@ -513,7 +567,7 @@
                     openTrackingModal(doc);
 
                     $.ajax({
-                        url: `/sppbs/${id}/tracking`,
+                        url: `/sppks/${id}/tracking`,
                         method: 'GET',
                         dataType: 'json',
                         success: function(res) {
@@ -524,7 +578,7 @@
                             // fallback demo
                             renderTimeline([{
                                     key: 'submitted',
-                                    title: 'SPPB',
+                                    title: 'SPPK',
                                     status: 'C',
                                     status_label: 'Submitted',
                                     by: 'Williem Halim',
@@ -553,7 +607,7 @@
                     // simpan status filter global
                     let statusFilter = 'P'; // default
 
-                    const table = $('#sppbsTable').DataTable({
+                    const table = $('#sppksTable').DataTable({
                         processing: true,
                         serverSide: true,
                         deferRender: true,
@@ -565,7 +619,7 @@
                         lengthMenu: [10, 25, 50, 100, 250],
 
                         ajax: {
-                            url: "{{ route('sppbs.json') }}",
+                            url: "{{ route('sppks.json') }}",
                             type: "GET",
                             data: function(d) {
                                 d.status = statusFilter ?? ''; // kirim status ke server
@@ -579,16 +633,16 @@
                         columns: [
                             // DocID (button link)
                             {
-                                data: 'sppbid',
+                                data: 'sppkid',
                                 render: function(data, type, row) {
-                                    let url = `/showsppbs/${row.id}`;
+                                    let url = `/showsppks/${row.id}`;
                                     let cls =
                                         'shrink-0 px-3 py-1.5 bg-indigo-500 text-white rounded hover:bg-indigo-700 text-sm';
                                     const text = data || row.id;
 
                                     // jika status Draft & milik current user → ke halaman edit
                                     if (row.status === 'D' && row.created_by === currentUser) {
-                                        url = `/editsppbs/${row.id}`;
+                                        url = `/editsppks/${row.id}`;
                                         cls =
                                             'shrink-0 px-3 py-1.5 bg-yellow-500 text-white rounded hover:bg-yellow-700 text-sm';
                                     }
@@ -608,7 +662,7 @@
                             },
 
                             {
-                                data: 'sppbdate',
+                                data: 'sppkdate',
                                 className: 'text-center'
                             },
                             {

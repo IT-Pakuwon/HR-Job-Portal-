@@ -166,12 +166,18 @@
             <td class="meta-label">Department</td>
             <td>{{ $department_id }}</td>
         </tr>
-        @if (!empty($requesttype_name))
+        <tr>
+            <td class="meta-label">Request Type</td>
+            <td>{{ $requesttype_name }}</td>
+            <td class="meta-label">BQ No</td>
+            <td>{{ $bqid }}</td>
+        </tr>
+        {{-- @if (!empty($requesttype_name))
             <tr>
                 <td class="meta-label">Request Type</td>
                 <td colspan="3">{{ $requesttype_name }}</td>
             </tr>
-        @endif
+        @endif --}}
     </tbody>
 </table>
 
@@ -184,16 +190,16 @@
     </tbody>
 </table>
 
-<table class="items-table">
+<table style="width:100%; border-collapse:collapse; border:1px solid #000;">
     <thead>
         <tr>
-            <th>No</th>
-            <th>InventoryID</th>
-            <th>Description</th>
-            <th>Qty</th>
-            <th>UoM</th>
-            <th>Location</th>
-            <th>Sub Location</th>
+            <th style="text-align:center; width:15px;">No</th>
+            <th style="text-align:center; width:100px;">InventoryID</th>
+            <th style="text-align:center;">Description</th>
+            <th style="text-align:center; width:20px;">Qty</th>
+            <th style="text-align:center; width:20px;">UoM</th>
+            <th style="text-align:center; width:100px;">Location</th>
+            <th style="text-align:center; width:100px;">Sub Location</th>
         </tr>
     </thead>
     <tbody>

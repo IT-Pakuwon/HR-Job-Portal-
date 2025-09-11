@@ -357,10 +357,10 @@ class BudgetController extends Controller
                 'date' => $t_approval_next->aprvdatebefore,
                 'name' => $t_approval_next->name,    
                 'createdby'=> $budget->created_by,   
-                'docname'  => 'SPPB',
+                'docname'  => 'Budget',
                 'info' => 'Budget Company ' . $tempHead->cpny_id . ' Department ' . $tempHead->department_fin_id . ' ' . $tempHead->perpost,     
                 'status'   => $status, 
-                'url' => url('/showbudgets_')  . $id
+                'url' => url('/showbudgets/' . $budget->id)
     
             );
     
@@ -373,7 +373,7 @@ class BudgetController extends Controller
             foreach ($email_it as $emailsit) {
                 Mail::send('emails.mailapprovenew', $data, function ($message) use ($data, $emailsit) {
                     $message->to($emailsit->test_email)->subject($data['docid'] . ' - Waiting Approval Budgets');
-                    $message->from('digitalserver@pakuwon.com', 'Pakuwon Smart System');
+                    $message->from('digitalserver@pakuwon.com', 'Pakuwon System');
                 });
             }       
 
@@ -582,10 +582,10 @@ class BudgetController extends Controller
                 'date' => $t_approval_next->aprvdatebefore,
                 'name' => $t_approval_next->name,    
                 'createdby'=> $budget->created_by,   
-                'docname'  => 'SPPB',
+                'docname'  => 'Budget',
                 'info' => 'Budget Company ' . $tempHead->cpny_id . ' Department ' . $tempHead->department_fin_id . ' ' . $tempHead->perpost,     
                 'status'   => $status,             
-                'url' => url('/showbudgets_') . $budget->id
+                'url' => url('/showbudgets/' . $budget->id)                 
     
             );
     
@@ -598,7 +598,7 @@ class BudgetController extends Controller
             foreach ($email_it as $emailsit) {
                 Mail::send('emails.mailapprovenew', $data, function ($message) use ($data, $emailsit) {
                     $message->to($emailsit->test_email)->subject($data['docid'] . ' - Waiting Approval Budgets');
-                    $message->from('digitalserver@pakuwon.com', 'Pakuwon Smart System');
+                    $message->from('digitalserver@pakuwon.com', 'Pakuwon System');
                 });
             }
 
@@ -625,6 +625,12 @@ class BudgetController extends Controller
 
     public function showBudget($id)
     {        
+        $user = Auth::user();       
+
+        if (!$user) {
+            return redirect()->route('login');
+        }
+
         $budget = Budget::findOrFail($id);
         // $budget = Budget::with('departement.subgrading')->findOrFail($id);
         $approval = T_approval::where('docid', $budget->budget_id)
@@ -750,7 +756,7 @@ class BudgetController extends Controller
                 Mail::send('emails.mailapprovenew', $data, function ($message) use ($data, $emailsit) {
 
                     $message->to($emailsit->test_email)->subject($data['docid'] . ' - Waiting Approval Budget');
-                    $message->from('digitalserver@pakuwon.com', 'Pakuwon Smart System');
+                    $message->from('digitalserver@pakuwon.com', 'Pakuwon System');
                 });
             }
         }
@@ -824,7 +830,7 @@ class BudgetController extends Controller
             'docname'   => 'Budget',
             'status'    => $status,
             'info' => 'Budget Company ' . $budget->cpny_id . ' Department ' . $budget->department_fin_id . ' ' . $budget->perpost,                 
-            'url' => url('/showbudgets/') . $budget->id
+            'url' => url('/showbudgets/' . $budget->id)
 
         );
 
@@ -837,7 +843,7 @@ class BudgetController extends Controller
             Mail::send('emails.mailapprovenew', $data, function ($message) use ($data, $emailsit) {
 
                 $message->to($emailsit->test_email)->subject($data['docid'] . ' - Rejected Budget');
-                $message->from('digitalserver@pakuwon.com', 'Pakuwon Smart System');
+                $message->from('digitalserver@pakuwon.com', 'Pakuwon System');
             });
         }
 
@@ -914,7 +920,7 @@ class BudgetController extends Controller
             'docname'   => 'Budget',
             'status'    => $status,
             'info' => 'Budget Company ' . $budget->cpny_id . ' Department ' . $budget->department_fin_id . ' ' . $budget->perpost,               
-            'url' => url('/showbudgets/') . $budget->id
+            'url' => url('/showbudgets/' . $budget->id)
 
         );
 
@@ -927,7 +933,7 @@ class BudgetController extends Controller
             Mail::send('emails.mailapprovenew', $data, function ($message) use ($data, $emailsit) {
 
                 $message->to($emailsit->test_email)->subject($data['docid'] . ' - Revise Budget');
-                $message->from('digitalserver@pakuwon.com', 'Pakuwon Smart System');
+                $message->from('digitalserver@pakuwon.com', 'Pakuwon System');
             });
         }
 

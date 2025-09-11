@@ -18,25 +18,25 @@ use App\Models\Userdept;
 use App\Models\User;
 use App\Models\Site;
 use App\Models\Division;
-use App\Models\TrSPPB;
-use App\Models\TrSPPBdetail;
+use App\Models\TrSPPK;
+use App\Models\TrSPPKdetail;
 use App\Models\MsLocationPG;
 use App\Models\MsSubLocationPG;
 use Mail;
 use Illuminate\Support\Facades\Log;
 use PDF;
 
-class SppbController extends Controller
+class SppkController extends Controller
 {
     public function index()
     {
-        $all = TrSPPB::count();
-        $onProgress = TrSPPB::where('status', 'P')->count();
-        $reject = TrSPPB::where('status', 'R')->count();
-        $revise = TrSPPB::where('status', 'D')->count();
-        $completed = TrSPPB::where('status', 'C')->count();
+        $all = TrSPPK::count();
+        $onProgress = TrSPPK::where('status', 'P')->count();
+        $reject = TrSPPK::where('status', 'R')->count();
+        $revise = TrSPPK::where('status', 'D')->count();
+        $completed = TrSPPK::where('status', 'C')->count();
        
-        return view('pages.sppbs.sppbs', compact('all', 'onProgress', 'reject', 'revise', 'completed'));
+        return view('pages.sppks.sppks', compact('all', 'onProgress', 'reject', 'revise', 'completed'));
     }
 
     public function json(Request $request)
@@ -47,61 +47,61 @@ class SppbController extends Controller
         $search = trim((string) $request->input('search.value', ''));
         $status = (string) $request->query('status', ''); // '' = all
 
-        $baseTable = (new TrSPPB)->getTable(); // e.g. "tr_sppb"
+        $baseTable = (new TrSPPK)->getTable(); // e.g. "tr_sppk"
 
         $columns = [
-            0 => 'sppb.sppbid',
-            1 => 'sppb.sppbdate',
-            2 => 'sppb.cpny_id',
-            3 => 'sppb.department_id',
+            0 => 'sppk.sppkid',
+            1 => 'sppk.sppkdate',
+            2 => 'sppk.cpny_id',
+            3 => 'sppk.department_id',
             4 => 'rt.requesttype_name',
-            5 => 'sppb.keperluan',
-            6 => 'sppb.status',
+            5 => 'sppk.keperluan',
+            6 => 'sppk.status',
         ];
 
-        // ⬇️ default ke kolom 0 (sppb.sppbid) dan desc
+        // ⬇️ default ke kolom 0 (sppk.sppkid) dan desc
         $orderIdx = (int) $request->input('order.0.column', 0);
         $orderDir = $request->input('order.0.dir', 'desc') === 'asc' ? 'asc' : 'desc';
-        $orderCol = $columns[$orderIdx] ?? 'sppb.sppbid';
+        $orderCol = $columns[$orderIdx] ?? 'sppk.sppkid';
 
-        $base = TrSPPB::from($baseTable.' as sppb')
+        $base = TrSPPK::from($baseTable.' as sppk')
             ->leftJoin('ms_request_type as rt', function ($join) {
-                $join->on('rt.requesttypeid', '=', 'sppb.requesttypeid');
+                $join->on('rt.requesttypeid', '=', 'sppk.requesttypeid');
             });
 
         if ($status !== '') {
-            $base->where('sppb.status', $status);
+            $base->where('sppk.status', $status);
         }
 
-        $recordsTotal = (clone $base)->distinct('sppb.sppbid')->count('sppb.sppbid');
+        $recordsTotal = (clone $base)->distinct('sppk.sppkid')->count('sppk.sppkid');
 
         if ($search !== '') {
             $base->where(function ($q) use ($search) {
-                $q->where('sppb.sppbid',          'like', "%{$search}%")
-                ->orWhere('sppb.cpny_id',       'like', "%{$search}%")
-                ->orWhere('sppb.department_id', 'like', "%{$search}%")
+                $q->where('sppk.sppkid',          'like', "%{$search}%")
+                ->orWhere('sppk.cpny_id',       'like', "%{$search}%")
+                ->orWhere('sppk.department_id', 'like', "%{$search}%")
                 ->orWhere('rt.requesttype_name','like', "%{$search}%")
-                ->orWhere('sppb.keperluan',     'like', "%{$search}%")
-                ->orWhere('sppb.status',        'like', "%{$search}%");
+                ->orWhere('sppk.keperluan',     'like', "%{$search}%")
+                ->orWhere('sppk.status',        'like', "%{$search}%");
             });
         }
 
-        $recordsFiltered = (clone $base)->distinct('sppb.sppbid')->count('sppb.sppbid');
+        $recordsFiltered = (clone $base)->distinct('sppk.sppkid')->count('sppk.sppkid');
 
         $data = $base->select(
-                    'sppb.id',
-                    'sppb.sppbid',
-                    'sppb.sppbdate',
-                    'sppb.cpny_id',
-                    'sppb.department_id',
-                    'sppb.requesttypeid',
+                    'sppk.id',
+                    'sppk.sppkid',
+                    'sppk.sppkdate',
+                    'sppk.cpny_id',
+                    'sppk.department_id',
+                    'sppk.requesttypeid',
                     'rt.requesttype_name',
-                    'sppb.keperluan',
-                    'sppb.status',
-                    'sppb.created_by'
+                    'sppk.keperluan',
+                    'sppk.status',
+                    'sppk.created_by'
                 )
-                ->orderBy($orderCol, $orderDir)                  // ← mengikuti request, default ke sppbid desc
-                ->orderBy('sppb.sppbid', 'desc')                 // ← tie-breaker agar stabil
+                ->orderBy($orderCol, $orderDir)                  // ← mengikuti request, default ke sppkid desc
+                ->orderBy('sppk.sppkid', 'desc')                 // ← tie-breaker agar stabil
                 ->skip($start)
                 ->take($length)
                 ->get();
@@ -116,7 +116,7 @@ class SppbController extends Controller
 
 
     
-    public function createSppb()
+    public function createSppk()
     {        
         $user = request()->user();
         $usercpny = Usercpny::where('username', '=', $user->username)
@@ -128,12 +128,12 @@ class SppbController extends Controller
         $userdept2 = Userdept::where('username', '=', $user->username)
             ->first();                     
        
-        return view('pages.sppbs.createsppbs', compact('usercpny','usercpny2','userdept','userdept2'));
+        return view('pages.sppks.createsppks', compact('usercpny','usercpny2','userdept','userdept2'));
     }
 
     
     
-    public function storeSppb(Request $request)
+    public function storeSppk(Request $request)
     {
         // dd($request->all()); // Debugging: check request data
         // kumpulkan array dari form
@@ -157,7 +157,7 @@ class SppbController extends Controller
         $uomMultDivs      = $request->input('uom_unitmultdiv', []);   // 'M' atau 'D'
         $uomRates         = $request->input('uom_unitrate', []);      // bisa "12", "12,5", "12.000",
 
-        $doctype  = 'PB';
+        $doctype  = 'PK';
         $user     = $request->user();
         $username = $user->username ?? 'system';
         $fullname = $user->name ?? 'system';
@@ -242,19 +242,21 @@ class SppbController extends Controller
 
             $tglbln = substr($year, 2) . $month;               // YYMM
             $docid  = $doctype . $tglbln . sprintf("%03d", $urutan);
-            $sppbNo = $docid;                                   // atau 'SPPB-'.$docid
+            $sppkNo = $docid;                                   // atau 'SPPK-'.$docid
 
             // === 1) header dulu (totalqty sementara 0) ===
-            $header = new TrSPPB();
-            $header->sppbid            = $docid;                // PK string
-            $header->sppbdate          = $dt->toDateString();
+            $header = new TrSPPK();
+            $header->sppkid            = $docid;                // PK string
+            $header->sppkdate          = $dt->toDateString();
             $header->cpny_id           = $request->input('cpnyid');
             $header->department_id     = $request->input('departementid');
             $header->requesttypeid     = $request->input('requesttypeid');
             $header->keperluan         = $request->input('keperluan');
             $header->budget_perpost    = $request->input('perpost');
-            $header->woid              = $request->input('woid');
-            $header->spbid             = null;
+            $header->no_polisi         = $request->input('no_polisi');
+            $header->namakendaraan     = $request->input('namakendaraan');
+            $header->pemilikkendaraan  = $request->input('pemilikkendaraan');
+            $header->km_kendaraan      = $request->input('km_kendaraan');
             $header->totalopenordered  = 0;
             $header->totalqty          = 0;
             $header->assignby          = null;
@@ -298,16 +300,16 @@ class SppbController extends Controller
                     $baseQty = $qty / $rate;
                 }
 
-                $detail = new TrSPPBdetail();
-                $detail->sppbid                   = $docid;
-                $detail->sppb_no                  = $i + 1;   // nomor urut detail
+                $detail = new TrSPPKdetail();
+                $detail->sppkid                   = $docid;
+                $detail->sppk_no                  = $i + 1;   // nomor urut detail
                 $detail->inventoryid              = $invId;
                 $detail->inventory_descr          = $productName;
                 $detail->qty                      = $qty;
                 $detail->uom                      = $uom;
                 $detail->note                     = $notes[$i]   ?? null;
-                $detail->sppb_type                = $item_types[$i] ?? null;
-                $detail->sppb_category            = $item_categories[$i] ?? null;
+                $detail->sppk_type                = $item_types[$i] ?? null;
+                $detail->sppk_category            = $item_categories[$i] ?? null;
                 $detail->base_uom                 = $baseUom;            // = purchase_unit
                 $detail->base_multiplier          = $rate;               // = uom_unitrate (float)
                 $detail->type_multiplier          = $typeMultiplier ?: null; // = 'M' / 'D' / null
@@ -429,8 +431,8 @@ class SppbController extends Controller
                     'createdby'=> $header->created_by,
                     'info'     => $request->keperluan,
                     'status'   => $status,
-                    'docname'  => 'SPPB',
-                    'url'      => url('/showsppbs/' . $header->id),
+                    'docname'  => 'SPPK',
+                    'url'      => url('/showsppks/' . $header->id),
                 ];
                 
                 $approvers = array_filter(array_map('trim', explode(',', (string)$firstApproval->aprvusername)));
@@ -441,7 +443,7 @@ class SppbController extends Controller
                 foreach ($emails as $email) {
                     \Mail::send('emails.mailapprovenew', $data, function ($message) use ($email, $data) {
                         $message->to($email)
-                            ->subject($data['docid'].' - Waiting Approval SPPB')
+                            ->subject($data['docid'].' - Waiting Approval SPPK')
                             ->from('digitalserver@pakuwon.com', 'Pakuwon System');
                     });
                 }
@@ -450,9 +452,9 @@ class SppbController extends Controller
             DB::commit();
 
             return response()->json([
-                'message'  => 'SPPB created successfully',
-                'sppbid'   => $docid,
-                'sppb_no'  => $sppbNo,
+                'message'  => 'SPPK created successfully',
+                'sppkid'   => $docid,
+                'sppk_no'  => $sppkNo,
                 'totalqty' => $totalQty,
             ]);
 
@@ -461,22 +463,22 @@ class SppbController extends Controller
             report($e);
 
             return response()->json([
-                'message' => 'Failed to create SPPB',
+                'message' => 'Failed to create SPPK',
                 'error'   => config('app.debug') ? $e->getMessage() : null,
             ], 500);
         }
     }
    
-    public function editSppb($id)
+    public function editSppk($id)
     {
-        $sppb = TrSPPB::findOrFail($id);
+        $sppk = TrSPPK::findOrFail($id);
 
         // Ambil detail + eager load relasi lokasi & sublokasi
-        $sppbdetail = TrSPPBdetail::with([
+        $sppkdetail = TrSPPKdetail::with([
                 'location:location_id,location_name',
                 'subLocation:sub_location_id,sub_location_name',
             ])
-            ->where('sppbid', $sppb->sppbid)
+            ->where('sppkid', $sppk->sppkid)
             ->get()
             ->map(function ($d) {
                 // Sematkan nama ke attribute agar Blade lama tetap jalan
@@ -491,27 +493,27 @@ class SppbController extends Controller
         $userdept  = Userdept::where('username', $user->username)->get();
         $userdept2 = Userdept::where('username', $user->username)->first();
 
-        $attachment = Attachment::where('docid', $sppb->sppbid)
+        $attachment = Attachment::where('docid', $sppk->sppkid)
             ->where('status', 'A')
             ->get();
 
-        return view('pages.sppbs.editsppbs', compact(
-            'sppb','sppbdetail','usercpny','usercpny2','userdept','userdept2','attachment'
+        return view('pages.sppks.editsppks', compact(
+            'sppk','sppkdetail','usercpny','usercpny2','userdept','userdept2','attachment'
         ));
     }
 
 
 
-    public function updateSppb(Request $request, $id)
+    public function updateSppk(Request $request, $id)
     {
         // dd($request->all()); // matikan agar eksekusi lanjut
-
+        
         $user      = $request->user();   
         $dt        = Carbon::now();
         $year      = $dt->year;
         $month     = str_pad($dt->month, 2, '0', STR_PAD_LEFT);
         $datestamp = $dt->toDateTimeString();   
-        $doctype   = 'PB';
+        $doctype   = 'PK';
         $username  = $user->username ?? 'system';
         $fullname  = $user->name ?? 'system';
 
@@ -541,14 +543,17 @@ class SppbController extends Controller
             return is_numeric($s) ? (float)$s : null;
         };
 
-        $header = TrSPPB::findOrFail($id);
+        $header = TrSPPK::findOrFail($id);
         // update header
         $header->cpny_id        = $request->cpnyid;
         $header->department_id  = $request->departementid;
         $header->requesttypeid  = $request->requesttypeid;
+        $header->no_polisi      = $request->no_polisi;
+        $header->namakendaraan      = $request->namakendaraan;
+        $header->pemilikkendaraan      = $request->pemilikkendaraan;
+        $header->km_kendaraan      = $request->km_kendaraan;
         $header->keperluan      = $request->keperluan;
-        $header->budget_perpost = $request->perpost;   
-        $header->woid           = $request->woid;
+        $header->budget_perpost = $request->perpost;  
         $header->status         = 'P';
         $header->updated_by     = $username;
         $header->save();
@@ -580,7 +585,7 @@ class SppbController extends Controller
             // hapus baris yang di-mark delete
             if ($request->filled('deleted_detail_ids')) {
                 $idsToDelete = array_filter(array_map('trim', explode(',', $request->deleted_detail_ids)));
-                if ($idsToDelete) TrSPPBdetail::whereIn('id', $idsToDelete)->delete();
+                if ($idsToDelete) TrSPPKdetail::whereIn('id', $idsToDelete)->delete();
             }
 
             $rowCount = max(count($inventoryIds), count($qtys));
@@ -611,8 +616,8 @@ class SppbController extends Controller
                     'qty'                      => $qty,
                     'uom'                      => $displayUom,
                     'note'                     => $notes[$i] ?? null,
-                    'sppb_type'                => $itemTypes[$i] ?? null,
-                    'sppb_category'            => $itemCats[$i] ?? null,
+                    'sppk_type'                => $itemTypes[$i] ?? null,
+                    'sppk_category'            => $itemCats[$i] ?? null,
 
                     // >>> ini yang ditambahkan <<<
                     'base_uom'                 => $baseUom,                       // purchase_unit
@@ -637,33 +642,33 @@ class SppbController extends Controller
                 $idDetail = $detailIds[$i] ?? null;
 
                 if ($idDetail) {
-                    $detail = TrSPPBdetail::where('id', $idDetail)
-                        ->where('sppbid', $header->sppbid)
+                    $detail = TrSPPKdetail::where('id', $idDetail)
+                        ->where('sppkid', $header->sppkid)
                         ->first();
                     if ($detail) {
                         $detail->fill($data)->save();
                     } else {
-                        $detail = new TrSPPBdetail($data);
-                        $detail->sppbid = $header->sppbid;
+                        $detail = new TrSPPKdetail($data);
+                        $detail->sppkid = $header->sppkid;
                         $detail->save();
                     }
                 } else {
-                    $detail = new TrSPPBdetail($data);
-                    $detail->sppbid = $header->sppbid;
+                    $detail = new TrSPPKdetail($data);
+                    $detail->sppkid = $header->sppkid;
                     $detail->save();
                 }
 
                 $savedDetails[] = $detail->id;
             }
 
-            // Renumber sppb_no 1..N
+            // Renumber sppk_no 1..N
             $n = 1;
             foreach ($savedDetails as $did) {
-                TrSPPBdetail::where('id', $did)->update(['sppb_no' => $n++]);
+                TrSPPKdetail::where('id', $did)->update(['sppk_no' => $n++]);
             }
 
             // Hitung total qty (kalau mau pakai base_qty, ganti ke sum('base_qty'))
-            $totalQty = TrSPPBdetail::where('sppbid', $header->sppbid)->sum('qty');
+            $totalQty = TrSPPKdetail::where('sppkid', $header->sppkid)->sum('qty');
             $header->totalqty = $totalQty;
             $header->totalopenordered = $totalQty;
             $header->save();
@@ -678,7 +683,7 @@ class SppbController extends Controller
 
             foreach ($approvals as $a) {
                 T_approval::create([
-                    'docid'          => $header->sppbid,
+                    'docid'          => $header->sppkid,
                     'aprvid'         => $a->aprvid,
                     'aprvdoctype'    => $a->aprvdoctype,
                     'aprvcpnyid'     => $a->aprvcpnyid,
@@ -722,7 +727,7 @@ class SppbController extends Controller
 
                     //insert to table attachments
                     $attach = new Attachment();
-                    $attach->docid = $header->sppbid;
+                    $attach->docid = $header->sppkid;
                     $attach->name = $filename;
                     $attach->attachfile = $attachfile;
                     $attach->status = 'A';
@@ -733,7 +738,7 @@ class SppbController extends Controller
             }       
 
             // email approver pertama (tetap)
-            $firstApproval = T_approval::where('docid', $header->sppbid)
+            $firstApproval = T_approval::where('docid', $header->sppkid)
                 ->where('status', 'P')
                 ->orderBy('aprvid')
                 ->first();
@@ -759,8 +764,8 @@ class SppbController extends Controller
                     'createdby'=> $header->created_by,
                     'info'     => $request->keperluan,
                     'status'   => $status,
-                    'docname'  => 'SPPB',
-                    'url'      => url('/showsppbs/' . $header->id),
+                    'docname'  => 'SPPK',
+                    'url'      => url('/showsppks/' . $header->id),
                 ];
 
                 $approvers = array_filter(array_map('trim', explode(',', (string)$firstApproval->aprvusername)));
@@ -771,14 +776,14 @@ class SppbController extends Controller
                 foreach ($emails as $email) {
                     \Mail::send('emails.mailapprovenew', $data, function ($message) use ($email, $data) {
                         $message->to($email)
-                            ->subject($data['docid'].' - Waiting Approval SPPB')
+                            ->subject($data['docid'].' - Waiting Approval SPPK')
                             ->from('digitalserver@pakuwon.com', 'Pakuwon System');
                     });
                 }
             }
 
             DB::commit();
-            return response()->json(['message' => 'SPPB updated successfully']);
+            return response()->json(['message' => 'SPPK updated successfully']);
 
         } catch (\Throwable $e) {
             DB::rollBack();
@@ -802,7 +807,7 @@ class SppbController extends Controller
     }
  
 
-    public function showSppb($id)
+    public function showSppk($id)
     {        
         $user = Auth::user();       
 
@@ -810,31 +815,31 @@ class SppbController extends Controller
             return redirect()->route('login');
         }
 
-        // $sppb = TrSPPB::findOrFail($id);
-        $sppb = TrSPPB::with([
+        // $sppk = TrSPPK::findOrFail($id);
+        $sppk = TrSPPK::with([
             'requestType:requesttypeid,requesttype_name',
             'creator:username,name'
         ])
         ->findOrFail($id);        
 
-        $sppbdetail = TrSPPBdetail::with([
+        $sppkdetail = TrSPPKdetail::with([
             'location:location_id,location_name',
             'subLocation:sub_location_id,sub_location_name'
         ])
-        ->where('sppbid', $sppb->sppbid)
+        ->where('sppkid', $sppk->sppkid)
         ->get();
         
-        $approval = T_approval::where('docid', $sppb->sppbid)
+        $approval = T_approval::where('docid', $sppk->sppkid)
             ->where('status','<>','X')      
             ->orderBy('created_at')
             ->orderBy('aprvid')      
             ->get();
        
-        $attachment = Attachment::where('docid', $sppb->sppbid)    
+        $attachment = Attachment::where('docid', $sppk->sppkid)    
             ->where('status','A')        
             ->get();       
        
-        return view('pages.sppbs.showsppbs', compact('sppb','approval','attachment','sppbdetail'));
+        return view('pages.sppks.showsppks', compact('sppk','approval','attachment','sppkdetail'));
     }
 
     
@@ -859,7 +864,7 @@ class SppbController extends Controller
         $user = request()->user();
         $comment = new T_Message();
         $comment->docid = $id;
-        $comment->doctype = 'PB';
+        $comment->doctype = 'PK';
         $comment->username = $user->username; 
         $comment->name = $user->name; 
         $comment->message = $request->comment;
@@ -874,23 +879,23 @@ class SppbController extends Controller
         ]);
     }
 
-    public function approveSppb(Request $request, $docid)
+    public function approveSppk(Request $request, $docid)
     {
         $now  = Carbon::now();
         $user = $request->user();
 
-        // $sppb = TrSPPB::where('sppbid', $docid)->first();
-        $sppb = TrSPPB::with('creator')
-            ->where('sppbid', $docid)
+        // $sppk = TrSPPK::where('sppkid', $docid)->first();
+        $sppk = TrSPPK::with('creator')
+            ->where('sppkid', $docid)
             ->first();
-        $fullname = data_get($sppb, 'creator.name') ?: $sppb->created_by;
+        $fullname = data_get($sppk, 'creator.name') ?: $sppk->created_by;
 
-        if (!$sppb) {
-            return response()->json(['success' => false, 'message' => 'SPPB not found'], 404);
+        if (!$sppk) {
+            return response()->json(['success' => false, 'message' => 'SPPK not found'], 404);
         }
 
         // pastikan user memang approver aktif (status P) di doc ini
-        $tApproval = T_approval::where('docid', $sppb->sppbid)
+        $tApproval = T_approval::where('docid', $sppk->sppkid)
             ->where('status', 'P')
             ->where('aprvusername', 'like', "%{$user->username}%")
             ->orderBy('aprvid', 'ASC')
@@ -910,12 +915,12 @@ class SppbController extends Controller
             $tApproval->save();
 
             // Update header informasi "terakhir diproses"
-            $sppb->completed_by = $user->username;
-            $sppb->completed_at = $now;
-            $sppb->save();
+            $sppk->completed_by = $user->username;
+            $sppk->completed_at = $now;
+            $sppk->save();
 
             // Hitung sisa pending setelah approve ini
-            $pendingCount = T_approval::where('docid', $sppb->sppbid)
+            $pendingCount = T_approval::where('docid', $sppk->sppkid)
                 ->where('status', 'P')
                 ->count();
 
@@ -930,30 +935,30 @@ class SppbController extends Controller
 
             if ($pendingCount === 0) {
                 // Tidak ada approver lagi -> dokumen complete
-                $sppb->status       = 'C';
-                $sppb->completed_by = $user->username;
-                $sppb->completed_at = $now;
-                $sppb->save();
+                $sppk->status       = 'C';
+                $sppk->completed_by = $user->username;
+                $sppk->completed_at = $now;
+                $sppk->save();
 
                 // Kirim email ke requester (creator)
                 $status        = 'C';
                 $subjectSuffix = $subjectMap[$status] ?? 'Notification';
 
                 $data = [
-                    'docid'     => $sppb->sppbid,
-                    'cpnyid'    => $sppb->cpny_id ?? $sppb->cpnyid ?? '',
-                    'deptname'  => $sppb->department_id ?? $sppb->departementid ?? '',
-                    'date'      => $sppb->sppbdate,
+                    'docid'     => $sppk->sppkid,
+                    'cpnyid'    => $sppk->cpny_id ?? $sppk->cpnyid ?? '',
+                    'deptname'  => $sppk->department_id ?? $sppk->departementid ?? '',
+                    'date'      => $sppk->sppkdate,
                     'fullname'  => $fullname,  // nama penerima di email
                     'name'      => $fullname,  // fallback
                     'createdby' => $fullname,
-                    'docname'   => 'SPPB',
-                    'info'      => $sppb->keperluan,
+                    'docname'   => 'SPPK',
+                    'info'      => $sppk->keperluan,
                     'status'    => $status,
-                    'url'       => url('/showsppbs/' . $sppb->id),
+                    'url'       => url('/showsppks/' . $sppk->id),
                 ];
 
-                $recipients = User::where('username', $sppb->created_by)
+                $recipients = User::where('username', $sppk->created_by)
                     ->where('status', 'A')
                     ->get();
 
@@ -962,16 +967,16 @@ class SppbController extends Controller
                         Mail::send('emails.mailapprovenew', $data, function ($message) use ($data, $rcp, $subjectSuffix) {
                             $to = $rcp->test_email ?? $rcp->email; // pakai field yang memang ada
                             $message->to($to)
-                                ->subject($data['docid'] . ' - ' . $subjectSuffix . ' SPPB')
+                                ->subject($data['docid'] . ' - ' . $subjectSuffix . ' SPPK')
                                 ->from('digitalserver@pakuwon.com', 'Pakuwon System');
                         });
                     } catch (\Throwable $e) {
-                        Log::error('Failed sending SPPB completion email', ['error' => $e->getMessage()]);
+                        Log::error('Failed sending SPPK completion email', ['error' => $e->getMessage()]);
                     }
                 }
             } else {
                 // Masih ada approver berikutnya -> cari level berikutnya (P terrendah aprvid)
-                $next = T_approval::where('docid', $sppb->sppbid)
+                $next = T_approval::where('docid', $sppk->sppkid)
                     ->where('status', 'P')
                     ->orderBy('aprvid', 'ASC')
                     ->first();
@@ -992,11 +997,11 @@ class SppbController extends Controller
                         'date'      => $next->aprvdatebefore,
                         'fullname'  => $next->name,
                         'name'      => $next->name,
-                        'createdby' => $sppb->created_by,
-                        'docname'   => 'SPPB',
-                        'info'      => $sppb->keperluan,
+                        'createdby' => $sppk->created_by,
+                        'docname'   => 'SPPK',
+                        'info'      => $sppk->keperluan,
                         'status'    => $status,
-                        'url'       => url('/showsppbs/' . $sppb->id),
+                        'url'       => url('/showsppks/' . $sppk->id),
                     ];
 
                     $usernames = array_filter(array_map('trim', explode(',', (string) $next->aprvusername)));
@@ -1010,15 +1015,15 @@ class SppbController extends Controller
                                 Mail::send('emails.mailapprovenew', $data, function ($message) use ($data, $rcp, $subjectSuffix) {
                                     $to = $rcp->test_email ?? $rcp->email;
                                     $message->to($to)
-                                        ->subject($data['docid'] . ' - ' . $subjectSuffix . ' SPPB')
+                                        ->subject($data['docid'] . ' - ' . $subjectSuffix . ' SPPK')
                                         ->from('digitalserver@pakuwon.com', 'Pakuwon System');
                                 });
                             } catch (\Throwable $e) {
-                                Log::error('Failed sending SPPB waiting-approval email', ['error' => $e->getMessage()]);
+                                Log::error('Failed sending SPPK waiting-approval email', ['error' => $e->getMessage()]);
                             }
                         }
                     } else {
-                        Log::warning('Next approver has empty aprvusername list', ['docid' => $sppb->sppbid]);
+                        Log::warning('Next approver has empty aprvusername list', ['docid' => $sppk->sppkid]);
                     }
                 }
             }
@@ -1027,28 +1032,28 @@ class SppbController extends Controller
             return response()->json(['success' => true, 'message' => 'Task approved successfully']);
         } catch (\Throwable $e) {
             DB::rollBack();
-            Log::error('Approve SPPB failed', ['error' => $e->getMessage()]);
+            Log::error('Approve SPPK failed', ['error' => $e->getMessage()]);
             return response()->json(['success' => false, 'message' => 'Approve failed'], 500);
         }
     }
     
-    public function rejectSppb(Request $request, $docid)
+    public function rejectSppk(Request $request, $docid)
     {
         $now  = Carbon::now();
         $user = $request->user();
 
-        // $sppb = TrSPPB::where('sppbid', $docid)->first();
-        $sppb = TrSPPB::with('creator')
-            ->where('sppbid', $docid)
+        // $sppk = TrSPPK::where('sppkid', $docid)->first();
+        $sppk = TrSPPK::with('creator')
+            ->where('sppkid', $docid)
             ->first();
-        $fullname = data_get($sppb, 'creator.name') ?: $sppb->created_by;
+        $fullname = data_get($sppk, 'creator.name') ?: $sppk->created_by;
 
-        if (!$sppb) {
+        if (!$sppk) {
             return response()->json(['success' => false, 'message' => 'Task not found'], 404);
         }
 
         // Validasi: user harus approver aktif (status P) pada dokumen ini
-        $tApproval = T_approval::where('docid', $sppb->sppbid)
+        $tApproval = T_approval::where('docid', $sppk->sppkid)
             ->where('status', 'P')
             ->where('aprvusername', 'like', "%{$user->username}%")
             ->orderBy('aprvid', 'ASC')
@@ -1067,21 +1072,21 @@ class SppbController extends Controller
             $tApproval->name          = $user->name;
             $tApproval->save();
 
-            // Update header SPPB
-            $sppb->status       = 'R';
-            $sppb->completed_by = $user->username;
-            $sppb->completed_at = $now;
-            $sppb->save();
+            // Update header SPPK
+            $sppk->status       = 'R';
+            $sppk->completed_by = $user->username;
+            $sppk->completed_at = $now;
+            $sppk->save();
 
             // Batalkan semua approval yang masih pending
-            T_approval::where('docid', $sppb->sppbid)
+            T_approval::where('docid', $sppk->sppkid)
                 ->where('status', 'P')
                 ->update(['status' => 'X']);
 
             DB::commit();
         } catch (\Throwable $e) {
             DB::rollBack();
-            Log::error('Reject SPPB failed', ['docid' => $docid, 'error' => $e->getMessage()]);
+            Log::error('Reject SPPK failed', ['docid' => $docid, 'error' => $e->getMessage()]);
             return response()->json(['success' => false, 'message' => 'Reject failed'], 500);
         }
 
@@ -1097,20 +1102,20 @@ class SppbController extends Controller
         $subjectSuffix = $subjectMap[$status] ?? 'Notification';
 
         $data = [
-            'docid'     => $sppb->sppbid,
-            'cpnyid'    => $sppb->cpny_id ?? $sppb->cpnyid ?? '',
-            'deptname'  => $sppb->department_id ?? $sppb->departementid ?? '',
+            'docid'     => $sppk->sppkid,
+            'cpnyid'    => $sppk->cpny_id ?? $sppk->cpnyid ?? '',
+            'deptname'  => $sppk->department_id ?? $sppk->departementid ?? '',
             'date'      => $now->toDateString(),            // bisa juga pakai $tApproval->aprvdateafter
             'fullname'  => $fullname,               // view email kita pakai $fullname
             'name'      => $fullname,               // fallback jika view pakai $name
             'createdby' => $fullname,
-            'docname'   => 'SPPB',
-            'info'      => $sppb->keperluan,
+            'docname'   => 'SPPK',
+            'info'      => $sppk->keperluan,
             'status'    => $status,
-            'url'       => url('/showsppbs/' . $sppb->id),
+            'url'       => url('/showsppks/' . $sppk->id),
         ];
 
-        $recipients = User::where('username', $sppb->created_by)
+        $recipients = User::where('username', $sppk->created_by)
             ->where('status', 'A')
             ->get();
 
@@ -1119,11 +1124,11 @@ class SppbController extends Controller
                 $to = $rcp->test_email ?? $rcp->email; // sesuaikan field yang tersedia
                 Mail::send('emails.mailapprovenew', $data, function ($message) use ($data, $to, $subjectSuffix) {
                     $message->to($to)
-                        ->subject($data['docid'] . ' - ' . $subjectSuffix . ' SPPB')
+                        ->subject($data['docid'] . ' - ' . $subjectSuffix . ' SPPK')
                         ->from('digitalserver@pakuwon.com', 'Pakuwon System');
                 });
             } catch (\Throwable $e) {
-                Log::error('Failed sending SPPB rejected email', [
+                Log::error('Failed sending SPPK rejected email', [
                     'docid' => $data['docid'],
                     'to'    => $rcp->username,
                     'error' => $e->getMessage()
@@ -1134,34 +1139,34 @@ class SppbController extends Controller
         // Simpan komentar penolakan (jika ada)
         try {
             app('App\Http\Controllers\SendCommentController')
-                ->sendmsg($sppb->id, 'PB', $request);
+                ->sendmsg($sppk->id, 'PK', $request);
         } catch (\Throwable $e) {
             Log::warning('SendComment after reject failed', [
-                'docid' => $sppb->sppbid,
+                'docid' => $sppk->sppkid,
                 'error' => $e->getMessage()
             ]);
         }
 
-        return response()->json(['success' => true, 'message' => 'SPPB rejected successfully']);
+        return response()->json(['success' => true, 'message' => 'SPPK rejected successfully']);
     }
 
-    public function reviseSppb(Request $request, $docid)
+    public function reviseSppk(Request $request, $docid)
     {
         $now  = Carbon::now();
         $user = $request->user();
 
-        // $sppb = TrSPPB::where('sppbid', $docid)->first();
-        $sppb = TrSPPB::with('creator')
-            ->where('sppbid', $docid)
+        // $sppk = TrSPPK::where('sppkid', $docid)->first();
+        $sppk = TrSPPK::with('creator')
+            ->where('sppkid', $docid)
             ->first();
-        $fullname = data_get($sppb, 'creator.name') ?: $sppb->created_by;
+        $fullname = data_get($sppk, 'creator.name') ?: $sppk->created_by;
             
-        if (!$sppb) {
-            return response()->json(['success' => false, 'message' => 'SPPB not found'], 404);
+        if (!$sppk) {
+            return response()->json(['success' => false, 'message' => 'SPPK not found'], 404);
         }
 
         // Pastikan user adalah approver aktif (status P) dokumen ini
-        $tApproval = T_approval::where('docid', $sppb->sppbid)
+        $tApproval = T_approval::where('docid', $sppk->sppkid)
             ->where('status', 'P')
             ->where('aprvusername', 'like', "%{$user->username}%")
             ->orderBy('aprvid', 'ASC')
@@ -1180,21 +1185,21 @@ class SppbController extends Controller
             $tApproval->name          = $user->name;
             $tApproval->save();
 
-            // Update header SPPB
-            $sppb->status       = 'D';
-            $sppb->completed_by = $user->username;        // mengikuti pola existing
-            $sppb->completed_at = $now;
-            $sppb->save();
+            // Update header SPPK
+            $sppk->status       = 'D';
+            $sppk->completed_by = $user->username;        // mengikuti pola existing
+            $sppk->completed_at = $now;
+            $sppk->save();
 
             // Batalkan approval lain yang masih pending
-            T_approval::where('docid', $sppb->sppbid)
+            T_approval::where('docid', $sppk->sppkid)
                 ->where('status', 'P')
                 ->update(['status' => 'X']);
 
             DB::commit();
         } catch (\Throwable $e) {
             DB::rollBack();
-            Log::error('Revise SPPB failed', ['docid' => $docid, 'error' => $e->getMessage()]);
+            Log::error('Revise SPPK failed', ['docid' => $docid, 'error' => $e->getMessage()]);
             return response()->json(['success' => false, 'message' => 'Revise failed'], 500);
         }
 
@@ -1210,20 +1215,20 @@ class SppbController extends Controller
         $subjectSuffix = $subjectMap[$status] ?? 'Notification';
 
         $data = [
-            'docid'     => $sppb->sppbid,
-            'cpnyid'    => $sppb->cpny_id ?? $sppb->cpnyid ?? '',
-            'deptname'  => $sppb->department_id ?? $sppb->departementid ?? '',
+            'docid'     => $sppk->sppkid,
+            'cpnyid'    => $sppk->cpny_id ?? $sppk->cpnyid ?? '',
+            'deptname'  => $sppk->department_id ?? $sppk->departementid ?? '',
             'date'      => $now->toDateString(),          // atau $tApproval->aprvdateafter
             'fullname'  => $fullname,             // template email pakai $fullname
             'name'      => $fullname,             // fallback jika view pakai $name
             'createdby' => $fullname,
-            'docname'   => 'SPPB',
-            'info'      => $sppb->keperluan,
+            'docname'   => 'SPPK',
+            'info'      => $sppk->keperluan,
             'status'    => $status,
-            'url'       => url('/showsppbs/' . $sppb->id),
+            'url'       => url('/showsppks/' . $sppk->id),
         ];
 
-        $recipients = User::where('username', $sppb->created_by)
+        $recipients = User::where('username', $sppk->created_by)
             ->where('status', 'A')
             ->get();
 
@@ -1232,11 +1237,11 @@ class SppbController extends Controller
                 $to = $rcp->test_email ?? $rcp->email; // sesuaikan dengan kolom yang ada
                 Mail::send('emails.mailapprovenew', $data, function ($message) use ($data, $to, $subjectSuffix) {
                     $message->to($to)
-                        ->subject($data['docid'] . ' - ' . $subjectSuffix . ' SPPB')
+                        ->subject($data['docid'] . ' - ' . $subjectSuffix . ' SPPK')
                         ->from('digitalserver@pakuwon.com', 'Pakuwon System');
                 });
             } catch (\Throwable $e) {
-                Log::error('Failed sending SPPB revise email', [
+                Log::error('Failed sending SPPK revise email', [
                     'docid' => $data['docid'],
                     'to'    => $rcp->username,
                     'error' => $e->getMessage()
@@ -1247,15 +1252,15 @@ class SppbController extends Controller
         // Simpan komentar revisi (jika ada)
         try {
             app('App\Http\Controllers\SendCommentController')
-                ->sendmsg($sppb->id, 'PB', $request);
+                ->sendmsg($sppk->id, 'PK', $request);
         } catch (\Throwable $e) {
             Log::warning('SendComment after revise failed', [
-                'docid' => $sppb->sppbid,
+                'docid' => $sppk->sppkid,
                 'error' => $e->getMessage()
             ]);
         }
 
-        return response()->json(['success' => true, 'message' => 'SPPB revised successfully']);
+        return response()->json(['success' => true, 'message' => 'SPPK revised successfully']);
     }
     
 
@@ -1281,7 +1286,7 @@ class SppbController extends Controller
 
     public function tracking($id)
     {
-        $sppb = TrSPPB::findOrFail($id);
+        $sppk = TrSPPK::findOrFail($id);
 
         $getName = function (?string $username) {
             if (!$username) return null;
@@ -1289,20 +1294,20 @@ class SppbController extends Controller
             return $u->name ?? $username;
         };
 
-        $createdByName = $getName($sppb->created_by ?? null);
-        $createdAt     = $sppb->created_at ? \Carbon\Carbon::parse($sppb->created_at)->format('Y-m-d H:i') : null;
+        $createdByName = $getName($sppk->created_by ?? null);
+        $createdAt     = $sppk->created_at ? \Carbon\Carbon::parse($sppk->created_at)->format('Y-m-d H:i') : null;
 
-        $completedByName = $getName($sppb->completed_by ?? null);
-        $completedAt     = $sppb->completed_at ? \Carbon\Carbon::parse($sppb->completed_at)->format('Y-m-d H:i') : null;
+        $completedByName = $getName($sppk->completed_by ?? null);
+        $completedAt     = $sppk->completed_at ? \Carbon\Carbon::parse($sppk->completed_at)->format('Y-m-d H:i') : null;
 
         // kolom opsional, kalau tidak ada biarkan null
-        $rejectedByName  = $getName($sppb->rejected_by ?? null);
-        $rejectedAt      = isset($sppb->rejected_at) ? \Carbon\Carbon::parse($sppb->rejected_at)->format('Y-m-d H:i') : null;
+        $rejectedByName  = $getName($sppk->rejected_by ?? null);
+        $rejectedAt      = isset($sppk->rejected_at) ? \Carbon\Carbon::parse($sppk->rejected_at)->format('Y-m-d H:i') : null;
 
-        $revisedByName   = $getName($sppb->revised_by ?? null);
-        $revisedAt       = isset($sppb->revised_at) ? \Carbon\Carbon::parse($sppb->revised_at)->format('Y-m-d H:i') : null;
+        $revisedByName   = $getName($sppk->revised_by ?? null);
+        $revisedAt       = isset($sppk->revised_at) ? \Carbon\Carbon::parse($sppk->revised_at)->format('Y-m-d H:i') : null;
 
-        $status = (string) ($sppb->status ?? '');
+        $status = (string) ($sppk->status ?? '');
         $labelMap = [
             'P' => 'Waiting approval',
             'R' => 'Rejected',
@@ -1314,7 +1319,7 @@ class SppbController extends Controller
         // selalu mulai dari Submitted
         $steps = [[
             'key'          => 'submitted',
-            'title'        => 'SPPB',
+            'title'        => 'SPPK',
             'status'       => 'C',              // dibuat = completed
             'status_label' => 'Submitted',
             'by'           => $createdByName,
@@ -1378,37 +1383,37 @@ class SppbController extends Controller
         }
 
         return response()->json([
-            'doc'   => $sppb->sppbid ?? (string)$sppb->id,
+            'doc'   => $sppk->sppkid ?? (string)$sppk->id,
             'steps' => $steps,
             'status'=> $status,
             'status_label' => $statusLabel,
         ]);
     }
 
-    public function printSppb(int $id)
+    public function printSppk(int $id)
     {
         $authUser = Auth::user();
         if (!$authUser) {
             return redirect()->route('login');
         }
 
-        // Ambil SPPB + relasi yang dibutuhkan
-        $sppb = TrSPPB::with([
+        // Ambil SPPK + relasi yang dibutuhkan
+        $sppk = TrSPPK::with([
                 'requestType:requesttypeid,requesttype_name',
                 'creator:username,name',
             ])
             ->findOrFail($id);
 
-        // Detail baris SPPB
-        $sppbdetail = TrSPPBdetail::with([
+        // Detail baris SPPK
+        $sppkdetail = TrSPPKdetail::with([
                 'location:location_id,location_name',
                 'subLocation:sub_location_id,sub_location_name',
             ])
-            ->where('sppbid', $sppb->sppbid)
+            ->where('sppkid', $sppk->sppkid)
             ->get();
 
         // Approval list (non-cancelled)
-        $approval = T_approval::where('docid', $sppb->sppbid)
+        $approval = T_approval::where('docid', $sppk->sppkid)
             ->where('status', '<>', 'X')
             ->orderBy('aprvid')
             ->orderBy('created_at')
@@ -1417,10 +1422,10 @@ class SppbController extends Controller
         $approve_count = $approval->count();
 
         // Company (handle null)
-        $company = Company::where('cpnyid', $sppb->cpny_id)->first();
+        $company = Company::where('cpnyid', $sppk->cpny_id)->first();
 
         // Mapping status dokumen
-        switch ($sppb->status) {
+        switch ($sppk->status) {
             case 'R':
                 $status_doc = 'Rejected';
                 break;
@@ -1439,30 +1444,34 @@ class SppbController extends Controller
         }
 
         $data = [
-            'title'               => 'Surat Permintaan Pembelian Barang',
-            'doc_type'            => 'SPPB',
-            'docid'               => $sppb->sppbid,
-            'department_id'       => $sppb->department_id,
+            'title'               => 'Surat Permintaan Perbaikan Kendaraan',
+            'doc_type'            => 'SPPK',
+            'docid'               => $sppk->sppkid,
+            'department_id'       => $sppk->department_id,
             'cpnyname'            => optional($company)->cpnyname,
             'parent'              => optional($company)->parent,
             'project'             => optional($company)->project,
             // identitas & tanggal
-            'created_by_username' => $sppb->created_by,
-            'created_by_name'     => ucwords(strtolower(optional($sppb->creator)->name)),
-            'created_at_fmt'      => optional($sppb->created_at)->format('d F Y'),
-            'req_date_fmt'        => optional($sppb->created_at)->format('d M Y H:i'),
-            'sppbdate'            => \Carbon\Carbon::parse($sppb->sppbdate)->format('d F Y'),
+            'created_by_username' => $sppk->created_by,
+            'created_by_name'     => ucwords(strtolower(optional($sppk->creator)->name)),
+            'created_at_fmt'      => optional($sppk->created_at)->format('d F Y'),
+            'req_date_fmt'        => optional($sppk->created_at)->format('d M Y H:i'),
+            'sppkdate'            => \Carbon\Carbon::parse($sppk->sppkdate)->format('d F Y'),
             // konten
-            'keperluan'           => $sppb->keperluan,
+            'no_polisi'           => $sppk->no_polisi,
+            'namakendaraan'       => $sppk->namakendaraan,
+            'pemilikkendaraan'    => $sppk->pemilikkendaraan,
+            'km_kendaraan'        => number_format($sppk->km_kendaraan, 0, ',', '.'),
+            'keperluan'           => $sppk->keperluan,
             'status_doc'          => $status_doc,
-            'requesttype_name'    => optional($sppb->requestType)->requesttype_name,
+            'requesttype_name'    => optional($sppk->requestType)->requesttype_name,
         ];
 
         // Kirim ke view
         $pdf = \PDF::loadView(
-            'pages.sppbs.pdf_sppbs',
+            'pages.sppks.pdf_sppks',
             array_merge($data, [
-                'detail'         => $sppbdetail,
+                'detail'         => $sppkdetail,
                 'approval'       => $approval,
                 'approve_count'  => $approve_count,
             ])
@@ -1471,7 +1480,7 @@ class SppbController extends Controller
         // Portrait jika <= 5 approver, else landscape
         $pdf->setPaper('A4', ($approve_count <= 5) ? 'portrait' : 'landscape');
 
-        return $pdf->stream("pdf_sppbs_{$sppb->sppbid}.pdf");
+        return $pdf->stream("pdf_sppks_{$sppk->sppkid}.pdf");
     }
 
 

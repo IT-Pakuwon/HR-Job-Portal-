@@ -838,44 +838,43 @@
 
 
     <script>
-        /** ===== Request Type (prefill selected) ===== */
-        $(function() {
-            const $cpny = $('select[name="cpnyid"]');
-            const $requestType = $('#requesttypeid');
-            const selectedRT = @json($sppb->requesttypeid);
+        $(function () {
+        const DOCTYPE = 'SPPB';
+        const $requestType = $('#requesttypeid');
+        const selectedRT = @json($sppb->requesttypeid);
 
-            function buildOptions(list, selected) {
-                let opts = '<option value="" disabled>Select Request Type</option>';
-                list.forEach(rt => {
-                    const sel = String(selected) === String(rt.requesttypeid) ? 'selected' : '';
-                    opts +=
-                        `<option value="${rt.requesttypeid}" ${sel}>${rt.requesttype_name || rt.requesttypeid}</option>`;
-                });
-                return opts;
-            }
-
-            function loadRequestTypes(cpnyid) {
-                if (!cpnyid) {
-                    $requestType.html('<option value="" disabled>Choose company first</option>');
-                    return;
-                }
-                $requestType.html('<option value="" disabled>Loading...</option>');
-                $.getJSON("{{ route('requesttypes.byCompany') }}", {
-                        cpnyid
-                    })
-                    .done(res => {
-                        const data = res.data || [];
-                        $requestType.html(data.length ? buildOptions(data, selectedRT) :
-                            '<option value="" disabled>No request type</option>');
-                    })
-                    .fail(() => $requestType.html('<option value="" disabled>Failed to load</option>'));
-            }
-            loadRequestTypes($cpny.val());
-            $cpny.on('change', function() {
-                loadRequestTypes(this.value);
+        function buildOptions(list, selected) {
+            let opts = '<option value="" disabled>Select Request Type</option>';
+            list.forEach(rt => {
+            const sel = String(selected) === String(rt.requesttypeid) ? 'selected' : '';
+            opts += `<option value="${rt.requesttypeid}" ${sel}>
+                        ${rt.requesttype_name ?? rt.requesttypeid}
+                    </option>`;
             });
+            return opts;
+        }
+
+        function loadRequestTypes(selected = null) {
+            $requestType.html('<option value="" disabled>Loading...</option>');
+            $.getJSON("{{ route('requesttypes.byDoctype') }}", { doctype: DOCTYPE })
+            .done(function (res) {
+                const data = res?.data || [];
+                if (!data.length) {
+                $requestType.html('<option value="" disabled>No request type</option>');
+                } else {
+                $requestType.html(buildOptions(data, selected));
+                }
+            })
+            .fail(function () {
+                $requestType.html('<option value="" disabled>Failed to load</option>');
+            });
+        }
+
+        // initial load pakai selected dari $sppb
+        loadRequestTypes(selectedRT);
         });
     </script>
+
 
     <script>
         /** ===== Edit: add/remove row & keep deleted ids ===== */
@@ -1461,54 +1460,43 @@
     </script>
 
     <script>
-        // ===== Request Type =====
-        $(function() {
-            const $cpny = $('select[name="cpnyid"]');
-            const $requestType = $('#requesttypeid');
+        $(function () {
+        const DOCTYPE = 'SPPB';
+        const $requestType = $('#requesttypeid');
+        const selectedRT = @json($sppb->requesttypeid);
 
-            function buildRequestTypeOptions(list, selected) {
-                let opts = '<option value="" disabled>Select Request Type</option>';
-                list.forEach(rt => {
-                    const sel = (selected && String(selected) === String(rt.requesttypeid)) ? 'selected' :
-                        '';
-                    opts +=
-                        `<option value="${rt.requesttypeid}" ${sel}>${rt.requesttype_name || rt.name || rt.requesttypeid}</option>`;
-                });
-                return opts;
-            }
-
-            function loadRequestTypes(cpnyid, selected = null) {
-                if (!cpnyid) {
-                    $requestType.html('<option value="" disabled selected>Choose company first</option>');
-                    return;
-                }
-                $requestType.html('<option value="" disabled selected>Loading...</option>');
-                $.getJSON("{{ route('requesttypes.byCompany') }}", {
-                        cpnyid
-                    })
-                    .done(function(res) {
-                        const data = res.data || [];
-                        if (data.length === 0) {
-                            $requestType.html('<option value="" disabled selected>No request type</option>');
-                        } else {
-                            $requestType.html(buildRequestTypeOptions(data, selected));
-                        }
-                    })
-                    .fail(function() {
-                        $requestType.html('<option value="" disabled selected>Failed to load</option>');
-                    });
-            }
-
-            // initial load (pakai value yg sudah selected di header)
-            const initialCpny = $cpny.val();
-            loadRequestTypes(initialCpny);
-
-            // reload saat company berubah
-            $cpny.on('change', function() {
-                loadRequestTypes($(this).val());
+        function buildOptions(list, selected) {
+            let opts = '<option value="" disabled>Select Request Type</option>';
+            list.forEach(rt => {
+            const sel = String(selected) === String(rt.requesttypeid) ? 'selected' : '';
+            opts += `<option value="${rt.requesttypeid}" ${sel}>
+                        ${rt.requesttype_name ?? rt.requesttypeid}
+                    </option>`;
             });
+            return opts;
+        }
+
+        function loadRequestTypes(selected = null) {
+            $requestType.html('<option value="" disabled>Loading...</option>');
+            $.getJSON("{{ route('requesttypes.byDoctype') }}", { doctype: DOCTYPE })
+            .done(function (res) {
+                const data = res?.data || [];
+                if (!data.length) {
+                $requestType.html('<option value="" disabled>No request type</option>');
+                } else {
+                $requestType.html(buildOptions(data, selected));
+                }
+            })
+            .fail(function () {
+                $requestType.html('<option value="" disabled>Failed to load</option>');
+            });
+        }
+
+        // initial load pakai selected dari $sppb
+        loadRequestTypes(selectedRT);
         });
     </script>
+
 
 
     <script>

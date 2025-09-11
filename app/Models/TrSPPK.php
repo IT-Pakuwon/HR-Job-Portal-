@@ -5,21 +5,23 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class TrSPPJ extends Model
+class TrSPPK extends Model
 {
     protected $connection = 'pgsql';
-    protected $table = "tr_sppj";
+    protected $table = "tr_sppk";
 
     protected $fillable = [
-        'sppjid',
-        'sppjdate',
+        'sppkid',
+        'sppkdate',
         'cpny_id',
         'department_id',
         'requesttypeid',
+        'no_polisi',
+        'namakendaraan',
+        'pemilikkendaraan',
+        'km_kendaraan',
         'keperluan',
-        'budget_perpost',
-        'woid',
-        'bqid',
+        'budget_perpost',      
         'totalopenordered',
         'totalqty',
         'assignby',

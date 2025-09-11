@@ -35,7 +35,7 @@
         @keyframes spin{ to{ transform: rotate(360deg); } }
         @keyframes spinReverse{ to{ transform: rotate(-360deg); } }
         @keyframes blink{ 0%{opacity:.3;transform:translateY(0);}20%{opacity:1;transform:translateY(-2px);}100%{opacity:.3;transform:translateY(0);} }
-    </style>
+    </style>    
 
     <div class="max-w-9xl mx-auto w-full py-6">
         <div class="max-w-9xl mx-auto w-full px-4">
@@ -108,11 +108,12 @@
                                 <!-- Buttons -->
                                 <div class="flex md:justify-end md:col-span-2 gap-2">
                                     <a href="{{ asset('templates/import_bq.xlsx') }}"
-                                    target="_blank" rel="noopener" download
-                                    class="inline-flex h-[42px] items-center rounded-md border border-gray-300 bg-white px-4 text-gray-700 hover:bg-gray-50
-                                            dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
+                                        target="_blank" rel="noopener" download
+                                        class="inline-flex h-[42px] items-center rounded-md border border-green-600 bg-green-600 px-4 text-white hover:bg-green-700
+                                                focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2
+                                                dark:border-green-500 dark:bg-green-700 dark:hover:bg-green-600">
                                         Download Template BQ
-                                    </a>                                   
+                                    </a>
                                 </div>
                             </div>
                         </div>

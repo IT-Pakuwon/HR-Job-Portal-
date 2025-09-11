@@ -117,21 +117,63 @@
                 transform: translateY(0);
             }
         }
+
+
+          /* Samakan tinggi Select2 dengan input Tailwind (h-10 / p-2.5) */
+        .select2-container .select2-selection--single {
+        height: 40px !important;
+        border: 1px solid #d1d5db; /* border-gray-300 */
+        border-radius: 0.375rem;    /* rounded-md */
+        display: flex;
+        align-items: center;
+        }
+
+        /* Geser tombol clear (X) ke sebelah kanan */
+        .select2-container--default .select2-selection--single .select2-selection__clear {
+        position: absolute;
+        right: 28px;    /* beri jarak dari panah dropdown */
+        top: 50%;
+        transform: translateY(-50%);
+        color: #6b7280; /* gray-500 */
+        font-size: 16px;
+        cursor: pointer;
+        margin: 0;
+        z-index: 2;
+        }
+
+        /* Biar teks tidak nempel ke X */
+        .select2-container--default .select2-selection--single .select2-selection__rendered {
+        padding-right: 40px !important;
+        }   
+
+        .select2-container--default .select2-selection--single .select2-selection__arrow {
+        height: 40px !important;
+        right: 6px;
+        }
+
+        /* Dark mode support */
+        .dark .select2-container--default .select2-selection--single {
+        background-color: #1f2937; /* gray-800 */
+        border-color: #374151;     /* gray-700 */
+        }
+        .dark .select2-container--default .select2-selection--single .select2-selection__rendered {
+        color: #e5e7eb; /* gray-200 */
+        }
     </style>
     <div class="max-w-9xl mx-auto w-full px-4 py-4 sm:px-6 lg:px-8">
         <div class="grid grid-cols-1 gap-8 lg:grid-cols-2 lg:grid-rows-[minmax(0,auto)_1fr]">
             <div class="flex flex-col gap-8 lg:col-span-2 lg:row-span-1">
 
                 {{-- ====== EDIT FORM ====== --}}
-                <form id="sppjForm" class="flex flex-col gap-4" enctype="multipart/form-data"
-                    action="{{ route('sppjs.update', $sppj->id) }}" method="POST">
+                <form id="sppkForm" class="flex flex-col gap-4" enctype="multipart/form-data"
+                    action="{{ route('sppks.update', $sppk->id) }}" method="POST">
                     @csrf
                     @method('PUT')
 
                     <div class="w-full rounded-xl bg-white p-6 dark:bg-gray-800">
                         <div class="mb-6 border-b border-gray-200 pb-4 dark:border-gray-700">
                             <h2 class="text-xl font-extrabold text-gray-800 dark:text-white">
-                                Edit SPPJ — {{ $sppj->sppjid }}
+                                Edit SPPK — {{ $sppk->sppkid }}
                             </h2>
                         </div>
 
@@ -147,7 +189,7 @@
                                     required>
                                     @foreach ($usercpny as $p)
                                         <option value="{{ $p->cpnyid }}"
-                                            {{ $p->cpnyid == $sppj->cpny_id ? 'selected' : '' }}>
+                                            {{ $p->cpnyid == $sppk->cpny_id ? 'selected' : '' }}>
                                             {{ $p->cpnyid }}
                                         </option>
                                     @endforeach
@@ -163,7 +205,7 @@
                                     required>
                                     @foreach ($userdept as $p)
                                         <option value="{{ $p->deptname }}"
-                                            {{ $p->deptname == $sppj->department_id ? 'selected' : '' }}>
+                                            {{ $p->deptname == $sppk->department_id ? 'selected' : '' }}>
                                             {{ $p->deptname }}
                                         </option>
                                     @endforeach
@@ -190,14 +232,64 @@
                                     class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                     required>
                                     <option value="{{ $year }}"
-                                        {{ (string) $sppj->budget_perpost === (string) $year ? 'selected' : '' }}>
+                                        {{ (string) $sppk->budget_perpost === (string) $year ? 'selected' : '' }}>
                                         {{ $year }}</option>
                                     <option value="{{ $year + 1 }}"
-                                        {{ (string) $sppj->budget_perpost === (string) ($year + 1) ? 'selected' : '' }}>
+                                        {{ (string) $sppk->budget_perpost === (string) ($year + 1) ? 'selected' : '' }}>
                                         {{ $year + 1 }}</option>
                                 </select>
                             </div>
                         </div>
+                         <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4 mt-4">    
+                        <!-- No. Polisi (Select2) -->
+                            <div class="flex flex-col gap-2">
+                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">No. Polisi</label>
+                                <select id="nopol" name="no_polisi"
+                                        class="select2 w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                        required>
+                                    @php
+                                        $noPolisiInit   = old('no_polisi', $sppk->no_polisi ?? '');
+                                        $namaKendInit   = old('namakendaraan', $sppk->namakendaraan ?? '');
+                                    @endphp
+
+                                    {{-- Saat edit: inject option terpilih supaya Select2 langsung nge-render --}}
+                                    @if($noPolisiInit)
+                                        <option value="{{ $noPolisiInit }}" selected>
+                                            {{ $noPolisiInit }}{{ $namaKendInit ? ' - '.$namaKendInit : '' }}
+                                        </option>
+                                    @else
+                                        <option value="" selected disabled>Pilih nopol...</option>
+                                    @endif
+                                </select>
+                            </div>
+
+                            <!-- Pemilik Kendaraan (auto) -->
+                            <div class="flex flex-col gap-2">
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Pemilik Kendaraan</label>
+                                <input type="text" id="pemilikkendaraan" name="pemilikkendaraan"
+                                        class="w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-gray-700 shadow-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                        placeholder="-" readonly
+                                        value="{{ old('pemilikkendaraan', $sppk->pemilikkendaraan) }}">
+                                </div>
+
+                                <!-- Nama Kendaraan (auto) -->
+                                <div class="flex flex-col gap-2">
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Nama Kendaraan</label>
+                                <input type="text" id="namakendaraan" name="namakendaraan"
+                                        class="w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-gray-700 shadow-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                        placeholder="-" readonly
+                                        value="{{ old('namakendaraan', $sppk->namakendaraan) }}">
+                            </div>
+
+                            <!-- KM -->
+                            <div class="flex flex-col gap-2">
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">KM</label>
+                                <input type="text" id="km_input" name="km_kendaraan"
+                                        class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-right text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                        placeholder="0"
+                                        value="{{ old('km_kendaraan', number_format($sppk->km_kendaraan, 0, ',', '.')) }}">
+                            </div>
+                        </div>    
 
                         {{-- Description --}}
                         <div class="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
@@ -205,7 +297,7 @@
                                 <label for="keperluan"
                                     class="block text-sm font-medium text-gray-700 dark:text-gray-300">Description</label>
                                 <textarea name="keperluan" id="keperluan" rows="3"
-                                    class="w-full rounded-lg border border-gray-300 bg-white p-3 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">{{ old('keperluan', $sppj->keperluan) }}</textarea>
+                                    class="w-full rounded-lg border border-gray-300 bg-white p-3 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">{{ old('keperluan', $sppk->keperluan) }}</textarea>
                             </div>
                         </div>
                     </div>
@@ -216,7 +308,7 @@
                             <details class="group" open>
                                 <summary
                                     class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-xl font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
-                                    <span>SPPJ Detail</span>
+                                    <span>SPPK Detail</span>
                                     <span class="text-sm font-medium text-gray-500 transition-all group-open:hidden">See
                                         details &rarr;</span>
                                     <span
@@ -241,9 +333,9 @@
                                                 </tr>
                                             </thead>
 
-                                            <tbody id="sppjTable">
+                                            <tbody id="sppkTable">
                                                 @php $rowNo = 0; @endphp
-                                                @forelse ($sppjdetail as $d)
+                                                @forelse ($sppkdetail as $d)
                                                     @php
                                                         $rowNo++;
                                                         // tampilkan qty dengan koma
@@ -253,7 +345,7 @@
                                                             rtrim(rtrim((string) $d->qty, '0'), '.'),
                                                         );
                                                     @endphp
-                                                    <tr class="sppj-row" data-detail-id="{{ $d->id }}">
+                                                    <tr class="sppk-row" data-detail-id="{{ $d->id }}">
                                                         <td class="border p-3 text-center">{{ $rowNo }}</td>
 
                                                         {{-- hidden: detail_id[] agar backend tahu mana yg update --}}
@@ -268,10 +360,10 @@
                                                                     value="{{ $d->inventoryid }}">
                                                                 <input type="hidden" name="item_type[]"
                                                                     class="prodItemTypeField"
-                                                                    value="{{ $d->sppj_type }}">
+                                                                    value="{{ $d->sppk_type }}">
                                                                 <input type="hidden" name="item_category[]"
                                                                     class="prodItemCategoryField"
-                                                                    value="{{ $d->sppj_category }}">
+                                                                    value="{{ $d->sppk_category }}">
                                                                 <input type="text" name="product_name[]"
                                                                     class="productNameField w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0"
                                                                     placeholder="Select product..." readonly
@@ -379,12 +471,12 @@
 
                                                         <td class="border p-3 text-center">
                                                             <button type="button"
-                                                                class="removeSppj rounded border border-red-700 bg-red-200/10 px-3 py-3 text-red-700 hover:bg-red-400/30">🗑️</button>
+                                                                class="removeSppk rounded border border-red-700 bg-red-200/10 px-3 py-3 text-red-700 hover:bg-red-400/30">🗑️</button>
                                                         </td>
                                                     </tr>
                                                 @empty
                                                     {{-- fallback 1 row kosong kalau tidak ada detail --}}
-                                                    <tr class="sppj-row">
+                                                    <tr class="sppk-row">
                                                         <td class="border p-3 text-center">1</td>
                                                         <input type="hidden" name="detail_id[]">
                                                         <td class="border p-3">
@@ -479,7 +571,7 @@
                                                         </td>
                                                         <td class="border p-3 text-center">
                                                             <button type="button"
-                                                                class="removeSppj hidden rounded border border-red-700 bg-red-200/10 px-3 py-3 text-red-700 hover:bg-red-400/30">🗑️</button>
+                                                                class="removeSppk hidden rounded border border-red-700 bg-red-200/10 px-3 py-3 text-red-700 hover:bg-red-400/30">🗑️</button>
                                                         </td>
                                                     </tr>
                                                 @endforelse
@@ -490,7 +582,7 @@
                                     {{-- daftar id detail yang dihapus --}}
                                     <input type="hidden" id="deletedDetails" name="deleted_detail_ids">
 
-                                    <button type="button" id="addSppj"
+                                    <button type="button" id="addSppk"
                                         class="mb-4 mt-4 flex items-center justify-center gap-2 rounded border border-gray-700 bg-gray-200/10 p-2 text-gray-800 hover:border-red-700 hover:bg-red-200/10 hover:font-medium hover:text-red-800">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20"
                                             fill="currentColor">
@@ -839,9 +931,9 @@
 
     <script>
         $(function () {
-        const DOCTYPE = 'SPPJ';
+        const DOCTYPE = 'SPPK';
         const $requestType = $('#requesttypeid');
-        const selectedRT = @json($sppj->requesttypeid);
+        const selectedRT = @json($sppk->requesttypeid);
 
         function buildOptions(list, selected) {
             let opts = '<option value="" disabled>Select Request Type</option>';
@@ -870,7 +962,7 @@
             });
         }
 
-        // initial load pakai selected dari $sppj
+        // initial load pakai selected dari $sppk
         loadRequestTypes(selectedRT);
         });
     </script>
@@ -878,25 +970,25 @@
     <script>
         /** ===== Edit: add/remove row & keep deleted ids ===== */
         $(function() {
-            let sppjcount = $('#sppjTable tr.sppj-row').length || 1;
+            let sppkcount = $('#sppkTable tr.sppk-row').length || 1;
             const $deleted = $('#deletedDetails');
 
             function renumber() {
                 let i = 1;
-                $('#sppjTable tr.sppj-row').each(function() {
+                $('#sppkTable tr.sppk-row').each(function() {
                     $(this).find('td:first').text(i++);
                 });
                 // toggle delete button visibility
-                if ($('.sppj-row').length > 1) $('.removeSppj').removeClass('hidden');
-                else $('.removeSppj').addClass('hidden');
+                if ($('.sppk-row').length > 1) $('.removeSppk').removeClass('hidden');
+                else $('.removeSppk').addClass('hidden');
             }
             renumber();
 
-            $('#addSppj').on('click', function() {
-                sppjcount++;
+            $('#addSppk').on('click', function() {
+                sppkcount++;
                 const row = `
-                <tr class="sppj-row">
-                    <td class="p-3 border text-center">${sppjcount}</td>
+                <tr class="sppk-row">
+                    <td class="p-3 border text-center">${sppkcount}</td>
                     <input type="hidden" name="detail_id[]">
                     <td class="p-3 border">
                         <div class="flex items-center gap-2">
@@ -949,14 +1041,14 @@
                         </div>
                     </td>
                     <td class="p-3 border text-center">
-                        <button type="button" class="removeSppj rounded border border-red-700 bg-red-200/10 px-3 py-3 text-red-700">🗑️</button>
+                        <button type="button" class="removeSppk rounded border border-red-700 bg-red-200/10 px-3 py-3 text-red-700">🗑️</button>
                     </td>
                 </tr>`;
-                $('#sppjTable').append(row);
+                $('#sppkTable').append(row);
                 renumber();
             });
 
-            $(document).on('click', '.removeSppj', function() {
+            $(document).on('click', '.removeSppk', function() {
                 const $tr = $(this).closest('tr');
                 const detailId = $tr.data('detail-id'); // hanya ada untuk baris existing
                 if (detailId) {
@@ -974,7 +1066,7 @@
     {{-- <script>
         // ===== Simpan Form =====
         $(function () {
-        $('#sppjForm').on('submit', function (e) {
+        $('#sppkForm').on('submit', function (e) {
             e.preventDefault();
 
             // normalisasi qty (koma -> titik)
@@ -983,7 +1075,7 @@
             });
 
             // validasi minimal 1 detail valid
-            const hasValid = $('#sppjTable tr.sppj-row').toArray().some(tr => {
+            const hasValid = $('#sppkTable tr.sppk-row').toArray().some(tr => {
             const $tr = $(tr);
             const invId = ($tr.find('.inventoryIdField').val() || '').trim();
             const qty   = parseFloat($tr.find('input[name="qty[]"]').val() || '0');
@@ -997,19 +1089,19 @@
             $('#loadingSpinner').removeClass('hidden');
 
             // kirim ke route update (pakai action form sendiri)
-            const form   = document.getElementById('sppjForm');
+            const form   = document.getElementById('sppkForm');
             const formData = new FormData(form);
             formData.set('_method','PUT'); // penting!
 
             $.ajax({
-            url: form.action,        // <-- otomatis: route('sppjs.update', $sppj->id)
+            url: form.action,        // <-- otomatis: route('sppks.update', $sppk->id)
             type: 'POST',
             data: formData,
             processData: false,
             contentType: false,
             success: function (res) {
-                toastr.success(res.message || "SPPJ updated successfully!");
-                window.location.href = "/sppjs";
+                toastr.success(res.message || "SPPK updated successfully!");
+                window.location.href = "/sppks";
             },
             error: function (xhr) {
                 if (xhr.status === 422 && xhr.responseJSON && xhr.responseJSON.errors) {
@@ -1039,7 +1131,7 @@
             $('#cancelBtn').prop('disabled', true);
             $('#cancelText').text('Cancelling...');
             $('#cancelSpinner').removeClass('hidden');
-            window.location.href = "{{ route('sppjs') }}";
+            window.location.href = "{{ route('sppks') }}";
             }
         });
         });
@@ -1050,14 +1142,14 @@
         $(function() {
 
             // hapus tanda error saat user mengubah input
-            $(document).on('input change', '#sppjTable input, #sppjTable textarea', function() {
+            $(document).on('input change', '#sppkTable input, #sppkTable textarea', function() {
                 $(this).removeClass('is-invalid');
                 $(this).next('.error-feedback').remove();
             });
 
             function clearDetailErrors() {
-                $('#sppjTable .is-invalid').removeClass('is-invalid');
-                $('#sppjTable .error-feedback').remove();
+                $('#sppkTable .is-invalid').removeClass('is-invalid');
+                $('#sppkTable .error-feedback').remove();
             }
 
             function addDetailError($el, msg) {
@@ -1068,7 +1160,7 @@
                 }
             }
 
-            $('#sppjForm').on('submit', function(e) {
+            $('#sppkForm').on('submit', function(e) {
                 e.preventDefault();
 
                 // normalisasi qty (koma -> titik)
@@ -1077,7 +1169,7 @@
                 });
 
                 // validasi minimal 1 detail valid (punya product & qty>0)
-                const hasValid = $('#sppjTable tr.sppj-row').toArray().some(tr => {
+                const hasValid = $('#sppkTable tr.sppk-row').toArray().some(tr => {
                     const $tr = $(tr);
                     const invId = ($tr.find('.inventoryIdField').val() || '').trim();
                     const qty = parseFloat(($tr.find('input[name="qty[]"]').val() || '0').replace(
@@ -1093,7 +1185,7 @@
                 clearDetailErrors();
                 let anyInvalid = false;
 
-                $('#sppjTable tr.sppj-row').each(function() {
+                $('#sppkTable tr.sppk-row').each(function() {
                     const $tr = $(this);
 
                     const $prodHidden = $tr.find('.inventoryIdField');
@@ -1162,14 +1254,14 @@
                 });
 
                 if (anyInvalid) {
-                    const $first = $('#sppjTable .is-invalid').first();
+                    const $first = $('#sppkTable .is-invalid').first();
                     if ($first.length) {
                         $('html,body').animate({
                             scrollTop: $first.offset().top - 120
                         }, 300);
                         $first.trigger('focus');
                     }
-                    toastr.error('Mohon lengkapi field wajib di SPPJ Detail (bertanda *).');
+                    toastr.error('Mohon lengkapi field wajib di SPPK Detail (bertanda *).');
                     return;
                 }
 
@@ -1180,19 +1272,19 @@
                 showOverlay('Submitting');
 
                 // Kirim ke route update (pakai action form sendiri)
-                const form = document.getElementById('sppjForm');
+                const form = document.getElementById('sppkForm');
                 const formData = new FormData(form);
                 formData.set('_method', 'PUT'); // penting!
 
                 $.ajax({
-                    url: form.action, // route('sppjs.update', $sppj->id)
+                    url: form.action, // route('sppks.update', $sppk->id)
                     type: 'POST',
                     data: formData,
                     processData: false,
                     contentType: false,
                     success: function(res) {
-                        toastr.success(res.message || "SPPJ updated successfully!");
-                        window.location.href = "/sppjs";
+                        toastr.success(res.message || "SPPK updated successfully!");
+                        window.location.href = "/sppks";
                     },
                     error: function(xhr) {
                         if (xhr.status === 422 && xhr.responseJSON && xhr.responseJSON.errors) {
@@ -1224,7 +1316,7 @@
                     $('#cancelBtn').prop('disabled', true);
                     $('#cancelText').text('Cancelling...');
                     $('#cancelSpinner').removeClass('hidden');
-                    window.location.href = "{{ route('sppjs') }}";
+                    window.location.href = "{{ route('sppks') }}";
                 }
             });
         });
@@ -1232,7 +1324,7 @@
 
 
     <script>
-        // ===== SPPJ Detail =====
+        // ===== SPPK Detail =====
         $(function() {
 
 
@@ -1431,7 +1523,7 @@
 
                 if (confirmDelete) {
                     $.ajax({
-                        url: "/sppjs/remove-attachment/" + attachmentId, // Endpoint ke controller
+                        url: "/sppks/remove-attachment/" + attachmentId, // Endpoint ke controller
                         type: "POST",
                         data: {
                             _method: "PUT",
@@ -1458,61 +1550,11 @@
         });
     </script>
 
-    {{-- <script>
-        // ===== Request Type =====
-        $(function() {
-            const $cpny = $('select[name="cpnyid"]');
-            const $requestType = $('#requesttypeid');
-
-            function buildRequestTypeOptions(list, selected) {
-                let opts = '<option value="" disabled>Select Request Type</option>';
-                list.forEach(rt => {
-                    const sel = (selected && String(selected) === String(rt.requesttypeid)) ? 'selected' :
-                        '';
-                    opts +=
-                        `<option value="${rt.requesttypeid}" ${sel}>${rt.requesttype_name || rt.name || rt.requesttypeid}</option>`;
-                });
-                return opts;
-            }
-
-            function loadRequestTypes(cpnyid, selected = null) {
-                if (!cpnyid) {
-                    $requestType.html('<option value="" disabled selected>Choose company first</option>');
-                    return;
-                }
-                $requestType.html('<option value="" disabled selected>Loading...</option>');
-                $.getJSON("{{ route('requesttypes.byCompany') }}", {
-                        cpnyid
-                    })
-                    .done(function(res) {
-                        const data = res.data || [];
-                        if (data.length === 0) {
-                            $requestType.html('<option value="" disabled selected>No request type</option>');
-                        } else {
-                            $requestType.html(buildRequestTypeOptions(data, selected));
-                        }
-                    })
-                    .fail(function() {
-                        $requestType.html('<option value="" disabled selected>Failed to load</option>');
-                    });
-            }
-
-            // initial load (pakai value yg sudah selected di header)
-            const initialCpny = $cpny.val();
-            loadRequestTypes(initialCpny);
-
-            // reload saat company berubah
-            $cpny.on('change', function() {
-                loadRequestTypes($(this).val());
-            });
-        });
-    </script> --}}
-
     <script>
         $(function () {
-        const DOCTYPE = 'SPPJ';
+        const DOCTYPE = 'SPPK';
         const $requestType = $('#requesttypeid');
-        const selectedRT = @json($sppj->requesttypeid);
+        const selectedRT = @json($sppk->requesttypeid);
 
         function buildOptions(list, selected) {
             let opts = '<option value="" disabled>Select Request Type</option>';
@@ -1541,7 +1583,7 @@
             });
         }
 
-        // initial load pakai selected dari $sppj
+        // initial load pakai selected dari $sppk
         loadRequestTypes(selectedRT);
         });
     </script>
@@ -2219,6 +2261,172 @@
 
         });
     </script>
+
+    <script>
+        $(function () {
+        const $nopol   = $('#nopol');
+        const $pemilik = $('#pemilikkendaraan');
+        const $nama    = $('#namakendaraan');
+        const $km      = $('#km_input');
+
+        // KM hanya angka
+        $(document).on('input', '#km_input', function () {
+            this.value = this.value.replace(/[^0-9]/g,'');
+        });
+
+        function buildLabel(item) {
+            const nopol = (item.no_polisi || item.id || '').toString().trim();
+            const namaK = (item.namakendaraan || item.nama || item.text || '').toString().trim();
+            // Jika dua-duanya kosong, kembalikan '—'
+            if (!nopol && !namaK) return '—';
+            return namaK ? `${nopol} - ${namaK}` : nopol;
+        }
+
+        // Template untuk list & terpilih (fallback kalau text kosong)
+        function templateResult(item) {
+            if (item.loading) return item.text;
+            const label = item.text && item.text.trim() ? item.text : buildLabel(item);
+            return $('<span>').text(label);
+        }
+        function templateSelection(item) {
+            const label = item.text && item.text.trim() ? item.text : buildLabel(item);
+            return label || 'Pilih nopol...';
+        }
+
+        // Init Select2 (AJAX + fallback)
+        $nopol.select2({
+        placeholder: "Cari No. Polisi…",
+        allowClear: true,
+        width: '100%',
+        minimumInputLength: 0,
+        dropdownParent: $nopol.parent(),
+        templateResult: function (item) {
+            if (item.loading) return item.text;
+            // Di dropdown list → tampil nopol - namakendaraan
+            return `${item.no_polisi || item.id} - ${item.namakendaraan || ''}`;
+        },
+        templateSelection: function (item) {
+            // Saat dipilih → hanya tampil nopol
+            return item.no_polisi || item.id || '';
+        },
+        ajax: {
+            url: "{{ route('kendaraan.all') }}",
+            dataType: 'json',
+            delay: 250,
+            data: function (params) {
+            return {
+                search: params.term || '',
+                page: params.page || 1,
+                per_page: 20
+            };
+            },
+            processResults: function (res, params) {
+            params.page = params.page || 1;
+            const rows = Array.isArray(res?.data) ? res.data : [];
+            const results = rows.map(item => {
+                return {
+                id: (item.no_polisi || '').toString(),
+                text: `${item.no_polisi} - ${item.namakendaraan || ''}`, // untuk dropdown
+                no_polisi: item.no_polisi || '',
+                namakendaraan: item.namakendaraan || '',
+                pemilikkendaraan: item.pemilikkendaraan || ''
+                };
+            });
+            return {
+                results,
+                pagination: { more: (params.page * (res.per_page || 20)) < (res.total || 0) }
+            };
+            },
+            cache: true
+        }
+        });
+
+
+        // Preload halaman pertama (agar langsung ada opsi meski belum mengetik)
+        (function preloadFirstPage(){
+            $.getJSON("{{ route('kendaraan.all') }}", { page: 1, per_page: 20 })
+            .done(function(res){
+                const data = Array.isArray(res?.data) ? res.data : [];
+                if (!data.length) return;
+                // Append opsi pertama-pertama ke <select> agar terlihat saat dibuka
+                data.forEach(item => {
+                const id   = (item.no_polisi || '').toString();
+                const text = `${(item.no_polisi || '').toString()} - ${(item.namakendaraan || '').toString()}`;
+                // hindari duplikat jika sudah ada
+                if (!$nopol.find(`option[value="${id}"]`).length) {
+                    const opt = new Option(text, id, false, false);
+                    $nopol.append(opt);
+                }
+                });
+                // trigger agar Select2 re-scan opsi
+                $nopol.trigger('change.select2');
+            })
+            .fail(function(){
+                // silent fail; AJAX utama masih akan jalan saat user search
+            });
+        })();
+
+        // Autofill saat dipilih
+        $nopol.on('select2:select', function (e) {
+            const d = e.params.data || {};
+            // data dari processResults: fields pemilikkendaraan & namakendaraan
+            $pemilik.val(d.pemilikkendaraan || '');
+            $nama.val(d.namakendaraan || '');
+            // bersihkan error jika ada
+            $nopol.removeClass('is-invalid').next('.error-feedback').remove();
+        });
+
+        // Clear field turunan saat clear
+        $nopol.on('select2:clear', function () {
+            $pemilik.val('');
+            $nama.val('');
+        });
+
+        });
+
+
+         $('#nopol').select2({
+                width: '100%',
+                placeholder: 'Select',
+                allowClear: true,
+                // dropdownAutoWidth: true
+            });
+    </script>
+
+    <script>
+        $(function () {
+        const $nopol   = $('#nopol');
+        const $pemilik = $('#pemilikkendaraan');
+        const $nama    = $('#namakendaraan');
+
+        // ---- PREFILL EDIT MODE: kalau dari server sudah ada no_polisi, sinkronkan field auto ----
+        const initNoPol   = @json(old('no_polisi', $sppk->no_polisi ?? ''));
+        const initPemilik = @json(old('pemilikkendaraan', $sppk->pemilikkendaraan ?? ''));
+        const initNama    = @json(old('namakendaraan', $sppk->namakendaraan ?? ''));
+
+        if (initNoPol) {
+            // Pastikan select2 membaca option yang kita inject di Blade
+            $nopol.val(initNoPol).trigger('change', { silentPrefill: true });
+            // Isi field turunan
+            $pemilik.val(initPemilik || '');
+            $nama.val(initNama || '');
+        }
+
+        // Saat pilih dari Select2 → isi field turunan
+        $nopol.on('select2:select', function (e) {
+            const d = e.params.data || {};
+            $pemilik.val(d.pemilikkendaraan || '');
+            $nama.val(d.namakendaraan || '');
+        });
+
+        // Saat di-clear
+        $nopol.on('select2:clear', function () {
+            $pemilik.val('');
+            $nama.val('');
+        });
+        });
+    </script>
+
 
 
     <!-- Toastr CSS -->

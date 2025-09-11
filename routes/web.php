@@ -44,6 +44,8 @@ use App\Http\Controllers\ChangeStoController;
 use App\Http\Controllers\MasterController;
 use App\Http\Controllers\SppbController;  
 use App\Http\Controllers\SppjController; 
+use App\Http\Controllers\SppkController; 
+
 
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Response;
@@ -436,10 +438,28 @@ Route::post('/logout', function () {
     Route::get('/pdf_sppjs/{id}', [SppjController::class, 'printSppj']);
 
     Route::get('/createbqs/{id}', [MasterController::class, 'createBQ'])->name('bqs.create');   
-    Route::post('/bqs/import', [MasterController::class, 'import'])->name('bqs.import');
-    Route::post('/bqs/{bq}/import', [MasterController::class, 'import'])->name('bqs.import.edit');
+    Route::post('/bqs/import', [MasterController::class, 'importCreate'])->name('bqs.import');
+    Route::post('/bqs/{bq}/import', [MasterController::class, 'importEdit'])->name('bqs.import.edit');
     Route::post('/bqs', [MasterController::class, 'storeBQ'])->name('bqs.store');
     Route::put('/bqs/{id}', [MasterController::class, 'updateBQ'])->name('bqs.update');
+    Route::get('/kendaraan/all', [MasterController::class, 'listKendaraan'])->name('kendaraan.all');
+
+    Route::get('/sppks', [SppkController::class, 'index'])->name('sppks');
+    Route::get('/sppks/json', [SppkController::class, 'json'])->name('sppks.json');
+    Route::get('/createsppks', [SppkController::class, 'createSppk']);
+    Route::post('/sppks', [SppkController::class, 'storeSppk'])->name('sppks.store');
+    Route::get('/showsppks/{id}', [SppkController::class, 'showSppk']);
+    Route::get('/sppk/{id}/comments', [SppkController::class, 'fetchComments']);
+    Route::post('/sppk/{id}/comments', [SppkController::class, 'storeComment']);
+    Route::post('/sppk/{id}/approve', [SppkController::class, 'approveSppk']);
+    Route::post('/sppk/{id}/reject', [SppkController::class, 'rejectSppk']);
+    Route::post('/sppk/{id}/revise', [SppkController::class, 'reviseSppk']);
+    Route::get('/editsppks/{id}', [SppkController::class, 'editSppk']);
+    Route::put('/sppks/{id}', [SppkController::class, 'updateSppk'])->name('sppks.update');
+    Route::put('/sppks/remove-attachment/{id}', [SppkController::class, 'removeAttachment']);    
+    Route::get('/sppk/{id}/check-approval/{action}', [SppkController::class, 'checkApproval']);     
+    Route::get('/sppks/{id}/tracking', [SppkController::class, 'tracking'])->name('sppks.tracking');
+    Route::get('/pdf_sppks/{id}', [SppkController::class, 'printSppk']);
 
     Route::get('/receivedlist', [CanvassController::class, 'ReceivedList'])->name('receivedlist');
     Route::get('/receivedlist/json', [CanvassController::class, 'ReceivedListJson'])->name('receivedlist.json');

@@ -119,45 +119,15 @@
             </div>
 
             <div class="flex gap-3">
-                {{-- <button id="approveBtn" 
-                    {{ $sppj->bqid ? '' : 'disabled' }}
-                    class="inline-flex items-center gap-1 rounded-md px-3 py-2 text-sm font-medium
-                        {{ $sppj->bqid ? 'bg-green-100 text-green-700 hover:bg-green-200 focus:ring-green-500'
-                                        : 'bg-green-100 text-green-700 opacity-50 cursor-not-allowed' }}">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                        stroke="currentColor" class="h-4 w-4">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M6.633 10.25c.806 0 1.533-.446 2.031-1.08a9.041 9.041 0 0 1 2.861-2.4c.723-.384 1.35-.956 1.653-1.715a4.498 4.498 0 0 0 .322-1.672V2.75a.75.75 0 0 1 .75-.75 2.25 2.25 0 0 1 2.25 2.25c0 1.152-.26 2.243-.723 3.218-.266.558.107 1.282.725 1.282m0 0h3.126c1.026 0 1.945.694 2.054 1.715.045.422.068.85.068 1.285a11.95 11.95 0 0 1-2.649 7.521c-.388.482-.987.729-1.605.729H13.48c-.483 0-.964-.078-1.423-.23l-3.114-1.04a4.501 4.501 0 0 0-1.423-.23H5.904m10.598-9.75H14.25M5.904 18.5c.083.205.173.405.27.602.197.4-.078.898-.523.898h-.908c-.889 0-1.713-.518-1.972-1.368a12 12 0 0 1-.521-3.507c0-1.553.295-3.036.831-4.398C3.387 9.953 4.167 9.5 5 9.5h1.053c.472 0 .745.556.5.96a8.958 8.958 0 0 0-1.302 4.665c0 1.194.232 2.333.654 3.375Z" />
-                    </svg>
-                    Approve
-                </button> --}}
-                @if (!$sppj->bqid)
-                <span class="inline-block" title="Please Create BQ !">
-                    <button id="approveBtn" disabled
-                    class="inline-flex items-center gap-1 rounded-md px-3 py-2 text-sm font-medium
-                            bg-green-100 text-green-700 opacity-50 cursor-not-allowed"
-                    aria-disabled="true">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                        stroke="currentColor" class="h-4 w-4">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M6.633 10.25c.806 0 1.533-.446 2.031-1.08a9.041 9.041 0 0 1 2.861-2.4c.723-.384 1.35-.956 1.653-1.715a4.498 4.498 0 0 0 .322-1.672V2.75a.75.75 0 0 1 .75-.75 2.25 2.25 0 0 1 2.25 2.25c0 1.152-.26 2.243-.723 3.218-.266.558.107 1.282.725 1.282m0 0h3.126c1.026 0 1.945.694 2.054 1.715.045.422.068.85.068 1.285a11.95 11.95 0 0 1-2.649 7.521c-.388.482-.987.729-1.605.729H13.48c-.483 0-.964-.078-1.423-.23l-3.114-1.04a4.501 4.501 0 0 0-1.423-.23H5.904m10.598-9.75H14.25M5.904 18.5c.083.205.173.405.27.602.197.4-.078.898-.523.898h-.908c-.889 0-1.713-.518-1.972-1.368a12 12 0 0 1-.521-3.507c0-1.553.295-3.036.831-4.398C3.387 9.953 4.167 9.5 5 9.5h1.053c.472 0 .745.556.5.96a8.958 8.958 0 0 0-1.302 4.665c0 1.194.232 2.333.654 3.375Z" />
-                    </svg>
-                    Approve
-                    </button>
-                </span>
-                @else
                 <button id="approveBtn"
-                    class="inline-flex items-center gap-1 rounded-md bg-green-100 px-3 py-2 text-sm font-medium text-green-700
-                        hover:bg-green-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                    class="inline-flex items-center gap-1 rounded-md bg-green-100 px-3 py-2 text-sm font-medium text-green-700 transition-colors hover:bg-green-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 dark:bg-green-700/30 dark:text-green-300 dark:hover:bg-green-600/50">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                         stroke="currentColor" class="h-4 w-4">
                         <path stroke-linecap="round" stroke-linejoin="round"
                             d="M6.633 10.25c.806 0 1.533-.446 2.031-1.08a9.041 9.041 0 0 1 2.861-2.4c.723-.384 1.35-.956 1.653-1.715a4.498 4.498 0 0 0 .322-1.672V2.75a.75.75 0 0 1 .75-.75 2.25 2.25 0 0 1 2.25 2.25c0 1.152-.26 2.243-.723 3.218-.266.558.107 1.282.725 1.282m0 0h3.126c1.026 0 1.945.694 2.054 1.715.045.422.068.85.068 1.285a11.95 11.95 0 0 1-2.649 7.521c-.388.482-.987.729-1.605.729H13.48c-.483 0-.964-.078-1.423-.23l-3.114-1.04a4.501 4.501 0 0 0-1.423-.23H5.904m10.598-9.75H14.25M5.904 18.5c.083.205.173.405.27.602.197.4-.078.898-.523.898h-.908c-.889 0-1.713-.518-1.972-1.368a12 12 0 0 1-.521-3.507c0-1.553.295-3.036.831-4.398C3.387 9.953 4.167 9.5 5 9.5h1.053c.472 0 .745.556.5.96a8.958 8.958 0 0 0-1.302 4.665c0 1.194.232 2.333.654 3.375Z" />
                     </svg>
                     Approve
                 </button>
-                @endif
-
                 <button id="reviseBtn"
                     class="inline-flex items-center gap-1 rounded-md bg-gray-500 px-3 py-2 text-sm font-medium text-gray-100 transition-colors hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:bg-gray-100 dark:bg-gray-700/30 dark:text-gray-300 dark:hover:bg-gray-600/50">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
@@ -179,18 +149,18 @@
             </div>
         </div>
         <div class="flex w-full flex-col gap-6 xl:flex-col">
-            <div class="flex h-[35vh] w-full flex-col gap-6 xl:flex-row">
-                {{-- Left card (SPPJ Info) --}}
+            <div class="flex h-[50vh] w-full flex-col gap-6 md:h-[35vh] xl:flex-row">
+                {{-- Left card (SPPK Info) --}}
                 <div class="flex flex-1 flex-col overflow-y-auto rounded-xl bg-white dark:bg-gray-800">
                     <header
                         class="flex items-center justify-between rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
                         <h1 class="flex items-center gap-2 text-2xl font-bold text-gray-800 dark:text-gray-100">
                             <span class="text-indigo-500">🆔</span>
-                            {{ $sppj->sppjid }}
+                            {{ $sppk->sppkid }}
                         </h1>
 
                         @php
-                            $statusText = match ($sppj->status) {
+                            $statusText = match ($sppk->status) {
                                 'D' => 'Revise',
                                 'P' => 'On Progress',
                                 'C' => 'Completed',
@@ -199,7 +169,7 @@
                                 default => 'Unknown',
                             };
 
-                            $statusClasses = match ($sppj->status) {
+                            $statusClasses = match ($sppk->status) {
                                 'D' => 'bg-blue-100 text-blue-700 dark:bg-blue-800/30 dark:text-blue-300',
                                 'P' => 'bg-yellow-100 text-yellow-700 dark:bg-yellow-800/30 dark:text-yellow-300',
                                 'C' => 'bg-green-100 text-green-700 dark:bg-green-800/30 dark:text-green-300',
@@ -214,7 +184,7 @@
                                 {{ $statusText }}
                             </span>
 
-                            <a href="{{ url('/pdf_sppjs') }}/{{ $sppj->id }}" target="_blank">
+                            <a href="{{ url('/pdf_sppks') }}/{{ $sppk->id }}" target="_blank">
                                 <button
                                     class="inline-flex items-center gap-2 rounded-full bg-indigo-600 px-4 py-1 text-sm font-semibold text-white transition-colors duration-200 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
                                     Print PDF
@@ -226,14 +196,21 @@
                     <div class="flex flex-1 flex-col gap-6 p-4">
                         @php
                             $row1 = [
-                                ['label' => 'Company', 'value' => $sppj->cpny_id],
-                                ['label' => 'Department', 'value' => $sppj->department_id],
-                                ['label' => 'Date', 'value' => date('j F Y', strtotime($sppj->sppjdate))],
+                                ['label' => 'Company', 'value' => $sppk->cpny_id],
+                                ['label' => 'Department', 'value' => $sppk->department_id],
+                                ['label' => 'Date', 'value' => date('j F Y', strtotime($sppk->sppkdate))],
                             ];
-
                             $row2 = [
-                                ['label' => 'User', 'value' => ucwords(strtolower(optional($sppj->creator)->name))],
-                                ['label' => 'Request Type', 'value' => optional($sppj->requestType)->requesttype_name],
+                                ['label' => 'User', 'value' => ucwords(strtolower(optional($sppk->creator)->name))],
+                                ['label' => 'Request Type', 'value' => optional($sppk->requestType)->requesttype_name],
+                            ];
+                            $row3 = [
+                                ['label' => 'No Polisi', 'value' => $sppk->no_polisi],
+                                ['label' => 'Nama Kendaraan', 'value' => $sppk->namakendaraan],                                
+                            ];
+                            $row4 = [
+                                ['label' => 'Pemilik', 'value' => $sppk->pemilikkendaraan],
+                                ['label' => 'KM', 'value' => number_format($sppk->km_kendaraan, 0, ',', '.')],                                
                             ];
                         @endphp
 
@@ -263,12 +240,36 @@
                             @endforeach
                         </div>
 
+                        <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                            @foreach ($row3 as $detail)
+                                <div
+                                    class="rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-800">
+                                    <p class="text-xs text-gray-500 dark:text-gray-400">{{ $detail['label'] }}</p>
+                                    <p class="text-sm font-medium text-gray-900 dark:text-gray-100">
+                                        {{ $detail['value'] }}
+                                    </p>
+                                </div>
+                            @endforeach
+                        </div>
+
+                        <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                            @foreach ($row4 as $detail)
+                                <div
+                                    class="rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-800">
+                                    <p class="text-xs text-gray-500 dark:text-gray-400">{{ $detail['label'] }}</p>
+                                    <p class="text-sm font-medium text-gray-900 dark:text-gray-100">
+                                        {{ $detail['value'] }}
+                                    </p>
+                                </div>
+                            @endforeach
+                        </div>
+
                         {{-- Row 3 (Keperluan) --}}
                         <div
                             class="rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-800">
                             <p class="text-xs text-gray-500 dark:text-gray-400">Keperluan</p>
                             <p class="text-sm font-medium text-gray-900 dark:text-gray-100">
-                                {{ $sppj->keperluan }}
+                                {{ $sppk->keperluan }}
                             </p>
                         </div>
                     </div>
@@ -277,7 +278,6 @@
                 {{-- Right card (Tabs) --}}
                 <div class="flex flex-1 flex-col overflow-y-auto rounded-xl bg-white dark:bg-gray-800">
                     <div x-data="{ activeTab: 'attachment' }" class="flex flex-1 flex-col">
-                        {{-- Tabs Header --}}
                         <header
                             class="flex items-center rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
                             <nav class="flex flex-grow">
@@ -309,9 +309,9 @@
                         </header>
 
                         {{-- Tabs Content --}}
-                        <div class="flex-1 overflow-y-auto rounded-b-xl bg-white dark:bg-gray-800">
+                        <div class="flex flex-1 flex-col rounded-b-xl bg-white dark:bg-gray-800">
                             {{-- Approval tab --}}
-                            <div x-show="activeTab === 'approval'" class="flex-1 overflow-y-auto">
+                            <div x-show="activeTab === 'approval'" class="flex-1 transition-all">
                                 <table class="w-full text-sm">
                                     <thead>
                                         <tr
@@ -369,7 +369,7 @@
                             </div>
 
                             {{-- Attachment tab --}}
-                            <div x-show="activeTab === 'attachment'" class="flex-1 overflow-y-auto">
+                            <div x-show="activeTab === 'attachment'" class="flex-1 transition-all">
                                 <table class="w-full text-sm">
                                     <thead class="text-gray-600 dark:text-gray-300">
                                         <tr class="border-b border-gray-200 dark:border-gray-700">
@@ -394,8 +394,7 @@
                                                 </td>
                                                 <td class="p-3">{{ $at->created_user }}</td>
                                                 <td class="p-3">
-                                                    {{ \Carbon\Carbon::parse($at->created_at)->format('d M Y') }}
-                                                </td>
+                                                    {{ \Carbon\Carbon::parse($at->created_at)->format('d M Y') }}</td>
                                             </tr>
                                         @empty
                                             <tr>
@@ -410,7 +409,7 @@
                             </div>
 
                             {{-- Comments tab --}}
-                            <div x-show="activeTab === 'comments'" class="flex h-full flex-col overflow-y-auto">
+                            <div x-show="activeTab === 'comments'" class="flex-1 transition-all">
                                 <div x-data="{ comments: [], newComment: '', currentUser: 'User1' }" class="flex h-full flex-col">
                                     <div id="commentList"
                                         class="custom-scrollbar flex-1 flex-col space-y-4 overflow-y-auto p-4">
@@ -433,26 +432,13 @@
                 </div>
             </div>
 
-            {{-- Bottom card (SPPJ Detail Table + Button BQ) --}}
-            @php
-                $bqId = $sppj->bqid ?? '';
-                $bqIdx = $bq->id ?? '';
-                $sppjId = $sppj->id ?? '';
-                $hasBq = filled($bqId);
-            @endphp
 
-            <div class="flex flex-col rounded-xl bg-white dark:bg-gray-800">
+            {{-- SPPK Detail table --}}
+            <div class="flex w-full flex-col rounded-2xl bg-white dark:bg-gray-800">
                 <header
-                    class="flex items-center justify-between rounded-t-xl border-b border-gray-200 bg-white px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
-                    <h2 class="text-xl font-semibold text-gray-800 dark:text-gray-100">📝 SPPJ Detail</h2>
-                    <a href="{{ $hasBq ? url('/showbqsppjs/' . $bqIdx) : url('/createbqs/' . $sppjId) }}"                        
-                        class="{{ $hasBq
-                            ? 'bg-emerald-600 hover:bg-emerald-700 focus:ring-emerald-500'
-                            : 'bg-indigo-600 hover:bg-indigo-700 focus:ring-indigo-500' }} inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-semibold text-white focus:outline-none focus:ring-2 focus:ring-offset-2">
-                        {{ $hasBq ? $bqId : 'Create BQ' }}
-                    </a>
+                    class="flex items-center justify-between rounded-t-2xl border-b border-gray-200 bg-white px-6 py-4 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
+                    <h2 class="text-xl font-semibold">📝 SPPK Detail</h2>
                 </header>
-
                 <div class="overflow-x-auto">
                     <table class="w-full text-sm text-gray-700 dark:text-gray-200">
                         <thead class="bg-gray-100 dark:bg-gray-700 dark:text-gray-100">
@@ -469,10 +455,10 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach ($sppjdetail as $item)
+                            @foreach ($sppkdetail as $item)
                                 <tr
                                     class="border-t border-gray-200 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800">
-                                    <td class="px-4 py-2">{{ $item->sppj_no }}</td>
+                                    <td class="px-4 py-2">{{ $item->sppk_no }}</td>
                                     <td class="px-4 py-2">{{ $item->inventoryid }}</td>
                                     <td class="px-4 py-2">{{ $item->inventory_descr }}</td>
                                     <td class="px-4 py-2">{{ $item->qty }}</td>
@@ -489,8 +475,8 @@
             </div>
         </div>
     </div>
-
-    {{-- Loading Spinner --}}
+    </div>
+    </div>
     {{-- <div id="loadingSpinnerContainer" class="flex h-16 items-center justify-center">
         <svg class="h-10 w-10 animate-spin text-indigo-500" xmlns="http://www.w3.org/2000/svg" fill="none"
             viewBox="0 0 24 24" stroke="currentColor">
@@ -557,17 +543,17 @@
 
     <script>
         $(document).ready(function() {
-            let sppjid = "{{ $sppj->sppjid }}"; // Ambil task ID dari PHP ke JavaScript
-            loadComments(sppjid);
+            let sppkid = "{{ $sppk->sppkid }}"; // Ambil task ID dari PHP ke JavaScript
+            loadComments(sppkid);
 
             // **Fungsi untuk Memuat Komentar**
-            function loadComments(sppjid) {
-                console.log("Loading comments for Doc ID:", sppjid);
+            function loadComments(sppkid) {
+                console.log("Loading comments for Doc ID:", sppkid);
                 let commentList = $('#commentList');
                 commentList.html('<p class="text-gray-500 italic">Loading comments...</p>'); // Loader
 
                 $.ajax({
-                    url: `/sppj/${sppjid}/comments`,
+                    url: `/sppk/${sppkid}/comments`,
                     type: 'GET',
                     success: function(response) {
                         console.log("Comments Loaded:", response);
@@ -617,10 +603,10 @@
                 $('#postCommentBtn').prop('disabled', true).text('Posting... 🚀'); // Disable button saat proses
 
                 $.ajax({
-                    url: `/sppj/${sppjid}/comments`,
+                    url: `/sppk/${sppkid}/comments`,
                     type: 'POST',
                     data: {
-                        sppjid: sppjid,
+                        sppkid: sppkid,
                         comment: input,
                         _token: '{{ csrf_token() }}'
                     },
@@ -628,7 +614,7 @@
                         console.log('Comment added successfully:', response);
 
                         if (response.status === "success") {
-                            loadComments(sppjid); // **Reload komentar setelah menambahkan**
+                            loadComments(sppkid); // **Reload komentar setelah menambahkan**
                             $('#commentInput').val(''); // Kosongkan input setelah sukses
                         }
                     },
@@ -660,22 +646,22 @@
     </script>
     <script>
         $(document).on("click", "#approveBtn", function() {
-            let sppjid = "{{ $sppj->sppjid }}"; // Ambil Task ID dari modal        
-            approveSPPJ(sppjid);
+            let sppkid = "{{ $sppk->sppkid }}"; // Ambil Task ID dari modal        
+            approveSPPK(sppkid);
         });
 
-        function approveSPPJ(sppjid) {
+        function approveSPPK(sppkid) {
             let $spinner = $("#loadingSpinnerContainer"); // Ambil elemen spinner
 
             // Tampilkan spinner di kanan bawah
             $spinner.fadeIn();
 
             $.ajax({
-                url: `/sppj/${sppjid}/approve`,
+                url: `/sppk/${sppkid}/approve`,
                 type: "POST",
                 data: {
                     _token: "{{ csrf_token() }}",
-                    sppjid: sppjid
+                    sppkid: sppkid
                 },
                 success: function(response) {
                     if (response.success) {
@@ -687,8 +673,8 @@
                             );
 
                         // Tampilkan alert sukses
-                        toastr.success("SPPJ approved successfully!");
-                        window.location.href = "/sppjs";
+                        toastr.success("SPPK approved successfully!");
+                        window.location.href = "/sppks";
                     } else {
                         toastr.error(response.message);
                     }
@@ -697,9 +683,9 @@
                     console.error(xhr.responseText);
 
                     if (xhr.status === 403) {
-                        toastr.error("You are not authorized to approve this sppj.");
+                        toastr.error("You are not authorized to approve this sppk.");
                     } else {
-                        toastr.error("Error: Unable to approve sppj.");
+                        toastr.error("Error: Unable to approve sppk.");
                     }
                 },
                 complete: function() {
@@ -717,8 +703,8 @@
             $(document).on("click", "#rejectBtn", function() {
                 $("#rejectReason").val(""); // Reset alasan reject
                 // $("#rejectTaskModal").removeClass("hidden").css("z-index", "60");
-                let sppjid = "{{ $sppj->sppjid }}";
-                checkApproval(sppjid, "reject");
+                let sppkid = "{{ $sppk->sppkid }}";
+                checkApproval(sppkid, "reject");
 
             });
 
@@ -729,7 +715,7 @@
 
             // Saat tombol "Reject" ditekan, proses perubahan status
             $(document).on("click", "#confirmRejectBtn", function() {
-                let sppjid = "{{ $sppj->sppjid }}"; // Ambil ID tugas dari modal detail
+                let sppkid = "{{ $sppk->sppkid }}"; // Ambil ID tugas dari modal detail
                 let rejectReason = $("#rejectReason").val().trim();
 
                 if (rejectReason === "") {
@@ -742,18 +728,18 @@
                 $spinner.fadeIn();
 
                 $.ajax({
-                    url: `/sppj/${sppjid}/reject`,
+                    url: `/sppk/${sppkid}/reject`,
                     type: "POST",
                     data: {
                         _token: "{{ csrf_token() }}",
-                        docid: sppjid,
+                        docid: sppkid,
                         reason: rejectReason
                     },
                     success: function(response) {
                         if (response.success) {
                             // alert("Task has been rejected successfully.");
 
-                            // Update status di modal sppj
+                            // Update status di modal sppk
                             $("#xstatus").text("Rejected")
                                 .removeClass()
                                 .addClass(
@@ -761,9 +747,9 @@
                                 );
                             $spinner.fadeOut();
 
-                            window.location.href = "/sppjs";
+                            window.location.href = "/sppks";
                         } else {
-                            alert("Failed to reject sppj.");
+                            alert("Failed to reject sppk.");
                         }
                     },
                     error: function(xhr) {
@@ -772,7 +758,7 @@
                         if (xhr.status === 403) {
                             alert("You Can't Rejected!"); // Popup jika user tidak berhak
                         } else {
-                            alert("Error: Unable to reject sppj status.");
+                            alert("Error: Unable to reject sppk status.");
                         }
                     },
                 });
@@ -785,8 +771,8 @@
             $(document).on("click", "#reviseBtn", function() {
                 $("#reviseReason").val(""); // Reset alasan revise
                 // $("#reviseTaskModal").removeClass("hidden").css("z-index", "60");
-                let sppjid = "{{ $sppj->sppjid }}";
-                checkApproval(sppjid, "revise");
+                let sppkid = "{{ $sppk->sppkid }}";
+                checkApproval(sppkid, "revise");
 
             });
 
@@ -797,7 +783,7 @@
 
             // Saat tombol "Revise" ditekan, proses perubahan status
             $(document).on("click", "#confirmReviseBtn", function() {
-                let sppjid = "{{ $sppj->sppjid }}"; // Ambil ID tugas dari modal detail
+                let sppkid = "{{ $sppk->sppkid }}"; // Ambil ID tugas dari modal detail
                 let reviseReason = $("#reviseReason").val().trim();
 
                 if (reviseReason === "") {
@@ -809,27 +795,27 @@
                 $spinner.fadeIn();
 
                 $.ajax({
-                    url: `/sppj/${sppjid}/revise`,
+                    url: `/sppk/${sppkid}/revise`,
                     type: "POST",
                     data: {
                         _token: "{{ csrf_token() }}",
-                        docid: sppjid,
+                        docid: sppkid,
                         reason: reviseReason
                     },
                     success: function(response) {
                         if (response.success) {
                             // alert("Task has been reviseed successfully.");
 
-                            // Update status di modal sppj
+                            // Update status di modal sppk
                             $("#xstatus").text("Revised")
                                 .removeClass()
                                 .addClass(
                                     "w-full max-w-32 bg-red-300/30 dark:bg-red-300 text-red-600 flex justify-items-center focus:outline-none pointer-events-none    -none font-semibold px-2 py-0.5 rounded"
                                 );
                             $spinner.fadeOut();
-                            window.location.href = "/sppjs";
+                            window.location.href = "/sppks";
                         } else {
-                            alert("Failed to revise sppj.");
+                            alert("Failed to revise sppk.");
                         }
                     },
                     error: function(xhr) {
@@ -838,7 +824,7 @@
                         if (xhr.status === 403) {
                             alert("You Can't Revised!"); // Popup jika user tidak berhak
                         } else {
-                            alert("Error: Unable to revise sppj status.");
+                            alert("Error: Unable to revise sppk status.");
                         }
                     },
                 });
@@ -851,10 +837,10 @@
     <!-- Toastr JS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
     <script>
-        function checkApproval(sppjid, action) {
-            console.log(sppjid, '-', action);
+        function checkApproval(sppkid, action) {
+            console.log(sppkid, '-', action);
             $.ajax({
-                url: `/sppj/${sppjid}/check-approval/${action}`,
+                url: `/sppk/${sppkid}/check-approval/${action}`,
                 type: "GET",
                 success: function(response) {
                     if (response.canPerformAction) {
@@ -866,11 +852,11 @@
                             $("#reviseReason").val(""); // Reset alasan revise
                             $("#reviseTaskModal").removeClass("hidden").css("z-index", "60");
                             // } else if (action === "approve") {
-                            //     approveSPPJ(sppjid); // Jika approve, langsung jalankan proses approval
+                            //     approveSPPK(sppkid); // Jika approve, langsung jalankan proses approval
                         }
                     } else {
                         // Jika user tidak boleh melakukan aksi, tampilkan popup toastr
-                        toastr.error("You are not authorized to " + action + " this sppj.");
+                        toastr.error("You are not authorized to " + action + " this sppk.");
                     }
                 },
                 error: function() {
@@ -879,20 +865,6 @@
             });
         }
     </script>
-    <script>
-        const HAS_BQ = @json((bool) $sppj->bqid);
-        const BQ_ID  = @json($sppj->bqid ?? '');
-
-        $(document).on("click", "#approveBtn", function () {
-            if (!HAS_BQ || !BQ_ID) {
-            toastr.error("Tidak bisa approve: BQ belum dibuat. Silakan buat BQ terlebih dahulu.");
-            return;
-            }
-            approveSPPJ("{{ $sppj->sppjid }}");
-        });
-    </script>
-
-
 
 
 

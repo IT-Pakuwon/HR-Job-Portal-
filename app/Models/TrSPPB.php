@@ -29,7 +29,8 @@ class TrSPPB extends Model
         'cs',
         'status',
         'created_by',
-        'updated_by'
+        'updated_by',
+        'completed_by'
     ];
 
     public function requestType()
