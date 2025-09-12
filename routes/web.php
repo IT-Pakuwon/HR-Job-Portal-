@@ -44,8 +44,9 @@ use App\Http\Controllers\ChangeStoController;
 use App\Http\Controllers\MasterController;
 use App\Http\Controllers\SppbController;  
 use App\Http\Controllers\SppjController; 
+use App\Http\Controllers\SpptController; 
 use App\Http\Controllers\SppkController; 
-
+use App\Http\Controllers\BqController;
 
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Response;
@@ -437,12 +438,41 @@ Route::post('/logout', function () {
     Route::put('/bqs/remove-attachment/{id}', [SppjController::class, 'removeAttachment']);
     Route::get('/pdf_sppjs/{id}', [SppjController::class, 'printSppj']);
 
-    Route::get('/createbqs/{id}', [MasterController::class, 'createBQ'])->name('bqs.create');   
-    Route::post('/bqs/import', [MasterController::class, 'importCreate'])->name('bqs.import');
-    Route::post('/bqs/{bq}/import', [MasterController::class, 'importEdit'])->name('bqs.import.edit');
-    Route::post('/bqs', [MasterController::class, 'storeBQ'])->name('bqs.store');
-    Route::put('/bqs/{id}', [MasterController::class, 'updateBQ'])->name('bqs.update');
+    Route::get('/createbqsppj/{id}', [SppjController::class, 'createBQ'])->name('bqsppj.create');   
+    Route::post('/bqsppj/import', [SppjController::class, 'importCreate'])->name('bqsppj.import');
+    Route::post('/bqsppj/{bq}/import', [SppjController::class, 'importEdit'])->name('bqsppj.import.edit');
+    Route::post('/bqsppj', [SppjController::class, 'storeBQ'])->name('bqsppj.store');
+    Route::put('/bqsppj/{id}', [SppjController::class, 'updateBQ'])->name('bqsppj.update');
+
     Route::get('/kendaraan/all', [MasterController::class, 'listKendaraan'])->name('kendaraan.all');
+    Route::get('/lookup/tenants', [MasterController::class, 'tenants'])->name('tenants.search');
+    Route::get('/lookup/users',   [MasterController::class, 'users'])->name('users.search');
+
+    Route::get('/sppts', [SpptController::class, 'index'])->name('sppts');
+    Route::get('/sppts/json', [SpptController::class, 'json'])->name('sppts.json');
+    Route::get('/createsppts', [SpptController::class, 'createSppt']);
+    Route::post('/sppts', [SpptController::class, 'storeSppt'])->name('sppts.store');
+    Route::get('/showsppts/{id}', [SpptController::class, 'showSppt']);
+    Route::get('/sppt/{id}/comments', [SpptController::class, 'fetchComments']);
+    Route::post('/sppt/{id}/comments', [SpptController::class, 'storeComment']);
+    Route::post('/sppt/{id}/approve', [SpptController::class, 'approveSppt']);
+    Route::post('/sppt/{id}/reject', [SpptController::class, 'rejectSppt']);
+    Route::post('/sppt/{id}/revise', [SpptController::class, 'reviseSppt']);
+    Route::get('/editsppts/{id}', [SpptController::class, 'editSppt']);
+    Route::put('/sppts/{id}', [SpptController::class, 'updateSppt'])->name('sppts.update');
+    Route::put('/sppts/remove-attachment/{id}', [SpptController::class, 'removeAttachment']);    
+    Route::get('/sppt/{id}/check-approval/{action}', [SpptController::class, 'checkApproval']);     
+    Route::get('/sppts/{id}/tracking', [SpptController::class, 'tracking'])->name('sppts.tracking');
+    Route::get('/showbqsppts/{id}', [SpptController::class, 'showBQ']);
+    Route::get('/editbqsppts/{id}', [SpptController::class, 'editBQ'])->name('bqsppt.edit');    
+    Route::put('/bqs/remove-attachment/{id}', [SpptController::class, 'removeAttachment']);
+    Route::get('/pdf_sppts/{id}', [SpptController::class, 'printSppt']);
+
+    Route::get('/createbqsppt/{id}', [SpptController::class, 'createBQ'])->name('bqsppt.create');   
+    Route::post('/bqsppt/import', [SpptController::class, 'importCreate'])->name('bqsppt.import');
+    Route::post('/bqsppt/{bq}/import', [SpptController::class, 'importEdit'])->name('bqsppt.import.edit');
+    Route::post('/bqsppt', [SpptController::class, 'storeBQ'])->name('bqsppt.store');
+    Route::put('/bqsppt/{id}', [SpptController::class, 'updateBQ'])->name('bqsppt.update');
 
     Route::get('/sppks', [SppkController::class, 'index'])->name('sppks');
     Route::get('/sppks/json', [SppkController::class, 'json'])->name('sppks.json');

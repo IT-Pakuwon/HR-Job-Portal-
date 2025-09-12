@@ -55,7 +55,7 @@
             <div class="gap-6">
                 <div class="flex flex-col gap-10">
                     {{-- Form Import --}}            
-                    <form id="bqForm" action="{{ $bq ? route('bqsppj.import.edit', $bq->id) : route('bqs.import') }}" method="POST" enctype="multipart/form-data">
+                    <form id="bqForm" action="{{ $bq ? route('bqsppt.import.edit', $bq->id) : route('bqs.import') }}" method="POST" enctype="multipart/form-data">
                         @csrf
                         <input type="hidden" name="idx" value="{{ $bq->id ?? '' }}">
                         <input type="hidden" name="sppjtid" value="{{ $bq->sppjtid ?? '' }}">
@@ -71,8 +71,8 @@
                                     <input class="w-full rounded-md border bg-gray-50 p-2.5 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100" value="{{ $bq->bqid }}" readonly>
                                 </div>
                                 <div class="flex items-center gap-4">
-                                    <label class="mb-1 block text-xs text-gray-500 dark:text-gray-400">SPPJ ID</label>
-                                    <input class="w-full rounded-md border bg-gray-50 p-2.5 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100" value="{{ $bq->sppjtid }}" readonly>
+                                    <label class="mb-1 block text-xs text-gray-500 dark:text-gray-400">SPPT ID</label>
+                                    <input class="w-full rounded-md border bg-gray-50 p-2.5 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100" value="{{ $bq->sppttid }}" readonly>
                                 </div>
                                 <div class="flex items-center gap-4">
                                     <label class="mb-1 block text-xs text-gray-500 dark:text-gray-400">Company</label>
@@ -358,7 +358,7 @@
                 formData.append('_method', 'PUT');          // spoof → PUT
 
                 /* ⬇️  pakai $bq, bukan $bqs */
-                const url = "{{ route('bqsppj.update', $bq->id) }}";
+                const url = "{{ route('bqs.update', $bq->id) }}";
 
                 $('#submitBtn').attr('disabled', true);
                 $('#cancelBtn').prop('disabled', true);
@@ -375,10 +375,10 @@
                     success: function(response) {
                         $('#submitApprovalForm')[0].reset();
                         $('#submitBtn').attr('disabled', false);
-                        $('#btnText').text('Save');
+                        $('#btnText').text('Submit Approval');
                         $('#loadingSpinner').addClass('hidden');
                         toastr.success("Budget Submit Successfully!");
-                        window.location.href = "/sppjs";
+                        window.location.href = "/sppts";
                     },
                     error: function(xhr) {
                         if (xhr.status === 422 && xhr.responseJSON.message) {
@@ -388,7 +388,7 @@
                         }
                         $('#submitBtn').attr('disabled', false);
                         $('#cancelBtn').prop('disabled', false);
-                        $('#btnText').text('Save');
+                        $('#btnText').text('Submit Approval');
                         // $('#loadingSpinner').addClass('hidden');
                         hideOverlay();
                     }
@@ -405,7 +405,7 @@
                     $('#cancelSpinner').removeClass('hidden');
 
                     // Redirect to /news
-                    window.location.href = "{{ route('sppjs') }}";
+                    window.location.href = "{{ route('sppts') }}";
                 }
             });
         });

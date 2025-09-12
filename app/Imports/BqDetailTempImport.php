@@ -18,11 +18,12 @@ class BqDetailTempImport implements ToModel, WithHeadingRow
      * @param string|null $bqid : opsional, kalau belum ada boleh null
      * @param string|null $sppjtid : id SPPJ (bukan kode), sesuaikan field yang kamu pakai
      */
-    public function __construct(string $temp_id, ?string $bqid = null, ?string $sppjtid = null)
+    public function __construct(string $temp_id, ?string $sppjtid = null, ?string $bqid = null)
     {
         $this->temp_id  = $temp_id;
-        $this->bqid     = $bqid;
         $this->sppjtid  = $sppjtid;
+        $this->bqid     = $bqid;
+        
     }
 
     public function model(array $row)
@@ -31,8 +32,8 @@ class BqDetailTempImport implements ToModel, WithHeadingRow
         // bq_line_no, bq_descr, qty, uom, est_material_price, total_est_material_price, est_jasa_price, total_est_jasa_price
         return new BqDetailTemp([
             'temp_id'                   => $this->temp_id,
-            'bqid'                      => $this->bqid,
             'sppjtid'                   => $this->sppjtid,
+            'bqid'                      => $this->bqid,            
             // 'bq_no'                  => $row['bq_no'] ?? null, // aktifkan jika header bq_no tersedia
             'bq_line_no'                => $row['bq_line_no'] ?? null,
             'bq_descr'                  => $row['bq_descr'] ?? null,

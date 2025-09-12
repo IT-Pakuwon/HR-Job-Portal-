@@ -16,8 +16,8 @@ use App\Models\Dept;
 use App\Models\Usercpny;
 use App\Models\Userdept;
 use App\Models\User;
-use App\Models\TrSPPJ;
-use App\Models\TrSPPJdetail;
+use App\Models\TrSPPT;
+use App\Models\TrSPPTdetail;
 use App\Models\MsLocationPG;
 use App\Models\MsSubLocationPG;
 use Mail;
@@ -32,17 +32,17 @@ use Maatwebsite\Excel\Facades\Excel;
 use App\Imports\BqDetailTempImport; 
 
 
-class SppjController extends Controller
+class SpptController extends Controller
 {
     public function index()
     {
-        $all = TrSPPJ::count();
-        $onProgress = TrSPPJ::where('status', 'P')->count();
-        $reject = TrSPPJ::where('status', 'R')->count();
-        $revise = TrSPPJ::where('status', 'D')->count();
-        $completed = TrSPPJ::where('status', 'C')->count();
+        $all = TrSPPT::count();
+        $onProgress = TrSPPT::where('status', 'P')->count();
+        $reject = TrSPPT::where('status', 'R')->count();
+        $revise = TrSPPT::where('status', 'D')->count();
+        $completed = TrSPPT::where('status', 'C')->count();
        
-        return view('pages.sppjs.sppjs', compact('all', 'onProgress', 'reject', 'revise', 'completed'));
+        return view('pages.sppts.sppts', compact('all', 'onProgress', 'reject', 'revise', 'completed'));
     }
 
     public function json(Request $request)
@@ -53,61 +53,61 @@ class SppjController extends Controller
         $search = trim((string) $request->input('search.value', ''));
         $status = (string) $request->query('status', ''); // '' = all
 
-        $baseTable = (new TrSPPJ)->getTable(); // e.g. "tr_sppj"
+        $baseTable = (new TrSPPT)->getTable(); // e.g. "tr_sppt"
 
         $columns = [
-            0 => 'sppj.sppjid',
-            1 => 'sppj.sppjdate',
-            2 => 'sppj.cpny_id',
-            3 => 'sppj.department_id',
+            0 => 'sppt.spptid',
+            1 => 'sppt.spptdate',
+            2 => 'sppt.cpny_id',
+            3 => 'sppt.department_id',
             4 => 'rt.requesttype_name',
-            5 => 'sppj.keperluan',
-            6 => 'sppj.status',
+            5 => 'sppt.keperluan',
+            6 => 'sppt.status',
         ];
 
-        // ⬇️ default ke kolom 0 (sppj.sppjid) dan desc
+        // ⬇️ default ke kolom 0 (sppt.spptid) dan desc
         $orderIdx = (int) $request->input('order.0.column', 0);
         $orderDir = $request->input('order.0.dir', 'desc') === 'asc' ? 'asc' : 'desc';
-        $orderCol = $columns[$orderIdx] ?? 'sppj.sppjid';
+        $orderCol = $columns[$orderIdx] ?? 'sppt.spptid';
 
-        $base = TrSPPJ::from($baseTable.' as sppj')
+        $base = TrSPPT::from($baseTable.' as sppt')
             ->leftJoin('ms_request_type as rt', function ($join) {
-                $join->on('rt.requesttypeid', '=', 'sppj.requesttypeid');
+                $join->on('rt.requesttypeid', '=', 'sppt.requesttypeid');
             });
 
         if ($status !== '') {
-            $base->where('sppj.status', $status);
+            $base->where('sppt.status', $status);
         }
 
-        $recordsTotal = (clone $base)->distinct('sppj.sppjid')->count('sppj.sppjid');
+        $recordsTotal = (clone $base)->distinct('sppt.spptid')->count('sppt.spptid');
 
         if ($search !== '') {
             $base->where(function ($q) use ($search) {
-                $q->where('sppj.sppjid',          'like', "%{$search}%")
-                ->orWhere('sppj.cpny_id',       'like', "%{$search}%")
-                ->orWhere('sppj.department_id', 'like', "%{$search}%")
+                $q->where('sppt.spptid',          'like', "%{$search}%")
+                ->orWhere('sppt.cpny_id',       'like', "%{$search}%")
+                ->orWhere('sppt.department_id', 'like', "%{$search}%")
                 ->orWhere('rt.requesttype_name','like', "%{$search}%")
-                ->orWhere('sppj.keperluan',     'like', "%{$search}%")
-                ->orWhere('sppj.status',        'like', "%{$search}%");
+                ->orWhere('sppt.keperluan',     'like', "%{$search}%")
+                ->orWhere('sppt.status',        'like', "%{$search}%");
             });
         }
 
-        $recordsFiltered = (clone $base)->distinct('sppj.sppjid')->count('sppj.sppjid');
+        $recordsFiltered = (clone $base)->distinct('sppt.spptid')->count('sppt.spptid');
 
         $data = $base->select(
-                    'sppj.id',
-                    'sppj.sppjid',
-                    'sppj.sppjdate',
-                    'sppj.cpny_id',
-                    'sppj.department_id',
-                    'sppj.requesttypeid',
+                    'sppt.id',
+                    'sppt.spptid',
+                    'sppt.spptdate',
+                    'sppt.cpny_id',
+                    'sppt.department_id',
+                    'sppt.requesttypeid',
                     'rt.requesttype_name',
-                    'sppj.keperluan',
-                    'sppj.status',
-                    'sppj.created_by'
+                    'sppt.keperluan',
+                    'sppt.status',
+                    'sppt.created_by'
                 )
-                ->orderBy($orderCol, $orderDir)                  // ← mengikuti request, default ke sppjid desc
-                ->orderBy('sppj.sppjid', 'desc')                 // ← tie-breaker agar stabil
+                ->orderBy($orderCol, $orderDir)                  // ← mengikuti request, default ke spptid desc
+                ->orderBy('sppt.spptid', 'desc')                 // ← tie-breaker agar stabil
                 ->skip($start)
                 ->take($length)
                 ->get();
@@ -122,7 +122,7 @@ class SppjController extends Controller
 
 
     
-    public function createSppj()
+    public function createSppt()
     {        
         $user = request()->user();
         $usercpny = Usercpny::where('username', '=', $user->username)
@@ -134,12 +134,12 @@ class SppjController extends Controller
         $userdept2 = Userdept::where('username', '=', $user->username)
             ->first();                     
        
-        return view('pages.sppjs.createsppjs', compact('usercpny','usercpny2','userdept','userdept2'));
+        return view('pages.sppts.createsppts', compact('usercpny','usercpny2','userdept','userdept2'));
     }
 
     
     
-    public function storeSppj(Request $request)
+    public function storeSppt(Request $request)
     {
         // dd($request->all()); // Debugging: check request data
         // kumpulkan array dari form
@@ -163,7 +163,7 @@ class SppjController extends Controller
         $uomMultDivs      = $request->input('uom_unitmultdiv', []);   // 'M' atau 'D'
         $uomRates         = $request->input('uom_unitrate', []);      // bisa "12", "12,5", "12.000",
 
-        $doctype  = 'PJ';
+        $doctype  = 'PT';
         $user     = $request->user();
         $username = $user->username ?? 'system';
         $fullname = $user->name ?? 'system';
@@ -248,15 +248,20 @@ class SppjController extends Controller
 
             $tglbln = substr($year, 2) . $month;               // YYMM
             $docid  = $doctype . $tglbln . sprintf("%03d", $urutan);
-            $sppjNo = $docid;                                   // atau 'SPPJ-'.$docid
+            $spptNo = $docid;                                   // atau 'SPPT-'.$docid
 
             // === 1) header dulu (totalqty sementara 0) ===
-            $header = new TrSPPJ();
-            $header->sppjid            = $docid;                // PK string
-            $header->sppjdate          = $dt->toDateString();
+            $header = new TrSPPT();
+            $header->spptid            = $docid;                // PK string
+            $header->spptdate          = $dt->toDateString();
             $header->cpny_id           = $request->input('cpnyid');
             $header->department_id     = $request->input('departementid');
             $header->requesttypeid     = $request->input('requesttypeid');
+            $header->nama_tenant       = $request->input('nama_tenant');
+            $header->no_unit_tenant    = $request->input('no_unit_tenant');
+            $header->pic_pengawas      = $request->input('pic_pengawas');
+            $header->condition_unit    = $request->input('condition_unit');
+            $header->beban             = $request->input('beban');
             $header->keperluan         = $request->input('keperluan');
             $header->budget_perpost    = $request->input('perpost');
             $header->woid              = $request->input('woid');
@@ -304,16 +309,16 @@ class SppjController extends Controller
                     $baseQty = $qty / $rate;
                 }
 
-                $detail = new TrSPPJdetail();
-                $detail->sppjid                   = $docid;
-                $detail->sppj_no                  = $i + 1;   // nomor urut detail
+                $detail = new TrSPPTdetail();
+                $detail->spptid                   = $docid;
+                $detail->sppt_no                  = $i + 1;   // nomor urut detail
                 $detail->inventoryid              = $invId;
                 $detail->inventory_descr          = $productName;
                 $detail->qty                      = $qty;
                 $detail->uom                      = $uom;
                 $detail->note                     = $notes[$i]   ?? null;
-                $detail->sppj_type                = $item_types[$i] ?? null;
-                $detail->sppj_category            = $item_categories[$i] ?? null;
+                $detail->sppt_type                = $item_types[$i] ?? null;
+                $detail->sppt_category            = $item_categories[$i] ?? null;
                 $detail->base_uom                 = $baseUom;            // = purchase_unit
                 $detail->base_multiplier          = $rate;               // = uom_unitrate (float)
                 $detail->type_multiplier          = $typeMultiplier ?: null; // = 'M' / 'D' / null
@@ -435,8 +440,8 @@ class SppjController extends Controller
                     'createdby'=> $header->created_by,
                     'info'     => $request->keperluan,
                     'status'   => $status,
-                    'docname'  => 'SPPJ',
-                    'url'      => url('/showsppjs/' . $header->id),
+                    'docname'  => 'SPPT',
+                    'url'      => url('/showsppts/' . $header->id),
                 ];
                 
                 $approvers = array_filter(array_map('trim', explode(',', (string)$firstApproval->aprvusername)));
@@ -447,7 +452,7 @@ class SppjController extends Controller
                 foreach ($emails as $email) {
                     \Mail::send('emails.mailapprovenew', $data, function ($message) use ($email, $data) {
                         $message->to($email)
-                            ->subject($data['docid'].' - Waiting Approval SPPJ')
+                            ->subject($data['docid'].' - Waiting Approval SPPT')
                             ->from('digitalserver@pakuwon.com', 'Pakuwon System');
                     });
                 }
@@ -456,9 +461,9 @@ class SppjController extends Controller
             DB::commit();
 
             return response()->json([
-                'message'  => 'SPPJ created successfully',
-                'sppjid'   => $docid,
-                'sppj_no'  => $sppjNo,
+                'message'  => 'SPPT created successfully',
+                'spptid'   => $docid,
+                'sppt_no'  => $spptNo,
                 'totalqty' => $totalQty,
             ]);
 
@@ -467,22 +472,22 @@ class SppjController extends Controller
             report($e);
 
             return response()->json([
-                'message' => 'Failed to create SPPJ',
+                'message' => 'Failed to create SPPT',
                 'error'   => config('app.debug') ? $e->getMessage() : null,
             ], 500);
         }
     }
    
-    public function editSppj($id)
+    public function editSppt($id)
     {
-        $sppj = TrSPPJ::findOrFail($id);
+        $sppt = TrSPPT::findOrFail($id);
 
         // Ambil detail + eager load relasi lokasi & sublokasi
-        $sppjdetail = TrSPPJdetail::with([
+        $spptdetail = TrSPPTdetail::with([
                 'location:location_id,location_name',
                 'subLocation:sub_location_id,sub_location_name',
             ])
-            ->where('sppjid', $sppj->sppjid)
+            ->where('spptid', $sppt->spptid)
             ->get()
             ->map(function ($d) {
                 // Sematkan nama ke attribute agar Blade lama tetap jalan
@@ -497,18 +502,18 @@ class SppjController extends Controller
         $userdept  = Userdept::where('username', $user->username)->get();
         $userdept2 = Userdept::where('username', $user->username)->first();
 
-        $attachment = Attachment::where('docid', $sppj->sppjid)
+        $attachment = Attachment::where('docid', $sppt->spptid)
             ->where('status', 'A')
             ->get();
 
-        return view('pages.sppjs.editsppjs', compact(
-            'sppj','sppjdetail','usercpny','usercpny2','userdept','userdept2','attachment'
+        return view('pages.sppts.editsppts', compact(
+            'sppt','spptdetail','usercpny','usercpny2','userdept','userdept2','attachment'
         ));
     }
 
 
 
-    public function updateSppj(Request $request, $id)
+    public function updateSppt(Request $request, $id)
     {
         // dd($request->all()); // matikan agar eksekusi lanjut
 
@@ -517,7 +522,7 @@ class SppjController extends Controller
         $year      = $dt->year;
         $month     = str_pad($dt->month, 2, '0', STR_PAD_LEFT);
         $datestamp = $dt->toDateTimeString();   
-        $doctype   = 'PJ';
+        $doctype   = 'PT';
         $username  = $user->username ?? 'system';
         $fullname  = $user->name ?? 'system';
 
@@ -547,7 +552,7 @@ class SppjController extends Controller
             return is_numeric($s) ? (float)$s : null;
         };
 
-        $header = TrSPPJ::findOrFail($id);
+        $header = TrSPPT::findOrFail($id);
         // update header
         $header->cpny_id        = $request->cpnyid;
         $header->department_id  = $request->departementid;
@@ -586,7 +591,7 @@ class SppjController extends Controller
             // hapus baris yang di-mark delete
             if ($request->filled('deleted_detail_ids')) {
                 $idsToDelete = array_filter(array_map('trim', explode(',', $request->deleted_detail_ids)));
-                if ($idsToDelete) TrSPPJdetail::whereIn('id', $idsToDelete)->delete();
+                if ($idsToDelete) TrSPPTdetail::whereIn('id', $idsToDelete)->delete();
             }
 
             $rowCount = max(count($inventoryIds), count($qtys));
@@ -617,8 +622,8 @@ class SppjController extends Controller
                     'qty'                      => $qty,
                     'uom'                      => $displayUom,
                     'note'                     => $notes[$i] ?? null,
-                    'sppj_type'                => $itemTypes[$i] ?? null,
-                    'sppj_category'            => $itemCats[$i] ?? null,
+                    'sppt_type'                => $itemTypes[$i] ?? null,
+                    'sppt_category'            => $itemCats[$i] ?? null,
 
                     // >>> ini yang ditambahkan <<<
                     'base_uom'                 => $baseUom,                       // purchase_unit
@@ -643,33 +648,33 @@ class SppjController extends Controller
                 $idDetail = $detailIds[$i] ?? null;
 
                 if ($idDetail) {
-                    $detail = TrSPPJdetail::where('id', $idDetail)
-                        ->where('sppjid', $header->sppjid)
+                    $detail = TrSPPTdetail::where('id', $idDetail)
+                        ->where('spptid', $header->spptid)
                         ->first();
                     if ($detail) {
                         $detail->fill($data)->save();
                     } else {
-                        $detail = new TrSPPJdetail($data);
-                        $detail->sppjid = $header->sppjid;
+                        $detail = new TrSPPTdetail($data);
+                        $detail->spptid = $header->spptid;
                         $detail->save();
                     }
                 } else {
-                    $detail = new TrSPPJdetail($data);
-                    $detail->sppjid = $header->sppjid;
+                    $detail = new TrSPPTdetail($data);
+                    $detail->spptid = $header->spptid;
                     $detail->save();
                 }
 
                 $savedDetails[] = $detail->id;
             }
 
-            // Renumber sppj_no 1..N
+            // Renumber sppt_no 1..N
             $n = 1;
             foreach ($savedDetails as $did) {
-                TrSPPJdetail::where('id', $did)->update(['sppj_no' => $n++]);
+                TrSPPTdetail::where('id', $did)->update(['sppt_no' => $n++]);
             }
 
             // Hitung total qty (kalau mau pakai base_qty, ganti ke sum('base_qty'))
-            $totalQty = TrSPPJdetail::where('sppjid', $header->sppjid)->sum('qty');
+            $totalQty = TrSPPTdetail::where('spptid', $header->spptid)->sum('qty');
             $header->totalqty = $totalQty;
             $header->totalopenordered = $totalQty;
             $header->save();
@@ -684,7 +689,7 @@ class SppjController extends Controller
 
             foreach ($approvals as $a) {
                 T_approval::create([
-                    'docid'          => $header->sppjid,
+                    'docid'          => $header->spptid,
                     'aprvid'         => $a->aprvid,
                     'aprvdoctype'    => $a->aprvdoctype,
                     'aprvcpnyid'     => $a->aprvcpnyid,
@@ -728,7 +733,7 @@ class SppjController extends Controller
 
                     //insert to table attachments
                     $attach = new Attachment();
-                    $attach->docid = $header->sppjid;
+                    $attach->docid = $header->spptid;
                     $attach->name = $filename;
                     $attach->attachfile = $attachfile;
                     $attach->status = 'A';
@@ -739,7 +744,7 @@ class SppjController extends Controller
             }       
 
             // email approver pertama (tetap)
-            $firstApproval = T_approval::where('docid', $header->sppjid)
+            $firstApproval = T_approval::where('docid', $header->spptid)
                 ->where('status', 'P')
                 ->orderBy('aprvid')
                 ->first();
@@ -765,8 +770,8 @@ class SppjController extends Controller
                     'createdby'=> $header->created_by,
                     'info'     => $request->keperluan,
                     'status'   => $status,
-                    'docname'  => 'SPPJ',
-                    'url'      => url('/showsppjs/' . $header->id),
+                    'docname'  => 'SPPT',
+                    'url'      => url('/showsppts/' . $header->id),
                 ];
 
                 $approvers = array_filter(array_map('trim', explode(',', (string)$firstApproval->aprvusername)));
@@ -777,14 +782,14 @@ class SppjController extends Controller
                 foreach ($emails as $email) {
                     \Mail::send('emails.mailapprovenew', $data, function ($message) use ($email, $data) {
                         $message->to($email)
-                            ->subject($data['docid'].' - Waiting Approval SPPJ')
+                            ->subject($data['docid'].' - Waiting Approval SPPT')
                             ->from('digitalserver@pakuwon.com', 'Pakuwon System');
                     });
                 }
             }
 
             DB::commit();
-            return response()->json(['message' => 'SPPJ updated successfully']);
+            return response()->json(['message' => 'SPPT updated successfully']);
 
         } catch (\Throwable $e) {
             DB::rollBack();
@@ -808,7 +813,7 @@ class SppjController extends Controller
     }
  
 
-    public function showSppj($id)
+    public function showSppt($id)
     {        
         $user = Auth::user();       
 
@@ -816,34 +821,36 @@ class SppjController extends Controller
             return redirect()->route('login');
         }
 
-        // $sppj = TrSPPJ::findOrFail($id);
-        $sppj = TrSPPJ::with([
+        // $sppt = TrSPPT::findOrFail($id);
+        $sppt = TrSPPT::with([
             'requestType:requesttypeid,requesttype_name',
-            'creator:username,name'
+            'creator:username,name',
+            'tenantname:id,tenant',
+            'pic:username,name',
         ])
         ->findOrFail($id);        
 
-        $sppjdetail = TrSPPJdetail::with([
+        $spptdetail = TrSPPTdetail::with([
             'location:location_id,location_name',
             'subLocation:sub_location_id,sub_location_name'
         ])
-        ->where('sppjid', $sppj->sppjid)
+        ->where('spptid', $sppt->spptid)
         ->get();
         
-        $approval = T_approval::where('docid', $sppj->sppjid)
+        $approval = T_approval::where('docid', $sppt->spptid)
             ->where('status','<>','X')      
             ->orderBy('created_at')
             ->orderBy('aprvid')      
             ->get();
        
-        $attachment = Attachment::where('docid', $sppj->sppjid)    
+        $attachment = Attachment::where('docid', $sppt->spptid)    
             ->where('status','A')        
             ->get();    
             
-        $bq = Bq::where('bqid', $sppj->bqid)   
+        $bq = Bq::where('bqid', $sppt->bqid)   
             ->first();            
        
-        return view('pages.sppjs.showsppjs', compact('sppj','approval','attachment','sppjdetail','bq'));
+        return view('pages.sppts.showsppts', compact('sppt','approval','attachment','spptdetail','bq'));
     }
 
     
@@ -868,7 +875,7 @@ class SppjController extends Controller
         $user = request()->user();
         $comment = new T_Message();
         $comment->docid = $id;
-        $comment->doctype = 'PJ';
+        $comment->doctype = 'PT';
         $comment->username = $user->username; 
         $comment->name = $user->name; 
         $comment->message = $request->comment;
@@ -883,23 +890,23 @@ class SppjController extends Controller
         ]);
     }
 
-    public function approveSppj(Request $request, $docid)
+    public function approveSppt(Request $request, $docid)
     {
         $now  = Carbon::now();
         $user = $request->user();
 
-        // $sppj = TrSPPJ::where('sppjid', $docid)->first();
-        $sppj = TrSPPJ::with('creator')
-            ->where('sppjid', $docid)
+        // $sppt = TrSPPT::where('spptid', $docid)->first();
+        $sppt = TrSPPT::with('creator')
+            ->where('spptid', $docid)
             ->first();
-        $fullname = data_get($sppj, 'creator.name') ?: $sppj->created_by;
+        $fullname = data_get($sppt, 'creator.name') ?: $sppt->created_by;
 
-        if (!$sppj) {
-            return response()->json(['success' => false, 'message' => 'SPPJ not found'], 404);
+        if (!$sppt) {
+            return response()->json(['success' => false, 'message' => 'SPPT not found'], 404);
         }
 
         // pastikan user memang approver aktif (status P) di doc ini
-        $tApproval = T_approval::where('docid', $sppj->sppjid)
+        $tApproval = T_approval::where('docid', $sppt->spptid)
             ->where('status', 'P')
             ->where('aprvusername', 'like', "%{$user->username}%")
             ->orderBy('aprvid', 'ASC')
@@ -919,12 +926,12 @@ class SppjController extends Controller
             $tApproval->save();
 
             // Update header informasi "terakhir diproses"
-            $sppj->completed_by = $user->username;
-            $sppj->completed_at = $now;
-            $sppj->save();
+            $sppt->completed_by = $user->username;
+            $sppt->completed_at = $now;
+            $sppt->save();
 
             // Hitung sisa pending setelah approve ini
-            $pendingCount = T_approval::where('docid', $sppj->sppjid)
+            $pendingCount = T_approval::where('docid', $sppt->spptid)
                 ->where('status', 'P')
                 ->count();
 
@@ -939,30 +946,30 @@ class SppjController extends Controller
 
             if ($pendingCount === 0) {
                 // Tidak ada approver lagi -> dokumen complete
-                $sppj->status       = 'C';
-                $sppj->completed_by = $user->username;
-                $sppj->completed_at = $now;
-                $sppj->save();
+                $sppt->status       = 'C';
+                $sppt->completed_by = $user->username;
+                $sppt->completed_at = $now;
+                $sppt->save();
 
                 // Kirim email ke requester (creator)
                 $status        = 'C';
                 $subjectSuffix = $subjectMap[$status] ?? 'Notification';
 
                 $data = [
-                    'docid'     => $sppj->sppjid,
-                    'cpnyid'    => $sppj->cpny_id ?? $sppj->cpnyid ?? '',
-                    'deptname'  => $sppj->department_id ?? $sppj->departementid ?? '',
-                    'date'      => $sppj->sppjdate,
+                    'docid'     => $sppt->spptid,
+                    'cpnyid'    => $sppt->cpny_id ?? $sppt->cpnyid ?? '',
+                    'deptname'  => $sppt->department_id ?? $sppt->departementid ?? '',
+                    'date'      => $sppt->spptdate,
                     'fullname'  => $fullname,  // nama penerima di email
                     'name'      => $fullname,  // fallback
                     'createdby' => $fullname,
-                    'docname'   => 'SPPJ',
-                    'info'      => $sppj->keperluan,
+                    'docname'   => 'SPPT',
+                    'info'      => $sppt->keperluan,
                     'status'    => $status,
-                    'url'       => url('/showsppjs/' . $sppj->id),
+                    'url'       => url('/showsppts/' . $sppt->id),
                 ];
 
-                $recipients = User::where('username', $sppj->created_by)
+                $recipients = User::where('username', $sppt->created_by)
                     ->where('status', 'A')
                     ->get();
 
@@ -971,16 +978,16 @@ class SppjController extends Controller
                         Mail::send('emails.mailapprovenew', $data, function ($message) use ($data, $rcp, $subjectSuffix) {
                             $to = $rcp->test_email ?? $rcp->email; // pakai field yang memang ada
                             $message->to($to)
-                                ->subject($data['docid'] . ' - ' . $subjectSuffix . ' SPPJ')
+                                ->subject($data['docid'] . ' - ' . $subjectSuffix . ' SPPT')
                                 ->from('digitalserver@pakuwon.com', 'Pakuwon System');
                         });
                     } catch (\Throwable $e) {
-                        Log::error('Failed sending SPPJ completion email', ['error' => $e->getMessage()]);
+                        Log::error('Failed sending SPPT completion email', ['error' => $e->getMessage()]);
                     }
                 }
             } else {
                 // Masih ada approver berikutnya -> cari level berikutnya (P terrendah aprvid)
-                $next = T_approval::where('docid', $sppj->sppjid)
+                $next = T_approval::where('docid', $sppt->spptid)
                     ->where('status', 'P')
                     ->orderBy('aprvid', 'ASC')
                     ->first();
@@ -1001,11 +1008,11 @@ class SppjController extends Controller
                         'date'      => $next->aprvdatebefore,
                         'fullname'  => $next->name,
                         'name'      => $next->name,
-                        'createdby' => $sppj->created_by,
-                        'docname'   => 'SPPJ',
-                        'info'      => $sppj->keperluan,
+                        'createdby' => $sppt->created_by,
+                        'docname'   => 'SPPT',
+                        'info'      => $sppt->keperluan,
                         'status'    => $status,
-                        'url'       => url('/showsppjs/' . $sppj->id),
+                        'url'       => url('/showsppts/' . $sppt->id),
                     ];
 
                     $usernames = array_filter(array_map('trim', explode(',', (string) $next->aprvusername)));
@@ -1019,15 +1026,15 @@ class SppjController extends Controller
                                 Mail::send('emails.mailapprovenew', $data, function ($message) use ($data, $rcp, $subjectSuffix) {
                                     $to = $rcp->test_email ?? $rcp->email;
                                     $message->to($to)
-                                        ->subject($data['docid'] . ' - ' . $subjectSuffix . ' SPPJ')
+                                        ->subject($data['docid'] . ' - ' . $subjectSuffix . ' SPPT')
                                         ->from('digitalserver@pakuwon.com', 'Pakuwon System');
                                 });
                             } catch (\Throwable $e) {
-                                Log::error('Failed sending SPPJ waiting-approval email', ['error' => $e->getMessage()]);
+                                Log::error('Failed sending SPPT waiting-approval email', ['error' => $e->getMessage()]);
                             }
                         }
                     } else {
-                        Log::warning('Next approver has empty aprvusername list', ['docid' => $sppj->sppjid]);
+                        Log::warning('Next approver has empty aprvusername list', ['docid' => $sppt->spptid]);
                     }
                 }
             }
@@ -1036,28 +1043,28 @@ class SppjController extends Controller
             return response()->json(['success' => true, 'message' => 'Task approved successfully']);
         } catch (\Throwable $e) {
             DB::rollBack();
-            Log::error('Approve SPPJ failed', ['error' => $e->getMessage()]);
+            Log::error('Approve SPPT failed', ['error' => $e->getMessage()]);
             return response()->json(['success' => false, 'message' => 'Approve failed'], 500);
         }
     }
     
-    public function rejectSppj(Request $request, $docid)
+    public function rejectSppt(Request $request, $docid)
     {
         $now  = Carbon::now();
         $user = $request->user();
 
-        // $sppj = TrSPPJ::where('sppjid', $docid)->first();
-        $sppj = TrSPPJ::with('creator')
-            ->where('sppjid', $docid)
+        // $sppt = TrSPPT::where('spptid', $docid)->first();
+        $sppt = TrSPPT::with('creator')
+            ->where('spptid', $docid)
             ->first();
-        $fullname = data_get($sppj, 'creator.name') ?: $sppj->created_by;
+        $fullname = data_get($sppt, 'creator.name') ?: $sppt->created_by;
 
-        if (!$sppj) {
+        if (!$sppt) {
             return response()->json(['success' => false, 'message' => 'Task not found'], 404);
         }
 
         // Validasi: user harus approver aktif (status P) pada dokumen ini
-        $tApproval = T_approval::where('docid', $sppj->sppjid)
+        $tApproval = T_approval::where('docid', $sppt->spptid)
             ->where('status', 'P')
             ->where('aprvusername', 'like', "%{$user->username}%")
             ->orderBy('aprvid', 'ASC')
@@ -1076,21 +1083,21 @@ class SppjController extends Controller
             $tApproval->name          = $user->name;
             $tApproval->save();
 
-            // Update header SPPJ
-            $sppj->status       = 'R';
-            $sppj->completed_by = $user->username;
-            $sppj->completed_at = $now;
-            $sppj->save();
+            // Update header SPPT
+            $sppt->status       = 'R';
+            $sppt->completed_by = $user->username;
+            $sppt->completed_at = $now;
+            $sppt->save();
 
             // Batalkan semua approval yang masih pending
-            T_approval::where('docid', $sppj->sppjid)
+            T_approval::where('docid', $sppt->spptid)
                 ->where('status', 'P')
                 ->update(['status' => 'X']);
 
             DB::commit();
         } catch (\Throwable $e) {
             DB::rollBack();
-            Log::error('Reject SPPJ failed', ['docid' => $docid, 'error' => $e->getMessage()]);
+            Log::error('Reject SPPT failed', ['docid' => $docid, 'error' => $e->getMessage()]);
             return response()->json(['success' => false, 'message' => 'Reject failed'], 500);
         }
 
@@ -1106,20 +1113,20 @@ class SppjController extends Controller
         $subjectSuffix = $subjectMap[$status] ?? 'Notification';
 
         $data = [
-            'docid'     => $sppj->sppjid,
-            'cpnyid'    => $sppj->cpny_id ?? $sppj->cpnyid ?? '',
-            'deptname'  => $sppj->department_id ?? $sppj->departementid ?? '',
+            'docid'     => $sppt->spptid,
+            'cpnyid'    => $sppt->cpny_id ?? $sppt->cpnyid ?? '',
+            'deptname'  => $sppt->department_id ?? $sppt->departementid ?? '',
             'date'      => $now->toDateString(),            // bisa juga pakai $tApproval->aprvdateafter
             'fullname'  => $fullname,               // view email kita pakai $fullname
             'name'      => $fullname,               // fallback jika view pakai $name
             'createdby' => $fullname,
-            'docname'   => 'SPPJ',
-            'info'      => $sppj->keperluan,
+            'docname'   => 'SPPT',
+            'info'      => $sppt->keperluan,
             'status'    => $status,
-            'url'       => url('/showsppjs/' . $sppj->id),
+            'url'       => url('/showsppts/' . $sppt->id),
         ];
 
-        $recipients = User::where('username', $sppj->created_by)
+        $recipients = User::where('username', $sppt->created_by)
             ->where('status', 'A')
             ->get();
 
@@ -1128,11 +1135,11 @@ class SppjController extends Controller
                 $to = $rcp->test_email ?? $rcp->email; // sesuaikan field yang tersedia
                 Mail::send('emails.mailapprovenew', $data, function ($message) use ($data, $to, $subjectSuffix) {
                     $message->to($to)
-                        ->subject($data['docid'] . ' - ' . $subjectSuffix . ' SPPJ')
+                        ->subject($data['docid'] . ' - ' . $subjectSuffix . ' SPPT')
                         ->from('digitalserver@pakuwon.com', 'Pakuwon System');
                 });
             } catch (\Throwable $e) {
-                Log::error('Failed sending SPPJ rejected email', [
+                Log::error('Failed sending SPPT rejected email', [
                     'docid' => $data['docid'],
                     'to'    => $rcp->username,
                     'error' => $e->getMessage()
@@ -1143,34 +1150,34 @@ class SppjController extends Controller
         // Simpan komentar penolakan (jika ada)
         try {
             app('App\Http\Controllers\SendCommentController')
-                ->sendmsg($sppj->id, 'PJ', $request);
+                ->sendmsg($sppt->id, 'PT', $request);
         } catch (\Throwable $e) {
             Log::warning('SendComment after reject failed', [
-                'docid' => $sppj->sppjid,
+                'docid' => $sppt->spptid,
                 'error' => $e->getMessage()
             ]);
         }
 
-        return response()->json(['success' => true, 'message' => 'SPPJ rejected successfully']);
+        return response()->json(['success' => true, 'message' => 'SPPT rejected successfully']);
     }
 
-    public function reviseSppj(Request $request, $docid)
+    public function reviseSppt(Request $request, $docid)
     {
         $now  = Carbon::now();
         $user = $request->user();
 
-        // $sppj = TrSPPJ::where('sppjid', $docid)->first();
-        $sppj = TrSPPJ::with('creator')
-            ->where('sppjid', $docid)
+        // $sppt = TrSPPT::where('spptid', $docid)->first();
+        $sppt = TrSPPT::with('creator')
+            ->where('spptid', $docid)
             ->first();
-        $fullname = data_get($sppj, 'creator.name') ?: $sppj->created_by;
+        $fullname = data_get($sppt, 'creator.name') ?: $sppt->created_by;
             
-        if (!$sppj) {
-            return response()->json(['success' => false, 'message' => 'SPPJ not found'], 404);
+        if (!$sppt) {
+            return response()->json(['success' => false, 'message' => 'SPPT not found'], 404);
         }
 
         // Pastikan user adalah approver aktif (status P) dokumen ini
-        $tApproval = T_approval::where('docid', $sppj->sppjid)
+        $tApproval = T_approval::where('docid', $sppt->spptid)
             ->where('status', 'P')
             ->where('aprvusername', 'like', "%{$user->username}%")
             ->orderBy('aprvid', 'ASC')
@@ -1189,21 +1196,21 @@ class SppjController extends Controller
             $tApproval->name          = $user->name;
             $tApproval->save();
 
-            // Update header SPPJ
-            $sppj->status       = 'D';
-            $sppj->completed_by = $user->username;        // mengikuti pola existing
-            $sppj->completed_at = $now;
-            $sppj->save();
+            // Update header SPPT
+            $sppt->status       = 'D';
+            $sppt->completed_by = $user->username;        // mengikuti pola existing
+            $sppt->completed_at = $now;
+            $sppt->save();
 
             // Batalkan approval lain yang masih pending
-            T_approval::where('docid', $sppj->sppjid)
+            T_approval::where('docid', $sppt->spptid)
                 ->where('status', 'P')
                 ->update(['status' => 'X']);
 
             DB::commit();
         } catch (\Throwable $e) {
             DB::rollBack();
-            Log::error('Revise SPPJ failed', ['docid' => $docid, 'error' => $e->getMessage()]);
+            Log::error('Revise SPPT failed', ['docid' => $docid, 'error' => $e->getMessage()]);
             return response()->json(['success' => false, 'message' => 'Revise failed'], 500);
         }
 
@@ -1219,20 +1226,20 @@ class SppjController extends Controller
         $subjectSuffix = $subjectMap[$status] ?? 'Notification';
 
         $data = [
-            'docid'     => $sppj->sppjid,
-            'cpnyid'    => $sppj->cpny_id ?? $sppj->cpnyid ?? '',
-            'deptname'  => $sppj->department_id ?? $sppj->departementid ?? '',
+            'docid'     => $sppt->spptid,
+            'cpnyid'    => $sppt->cpny_id ?? $sppt->cpnyid ?? '',
+            'deptname'  => $sppt->department_id ?? $sppt->departementid ?? '',
             'date'      => $now->toDateString(),          // atau $tApproval->aprvdateafter
             'fullname'  => $fullname,             // template email pakai $fullname
             'name'      => $fullname,             // fallback jika view pakai $name
             'createdby' => $fullname,
-            'docname'   => 'SPPJ',
-            'info'      => $sppj->keperluan,
+            'docname'   => 'SPPT',
+            'info'      => $sppt->keperluan,
             'status'    => $status,
-            'url'       => url('/showsppjs/' . $sppj->id),
+            'url'       => url('/showsppts/' . $sppt->id),
         ];
 
-        $recipients = User::where('username', $sppj->created_by)
+        $recipients = User::where('username', $sppt->created_by)
             ->where('status', 'A')
             ->get();
 
@@ -1241,11 +1248,11 @@ class SppjController extends Controller
                 $to = $rcp->test_email ?? $rcp->email; // sesuaikan dengan kolom yang ada
                 Mail::send('emails.mailapprovenew', $data, function ($message) use ($data, $to, $subjectSuffix) {
                     $message->to($to)
-                        ->subject($data['docid'] . ' - ' . $subjectSuffix . ' SPPJ')
+                        ->subject($data['docid'] . ' - ' . $subjectSuffix . ' SPPT')
                         ->from('digitalserver@pakuwon.com', 'Pakuwon System');
                 });
             } catch (\Throwable $e) {
-                Log::error('Failed sending SPPJ revise email', [
+                Log::error('Failed sending SPPT revise email', [
                     'docid' => $data['docid'],
                     'to'    => $rcp->username,
                     'error' => $e->getMessage()
@@ -1256,15 +1263,15 @@ class SppjController extends Controller
         // Simpan komentar revisi (jika ada)
         try {
             app('App\Http\Controllers\SendCommentController')
-                ->sendmsg($sppj->id, 'PJ', $request);
+                ->sendmsg($sppt->id, 'PT', $request);
         } catch (\Throwable $e) {
             Log::warning('SendComment after revise failed', [
-                'docid' => $sppj->sppjid,
+                'docid' => $sppt->spptid,
                 'error' => $e->getMessage()
             ]);
         }
 
-        return response()->json(['success' => true, 'message' => 'SPPJ revised successfully']);
+        return response()->json(['success' => true, 'message' => 'SPPT revised successfully']);
     }
     
 
@@ -1290,7 +1297,7 @@ class SppjController extends Controller
 
     public function tracking($id)
     {
-        $sppj = TrSPPJ::findOrFail($id);
+        $sppt = TrSPPT::findOrFail($id);
 
         $getName = function (?string $username) {
             if (!$username) return null;
@@ -1298,20 +1305,20 @@ class SppjController extends Controller
             return $u->name ?? $username;
         };
 
-        $createdByName = $getName($sppj->created_by ?? null);
-        $createdAt     = $sppj->created_at ? \Carbon\Carbon::parse($sppj->created_at)->format('Y-m-d H:i') : null;
+        $createdByName = $getName($sppt->created_by ?? null);
+        $createdAt     = $sppt->created_at ? \Carbon\Carbon::parse($sppt->created_at)->format('Y-m-d H:i') : null;
 
-        $completedByName = $getName($sppj->completed_by ?? null);
-        $completedAt     = $sppj->completed_at ? \Carbon\Carbon::parse($sppj->completed_at)->format('Y-m-d H:i') : null;
+        $completedByName = $getName($sppt->completed_by ?? null);
+        $completedAt     = $sppt->completed_at ? \Carbon\Carbon::parse($sppt->completed_at)->format('Y-m-d H:i') : null;
 
         // kolom opsional, kalau tidak ada biarkan null
-        $rejectedByName  = $getName($sppj->rejected_by ?? null);
-        $rejectedAt      = isset($sppj->rejected_at) ? \Carbon\Carbon::parse($sppj->rejected_at)->format('Y-m-d H:i') : null;
+        $rejectedByName  = $getName($sppt->rejected_by ?? null);
+        $rejectedAt      = isset($sppt->rejected_at) ? \Carbon\Carbon::parse($sppt->rejected_at)->format('Y-m-d H:i') : null;
 
-        $revisedByName   = $getName($sppj->revised_by ?? null);
-        $revisedAt       = isset($sppj->revised_at) ? \Carbon\Carbon::parse($sppj->revised_at)->format('Y-m-d H:i') : null;
+        $revisedByName   = $getName($sppt->revised_by ?? null);
+        $revisedAt       = isset($sppt->revised_at) ? \Carbon\Carbon::parse($sppt->revised_at)->format('Y-m-d H:i') : null;
 
-        $status = (string) ($sppj->status ?? '');
+        $status = (string) ($sppt->status ?? '');
         $labelMap = [
             'P' => 'Waiting approval',
             'R' => 'Rejected',
@@ -1323,7 +1330,7 @@ class SppjController extends Controller
         // selalu mulai dari Submitted
         $steps = [[
             'key'          => 'submitted',
-            'title'        => 'SPPJ',
+            'title'        => 'SPPT',
             'status'       => 'C',              // dibuat = completed
             'status_label' => 'Submitted',
             'by'           => $createdByName,
@@ -1387,7 +1394,7 @@ class SppjController extends Controller
         }
 
         return response()->json([
-            'doc'   => $sppj->sppjid ?? (string)$sppj->id,
+            'doc'   => $sppt->spptid ?? (string)$sppt->id,
             'steps' => $steps,
             'status'=> $status,
             'status_label' => $statusLabel,
@@ -1402,7 +1409,7 @@ class SppjController extends Controller
             return redirect()->route('login');
         }
 
-        // $sppj = TrSPPJ::findOrFail($id);
+        // $sppt = TrSPPT::findOrFail($id);
         $bq = Bq::with([            
             'creator:username,name'
         ])
@@ -1417,7 +1424,7 @@ class SppjController extends Controller
                   ->orWhere('created_user', $user->username ?? ''); // kalau stored username
             })
             ->exists();
-           
+        // dd( $canEdit);   
         $bqdetail = BqDetail::where('bqid', $bq->bqid)
             ->get();      
               
@@ -1425,7 +1432,7 @@ class SppjController extends Controller
             ->where('status','A')        
             ->get();    
        
-        return view('pages.sppjs.showbqsppjs', compact('bq','attachment','bqdetail','canEdit'));
+        return view('pages.sppts.showbqsppts', compact('bq','attachment','bqdetail','canEdit'));
     }
 
     public function editBQ($id)
@@ -1447,7 +1454,7 @@ class SppjController extends Controller
             ->where('status','A')
             ->get();
 
-        return view('pages.sppjs.editbqsppjs', compact(
+        return view('pages.sppts.editbqsppts', compact(
             'bq',
             'bq_detail',
             'temp_id',
@@ -1456,30 +1463,30 @@ class SppjController extends Controller
         ));
     }
     
-    public function printSppj(int $id)
+    public function printSppt(int $id)
     {
         $authUser = Auth::user();
         if (!$authUser) {
             return redirect()->route('login');
         }
 
-        // Ambil SPPJ + relasi yang dibutuhkan
-        $sppj = TrSPPJ::with([
+        // Ambil SPPT + relasi yang dibutuhkan
+        $sppt = TrSPPT::with([
                 'requestType:requesttypeid,requesttype_name',
                 'creator:username,name',
             ])
             ->findOrFail($id);
 
-        // Detail baris SPPJ
-        $sppjdetail = TrSPPJdetail::with([
+        // Detail baris SPPT
+        $spptdetail = TrSPPTdetail::with([
                 'location:location_id,location_name',
                 'subLocation:sub_location_id,sub_location_name',
             ])
-            ->where('sppjid', $sppj->sppjid)
+            ->where('spptid', $sppt->spptid)
             ->get();
 
         // Approval list (non-cancelled)
-        $approval = T_approval::where('docid', $sppj->sppjid)
+        $approval = T_approval::where('docid', $sppt->spptid)
             ->where('status', '<>', 'X')
             ->orderBy('aprvid')
             ->orderBy('created_at')
@@ -1488,10 +1495,10 @@ class SppjController extends Controller
         $approve_count = $approval->count();
 
         // Company (handle null)
-        $company = Company::where('cpnyid', $sppj->cpny_id)->first();
+        $company = Company::where('cpnyid', $sppt->cpny_id)->first();
 
         // Mapping status dokumen
-        switch ($sppj->status) {
+        switch ($sppt->status) {
             case 'R':
                 $status_doc = 'Rejected';
                 break;
@@ -1510,31 +1517,36 @@ class SppjController extends Controller
         }
 
         $data = [
-            'title'               => ' Surat Permintaan Pekerjaan Jasa',
-            'doc_type'            => 'SPPJ',
-            'docid'               => $sppj->sppjid,
-            'department_id'       => $sppj->department_id,
+            'title'               => ' Surat Permintaan Pekerjaan Tenant',
+            'doc_type'            => 'SPPT',
+            'docid'               => $sppt->spptid,
+            'department_id'       => $sppt->department_id,
             'cpnyname'            => optional($company)->cpnyname,
             'parent'              => optional($company)->parent,
             'project'             => optional($company)->project,
             // identitas & tanggal
-            'created_by_username' => $sppj->created_by,
-            'created_by_name'     => ucwords(strtolower(optional($sppj->creator)->name)),
-            'created_at_fmt'      => optional($sppj->created_at)->format('d F Y'),
-            'req_date_fmt'        => optional($sppj->created_at)->format('d M Y H:i'),
-            'sppjdate'            => \Carbon\Carbon::parse($sppj->sppjdate)->format('d F Y'),
+            'created_by_username' => $sppt->created_by,
+            'created_by_name'     => ucwords(strtolower(optional($sppt->creator)->name)),
+            'created_at_fmt'      => optional($sppt->created_at)->format('d F Y'),
+            'req_date_fmt'        => optional($sppt->created_at)->format('d M Y H:i'),
+            'spptdate'            => \Carbon\Carbon::parse($sppt->spptdate)->format('d F Y'),
             // konten
-            'bqid'                => $sppj->bqid,
-            'keperluan'           => $sppj->keperluan,
+            'bqid'                => $sppt->bqid,
+            'nama_tenant'         => optional($sppt->tenantname)->tenant,
+            'no_unit_tenant'      => $sppt->no_unit_tenant,
+            'pic_pengawas'        => ucwords(strtolower(optional($sppt->pic)->name)),
+            'condition_unit'      => $sppt->condition_unit,
+            'beban'               => $sppt->beban,
+            'keperluan'           => $sppt->keperluan,
             'status_doc'          => $status_doc,
-            'requesttype_name'    => optional($sppj->requestType)->requesttype_name,
+            'requesttype_name'    => optional($sppt->requestType)->requesttype_name,
         ];
 
         // Kirim ke view
         $pdf = \PDF::loadView(
-            'pages.sppjs.pdf_sppjs',
+            'pages.sppts.pdf_sppts',
             array_merge($data, [
-                'detail'         => $sppjdetail,
+                'detail'         => $spptdetail,
                 'approval'       => $approval,
                 'approve_count'  => $approve_count,
             ])
@@ -1543,13 +1555,13 @@ class SppjController extends Controller
         // Portrait jika <= 5 approver, else landscape
         $pdf->setPaper('A4', ($approve_count <= 5) ? 'portrait' : 'landscape');
 
-        return $pdf->stream("pdf_sppjs_{$sppj->sppjid}.pdf");
+        return $pdf->stream("pdf_sppts_{$sppt->spptid}.pdf");
     }
 
     public function createBQ($id)
     {       
         $user = request()->user();     
-        $sppj = TrSPPJ::findOrFail($id);  
+        $sppt = TrSPPT::findOrFail($id);  
        
         $temp_id = session('import_temp_id'); // ambil dari session
 
@@ -1559,7 +1571,7 @@ class SppjController extends Controller
         }
 
        
-        return view('pages.sppjs.createbqsppj', compact('sppj','tempData','temp_id'));
+        return view('pages.sppts.createbqsppt', compact('sppt','tempData','temp_id'));
     }
 
     public function importCreate(Request $request)
@@ -1591,7 +1603,7 @@ class SppjController extends Controller
 
             // ⬇️ Selalu redirect ke create
             return redirect()
-                ->route('bqsppj.create', $idx)
+                ->route('bqsppt.create', $idx)
                 ->with('success', 'Data berhasil di-import.');
         } catch (\Throwable $e) {
             // opsional: report($e);
@@ -1631,10 +1643,10 @@ class SppjController extends Controller
             session(['import_temp_id' => $temp_id]);
 
            return redirect()
-                ->route('bqsppj.edit', $idx)
+                ->route('bqsppt.edit', $idx)
                 ->with('success', 'Data berhasil di‑import (edit mode).');
             //  return $idx
-            //     ? redirect()->route('bqsppj.edit', $idx)
+            //     ? redirect()->route('bqsppt.edit', $idx)
             //                 ->with('success', 'Data berhasil di‑import (edit mode).')
             //     : redirect()->route('bqs.create')
             //                 ->with('success', 'Data berhasil di‑import.');
@@ -1671,16 +1683,16 @@ class SppjController extends Controller
 
         // Kebutuhan header
         $doctype  = 'BQ';
-        $sppjtid  = $tempHead->sppjtid ?? $request->input('sppjtid'); // string SPPJID (mis. SPPJ-xxxxx)
-        $bq_type  = $request->input('bq_type', 'SPPJ'); // default
+        $sppjtid  = $tempHead->sppjtid ?? $request->input('sppjtid'); // string SPPTID (mis. SPPT-xxxxx)
+        $bq_type  = $request->input('bq_type', 'SPPT'); // default
 
-        // Ambil cpny_id dari SPPJ (kalau kolom BQ wajib)
+        // Ambil cpny_id dari SPPT (kalau kolom BQ wajib)
         $cpny_id = null;
         if ($sppjtid) {
-            $sppj = TrSPPJ::where('sppjid', $sppjtid)
+            $sppt = TrSPPT::where('spptid', $sppjtid)
                         ->orWhere('id', $request->input('idx')) // kalau kamu kirim idx juga
                         ->first();
-            $cpny_id = $sppj->cpny_id ?? $sppj->cpnyid ?? null;
+            $cpny_id = $sppt->cpny_id ?? $sppt->cpnyid ?? null;
         }
 
         // Grand total header
@@ -1715,8 +1727,8 @@ class SppjController extends Controller
             $tglbln = substr($year, 2) . $month;
             $bqid   = $doctype . $tglbln . sprintf('%03d', $urutan);
 
-            $sppj->bqid = $bqid;
-            $sppj->save();
+            $sppt->bqid = $bqid;
+            $sppt->save();
 
             // ===== Insert HEADER: tr_bq =====
             $bq = Bq::create([
@@ -1843,10 +1855,10 @@ class SppjController extends Controller
                 $grandJasa = (float) BqDetail::where('bqid', $bqid)->sum('total_est_jasa_price');
             }
 
-            // Optional: update cpny_id dari SPPJ jika ingin sinkron lagi (bisa di-skip)
+            // Optional: update cpny_id dari SPPT jika ingin sinkron lagi (bisa di-skip)
             // $cpny_id = $bq->cpny_id;
             // if ($sppjtid) {
-            //     $sppj    = TrSPPJ::where('sppjid', $sppjtid)->first();
+            //     $sppj    = TrSPPT::where('sppjid', $sppjtid)->first();
             //     $cpny_id = $sppj->cpny_id ?? $cpny_id;
             // }
 
@@ -1931,6 +1943,7 @@ class SppjController extends Controller
             ], 500);
         }
     }
+
 
 
 

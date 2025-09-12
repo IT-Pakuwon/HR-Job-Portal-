@@ -120,9 +120,9 @@
 
             <div class="flex gap-3">
                 {{-- <button id="approveBtn" 
-                    {{ $sppj->bqid ? '' : 'disabled' }}
+                    {{ $sppt->bqid ? '' : 'disabled' }}
                     class="inline-flex items-center gap-1 rounded-md px-3 py-2 text-sm font-medium
-                        {{ $sppj->bqid ? 'bg-green-100 text-green-700 hover:bg-green-200 focus:ring-green-500'
+                        {{ $sppt->bqid ? 'bg-green-100 text-green-700 hover:bg-green-200 focus:ring-green-500'
                                         : 'bg-green-100 text-green-700 opacity-50 cursor-not-allowed' }}">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                         stroke="currentColor" class="h-4 w-4">
@@ -131,7 +131,7 @@
                     </svg>
                     Approve
                 </button> --}}
-                @if (!$sppj->bqid)
+                @if (!$sppt->bqid)
                 <span class="inline-block" title="Please Create BQ !">
                     <button id="approveBtn" disabled
                     class="inline-flex items-center gap-1 rounded-md px-3 py-2 text-sm font-medium
@@ -180,17 +180,17 @@
         </div>
         <div class="flex w-full flex-col gap-6 xl:flex-col">
             <div class="flex h-[35vh] w-full flex-col gap-6 xl:flex-row">
-                {{-- Left card (SPPJ Info) --}}
+                {{-- Left card (SPPT Info) --}}
                 <div class="flex flex-1 flex-col overflow-y-auto rounded-xl bg-white dark:bg-gray-800">
                     <header
                         class="flex items-center justify-between rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
                         <h1 class="flex items-center gap-2 text-2xl font-bold text-gray-800 dark:text-gray-100">
                             <span class="text-indigo-500">🆔</span>
-                            {{ $sppj->sppjid }}
+                            {{ $sppt->spptid }}
                         </h1>
 
                         @php
-                            $statusText = match ($sppj->status) {
+                            $statusText = match ($sppt->status) {
                                 'D' => 'Revise',
                                 'P' => 'On Progress',
                                 'C' => 'Completed',
@@ -199,7 +199,7 @@
                                 default => 'Unknown',
                             };
 
-                            $statusClasses = match ($sppj->status) {
+                            $statusClasses = match ($sppt->status) {
                                 'D' => 'bg-blue-100 text-blue-700 dark:bg-blue-800/30 dark:text-blue-300',
                                 'P' => 'bg-yellow-100 text-yellow-700 dark:bg-yellow-800/30 dark:text-yellow-300',
                                 'C' => 'bg-green-100 text-green-700 dark:bg-green-800/30 dark:text-green-300',
@@ -214,7 +214,7 @@
                                 {{ $statusText }}
                             </span>
 
-                            <a href="{{ url('/pdf_sppjs') }}/{{ $sppj->id }}" target="_blank">
+                            <a href="{{ url('/pdf_sppts') }}/{{ $sppt->id }}" target="_blank">
                                 <button
                                     class="inline-flex items-center gap-2 rounded-full bg-indigo-600 px-4 py-1 text-sm font-semibold text-white transition-colors duration-200 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
                                     Print PDF
@@ -226,14 +226,25 @@
                     <div class="flex flex-1 flex-col gap-6 p-4">
                         @php
                             $row1 = [
-                                ['label' => 'Company', 'value' => $sppj->cpny_id],
-                                ['label' => 'Department', 'value' => $sppj->department_id],
-                                ['label' => 'Date', 'value' => date('j F Y', strtotime($sppj->sppjdate))],
+                                ['label' => 'Company', 'value' => $sppt->cpny_id],
+                                ['label' => 'Department', 'value' => $sppt->department_id],
+                                ['label' => 'Date', 'value' => date('j F Y', strtotime($sppt->spptdate))],
                             ];
 
                             $row2 = [
-                                ['label' => 'User', 'value' => ucwords(strtolower(optional($sppj->creator)->name))],
-                                ['label' => 'Request Type', 'value' => optional($sppj->requestType)->requesttype_name],
+                                ['label' => 'User', 'value' => ucwords(strtolower(optional($sppt->creator)->name))],
+                                ['label' => 'Request Type', 'value' => optional($sppt->requestType)->requesttype_name],
+                            ];
+
+                            $row3 = [
+                                ['label' => 'Tenant', 'value' => optional($sppt->tenantname)->tenant],
+                                ['label' => 'Lantai-Unit', 'value' => $sppt->no_unit_tenant],
+                                ['label' => 'Pic', 'value' => ucwords(strtolower(optional($sppt->pic)->name))],
+                            ];
+
+                            $row4 = [
+                                ['label' => 'Kondisi Unit', 'value' => $sppt->condition_unit],
+                                ['label' => 'Beban', 'value' => $sppt->beban],
                             ];
                         @endphp
 
@@ -263,12 +274,36 @@
                             @endforeach
                         </div>
 
+                        <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
+                            @foreach ($row3 as $detail)
+                                <div
+                                    class="rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-800">
+                                    <p class="text-xs text-gray-500 dark:text-gray-400">{{ $detail['label'] }}</p>
+                                    <p class="text-sm font-medium text-gray-900 dark:text-gray-100">
+                                        {{ $detail['value'] }}
+                                    </p>
+                                </div>
+                            @endforeach
+                        </div>
+
+                        <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                            @foreach ($row4 as $detail)
+                                <div
+                                    class="rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-800">
+                                    <p class="text-xs text-gray-500 dark:text-gray-400">{{ $detail['label'] }}</p>
+                                    <p class="text-sm font-medium text-gray-900 dark:text-gray-100">
+                                        {{ $detail['value'] }}
+                                    </p>
+                                </div>
+                            @endforeach
+                        </div>
+
                         {{-- Row 3 (Keperluan) --}}
                         <div
                             class="rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-800">
                             <p class="text-xs text-gray-500 dark:text-gray-400">Keperluan</p>
                             <p class="text-sm font-medium text-gray-900 dark:text-gray-100">
-                                {{ $sppj->keperluan }}
+                                {{ $sppt->keperluan }}
                             </p>
                         </div>
                     </div>
@@ -433,19 +468,19 @@
                 </div>
             </div>
 
-            {{-- Bottom card (SPPJ Detail Table + Button BQ) --}}
+            {{-- Bottom card (SPPT Detail Table + Button BQ) --}}
             @php
-                $bqId = $sppj->bqid ?? '';
+                $bqId = $sppt->bqid ?? '';
                 $bqIdx = $bq->id ?? '';
-                $sppjId = $sppj->id ?? '';
+                $spptId = $sppt->id ?? '';
                 $hasBq = filled($bqId);
             @endphp
 
             <div class="flex flex-col rounded-xl bg-white dark:bg-gray-800">
                 <header
                     class="flex items-center justify-between rounded-t-xl border-b border-gray-200 bg-white px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
-                    <h2 class="text-xl font-semibold text-gray-800 dark:text-gray-100">📝 SPPJ Detail</h2>
-                    <a href="{{ $hasBq ? url('/showbqsppjs/' . $bqIdx) : url('/createbqsppj/' . $sppjId) }}"                        
+                    <h2 class="text-xl font-semibold text-gray-800 dark:text-gray-100">📝 SPPT Detail</h2>
+                    <a href="{{ $hasBq ? url('/showbqsppts/' . $bqIdx) : url('/createbqsppt/' . $spptId) }}"                        
                         class="{{ $hasBq
                             ? 'bg-emerald-600 hover:bg-emerald-700 focus:ring-emerald-500'
                             : 'bg-indigo-600 hover:bg-indigo-700 focus:ring-indigo-500' }} inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-semibold text-white focus:outline-none focus:ring-2 focus:ring-offset-2">
@@ -469,10 +504,10 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach ($sppjdetail as $item)
+                            @foreach ($spptdetail as $item)
                                 <tr
                                     class="border-t border-gray-200 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800">
-                                    <td class="px-4 py-2">{{ $item->sppj_no }}</td>
+                                    <td class="px-4 py-2">{{ $item->sppt_no }}</td>
                                     <td class="px-4 py-2">{{ $item->inventoryid }}</td>
                                     <td class="px-4 py-2">{{ $item->inventory_descr }}</td>
                                     <td class="px-4 py-2">{{ $item->qty }}</td>
@@ -557,17 +592,17 @@
 
     <script>
         $(document).ready(function() {
-            let sppjid = "{{ $sppj->sppjid }}"; // Ambil task ID dari PHP ke JavaScript
-            loadComments(sppjid);
+            let spptid = "{{ $sppt->spptid }}"; // Ambil task ID dari PHP ke JavaScript
+            loadComments(spptid);
 
             // **Fungsi untuk Memuat Komentar**
-            function loadComments(sppjid) {
-                console.log("Loading comments for Doc ID:", sppjid);
+            function loadComments(spptid) {
+                console.log("Loading comments for Doc ID:", spptid);
                 let commentList = $('#commentList');
                 commentList.html('<p class="text-gray-500 italic">Loading comments...</p>'); // Loader
 
                 $.ajax({
-                    url: `/sppj/${sppjid}/comments`,
+                    url: `/sppt/${spptid}/comments`,
                     type: 'GET',
                     success: function(response) {
                         console.log("Comments Loaded:", response);
@@ -617,10 +652,10 @@
                 $('#postCommentBtn').prop('disabled', true).text('Posting... 🚀'); // Disable button saat proses
 
                 $.ajax({
-                    url: `/sppj/${sppjid}/comments`,
+                    url: `/sppt/${spptid}/comments`,
                     type: 'POST',
                     data: {
-                        sppjid: sppjid,
+                        spptid: spptid,
                         comment: input,
                         _token: '{{ csrf_token() }}'
                     },
@@ -628,7 +663,7 @@
                         console.log('Comment added successfully:', response);
 
                         if (response.status === "success") {
-                            loadComments(sppjid); // **Reload komentar setelah menambahkan**
+                            loadComments(spptid); // **Reload komentar setelah menambahkan**
                             $('#commentInput').val(''); // Kosongkan input setelah sukses
                         }
                     },
@@ -660,22 +695,22 @@
     </script>
     <script>
         $(document).on("click", "#approveBtn", function() {
-            let sppjid = "{{ $sppj->sppjid }}"; // Ambil Task ID dari modal        
-            approveSPPJ(sppjid);
+            let spptid = "{{ $sppt->spptid }}"; // Ambil Task ID dari modal        
+            approveSPPT(spptid);
         });
 
-        function approveSPPJ(sppjid) {
+        function approveSPPT(spptid) {
             let $spinner = $("#loadingSpinnerContainer"); // Ambil elemen spinner
 
             // Tampilkan spinner di kanan bawah
             $spinner.fadeIn();
 
             $.ajax({
-                url: `/sppj/${sppjid}/approve`,
+                url: `/sppt/${spptid}/approve`,
                 type: "POST",
                 data: {
                     _token: "{{ csrf_token() }}",
-                    sppjid: sppjid
+                    spptid: spptid
                 },
                 success: function(response) {
                     if (response.success) {
@@ -687,8 +722,8 @@
                             );
 
                         // Tampilkan alert sukses
-                        toastr.success("SPPJ approved successfully!");
-                        window.location.href = "/sppjs";
+                        toastr.success("SPPT approved successfully!");
+                        window.location.href = "/sppts";
                     } else {
                         toastr.error(response.message);
                     }
@@ -697,9 +732,9 @@
                     console.error(xhr.responseText);
 
                     if (xhr.status === 403) {
-                        toastr.error("You are not authorized to approve this sppj.");
+                        toastr.error("You are not authorized to approve this sppt.");
                     } else {
-                        toastr.error("Error: Unable to approve sppj.");
+                        toastr.error("Error: Unable to approve sppt.");
                     }
                 },
                 complete: function() {
@@ -717,8 +752,8 @@
             $(document).on("click", "#rejectBtn", function() {
                 $("#rejectReason").val(""); // Reset alasan reject
                 // $("#rejectTaskModal").removeClass("hidden").css("z-index", "60");
-                let sppjid = "{{ $sppj->sppjid }}";
-                checkApproval(sppjid, "reject");
+                let spptid = "{{ $sppt->spptid }}";
+                checkApproval(spptid, "reject");
 
             });
 
@@ -729,7 +764,7 @@
 
             // Saat tombol "Reject" ditekan, proses perubahan status
             $(document).on("click", "#confirmRejectBtn", function() {
-                let sppjid = "{{ $sppj->sppjid }}"; // Ambil ID tugas dari modal detail
+                let spptid = "{{ $sppt->spptid }}"; // Ambil ID tugas dari modal detail
                 let rejectReason = $("#rejectReason").val().trim();
 
                 if (rejectReason === "") {
@@ -742,18 +777,18 @@
                 $spinner.fadeIn();
 
                 $.ajax({
-                    url: `/sppj/${sppjid}/reject`,
+                    url: `/sppt/${spptid}/reject`,
                     type: "POST",
                     data: {
                         _token: "{{ csrf_token() }}",
-                        docid: sppjid,
+                        docid: spptid,
                         reason: rejectReason
                     },
                     success: function(response) {
                         if (response.success) {
                             // alert("Task has been rejected successfully.");
 
-                            // Update status di modal sppj
+                            // Update status di modal sppt
                             $("#xstatus").text("Rejected")
                                 .removeClass()
                                 .addClass(
@@ -761,9 +796,9 @@
                                 );
                             $spinner.fadeOut();
 
-                            window.location.href = "/sppjs";
+                            window.location.href = "/sppts";
                         } else {
-                            alert("Failed to reject sppj.");
+                            alert("Failed to reject sppt.");
                         }
                     },
                     error: function(xhr) {
@@ -772,7 +807,7 @@
                         if (xhr.status === 403) {
                             alert("You Can't Rejected!"); // Popup jika user tidak berhak
                         } else {
-                            alert("Error: Unable to reject sppj status.");
+                            alert("Error: Unable to reject sppt status.");
                         }
                     },
                 });
@@ -785,8 +820,8 @@
             $(document).on("click", "#reviseBtn", function() {
                 $("#reviseReason").val(""); // Reset alasan revise
                 // $("#reviseTaskModal").removeClass("hidden").css("z-index", "60");
-                let sppjid = "{{ $sppj->sppjid }}";
-                checkApproval(sppjid, "revise");
+                let spptid = "{{ $sppt->spptid }}";
+                checkApproval(spptid, "revise");
 
             });
 
@@ -797,7 +832,7 @@
 
             // Saat tombol "Revise" ditekan, proses perubahan status
             $(document).on("click", "#confirmReviseBtn", function() {
-                let sppjid = "{{ $sppj->sppjid }}"; // Ambil ID tugas dari modal detail
+                let spptid = "{{ $sppt->spptid }}"; // Ambil ID tugas dari modal detail
                 let reviseReason = $("#reviseReason").val().trim();
 
                 if (reviseReason === "") {
@@ -809,27 +844,27 @@
                 $spinner.fadeIn();
 
                 $.ajax({
-                    url: `/sppj/${sppjid}/revise`,
+                    url: `/sppt/${spptid}/revise`,
                     type: "POST",
                     data: {
                         _token: "{{ csrf_token() }}",
-                        docid: sppjid,
+                        docid: spptid,
                         reason: reviseReason
                     },
                     success: function(response) {
                         if (response.success) {
                             // alert("Task has been reviseed successfully.");
 
-                            // Update status di modal sppj
+                            // Update status di modal sppt
                             $("#xstatus").text("Revised")
                                 .removeClass()
                                 .addClass(
                                     "w-full max-w-32 bg-red-300/30 dark:bg-red-300 text-red-600 flex justify-items-center focus:outline-none pointer-events-none    -none font-semibold px-2 py-0.5 rounded"
                                 );
                             $spinner.fadeOut();
-                            window.location.href = "/sppjs";
+                            window.location.href = "/sppts";
                         } else {
-                            alert("Failed to revise sppj.");
+                            alert("Failed to revise sppt.");
                         }
                     },
                     error: function(xhr) {
@@ -838,7 +873,7 @@
                         if (xhr.status === 403) {
                             alert("You Can't Revised!"); // Popup jika user tidak berhak
                         } else {
-                            alert("Error: Unable to revise sppj status.");
+                            alert("Error: Unable to revise sppt status.");
                         }
                     },
                 });
@@ -851,10 +886,10 @@
     <!-- Toastr JS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
     <script>
-        function checkApproval(sppjid, action) {
-            console.log(sppjid, '-', action);
+        function checkApproval(spptid, action) {
+            console.log(spptid, '-', action);
             $.ajax({
-                url: `/sppj/${sppjid}/check-approval/${action}`,
+                url: `/sppt/${spptid}/check-approval/${action}`,
                 type: "GET",
                 success: function(response) {
                     if (response.canPerformAction) {
@@ -866,11 +901,11 @@
                             $("#reviseReason").val(""); // Reset alasan revise
                             $("#reviseTaskModal").removeClass("hidden").css("z-index", "60");
                             // } else if (action === "approve") {
-                            //     approveSPPJ(sppjid); // Jika approve, langsung jalankan proses approval
+                            //     approveSPPT(spptid); // Jika approve, langsung jalankan proses approval
                         }
                     } else {
                         // Jika user tidak boleh melakukan aksi, tampilkan popup toastr
-                        toastr.error("You are not authorized to " + action + " this sppj.");
+                        toastr.error("You are not authorized to " + action + " this sppt.");
                     }
                 },
                 error: function() {
@@ -880,15 +915,15 @@
         }
     </script>
     <script>
-        const HAS_BQ = @json((bool) $sppj->bqid);
-        const BQ_ID  = @json($sppj->bqid ?? '');
+        const HAS_BQ = @json((bool) $sppt->bqid);
+        const BQ_ID  = @json($sppt->bqid ?? '');
 
         $(document).on("click", "#approveBtn", function () {
             if (!HAS_BQ || !BQ_ID) {
             toastr.error("Tidak bisa approve: BQ belum dibuat. Silakan buat BQ terlebih dahulu.");
             return;
             }
-            approveSPPJ("{{ $sppj->sppjid }}");
+            approveSPPT("{{ $sppt->spptid }}");
         });
     </script>
 

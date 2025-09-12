@@ -251,6 +251,10 @@
                                     'createsppks',
                                     'showsppks',
                                     'editsppks',
+                                    'sppts',
+                                    'createsppts',
+                                    'showsppts',
+                                    'editsppts',
                                 ])) {{ 'from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]' }} @endif mb-0.5 rounded-lg py-2 pl-4 pr-3 last:mb-0"
                                 x-data="{ open: {{ in_array(Request::segment(1), [
                                     'sppjs',
@@ -265,6 +269,10 @@
                                     'createsppks',
                                     'showsppks',
                                     'editsppks',
+                                    'sppts',
+                                    'createsppts',
+                                    'showsppts',
+                                    'editsppts',
                                 ])
                                     ? 1
                                     : 0 }} }">
@@ -282,6 +290,10 @@
                                         'createsppks',
                                         'showsppks',
                                         'editsppks',
+                                        'sppts',
+                                        'createsppts',
+                                        'showsppts',
+                                        'editsppts',
                                     ])) {{ 'hover:text-gray-900 dark:hover:text-white' }} @endif block truncate text-gray-800 transition dark:text-gray-100"
                                     href="#0" @click.prevent="open = !open; sidebarExpanded = true">
                                     <div class="flex items-center justify-between">
@@ -299,6 +311,10 @@
                                                     'createsppks',
                                                     'showsppks',
                                                     'editsppks',
+                                                    'sppts',
+                                                    'createsppts',
+                                                    'showsppts',
+                                                    'editsppts',
                                                 ])) {{ 'text-violet-500' }}@else{{ 'text-gray-400 dark:text-gray-500' }} @endif shrink-0 fill-current"
                                                 xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                                 stroke-width="1.5" stroke="currentColor" HEIGHT="16" WIDTH="16">
@@ -326,6 +342,10 @@
                                                     'createsppks',
                                                     'showsppks',
                                                     'editsppks',
+                                                    'sppts',
+                                                    'createsppts',
+                                                    'showsppts',
+                                                    'editsppts',
                                                 ])) {{ 'rotate-180' }} @endif ml-1 h-3 w-3 shrink-0 fill-current text-gray-400 dark:text-gray-500"
                                                 :class="open ? 'rotate-180' : 'rotate-0'" viewBox="0 0 12 12">
                                                 <path d="M5.9 11.4L.5 6l1.4-1.4 4 4 4-4L11.3 6z" />
@@ -348,6 +368,10 @@
                                             'createsppks',
                                             'showsppks',
                                             'editsppks',
+                                            'sppts',
+                                            'createsppts',
+                                            'showsppts',
+                                            'editsppts',
                                         ])) {{ 'hidden' }} @endif mt-1 pl-8"
                                         :class="open ? 'block!' : 'hidden'">
                                         <li class="mb-1 last:mb-0">
@@ -376,7 +400,7 @@
                                         </li>
                                         <li class="mb-1 last:mb-0">
                                             <a class="@if (Route::is('sppts')) {{ 'text-violet-500!' }} @endif block truncate text-gray-500/90 transition hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-                                                href="{{ route('sppbs') }}">
+                                                href="{{ route('sppts') }}">
                                                 <span
                                                     class="lg:sidebar-expanded:opacity-100 text-m font-medium duration-200 lg:opacity-0 2xl:opacity-100">SPP
                                                     Tenant</span>

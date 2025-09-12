@@ -42,7 +42,7 @@
             <div class="gap-6">
                 <div class="flex flex-col gap-10">
                     {{-- Form Import (RENAMED: id=Bqform, action=bqs.import) --}}
-                    <form id="Bqform" action="{{ route('bqs.import') }}" method="POST"
+                    <form id="Bqform" action="{{ route('bqsppt.import') }}" method="POST"
                           enctype="multipart/form-data" class="flex flex-col gap-4">
                         @csrf
 
@@ -51,18 +51,18 @@
                                 <h2 class="text-xl font-bold">📥 Import BQ</h2>
                             </div>
 
-                            <!-- Header fields: diambil dari $sppj -->
+                            <!-- Header fields: diambil dari $sppt -->
                             <div class="grid grid-cols-1 items-end gap-4 md:grid-cols-5">
-                                <!-- SPPJID -->
+                                <!-- SPPTID -->
                                 <div class="md:col-span-1">
                                     <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                        SPPJ ID
+                                        SPPT ID
                                     </label>
-                                    <!-- kirim id SPPJ untuk import -->
-                                    <input type="hidden" name="idx" value="{{ $sppj->id ?? '' }}">
-                                    <input type="hidden" name="sppjtid" value="{{ $sppj->sppjid ?? '' }}">
-                                    <input type="text" name="sppjid"
-                                           value="{{ $sppj->sppjid ?? '' }}"
+                                    <!-- kirim id SPPT untuk import -->
+                                    <input type="hidden" name="idx" value="{{ $sppt->id ?? '' }}">
+                                    <input type="hidden" name="sppjtid" value="{{ $sppt->spptid ?? '' }}">
+                                    <input type="text" name="spptid"
+                                           value="{{ $sppt->spptid ?? '' }}"
                                            class="w-full rounded-md border border-gray-300 bg-gray-50 p-2.5 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
                                            readonly>
                                 </div>
@@ -73,7 +73,7 @@
                                         Company
                                     </label>
                                     <input type="text" name="company"
-                                           value="{{ $sppj->cpny_id ?? $sppj->cpny_name ?? '' }}"
+                                           value="{{ $sppt->cpny_id ?? $sppt->cpny_name ?? '' }}"
                                            class="w-full rounded-md border border-gray-300 bg-gray-50 p-2.5 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
                                            readonly>
                                 </div>
@@ -84,7 +84,7 @@
                                         Departement
                                     </label>
                                     <input type="text" name="departement"
-                                           value="{{ $sppj->department_id ?? $sppj->department ?? '' }}"
+                                           value="{{ $sppt->department_id ?? $sppt->department ?? '' }}"
                                            class="w-full rounded-md border border-gray-300 bg-gray-50 p-2.5 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
                                            readonly>
                                 </div>
@@ -166,7 +166,7 @@
                             </div>
 
                             {{-- Form submit approval (biarkan seperti semula) --}}
-                            <form id="submitApprovalForm" method="POST" action="{{ route('bqs.store') }}">
+                            <form id="submitApprovalForm" method="POST" action="{{ route('bqsppt.store') }}">
                                 @csrf
 
                                 <div class="flex w-full flex-col gap-2 rounded-2xl border-b bg-white dark:bg-gray-800">
@@ -292,7 +292,7 @@
                 showOverlay('Submitting');
 
                 $.ajax({
-                    url: "{{ route('bqs.store') }}",
+                    url: "{{ route('bqsppt.store') }}",
                     type: "POST",
                     data: formData,
                     processData: false,
@@ -304,7 +304,7 @@
                         $('#btnText').text('Submit Approval');
                         hideOverlay();
                         toastr.success("BQ Submit Successfully!");
-                        window.location.href = "/sppjs";
+                        window.location.href = "/sppts";
                     },
                     error: function(xhr) {
                         if (xhr.status === 422 && xhr.responseJSON.message) {
@@ -327,7 +327,7 @@
                     $('#cancelBtn').attr('disabled', true);
                     $('#cancelText').text('Cancelling...');
                     $('#cancelSpinner').removeClass('hidden');
-                    window.location.href = "{{ route('sppjs') }}";
+                    window.location.href = "{{ route('sppts') }}";
                 }
             });
         });

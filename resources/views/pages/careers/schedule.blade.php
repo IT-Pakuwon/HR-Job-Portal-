@@ -75,8 +75,13 @@
             </select>
 
             <div style="margin-top: 10px;">
-                <button type="submit"
-                    style="background-color: #22c55e; color: white; padding: 6px 12px; border: none; border-radius: 5px;">Save</button>
+                {{-- <button type="submit"
+                    style="background-color: #22c55e; color: white; padding: 6px 12px; border: none; border-radius: 5px;">Save</button> --}}
+                    <button id="createAgendaSubmit" type="submit"
+                        style="background-color:#22c55e;color:#fff;padding:6px 12px;border:none;border-radius:5px;">
+                        Save
+                    </button>
+
                 <button type="button" onclick="closeAgendaModal()"
                     style="background-color: #e5e7eb; color: #374151; padding: 6px 12px; border: none; border-radius: 5px; margin-left: 10px;">
                     Cancel
@@ -192,23 +197,65 @@
         document.getElementById('agendaModal').style.display = 'none';
     }
 
-    $('#createAgendaForm').on('submit', function(e) {
-        e.preventDefault();
-        $.ajax({
-            url: '{{ route('agendas.store') }}',
-            method: 'POST',
-            data: $(this).serialize(),
-            success: function(response) {
-                // alert('Agenda berhasil dibuat!');
-                toastr.success("Schedule created successfully");
-                location.reload();
-            },
-            error: function(xhr) {
-                alert('Gagal membuat agenda: ' + xhr.responseText);
-            }
-        });
-    });
+    // $('#createAgendaForm').on('submit', function(e) {
+    //     e.preventDefault();
+    //     $.ajax({
+    //         url: '{{ route('agendas.store') }}',
+    //         method: 'POST',
+    //         data: $(this).serialize(),
+    //         success: function(response) {
+    //             // alert('Agenda berhasil dibuat!');
+    //             toastr.success("Schedule created successfully");
+    //             location.reload();
+    //         },
+    //         error: function(xhr) {
+    //             alert('Gagal membuat agenda: ' + xhr.responseText);
+    //         }
+    //     });
+    // });
 </script>
+
+<script>
+  // pastikan tidak ada handler ganda jika partial ini di-load ulang
+  $(document).off('submit', '#createAgendaForm');
+
+  let isCreatingAgenda = false;
+
+  $(document).on('submit', '#createAgendaForm', function (e) {
+    e.preventDefault();
+
+    if (isCreatingAgenda) return;                // guard anti-double submit
+    isCreatingAgenda = true;
+
+    const $btn = $('#createAgendaSubmit');
+    const originalText = $btn.text();
+    $btn.prop('disabled', true).text('Saving...');
+
+    $.ajax({
+      url: '{{ route('agendas.store') }}',
+      method: 'POST',
+      data: $(this).serialize(),
+      success: function (response) {
+        toastr.success('Schedule created successfully');
+        // Optional: tutup modal & reset form
+        $('#agendaModal').hide();
+        $('#createAgendaForm')[0].reset();
+        // refresh list
+        location.reload();
+      },
+      error: function (xhr) {
+        toastr.error('Failed to create schedule');
+        console.error(xhr.responseText);
+      },
+      complete: function () {
+        // aktifkan kembali tombol & reset flag
+        isCreatingAgenda = false;
+        $btn.prop('disabled', false).text(originalText);
+      }
+    });
+  });
+</script>
+
 
 <script>
     function openCancelModal(id) {
