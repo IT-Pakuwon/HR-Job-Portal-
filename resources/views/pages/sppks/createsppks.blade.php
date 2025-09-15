@@ -110,14 +110,13 @@
                     @csrf
                     <div class="w-full rounded-xl bg-white p-6 shadow-md dark:bg-gray-800">
                         <div class="mb-6 border-b border-gray-200 pb-4 dark:border-gray-700">
-                            <h2 class="text-xl font-extrabold text-gray-800 dark:text-white">Create SPPK</h2>
-                            </h2>
+                            <h2 class="text-xl font-extrabold text-gray-800 dark:text-white">Create SPPK</h2>                            
                         </div>
                         <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
                             <div class="flex flex-col gap-2">
                                 <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Company</label>
                                 <select
-                                    class="reqw-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                    class="req w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                     name="cpnyid" required>
                                     @foreach ($usercpny as $p)
                                         <option value="{{ $p->cpnyid }}"

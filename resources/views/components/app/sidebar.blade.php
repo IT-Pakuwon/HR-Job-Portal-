@@ -409,9 +409,24 @@
                                     </ul>
                                 </div>
                             </li>
-                            <li class="bg-linear-to-r @if (in_array(Request::segment(1), ['#', '#', 'sppbs', 'createsppbs', 'showsppbs', 'editsppbs'])) {{ 'from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]' }} @endif mb-0.5 rounded-lg py-2 pl-4 pr-3 last:mb-0"
-                                x-data="{ open: {{ in_array(Request::segment(1), ['sppbs', 'createsppbs', 'showsppbs', 'editsppbs']) ? 1 : 0 }} }">
-                                <a class="@if (!in_array(Request::segment(1), ['sppbs', 'createsppbs', 'showsppbs', 'editsppbs'])) {{ 'hover:text-gray-900 dark:hover:text-white' }} @endif block truncate text-gray-800 transition dark:text-gray-100"
+                            <li class="bg-linear-to-r @if (in_array(Request::segment(1), [
+                            'receivedlist', 
+                            'csjobs', 
+                            'sppbs', 
+                            'cslist',                            
+                            ])) {{ 'from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]' }} @endif mb-0.5 rounded-lg py-2 pl-4 pr-3 last:mb-0"
+                                x-data="{ open: {{ in_array(Request::segment(1), [
+                               'receivedlist', 
+                                'csjobs', 
+                                'sppbs', 
+                                'cslist', 
+                                ]) ? 1 : 0 }} }">
+                                <a class="@if (!in_array(Request::segment(1), [
+                                'receivedlist', 
+                                'csjobs', 
+                                'sppbs', 
+                                'cslist', 
+                                ])) {{ 'hover:text-gray-900 dark:hover:text-white' }} @endif block truncate text-gray-800 transition dark:text-gray-100"
                                     href="#0" @click.prevent="open = !open; sidebarExpanded = true">
                                     <div class="flex items-center justify-between">
                                         <div class="flex items-center">
@@ -454,8 +469,8 @@
                                             </a>
                                         </li>
                                         <li class="mb-1 last:mb-0">
-                                            <a class="@if (Route::is('sppks')) {{ 'text-violet-500!' }} @endif block truncate text-gray-500/90 transition hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-                                                href="{{ route('sppbs') }}">
+                                            <a class="@if (Route::is('canvass.create')) {{ 'text-violet-500!' }} @endif block truncate text-gray-500/90 transition hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                                                href="{{ route('canvass.create') }}">
                                                 <span
                                                     class="lg:sidebar-expanded:opacity-100 text-m font-medium duration-200 lg:opacity-0 2xl:opacity-100">CS
                                                     List</span>

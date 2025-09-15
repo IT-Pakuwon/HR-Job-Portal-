@@ -384,6 +384,51 @@ class MasterController extends Controller
     }
 
     public function users(Request $req)
+{
+    $q        = trim($req->get('q', ''));
+    $page     = max(1, (int) $req->get('page', 1));
+    $perPage  = max(1, min(50, (int) $req->get('per_page', 10)));
+
+    $query = User::query();
+
+    if ($q !== '') {
+        $query->where(function ($w) use ($q) {
+            $w->where('name', 'like', "%{$q}%")
+              ->orWhere('email', 'like', "%{$q}%")
+              ->orWhere('username', 'like', "%{$q}%");
+        });
+    }
+
+    $total = (clone $query)->count();
+
+    $rows = $query
+        ->orderBy('name')
+        ->skip(($page - 1) * $perPage)
+        ->take($perPage)
+        ->get(['id', 'name', 'email', 'username']);
+
+    $data = $rows->map(function ($u) {
+        return [
+            // ⬇️ Select2 value harus sama dengan yang kamu simpan (username)
+            'id'        => $u->username,
+            // ⬇️ Teks yang ditampilkan (nama lengkap). fallback ke email/username
+            'text'      => $u->name ?: ($u->email ?: $u->username),
+            // info tambahan kalau perlu
+            'user_id'   => $u->id,       // numeric id (opsional)
+            'email'     => $u->email,
+        ];
+    });
+
+    return response()->json([
+        'data'      => $data,
+        'total'     => $total,
+        'page'      => $page,
+        'per_page'  => $perPage,
+    ]);
+}
+
+
+    public function users_ZZZ(Request $req)
     {
         $q        = trim($req->get('q', ''));
         $page     = max(1, (int) $req->get('page', 1));

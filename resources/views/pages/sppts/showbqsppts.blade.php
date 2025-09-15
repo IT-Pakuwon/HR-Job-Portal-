@@ -339,7 +339,7 @@
             $('#editBtn').on('click', function() {
                 // optional: tampilkan overlay sebentar
                 $('#loadingSpinnerContainer').fadeIn(120);
-                window.location.href = "{{ route('bqsppj.edit', $bq->id) }}";
+                window.location.href = "{{ route('bqsppt.edit', $bq->id) }}";
             });
         });
     </script>

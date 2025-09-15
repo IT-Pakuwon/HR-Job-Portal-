@@ -1,4 +1,7 @@
 <x-app-layout>
+    <!-- Select2 CSS & JS -->
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.full.min.js"></script>
     <style>
         .is-invalid {
             border-color: #ef4444 !important;
@@ -117,19 +120,8 @@
                 transform: translateY(0);
             }
         }
-    </style>
-    <!-- Select2 CSS & JS -->
-    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.full.min.js"></script>
-
-    {{-- <style>
-    /* Dark mode tweak for Select2 */
-    .dark .select2-container .select2-selection--single {
-        background-color: #374151; border-color:#4b5563; color:#e5e7eb;
-    }
-    .dark .select2-dropdown { background:#1f2937; color:#e5e7eb; }
-    .dark .select2-results__option--highlighted { background:#374151 !important; }
-    </style> --}}
+    </style>   
+    
     <style>
         /* Samakan tinggi Select2 tenant & pic ≈ input p-2.5 (~40px) */
         #tenant_select + .select2 .select2-selection--single,
@@ -162,8 +154,7 @@
         }
     </style>
 
-
-
+   
 
     <div class="max-w-9xl mx-auto w-full px-4 py-4 sm:px-6 lg:px-8">
         <div class="grid grid-cols-1 gap-8 lg:grid-cols-2 lg:grid-rows-[minmax(0,auto)_1fr]">
@@ -172,15 +163,14 @@
                     @csrf
                     <div class="w-full rounded-xl bg-white p-6 dark:bg-gray-800">
                         <div class="mb-6 border-b border-gray-200 pb-4 dark:border-gray-700">
-                            <h2 class="text-xl font-extrabold text-gray-800 dark:text-white">Create SPPT</h2>
-                            </h2>
+                            <h2 class="text-xl font-extrabold text-gray-800 dark:text-white">Create SPPT</h2>                            
                         </div>
                         <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
                             <div class="flex flex-col gap-2">
                                 <label
                                     class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Company</label>
                                 <select
-                                    class="reqw-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                    class="req w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                     name="cpnyid" required>
                                     @foreach ($usercpny as $p)
                                         <option value="{{ $p->cpnyid }}"
@@ -1567,8 +1557,8 @@
                     .done(function(res) {
                         // Expected: { data: [{sub_location_id / sub_location_id, sub_location_name / sub_location_name}], total,... }
                         const rows = (res.data || []).map(item => {
-                            const id = item.sub_location_id ?? item.sub_location_id ?? '';
-                            const name = item.sub_location_name ?? item.sub_location_name ?? '';
+                            const id = item.sub_location_id ?? item.sublocation_id ?? item.sub_loc_id ?? '';
+                            const name = item.sub_location_name ?? item.sublocation_name ?? item.sub_loc_name ?? '';
                             return `
                 <tr>
                     <td class="border p-2">${id}</td>

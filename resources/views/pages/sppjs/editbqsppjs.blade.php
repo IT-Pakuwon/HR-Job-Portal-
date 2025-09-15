@@ -377,7 +377,7 @@
                         $('#submitBtn').attr('disabled', false);
                         $('#btnText').text('Save');
                         $('#loadingSpinner').addClass('hidden');
-                        toastr.success("Budget Submit Successfully!");
+                        toastr.success("SPPJ Submit Successfully!");
                         window.location.href = "/sppjs";
                     },
                     error: function(xhr) {

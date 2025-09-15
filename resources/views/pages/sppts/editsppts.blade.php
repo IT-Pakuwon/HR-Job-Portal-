@@ -1,4 +1,7 @@
 <x-app-layout>
+    <!-- Select2 CSS & JS (jika belum ada di edit view) -->
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet"/>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.full.min.js"></script>
     <style>
         .is-invalid {
             border-color: #ef4444 !important;
@@ -118,6 +121,27 @@
             }
         }
     </style>
+  
+    <style>
+        /* Samakan tinggi Select2 ≈ input p-2.5 (~45px) */
+        #tenant_select + .select2 .select2-selection--single,
+        #pic_select + .select2 .select2-selection--single{
+            height:45px!important; min-height:45px;
+            border:1px solid #d1d5db; border-radius:.375rem; background:#fff;
+        }
+        #tenant_select + .select2 .select2-selection__rendered,
+        #pic_select + .select2 .select2-selection__rendered{
+            line-height:45px!important; padding:0 28px 0 10px; color:#111827;
+        }
+        #tenant_select + .select2 .select2-selection__arrow,
+        #pic_select + .select2 .select2-selection__arrow{ height:45px!important; right:6px; }
+        .dark #tenant_select + .select2 .select2-selection--single,
+        .dark #pic_select + .select2 .select2-selection--single{
+            background:#1f2937; border-color:#4b5563; color:#e5e7eb;
+        }
+    </style>
+
+
     <div class="max-w-9xl mx-auto w-full px-4 py-4 sm:px-6 lg:px-8">
         <div class="grid grid-cols-1 gap-8 lg:grid-cols-2 lg:grid-rows-[minmax(0,auto)_1fr]">
             <div class="flex flex-col gap-8 lg:col-span-2 lg:row-span-1">
@@ -198,6 +222,85 @@
                                 </select>
                             </div>
                         </div>
+
+                        {{-- ===== Row: Tenant, Lantai-Unit, PIC, Status Unit ===== --}}
+                        <div class="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
+                        {{-- Nama Tenant (Select2 Ajax) --}}
+                        <div class="flex flex-col gap-2">
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 req">Nama Tenant</label>
+                            <input type="hidden" name="nama_tenant" id="nama_tenant" value="{{ old('nama_tenant', $sppt->nama_tenant ?? '') }}">
+                            <select id="tenant_select"
+                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                    data-placeholder="Cari tenant...">
+                            @if(!empty($sppt->nama_tenant) && !empty($sppt->tenant_name))
+                                {{-- Prefill selected tenant agar Select2 tampilkan nilai saat page load --}}
+                                <option value="{{ $sppt->nama_tenant }}" selected>{{ $sppt->tenant_name }}</option>
+                            @endif
+                            </select>
+                        </div>
+
+                        {{-- Lantai - Unit (readonly) --}}
+                        <div class="flex flex-col gap-2">
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Lantai - Unit</label>
+                            <input type="text" name="no_unit_tenant" id="no_unit_tenant"
+                                class="w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-gray-700 shadow-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                placeholder="Otomatis dari Tenant" readonly
+                                value="{{ old('no_unit_tenant', $sppt->no_unit_tenant ?? '') }}">
+                        </div>
+
+                        {{-- PIC (Select2 Ajax Users) --}}
+                        <div class="flex flex-col gap-2">
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 req">PIC</label>
+                            <input type="hidden" name="pic_pengawas" id="pic_pengawas" value="{{ old('pic_pengawas', $sppt->pic_pengawas ?? '') }}">
+                            <select id="pic_select"
+                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                    data-placeholder="Cari PIC (User)...">
+                            @if(!empty($sppt->pic_pengawas) && !empty($sppt->pic_name))
+                                {{-- Prefill selected PIC (username sebagai value, nama sebagai text) --}}
+                                <option value="{{ $sppt->pic_pengawas }}" selected>{{ $sppt->pic_name }}</option>
+                            @endif
+                            </select>
+                        </div>
+
+                        {{-- Status Unit --}}
+                        <div class="flex flex-col gap-2">
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 req">Status Unit</label>
+                            @php $status = old('condition_unit', $sppt->condition_unit ?? ''); @endphp
+                            <select name="condition_unit" id="condition_unit"
+                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                    required>
+                            <option value="" disabled {{ $status===''?'selected':'' }}>-- pilih status --</option>
+                            <option value="Buka"  {{ $status==='Buka'?'selected':'' }}>Buka</option>
+                            <option value="Tutup" {{ $status==='Tutup'?'selected':'' }}>Tutup</option>
+                            </select>
+                        </div>
+                        </div>
+
+                        {{-- ===== Row: Beban Biaya, WO No. ===== --}}
+                        <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
+                        {{-- Beban Biaya --}}
+                        <div class="flex flex-col gap-2">
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 req">Beban Biaya</label>
+                            @php $beban = old('beban', $sppt->beban ?? ''); @endphp
+                            <select name="beban" id="beban"
+                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                    required>
+                            <option value="" disabled {{ $beban===''?'selected':'' }}>-- pilih beban biaya --</option>
+                            <option value="Tenant"  {{ $beban==='Tenant'?'selected':'' }}>Tenant</option>
+                            <option value="Pakuwon" {{ $beban==='Pakuwon'?'selected':'' }}>Pakuwon</option>
+                            </select>
+                        </div>
+
+                        {{-- WO No. --}}
+                        <div class="flex flex-col gap-2">
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">WO No.</label>
+                            <input type="text" name="wo_no" id="wo_no"
+                                class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                placeholder="Opsional"
+                                value="{{ old('wo_no', $sppt->wo_no ?? '') }}">
+                        </div>
+                        </div>
+
 
                         {{-- Description --}}
                         <div class="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
@@ -2219,6 +2322,170 @@
 
         });
     </script>
+
+    <script>
+        $(function () {
+        // helper tampilan item tenant
+        function formatTenant (item) {
+            if (!item.id) return item.text;
+            const unit = item.unit_label ? `<span class="text-gray-500"> — ${item.unit_label}</span>` : '';
+            return $(`<span>${item.text}${unit}</span>`);
+        }
+
+        // TENANT (Ajax)
+        $('#tenant_select').select2({
+            width:'100%',
+            placeholder: $('#tenant_select').data('placeholder') || 'Cari tenant...',
+            allowClear:true,
+            ajax:{
+            url: "{{ route('tenants.search') }}",
+            dataType:'json', delay:250,
+            data: params => ({ q: params.term || '', page: params.page || 1, per_page: 10 }),
+            processResults: (data, params) => {
+                params.page = params.page || 1;
+                const results = (data.data || []).map(it => ({
+                id: it.id, text: it.text, unit_label: it.unit_label, floor: it.floor || it.lantai || '', unit: it.unit || ''
+                }));
+                return { results, pagination: { more: (params.page * 10) < (data.total || 0) } };
+            },
+            cache:true
+            },
+            templateResult: formatTenant,
+            templateSelection: item => item.text || item.id,
+            escapeMarkup: m => m
+        })
+        .on('select2:select', function (e) {
+            const d = e.params.data || {};
+            $('#nama_tenant').val(d.id || '');
+            const label = d.unit_label || ((d.floor || '') && (d.unit || '') ? `${d.floor} - ${d.unit}` : '');
+            $('#no_unit_tenant').val(label);
+        })
+        .on('select2:clear', function(){
+            $('#nama_tenant').val(''); $('#no_unit_tenant').val('');
+        });
+
+        // PIC (Ajax Users)
+        $('#pic_select').select2({
+            width:'100%',
+            placeholder: $('#pic_select').data('placeholder') || 'Cari PIC (User)...',
+            allowClear:true,
+            ajax:{
+            url: "{{ route('users.search') }}",
+            dataType:'json', delay:250,
+            data: params => ({ q: params.term || '', page: params.page || 1, per_page: 10 }),
+            processResults: (data, params) => {
+                params.page = params.page || 1;
+                const results = (data.data || []).map(it => ({
+                id: it.username,         // simpan username sebagai value
+                text: it.text,           // nama lengkap utk label
+                email: it.email
+                }));
+                return { results, pagination: { more: (params.page * 10) < (data.total || 0) } };
+            },
+            cache:true
+            },
+            templateResult: function (item) {
+            if (!item.id) return item.text;
+            const email = item.email ? `<span class="text-gray-500"> — ${item.email}</span>` : '';
+            return $(`<span>${item.text}${email}</span>`);
+            },
+            templateSelection: item => item.text || item.id,
+            escapeMarkup: m => m
+        })
+        .on('select2:select', function(e){
+            const d = e.params.data || {};
+            $('#pic_pengawas').val(d.id || ''); // id = username
+        })
+        .on('select2:clear', function(){ $('#pic_pengawas').val(''); });
+
+        // Prefill Lantai-Unit saat load bila sudah ada di $sppt (safety)
+        // (sudah diisi via value=..., jadi cukup)
+        });
+    </script>
+
+    <script>
+        $(function () {
+        /** ---------- Helper umum ---------- **/
+        function injectSelect2Value($select, id, text) {
+            // Hapus option existing yang sama biar nggak dobel
+            $select.find('option[value="'+ String(id) +'"]').remove();
+            const opt = new Option(text, String(id), true, true);
+            $select.append(opt).trigger('change');   // render di UI
+        }
+
+        /** ---------- PREFILL TENANT ---------- **/
+        // Nilai dari backend (kalau kamu punya, pakai; kalau tidak, biarkan null)
+        const TENANT_ID    = @json($sppt->nama_tenant ?? null);     // Wajib ada (ID)
+        const TENANT_LABEL = @json($sppt->tenant_name ?? null);     // Opsional (nama untuk ditampilkan)
+        const TENANT_UNIT  = @json($sppt->no_unit_tenant ?? null);  // Opsional ("Lantai - Unit")
+
+        if (TENANT_ID) {
+            if (TENANT_LABEL) {
+            injectSelect2Value($('#tenant_select'), TENANT_ID, TENANT_LABEL);
+            $('#nama_tenant').val(TENANT_ID);
+            $('#no_unit_tenant').val(TENANT_UNIT || '');
+            } else {
+            // Cari label via AJAX kalau server cuma kasih ID
+            $.getJSON("{{ route('tenants.search') }}", { q: TENANT_ID, page: 1, per_page: 10 })
+            .done(function(res){
+                const list = (res && res.data) ? res.data : [];
+                // cari yang id-nya persis sama
+                const hit = list.find(x => String(x.id) === String(TENANT_ID));
+                const text = hit ? (hit.text || String(TENANT_ID)) : String(TENANT_ID);
+                injectSelect2Value($('#tenant_select'), TENANT_ID, text);
+                $('#nama_tenant').val(TENANT_ID);
+                $('#no_unit_tenant').val(hit && hit.unit_label ? hit.unit_label : '');
+            })
+            .fail(function(){
+                // fallback: tampilkan ID
+                injectSelect2Value($('#tenant_select'), TENANT_ID, String(TENANT_ID));
+                $('#nama_tenant').val(TENANT_ID);
+                $('#no_unit_tenant').val('');
+            });
+            }
+        } else {
+            $('#tenant_select').val(null).trigger('change');
+            $('#nama_tenant').val('');
+            $('#no_unit_tenant').val('');
+        }
+
+        /** ---------- PREFILL PIC (USER) ---------- **/
+        // Di create kamu simpan username ke hidden #pic_pengawas → itu jadi "id" Select2 juga.
+        const PIC_USERNAME = @json($sppt->pic_pengawas ?? null);   // Wajib ada (username)
+        const PIC_LABEL    = @json($sppt->pic_name ?? null);       // Opsional (nama lengkap untuk ditampilkan)
+
+            if (PIC_USERNAME) {
+                if (PIC_LABEL) {
+                injectSelect2Value($('#pic_select'), PIC_USERNAME, PIC_LABEL);
+                $('#pic_pengawas').val(PIC_USERNAME);
+                } else {
+                // Cari label via AJAX kalau server cuma kasih username
+                $.getJSON("{{ route('users.search') }}", { q: PIC_USERNAME, page: 1, per_page: 10 })
+                .done(function(res){
+                    const list = (res && res.data) ? res.data : [];
+                    // Di users.search kamu kirim { id: username, text: full_name, ... } → cocokkan by id
+                    const hit = list.find(x => String(x.id) === String(PIC_USERNAME));
+                    const text = hit ? (hit.text || String(PIC_USERNAME)) : String(PIC_USERNAME);
+                    injectSelect2Value($('#pic_select'), PIC_USERNAME, text);
+                    $('#pic_pengawas').val(PIC_USERNAME);
+                })
+                .fail(function(){
+                    // fallback: tampilkan username
+                    injectSelect2Value($('#pic_select'), PIC_USERNAME, String(PIC_USERNAME));
+                    $('#pic_pengawas').val(PIC_USERNAME);
+                });
+                }
+            } else {
+                $('#pic_select').val(null).trigger('change');
+                $('#pic_pengawas').val('');
+            }
+
+       
+        });
+        </script>
+
+
+
 
 
     <!-- Toastr CSS -->

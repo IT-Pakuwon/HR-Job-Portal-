@@ -48,6 +48,9 @@ use App\Http\Controllers\SpptController;
 use App\Http\Controllers\SppkController; 
 use App\Http\Controllers\BqController;
 
+use App\Http\Controllers\CanvassxController;
+
+
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Response;
 
@@ -537,7 +540,7 @@ Route::post('/logout', function () {
 
 
     Route::get('/canvasssheet', [BudgetController::class, 'CanvassSheet'])->name('canvasssheet');
-    Route::get ('/canvass/create', [CanvassController::class, 'createCS'])->name('canvass.create');
+    Route::get ('/canvass/create', [CanvassxController::class, 'createCS'])->name('canvass.create');
     Route::get('/vendors', [VendorController::class, 'index']);  
    
 

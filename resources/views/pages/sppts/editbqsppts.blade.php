@@ -72,7 +72,7 @@
                                 </div>
                                 <div class="flex items-center gap-4">
                                     <label class="mb-1 block text-xs text-gray-500 dark:text-gray-400">SPPT ID</label>
-                                    <input class="w-full rounded-md border bg-gray-50 p-2.5 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100" value="{{ $bq->sppttid }}" readonly>
+                                    <input class="w-full rounded-md border bg-gray-50 p-2.5 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100" value="{{ $bq->sppjtid }}" readonly>
                                 </div>
                                 <div class="flex items-center gap-4">
                                     <label class="mb-1 block text-xs text-gray-500 dark:text-gray-400">Company</label>
@@ -358,7 +358,7 @@
                 formData.append('_method', 'PUT');          // spoof → PUT
 
                 /* ⬇️  pakai $bq, bukan $bqs */
-                const url = "{{ route('bqs.update', $bq->id) }}";
+                const url = "{{ route('bqsppt.update', $bq->id) }}";
 
                 $('#submitBtn').attr('disabled', true);
                 $('#cancelBtn').prop('disabled', true);
@@ -377,7 +377,7 @@
                         $('#submitBtn').attr('disabled', false);
                         $('#btnText').text('Submit Approval');
                         $('#loadingSpinner').addClass('hidden');
-                        toastr.success("Budget Submit Successfully!");
+                        toastr.success("SPPT Submit Successfully!");
                         window.location.href = "/sppts";
                     },
                     error: function(xhr) {
