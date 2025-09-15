@@ -149,7 +149,7 @@
             </div>
         </div>
         <div class="flex w-full flex-col gap-6 xl:flex-col">
-            <div class="flex h-[50vh] w-full flex-col gap-6 md:h-[35vh] xl:flex-row">
+            <div class="flex w-full flex-col gap-6 md:h-[35vh] xl:flex-row">
                 {{-- Left card (SPPB Info) --}}
                 <div class="flex flex-1 flex-col overflow-y-auto rounded-xl bg-white dark:bg-gray-800">
                     <header

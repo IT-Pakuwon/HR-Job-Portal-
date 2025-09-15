@@ -144,7 +144,7 @@
                     </svg>
                     Edit
                 </button> --}}
-                 @if(!empty($canEdit) && $canEdit)
+                @if (!empty($canEdit) && $canEdit)
                     <button id="editBtn"
                         class="inline-flex items-center gap-1 rounded-md bg-gray-500 px-3 py-2 text-sm font-medium text-gray-100 transition-colors hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:bg-gray-100 dark:bg-gray-700/30 dark:text-gray-300 dark:hover:bg-gray-600/50">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
@@ -159,7 +159,7 @@
             </div>
         </div>
         <div class="flex w-full flex-col gap-6 xl:flex-col">
-            <div class="flex h-[50vh] w-full flex-col gap-6 md:h-[30vh] xl:flex-row">
+            <div class="flex w-full flex-col gap-6 md:h-[35vh] xl:flex-row">
                 {{-- Left Card --}}
                 <div class="flex flex-1 flex-col overflow-y-auto rounded-xl bg-white dark:bg-gray-800">
                     <header

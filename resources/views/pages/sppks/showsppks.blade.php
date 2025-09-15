@@ -149,7 +149,7 @@
             </div>
         </div>
         <div class="flex w-full flex-col gap-6 xl:flex-col">
-            <div class="flex h-[50vh] w-full flex-col gap-6 md:h-[35vh] xl:flex-row">
+            <div class="flex w-full flex-col gap-6 md:h-[35vh] xl:flex-row">
                 {{-- Left card (SPPK Info) --}}
                 <div class="flex flex-1 flex-col overflow-y-auto rounded-xl bg-white dark:bg-gray-800">
                     <header
@@ -206,11 +206,11 @@
                             ];
                             $row3 = [
                                 ['label' => 'No Polisi', 'value' => $sppk->no_polisi],
-                                ['label' => 'Nama Kendaraan', 'value' => $sppk->namakendaraan],                                
+                                ['label' => 'Nama Kendaraan', 'value' => $sppk->namakendaraan],
                             ];
                             $row4 = [
                                 ['label' => 'Pemilik', 'value' => $sppk->pemilikkendaraan],
-                                ['label' => 'KM', 'value' => number_format($sppk->km_kendaraan, 0, ',', '.')],                                
+                                ['label' => 'KM', 'value' => number_format($sppk->km_kendaraan, 0, ',', '.')],
                             ];
                         @endphp
 
