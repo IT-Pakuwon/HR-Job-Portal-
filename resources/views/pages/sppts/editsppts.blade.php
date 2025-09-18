@@ -2365,38 +2365,46 @@
         });
 
         // PIC (Ajax Users)
-        $('#pic_select').select2({
-            width:'100%',
-            placeholder: $('#pic_select').data('placeholder') || 'Cari PIC (User)...',
-            allowClear:true,
-            ajax:{
-            url: "{{ route('users.search') }}",
-            dataType:'json', delay:250,
-            data: params => ({ q: params.term || '', page: params.page || 1, per_page: 10 }),
-            processResults: (data, params) => {
-                params.page = params.page || 1;
-                const results = (data.data || []).map(it => ({
-                id: it.username,         // simpan username sebagai value
-                text: it.text,           // nama lengkap utk label
-                email: it.email
-                }));
-                return { results, pagination: { more: (params.page * 10) < (data.total || 0) } };
-            },
-            cache:true
-            },
-            templateResult: function (item) {
-            if (!item.id) return item.text;
-            const email = item.email ? `<span class="text-gray-500"> — ${item.email}</span>` : '';
-            return $(`<span>${item.text}${email}</span>`);
-            },
-            templateSelection: item => item.text || item.id,
-            escapeMarkup: m => m
-        })
-        .on('select2:select', function(e){
-            const d = e.params.data || {};
-            $('#pic_pengawas').val(d.id || ''); // id = username
-        })
-        .on('select2:clear', function(){ $('#pic_pengawas').val(''); });
+         $('#pic_select').select2({
+                width: '100%',
+                placeholder: $('#pic_select').data('placeholder') || 'Cari PIC (User)...',
+                allowClear: true,
+                ajax: {
+                    url: "{{ route('users.search') }}",
+                    dataType: 'json',
+                    delay: 250,
+                    data: params => ({ q: params.term || '', page: params.page || 1, per_page: 10 }),
+                    processResults: function (data, params) {
+                    params.page = params.page || 1;
+                    const results = (data.data || []).map(it => ({
+                        id: it.id,
+                        text: it.text,
+                        email: it.email,
+                        // username: it.username   // ⬅️ pastikan ikut dibawa ke front-end
+                    }));
+                    return {
+                        results,
+                        pagination: { more: (params.page * 10) < (data.total || 0) }
+                    };
+                    },
+                    cache: true
+                },
+                templateResult: function (item) {
+                    if (!item.id) return item.text;
+                    const email = item.email ? `` : '';
+                    return $(`<span>${item.text}${email}</span>`);
+                },
+                templateSelection: item => item.text || item.id,
+                escapeMarkup: m => m
+                })
+                .on('select2:select', function (e) {
+                const d = e.params.data || {};
+                // ⬇️ sekarang simpan USERNAME ke hidden field pic_pengawas
+                $('#pic_pengawas').val(d.id || '');
+                })
+                .on('select2:clear', function () {
+                $('#pic_pengawas').val('');
+            });
 
         // Prefill Lantai-Unit saat load bila sudah ada di $sppt (safety)
         // (sudah diisi via value=..., jadi cukup)
@@ -2482,7 +2490,7 @@
 
        
         });
-        </script>
+    </script>
 
 
 

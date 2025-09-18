@@ -131,7 +131,7 @@
                     </svg>
                     Approve
                 </button> --}}
-                @if (!$sppt->bqid)
+                {{-- @if (!$sppt->bqid)
                     <span class="inline-block" title="Please Create BQ !">
                         <button id="approveBtn" disabled
                             class="inline-flex cursor-not-allowed items-center gap-1 rounded-md bg-green-100 px-3 py-2 text-sm font-medium text-green-700 opacity-50"
@@ -144,7 +144,7 @@
                             Approve
                         </button>
                     </span>
-                @else
+                @else --}}
                     <button id="approveBtn"
                         class="inline-flex items-center gap-1 rounded-md bg-green-100 px-3 py-2 text-sm font-medium text-green-700 hover:bg-green-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
@@ -154,7 +154,7 @@
                         </svg>
                         Approve
                     </button>
-                @endif
+                {{-- @endif --}}
 
                 <button id="reviseBtn"
                     class="inline-flex items-center gap-1 rounded-md bg-gray-500 px-3 py-2 text-sm font-medium text-gray-100 transition-colors hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:bg-gray-100 dark:bg-gray-700/30 dark:text-gray-300 dark:hover:bg-gray-600/50">
@@ -691,7 +691,7 @@
             });
         });
     </script>
-    <script>
+    {{-- <script>
         $(document).on("click", "#approveBtn", function() {
             let spptid = "{{ $sppt->spptid }}"; // Ambil Task ID dari modal        
             approveSPPT(spptid);
@@ -741,7 +741,50 @@
                 }
             });
         }
+    </script> --}}
+
+    <script>
+        const HAS_BQ = @json((bool) $sppt->bqid);
+        const BQ_ID  = @json($sppt->bqid ?? '');
+
+        function approveSPPJ(spptid){
+        const $spinner = $("#loadingSpinnerContainer");
+        $spinner.fadeIn();
+        // return jqXHR supaya bisa .always()
+        return $.ajax({
+            url: `/sppt/${spptid}/approve`,
+            type: "POST",
+            data: { _token: "{{ csrf_token() }}", spptid },
+            success: function(res){
+            if (res.success) {
+                toastr.success("SPPJ approved successfully!");
+                window.location.href = "/sppts";
+            } else {
+                toastr.error(res.message || "Error: Unable to approve sppt.");
+            }
+            },
+            error: function(xhr){
+            if (xhr.status === 403) toastr.error("You are not authorized to approve this sppt.");
+            else toastr.error("Error: Unable to approve sppt.");
+            },
+            complete: function(){ $spinner.fadeOut(); }
+        });
+        }
+
+        // pastikan hanya ada **satu** handler
+        $(document).off('click.approve', '#approveBtn').on('click.approve', '#approveBtn', function(){
+        if (!HAS_BQ || !BQ_ID) { toastr.error("Cannot approve: BQ has not been created yet!"); return; }
+
+        const $btn = $(this);
+        if ($btn.data('busy')) return;        // cegah double click
+        $btn.data('busy', true).prop('disabled', true);
+
+        approveSPPJ("{{ $sppt->spptid }}").always(function(){
+            $btn.data('busy', false).prop('disabled', false);
+        });
+        });
     </script>
+
 
 
     <script>
@@ -912,7 +955,7 @@
             });
         }
     </script>
-    <script>
+    {{-- <script>
         const HAS_BQ = @json((bool) $sppt->bqid);
         const BQ_ID = @json($sppt->bqid ?? '');
 
@@ -923,7 +966,7 @@
             }
             approveSPPT("{{ $sppt->spptid }}");
         });
-    </script>
+    </script> --}}
 
 
 

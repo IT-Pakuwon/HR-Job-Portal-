@@ -39,7 +39,6 @@ use App\Http\Controllers\AssetsLocationController;
 use App\Http\Controllers\WorksCategoryController;
 use App\Http\Controllers\BudgetController;
 use App\Http\Controllers\VendorController;
-use App\Http\Controllers\CanvassController;
 use App\Http\Controllers\ChangeStoController;
 use App\Http\Controllers\MasterController;
 use App\Http\Controllers\SppbController;  
@@ -47,6 +46,10 @@ use App\Http\Controllers\SppjController;
 use App\Http\Controllers\SpptController; 
 use App\Http\Controllers\SppkController; 
 use App\Http\Controllers\BqController;
+use App\Http\Controllers\ReceivedListController;
+use App\Http\Controllers\CsJobController;
+use App\Http\Controllers\CanvassController;
+
 
 use App\Http\Controllers\CanvassxController;
 
@@ -450,6 +453,8 @@ Route::post('/logout', function () {
     Route::get('/kendaraan/all', [MasterController::class, 'listKendaraan'])->name('kendaraan.all');
     Route::get('/lookup/tenants', [MasterController::class, 'tenants'])->name('tenants.search');
     Route::get('/lookup/users',   [MasterController::class, 'users'])->name('users.search');
+    Route::get('/vendorscs', [MasterController::class, 'vendors']); 
+    Route::get('/taxes', [MasterController::class, 'taxes'])->name('taxes.index');
 
     Route::get('/sppts', [SpptController::class, 'index'])->name('sppts');
     Route::get('/sppts/json', [SpptController::class, 'json'])->name('sppts.json');
@@ -494,17 +499,20 @@ Route::post('/logout', function () {
     Route::get('/sppks/{id}/tracking', [SppkController::class, 'tracking'])->name('sppks.tracking');
     Route::get('/pdf_sppks/{id}', [SppkController::class, 'printSppk']);
 
-    Route::get('/receivedlist', [CanvassController::class, 'ReceivedList'])->name('receivedlist');
-    Route::get('/receivedlist/json', [CanvassController::class, 'ReceivedListJson'])->name('receivedlist.json');
-    Route::get('/receivedlist/users', [CanvassController::class, 'ReceivedListUsers'])->name('receivedlist.users');
-    Route::post('/receivedlist/assign', [CanvassController::class, 'AssignPurchasing'])->name('receivedlist.assign');
+    Route::get('/receivedlist', [ReceivedListController::class, 'ReceivedList'])->name('receivedlist');
+    Route::get('/receivedlist/json', [ReceivedListController::class, 'ReceivedListJson'])->name('receivedlist.json');
+    Route::get('/receivedlist/users', [ReceivedListController::class, 'ReceivedListUsers'])->name('receivedlist.users');
+    Route::post('/receivedlist/assign', [ReceivedListController::class, 'AssignPurchasing'])->name('receivedlist.assign');
 
-    Route::get('/csjobs', [CanvassController::class, 'CsJobs'])->name('csjobs');
-    // Route::get('/csjobs/json', [CanvassController::class, 'CsJobsJson'])->name('csjobs.json');
-    Route::get('/csjobs/mine/json', [CanvassController::class, 'CsJobsMineJson'])->name('csjobs.mine.json');                 // CS Jobs (punya saya)
-    Route::get('/csjobs/all/json',  [CanvassController::class, 'CsJobsAllJson'])->name('csjobs.all.json');                   // All Jobs
-    Route::get('/csjobs/revision/json', [CanvassController::class, 'CsJobsRevisionJson'])->name('csjobs.revision.json');     // My Revision
-    Route::get('/csjobs/sppbjkt-progress/json', [CanvassController::class, 'SppbjktOnProgressJson'])->name('csjobs.sppbjkt.progress.json'); // SPPBJKT IN Progress
+    Route::get('/csjobs', [CsJobController::class, 'CsJobs'])->name('csjobs');   
+    Route::get('/csjobs/mine/json', [CsJobController::class, 'CsJobsMineJson'])->name('csjobs.mine.json');                 
+    Route::get('/csjobs/all/json',  [CsJobController::class, 'CsJobsAllJson'])->name('csjobs.all.json');                   
+    Route::get('/csjobs/revision/json', [CsJobController::class, 'CsJobsRevisionJson'])->name('csjobs.revision.json');     
+    Route::get('/csjobs/sppbjkt-progress/json', [CsJobController::class, 'SppbjktOnProgressJson'])->name('csjobs.sppbjkt.progress.json'); 
+
+    Route::get('/createcs/{doc}/{src}', [CanvassController::class, 'createCs'])
+        ->where(['doc' => 'SPPB|SPPJ|SPPK|SPPT', 'src' => '[0-9]+'])
+        ->name('canvass.createcs');
     
 
     Route::get('/inventory/list', [MasterController::class, 'InventoryList'])->name('inventory.list');

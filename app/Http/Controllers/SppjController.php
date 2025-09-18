@@ -340,7 +340,7 @@ class SppjController extends Controller
 
             // update totalqty di header
             $header->totalqty = $totalQty;
-            $header->totalopenordered = $totalQty;
+            // $header->totalopenordered = $totalQty;
             $header->save();
 
             // === 4) copy line approval (M_approval -> T_approval) ===
@@ -671,7 +671,7 @@ class SppjController extends Controller
             // Hitung total qty (kalau mau pakai base_qty, ganti ke sum('base_qty'))
             $totalQty = TrSPPJdetail::where('sppjid', $header->sppjid)->sum('qty');
             $header->totalqty = $totalQty;
-            $header->totalopenordered = $totalQty;
+            // $header->totalopenordered = $totalQty;
             $header->save();
 
             // === regenerasi T_approval (opsional, ikuti logikamu) ===
@@ -943,6 +943,14 @@ class SppjController extends Controller
                 $sppj->completed_by = $user->username;
                 $sppj->completed_at = $now;
                 $sppj->save();
+
+                $sppjdetail = TrSPPJdetail::where('sppjid', $sppj->sppjid)                
+                    ->get();
+
+                foreach ($sppjdetail as $d) {
+                    $d->status = 'C'; 
+                    $d->save();
+                }
 
                 // Kirim email ke requester (creator)
                 $status        = 'C';

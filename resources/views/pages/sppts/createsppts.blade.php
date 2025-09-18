@@ -2068,7 +2068,7 @@
                         id: it.id,
                         text: it.text,
                         email: it.email,
-                        username: it.username   // ⬅️ pastikan ikut dibawa ke front-end
+                        // username: it.username   // ⬅️ pastikan ikut dibawa ke front-end
                     }));
                     return {
                         results,
@@ -2088,7 +2088,7 @@
                 .on('select2:select', function (e) {
                 const d = e.params.data || {};
                 // ⬇️ sekarang simpan USERNAME ke hidden field pic_pengawas
-                $('#pic_pengawas').val(d.username || '');
+                $('#pic_pengawas').val(d.id || '');
                 })
                 .on('select2:clear', function () {
                 $('#pic_pengawas').val('');

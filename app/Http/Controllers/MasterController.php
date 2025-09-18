@@ -25,6 +25,8 @@ use App\Models\Attachment;
 use App\Models\MsKendaraan;
 use App\Models\User;
 use App\Models\MsTenant;
+use App\Models\MsVendor;
+use App\Models\MsTax;
 use Illuminate\Support\Str;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Imports\BqDetailTempImport; 
@@ -384,48 +386,48 @@ class MasterController extends Controller
     }
 
     public function users(Request $req)
-{
-    $q        = trim($req->get('q', ''));
-    $page     = max(1, (int) $req->get('page', 1));
-    $perPage  = max(1, min(50, (int) $req->get('per_page', 10)));
+    {
+        $q        = trim($req->get('q', ''));
+        $page     = max(1, (int) $req->get('page', 1));
+        $perPage  = max(1, min(50, (int) $req->get('per_page', 10)));
 
-    $query = User::query();
+        $query = User::query();
 
-    if ($q !== '') {
-        $query->where(function ($w) use ($q) {
-            $w->where('name', 'like', "%{$q}%")
-              ->orWhere('email', 'like', "%{$q}%")
-              ->orWhere('username', 'like', "%{$q}%");
+        if ($q !== '') {
+            $query->where(function ($w) use ($q) {
+                $w->where('name', 'like', "%{$q}%")
+                ->orWhere('email', 'like', "%{$q}%")
+                ->orWhere('username', 'like', "%{$q}%");
+            });
+        }
+
+        $total = (clone $query)->count();
+
+        $rows = $query
+            ->orderBy('name')
+            ->skip(($page - 1) * $perPage)
+            ->take($perPage)
+            ->get(['id', 'name', 'email', 'username']);
+
+        $data = $rows->map(function ($u) {
+            return [
+                // ⬇️ Select2 value harus sama dengan yang kamu simpan (username)
+                'id'        => $u->username,
+                // ⬇️ Teks yang ditampilkan (nama lengkap). fallback ke email/username
+                'text'      => $u->name ?: ($u->email ?: $u->username),
+                // info tambahan kalau perlu
+                'user_id'   => $u->id,       // numeric id (opsional)
+                'email'     => $u->email,
+            ];
         });
+
+        return response()->json([
+            'data'      => $data,
+            'total'     => $total,
+            'page'      => $page,
+            'per_page'  => $perPage,
+        ]);
     }
-
-    $total = (clone $query)->count();
-
-    $rows = $query
-        ->orderBy('name')
-        ->skip(($page - 1) * $perPage)
-        ->take($perPage)
-        ->get(['id', 'name', 'email', 'username']);
-
-    $data = $rows->map(function ($u) {
-        return [
-            // ⬇️ Select2 value harus sama dengan yang kamu simpan (username)
-            'id'        => $u->username,
-            // ⬇️ Teks yang ditampilkan (nama lengkap). fallback ke email/username
-            'text'      => $u->name ?: ($u->email ?: $u->username),
-            // info tambahan kalau perlu
-            'user_id'   => $u->id,       // numeric id (opsional)
-            'email'     => $u->email,
-        ];
-    });
-
-    return response()->json([
-        'data'      => $data,
-        'total'     => $total,
-        'page'      => $page,
-        'per_page'  => $perPage,
-    ]);
-}
 
 
     public function users_ZZZ(Request $req)
@@ -467,6 +469,27 @@ class MasterController extends Controller
             'page'  => $page,
             'per_page' => $perPage,
         ]);
+    }
+
+    public function vendors()
+    {
+        // Ambil semua vendor (atau tambahkan where status = 'A' dll.)
+        return response()->json(
+            MsVendor::select('id','vendor_id', 'vendor_name', 'contact_person', 'phone_number', 'vendor_addr1')
+                  ->orderBy('vendor_name')
+                  ->get()
+        );
+    }
+
+    public function taxes()
+    {
+        // Ambil pajak aktif (silakan sesuaikan filter status bila perlu)
+        $data = MsTax::select('taxid','taxrate','descr','taxtype','status')
+            ->where('status', 'A')   // hilangkan baris ini kalau tak perlu filter
+            ->orderBy('taxid')
+            ->get();
+
+        return response()->json($data);
     }
 
 

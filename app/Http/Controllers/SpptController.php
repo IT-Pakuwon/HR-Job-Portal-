@@ -345,7 +345,7 @@ class SpptController extends Controller
 
             // update totalqty di header
             $header->totalqty = $totalQty;
-            $header->totalopenordered = $totalQty;
+            // $header->totalopenordered = $totalQty;
             $header->save();
 
             // === 4) copy line approval (M_approval -> T_approval) ===
@@ -557,9 +557,14 @@ class SpptController extends Controller
         $header->cpny_id        = $request->cpnyid;
         $header->department_id  = $request->departementid;
         $header->requesttypeid  = $request->requesttypeid;
+        $header->nama_tenant    = $request->nama_tenant;
+        $header->no_unit_tenant = $request->no_unit_tenant;
+        $header->pic_pengawas   = $request->pic_pengawas;
+        $header->condition_unit = $request->condition_unit;
+        $header->beban          = $request->beban;
         $header->keperluan      = $request->keperluan;
         $header->budget_perpost = $request->perpost;   
-        $header->woid           = $request->woid;
+        $header->woid           = $request->woid;        
         $header->status         = 'P';
         $header->updated_by     = $username;
         $header->save();
@@ -676,7 +681,7 @@ class SpptController extends Controller
             // Hitung total qty (kalau mau pakai base_qty, ganti ke sum('base_qty'))
             $totalQty = TrSPPTdetail::where('spptid', $header->spptid)->sum('qty');
             $header->totalqty = $totalQty;
-            $header->totalopenordered = $totalQty;
+            // $header->totalopenordered = $totalQty;
             $header->save();
 
             // === regenerasi T_approval (opsional, ikuti logikamu) ===
@@ -950,6 +955,14 @@ class SpptController extends Controller
                 $sppt->completed_by = $user->username;
                 $sppt->completed_at = $now;
                 $sppt->save();
+
+                $spptdetail = TrSPPKdetail::where('spptid', $sppt->spptid)                
+                    ->get();
+
+                foreach ($spptdetail as $d) {
+                    $d->status = 'C'; 
+                    $d->save();
+                }
 
                 // Kirim email ke requester (creator)
                 $status        = 'C';

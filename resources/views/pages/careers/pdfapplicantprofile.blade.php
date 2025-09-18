@@ -332,14 +332,15 @@
             <td style="width: 50%;">Gaji Yang Diharapkan (THP) <br><em>( Expected Salary (THO) )</em></td>
         </tr>
         <tr style="text-align: center;">
-            <td>{{ $p->existing_last_thp }}</td>
-            <td>{{ $p->expected_thp }}</td>
+            <td>Rp. {{ isset($applicant->existing_last_thp) ? number_format((int)$applicant->existing_last_thp, 0, ',', '.') : '-' }}</td>
+            <td>Rp. {{ isset($applicant->expected_thp) ? number_format((int)$applicant->expected_thp, 0, ',', '.') : '-' }}</td>
         </tr>
 
         <tr>
             <td colspan="2" style="padding: 8px;">
                 <strong>Ekspektasi</strong> <em>(Expectations)</em>:<br>
-                {{ $applicant->expectations }}
+                {{-- {{ $applicant->expectations }} --}}
+                Rp. {{ isset($applicant->expectations) ? number_format((int)$applicant->expectations, 0, ',', '.') : '-' }}
             </td>
         </tr>
     </table>

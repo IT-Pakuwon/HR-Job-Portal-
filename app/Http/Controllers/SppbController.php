@@ -334,7 +334,7 @@ class SppbController extends Controller
 
             // update totalqty di header
             $header->totalqty = $totalQty;
-            $header->totalopenordered = $totalQty;
+            // $header->totalopenordered = $totalQty;
             $header->save();
 
             // === 4) copy line approval (M_approval -> T_approval) ===
@@ -665,7 +665,7 @@ class SppbController extends Controller
             // Hitung total qty (kalau mau pakai base_qty, ganti ke sum('base_qty'))
             $totalQty = TrSPPBdetail::where('sppbid', $header->sppbid)->sum('qty');
             $header->totalqty = $totalQty;
-            $header->totalopenordered = $totalQty;
+            // $header->totalopenordered = $totalQty;
             $header->save();
 
             // === regenerasi T_approval (opsional, ikuti logikamu) ===
@@ -934,6 +934,14 @@ class SppbController extends Controller
                 $sppb->completed_by = $user->username;
                 $sppb->completed_at = $now;
                 $sppb->save();
+
+                $sppbdetail = TrSPPBdetail::where('sppbid', $sppb->sppbid)                
+                    ->get();
+
+                foreach ($sppbdetail as $d) {
+                    $d->status = 'C'; 
+                    $d->save();
+                }
 
                 // Kirim email ke requester (creator)
                 $status        = 'C';

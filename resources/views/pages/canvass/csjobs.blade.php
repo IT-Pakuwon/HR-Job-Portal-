@@ -395,8 +395,14 @@
                 $(function () {
                 let docTypeFilter = ''; // '' = all
 
-                const mapCreateUrl = { SPPB:'createcs_sppb', SPPJ:'createcs_sppj', SPPK:'createcs_sppk', SPPT:'createcs_sppt' };
+                // const mapCreateUrl = { SPPB:'createcs_sppb', SPPJ:'createcs_sppj', SPPK:'createcs_sppk', SPPT:'createcs_sppt' };
                 const mapShowUrl   = { SPPB:'showsppbs',    SPPJ:'showsppjs',    SPPK:'showsppks',    SPPT:'showsppts'    };
+
+                function buildCreateUrl(row){
+                    // /createcs/{doc}/{src}/{row}
+                    const r = row.row_id ?? '';
+                    return `/createcs/${row.doc_type}/${row.src_id}`;
+                }
 
                 function renderDocBtn(row) {
                     const base = mapShowUrl[row.doc_type] || '#';
@@ -430,14 +436,12 @@
                 }
 
                 function colSetWithCreate() {
-                    // sisipkan Create CS di depan
                     const createCol = {
-                    data:null, orderable:false, searchable:false, className:'text-left',
-                    render: function (_d,_t,row) {
-                        const base = mapCreateUrl[row.doc_type] || 'createcs';
-                        const url  = `/${base}/${row.src_id}`;
+                        data:null, orderable:false, searchable:false, className:'text-left',
+                        render: function (_d,_t,row) {
+                        const url = buildCreateUrl(row);
                         return `<a href="${url}" class="inline-flex items-center rounded px-3 py-1.5 bg-indigo-600 text-white hover:bg-indigo-700 text-sm font-semibold">Create CS</a>`;
-                    }
+                        }
                     };
                     return [createCol, ...colSetWithoutCreate()];
                 }

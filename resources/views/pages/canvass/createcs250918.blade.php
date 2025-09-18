@@ -55,15 +55,6 @@
             100%{ opacity:.3; transform: translateY(0); }
         }
     </style>
-    <style>
-        .vendor-title{
-            white-space: normal;          /* boleh turun baris */
-            overflow-wrap: anywhere;      /* pecah kata sangat panjang */
-            word-break: break-word;       /* jaga pecah kata yang wajar */
-            line-height: 1.1;             /* rapatkan sedikit */
-        }
-    </style>
-
 
 
     <div class="max-w-9xl mx-auto w-full px-4 py-4 sm:px-6 lg:px-8">
@@ -83,7 +74,7 @@
                                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Department : {{ $header->department_id }}</label>
                             </div>
                             <div class="flex flex-col gap-2">
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Purchaser : {{ ucwords(strtolower(optional($header->purchaser)->name)) }}</label>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Purchaser : {{ $header->assignpurchasing }}</label>
                                 @if(in_array($doc, ['SPPJ', 'SPPT']))
                                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
                                         BQ ID : {{ $header->bqid }}
@@ -164,109 +155,6 @@
                     </div>
                     </div>
 
-                    {{-- ===== Existing Attachments (from controller) ===== --}}
-@if(($attachment ?? collect())->count())
-<div class="w-full rounded-xl bg-white p-6 shadow-md dark:bg-gray-800">
-    <details class="group" open>
-        <summary
-            class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-xl font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
-            <span>Existing Attachments</span>
-            <span class="text-sm font-medium text-gray-500 transition-all group-open:hidden">See details &rarr;</span>
-            <span class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline">Hide details &darr;</span>
-        </summary>
-
-        <div class="mt-4 overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                <thead class="bg-gray-50 dark:bg-gray-700">
-                    <tr>
-                        <th class="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wider">File</th>                        
-                        <th class="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wider">Uploaded By</th>
-                        <th class="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wider">Uploaded At</th>
-                        <th class="px-4 py-2 text-right text-xs font-semibold uppercase tracking-wider">Action</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-gray-100 bg-white dark:divide-gray-700 dark:bg-gray-800">
-                    @foreach($attachment as $att)
-                        @php
-                            // Aman: fallback nilai kalau kolom tidak ada
-                            $fileName   =  $att->name   ?? 'Attachment';                           
-                            $uploadedBy = $att->created_user ?? '';
-                            $uploadedAt = $att->created_at ?? null;
-
-                            // Tentukan URL download/view:
-                            // -- Opsi 1: punya route download berdasar id
-                            // $downloadUrl = route_exists('attachments.download')
-                            //     ? route('attachments.download', $att->id)
-                            //     : null;
-
-                            // // -- Opsi 2: punya kolom path/uri → gunakan Storage::url (pastikan disk publik)
-                            // if (!$downloadUrl) {
-                            //     $path = $att->path ?? $att->filepath ?? $att->file_path ?? null;
-                            //     if ($path) {
-                            //         $downloadUrl = \Illuminate\Support\Facades\Storage::url($path);
-                            //     }
-                            // }
-
-                            // // -- Opsi 3: fallback ke route show jika ada
-                            // if (!$downloadUrl && function_exists('route')) {
-                            //     $downloadUrl = route_exists('attachments.show')
-                            //         ? route('attachments.show', $att->id)
-                            //         : '#';
-                            // }
-
-                            // // Helper kecil untuk cek route ada/tidak
-                            // function route_exists($name){
-                            //     try { return \Illuminate\Support\Facades\Route::has($name); }
-                            //     catch (\Throwable $e) { return false; }
-                            // }
-                        @endphp
-                        <tr>
-                            <td class="px-4 py-2 text-sm">
-                                <div class="font-semibold text-gray-800 dark:text-gray-100">{{ $fileName }}</div>
-                                @if(!empty($att->filesize) || !empty($att->size))
-                                    <div class="text-xs text-gray-500">
-                                        Size: {{ $att->filesize ?? $att->size }} 
-                                    </div>
-                                @endif
-                                @if(!empty($att->mimetype) || !empty($att->mime))
-                                    <div class="text-xs text-gray-500">
-                                        Type: {{ $att->mimetype ?? $att->mime }}
-                                    </div>
-                                @endif
-                            </td>                           
-                            <td class="px-4 py-2 text-sm">
-                                {{ $uploadedBy }}
-                            </td>
-                            <td class="px-4 py-2 text-sm">
-                                {{ $uploadedAt ? \Carbon\Carbon::parse($uploadedAt)->format('d M Y H:i') : '-' }}
-                            </td>
-                            <td class="px-4 py-2 text-right">
-                                <a href="#"
-                                   target="_blank" rel="noopener"
-                                   class="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-indigo-700">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                                        <path d="M3 14a1 1 0 011-1h2v2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h2v2H4a1 1 0 01-1-1zM3 6a1 1 0 011-1h2v2H4A1 1 0 013 6zM7 5h10v2H7V5zM7 9h10v2H7V9zM7 13h10v2H7v-2z" />
-                                    </svg>
-                                    View / Download
-                                </a>
-                            </td>
-                        </tr>
-                    @endforeach
-                </tbody>
-            </table>
-        </div>
-    </details>
-</div>
-@else
-<div class="w-full rounded-xl bg-white p-6 shadow-md dark:bg-gray-800">
-    <div class="flex items-center justify-between border-b border-gray-200 pb-4 dark:border-gray-700">
-        <h3 class="text-lg font-bold text-gray-800 dark:text-gray-100">Existing Attachments</h3>
-    </div>
-    <p class="mt-4 text-sm text-gray-500 dark:text-gray-400">Belum ada attachment untuk dokumen ini.</p>
-</div>
-@endif
-
-
 
                     {{-- ===== Attachment ===== --}}
                     <div class="w-full rounded-xl bg-white p-6 shadow-md dark:bg-gray-800">
@@ -327,43 +215,6 @@
                     </div>
                 </form>
             </div>
-
-            <!-- ========== TAX PICKER MODAL ========== -->
-            <div id="taxModal" class="fixed inset-0 z-[3000] hidden">
-            <!-- overlay -->
-            <div id="taxModalOverlay" class="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
-
-            <!-- panel -->
-            <div class="absolute left-1/2 top-1/2 w-[90vw] max-w-3xl -translate-x-1/2 -translate-y-1/2 rounded-xl bg-white shadow-xl dark:bg-gray-800">
-                <div class="flex items-center justify-between border-b px-4 py-3 dark:border-gray-700">
-                <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-100">Pilih Pajak</h3>
-                <button id="taxModalClose" class="rounded px-2 py-1 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700">✖</button>
-                </div>
-                <div class="p-4">
-                <div class="mb-3 flex items-center gap-2">
-                    <input id="taxSearch" type="text" placeholder="Cari taxid/descr..."
-                        class="w-full rounded border border-gray-300 px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
-                </div>
-                <div class="max-h-[55vh] overflow-auto">
-                    <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                    <thead class="bg-gray-50 dark:bg-gray-700">
-                        <tr>
-                        <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider">Tax ID</th>
-                        <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider">Rate (%)</th>
-                        <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider">Description</th>
-                        <th class="px-3 py-2"></th>
-                        </tr>
-                    </thead>
-                    <tbody id="taxTableBody" class="divide-y divide-gray-100 dark:divide-gray-700 bg-white dark:bg-gray-800">
-                        <!-- rows by JS -->
-                    </tbody>
-                    </table>
-                </div>
-                </div>
-            </div>
-            </div>
-            <!-- ========== /TAX PICKER MODAL ========== -->
-
 
             <div id="successMessage" class="mt-4 hidden font-bold text-green-600 lg:col-span-2">
                 CS Created Successfully!
@@ -437,8 +288,6 @@
             /* ===============================
             1) Ambil master vendor -> <select>
             ================================ */
-            $('#vendorSelect').empty().append('<option></option>');
-
             let vendorMaster = []; // cache
             $.getJSON('/vendorscs', function(data) { // route API Anda
                 vendorMaster = data || [];
@@ -453,14 +302,13 @@
             $('#vendorSelect').select2({
                 dropdownParent: $('body'),
                 placeholder: 'Select',
-                width: '350px'
+                width: '250px'
             });
 
             /* ===============================
             3) Tombol Add Vendor -> buka Select2
             ================================ */
             $('#btnAddVendor').on('click', function() {
-                $('#vendorSelect').val(null).trigger('change');
                 $('#vendorSelect').select2('open');
             });
 
@@ -496,9 +344,7 @@
                 const colWidth = '15rem';   
                 const $th = $(`
                     <th id="th-vendor-${id}" class="border relative px-3 py-2" style="width:${colWidth}; max-width:${colWidth};">
-                        <div class="vendor-title font-semibold text-center whitespace-normal break-words [overflow-wrap:anywhere] leading-tight">
-                        ${v.vendor_name}
-                        </div>
+                        <div class="font-semibold text-center">${v.vendor_name}</div>
                         <div class="text-xs text-gray-500 leading-4 mt-0.5 whitespace-normal break-words">
                             <div>✉️ ${v.contact_person ?? '-'}</div>
                             <div>☎️ ${v.phone_number ?? '-'}</div>
@@ -519,32 +365,14 @@
                 const $sumTd = $(`
                     <td id="td-sum-${id}" class="border px-3 py-2 text-xs space-y-1" style="width:${colWidth}; max-width:${colWidth};">
                         <div><span class="font-semibold">Total&nbsp;</span><span class="sum-total">0</span></div>
-
-                        <div class="flex flex-wrap items-center gap-3">
-                        <div class="flex items-center gap-1">
-                            <span>PPN&nbsp;</span>
-                            <input type="number" class="sum-ppn w-14 border rounded px-1 text-right" value="0" step="0.01" min="0">
-                            <span>%</span>
-                            <button type="button" class="btn-pick-tax rounded border px-2 py-1 text-xs hover:bg-gray-100"
-                                    data-for="ppn" data-vendor="${id}" title="Pilih PPN">🔍</button>
-                            <input type="hidden" class="sum-ppn-id" value="">
+                        <div>
+                            PPN&nbsp;<input type="number" class="sum-ppn w-12 border rounded px-1 text-right" value="0"> %
+                            PPh&nbsp;<input type="number" class="sum-pph w-12 border rounded px-1 text-right ml-1" value="0"> %
                         </div>
-
-                        <div class="flex items-center gap-1">
-                            <span>PPh&nbsp;</span>
-                            <input type="number" class="sum-pph w-14 border rounded px-1 text-right" value="0" step="0.01" min="0">
-                            <span>%</span>
-                            <button type="button" class="btn-pick-tax rounded border px-2 py-1 text-xs hover:bg-gray-100 ml-1"
-                                    data-for="pph" data-vendor="${id}" title="Pilih PPh">🔍</button>
-                            <input type="hidden" class="sum-pph-id" value="">
-                        </div>
-                        </div>
-
                         <div><span class="font-semibold">Grand Total&nbsp;</span><span class="sum-grand">0</span></div>
                         <div><span class="font-semibold">G.Total Selected&nbsp;</span><span class="sum-selected">0</span></div>
                     </td>
                 `);
-
                 $('#summaryRow').append($sumTd);
 
                 // Recalc saat PPN/PPh per-vendor berubah
@@ -833,118 +661,6 @@
             calcCellTotal($(this));
         });
     </script>
-
-    <script>
-        $(function(){
-        // ======== TAX PICKER =========
-        let taxCache = null;               // cache data pajak
-        let taxTarget = null;              // jQuery input target (sum-ppn/sum-pph)
-        let taxTargetVendorId = null;      // vendor id terkait
-        let taxTargetType = null;          // 'ppn' | 'pph'
-
-        function openTaxModal($input, vendorId, type){
-            taxTarget = $input;
-            taxTargetVendorId = vendorId;
-            taxTargetType = type;
-
-            const $modal = $('#taxModal');
-            $modal.removeClass('hidden');
-
-            if (!taxCache){
-            $.getJSON('{{ route('taxes.index') }}', function(data){
-                taxCache = Array.isArray(data) ? data : [];
-                renderTaxTable(taxCache);
-            });
-            } else {
-            renderTaxTable(taxCache);
-            }
-
-            // fokus ke search
-            setTimeout(()=> $('#taxSearch').trigger('focus'), 50);
-        }
-
-        function closeTaxModal(){
-            $('#taxModal').addClass('hidden');
-            taxTarget = null;
-            taxTargetVendorId = null;
-            taxTargetType = null;
-        }
-
-        function renderTaxTable(rows){
-            const $tbody = $('#taxTableBody');
-            $tbody.empty();
-
-            rows.forEach(r => {
-            const tr = $(`
-                <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
-                <td class="px-3 py-2 text-sm">${r.taxid ?? ''}</td>
-                <td class="px-3 py-2 text-sm">${Number(r.taxrate ?? 0).toFixed(2)}</td>
-                <td class="px-3 py-2 text-sm">${r.descr ?? ''}</td>
-                <td class="px-3 py-2 text-right">
-                    <button type="button" class="btn-choose-tax rounded bg-indigo-600 px-3 py-1 text-xs font-semibold text-white hover:bg-indigo-700"
-                            data-taxid="${r.taxid}" data-taxrate="${r.taxrate}">
-                    Choose  
-                    </button>
-                </td>
-                </tr>
-            `);
-            $tbody.append(tr);
-            });
-        }
-
-        // Buka modal saat klik kaca pembesar
-        $(document).on('click', '.btn-pick-tax', function(){
-            const vendorId = String($(this).data('vendor'));
-            const type = String($(this).data('for')); // 'ppn' | 'pph'
-            const $cell = $(`#td-sum-${vendorId}`);
-            const $input = (type === 'ppn') ? $cell.find('.sum-ppn') : $cell.find('.sum-pph');
-
-            openTaxModal($input, vendorId, type);
-        });
-
-        // Tutup modal
-        $('#taxModalClose, #taxModalOverlay').on('click', closeTaxModal);
-        $(document).on('keydown', function(e){ if(e.key === 'Escape') closeTaxModal(); });
-
-        // Cari (filter simpel di client)
-        $('#taxSearch').on('input', function(){
-            const q = ($(this).val() || '').toLowerCase();
-            if (!taxCache) return;
-            const filtered = taxCache.filter(r => {
-            const s1 = String(r.taxid ?? '').toLowerCase();
-            const s2 = String(r.descr ?? '').toLowerCase();
-            const s3 = String(r.taxrate ?? '').toLowerCase();
-            return s1.includes(q) || s2.includes(q) || s3.includes(q);
-            });
-            renderTaxTable(filtered);
-        });
-
-        // Pilih pajak → isi ke input, set hidden taxid, recalc
-        $(document).on('click', '.btn-choose-tax', function(){
-            if (!taxTarget) return;
-
-            const taxid = $(this).data('taxid');
-            const rate  = Number($(this).data('taxrate') || 0);
-
-            // set nilai persentase
-            taxTarget.val(rate.toFixed(2));  // 2 desimal (tanpa pemisah), misal 11.00
-
-            // simpan taxid di hidden input sesuai type
-            const $cell = $(`#td-sum-${taxTargetVendorId}`);
-            if (taxTargetType === 'ppn'){
-            $cell.find('.sum-ppn-id').val(taxid);
-            } else {
-            $cell.find('.sum-pph-id').val(taxid);
-            }
-
-            // trigger recalc untuk vendor terkait
-            recalcSummaryVendor(String(taxTargetVendorId));
-
-            closeTaxModal();
-        });
-        });
-    </script>
-
 
     
     <!-- Toastr CSS -->

@@ -57,5 +57,11 @@ class TrSPPT extends Model
     {
         return $this->belongsTo(User::class, 'pic_pengawas', 'username');
     }
+
+    public function purchaser()
+    {
+        return $this->belongsTo(User::class, 'assignpurchasing', 'username');
+    }
+
     
 }

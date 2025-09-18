@@ -315,12 +315,24 @@ class CareerController extends Controller
         $canAccessAssessment = GroupAccspecific::where('username', $user->username)            
             ->where('status', 'A')
             ->exists();
+
+        // tampilkan tab "Schedule" hanya jika ada step pada dokumen ini
+        // yang statusnya masih pending dan jenis step-nya memang "schedule"
+        $currentStep = JobApplyStep::where('docid', $career->docid)
+            ->where('status', 'P')
+            ->orderBy('step_order', 'ASC')
+            ->first();
+
+        $stepsSchedule = [3, 5]; // sesuaikan kebutuhanmu
+        $canAccessSchedule = $currentStep && in_array($currentStep->step_order, $stepsSchedule, true);
+
+
           
         return view('pages.careers.showcareers', compact(
             'career','applicant','applicant_family','applicant_marital','applicant_education','applicant_working',
             'applicant_language','applicant_course','applicant_sw','applicant_skill','jobapplystep',
             'jobres','jobqua','jobposting','tr_checklist','year','photo','cv','coverletter','user','datenow',
-            'assessmentGroups','tr_assessment','tr_assessment_user','assessmentGroupsUser','agenda','userlist','typestep','payrolls','onboarding','sign','canAccessPayroll','canAccessAssessment'
+            'assessmentGroups','tr_assessment','tr_assessment_user','assessmentGroupsUser','agenda','userlist','typestep','payrolls','onboarding','sign','canAccessPayroll','canAccessAssessment','canAccessSchedule'
         ));
     }
 

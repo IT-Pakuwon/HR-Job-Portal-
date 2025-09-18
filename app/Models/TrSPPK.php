@@ -44,5 +44,11 @@ class TrSPPK extends Model
     {
         return $this->belongsTo(User::class, 'created_by', 'username');
     }
+
+    public function purchaser()
+    {
+        return $this->belongsTo(User::class, 'assignpurchasing', 'username');
+    }
+
     
 }

@@ -842,7 +842,9 @@
                                                         Salary</span>
                                                     <p
                                                         class="w-full break-all text-base font-medium text-gray-900 dark:text-gray-100">
-                                                        Rp. {{ $applicant->existing_last_thp }}</p>
+                                                        {{-- Rp. {{ $applicant->existing_last_thp }} --}}
+                                                        Rp. {{ isset($applicant->existing_last_thp) ? number_format((int)$applicant->existing_last_thp, 0, ',', '.') : '-' }}
+                                                    </p>
                                                 </div>
                                             </div>
                                             <div
@@ -854,7 +856,9 @@
                                                         Salary</span>
                                                     <p
                                                         class="w-full break-all text-base font-medium text-gray-900 dark:text-gray-100">
-                                                        Rp. {{ $applicant->expected_thp }}</p>
+                                                        {{-- Rp. {{ $applicant->expected_thp }} --}}
+                                                        Rp. {{ isset($applicant->expected_thp) ? number_format((int)$applicant->expected_thp, 0, ',', '.') : '-' }}
+                                                    </p>
                                                 </div>
                                             </div>
                                         </div>
@@ -868,7 +872,9 @@
                                                         class="text-xs text-gray-500 dark:text-gray-400">Expectations</span>
                                                     <p
                                                         class="w-full break-all text-base font-medium text-gray-900 dark:text-gray-100">
-                                                        {{ $applicant->expectations }}</p>
+                                                        {{-- {{ $applicant->expectations }} --}}
+                                                        Rp. {{ isset($applicant->expectations) ? number_format((int)$applicant->expectations, 0, ',', '.') : '-' }}
+                                                    </p>
                                                 </div>
                                             </div>
                                             <div
