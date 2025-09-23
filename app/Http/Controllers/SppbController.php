@@ -241,7 +241,7 @@ class SppbController extends Controller
             }
 
             $tglbln = substr($year, 2) . $month;               // YYMM
-            $docid  = $doctype . $tglbln . sprintf("%03d", $urutan);
+            $docid  = $doctype . $tglbln . sprintf("%04d", $urutan);
             $sppbNo = $docid;                                   // atau 'SPPB-'.$docid
 
             // === 1) header dulu (totalqty sementara 0) ===

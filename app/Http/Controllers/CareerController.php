@@ -326,13 +326,16 @@ class CareerController extends Controller
         $stepsSchedule = [3, 5]; // sesuaikan kebutuhanmu
         $canAccessSchedule = $currentStep && in_array($currentStep->step_order, $stepsSchedule, true);
 
+        $companyaddress = CompanyAddress::whereNotNull('site')
+            ->where('status', 'A')
+            ->get();
 
           
         return view('pages.careers.showcareers', compact(
             'career','applicant','applicant_family','applicant_marital','applicant_education','applicant_working',
             'applicant_language','applicant_course','applicant_sw','applicant_skill','jobapplystep',
             'jobres','jobqua','jobposting','tr_checklist','year','photo','cv','coverletter','user','datenow',
-            'assessmentGroups','tr_assessment','tr_assessment_user','assessmentGroupsUser','agenda','userlist','typestep','payrolls','onboarding','sign','canAccessPayroll','canAccessAssessment','canAccessSchedule'
+            'assessmentGroups','tr_assessment','tr_assessment_user','assessmentGroupsUser','agenda','userlist','typestep','payrolls','onboarding','sign','canAccessPayroll','canAccessAssessment','canAccessSchedule','companyaddress'
         ));
     }
 

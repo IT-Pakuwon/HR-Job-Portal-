@@ -9,7 +9,7 @@
 <!-- Modal -->
 <div id="agendaModal"
     style="display: none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5);">
-    <div style="background-color: white; margin: 10% auto; padding: 20px; width: 500px; border-radius: 10px;">
+    <div style="background-color: white; margin: 10% auto; padding: 20px; width: 700px; border-radius: 10px;">
         <h3 class="mb-3 font-semibold">Create Schedule</h3>
         <form id="createAgendaForm">
             @csrf
@@ -52,8 +52,23 @@
                     </select>
                 </div>
                 <div class="flex w-1/2 flex-col">
+                    <label>Site</label>
+                    <select name="site" id="siteDropdown" required
+                        class="w-full rounded-sm border border-gray-200/50 bg-gray-200/10 p-3 focus:ring focus:ring-blue-300 dark:bg-gray-800"
+                        style="width: 100%; margin-bottom: 16px;">
+                        <option value="">-- Select Site --</option>
+                        @foreach ($companyaddress as $site)
+                            <option value="{{ $site->site }}">{{ $site->site }}</option>
+                        @endforeach
+                    </select>
+                </div>
+            </div>
+
+            <div class="flex w-full gap-8">
+                <div class="flex w-full flex-col">
                     <label>Location</label>
-                    <input type="text" name="location" required class="form-control"
+                    <input type="text" name="location" id="locationField" readonly
+                        class="form-control bg-gray-100 cursor-not-allowed"
                         style="width: 100%; margin-bottom: 10px;" />
                 </div>
             </div>
@@ -61,7 +76,9 @@
             <div class="flex w-full gap-8">
                 <div class="flex w-full flex-col">
                     <label>Address</label>
-                    <textarea name="location_address" required class="form-control" style="width: 100%; margin-bottom: 10px;"></textarea>
+                    <textarea name="location_address" id="addressField" readonly
+                        class="form-control bg-gray-100 cursor-not-allowed"
+                        style="width: 100%; margin-bottom: 10px;"></textarea>
                 </div>
             </div>
 
@@ -294,6 +311,36 @@
         });
     });
 </script>
+
+<script>
+    $(document).ready(function () {
+        $('#siteDropdown').on('change', function () {
+            const site = $(this).val();
+            if (site) {
+                $.ajax({
+                    url: '/company-address/' + site,
+                    type: 'GET',
+                    success: function (data) {
+                        if (data) {
+                            $('#locationField').val(data.location);
+                            $('#addressField').val(data.address2);
+                        } else {
+                            $('#locationField').val('');
+                            $('#addressField').val('');
+                        }
+                    },
+                    error: function () {
+                        toastr.error('Failed to fetch site info');
+                    }
+                });
+            } else {
+                $('#locationField').val('');
+                $('#addressField').val('');
+            }
+        });
+    });
+</script>
+
 <!-- Toastr CSS -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
 <!-- Toastr JS -->

@@ -69,8 +69,16 @@
     <div class="max-w-9xl mx-auto w-full px-4 py-4 sm:px-6 lg:px-8">
         <div class="grid grid-cols-1 gap-8 lg:grid-cols-2 lg:grid-rows-[minmax(0,auto)_1fr]">
             <div class="flex flex-col gap-8 lg:col-span-2 lg:row-span-1">
-                <form id="sppbForm" class="flex flex-col gap-4" enctype="multipart/form-data">
+                <form id="csForm" class="flex flex-col gap-4" enctype="multipart/form-data">
                     @csrf
+                    <input type="hidden" name="doc" value="{{ $doc }}">
+                    <input type="hidden" name="src_id" value="{{ $src_id }}">
+                    <input type="hidden" name="sppbjktid" value="{{ $docno }}">
+                    <input type="hidden" name="cpny_id" value="{{ $header->cpny_id }}">
+                    <input type="hidden" name="department_id" value="{{ $header->department_id }}">
+                    <input type="hidden" name="bqid" value="{{ $header->bqid ?? '' }}">
+                    <input type="hidden" name="user_peminta" value="{{ optional($header->creator)->name }}">
+
                     <div class="w-full rounded-xl bg-white p-6 shadow-md dark:bg-gray-800">
                         <div class="mb-6 border-b border-gray-200 pb-4 dark:border-gray-700">
                             <h2 class="text-xl font-extrabold text-gray-800 dark:text-white">Create CS</h2>                            
@@ -90,7 +98,7 @@
                                     </label>
                                 @endif
                                 <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Select Vendor</label>
-                                <select id="vendorSelect" class="hidden w-64"></select>
+                                <select id="vendorSelect" class="w-64"></select>
                             </div> 
                             <div class="flex flex-col gap-2">
                                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Keperluan : {{ $header->keperluan }}</label>                                
@@ -130,9 +138,15 @@
                                     </thead>
                                     <tbody id="cvBody">
                                         @foreach ($items as $row)
-                                            <tr>
+                                            <tr
+                                                data-inventoryid="{{ $row->inventoryid ?? '' }}"
+                                                data-inventory_descr="{{ $row->inventory_descr }}"
+                                                data-uom="{{ $row->uom }}"
+                                                data-lastprice="{{ $row->inventory_last_price ?? 0 }}"
+                                                data-note="{{ $row->note ?? '' }}"
+                                            >
                                                 <td class="border px-3 py-2">{{ $row->inventory_descr }}</td>
-                                                 <td class="border px-3 py-2 text-center">
+                                                <td class="border px-3 py-2 text-center">
                                                     <input
                                                         type="text"
                                                         class="qty-input w-24 border rounded px-2 text-right"
@@ -149,6 +163,7 @@
                                         @endforeach
                                     </tbody>
 
+
                                     <tfoot>
                                         <tr id="summaryRow" class="bg-gray-50 align-top">
                                             <td colspan="4" class="border px-3 py-2 text-right font-semibold">
@@ -164,167 +179,113 @@
                     </div>
                     </div>
 
-                    {{-- ===== Existing Attachments (from controller) ===== --}}
-@if(($attachment ?? collect())->count())
-<div class="w-full rounded-xl bg-white p-6 shadow-md dark:bg-gray-800">
-    <details class="group" open>
-        <summary
-            class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-xl font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
-            <span>Existing Attachments</span>
-            <span class="text-sm font-medium text-gray-500 transition-all group-open:hidden">See details &rarr;</span>
-            <span class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline">Hide details &darr;</span>
-        </summary>
+                    {{-- ===== Attachments: 2-column layout ===== --}}
+                    <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+                        {{-- Left: Existing Attachments (from controller) --}}
+                        <div class="w-full rounded-xl bg-white p-6 shadow-md dark:bg-gray-800">
+                            @if(($attachment ?? collect())->count())
+                                <details class="group" open>
+                                    <summary
+                                        class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-xl font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
+                                        <span>Attachments {{ $doc }}</span>
+                                        <span class="text-sm font-medium text-gray-500 transition-all group-open:hidden">See details &rarr;</span>
+                                        <span class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline">Hide details &darr;</span>
+                                    </summary>
 
-        <div class="mt-4 overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                <thead class="bg-gray-50 dark:bg-gray-700">
-                    <tr>
-                        <th class="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wider">File</th>                        
-                        <th class="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wider">Uploaded By</th>
-                        <th class="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wider">Uploaded At</th>
-                        <th class="px-4 py-2 text-right text-xs font-semibold uppercase tracking-wider">Action</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-gray-100 bg-white dark:divide-gray-700 dark:bg-gray-800">
-                    @foreach($attachment as $att)
-                        @php
-                            // Aman: fallback nilai kalau kolom tidak ada
-                            $fileName   =  $att->name   ?? 'Attachment';                           
-                            $uploadedBy = $att->created_user ?? '';
-                            $uploadedAt = $att->created_at ?? null;
-
-                            // Tentukan URL download/view:
-                            // -- Opsi 1: punya route download berdasar id
-                            // $downloadUrl = route_exists('attachments.download')
-                            //     ? route('attachments.download', $att->id)
-                            //     : null;
-
-                            // // -- Opsi 2: punya kolom path/uri → gunakan Storage::url (pastikan disk publik)
-                            // if (!$downloadUrl) {
-                            //     $path = $att->path ?? $att->filepath ?? $att->file_path ?? null;
-                            //     if ($path) {
-                            //         $downloadUrl = \Illuminate\Support\Facades\Storage::url($path);
-                            //     }
-                            // }
-
-                            // // -- Opsi 3: fallback ke route show jika ada
-                            // if (!$downloadUrl && function_exists('route')) {
-                            //     $downloadUrl = route_exists('attachments.show')
-                            //         ? route('attachments.show', $att->id)
-                            //         : '#';
-                            // }
-
-                            // // Helper kecil untuk cek route ada/tidak
-                            // function route_exists($name){
-                            //     try { return \Illuminate\Support\Facades\Route::has($name); }
-                            //     catch (\Throwable $e) { return false; }
-                            // }
-                        @endphp
-                        <tr>
-                            <td class="px-4 py-2 text-sm">
-                                <div class="font-semibold text-gray-800 dark:text-gray-100">{{ $fileName }}</div>
-                                @if(!empty($att->filesize) || !empty($att->size))
-                                    <div class="text-xs text-gray-500">
-                                        Size: {{ $att->filesize ?? $att->size }} 
+                                    <div class="mt-4 overflow-x-auto">
+                                        <table class="w-full text-sm">
+                                            <thead class="text-gray-600 dark:text-gray-300">
+                                                <tr class="border-b border-gray-200 dark:border-gray-700">
+                                                    <th class="p-3 text-left font-semibold">Filename</th>
+                                                    <th class="p-3 text-left font-semibold">Created By</th>
+                                                    <th class="p-3 text-left font-semibold">Date</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach ($attachment as $at)
+                                                    @php
+                                                        $year = $at->created_at->year;
+                                                        $fileUrl = url('/attachments/' . $year . '/' . $at->attachfile);
+                                                    @endphp
+                                                    <tr class="border-b border-gray-100 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700">
+                                                        <td class="p-3">
+                                                            <a href="{{ $fileUrl }}" target="_blank"
+                                                            class="flex items-center gap-2 font-medium text-indigo-600 hover:underline dark:text-indigo-400">
+                                                                📎 {{ $at->name }}
+                                                            </a>
+                                                        </td>
+                                                        <td class="p-3">{{ $at->created_user }}</td>
+                                                        <td class="p-3">{{ \Carbon\Carbon::parse($at->created_at)->format('d M Y') }}</td>
+                                                    </tr>
+                                                @endforeach
+                                            </tbody>
+                                        </table>
                                     </div>
-                                @endif
-                                @if(!empty($att->mimetype) || !empty($att->mime))
-                                    <div class="text-xs text-gray-500">
-                                        Type: {{ $att->mimetype ?? $att->mime }}
-                                    </div>
-                                @endif
-                            </td>                           
-                            <td class="px-4 py-2 text-sm">
-                                {{ $uploadedBy }}
-                            </td>
-                            <td class="px-4 py-2 text-sm">
-                                {{ $uploadedAt ? \Carbon\Carbon::parse($uploadedAt)->format('d M Y H:i') : '-' }}
-                            </td>
-                            <td class="px-4 py-2 text-right">
-                                <a href="#"
-                                   target="_blank" rel="noopener"
-                                   class="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-indigo-700">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                                        <path d="M3 14a1 1 0 011-1h2v2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h2v2H4a1 1 0 01-1-1zM3 6a1 1 0 011-1h2v2H4A1 1 0 013 6zM7 5h10v2H7V5zM7 9h10v2H7V9zM7 13h10v2H7v-2z" />
-                                    </svg>
-                                    View / Download
-                                </a>
-                            </td>
-                        </tr>
-                    @endforeach
-                </tbody>
-            </table>
-        </div>
-    </details>
-</div>
-@else
-<div class="w-full rounded-xl bg-white p-6 shadow-md dark:bg-gray-800">
-    <div class="flex items-center justify-between border-b border-gray-200 pb-4 dark:border-gray-700">
-        <h3 class="text-lg font-bold text-gray-800 dark:text-gray-100">Existing Attachments</h3>
-    </div>
-    <p class="mt-4 text-sm text-gray-500 dark:text-gray-400">Belum ada attachment untuk dokumen ini.</p>
-</div>
-@endif
+                                </details>
+                            @else
+                                <div class="flex items-center justify-between border-b border-gray-200 pb-4 dark:border-gray-700">
+                                    <h3 class="text-lg font-bold text-gray-800 dark:text-gray-100">Attachments {{ $doc }}</h3>
+                                </div>
+                                <p class="mt-4 text-sm text-gray-500 dark:text-gray-400">Attachment Empty.</p>
+                            @endif
+                        </div>
 
+                        {{-- Right: New Attachments CS --}}
+                        <div class="w-full rounded-xl bg-white p-6 shadow-md dark:bg-gray-800">
+                            <details class="group" open>
+                                <summary
+                                    class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-xl font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
+                                    <span>Attachments CS</span>
+                                    <span class="text-sm font-medium text-gray-500 transition-all group-open:hidden">See details &rarr;</span>
+                                    <span class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline">Hide details &darr;</span>
+                                </summary>
 
-
-                    {{-- ===== Attachment ===== --}}
-                    <div class="w-full rounded-xl bg-white p-6 shadow-md dark:bg-gray-800">
-                        <details class="group" open>
-                            <summary
-                                class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-xl font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
-                                <span>Attachments</span>
-                                <span class="text-sm font-medium text-gray-500 transition-all group-open:hidden">See
-                                    details &rarr;</span>
-                                <span
-                                    class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline">Hide
-                                    details &darr;</span>
-                            </summary>
-                            <div class="flex flex-col pt-6">
-                                <div id="attachmentsContainer">
-                                    <div class="attachment-row flex items-center gap-2">
-                                        <input type="file" name="attachments[]"
-                                            class="flex-grow rounded-md border border-gray-200 bg-white px-4 py-2 text-sm text-gray-700 file:mr-4 file:rounded-full file:border-0 file:bg-indigo-100 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-indigo-700 hover:file:bg-indigo-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:file:bg-indigo-700 dark:file:text-white dark:hover:file:bg-indigo-600">
-                                        <button type="button"
-                                            class="removeAttachment hidden rounded border border-red-600 bg-red-200/30 p-3 text-red-600 transition-colors hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">🗑️
-                                        </button>
+                                <div class="flex flex-col pt-6">
+                                    <div id="attachmentsContainer">
+                                        <div class="attachment-row flex items-center gap-2">
+                                            <input type="file" name="attachments[]"
+                                                class="flex-grow rounded-md border border-gray-200 bg-white px-4 py-2 text-sm text-gray-700 file:mr-4 file:rounded-full file:border-0 file:bg-indigo-100 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-indigo-700 hover:file:bg-indigo-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:file:bg-indigo-700 dark:file:text-white dark:hover:file:bg-indigo-600">
+                                            <button type="button"
+                                                    class="removeAttachment hidden rounded border border-red-600 bg-red-200/30 p-3 text-red-600 transition-colors hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">
+                                                🗑️
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                            <button type="button" id="addAttachment"
-                                class="mt-4 flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 bg-gray-50 px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20"
-                                    fill="currentColor">
-                                    <path fill-rule="evenodd"
-                                        d="M10 2a1 1 0 011 1v6h6a1 1 0 110 2h-6v6a1 1 0 11-2 0v-6H3a1 1 0 110-2h6V3a1 1 0 011-1z"
-                                        clip-rule="evenodd" />
-                                </svg> Add Attachment
-                            </button>
-                        </details>
 
-                        <div class="flex w-full justify-end gap-4 pt-4">
-                            <button type="button" id="cancelBtn"
-                                class="inline-flex items-center justify-center rounded-lg bg-red-600 px-6 py-3 text-base font-semibold text-white shadow-md transition-colors hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">
-                                <span id="cancelText">Cancel</span>
-                                <svg id="cancelSpinner" class="ml-2 hidden h-5 w-5 animate-spin text-white"
-                                    xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                    <circle class="opacity-25" cx="12" cy="12" r="10"
-                                        stroke="currentColor" stroke-width="4"></circle>
-                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
-                                </svg>
-                            </button>
-                            <button type="submit" id="submitBtn"
-                                class="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-6 py-3 text-base font-semibold text-white shadow-md transition-colors hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
-                                <span id="btnText">Submit Approval</span>
-                                <svg id="loadingSpinner" class="ml-2 hidden h-5 w-5 animate-spin text-white"
-                                    xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                    <circle class="opacity-25" cx="12" cy="12" r="10"
-                                        stroke="currentColor" stroke-width="4"></circle>
-                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
-                                </svg>
-                            </button>
+                                <button type="button" id="addAttachment"
+                                        class="mt-4 flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 bg-gray-50 px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd"
+                                            d="M10 2a1 1 0 011 1v6h6a1 1 0 110 2h-6v6a1 1 0 11-2 0v-6H3a1 1 0 110-2h6V3a1 1 0 011-1z"
+                                            clip-rule="evenodd" />
+                                    </svg> Add Attachment
+                                </button>
+                            </details>
+
+                            {{-- Action buttons keep here or move below both columns as you wish --}}
+                            <div class="mt-4 flex w-full justify-end gap-4">
+                                <button type="button" id="cancelBtn"
+                                        class="inline-flex items-center justify-center rounded-lg bg-red-600 px-6 py-3 text-base font-semibold text-white shadow-md transition-colors hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">
+                                    <span id="cancelText">Cancel</span>
+                                    <svg id="cancelSpinner" class="ml-2 hidden h-5 w-5 animate-spin text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+                                    </svg>
+                                </button>
+                                <button type="submit" id="submitBtn"
+                                        class="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-6 py-3 text-base font-semibold text-white shadow-md transition-colors hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                                    <span id="btnText">Submit Approval</span>
+                                    <svg id="loadingSpinner" class="ml-2 hidden h-5 w-5 animate-spin text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+                                    </svg>
+                                </button>
+                            </div>
                         </div>
                     </div>
+                    {{-- ===== /Attachments: 2-column layout ===== --}}
+
                 </form>
             </div>
 
@@ -474,6 +435,14 @@
                 const vendor = vendorMaster.find(v => Number(v.id) === id);
                 if (!vendor) return;
 
+                // LIMIT 6: hitung kolom vendor yang sudah ada
+                const currentCount = $('#cvTable thead th[id^="th-vendor-"]').length;
+                if (currentCount >= 6) {
+                    toastr.warning('Maksimal 6 vendor.');
+                    $(this).val(null).trigger('change');
+                    return;
+                }
+
                 // Cegah duplikat
                 if ($('#th-vendor-' + id).length) {
                     alert('Vendor sudah ada');
@@ -495,7 +464,15 @@
             function addHeader(id, v) {
                 const colWidth = '15rem';   
                 const $th = $(`
-                    <th id="th-vendor-${id}" class="border relative px-3 py-2" style="width:${colWidth}; max-width:${colWidth};">
+                    <th id="th-vendor-${id}" class="border relative px-3 py-2"
+                        style="width:${colWidth}; max-width:${colWidth};"
+                        data-vendor-id="${_.escape(v.id)}"
+                        data-vendor-code="${_.escape(v.vendor_id)}"
+                        data-vendor-name="${_.escape(v.vendor_name)}"
+                        data-vendor-addr="${_.escape(v.vendor_addr1 ?? '')}"
+                        data-vendor-phone="${_.escape(v.phone_number ?? '')}"
+                        data-vendor-cp="${_.escape(v.contact_person ?? '')}"
+                    >
                         <div class="vendor-title font-semibold text-center whitespace-normal break-words [overflow-wrap:anywhere] leading-tight">
                         ${v.vendor_name}
                         </div>
@@ -511,7 +488,7 @@
                                 <option value="Cash">Cash</option>
                             </select>
                         </div>
-                        <button class="btn-del absolute -top-1 -right-1 bg-red-600 text-white rounded-full h-5 w-5 flex items-center justify-center text-xs hover:bg-red-700" data-id="${id}">🗑</button>
+                        <button type="button" class="btn-del absolute -top-1 -right-1 bg-red-600 text-white rounded-full h-5 w-5 flex items-center justify-center text-xs hover:bg-red-700" data-id="${id}">🗑</button>
                     </th>
                 `);
                 $('#cvTable thead tr').append($th);
@@ -523,7 +500,7 @@
                         <div class="flex flex-wrap items-center gap-3">
                         <div class="flex items-center gap-1">
                             <span>PPN&nbsp;</span>
-                            <input type="number" class="sum-ppn w-14 border rounded px-1 text-right" value="0" step="0.01" min="0">
+                            <input type="number" class="sum-ppn w-14 border rounded px-1 text-right" value="11.00" step="0.01" min="0">
                             <span>%</span>
                             <button type="button" class="btn-pick-tax rounded border px-2 py-1 text-xs hover:bg-gray-100"
                                     data-for="ppn" data-vendor="${id}" title="Pilih PPN">🔍</button>
@@ -944,12 +921,159 @@
         });
         });
     </script>
+    <script>
+        $('#csForm').on('submit', function(e){
+            e.preventDefault();
+
+            // ==== VALIDASI: minimal 1 vendor kolom ====
+            const $vendorCols = $('#cvTable thead th[id^="th-vendor-"]');
+            if ($vendorCols.length === 0) {
+                toastr.error('Pilih minimal 1 vendor.');
+                return;
+            }
+
+            // ==== VALIDASI: total per-vendor tidak semuanya 0 ====
+            let allVendorTotalsZero = true;
+            $vendorCols.each(function(){
+                const vid = String($(this).data('vendor-id'));
+                const total = numFromText($(`#td-sum-${vid} .sum-total`).text());
+                if (total > 0) allVendorTotalsZero = false;
+            });
+            if (allVendorTotalsZero) {
+                toastr.error('Total tidak boleh 0. Isi harga minimal pada salah satu vendor.');
+                return;
+            }
+
+            // Kumpulkan vendor summary (urut sesuai posisi kolom)
+            const vendors = [];
+            $('#cvTable thead th[id^="th-vendor-"]').each(function(i){
+                if (vendors.length >= 6) return; // hard limit 6
+                const $th = $(this);
+                const vid = String($th.data('vendor-id'));
+                const vcode = String($th.data('vendor-code'));
+
+                const $sum = $(`#td-sum-${vid}`);
+                const total = numFromText($sum.find('.sum-total').text());
+                const ppn   = Number($sum.find('.sum-ppn').val() || 0);
+                const pph   = Number($sum.find('.sum-pph').val() || 0);
+                const ppnId = $sum.find('.sum-ppn-id').val() || '';
+                const pphId = $sum.find('.sum-pph-id').val() || '';
+                const tax   = total * (ppn/100) + total * (pph/100);
+                const grand = total + tax;
+                const selTotal = numFromText($sum.find('.sum-selected').text());
+                const selTax   = selTotal * (ppn/100) + selTotal * (pph/100);
+                const selGrand = selTotal + selTax;
+
+                vendors.push({
+                id: vid,
+                vendorid: vcode,
+                vendorname: String($th.data('vendor-name') || ''),
+                vendoralamat: String($th.data('vendor-addr') || ''),
+                vendortelp: String($th.data('vendor-phone') || ''),
+                vendorcp: String($th.data('vendor-cp') || ''),
+                vendortop: $th.find('select.cara-bayar').val() || '',
+                vendornote: '',
+
+                total: round2(total),
+                ppn: round2(ppn),
+                pph: round2(pph),
+                taxcode: [ppnId, pphId].filter(Boolean).join('+'),
+                tax: round2(tax),
+                grand: round2(grand),
+
+                selected_total: round2(selTotal),
+                selected_tax: round2(selTax),
+                selected_grand: round2(selGrand),
+                });
+            });
+
+            // Kumpulkan detail baris
+            const details = [];
+            $('#cvBody tr').each(function(rowIdx){
+                const $tr = $(this);
+                const qty = parseQty($tr.find('.qty-input').val());
+                const uom = $tr.data('uom') || '';
+                const invId = $tr.data('inventoryid') || '';
+                const invDescr = $tr.data('inventory_descr') || '';
+                const lastPrice = Number($tr.data('lastprice') || 0);
+                const csNote = String($tr.data('note') || '');
+
+                const row = {
+                inventoryid: invId,
+                inventory_descr: invDescr,
+                qty: round2(qty),
+                uom: uom,
+                inventory_last_price: round2(lastPrice),
+                csnote_detail: csNote,
+                vendor: []
+                };
+
+                const picked = String($tr.find('input.pick-vendor:checked').val() || '');
+
+                $('#cvTable thead th[id^="th-vendor-"]').each(function(i){
+                if (i >= 6) return;
+                const vendorId = String($(this).data('vendor-id'));
+                const vendorIdCode = String($(this).data('vendor-code'));
+                const $priceInput = $tr.find(`input.price-input[data-vendor="${vendorId}"]`);
+                const price = parsePrice($priceInput.val());
+                const total = qty * price;
+
+                row.vendor.push({
+                    id: vendorId,
+                    vendorid: vendorIdCode,
+                    price: round2(price),
+                    total: round2(total),
+                    selected: vendorId === picked
+                });
+                });
+
+                details.push(row);
+            });
+
+            // FormData dari form yang benar
+            const fd = new FormData(document.getElementById('csForm'));
+            fd.append('vendors', JSON.stringify(vendors));
+            fd.append('details', JSON.stringify(details));
+
+            showOverlay('Submitting');
+
+            $.ajax({
+                url: "{{ route('cs.store') }}",
+                method: 'POST',
+                data: fd,
+                processData: false,
+                contentType: false,
+                success: function(res){
+                hideOverlay();
+                toastr.success('CS berhasil disimpan.');
+                // window.location.href = res.redirect ?? window.location.href;
+                },
+                error: function(xhr){
+                hideOverlay();
+                let msg = 'Gagal menyimpan CS.';
+                if (xhr.responseJSON && xhr.responseJSON.message) msg = xhr.responseJSON.message;
+                toastr.error(msg);
+                }
+            });
+            });
+
+
+        // helpers number
+        function numFromText(t){
+            t = String(t || '');
+            t = t.replace(/\./g,'').replace(',', '.').replace(/[^0-9.-]/g,'');
+            const n = parseFloat(t);
+            return isNaN(n) ? 0 : n;
+        }
+        function round2(n){ return Math.round((+n + Number.EPSILON) * 100) / 100; }
+    </script>
 
 
     
     <!-- Toastr CSS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
     <!-- Toastr JS -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>        
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>    
+    <script src="https://cdn.jsdelivr.net/npm/lodash@4/lodash.min.js"></script>    
 
 </x-app-layout>

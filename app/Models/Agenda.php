@@ -24,6 +24,7 @@ class Agenda extends Model
         'startdate',
         'enddate',
         'duedate',
+        'site',
         'location',
         'location_address',
         'refid',

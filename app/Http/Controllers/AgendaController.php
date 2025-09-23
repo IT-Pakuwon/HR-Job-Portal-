@@ -28,6 +28,7 @@ use App\Models\Applicant;
 use App\Models\Meeting;
 use App\Models\Roommeet;
 use App\Models\Accesoriesroom;
+use App\Models\CompanyAddress;
 use Mail;
 use App\Services\ZoomApi;
 use App\Models\Viewtrxmeeting;
@@ -113,7 +114,7 @@ class AgendaController extends Controller
 
     public function storeAgenda(Request $request)
     {
-        // dd($request->all()); 
+        dd($request->all()); 
 
         $roomId = $request->input('room_id');
         $accId = $request->input('acc_id');
@@ -204,6 +205,7 @@ class AgendaController extends Controller
                 'startdate' => $request->startdate,
                 'enddate' => $request->enddate,   
                 'reftype' => $request->reftype,
+                'site' => $request->site, 
                 'location' => $request->location,  
                 'location_address' => $request->location_address,    
                 'created_user' => $user->username,
@@ -254,23 +256,7 @@ class AgendaController extends Controller
             }elseif($accId){                                
                 dd('zoom only');     
             }else{
-                // if ($request->has('participant')) {
-                //     foreach ($request->participant as $mp) {                
-                //         T_approval::create([
-                //             'docid' => $docid,
-                //             'aprvid' => 1,
-                //             'aprvdoctype' => 'AGD',
-                //             'aprvcpnyid' => $request->departementid,
-                //             'aprvdeptid' => $request->cpnyid,
-                //             'aprvusername' => $mp,
-                //             'name' => $mp,
-                //             'aprvdatebefore' => $datestamp,
-                //             'aprvtotalday' => 1,
-                //             'status' => 'P',
-                //             'created_user' => $user->username
-                //         ]);
-                //     }            
-                // }    
+              
 
                 if (!empty($participants)) {
                     $rows = [];
@@ -371,7 +357,7 @@ class AgendaController extends Controller
                         foreach ($email_it as $emailsit) {
                             // Mail::send('emails.mailapprove', $data, function ($message) use ($data, $emailsit) {
                             Mail::send('emails.mailinterviewinternal', $data, function ($message) use ($data, $emailsit) {
-                                $message->to($emailsit->test_email)->subject('Interview Kandidat');
+                                $message->to($emailsit->test_email)->subject('Interview Candidate');
                                 $message->from('digitalserver@pakuwon.com', 'Pakuwon System');
                             });
                         }
@@ -1326,6 +1312,12 @@ class AgendaController extends Controller
             ]);
         });
        
+    }
+
+    public function getBySite($site)
+    {
+        $address = CompanyAddress::where('site', $site)->first();
+        return response()->json($address);
     }
 
 

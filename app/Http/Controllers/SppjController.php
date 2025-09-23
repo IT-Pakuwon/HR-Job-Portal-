@@ -247,7 +247,7 @@ class SppjController extends Controller
             }
 
             $tglbln = substr($year, 2) . $month;               // YYMM
-            $docid  = $doctype . $tglbln . sprintf("%03d", $urutan);
+            $docid  = $doctype . $tglbln . sprintf("%04d", $urutan);
             $sppjNo = $docid;                                   // atau 'SPPJ-'.$docid
 
             // === 1) header dulu (totalqty sementara 0) ===

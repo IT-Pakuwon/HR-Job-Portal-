@@ -260,6 +260,7 @@ Route::post('/logout', function () {
     Route::get('/agenda/{id}/check-approval/{action}', [AgendaController::class, 'checkApproval']);
     Route::post('/agendas/cancel', [AgendaController::class, 'cancelAgenda'])->name('agendas.cancel');
     Route::post('/agendas/checkRoomAvailability', [AgendaController::class, 'checkRoomAvailability'])->name('agendas.checkRoomAvailability');
+    Route::get('/company-address/{site}', [AgendaController::class, 'getBySite']);
 
     Route::get('/send_email_all', [AgendaController::class, 'send_email_all'])->name('send_email_all');
 
@@ -510,9 +511,10 @@ Route::post('/logout', function () {
     Route::get('/csjobs/revision/json', [CsJobController::class, 'CsJobsRevisionJson'])->name('csjobs.revision.json');     
     Route::get('/csjobs/sppbjkt-progress/json', [CsJobController::class, 'SppbjktOnProgressJson'])->name('csjobs.sppbjkt.progress.json'); 
 
-    Route::get('/createcs/{doc}/{src}', [CanvassController::class, 'createCs'])
+    Route::get('/createcs/{doc}/{src}', [CanvassController::class, 'createCS'])
         ->where(['doc' => 'SPPB|SPPJ|SPPK|SPPT', 'src' => '[0-9]+'])
         ->name('canvass.createcs');
+    Route::post('/cs', [CanvassController::class, 'storeCS'])->name('cs.store');
     
 
     Route::get('/inventory/list', [MasterController::class, 'InventoryList'])->name('inventory.list');

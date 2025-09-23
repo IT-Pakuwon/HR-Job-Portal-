@@ -14,7 +14,11 @@ class CompanyAddress extends Model
     protected $fillable = [     
         'cpnyid',
         'cpnyname',
-        'address',       
+        'address',
+        'sitelocation',
+        'site',
+        'location',
+        'address2',   
         'status',
         'created_user',
         'updated_user'

@@ -247,7 +247,7 @@ class SpptController extends Controller
             }
 
             $tglbln = substr($year, 2) . $month;               // YYMM
-            $docid  = $doctype . $tglbln . sprintf("%03d", $urutan);
+            $docid  = $doctype . $tglbln . sprintf("%04d", $urutan);
             $spptNo = $docid;                                   // atau 'SPPT-'.$docid
 
             // === 1) header dulu (totalqty sementara 0) ===
