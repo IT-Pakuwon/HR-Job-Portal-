@@ -114,7 +114,7 @@ class AgendaController extends Controller
 
     public function storeAgenda(Request $request)
     {
-        dd($request->all()); 
+        // dd($request->all()); 
 
         $roomId = $request->input('room_id');
         $accId = $request->input('acc_id');
@@ -353,6 +353,8 @@ class AgendaController extends Controller
                         $email_it = User::whereIn('username', $multiapp)
                             ->where('status', 'A')
                             ->get();
+
+                            $this->sendemail_interview($agenda, $user);
                 
                         foreach ($email_it as $emailsit) {
                             // Mail::send('emails.mailapprove', $data, function ($message) use ($data, $emailsit) {
@@ -1005,6 +1007,7 @@ class AgendaController extends Controller
             'name' => $applicant->full_name ?? 'Pelamar',
             'location' => $agenda->location ?? '',
             'address' => $agenda->location_address ?? '',
+            'interview_date' => Carbon::parse($agenda->startdate)->translatedFormat('l, d F Y'),
             'startdate' => Carbon::parse($agenda->startdate)->translatedFormat('l, d F Y'), // e.g., Senin, 05 Mei 2025
             'starttime' => Carbon::parse($agenda->startdate)->format('H:i'), // e.g., 09:00
             'endtime'   => Carbon::parse($agenda->enddate)->format('H:i'),   // e.g., 10:00
@@ -1013,8 +1016,8 @@ class AgendaController extends Controller
 
         Mail::send('emails.mailinterview', $data, function ($message) use ($applicant,$data) {
             $message->to($applicant->email_address)
-                    ->subject('📩 Panggilan Interview Pakuwon Career');
-            $message->from('digitalserver@pakuwon.com', 'Pakuwon Career');
+                    ->subject('📩 User interview & Psychotest');
+            $message->from('recruitment@pakuwon.com', 'Pakuwon Career');
         });
 
         return response()->json(['success' => 'Email has been sent to applicant.']);

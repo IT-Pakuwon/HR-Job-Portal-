@@ -227,6 +227,8 @@
                         <div class="flex flex-col gap-2">
                             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 req">Nama Tenant</label>
                             <input type="hidden" name="nama_tenant" id="nama_tenant">
+                            <input type="hidden" name="tenant_id" id="tenant_id">
+                            <input type="hidden" name="unit_id" id="unit_id">
                             <select id="tenant_select"
                                     class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                     data-placeholder="Cari tenant...">
@@ -506,9 +508,9 @@
                             <div class="mt-3 flex items-center justify-between text-sm">
                                 <span id="invCount" class="opacity-80"></span>
                                 <div class="space-x-2">
-                                    <button id="invPrev"
+                                    <button id="invPrev" type="button"
                                         class="rounded border px-3 py-1 disabled:opacity-40">Prev</button>
-                                    <button id="invNext"
+                                    <button id="invNext" type="button"
                                         class="rounded border px-3 py-1 disabled:opacity-40">Next</button>
                                 </div>
                             </div>
@@ -550,9 +552,9 @@
                             <div class="mt-3 flex items-center justify-between text-sm">
                                 <span id="locCount" class="opacity-80"></span>
                                 <div class="space-x-2">
-                                    <button id="locPrev"
+                                    <button id="locPrev" type="button"
                                         class="rounded border px-3 py-1 disabled:opacity-40">Prev</button>
-                                    <button id="locNext"
+                                    <button id="locNext" type="button"
                                         class="rounded border px-3 py-1 disabled:opacity-40">Next</button>
                                 </div>
                             </div>
@@ -596,9 +598,9 @@
                             <div class="mt-3 flex items-center justify-between text-sm">
                                 <span id="subLocCount" class="opacity-80"></span>
                                 <div class="space-x-2">
-                                    <button id="subLocPrev"
+                                    <button id="subLocPrev" type="button"
                                         class="rounded border px-3 py-1 disabled:opacity-40">Prev</button>
-                                    <button id="subLocNext"
+                                    <button id="subLocNext" type="button"
                                         class="rounded border px-3 py-1 disabled:opacity-40">Next</button>
                                 </div>
                             </div>
@@ -644,9 +646,9 @@
                             <div class="mt-3 flex items-center justify-between text-sm">
                                 <span id="coaCount" class="opacity-80"></span>
                                 <div class="space-x-2">
-                                    <button id="coaPrev"
+                                    <button id="coaPrev" type="button"
                                         class="rounded border px-3 py-1 disabled:opacity-40">Prev</button>
-                                    <button id="coaNext"
+                                    <button id="coaNext" type="button"
                                         class="rounded border px-3 py-1 disabled:opacity-40">Next</button>
                                 </div>
                             </div>
@@ -691,9 +693,9 @@
                             <div class="mt-3 flex items-center justify-between text-sm">
                                 <span id="uomCount" class="opacity-80"></span>
                                 <div class="space-x-2">
-                                    <button id="uomPrev"
+                                    <button id="uomPrev" type="button"
                                         class="rounded border px-3 py-1 disabled:opacity-40">Prev</button>
-                                    <button id="uomNext"
+                                    <button id="uomNext" type="button"
                                         class="rounded border px-3 py-1 disabled:opacity-40">Next</button>
                                 </div>
                             </div>
@@ -2002,9 +2004,60 @@
         }
 
         // TENANT Select2 (Ajax MsTenant)
+        // $('#tenant_select').select2({
+        //     width: '100%',
+        //     placeholder: $('#tenant_select').data('placeholder') || 'Cari tenant...',
+        //     allowClear: true,
+        //     ajax: {
+        //     url: "{{ route('tenants.search') }}",
+        //     dataType: 'json',
+        //     delay: 250,
+        //     data: function (params) {
+        //         return {
+        //         q: params.term || '',
+        //         page: params.page || 1,
+        //         per_page: 10
+        //         };
+        //     },
+        //     processResults: function (data, params) {
+        //         params.page = params.page || 1;
+        //         // backend response format: {data:[{id,text,unit_label,floor,unit}], total}
+        //         const results = (data.data || []).map(it => ({
+        //         id: it.id,
+        //         text: it.text,            // tenant name
+        //         unit_label: it.unit_label,
+        //         floor: it.floor || it.lantai || '',
+        //         unit: it.unit || ''
+        //         }));
+        //         return {
+        //         results: results,
+        //         pagination: {
+        //             more: (params.page * 10) < (data.total || 0)
+        //         }
+        //         };
+        //     },
+        //     cache: true
+        //     },
+        //     templateResult: formatTenant,
+        //     templateSelection: function (item) { return item.text || item.id; },
+        //     escapeMarkup: function (m) { return m; }
+        // })
+        // .on('select2:select', function (e) {
+        //     const d = e.params.data || {};
+        //     // set hidden & field tampilan
+        //     $('#nama_tenant').val(d.id || '');
+        //     const label = d.unit_label || ( (d.floor || '') && (d.unit || '') ? `${d.floor} - ${d.unit}` : '' );
+        //     $('#no_unit_tenant').val(label);
+        // })
+        // .on('select2:clear', function () {
+        //     $('#nama_tenant').val('');
+        //     $('#no_unit_tenant').val('');
+        // });
+
+       
+        $(document).ready(function() {
         $('#tenant_select').select2({
-            width: '100%',
-            placeholder: $('#tenant_select').data('placeholder') || 'Cari tenant...',
+            placeholder: 'Cari tenant...',
             allowClear: true,
             ajax: {
             url: "{{ route('tenants.search') }}",
@@ -2014,43 +2067,55 @@
                 return {
                 q: params.term || '',
                 page: params.page || 1,
-                per_page: 10
+                per_page: 10,
+                cpnyid: $('select[name="cpnyid"]').val() || '' // ikut filter company
                 };
             },
             processResults: function (data, params) {
                 params.page = params.page || 1;
-                // backend response format: {data:[{id,text,unit_label,floor,unit}], total}
                 const results = (data.data || []).map(it => ({
                 id: it.id,
-                text: it.text,            // tenant name
-                unit_label: it.unit_label,
-                floor: it.floor || it.lantai || '',
-                unit: it.unit || ''
+                text: it.text,             // store_name
+                unit_label: it.unit_label, // floor + unit
+                unit_id: it.unit,          // simpan unit_id
+                cpnyid: it.cpnyid          // kalau perlu
                 }));
                 return {
-                results: results,
-                pagination: {
-                    more: (params.page * 10) < (data.total || 0)
-                }
+                results,
+                pagination: { more: (params.page * 10) < (data.total || 0) }
                 };
+            }
             },
-            cache: true
+            templateResult: function (item) {
+            if (!item.id) return item.text;
+            const unit = item.unit_label ? `<span class="text-gray-500"> — ${item.unit_label}</span>` : '';
+            return $(`<span>${item.text}${unit}</span>`);
             },
-            templateResult: formatTenant,
-            templateSelection: function (item) { return item.text || item.id; },
+            templateSelection: function (item) {
+            return item.text || item.id;
+            },
             escapeMarkup: function (m) { return m; }
-        })
-        .on('select2:select', function (e) {
-            const d = e.params.data || {};
-            // set hidden & field tampilan
-            $('#nama_tenant').val(d.id || '');
-            const label = d.unit_label || ( (d.floor || '') && (d.unit || '') ? `${d.floor} - ${d.unit}` : '' );
-            $('#no_unit_tenant').val(label);
-        })
-        .on('select2:clear', function () {
+        });
+
+        // Event saat user pilih tenant
+        $('#tenant_select').on('select2:select', function (e) {
+            const data = e.params.data;
+            $('#tenant_id').val(data.id);              // simpan tenant id
+            $('#nama_tenant').val(data.text);          // simpan store_name
+            $('#unit_id').val(data.unit_id || '');     // simpan unit_id
+            $('#no_unit_tenant').val(data.unit_label); // simpan lantai-unit
+        });
+
+        // Event clear (kalau allowClear true)
+        $('#tenant_select').on('select2:clear', function () {
+            $('#tenant_id').val('');
             $('#nama_tenant').val('');
+            $('#unit_id').val('');
             $('#no_unit_tenant').val('');
         });
+        });
+
+
 
         // PIC Select2 (Ajax Users)
         $('#pic_select').select2({

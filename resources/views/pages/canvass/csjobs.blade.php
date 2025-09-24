@@ -220,76 +220,47 @@
     @endphp
     <div class="max-w-9xl mx-auto w-full px-4 py-4 sm:px-6 lg:px-8">
         <div class="grid-col-1 grid gap-6 xl:grid-cols-5 xl:grid-rows-1">
-            {{-- All Status --}}
-            <button>
-                <a href="#" class="status-filter" data-doc="">
-                    <div
-                        class="flex items-center gap-4 rounded-lg border border-orange-700 bg-orange-200/20 p-3 text-orange-600">
-                        <span class="text-xl">📄</span>
-                        <div class="flex flex-grow items-center justify-between">
-                            <p class="text-lg font-medium">All</p>
-                            <p class="text-right text-xl font-extrabold">{{ $all }}</p>
-                        </div>
-                    </div>
-                </a>
-            </button>
+  <div class="flex items-center gap-4 rounded-lg border border-orange-700 bg-orange-200/20 p-3 text-orange-600">
+    <span class="text-xl">📄</span>
+    <div class="flex flex-grow items-center justify-between">
+      <p class="text-lg font-medium">All</p>
+      <p id="count-all" class="text-right text-xl font-extrabold">{{ $all }}</p>
+    </div>
+  </div>
 
-            {{-- On Progress Status --}}
-            <button>
-                <a href="#" class="status-filter" data-doc="SPPB">
-                    <div
-                        class="flex items-center gap-4 rounded-lg border border-blue-700 bg-blue-200/20 p-3 text-blue-600">
-                        <span class="text-xl">⏳</span>
-                        <div class="flex flex-grow items-center justify-between">
-                            <p class="text-lg font-medium">SPPB</p>
-                            <p class="text-right text-xl font-extrabold">{{ $sppb }}</p>
-                        </div>
-                    </div>
-                </a>
-            </button>
+  <div class="flex items-center gap-4 rounded-lg border border-blue-700 bg-blue-200/20 p-3 text-blue-600">
+    <span class="text-xl">⏳</span>
+    <div class="flex flex-grow items-center justify-between">
+      <p class="text-lg font-medium">SPPB</p>
+      <p id="count-sppb" class="text-right text-xl font-extrabold">{{ $sppb }}</p>
+    </div>
+  </div>
 
-            {{-- Reject Status --}}
-            <button>
-                <a href="#" class="status-filter" data-doc="SPPJ">
-                    <div
-                        class="flex items-center gap-4 rounded-lg border border-red-700 bg-red-200/20 p-3 text-red-600">
-                        <span class="text-xl">⛔️</span>
-                        <div class="flex flex-grow items-center justify-between">
-                            <p class="text-lg font-medium">SPPJ</p>
-                            <p class="text-right text-xl font-extrabold">{{ $sppj }}</p>
-                        </div>
-                    </div>
-                </a>
-            </button>
+  <div class="flex items-center gap-4 rounded-lg border border-red-700 bg-red-200/20 p-3 text-red-600">
+    <span class="text-xl">⛔️</span>
+    <div class="flex flex-grow items-center justify-between">
+      <p class="text-lg font-medium">SPPJ</p>
+      <p id="count-sppj" class="text-right text-xl font-extrabold">{{ $sppj }}</p>
+    </div>
+  </div>
 
-            {{-- Revise / Draft Status --}}
-            <button>
-                <a href="#" class="status-filter" data-doc="SPPK">
-                    <div
-                        class="flex items-center gap-4 rounded-lg border border-gray-700 bg-gray-200/20 p-3 text-gray-600 dark:border-white dark:text-white">
-                        <span class="text-xl">✏️</span>
-                        <div class="flex flex-grow items-center justify-between">
-                            <p class="text-lg font-medium">SPPK</p>
-                            <p class="text-right text-xl font-extrabold">{{ $sppk }}</p>
-                        </div>
-                    </div>
-                </a>
-            </button>
+  <div class="flex items-center gap-4 rounded-lg border border-gray-700 bg-gray-200/20 p-3 text-gray-600 dark:border-white dark:text-white">
+    <span class="text-xl">✏️</span>
+    <div class="flex flex-grow items-center justify-between">
+      <p class="text-lg font-medium">SPPK</p>
+      <p id="count-sppk" class="text-right text-xl font-extrabold">{{ $sppk }}</p>
+    </div>
+  </div>
 
-            {{-- Completed Status --}}
-            <button>
-                <a href="#" class="status-filter" data-doc="SPPT">
-                    <div
-                        class="flex items-center gap-4 rounded-lg border border-green-700 bg-green-200/20 p-3 text-green-600">
-                        <span class="text-xl">✅</span>
-                        <div class="flex flex-grow items-center justify-between">
-                            <p class="text-lg font-medium">SPPT</p>
-                            <p class="text-right text-xl font-extrabold">{{ $sppt }}</p>
-                        </div>
-                    </div>
-                </a>
-            </button>
-        </div>
+  <div class="flex items-center gap-4 rounded-lg border border-green-700 bg-green-200/20 p-3 text-green-600">
+    <span class="text-xl">✅</span>
+    <div class="flex flex-grow items-center justify-between">
+      <p class="text-lg font-medium">SPPT</p>
+      <p id="count-sppt" class="text-right text-xl font-extrabold">{{ $sppt }}</p>
+    </div>
+  </div>
+</div>
+
         <div class="grid">            
             <div class="mt-6 rounded-2xl bg-white dark:bg-gray-800">
                 <div
@@ -302,11 +273,13 @@
                     <!-- Tabs header -->
                     <div class="mb-4 border-b border-gray-200 dark:border-gray-700">
                         <nav class="flex gap-2">
-                        <button class="tab-btn active px-4 py-2 text-sm font-semibold rounded-t bg-indigo-50 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300" data-tab="mine">CS Jobs</button>
-                        <button class="tab-btn px-4 py-2 text-sm font-semibold rounded-t hover:bg-gray-100 dark:hover:bg-gray-700" data-tab="all">All Jobs</button>
-                        <button class="tab-btn px-4 py-2 text-sm font-semibold rounded-t hover:bg-gray-100 dark:hover:bg-gray-700" data-tab="revision">My Revision</button>
-                        <button class="tab-btn px-4 py-2 text-sm font-semibold rounded-t hover:bg-gray-100 dark:hover:bg-gray-700" data-tab="sppbjkt">SPPBJKT IN Progress</button>
+                            <button class="tab-btn active px-4 py-2 text-sm font-semibold rounded-t bg-indigo-50 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300" data-tab="mine">CS Jobs</button>
+                            <button class="tab-btn px-4 py-2 text-sm font-semibold rounded-t hover:bg-gray-100 dark:hover:bg-gray-700" data-tab="entry">Entry CS</button>
+                            <button class="tab-btn px-4 py-2 text-sm font-semibold rounded-t hover:bg-gray-100 dark:hover:bg-gray-700" data-tab="all">All Jobs</button>
+                            <button class="tab-btn px-4 py-2 text-sm font-semibold rounded-t hover:bg-gray-100 dark:hover:bg-gray-700" data-tab="revision">My Revision</button>
+                            <button class="tab-btn px-4 py-2 text-sm font-semibold rounded-t hover:bg-gray-100 dark:hover:bg-gray-700" data-tab="sppbjkt">SPPBJKT IN Progress</button>
                         </nav>
+
                     </div>
 
                     <!-- CS Jobs (mine) -->
@@ -329,6 +302,25 @@
                         <tbody class="divide-y divide-gray-200 bg-white dark:bg-gray-800 dark:divide-gray-700"></tbody>
                         </table>
                     </div>
+
+                    <!-- Entry CS (draft/H milik saya) -->
+                    <div id="tab-entry" class="tab-pane hidden">
+                        <table id="tblEntryCS" class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                            <thead class="bg-gray-50 dark:bg-gray-700">
+                            <tr>
+                            <th class="px-6 py-3 text-left  text-xs font-semibold uppercase tracking-wider">CSID</th>
+                            <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">Date</th>
+                            <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">Company</th>
+                            <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">Department</th>
+                            <th class="px-6 py-3 text-left  text-xs font-semibold uppercase tracking-wider">User Peminta</th>
+                            <th class="px-6 py-3 text-left  text-xs font-semibold uppercase tracking-wider">Note</th>
+                            <th class="px-6 py-3 text-left  text-xs font-semibold uppercase tracking-wider">Action</th>
+                            </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-200 bg-white dark:bg-gray-800 dark:divide-gray-700"></tbody>
+                        </table>
+                    </div>
+
 
                     <!-- All Jobs -->
                     <div id="tab-all" class="tab-pane hidden">
@@ -485,15 +477,53 @@
                     searchDelay:400, stateSave:true, responsive:true
                 });
 
-                // Status filter (SPPB/SPPJ/SPPK/SPPT/All)
-                $('.status-filter').on('click', function(e){
-                    e.preventDefault();
-                    docTypeFilter = $(this).data('doc') || '';
-                    tblMine.ajax.reload(null,true);
-                    tblAll.ajax.reload(null,true);
-                    tblRevision.ajax.reload(null,true);
-                    tblSppbjkt.ajax.reload(null,true);
+                // === ENTRY CS table (TrCS status H & created_by = user login) ===
+                const tblEntryCS = $('#tblEntryCS').DataTable({
+                processing:true, serverSide:true, deferRender:true,
+                pageLength:25, lengthMenu:[10,25,50,100,250],
+                ajax:{ url:"{{ route('csjobs.entry.json') }}", type:"GET" }, // <— endpoint baru
+                order:[[1,'desc'],[0,'desc']], // csdate desc, csid desc
+                columns:[
+                    { data:'csid', className:'text-left',
+                    render:(v,_t,row)=> `<a href="/showcs/${row.id}" class="inline-flex items-center rounded px-3 py-1.5 bg-blue-600 text-white hover:bg-blue-700 text-sm font-semibold">${row.csid}</a>`
+                    },
+                    { data:'csdate', className:'text-center',
+                    render:(v)=> v ? (isNaN(new Date(v)) ? v : new Date(v).toLocaleDateString('id-ID')) : '' },
+                    { data:'cpny_id', className:'text-center' },
+                    { data:'department_id', className:'text-center' },
+                    { data:'user_peminta', className:'text-left', defaultContent:'-' },
+                    { data:'csnote', className:'text-left', defaultContent:'-' },
+                    { data:null, orderable:false, searchable:false, className:'text-left',
+                    render:(_d,_t,row)=> {
+                        // sesuaikan route edit/lanjutkan draft CS Anda
+                        return `
+                        <div class="flex gap-2">
+                            <a href="/showcs/${row.id}" class="inline-flex items-center rounded px-3 py-1.5 bg-indigo-600 text-white hover:bg-indigo-700 text-sm font-semibold">Open</a>
+                        </div>`;
+                    }
+                    }
+                ],
+                searchDelay:400, stateSave:true, responsive:true
                 });
+
+            
+
+
+             
+                function fetchCountsForTab(tabKey){
+                $.get("{{ route('csjobs.counts') }}", { tab: tabKey })
+                    .done(function(res){
+                    $('#count-all').text(res.all);
+                    $('#count-sppb').text(res.sppb);
+                    $('#count-sppj').text(res.sppj);
+                    $('#count-sppk').text(res.sppk);
+                    $('#count-sppt').text(res.sppt);
+                    })
+                    .fail(function(){
+                    // optional: toastr.warning('Gagal mengambil count.');
+                    });
+                }
+
 
                 // Tabs switching
                 function setActiveTab(key) {
@@ -502,9 +532,12 @@
                     $('.tab-pane').addClass('hidden').removeClass('block');
                     $(`#tab-${key}`).removeClass('hidden').addClass('block');
                     if (key === 'mine') { tblMine.columns.adjust(); }
+                    if (key === 'entry')    { tblEntryCS.columns.adjust(); }   // <— NEW
                     if (key === 'all')  { tblAll.columns.adjust(); }
                     if (key === 'revision') { tblRevision.columns.adjust(); }
                     if (key === 'sppbjkt')  { tblSppbjkt.columns.adjust(); }
+                    
+                    fetchCountsForTab(key);
                 }
 
                 $('.tab-btn').on('click', function(){ setActiveTab($(this).data('tab')); });

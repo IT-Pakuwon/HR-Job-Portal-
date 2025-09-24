@@ -293,8 +293,8 @@
                             <div class="mt-3 flex items-center justify-between text-sm">
                             <span id="invCount" class="opacity-80"></span>
                             <div class="space-x-2">
-                                <button id="invPrev" class="rounded border px-3 py-1 disabled:opacity-40">Prev</button>
-                                <button id="invNext" class="rounded border px-3 py-1 disabled:opacity-40">Next</button>
+                                <button id="invPrev" type="button" class="rounded border px-3 py-1 disabled:opacity-40">Prev</button>
+                                <button id="invNext" type="button" class="rounded border px-3 py-1 disabled:opacity-40">Next</button>
                             </div>
                             </div>
                         </div>
@@ -330,8 +330,8 @@
                             <div class="mt-3 flex items-center justify-between text-sm">
                             <span id="locCount" class="opacity-80"></span>
                             <div class="space-x-2">
-                                <button id="locPrev" class="rounded border px-3 py-1 disabled:opacity-40">Prev</button>
-                                <button id="locNext" class="rounded border px-3 py-1 disabled:opacity-40">Next</button>
+                                <button id="locPrev" type="button" class="rounded border px-3 py-1 disabled:opacity-40">Prev</button>
+                                <button id="locNext" type="button" class="rounded border px-3 py-1 disabled:opacity-40">Next</button>
                             </div>
                             </div>
                         </div>
@@ -370,8 +370,8 @@
                             <div class="mt-3 flex items-center justify-between text-sm">
                             <span id="subLocCount" class="opacity-80"></span>
                             <div class="space-x-2">
-                                <button id="subLocPrev" class="rounded border px-3 py-1 disabled:opacity-40">Prev</button>
-                                <button id="subLocNext" class="rounded border px-3 py-1 disabled:opacity-40">Next</button>
+                                <button id="subLocPrev" type="button" class="rounded border px-3 py-1 disabled:opacity-40">Prev</button>
+                                <button id="subLocNext" type="button" class="rounded border px-3 py-1 disabled:opacity-40">Next</button>
                             </div>
                             </div>
                         </div>
@@ -412,8 +412,8 @@
                             <div class="mt-3 flex items-center justify-between text-sm">
                             <span id="coaCount" class="opacity-80"></span>
                             <div class="space-x-2">
-                                <button id="coaPrev" class="rounded border px-3 py-1 disabled:opacity-40">Prev</button>
-                                <button id="coaNext" class="rounded border px-3 py-1 disabled:opacity-40">Next</button>
+                                <button id="coaPrev" type="button" class="rounded border px-3 py-1 disabled:opacity-40">Prev</button>
+                                <button id="coaNext" type="button" class="rounded border px-3 py-1 disabled:opacity-40">Next</button>
                             </div>
                             </div>
                         </div>
@@ -454,8 +454,8 @@
                         <div class="mt-3 flex items-center justify-between text-sm">
                         <span id="uomCount" class="opacity-80"></span>
                         <div class="space-x-2">
-                            <button id="uomPrev" class="rounded border px-3 py-1 disabled:opacity-40">Prev</button>
-                            <button id="uomNext" class="rounded border px-3 py-1 disabled:opacity-40">Next</button>
+                            <button id="uomPrev" type="button" class="rounded border px-3 py-1 disabled:opacity-40">Prev</button>
+                            <button id="uomNext" type="button" class="rounded border px-3 py-1 disabled:opacity-40">Next</button>
                         </div>
                         </div>
                     </div>

@@ -15,7 +15,7 @@
         {{-- <p><strong>Date:</strong> {{ $startdate }}</p>
         <p><strong>Time:</strong> {{ $starttime }} – {{ $endtime }} WIB (Western Indonesia Time)</p>
         <p><strong>Location:</strong> {{ $location }} – {{ $address }}</p> --}}
-        <table cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:520px;border:1px solid #e5e7eb;border-collapse:collapse;">
+        <table cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:720px;border:1px solid #e5e7eb;border-collapse:collapse;">
         
         <tr>
             <td style="padding:8px;background:#f9fafb;">Day & Date</td>
@@ -31,20 +31,18 @@
         </tr>
         <tr>
             <td style="padding:8px;background:#f9fafb;"></td>
-            <td style="padding:8px;">: {{ $address }}</td>
+            <td style="padding:8px;"> {{ $address }}</td>
         </tr>
         <tr>
             <td style="padding:8px;background:#f9fafb;">PIC Recruitment</td>
-            <td style="padding:8px;">: <a href="{{ $url }}">{{ $url }}</a></td>
+            <td style="padding:8px;">:  Adela / Frengky</td>
         </tr>
         </table>
 
-        <p>
-            After receiving this email, please confirm your attendance by replying to this message.
-            <br>Thank you for your attention.
-        </p>
+        <p>Notes: Obligated to bring your own stationary (pen & pencil) with dresscode formal attire</p>
 
-        <p style="margin-top: 30px;">If you have any questions, feel free to contact us by replying to this email.</p><br>
+        <p style="margin-top: 30px;">Please confirm by replying with Attend / Not Attend / Reschedule to email: <strong>recruitment@pakuwon.com</strong>
+. If you have any questions, feel free to contact us via email. Thank you.</p><br>
 
         <p>Warm regards,</p>
         <p><strong>Talent Acquisition Pakuwon Group Jakarta</strong></p>

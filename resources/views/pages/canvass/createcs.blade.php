@@ -273,6 +273,14 @@
                                         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
                                     </svg>
                                 </button>
+                                <button type="button" id="saveBtn"
+                                    class="inline-flex items-center justify-center rounded-lg bg-gray-600 px-6 py-3 text-base font-semibold text-white shadow-md transition-colors hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2">
+                                    <span>Save CS</span>
+                                    <svg id="saveSpinner" class="ml-2 hidden h-5 w-5 animate-spin text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+                                    </svg>
+                                </button>
                                 <button type="submit" id="submitBtn"
                                         class="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-6 py-3 text-base font-semibold text-white shadow-md transition-colors hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
                                     <span id="btnText">Submit Approval</span>
@@ -922,7 +930,7 @@
         });
     </script>
     <script>
-        $('#csForm').on('submit', function(e){
+        $('#saveBtn').on('click', function(e){
             e.preventDefault();
 
             // ==== VALIDASI: minimal 1 vendor kolom ====
@@ -943,6 +951,189 @@
                 toastr.error('Total tidak boleh 0. Isi harga minimal pada salah satu vendor.');
                 return;
             }
+
+            // Kumpulkan vendor summary (urut sesuai posisi kolom)
+            const vendors = [];
+            $('#cvTable thead th[id^="th-vendor-"]').each(function(i){
+                if (vendors.length >= 6) return; // hard limit 6
+                const $th = $(this);
+                const vid = String($th.data('vendor-id'));
+                const vcode = String($th.data('vendor-code'));
+
+                const $sum = $(`#td-sum-${vid}`);
+                const total = numFromText($sum.find('.sum-total').text());
+                const ppn   = Number($sum.find('.sum-ppn').val() || 0);
+                const pph   = Number($sum.find('.sum-pph').val() || 0);
+                const ppnId = $sum.find('.sum-ppn-id').val() || '';
+                const pphId = $sum.find('.sum-pph-id').val() || '';
+                const tax   = total * (ppn/100) + total * (pph/100);
+                const grand = total + tax;
+                const selTotal = numFromText($sum.find('.sum-selected').text());
+                const selTax   = selTotal * (ppn/100) + selTotal * (pph/100);
+                const selGrand = selTotal + selTax;
+
+                vendors.push({
+                id: vid,
+                vendorid: vcode,
+                vendorname: String($th.data('vendor-name') || ''),
+                vendoralamat: String($th.data('vendor-addr') || ''),
+                vendortelp: String($th.data('vendor-phone') || ''),
+                vendorcp: String($th.data('vendor-cp') || ''),
+                vendortop: $th.find('select.cara-bayar').val() || '',
+                vendornote: '',
+
+                total: round2(total),
+                ppn: round2(ppn),
+                pph: round2(pph),
+                taxcode: [ppnId, pphId].filter(Boolean).join('+'),
+                tax: round2(tax),
+                grand: round2(grand),
+
+                selected_total: round2(selTotal),
+                selected_tax: round2(selTax),
+                selected_grand: round2(selGrand),
+                });
+            });
+
+            // Kumpulkan detail baris
+            const details = [];
+            $('#cvBody tr').each(function(rowIdx){
+                const $tr = $(this);
+                const qty = parseQty($tr.find('.qty-input').val());
+                const uom = $tr.data('uom') || '';
+                const invId = $tr.data('inventoryid') || '';
+                const invDescr = $tr.data('inventory_descr') || '';
+                const lastPrice = Number($tr.data('lastprice') || 0);
+                const csNote = String($tr.data('note') || '');
+
+                const row = {
+                inventoryid: invId,
+                inventory_descr: invDescr,
+                qty: round2(qty),
+                uom: uom,
+                inventory_last_price: round2(lastPrice),
+                csnote_detail: csNote,
+                vendor: []
+                };
+
+                const picked = String($tr.find('input.pick-vendor:checked').val() || '');
+
+                $('#cvTable thead th[id^="th-vendor-"]').each(function(i){
+                if (i >= 6) return;
+                const vendorId = String($(this).data('vendor-id'));
+                const vendorIdCode = String($(this).data('vendor-code'));
+                const $priceInput = $tr.find(`input.price-input[data-vendor="${vendorId}"]`);
+                const price = parsePrice($priceInput.val());
+                const total = qty * price;
+
+                row.vendor.push({
+                    id: vendorId,
+                    vendorid: vendorIdCode,
+                    price: round2(price),
+                    total: round2(total),
+                    selected: vendorId === picked
+                });
+                });
+
+                details.push(row);
+            });
+
+            // FormData dari form yang benar
+            const fd = new FormData(document.getElementById('csForm'));
+            fd.append('vendors', JSON.stringify(vendors));
+            fd.append('details', JSON.stringify(details));
+
+            showOverlay('Submitting');
+
+            $.ajax({
+                url: "{{ route('cs.save') }}",
+                method: 'POST',
+                data: fd,
+                processData: false,
+                contentType: false,
+                success: function(res){
+                hideOverlay();
+                toastr.success('CS berhasil disimpan.');
+                // window.location.href = res.redirect ?? window.location.href;
+                },
+                error: function(xhr){
+                hideOverlay();
+                let msg = 'Gagal menyimpan CS.';
+                if (xhr.responseJSON && xhr.responseJSON.message) msg = xhr.responseJSON.message;
+                toastr.error(msg);
+                }
+            });
+            });
+
+
+        // helpers number
+        function numFromText(t){
+            t = String(t || '');
+            t = t.replace(/\./g,'').replace(',', '.').replace(/[^0-9.-]/g,'');
+            const n = parseFloat(t);
+            return isNaN(n) ? 0 : n;
+        }
+        function round2(n){ return Math.round((+n + Number.EPSILON) * 100) / 100; }
+    </script>
+
+    <script>
+        $('#submitBtn').on('click', function(e){
+            e.preventDefault();
+
+            // ==== VALIDASI: minimal 1 vendor kolom ====
+            const $vendorCols = $('#cvTable thead th[id^="th-vendor-"]');
+            if ($vendorCols.length === 0) {
+                toastr.error('Pilih minimal 1 vendor.');
+                return;
+            }
+
+            // ==== VALIDASI: total per-vendor tidak semuanya 0 ====
+            let allVendorTotalsZero = true;
+            $vendorCols.each(function(){
+                const vid = String($(this).data('vendor-id'));
+                const total = numFromText($(`#td-sum-${vid} .sum-total`).text());
+                if (total > 0) allVendorTotalsZero = false;
+            });
+            if (allVendorTotalsZero) {
+                toastr.error('Total tidak boleh 0. Isi harga minimal pada salah satu vendor.');
+                return;
+            }
+
+             // ==== NEW: minimal ada vendor TERPILIH ====
+    if ($('.pick-vendor:checked').length === 0) {
+      toastr.error('Pilih vendor pada minimal satu item.');
+      return;
+    }
+
+    // ==== NEW: baris yang ada harga > 0 harus pilih vendor ====
+    let rowWithoutVendor = false;
+    $('#cvBody tr').each(function(){
+      // ada harga > 0 di salah satu vendor pada baris ini?
+      let hasPrice = false;
+      $(this).find('input.price-input').each(function(){
+        const v = $(this).val() || '';
+        const num = (function parsePriceLocal(val){
+          let t = String(val).trim().replace(/[^0-9.,]/g,'');
+          const lc = t.lastIndexOf(','), ld = t.lastIndexOf('.');
+          const dec = (lc > ld) ? ',' : '.';
+          if (dec === ',') t = t.replace(/\./g,'').replace(',', '.');
+          else t = t.replace(/,/g,'');
+          const n = parseFloat(t);
+          return isNaN(n) ? 0 : n;
+        })(v);
+        if (num > 0) { hasPrice = true; return false; }
+      });
+
+      // kalau ada harga, wajib ada vendor dipilih di baris ini
+      if (hasPrice && $(this).find('.pick-vendor:checked').length === 0) {
+        rowWithoutVendor = true;
+        return false; // break
+      }
+    });
+    if (rowWithoutVendor) {
+      toastr.error('Ada baris yang memiliki harga tetapi belum memilih vendor.');
+      return;
+    }
 
             // Kumpulkan vendor summary (urut sesuai posisi kolom)
             const vendors = [];

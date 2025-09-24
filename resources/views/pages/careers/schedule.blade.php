@@ -1,8 +1,10 @@
 <!-- Button -->
-<button type="button" onclick="openAgendaModal()"
-    class="inline-flex items-center rounded-xl bg-indigo-600 px-6 py-2 text-base font-semibold text-white transition-colors duration-200 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
-    <i class="fas fa-plus pr-2"></i>Create Schedule
-</button>
+@if ($canAccessSchedule)
+    <button type="button" onclick="openAgendaModal()"
+        class="inline-flex items-center rounded-xl bg-indigo-600 px-6 py-2 text-base font-semibold text-white transition-colors duration-200 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+        <i class="fas fa-plus pr-2"></i>Create Schedule
+    </button>
+@endif
 
 
 
@@ -134,7 +136,7 @@
             <th>StartDate</th>
             <th>EndDate</th>
             <th>Participant</th>
-            <th>Status</th>
+            {{-- <th>Status</th> --}}
             <th></th>
         </tr>
     </thead>
@@ -152,7 +154,7 @@
                 <td>{{ $p->startdate }}</td>
                 <td>{{ $p->enddate }}</td>
                 <td>{{ $p->participant }}</td>
-                <td>
+                {{-- <td>
                     @php
                         $statusText = '';
                         $bgColor = '';
@@ -190,7 +192,7 @@
                         style="background-color: {{ $bgColor }}; color: {{ $textColor }}; padding: 4px 10px; border-radius: 6px; font-weight: bold; font-size: 13px;">
                         {{ $statusText }}
                     </span>
-                </td>
+                </td> --}}
                 <td>
                     @if ($p->status == 'C')
                         <button onclick="openCancelModal({{ $p->id }})"

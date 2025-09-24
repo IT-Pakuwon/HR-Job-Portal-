@@ -8,12 +8,16 @@ use Illuminate\Database\Eloquent\Model;
 class MsTenant extends Model
 {
     protected $connection = 'pgsql';
-    protected $table = "tenant";
+    protected $table = "ms_tenant";
 
     protected $fillable = [
-        'tenant',
-        'lantai',
-        'unit',
-        'status',      
+        'unit_id',
+        'cpny_id',
+        'store_name',
+        'floor_id',
+        'store_no',
+        'status',     
+        'created_by',
+        'updated_by', 
     ];
 }

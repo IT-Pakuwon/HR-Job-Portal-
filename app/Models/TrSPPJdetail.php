@@ -37,6 +37,8 @@ class TrSPPJdetail extends Model
         'assignpurchasing',
         'openordered',
         'ordered',
+        'rejectordered',
+        'completeordered',
         'status',
         'created_by',
         'updated_by'

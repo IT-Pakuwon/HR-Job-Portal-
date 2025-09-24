@@ -259,6 +259,9 @@ class SppkController extends Controller
             $header->km_kendaraan      = $request->input('km_kendaraan');
             $header->totalopenordered  = 0;
             $header->totalqty          = 0;
+            $header->totalordered      = 0;
+            $header->totalrejectordered = 0;
+            $header->totalcompleteordered = 0;
             $header->assignby          = null;
             $header->assigndate        = null;
             $header->assignpurchasing  = null;
@@ -327,6 +330,8 @@ class SppkController extends Controller
                 $detail->assignpurchasing         = null;
                 $detail->openordered              = 0;
                 $detail->ordered                  = 0;
+                $detail->rejectordered            = 0;
+                $detail->completeordered          = 0;
                 $detail->status                   = 'P';
                 $detail->created_by               = $username;
                 $detail->save();
@@ -336,7 +341,7 @@ class SppkController extends Controller
 
             // update totalqty di header
             $header->totalqty = $totalQty;
-            // $header->totalopenordered = $totalQty;
+            $header->totalopenordered = $totalQty;
             $header->save();
 
             // === 4) copy line approval (M_approval -> T_approval) ===

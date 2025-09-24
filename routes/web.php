@@ -510,11 +510,17 @@ Route::post('/logout', function () {
     Route::get('/csjobs/all/json',  [CsJobController::class, 'CsJobsAllJson'])->name('csjobs.all.json');                   
     Route::get('/csjobs/revision/json', [CsJobController::class, 'CsJobsRevisionJson'])->name('csjobs.revision.json');     
     Route::get('/csjobs/sppbjkt-progress/json', [CsJobController::class, 'SppbjktOnProgressJson'])->name('csjobs.sppbjkt.progress.json'); 
+    Route::get('/csjobs/counts', [CsJobController::class,'CsJobsCounts'])->name('csjobs.counts');    
+    Route::get('/csjobs/entry.json', [CsJobController::class, 'CsJobsEntryJson'])->name('csjobs.entry.json')->middleware('auth');
+
+
 
     Route::get('/createcs/{doc}/{src}', [CanvassController::class, 'createCS'])
         ->where(['doc' => 'SPPB|SPPJ|SPPK|SPPT', 'src' => '[0-9]+'])
         ->name('canvass.createcs');
-    Route::post('/cs', [CanvassController::class, 'storeCS'])->name('cs.store');
+    Route::post('/csstore', [CanvassController::class, 'storeCS'])->name('cs.store');
+    Route::post('/cssave', [CanvassController::class, 'saveCS'])->name('cs.save');
+    Route::get('/showcs/{id}', [CanvassController::class, 'showCS']);
     
 
     Route::get('/inventory/list', [MasterController::class, 'InventoryList'])->name('inventory.list');

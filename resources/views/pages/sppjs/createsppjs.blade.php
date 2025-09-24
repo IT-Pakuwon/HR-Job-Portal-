@@ -405,9 +405,9 @@
                             <div class="mt-3 flex items-center justify-between text-sm">
                                 <span id="invCount" class="opacity-80"></span>
                                 <div class="space-x-2">
-                                    <button id="invPrev"
+                                    <button id="invPrev" type="button"
                                         class="rounded border px-3 py-1 disabled:opacity-40">Prev</button>
-                                    <button id="invNext"
+                                    <button id="invNext" type="button"
                                         class="rounded border px-3 py-1 disabled:opacity-40">Next</button>
                                 </div>
                             </div>
@@ -449,9 +449,9 @@
                             <div class="mt-3 flex items-center justify-between text-sm">
                                 <span id="locCount" class="opacity-80"></span>
                                 <div class="space-x-2">
-                                    <button id="locPrev"
+                                    <button id="locPrev" type="button"
                                         class="rounded border px-3 py-1 disabled:opacity-40">Prev</button>
-                                    <button id="locNext"
+                                    <button id="locNext" type="button"
                                         class="rounded border px-3 py-1 disabled:opacity-40">Next</button>
                                 </div>
                             </div>
@@ -495,9 +495,9 @@
                             <div class="mt-3 flex items-center justify-between text-sm">
                                 <span id="subLocCount" class="opacity-80"></span>
                                 <div class="space-x-2">
-                                    <button id="subLocPrev"
+                                    <button id="subLocPrev" type="button"
                                         class="rounded border px-3 py-1 disabled:opacity-40">Prev</button>
-                                    <button id="subLocNext"
+                                    <button id="subLocNext" type="button"
                                         class="rounded border px-3 py-1 disabled:opacity-40">Next</button>
                                 </div>
                             </div>
@@ -543,9 +543,9 @@
                             <div class="mt-3 flex items-center justify-between text-sm">
                                 <span id="coaCount" class="opacity-80"></span>
                                 <div class="space-x-2">
-                                    <button id="coaPrev"
+                                    <button id="coaPrev" type="button"
                                         class="rounded border px-3 py-1 disabled:opacity-40">Prev</button>
-                                    <button id="coaNext"
+                                    <button id="coaNext" type="button"
                                         class="rounded border px-3 py-1 disabled:opacity-40">Next</button>
                                 </div>
                             </div>
@@ -590,9 +590,9 @@
                             <div class="mt-3 flex items-center justify-between text-sm">
                                 <span id="uomCount" class="opacity-80"></span>
                                 <div class="space-x-2">
-                                    <button id="uomPrev"
+                                    <button id="uomPrev" type="button"
                                         class="rounded border px-3 py-1 disabled:opacity-40">Prev</button>
-                                    <button id="uomNext"
+                                    <button id="uomNext" type="button"
                                         class="rounded border px-3 py-1 disabled:opacity-40">Next</button>
                                 </div>
                             </div>

@@ -235,7 +235,7 @@
                             ];
 
                             $row3 = [
-                                ['label' => 'Tenant', 'value' => optional($sppt->tenantname)->tenant],
+                                ['label' => 'Tenant', 'value' => optional($sppt->tenantname)->store_name],
                                 ['label' => 'Lantai-Unit', 'value' => $sppt->no_unit_tenant],
                                 ['label' => 'Pic', 'value' => ucwords(strtolower(optional($sppt->pic)->name))],
                             ];

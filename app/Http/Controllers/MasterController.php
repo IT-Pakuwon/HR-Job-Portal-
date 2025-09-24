@@ -340,7 +340,7 @@ class MasterController extends Controller
         ]);
     }
 
-    public function tenants(Request $req)
+    public function tenants_zzz(Request $req)
     {
         $q        = trim($req->get('q', ''));
         $page     = max(1, (int) $req->get('page', 1));
@@ -358,7 +358,7 @@ class MasterController extends Controller
         }
 
         $total = (clone $query)->count();
-
+        
         $rows = $query
             ->orderBy('tenant')
             ->skip(($page - 1) * $perPage)
@@ -384,6 +384,63 @@ class MasterController extends Controller
             'per_page' => $perPage,
         ]);
     }
+
+    public function tenants(Request $req)
+    {
+        $q        = trim($req->get('q', ''));
+        $page     = max(1, (int) $req->get('page', 1));
+        $perPage  = max(1, min(50, (int) $req->get('per_page', 10)));
+        $cpnyid   = $req->get('cpnyid'); // tambahan filter by company
+        
+        $query = MsTenant::query();
+
+        // if ($cpnyid) {
+        //     $query->where('cpny_id', $cpnyid);
+        // }
+        if ($cpnyid) {
+            $query->whereRaw('TRIM(UPPER(cpny_id)) = ?', [strtoupper(trim($cpnyid))]);
+        }
+
+
+        if ($q !== '') {
+            $query->where(function ($w) use ($q) {
+                $w->where('store_name', 'ILIKE', "%{$q}%")
+                ->orWhere('store_no', 'ILIKE', "%{$q}%")
+                ->orWhere('floor_id', 'ILIKE', "%{$q}%")
+                ->orWhere('unit_id', 'ILIKE', "%{$q}%");
+            });
+        }
+
+        $total = (clone $query)->count();
+       
+        $rows = $query
+            ->orderBy('store_name')
+            ->skip(($page - 1) * $perPage)
+            ->take($perPage)
+            ->get();
+
+        $data = $rows->map(function ($r) {
+            $floor = $r->floor_id ?? '';
+            $unit  = $r->store_no ?? $r->unit_id ?? '';
+            return [
+                'id'         => $r->id,                  // PK
+                'text'       => $r->store_name ?? '-',   // nama tenant
+                'unit_label' => trim(($floor ? $floor : '') . ($unit ? (' - ' . $unit) : '')),
+                'floor'      => $floor,
+                'unit'       => $unit,
+                'cpnyid'     => $r->cpny_id,
+            ];
+        });
+       
+
+        return response()->json([
+            'data'     => $data,
+            'total'    => $total,
+            'page'     => $page,
+            'per_page' => $perPage,
+        ]);
+    }
+
 
     public function users(Request $req)
     {

@@ -24,6 +24,7 @@ use App\Models\MsLocationPG;
 use App\Models\MsSubLocationPG;
 use App\Models\vReceivedList;
 use App\Models\vSppbjktOnProgress;
+ use App\Models\TrCS;
 use App\Models\vCsJobs;
 use App\Models\vCsRevision;
 use Mail;
@@ -168,6 +169,111 @@ class CsJobController extends Controller
         $base = vSppbjktOnProgress::query();
         return $this->buildJobsJson($base, $request);
     }
+
+   
+    private function baseQueryForTab(string $tab)
+    {
+        switch ($tab) {
+            case 'mine':
+                $username = Auth::user()->username ?? '';
+                return vCsJobs::query()->where('assignpurchasing', $username);
+            case 'all':
+                return vCsJobs::query();
+            case 'revision':
+                return vCsRevision::query();
+            case 'sppbjkt':
+                return vSppbjktOnProgress::query();
+            default:
+                return vCsJobs::query();
+        }
+    }
+
+    /**
+     * GET /csjobs/counts?tab=mine|all|revision|sppbjkt
+     * Kembalikan angka All/SPPB/SPPJ/SPPK/SPPT untuk tab aktif
+     */
+    public function CsJobsCounts(Request $request)
+    {
+        $tab  = $request->query('tab', 'mine');
+        $base = $this->baseQueryForTab($tab);
+
+        // total semua dokumen
+        $all = (clone $base)->count();
+
+        // pecah per doc_type
+        $perType = (clone $base)
+            ->select('doc_type', DB::raw('count(*) as cnt'))
+            ->groupBy('doc_type')
+            ->pluck('cnt', 'doc_type'); // ['SPPB'=>x, 'SPPJ'=>y, ...]
+
+        return response()->json([
+            'all'  => $all,
+            'sppb' => (int)($perType['SPPB'] ?? 0),
+            'sppj' => (int)($perType['SPPJ'] ?? 0),
+            'sppk' => (int)($perType['SPPK'] ?? 0),
+            'sppt' => (int)($perType['SPPT'] ?? 0),
+        ]);
+    }
+
+   
+
+    public function CsJobsEntryJson(Request $request)
+    {
+        $draw   = (int) $request->input('draw', 1);
+        $start  = (int) $request->input('start', 0);
+        $length = (int) $request->input('length', 25);
+        $search = trim((string) $request->input('search.value', ''));
+
+        $username = Auth::user()->username ?? '';
+
+        // hanya draft (H) dan milik user login
+        $base = TrCS::query()
+            ->where('status', 'H')
+            ->where('created_by', $username);
+
+        // kolom yang diizinkan untuk ordering
+        $columns = [
+            0 => 'csid',
+            1 => 'csdate',
+            2 => 'cpny_id',
+            3 => 'department_id',
+            4 => 'user_peminta',
+            5 => 'csnote',
+        ];
+        $orderIdx = (int) $request->input('order.0.column', 1);
+        $orderDir = $request->input('order.0.dir', 'desc') === 'asc' ? 'asc' : 'desc';
+        $orderCol = $columns[$orderIdx] ?? 'csdate';
+
+        $recordsTotal = (clone $base)->count();
+
+        if ($search !== '') {
+            $base->where(function ($q) use ($search) {
+                $q->where('csid', 'ilike', "%{$search}%")
+                ->orWhere('cpny_id', 'ilike', "%{$search}%")
+                ->orWhere('department_id', 'ilike', "%{$search}%")
+                ->orWhere('user_peminta', 'ilike', "%{$search}%")
+                ->orWhere('csnote', 'ilike', "%{$search}%")
+                ->orWhereRaw("TO_CHAR(csdate, 'YYYY-MM-DD HH24:MI:SS') ILIKE ?", ["%{$search}%"]);
+            });
+        }
+
+        $recordsFiltered = (clone $base)->count();
+
+        $data = $base->select('id','csid','csdate','cpny_id','department_id','user_peminta','csnote','created_by','status')
+            ->orderBy($orderCol, $orderDir)
+            ->orderBy('csid', 'desc')
+            ->skip($start)
+            ->take($length)
+            ->get();
+
+        return response()->json([
+            'draw'            => $draw,
+            'recordsTotal'    => $recordsTotal,
+            'recordsFiltered' => $recordsFiltered,
+            'data'            => $data,
+        ]);
+    }
+
 
 
 

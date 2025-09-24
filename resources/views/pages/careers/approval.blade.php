@@ -20,7 +20,7 @@
                            class="whitespace-nowrap px-3 py-3 text-sm font-medium transition-colors duration-200 focus:outline-none sm:px-4 sm:text-base">
                            Step
                        </button>
-                       @if ($canAccessSchedule)
+                       {{-- @if ($canAccessSchedule) --}}
                             <button @click="subtab = 'schedule'"
                                 :class="subtab === 'schedule'
                                     ? 'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400'
@@ -28,7 +28,7 @@
                                 class="whitespace-nowrap px-3 py-3 text-sm font-medium transition-colors duration-200 focus:outline-none sm:px-4 sm:text-base">
                                 Schedule
                             </button>
-                        @endif
+                        {{-- @endif --}}
                        <button @click="subtab = 'checklist'"
                            :class="subtab === 'checklist' ?
                                'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400' :

@@ -257,8 +257,8 @@ class SpptController extends Controller
             $header->cpny_id           = $request->input('cpnyid');
             $header->department_id     = $request->input('departementid');
             $header->requesttypeid     = $request->input('requesttypeid');
-            $header->nama_tenant       = $request->input('nama_tenant');
-            $header->no_unit_tenant    = $request->input('no_unit_tenant');
+            $header->nama_tenant       = $request->input('tenant_id');
+            $header->no_unit_tenant    = $request->input('unit_id');
             $header->pic_pengawas      = $request->input('pic_pengawas');
             $header->condition_unit    = $request->input('condition_unit');
             $header->beban             = $request->input('beban');
@@ -268,6 +268,9 @@ class SpptController extends Controller
             $header->bqid              = '';
             $header->totalopenordered  = 0;
             $header->totalqty          = 0;
+            $header->totalordered      = 0;
+            $header->totalrejectordered = 0;
+            $header->totalcompleteordered = 0;
             $header->assignby          = null;
             $header->assigndate        = null;
             $header->assignpurchasing  = null;
@@ -336,6 +339,8 @@ class SpptController extends Controller
                 $detail->assignpurchasing         = null;
                 $detail->openordered              = 0;
                 $detail->ordered                  = 0;
+                $detail->rejectordered            = 0;
+                $detail->completeordered          = 0;
                 $detail->status                   = 'P';
                 $detail->created_by               = $username;
                 $detail->save();
@@ -345,7 +350,7 @@ class SpptController extends Controller
 
             // update totalqty di header
             $header->totalqty = $totalQty;
-            // $header->totalopenordered = $totalQty;
+            $header->totalopenordered = $totalQty;
             $header->save();
 
             // === 4) copy line approval (M_approval -> T_approval) ===
@@ -830,7 +835,7 @@ class SpptController extends Controller
         $sppt = TrSPPT::with([
             'requestType:requesttypeid,requesttype_name',
             'creator:username,name',
-            'tenantname:id,tenant',
+            'tenantname:id,store_name',
             'pic:username,name',
         ])
         ->findOrFail($id);        
@@ -956,7 +961,7 @@ class SpptController extends Controller
                 $sppt->completed_at = $now;
                 $sppt->save();
 
-                $spptdetail = TrSPPKdetail::where('spptid', $sppt->spptid)                
+                $spptdetail = TrSPPTdetail::where('spptid', $sppt->spptid)                
                     ->get();
 
                 foreach ($spptdetail as $d) {

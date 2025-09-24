@@ -162,7 +162,7 @@
         console.log('docid:', docidOnboarding);
 
         // Fetch data dari controller
-        $.get(`/onboarding/checklist/${docidOnboarding}`, function(data) {
+        $.get(`/onboarding/${docidOnboarding}`, function(data) {
             let html = '';
             data.forEach(item => {
                 const checked = item.checklist_onboarding_receive ? 'checked' : '';

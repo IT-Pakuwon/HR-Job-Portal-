@@ -72,15 +72,14 @@ class TrCSdetail extends Model
        RELATIONS (pilih sesuai FK yang kamu pakai)
        ========================= */
 
-    // Jika detail.cs_no mengacu ke header.id
-    public function cs()
+    public function location()
     {
-        return $this->belongsTo(TrCS::class, 'cs_no', 'id');
+        return $this->belongsTo(MsLocationPG::class, 'location_id', 'location_id');
     }
 
-    // Jika detail.csid mengacu ke header.csid (kode string)
-    public function csByCode()
+    // sub_location_id (FK) -> MsSubLocationPG.sublocationid (PK)
+    public function subLocation()
     {
-        return $this->belongsTo(TrCS::class, 'csid', 'csid');
+        return $this->belongsTo(MsSubLocationPG::class, 'sub_location_id', 'sub_location_id');
     }
 }
