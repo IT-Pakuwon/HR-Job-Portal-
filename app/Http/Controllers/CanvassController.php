@@ -873,39 +873,100 @@ class CanvassController extends Controller
     }
 
     public function showCS($id)
-    {        
-        $user = Auth::user();       
+    {
+        $user = Auth::user();
+        if (!$user) return redirect()->route('login');
 
-        if (!$user) {
-            return redirect()->route('login');
-        }
-      
         $cs = TrCS::with([
             'creator:username,name',
             'updater:username,name',
-            'completer:username,name'
-        ])
-        ->findOrFail($id);        
+            'completer:username,name',
+        ])->findOrFail($id);
 
         $csdetail = TrCSdetail::with([
             'location:location_id,location_name',
             'subLocation:sub_location_id,sub_location_name'
-        ])
-        ->where('csid', $cs->csid)
+        ])->where('csid', $cs->csid)
+        ->orderBy('cs_no')
         ->get();
-        
+
         $approval = T_approval::where('docid', $cs->csid)
-            ->where('status','<>','X')      
+            ->where('status','<>','X')
             ->orderBy('created_at')
-            ->orderBy('aprvid')      
+            ->orderBy('aprvid')
             ->get();
+
+        $attachmentCS = Attachment::where('docid', $cs->csid)
+            ->where('status','A')
+            ->get();
+
+        $attachmentBJKT = Attachment::where('docid', $cs->sppbjktid)
+            ->where('status','A')
+            ->get();
+
+        // =========================
+        // Ambil header sumber (SPPB/J/K/T) dari 2 huruf depan sppbjktid
+        // =========================
+        $prefix = strtoupper(substr((string)$cs->sppbjktid, 0, 2));
+
+        if ($prefix == 'PB') {
+                $srcHeader = TrSPPB::with(['requestType', 'creator', 'purchaser'])->where('sppbid', $cs->sppbjktid)->first();
+                $srcDetails = TrSPPBdetail::where('sppbid', $cs->sppbjktid)->get();
+                $docid = $srcHeader ? $srcHeader->sppbid : null;
+        } else if ($prefix == 'PJ') {
+                $srcHeader = TrSPPJ::with(['requestType', 'creator', 'purchaser'])->where('sppjid', $cs->sppbjktid)->first();
+                $srcDetails = TrSPPJdetail::where('sppjid', $cs->sppbjktid)->get();
+                $docid = $srcHeader ? $srcHeader->sppjid : null;
+        } else if ($prefix == 'PK') {
+                $srcHeader = TrSPPK::with(['requestType', 'creator', 'purchaser'])->where('sppkid', $cs->sppbjktid)->first();
+                $srcDetails = TrSPPKdetail::where('sppkid', $cs->sppbjktid)->get();
+                $docid = $srcHeader ? $srcHeader->sppkid : null;
+        } else if ($prefix == 'PT') {
+                $srcHeader = TrSPPT::with(['requestType', 'creator', 'purchaser'])->where('spptid', $cs->sppbjktid)->first();
+                $srcDetails = TrSPPTdetail::where('spptid', $cs->sppbjktid)->get();
+                $docid = $srcHeader ? $srcHeader->spptid : null;
+        } else {
+            abort(422, 'Invalid doc type');
+        }   
        
-        $attachment = Attachment::where('docid', $cs->csid)    
-            ->where('status','A')        
-            ->get();       
-       
-        return view('pages.canvass.showcs', compact('cs','approval','attachment','csdetail'));
+            
+
+        // ---- susun vendor header: maksimal 6 kolom ----
+        $vendors = [];
+        for ($i = 1; $i <= 6; $i++) {
+            $vid = $cs->{"vendorid{$i}"} ?? null;
+            if (!$vid) continue;
+            $vendors[] = [
+                'i'              => $i,
+                'vendorid'       => $vid,
+                'vendorname'     => $cs->{"vendorname{$i}"}       ?? '',
+                'vendoralamat'   => $cs->{"vendoralamat{$i}"}     ?? '',
+                'vendortelp'     => $cs->{"vendortelp{$i}"}       ?? '',
+                'vendorcp'       => $cs->{"vendorcp{$i}"}         ?? '',
+                'vendortop'      => $cs->{"vendortop{$i}"}        ?? '',
+                'ppn'            => (float)($cs->{"ppnvendor{$i}"} ?? 11.00),
+                'pph'            => (float)($cs->{"pphvendor{$i}"} ?? 0.00),
+                'total'          => (float)($cs->{"totalvendor{$i}"} ?? 0),
+                'grand'          => (float)($cs->{"grandtotalvendor{$i}"} ?? 0),
+                'selected_total' => (float)($cs->{"totalselectedvendor{$i}"} ?? 0),
+                'selected_grand' => (float)($cs->{"grandtotalselectedvendor{$i}"} ?? 0),
+                'taxcode'        => $cs->{"taxcodevendor{$i}"}    ?? '',
+            ];
+        }
+
+        return view('pages.canvass.showcs', [
+            'cs'         => $cs,
+            'approval'   => $approval,
+            'attachmentCS' => $attachmentCS,
+            'attachmentBJKT' => $attachmentBJKT,
+            'csdetail'   => $csdetail,
+            'vendors'    => $vendors,          
+            'srcHeader'     => $srcHeader,
+            'docid'     => $docid,
+            'prefix'    => $prefix,
+        ]);
     }
+
 
     
 

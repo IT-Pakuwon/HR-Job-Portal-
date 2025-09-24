@@ -63,6 +63,26 @@
             line-height: 1.1;             /* rapatkan sedikit */
         }
     </style>
+   <style>
+  .tax-2col{display:grid;grid-template-columns:1fr 1fr;gap:.5rem;align-items:center}
+  .tax-chip{display:inline-flex;align-items:center;gap:.35rem}
+  .tax-input{width:3.75rem;text-align:right;padding:.125rem .25rem}
+  .icon-btn{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;font-size:10px;border:1px solid #d1d5db;border-radius:4px;background:#fff}
+  .icon-btn:hover{background:#f3f4f6}
+
+  .summary-label {
+    font-size: 2rem;   /* sedikit lebih besar dari text-xs */
+    font-weight: 600;
+    color: #374151;       /* gray-700 */
+    }
+
+    .summary-value {
+    font-size: 2rem;      /* font lebih besar utk nominal */
+    font-weight: 700;
+    color: #111827;       /* gray-900 */
+    }
+</style>
+
 
 
 
@@ -470,7 +490,7 @@
             5) Tambah header vendor + ringkasan per-vendor
             ================================ */
             function addHeader(id, v) {
-                const colWidth = '15rem';   
+                const colWidth = '16rem';   
                 const $th = $(`
                     <th id="th-vendor-${id}" class="border relative px-3 py-2"
                         style="width:${colWidth}; max-width:${colWidth};"
@@ -502,25 +522,22 @@
                 $('#cvTable thead tr').append($th);
 
                 const $sumTd = $(`
-                    <td id="td-sum-${id}" class="border px-3 py-2 text-xs space-y-1" style="width:${colWidth}; max-width:${colWidth};">
+                    <td id="td-sum-${id}" class="border px-3 py-2 text-xs" style="width:${colWidth}; max-width:${colWidth};">
                         <div><span class="font-semibold">Total&nbsp;</span><span class="sum-total">0</span></div>
 
-                        <div class="flex flex-wrap items-center gap-3">
-                        <div class="flex items-center gap-1">
-                            <span>PPN&nbsp;</span>
-                            <input type="number" class="sum-ppn w-14 border rounded px-1 text-right" value="11.00" step="0.01" min="0">
-                            <span>%</span>
-                            <button type="button" class="btn-pick-tax rounded border px-2 py-1 text-xs hover:bg-gray-100"
-                                    data-for="ppn" data-vendor="${id}" title="Pilih PPN">🔍</button>
+                        <!-- PPN kiri — PPh kanan -->
+                        <div class="tax-2col">
+                        <div class="tax-chip">
+                            <span>PPN</span>
+                            <input type="number" class="sum-ppn tax-input border rounded" value="11.00" step="0.01" min="0">
+                            <button type="button" class="btn-pick-tax icon-btn" data-for="ppn" data-vendor="${id}" title="Pilih PPN">🔍</button>
                             <input type="hidden" class="sum-ppn-id" value="">
                         </div>
 
-                        <div class="flex items-center gap-1">
-                            <span>PPh&nbsp;</span>
-                            <input type="number" class="sum-pph w-14 border rounded px-1 text-right" value="0" step="0.01" min="0">
-                            <span>%</span>
-                            <button type="button" class="btn-pick-tax rounded border px-2 py-1 text-xs hover:bg-gray-100 ml-1"
-                                    data-for="pph" data-vendor="${id}" title="Pilih PPh">🔍</button>
+                        <div class="tax-chip">
+                            <span>PPh</span>
+                            <input type="number" class="sum-pph tax-input border rounded" value="0" step="0.01" min="0">
+                            <button type="button" class="btn-pick-tax icon-btn" data-for="pph" data-vendor="${id}" title="Pilih PPh">🔍</button>
                             <input type="hidden" class="sum-pph-id" value="">
                         </div>
                         </div>
@@ -528,7 +545,9 @@
                         <div><span class="font-semibold">Grand Total&nbsp;</span><span class="sum-grand">0</span></div>
                         <div><span class="font-semibold">G.Total Selected&nbsp;</span><span class="sum-selected">0</span></div>
                     </td>
-                `);
+                    `);
+
+
 
                 $('#summaryRow').append($sumTd);
 

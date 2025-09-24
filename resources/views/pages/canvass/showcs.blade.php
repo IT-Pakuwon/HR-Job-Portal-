@@ -149,39 +149,74 @@
             </div>
         </div>
         <div class="flex w-full flex-col gap-6 xl:flex-col">
-            <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
-                            <div class="flex flex-col gap-2">
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">SPPB/J/K/T ID : {{ $cs->sppbjktid }}</label>
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">User : {{ ucwords(strtolower(optional($cs->creator)->name)) }}</label>
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Company : {{ $cs->cpny_id }}</label>
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Department : {{ $cs->department_id }}</label>
-                            </div>
-                            <div class="flex flex-col gap-2">
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Purchaser : {{ ucwords(strtolower(optional($cs->purchaser)->name)) }}</label>
-                                
-                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                        BQ ID : {{ $cs->bqid }}
-                                    </label>                               
-                                
-                            </div> 
-                            <div class="flex flex-col gap-2">
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Keperluan : {{ $cs->keperluan }}</label>                                
-                            </div> 
-                            <div class="flex flex-col gap-2">
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Note CS :</label>  
-                                <textarea name="keperluan" id="keperluan"
-                                    class="w-full rounded-lg border border-gray-300 bg-white p-3 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
-                                    rows="3" ></textarea>                              
-                            </div>
+            <header
+                        class="flex items-center justify-between rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
+                        <h1 class="flex items-center gap-2 text-2xl font-bold text-gray-800 dark:text-gray-100">
+                            <span class="text-indigo-500">🆔</span>
+                            {{ $cs->csid }}
+                        </h1>
+
+                        @php
+                            $statusText = match ($cs->status) {
+                                'D' => 'Revise',
+                                'H' => 'Hold',
+                                'P' => 'On Progress',
+                                'C' => 'Completed',
+                                'X' => 'Cancelled',
+                                'R' => 'Rejected',
+                                default => 'Unknown',
+                            };
+
+                            $statusClasses = match ($cs->status) {
+                                'H' => 'bg-blue-100 text-blue-700 dark:bg-blue-800/30 dark:text-blue-300',
+                                'D' => 'bg-blue-100 text-blue-700 dark:bg-blue-800/30 dark:text-blue-300',
+                                'P' => 'bg-yellow-100 text-yellow-700 dark:bg-yellow-800/30 dark:text-yellow-300',
+                                'C' => 'bg-green-100 text-green-700 dark:bg-green-800/30 dark:text-green-300',
+                                'X', 'R' => 'bg-red-100 text-red-700 dark:bg-red-800/30 dark:text-red-300',
+                                default => 'bg-gray-100 text-gray-700 dark:bg-gray-800/30 dark:text-gray-300',
+                            };
+                        @endphp
+
+                        <div class="flex items-center gap-3">
+                            <span
+                                class="{{ $statusClasses }} inline-flex items-center rounded-full px-4 py-1 text-sm font-semibold transition-colors duration-200">
+                                {{ $statusText }}
+                            </span>
+
+                            <a href="{{ url('/pdf_cs') }}/{{ $cs->id }}" target="_blank">
+                                <button
+                                    class="inline-flex items-center gap-2 rounded-full bg-indigo-600 px-4 py-1 text-sm font-semibold text-white transition-colors duration-200 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                                    Print PDF
+                                </button>
+                            </a>
                         </div>
+                    </header>
+            <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
+                <div class="flex flex-col gap-2">
+                    <label class="text-sm text-gray-700 dark:text-gray-300">SPPB/J/K/T ID : {{ $docid }}</label>
+                    <label class="text-sm text-gray-700 dark:text-gray-300">User : {{ ucwords(strtolower(optional($srcHeader->creator)->name)) }}</label>
+                    <label class="text-sm text-gray-700 dark:text-gray-300">Company : {{ $srcHeader->cpny_id }}</label>
+                    <label class="text-sm text-gray-700 dark:text-gray-300">Department : {{ $srcHeader->department_id }}</label>
+                </div>
+                <div class="flex flex-col gap-2">
+                    <label class="text-sm text-gray-700 dark:text-gray-300">Purchaser : {{ ucwords(strtolower(optional($srcHeader->purchaser)->name)) }}</label>
+                    @if($cs->bqid)
+                    <label class="text-sm text-gray-700 dark:text-gray-300">BQ ID : {{ $srcHeader->bqid }}</label>
+                    @endif
+                </div>
+                <div class="flex flex-col gap-2">
+                    <label class="text-sm text-gray-700 dark:text-gray-300">Keperluan : {{ $srcHeader->keperluan }}</label>
+                </div>
+                <div class="flex flex-col gap-2">
+                    <label class="text-sm text-gray-700 dark:text-gray-300">Note CS :</label>
+                    <textarea class="w-full rounded-lg border border-gray-300 bg-gray-50 p-3 text-gray-700 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                            rows="3" readonly>{{ $cs->csnote }}</textarea>
+                </div>
+            </div>
 
 
             {{-- SPPB Detail table --}}
-            <div class="flex w-full flex-col rounded-2xl bg-white dark:bg-gray-800">
-                <header
-                    class="flex items-center justify-between rounded-t-2xl border-b border-gray-200 bg-white px-6 py-4 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
-                    <h2 class="text-xl font-semibold">📝 SPPB Detail</h2>
-                </header>
+            <div class="flex w-full flex-col rounded-2xl bg-white dark:bg-gray-800">              
                 <div class="flex w-full flex-col gap-2 rounded-2xl border-b bg-white dark:bg-gray-800">
                     <div class="flex w-full flex-col rounded-2xl p-4">
                         <details class="group" open>                     
@@ -197,46 +232,184 @@
                             <div class="overflow-x-auto">
                                 <table id="cvTable" class="w-max table-auto whitespace-nowrap border">
                                     <thead>
-                                        <tr class="bg-gray-100 align-top">
-                                            <th class="w-64 border px-3 py-2">Inventory Descr</th>
-                                            <th class="w-16 border px-3 py-2 text-center">Qty</th>
-                                            <th class="w-16 border px-3 py-2 text-center">UOM</th>
-                                            <th class="w-16 border px-3 py-2 text-center">Note</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="cvBody">
-                                        @foreach ($csdetail as $row)
-                                            <tr>
-                                              
-                                                <td class="border px-3 py-2">{{ $row->inventory_descr }}</td>
-                                                <td class="border px-3 py-2 text-center">
-                                                    <input
-                                                        type="text"
-                                                        class="qty-input w-24 border rounded px-2 text-right"
-                                                        value="{{ number_format((float)$row->qty, 2, ',', '') }}"
-                                                        inputmode="decimal"
-                                                        autocomplete="off"
-                                                        placeholder="0,00"
-                                                        aria-label="Qty"
-                                                    >
-                                                </td>
-                                                <td class="border px-3 py-2 text-center">{{ $row->uom }}</td>
-                                                <td class="border px-3 py-2 text-center">{{ $row->note }}</td>
-                                            </tr>
+                                    <tr class="bg-gray-100 align-top">
+                                        <th class="w-64 border px-3 py-2">Inventory Descr</th>
+                                        <th class="w-20 border px-3 py-2 text-center">Qty</th>
+                                        <th class="w-16 border px-3 py-2 text-center">UOM</th>
+                                        <th class="w-40 border px-3 py-2 text-center">Note</th>
+
+                                        @foreach($vendors as $v)
+                                        <th class="border px-3 py-2 align-top" style="width:15rem;max-width:15rem;">
+                                            <div class="text-center font-semibold leading-tight">{{ $v['vendorname'] }}</div>
+                                            <div class="text-xs text-gray-500 leading-4 mt-0.5 whitespace-normal break-words">
+                                            <div>👤 {{ $v['vendorcp'] ?: '-' }}</div>
+                                            <div>☎️ {{ $v['vendortelp'] ?: '-' }}</div>
+                                            <div>🏠 {{ $v['vendoralamat'] ?: '-' }}</div>
+                                            </div>
+                                            @if($v['vendortop'])
+                                            <div class="mt-1 flex justify-center">
+                                                <span class="rounded border px-2 py-0.5 text-xs">{{ $v['vendortop'] }}</span>
+                                            </div>
+                                            @endif
+                                        </th>
                                         @endforeach
+                                    </tr>
+                                    </thead>
+
+                                    <tbody id="cvBody">
+                                    @foreach ($csdetail as $row)
+                                        <tr>
+                                        <td class="border px-3 py-2">{{ $row->inventory_descr }}</td>
+                                        <td class="border px-3 py-2 text-center">
+                                            <input type="text" class="w-24 border rounded px-2 text-right bg-gray-50" value="{{ number_format((float)$row->qty, 2, ',', '.') }}" readonly>
+                                        </td>
+                                        <td class="border px-3 py-2 text-center">{{ $row->uom }}</td>
+                                        <td class="border px-3 py-2 text-left">{{ $row->csnote_detail }}</td>
+
+                                        @foreach ($vendors as $v)
+                                            @php
+                                            $i   = $v['i'];
+                                            $prc = (float)($row->{"vendorprice{$i}"} ?? 0);
+                                            $tot = (float)($row->{"vendortotalprice{$i}"} ?? 0);
+                                            $sel = (bool)($row->{"vendor{$i}selected"} ?? false);
+                                            @endphp
+                                            <td class="border px-3 py-2">
+                                            <div class="flex flex-col items-center gap-0.5 w-full">
+                                                <input type="text" class="w-full border rounded px-1 text-right bg-gray-50"
+                                                    value="{{ number_format($prc, 2, ',', '.') }}" readonly>
+                                                <small class="text-right w-full text-xs font-bold text-gray-600">{{ number_format($tot, 0, ',', '.') }}</small>
+                                                <div class="flex justify-center mt-0.5">
+                                                <input type="radio" class="h-3 w-3" {{ $sel ? 'checked' : '' }} disabled>
+                                                </div>
+                                            </div>
+                                            </td>
+                                        @endforeach
+                                        </tr>
+                                    @endforeach
                                     </tbody>
 
-
                                     <tfoot>
-                                        <tr id="summaryRow" class="bg-gray-50 align-top">
-                                            <td colspan="4" class="border px-3 py-2 text-right font-semibold">
-                                                Ringkasan
-                                            </td>
-                                            {{-- sel vendor akan disisipkan via JS --}}
-                                        </tr>
+                                    <tr class="bg-gray-50 align-top">
+                                        <td colspan="4" class="border px-3 py-2 text-right font-semibold">Ringkasan</td>
+
+                                        @foreach ($vendors as $v)
+                                        @php
+                                            $ppn = (float)($v['ppn'] ?? 11);
+                                            $pph = (float)($v['pph'] ?? 0);
+                                        @endphp
+                                        <td class="border px-3 py-2 text-xs space-y-1" style="width:15rem;max-width:15rem;">
+                                            <div><span class="font-semibold">Total&nbsp;</span><span>{{ number_format($v['total'], 0, ',', '.') }}</span></div>
+
+                                            <div class="flex flex-wrap items-center gap-3">
+                                            <div class="flex items-center gap-1">
+                                                <span>PPN&nbsp;</span>
+                                                <input type="text" class="w-14 border rounded px-1 text-right bg-gray-50" value="{{ number_format($ppn, 2, ',', '.') }}" readonly>
+                                                <span>%</span>
+                                                 <span>PPh&nbsp;</span>
+                                                <input type="text" class="w-14 border rounded px-1 text-right bg-gray-50" value="{{ number_format($pph, 2, ',', '.') }}" readonly>
+                                                <span>%</span>
+                                            </div>                                            
+                                            </div>
+
+                                            <div><span class="font-semibold">Grand Total&nbsp;</span><span>{{ number_format($v['grand'], 0, ',', '.') }}</span></div>
+                                            <div><span class="font-semibold">G.Total Selected&nbsp;</span><span>{{ number_format($v['selected_grand'] ?: $v['selected_total'], 0, ',', '.') }}</span></div>
+                                        </td>
+                                        @endforeach
+                                    </tr>
                                     </tfoot>
                                 </table>
-                            </div>                          
+                            </div>
+                            <div class="mt-6"></div>
+                             <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+                        {{-- Left: Existing Attachments (from controller) --}}
+                        <div class="w-full rounded-xl bg-white p-6 shadow-md dark:bg-gray-800">
+                            @if(($attachment ?? collect())->count())
+                                <details class="group" open>
+                                    <summary
+                                        class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-xl font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
+                                        <span>Attachments {{ $doc }}</span>
+                                        <span class="text-sm font-medium text-gray-500 transition-all group-open:hidden">See details &rarr;</span>
+                                        <span class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline">Hide details &darr;</span>
+                                    </summary>
+
+                                    <div class="mt-4 overflow-x-auto">
+                                        <table class="w-full text-sm">
+                                            <thead class="text-gray-600 dark:text-gray-300">
+                                                <tr class="border-b border-gray-200 dark:border-gray-700">
+                                                    <th class="p-3 text-left font-semibold">Filename</th>
+                                                    <th class="p-3 text-left font-semibold">Created By</th>
+                                                    <th class="p-3 text-left font-semibold">Date</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach ($attachmentBJKT as $at)
+                                                    @php
+                                                        $year = $at->created_at->year;
+                                                        $fileUrl = url('/attachments/' . $year . '/' . $at->attachfile);
+                                                    @endphp
+                                                    <tr class="border-b border-gray-100 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700">
+                                                        <td class="p-3">
+                                                            <a href="{{ $fileUrl }}" target="_blank"
+                                                            class="flex items-center gap-2 font-medium text-indigo-600 hover:underline dark:text-indigo-400">
+                                                                📎 {{ $at->name }}
+                                                            </a>
+                                                        </td>
+                                                        <td class="p-3">{{ $at->created_user }}</td>
+                                                        <td class="p-3">{{ \Carbon\Carbon::parse($at->created_at)->format('d M Y') }}</td>
+                                                    </tr>
+                                                @endforeach
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </details>
+                            @else
+                                <div class="flex items-center justify-between border-b border-gray-200 pb-4 dark:border-gray-700">
+                                    <h3 class="text-lg font-bold text-gray-800 dark:text-gray-100">Attachments {{ $prefix }}</h3>
+                                </div>
+                                <p class="mt-4 text-sm text-gray-500 dark:text-gray-400">Attachment Empty.</p>
+                            @endif
+                        </div>
+
+                        {{-- Right: New Attachments CS --}}
+                        <div class="w-full rounded-xl bg-white p-6 shadow-md dark:bg-gray-800">
+                            <details class="group" open>
+                                <summary class="flex cursor-pointer items-center justify-between border-b pb-4 text-xl font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
+                                    <span>Attachments CS</span>
+                                    <span class="text-sm font-medium text-gray-500 group-open:hidden">See details →</span>
+                                    <span class="hidden text-sm font-medium text-gray-500 group-open:inline">Hide details ↓</span>
+                                </summary>
+                                <div class="mt-4 overflow-x-auto">
+                                    <table class="w-full text-sm">
+                                    <thead class="text-gray-600 dark:text-gray-300">
+                                        <tr class="border-b border-gray-200 dark:border-gray-700">
+                                        <th class="p-3 text-left font-semibold">Filename</th>
+                                        <th class="p-3 text-left font-semibold">Created By</th>
+                                        <th class="p-3 text-left font-semibold">Date</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach ($attachmentCS as $at)
+                                        @php
+                                            $year = \Carbon\Carbon::parse($at->created_at)->year;
+                                            $fileUrl = url('/attachments/' . $year . '/' . $at->attachfile);
+                                        @endphp
+                                        <tr class="border-b border-gray-100 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700">
+                                            <td class="p-3"><a href="{{ $fileUrl }}" target="_blank" class="flex items-center gap-2 font-medium text-indigo-600 hover:underline dark:text-indigo-400">📎 {{ $at->name }}</a></td>
+                                            <td class="p-3">{{ $at->created_user }}</td>
+                                            <td class="p-3">{{ \Carbon\Carbon::parse($at->created_at)->format('d M Y') }}</td>
+                                        </tr>
+                                        @endforeach
+                                    </tbody>
+                                    </table>
+                                </div>
+                                </details>
+
+                            {{-- Action buttons keep here or move below both columns as you wish --}}
+                            
+                        </div>
+                    </div>
+
+               
                         </div>
                         </details>
                     </div>
@@ -246,14 +419,7 @@
     </div>
     </div>
     </div>
-    {{-- <div id="loadingSpinnerContainer" class="flex h-16 items-center justify-center">
-        <svg class="h-10 w-10 animate-spin text-indigo-500" xmlns="http://www.w3.org/2000/svg" fill="none"
-            viewBox="0 0 24 24" stroke="currentColor">
-            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4">
-            </circle>
-            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
-        </svg>
-    </div> --}}
+
     <div id="loadingSpinnerContainer" role="status" aria-live="polite" aria-label="Loading">
         <div class="loading-card">
             <div class="loading-spinner"></div>
