@@ -181,6 +181,21 @@
             color: #111827;
             /* gray-900 */
         }
+
+        .select-container .select-selection--single {
+            height: 42px;
+            border-radius: 0.5rem;
+        }
+
+        .select-container--default .select-selection--single .select-selection__rendered {
+            line-height: 42px;
+            padding-left: .75rem;
+        }
+
+        .select-container--default .select-selection--single .select-selection__arrow {
+            height: 42px;
+            right: .5rem;
+        }
     </style>
 
 
@@ -259,7 +274,7 @@
                                     </div>
                                 @endif
 
-                                <div class="w-full">
+                                <div class="flex w-full flex-col gap-2">
                                     <label class="req text-sm font-medium text-gray-600 dark:text-gray-400">Select
                                         Vendor</label>
                                     <select id="vendorSelect"
@@ -332,7 +347,7 @@
                                     <tfoot>
                                         <tr id="summaryRow" class="bg-gray-50 dark:bg-gray-700">
                                             <td colspan="4" class="border px-3 py-2 text-right font-semibold">
-                                                Ringkasan
+                                                Summary
                                             </td>
                                             {{-- vendor cells via JS --}}
                                         </tr>
@@ -590,9 +605,10 @@
             2) Init Select2
             ================================ */
             $('#vendorSelect').select2({
-                dropdownParent: $('body'),
-                placeholder: 'Select',
-                width: '350px'
+                width: '100%', // full width
+                theme: 'default', // default Select2 theme
+                placeholder: "Select",
+                allowClear: true
             });
 
             /* ===============================

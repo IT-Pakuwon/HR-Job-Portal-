@@ -456,7 +456,7 @@
                         <span>CS Detail</span>
                     </div>
                     <div class="mt-4 overflow-x-auto">
-                        <div class="relative overflow-y-auto md:h-[40vh]">
+                        <div class="relative overflow-y-auto">
                             <table class="min-w-full border-separate border-spacing-0 text-sm">
                                 <!-- Table Head -->
                                 <thead
@@ -467,17 +467,20 @@
                                         <th class="w-16 px-3 py-2 text-center">UOM</th>
                                         <th class="w-40 px-3 py-2 text-left">Note</th>
                                         @foreach ($vendors as $v)
-                                            <th class="max-w-xs px-3 py-2 text-center align-top">
+                                            <th class="max-w-xs px-3 py-2 text-left align-top">
                                                 <div class="font-semibold">{{ $v['vendorname'] }}</div>
                                                 <div
-                                                    class="mt-0.5 space-y-0.5 text-xs text-gray-500 dark:text-gray-400">
+                                                    class="mt-0.5 space-y-0.5 text-sm text-gray-500 dark:text-gray-400">
                                                     <div>👤 {{ $v['vendorcp'] ?: '-' }}</div>
                                                     <div>☎️ {{ $v['vendortelp'] ?: '-' }}</div>
                                                     <div>🏠 {{ $v['vendoralamat'] ?: '-' }}</div>
                                                 </div>
                                                 @if ($v['vendortop'])
                                                     <span
-                                                        class="mt-1 inline-block rounded-full border px-2 py-0.5 text-xs text-gray-700 dark:text-gray-300">
+                                                        class="text-sm font-semibold text-gray-600 dark:text-gray-300">Payment
+                                                        Term:</span>
+                                                    <span
+                                                        class="inline-block rounded-full border px-2 py-0.5 text-xs text-gray-700 dark:text-gray-300">
                                                         {{ $v['vendortop'] }}
                                                     </span>
                                                 @endif
@@ -493,7 +496,7 @@
                                             <td class="px-3 py-2">{{ $row->inventory_descr }}</td>
                                             <td class="px-3 py-2 text-center">
                                                 <input type="text" readonly
-                                                    class="w-20 rounded border bg-gray-50 px-2 text-right dark:bg-gray-700"
+                                                    class="w-20 rounded border bg-gray-50 px-2 text-center dark:bg-gray-700"
                                                     value="{{ number_format((float) $row->qty, 2, ',', '.') }}">
                                             </td>
                                             <td class="px-3 py-2 text-center">{{ $row->uom }}</td>
@@ -525,42 +528,50 @@
                                 </tbody>
 
                                 <!-- Table Footer (Summary) -->
-                                <tfoot class="sticky bottom-0 z-10 bg-gray-50 dark:bg-gray-700/40">
+                                <tfoot
+                                    class="sticky bottom-0 z-10 bg-gray-50 text-xs text-gray-700 dark:bg-gray-700/40 dark:text-gray-300">
                                     <tr class="text-sm">
+                                        <!-- Summary label -->
                                         <td colspan="4"
                                             class="px-3 py-2 text-right font-semibold text-gray-700 dark:text-gray-200">
                                             Summary
                                         </td>
+
+                                        <!-- Vendor totals -->
                                         @foreach ($vendors as $v)
                                             @php
                                                 $ppn = (float) ($v['ppn'] ?? 11);
                                                 $pph = (float) ($v['pph'] ?? 0);
                                             @endphp
-                                            <td
-                                                class="max-w-xs space-y-1 px-3 py-2 text-xs text-gray-700 dark:text-gray-300">
-                                                <div><span class="font-semibold">Total:</span>
-                                                    {{ number_format($v['total'], 0, ',', '.') }}</div>
-                                                <div class="flex flex-wrap items-center gap-1">
-                                                    <span>PPN</span>
-                                                    <input type="text" readonly
-                                                        class="w-14 rounded border bg-gray-50 px-1 text-right dark:bg-gray-700"
-                                                        value="{{ number_format($ppn, 2, ',', '.') }}">
-                                                    <span>%</span>
-                                                    <span>PPh</span>
-                                                    <input type="text" readonly
-                                                        class="w-14 rounded border bg-gray-50 px-1 text-right dark:bg-gray-700"
-                                                        value="{{ number_format($pph, 2, ',', '.') }}">
-                                                    <span>%</span>
+                                            <td class="max-w-xs space-y-1 px-3 py-2">
+                                                <div class="flex justify-between">
+                                                    <span class="font-semibold">Total:</span>
+                                                    <span>{{ number_format($v['total'], 0, ',', '.') }}</span>
                                                 </div>
-                                                <div><span class="font-semibold">Grand:</span>
-                                                    {{ number_format($v['grand'], 0, ',', '.') }}</div>
-                                                <div><span class="font-semibold">G.Total Sel:</span>
-                                                    {{ number_format($v['selected_grand'] ?: $v['selected_total'], 0, ',', '.') }}
+
+                                                <div
+                                                    class="flex justify-between gap-2 font-semibold text-gray-700 dark:text-gray-300">
+                                                    <span>PPN:</span>
+                                                    <span>{{ number_format($ppn, 2, ',', '.') }}%</span>
+
+                                                    <span>PPh:</span>
+                                                    <span>{{ number_format($pph, 2, ',', '.') }}%</span>
+                                                </div>
+
+                                                <div class="flex justify-between">
+                                                    <span class="font-semibold">Grand:</span>
+                                                    <span>{{ number_format($v['grand'], 0, ',', '.') }}</span>
+                                                </div>
+
+                                                <div class="flex justify-between">
+                                                    <span class="font-semibold">G.Total Sel:</span>
+                                                    <span>{{ number_format($v['selected_grand'] ?: $v['selected_total'], 0, ',', '.') }}</span>
                                                 </div>
                                             </td>
                                         @endforeach
                                     </tr>
                                 </tfoot>
+
                             </table>
                         </div>
                     </div>
