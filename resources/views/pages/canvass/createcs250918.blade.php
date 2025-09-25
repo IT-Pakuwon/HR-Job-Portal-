@@ -1,58 +1,121 @@
 <x-app-layout>
     <style>
-        .is-invalid { border-color:#ef4444 !important; }
-        .error-feedback { display:block; color:#dc2626; font-size:12px; margin-top:6px; }
+        .is-invalid {
+            border-color: #ef4444 !important;
+        }
+
+        .error-feedback {
+            display: block;
+            color: #dc2626;
+            font-size: 12px;
+            margin-top: 6px;
+        }
     </style>
     <style>
-        .req::after { content:" *"; color:#dc2626; font-weight:700; }
+        .req::after {
+            content: " *";
+            color: #dc2626;
+            font-weight: 700;
+        }
     </style>
     <style>
         /* Overlay full-screen */
-        #loadingSpinnerContainer{
+        #loadingSpinnerContainer {
             position: fixed;
             inset: 0;
-            display: none;                 /* akan ditampilkan via JS */
-            background: rgba(17,24,39,.55);
+            display: none;
+            /* akan ditampilkan via JS */
+            background: rgba(17, 24, 39, .55);
             backdrop-filter: blur(2px);
             z-index: 2000;
         }
 
         /* Kartu spinner di tengah */
-        #loadingSpinnerContainer .loading-card{
+        #loadingSpinnerContainer .loading-card {
             position: absolute;
-            top: 50%; left: 50%;
-            transform: translate(-50%,-50%);
-            display: flex; flex-direction: column; align-items: center; gap: 10px;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
             padding: 18px 22px;
             border-radius: 16px;
-            background: linear-gradient(180deg, rgba(31,41,55,.9), rgba(17,24,39,.9));
-            border: 1px solid rgba(255,255,255,.08);
-            box-shadow: 0 10px 30px rgba(0,0,0,.35), inset 0 0 0 1px rgba(255,255,255,.04);
+            background: linear-gradient(180deg, rgba(31, 41, 55, .9), rgba(17, 24, 39, .9));
+            border: 1px solid rgba(255, 255, 255, .08);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, .35), inset 0 0 0 1px rgba(255, 255, 255, .04);
         }
 
         /* Spinner dual ring */
-        #loadingSpinnerContainer .loading-spinner{
-            width: 54px; height: 54px; border-radius: 50%;
-            border: 4px solid transparent; border-top-color: #6366f1; /* indigo-500 */
-            animation: spin 1s linear infinite; position: relative;
+        #loadingSpinnerContainer .loading-spinner {
+            width: 54px;
+            height: 54px;
+            border-radius: 50%;
+            border: 4px solid transparent;
+            border-top-color: #6366f1;
+            /* indigo-500 */
+            animation: spin 1s linear infinite;
+            position: relative;
         }
-        #loadingSpinnerContainer .loading-spinner::after{
-            content: ""; position: absolute; inset: 6px; border-radius: 50%;
-            border: 4px solid transparent; border-left-color: #a5b4fc; /* indigo-200 */
+
+        #loadingSpinnerContainer .loading-spinner::after {
+            content: "";
+            position: absolute;
+            inset: 6px;
+            border-radius: 50%;
+            border: 4px solid transparent;
+            border-left-color: #a5b4fc;
+            /* indigo-200 */
             animation: spinReverse .75s linear infinite;
         }
 
-        #loadingSpinnerContainer .loading-text{ color:#e5e7eb; font-weight:600; letter-spacing:.02em; }
-        #loadingSpinnerContainer .loading-ellipsis span{ display:inline-block; animation: blink 1.4s infinite both; }
-        #loadingSpinnerContainer .loading-ellipsis span:nth-child(2){ animation-delay:.2s; }
-        #loadingSpinnerContainer .loading-ellipsis span:nth-child(3){ animation-delay:.4s; }
+        #loadingSpinnerContainer .loading-text {
+            color: #e5e7eb;
+            font-weight: 600;
+            letter-spacing: .02em;
+        }
 
-        @keyframes spin{ to{ transform: rotate(360deg); } }
-        @keyframes spinReverse{ to{ transform: rotate(-360deg); } }
-        @keyframes blink{
-            0%{ opacity:.3; transform: translateY(0); }
-            20%{ opacity:1; transform: translateY(-2px); }
-            100%{ opacity:.3; transform: translateY(0); }
+        #loadingSpinnerContainer .loading-ellipsis span {
+            display: inline-block;
+            animation: blink 1.4s infinite both;
+        }
+
+        #loadingSpinnerContainer .loading-ellipsis span:nth-child(2) {
+            animation-delay: .2s;
+        }
+
+        #loadingSpinnerContainer .loading-ellipsis span:nth-child(3) {
+            animation-delay: .4s;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        @keyframes spinReverse {
+            to {
+                transform: rotate(-360deg);
+            }
+        }
+
+        @keyframes blink {
+            0% {
+                opacity: .3;
+                transform: translateY(0);
+            }
+
+            20% {
+                opacity: 1;
+                transform: translateY(-2px);
+            }
+
+            100% {
+                opacity: .3;
+                transform: translateY(0);
+            }
         }
     </style>
 
@@ -64,95 +127,103 @@
                     @csrf
                     <div class="w-full rounded-xl bg-white p-6 shadow-md dark:bg-gray-800">
                         <div class="mb-6 border-b border-gray-200 pb-4 dark:border-gray-700">
-                            <h2 class="text-xl font-extrabold text-gray-800 dark:text-white">Create CS</h2>                            
+                            <h2 class="text-xl font-extrabold text-gray-800 dark:text-white">Create CS</h2>
                         </div>
                         <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
                             <div class="flex flex-col gap-2">
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">SPPB/J/K/T ID : {{ $docno }}</label>
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">User : {{ ucwords(strtolower(optional($header->creator)->name)) }}</label>
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Company : {{ $header->cpny_id }}</label>
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Department : {{ $header->department_id }}</label>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">SPPB/J/K/T ID
+                                    : {{ $docno }}</label>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">User :
+                                    {{ ucwords(strtolower(optional($header->creator)->name)) }}</label>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Company :
+                                    {{ $header->cpny_id }}</label>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Department :
+                                    {{ $header->department_id }}</label>
                             </div>
                             <div class="flex flex-col gap-2">
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Purchaser : {{ $header->assignpurchasing }}</label>
-                                @if(in_array($doc, ['SPPJ', 'SPPT']))
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Purchaser :
+                                    {{ $header->assignpurchasing }}</label>
+                                @if (in_array($doc, ['SPPJ', 'SPPT']))
                                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
                                         BQ ID : {{ $header->bqid }}
                                     </label>
                                 @endif
-                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Select Vendor</label>
+                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Select
+                                    Vendor</label>
                                 <select id="vendorSelect" class="hidden w-64"></select>
-                            </div> 
+                            </div>
                             <div class="flex flex-col gap-2">
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Keperluan : {{ $header->keperluan }}</label>                                
-                            </div> 
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Keperluan :
+                                    {{ $header->keperluan }}</label>
+                            </div>
                             <div class="flex flex-col gap-2">
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Note CS :</label>  
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Note CS
+                                    :</label>
                                 <textarea name="keperluan" id="keperluan"
                                     class="w-full rounded-lg border border-gray-300 bg-white p-3 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
-                                    rows="3" ></textarea>                              
+                                    rows="3"></textarea>
                             </div>
                         </div>
-                        
-                    </div>    
-                    
+
+                    </div>
+
                     <!-- ... header & form atas tetap ... -->
                     <div class="flex w-full flex-col gap-2 rounded-2xl border-b bg-white dark:bg-gray-800">
-                    <div class="flex w-full flex-col rounded-2xl p-4">
-                        <details class="group" open>                     
-                        <summary
-                            class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-xl font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
-                            <span>CS Detail</span>
-                            <span class="text-sm font-medium text-gray-500 transition-all group-open:hidden">See
-                                details &rarr;</span>
-                            <span class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline">Hide
-                                details &darr;</span>
-                        </summary>
-                        <div class="flex h-auto flex-col justify-start">
-                            <div class="overflow-x-auto">
-                                <table id="cvTable" class="w-max table-auto whitespace-nowrap border">
-                                    <thead>
-                                        <tr class="bg-gray-100 align-top">
-                                            <th class="w-64 border px-3 py-2">Inventory Descr</th>
-                                            <th class="w-16 border px-3 py-2 text-center">Qty</th>
-                                            <th class="w-16 border px-3 py-2 text-center">UOM</th>
-                                            <th class="w-16 border px-3 py-2 text-center">Note</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="cvBody">
-                                        @foreach ($items as $row)
-                                            <tr>
-                                                <td class="border px-3 py-2">{{ $row->inventory_descr }}</td>
-                                                 <td class="border px-3 py-2 text-center">
-                                                    <input
-                                                        type="text"
-                                                        class="qty-input w-24 border rounded px-2 text-right"
-                                                        value="{{ number_format((float)$row->qty, 2, ',', '') }}"
-                                                        inputmode="decimal"
-                                                        autocomplete="off"
-                                                        placeholder="0,00"
-                                                        aria-label="Qty"
-                                                    >
-                                                </td>
-                                                <td class="border px-3 py-2 text-center">{{ $row->uom }}</td>
-                                                <td class="border px-3 py-2 text-center">{{ $row->note }}</td>
-                                            </tr>
-                                        @endforeach
-                                    </tbody>
+                        <div class="flex w-full flex-col rounded-2xl p-4">
+                            <details class="group" open>
+                                <summary
+                                    class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-xl font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
+                                    <span>CS Detail</span>
+                                    <span class="text-sm font-medium text-gray-500 transition-all group-open:hidden">See
+                                        details &rarr;</span>
+                                    <span
+                                        class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline">Hide
+                                        details &darr;</span>
+                                </summary>
+                                <div class="flex h-auto flex-col justify-start">
+                                    <div class="overflow-x-auto">
+                                        <table id="cvTable" class="w-max table-auto whitespace-nowrap border">
+                                            <thead>
+                                                <tr class="bg-gray-100 align-top">
+                                                    <th class="w-64 border px-3 py-2">Inventory Descr</th>
+                                                    <th class="w-16 border px-3 py-2 text-center">Qty</th>
+                                                    <th class="w-16 border px-3 py-2 text-center">UOM</th>
+                                                    <th class="w-16 border px-3 py-2 text-center">Note</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="cvBody">
+                                                @foreach ($items as $row)
+                                                    <tr>
+                                                        <td class="border px-3 py-2">{{ $row->inventory_descr }}</td>
+                                                        <td class="border px-3 py-2 text-center">
+                                                            <input type="text"
+                                                                class="qty-input w-24 rounded border px-2 text-right"
+                                                                value="{{ number_format((float) $row->qty, 2, ',', '') }}"
+                                                                inputmode="decimal" autocomplete="off"
+                                                                placeholder="0,00" aria-label="Qty">
+                                                        </td>
+                                                        <td class="border px-3 py-2 text-center">{{ $row->uom }}
+                                                        </td>
+                                                        <td class="border px-3 py-2 text-center">{{ $row->note }}
+                                                        </td>
+                                                    </tr>
+                                                @endforeach
+                                            </tbody>
 
-                                    <tfoot>
-                                        <tr id="summaryRow" class="bg-gray-50 align-top">
-                                            <td colspan="4" class="border px-3 py-2 text-right font-semibold">
-                                                Ringkasan
-                                            </td>
-                                            {{-- sel vendor akan disisipkan via JS --}}
-                                        </tr>
-                                    </tfoot>
-                                </table>
-                            </div>                          
+                                            <tfoot>
+                                                <tr id="summaryRow" class="bg-gray-50 align-top">
+                                                    <td colspan="4"
+                                                        class="border px-3 py-2 text-right font-semibold">
+                                                        Ringkasan
+                                                    </td>
+                                                    {{-- sel vendor akan disisipkan via JS --}}
+                                                </tr>
+                                            </tfoot>
+                                        </table>
+                                    </div>
+                                </div>
+                            </details>
                         </div>
-                        </details>
-                    </div>
                     </div>
 
 
@@ -226,27 +297,28 @@
         <div class="loading-card">
             <div class="loading-spinner"></div>
             <div class="loading-text">
-            Processing
-            <span class="loading-ellipsis"><span>.</span><span>.</span><span>.</span></span>
+                Processing
+                <span class="loading-ellipsis"><span>.</span><span>.</span><span>.</span></span>
             </div>
         </div>
     </div>
 
     <script>
-        function showOverlay(text='Processing'){
+        function showOverlay(text = 'Processing') {
             const $ov = $('#loadingSpinnerContainer');
             $ov.find('.loading-text').html(
-            (text || 'Processing') +
-            '<span class="loading-ellipsis"><span>.</span><span>.</span><span>.</span></span>'
+                (text || 'Processing') +
+                '<span class="loading-ellipsis"><span>.</span><span>.</span><span>.</span></span>'
             );
             // pastikan tampil (tetap bisa fadeIn)
-            $ov.stop(true,true).fadeIn(120);
+            $ov.stop(true, true).fadeIn(120);
         }
-        function hideOverlay(){
-            $('#loadingSpinnerContainer').stop(true,true).fadeOut(120);
+
+        function hideOverlay() {
+            $('#loadingSpinnerContainer').stop(true, true).fadeOut(120);
         }
     </script>
-  
+
 
     <script>
         // ===== Attachment =====
@@ -255,8 +327,8 @@
             $('#addAttachment').click(function() {
                 $('#attachmentsContainer').append(`
             <div class="attachment-row flex items-center gap-2">
-                <input type="file" name="attachments[]" class="flex-grow rounded-md border border-gray-200 bg-white px-4 py-2 text-sm text-gray-700 file:mr-4 file:rounded-full file:border-0 file:bg-indigo-100 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-indigo-700 hover:file:bg-indigo-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:file:bg-indigo-700 dark:file:text-white dark:hover:file:bg-indigo-600">
-                    <button type="button" class="removeAttachment bg-red-200/30 mt-4 text-red-600 p-3 rounded hidden border border-red-600 hover:text-white hover:bg-red-600 transition">🗑️</button>
+                <input type="file" name="attachments[]" class="mt-2 flex-grow rounded-md border border-gray-200 bg-white px-4 py-2 text-sm text-gray-700 file:mr-4 file:rounded-full file:border-0 file:bg-indigo-100 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-indigo-700 hover:file:bg-indigo-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:file:bg-indigo-700 dark:file:text-white dark:hover:file:bg-indigo-600">
+                    <button type="button" class="removeAttachment rounded border border-red-600 bg-red-200/30 p-3 text-red-600 transition hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">🗑️</button>
             </div>
         `);
                 toggleDeleteButton();
@@ -277,14 +349,14 @@
                 }
             }
         });
-    </script>   
+    </script>
 
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
     <script>
-        $(function () {
+        $(function() {
             /* ===============================
             1) Ambil master vendor -> <select>
             ================================ */
@@ -341,7 +413,7 @@
             5) Tambah header vendor + ringkasan per-vendor
             ================================ */
             function addHeader(id, v) {
-                const colWidth = '15rem';   
+                const colWidth = '15rem';
                 const $th = $(`
                     <th id="th-vendor-${id}" class="border relative px-3 py-2" style="width:${colWidth}; max-width:${colWidth};">
                         <div class="font-semibold text-center">${v.vendor_name}</div>
@@ -401,7 +473,9 @@
                     </td>
                     `);
 
-                    const $total = $(`<small class="total-label text-right text-xs font-bold text-gray-600">0</small>`);
+                    const $total = $(
+                        `<small class="total-label text-right text-xs font-bold text-gray-600">0</small>`
+                    );
                     const $radio = $(`
                     <div class="flex justify-center mt-0.5">
                         <input type="radio" name="selected_vendor_${rowIdx}" value="${id}"
@@ -413,14 +487,16 @@
                     $(this).append($td);
 
                     // hitung ulang begitu harga berubah / diformat
-                    $input.on('input', function(){ calcCellTotal($(this)); });
+                    $input.on('input', function() {
+                        calcCellTotal($(this));
+                    });
                 });
             }
 
 
             function calcCellTotal($input) {
-                const $tr   = $input.closest('tr');
-                const qty   = parseQty($tr.find('.qty-input').val());     // sudah kamu buat sebelumnya
+                const $tr = $input.closest('tr');
+                const qty = parseQty($tr.find('.qty-input').val()); // sudah kamu buat sebelumnya
                 const price = parsePrice($input.val());
                 const total = qty * price;
 
@@ -429,9 +505,9 @@
             }
 
             // Expose ke global agar bisa dipanggil dari event lain
-            window.calcCellTotal = function ($input) {
-                const $tr   = $input.closest('tr');
-                const qty   = parseQty($tr.find('.qty-input').val());
+            window.calcCellTotal = function($input) {
+                const $tr = $input.closest('tr');
+                const qty = parseQty($tr.find('.qty-input').val());
                 const price = parsePrice($input.val());
                 const total = qty * price;
 
@@ -448,7 +524,7 @@
             $(document).on('click', '.btn-del', function() {
                 const id = $(this).data('id');
                 const $header = $('#th-vendor-' + id);
-                const colIdx  = $header.index();
+                const colIdx = $header.index();
 
                 $header.remove();
                 $('#td-sum-' + id).remove();
@@ -467,31 +543,34 @@
             });
 
             // ===== Helper format =====
-            window.formatNum = function(n){ return (+n || 0).toLocaleString('id-ID'); }
+            window.formatNum = function(n) {
+                return (+n || 0).toLocaleString('id-ID');
+            }
 
             // ===== Ringkasan per-vendor =====
-            window.recalcSummaryVendor = function(vendorId){
+            window.recalcSummaryVendor = function(vendorId) {
                 let total = 0;
-                $(`input.price-input[data-vendor="${vendorId}"]`).each(function(){
+                $(`input.price-input[data-vendor="${vendorId}"]`).each(function() {
                     const price = parsePrice($(this).val());
-                    const qty   = parseQty($(this).closest('tr').find('.qty-input').val());
+                    const qty = parseQty($(this).closest('tr').find('.qty-input').val());
                     total += qty * price;
                 });
 
                 const $sumCell = $(`#td-sum-${vendorId}`);
                 $sumCell.find('.sum-total').text(formatNum(total));
 
-                const ppn   = Number($sumCell.find('.sum-ppn').val() || 0) / 100;
-                const pph   = Number($sumCell.find('.sum-pph').val() || 0) / 100;
+                const ppn = Number($sumCell.find('.sum-ppn').val() || 0) / 100;
+                const pph = Number($sumCell.find('.sum-pph').val() || 0) / 100;
                 const grand = total * (1 + ppn + pph);
                 $sumCell.find('.sum-grand').text(formatNum(grand));
 
                 let selTotal = 0;
-                $('#cvBody tr').each(function(){
+                $('#cvBody tr').each(function() {
                     const picked = $(this).find('input.pick-vendor:checked').val();
-                    if (Number(picked) === vendorId){
-                    const lbl = $(this).find(`input.price-input[data-vendor="${vendorId}"]`).next('.total-label');
-                    selTotal += Number((lbl.text() || '0').replace(/[^0-9]/g,''));
+                    if (Number(picked) === vendorId) {
+                        const lbl = $(this).find(`input.price-input[data-vendor="${vendorId}"]`).next(
+                            '.total-label');
+                        selTotal += Number((lbl.text() || '0').replace(/[^0-9]/g, ''));
                     }
                 });
                 $sumCell.find('.sum-selected').text(formatNum(selTotal));
@@ -500,27 +579,30 @@
 
         });
     </script>
-   
-   <script>
+
+    <script>
         // Izinkan: digit, koma, titik, dan tombol kontrol
-        $(document).on('keypress', '.qty-input', function (e) {
+        $(document).on('keypress', '.qty-input', function(e) {
             const code = e.which || e.keyCode;
             // kontrol: backspace, tab, enter, delete, panah
-            if ([8,9,13,37,38,39,40,46].includes(code)) return;
+            if ([8, 9, 13, 37, 38, 39, 40, 46].includes(code)) return;
 
             const ch = String.fromCharCode(code);
-            if (!/[0-9.,]/.test(ch)) { e.preventDefault(); return; }
+            if (!/[0-9.,]/.test(ch)) {
+                e.preventDefault();
+                return;
+            }
 
             const v = $(this).val() || '';
             // cegah lebih dari satu pemisah desimal total (koma/titik)
             if ((ch === ',' || ch === '.') && /[.,]/.test(v)) {
-            e.preventDefault();
+                e.preventDefault();
             }
         });
 
-      
-       // Sanitasi saat user mengetik (hapus karakter asing)
-        $(document).on('input', '.qty-input', function () {
+
+        // Sanitasi saat user mengetik (hapus karakter asing)
+        $(document).on('input', '.qty-input', function() {
             // sanitasi yang sudah kamu punya...
             let v = $(this).val() || '';
             v = v.replace(/[^0-9.,]/g, '');
@@ -534,7 +616,7 @@
 
             // 🔁 hitung ulang semua price di baris ini
             const $row = $(this).closest('tr');
-            $row.find('input.price-input').each(function () {
+            $row.find('input.price-input').each(function() {
                 // calcCellTotal($(this));
                 window.calcCellTotal($(this));
             });
@@ -543,15 +625,15 @@
 
 
         // Pada blur → format ke 2 desimal dengan koma
-        $(document).on('blur', '.qty-input', function () {
+        $(document).on('blur', '.qty-input', function() {
             const num = parseQty($(this).val());
             $(this).val(formatQty2(num));
             // trigger recalculation baris yang terkait (pakai harga yang sudah ada)
             const $row = $(this).closest('tr');
             // Jika ada input harga di baris ini, recal semua vendor di baris
-            $row.find('input.price-input').each(function () {
-            // calcCellTotal($(this));
-            window.calcCellTotal($(this));
+            $row.find('input.price-input').each(function() {
+                // calcCellTotal($(this));
+                window.calcCellTotal($(this));
             });
         });
     </script>
@@ -566,16 +648,16 @@
 
             // Jika ada kedua pemisah, ambil yang terakhir sebagai desimal
             const lastComma = val.lastIndexOf(',');
-            const lastDot   = val.lastIndexOf('.');
-            let decimalSep  = (lastComma > lastDot) ? ',' : '.';
+            const lastDot = val.lastIndexOf('.');
+            let decimalSep = (lastComma > lastDot) ? ',' : '.';
 
             // Hilangkan pemisah ribuan (apa pun sebelum decimalSep)
             if (decimalSep === ',') {
-            val = val.replace(/\./g, '');     // titik jadi ribuan → buang
-            val = val.replace(',', '.');      // koma desimal → titik
+                val = val.replace(/\./g, ''); // titik jadi ribuan → buang
+                val = val.replace(',', '.'); // koma desimal → titik
             } else {
-            val = val.replace(/,/g, '');      // koma ribuan → buang
-            // titik sudah desimal → biarkan
+                val = val.replace(/,/g, ''); // koma ribuan → buang
+                // titik sudah desimal → biarkan
             }
 
             const n = parseFloat(val);
@@ -591,7 +673,7 @@
 
     <script>
         // Parse string "1.234,56" / "1,234.56" → Number 1234.56
-        function parsePrice(val){
+        function parsePrice(val) {
             if (typeof val !== 'string') val = String(val ?? '');
             val = val.trim();
 
@@ -600,15 +682,15 @@
 
             // tentukan pemisah desimal dengan posisi terakhir
             const lastComma = val.lastIndexOf(',');
-            const lastDot   = val.lastIndexOf('.');
+            const lastDot = val.lastIndexOf('.');
             const decimalSep = (lastComma > lastDot) ? ',' : '.';
 
-            if (decimalSep === ','){
-            // titik = ribuan → buang; koma = desimal → ganti titik
-            val = val.replace(/\./g,'').replace(',', '.');
+            if (decimalSep === ',') {
+                // titik = ribuan → buang; koma = desimal → ganti titik
+                val = val.replace(/\./g, '').replace(',', '.');
             } else {
-            // koma = ribuan → buang; titik = desimal → biarkan
-            val = val.replace(/,/g,'');
+                // koma = ribuan → buang; titik = desimal → biarkan
+                val = val.replace(/,/g, '');
             }
 
             const n = parseFloat(val);
@@ -616,56 +698,59 @@
         }
 
         // Format Number → "1.234,56" (2 desimal, locale id-ID)
-        function formatPrice2(n){
+        function formatPrice2(n) {
             const num = isNaN(n) ? 0 : Number(n);
             return new Intl.NumberFormat('id-ID', {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
             }).format(num);
         }
     </script>
 
     <script>
         // keypress: batasi karakter
-        $(document).on('keypress', '.price-input', function(e){
+        $(document).on('keypress', '.price-input', function(e) {
             const code = e.which || e.keyCode;
             // kontrol
-            if ([8,9,13,37,38,39,40,46].includes(code)) return;
+            if ([8, 9, 13, 37, 38, 39, 40, 46].includes(code)) return;
             const ch = String.fromCharCode(code);
-            if (!/[0-9.,]/.test(ch)) { e.preventDefault(); return; }
+            if (!/[0-9.,]/.test(ch)) {
+                e.preventDefault();
+                return;
+            }
 
             const v = $(this).val() || '';
             if ((ch === ',' || ch === '.') && /[.,]/.test(v)) {
-            e.preventDefault(); // hanya boleh satu pemisah
+                e.preventDefault(); // hanya boleh satu pemisah
             }
         });
 
         // input: sanitasi agar hanya 1 pemisah
-        $(document).on('input', '.price-input', function(){
+        $(document).on('input', '.price-input', function() {
             let v = $(this).val() || '';
-            v = v.replace(/[^0-9.,]/g,'');
+            v = v.replace(/[^0-9.,]/g, '');
             const firstSep = v.search(/[.,]/);
-            if (firstSep !== -1){
-            const head = v.slice(0, firstSep+1);
-            const tail = v.slice(firstSep+1).replace(/[.,]/g,'');
-            v = head + tail;
+            if (firstSep !== -1) {
+                const head = v.slice(0, firstSep + 1);
+                const tail = v.slice(firstSep + 1).replace(/[.,]/g, '');
+                v = head + tail;
             }
             $(this).val(v);
         });
 
         // blur: format 2 desimal + ribuan
-        $(document).on('blur', '.price-input', function(){
+        $(document).on('blur', '.price-input', function() {
             const num = parsePrice($(this).val());
-            $(this).val(formatPrice2(num));  // contoh: 1234.5 → 1.234,50
+            $(this).val(formatPrice2(num)); // contoh: 1234.5 → 1.234,50
             // hitung ulang total sel
             calcCellTotal($(this));
         });
     </script>
 
-    
+
     <!-- Toastr CSS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
     <!-- Toastr JS -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>        
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 
 </x-app-layout>

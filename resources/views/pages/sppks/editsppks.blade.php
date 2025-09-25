@@ -119,45 +119,53 @@
         }
 
 
-          /* Samakan tinggi Select2 dengan input Tailwind (h-10 / p-2.5) */
+        /* Samakan tinggi Select2 dengan input Tailwind (h-10 / p-2.5) */
         .select2-container .select2-selection--single {
-        height: 40px !important;
-        border: 1px solid #d1d5db; /* border-gray-300 */
-        border-radius: 0.375rem;    /* rounded-md */
-        display: flex;
-        align-items: center;
+            height: 40px !important;
+            border: 1px solid #d1d5db;
+            /* border-gray-300 */
+            border-radius: 0.375rem;
+            /* rounded-md */
+            display: flex;
+            align-items: center;
         }
 
         /* Geser tombol clear (X) ke sebelah kanan */
         .select2-container--default .select2-selection--single .select2-selection__clear {
-        position: absolute;
-        right: 28px;    /* beri jarak dari panah dropdown */
-        top: 50%;
-        transform: translateY(-50%);
-        color: #6b7280; /* gray-500 */
-        font-size: 16px;
-        cursor: pointer;
-        margin: 0;
-        z-index: 2;
+            position: absolute;
+            right: 28px;
+            /* beri jarak dari panah dropdown */
+            top: 50%;
+            transform: translateY(-50%);
+            color: #6b7280;
+            /* gray-500 */
+            font-size: 16px;
+            cursor: pointer;
+            margin: 0;
+            z-index: 2;
         }
 
         /* Biar teks tidak nempel ke X */
         .select2-container--default .select2-selection--single .select2-selection__rendered {
-        padding-right: 40px !important;
-        }   
+            padding-right: 40px !important;
+        }
 
         .select2-container--default .select2-selection--single .select2-selection__arrow {
-        height: 40px !important;
-        right: 6px;
+            height: 40px !important;
+            right: 6px;
         }
 
         /* Dark mode support */
         .dark .select2-container--default .select2-selection--single {
-        background-color: #1f2937; /* gray-800 */
-        border-color: #374151;     /* gray-700 */
+            background-color: #1f2937;
+            /* gray-800 */
+            border-color: #374151;
+            /* gray-700 */
         }
+
         .dark .select2-container--default .select2-selection--single .select2-selection__rendered {
-        color: #e5e7eb; /* gray-200 */
+            color: #e5e7eb;
+            /* gray-200 */
         }
     </style>
     <div class="max-w-9xl mx-auto w-full px-4 py-4 sm:px-6 lg:px-8">
@@ -240,22 +248,23 @@
                                 </select>
                             </div>
                         </div>
-                         <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4 mt-4">    
-                        <!-- No. Polisi (Select2) -->
+                        <div class="mt-4 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
+                            <!-- No. Polisi (Select2) -->
                             <div class="flex flex-col gap-2">
-                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">No. Polisi</label>
+                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">No.
+                                    Polisi</label>
                                 <select id="nopol" name="no_polisi"
-                                        class="select2 w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
-                                        required>
+                                    class="select2 w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                    required>
                                     @php
-                                        $noPolisiInit   = old('no_polisi', $sppk->no_polisi ?? '');
-                                        $namaKendInit   = old('namakendaraan', $sppk->namakendaraan ?? '');
+                                        $noPolisiInit = old('no_polisi', $sppk->no_polisi ?? '');
+                                        $namaKendInit = old('namakendaraan', $sppk->namakendaraan ?? '');
                                     @endphp
 
                                     {{-- Saat edit: inject option terpilih supaya Select2 langsung nge-render --}}
-                                    @if($noPolisiInit)
+                                    @if ($noPolisiInit)
                                         <option value="{{ $noPolisiInit }}" selected>
-                                            {{ $noPolisiInit }}{{ $namaKendInit ? ' - '.$namaKendInit : '' }}
+                                            {{ $noPolisiInit }}{{ $namaKendInit ? ' - ' . $namaKendInit : '' }}
                                         </option>
                                     @else
                                         <option value="" selected disabled>Pilih nopol...</option>
@@ -265,31 +274,32 @@
 
                             <!-- Pemilik Kendaraan (auto) -->
                             <div class="flex flex-col gap-2">
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Pemilik Kendaraan</label>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Vehicle
+                                    Owner</label>
                                 <input type="text" id="pemilikkendaraan" name="pemilikkendaraan"
-                                        class="w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-gray-700 shadow-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
-                                        placeholder="-" readonly
-                                        value="{{ old('pemilikkendaraan', $sppk->pemilikkendaraan) }}">
-                                </div>
+                                    class="w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-gray-700 shadow-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                    placeholder="-" readonly
+                                    value="{{ old('pemilikkendaraan', $sppk->pemilikkendaraan) }}">
+                            </div>
 
-                                <!-- Nama Kendaraan (auto) -->
-                                <div class="flex flex-col gap-2">
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Nama Kendaraan</label>
+                            <!-- Nama Kendaraan (auto) -->
+                            <div class="flex flex-col gap-2">
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    Vehicle Name</label>
                                 <input type="text" id="namakendaraan" name="namakendaraan"
-                                        class="w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-gray-700 shadow-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
-                                        placeholder="-" readonly
-                                        value="{{ old('namakendaraan', $sppk->namakendaraan) }}">
+                                    class="w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-gray-700 shadow-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                    placeholder="-" readonly value="{{ old('namakendaraan', $sppk->namakendaraan) }}">
                             </div>
 
                             <!-- KM -->
                             <div class="flex flex-col gap-2">
                                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">KM</label>
                                 <input type="text" id="km_input" name="km_kendaraan"
-                                        class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-right text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
-                                        placeholder="0"
-                                        value="{{ old('km_kendaraan', number_format($sppk->km_kendaraan, 0, ',', '.')) }}">
+                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-right text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                    placeholder="0"
+                                    value="{{ old('km_kendaraan', number_format($sppk->km_kendaraan, 0, ',', '.')) }}">
                             </div>
-                        </div>    
+                        </div>
 
                         {{-- Description --}}
                         <div class="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
@@ -930,40 +940,42 @@
 
 
     <script>
-        $(function () {
-        const DOCTYPE = 'SPPK';
-        const $requestType = $('#requesttypeid');
-        const selectedRT = @json($sppk->requesttypeid);
+        $(function() {
+            const DOCTYPE = 'SPPK';
+            const $requestType = $('#requesttypeid');
+            const selectedRT = @json($sppk->requesttypeid);
 
-        function buildOptions(list, selected) {
-            let opts = '<option value="" disabled>Select Request Type</option>';
-            list.forEach(rt => {
-            const sel = String(selected) === String(rt.requesttypeid) ? 'selected' : '';
-            opts += `<option value="${rt.requesttypeid}" ${sel}>
+            function buildOptions(list, selected) {
+                let opts = '<option value="" disabled>Select Request Type</option>';
+                list.forEach(rt => {
+                    const sel = String(selected) === String(rt.requesttypeid) ? 'selected' : '';
+                    opts += `<option value="${rt.requesttypeid}" ${sel}>
                         ${rt.requesttype_name ?? rt.requesttypeid}
                     </option>`;
-            });
-            return opts;
-        }
+                });
+                return opts;
+            }
 
-        function loadRequestTypes(selected = null) {
-            $requestType.html('<option value="" disabled>Loading...</option>');
-            $.getJSON("{{ route('requesttypes.byDoctype') }}", { doctype: DOCTYPE })
-            .done(function (res) {
-                const data = res?.data || [];
-                if (!data.length) {
-                $requestType.html('<option value="" disabled>No request type</option>');
-                } else {
-                $requestType.html(buildOptions(data, selected));
-                }
-            })
-            .fail(function () {
-                $requestType.html('<option value="" disabled>Failed to load</option>');
-            });
-        }
+            function loadRequestTypes(selected = null) {
+                $requestType.html('<option value="" disabled>Loading...</option>');
+                $.getJSON("{{ route('requesttypes.byDoctype') }}", {
+                        doctype: DOCTYPE
+                    })
+                    .done(function(res) {
+                        const data = res?.data || [];
+                        if (!data.length) {
+                            $requestType.html('<option value="" disabled>No request type</option>');
+                        } else {
+                            $requestType.html(buildOptions(data, selected));
+                        }
+                    })
+                    .fail(function() {
+                        $requestType.html('<option value="" disabled>Failed to load</option>');
+                    });
+            }
 
-        // initial load pakai selected dari $sppk
-        loadRequestTypes(selectedRT);
+            // initial load pakai selected dari $sppk
+            loadRequestTypes(selectedRT);
         });
     </script>
 
@@ -1229,7 +1241,7 @@
                     // UoM (cek visible & hidden)
                     const uomText = ($uomVis.val() || '').trim();
                     if ((uomText === '' || uomText === '-') && (($uomTo.val() || '').trim() ===
-                        '')) {
+                            '')) {
                         addDetailError($uomVis, 'UoM wajib dipilih.');
                         anyInvalid = true;
                     }
@@ -1439,7 +1451,7 @@
                     .fail(function() {
                         $tbody.html(
                             `<tr><td colspan="4" class="p-3 text-center text-red-600">Failed to load inventory</td></tr>`
-                            );
+                        );
                         $invCount.text('');
                         $('#invPrev, #invNext').prop('disabled', true);
                     });
@@ -1492,8 +1504,8 @@
             $('#addAttachment').click(function() {
                 $('#attachmentsContainer').append(`
             <div class="attachment-row flex items-center gap-2">
-                <input type="file" name="attachments[]" class="flex-grow rounded-md border border-gray-200 bg-white px-4 py-2 text-sm text-gray-700 file:mr-4 file:rounded-full file:border-0 file:bg-indigo-100 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-indigo-700 hover:file:bg-indigo-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:file:bg-indigo-700 dark:file:text-white dark:hover:file:bg-indigo-600">
-                    <button type="button" class="removeAttachment bg-red-200/30 mt-4 text-red-600 p-3 rounded hidden border border-red-600 hover:text-white hover:bg-red-600 transition">🗑️</button>
+                <input type="file" name="attachments[]" class="mt-2 flex-grow rounded-md border border-gray-200 bg-white px-4 py-2 text-sm text-gray-700 file:mr-4 file:rounded-full file:border-0 file:bg-indigo-100 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-indigo-700 hover:file:bg-indigo-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:file:bg-indigo-700 dark:file:text-white dark:hover:file:bg-indigo-600">
+                    <button type="button" class="removeAttachment rounded border border-red-600 bg-red-200/30 p-3 text-red-600 transition hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">🗑️</button>
             </div>
         `);
                 toggleDeleteButton();
@@ -1551,40 +1563,42 @@
     </script>
 
     <script>
-        $(function () {
-        const DOCTYPE = 'SPPK';
-        const $requestType = $('#requesttypeid');
-        const selectedRT = @json($sppk->requesttypeid);
+        $(function() {
+            const DOCTYPE = 'SPPK';
+            const $requestType = $('#requesttypeid');
+            const selectedRT = @json($sppk->requesttypeid);
 
-        function buildOptions(list, selected) {
-            let opts = '<option value="" disabled>Select Request Type</option>';
-            list.forEach(rt => {
-            const sel = String(selected) === String(rt.requesttypeid) ? 'selected' : '';
-            opts += `<option value="${rt.requesttypeid}" ${sel}>
+            function buildOptions(list, selected) {
+                let opts = '<option value="" disabled>Select Request Type</option>';
+                list.forEach(rt => {
+                    const sel = String(selected) === String(rt.requesttypeid) ? 'selected' : '';
+                    opts += `<option value="${rt.requesttypeid}" ${sel}>
                         ${rt.requesttype_name ?? rt.requesttypeid}
                     </option>`;
-            });
-            return opts;
-        }
+                });
+                return opts;
+            }
 
-        function loadRequestTypes(selected = null) {
-            $requestType.html('<option value="" disabled>Loading...</option>');
-            $.getJSON("{{ route('requesttypes.byDoctype') }}", { doctype: DOCTYPE })
-            .done(function (res) {
-                const data = res?.data || [];
-                if (!data.length) {
-                $requestType.html('<option value="" disabled>No request type</option>');
-                } else {
-                $requestType.html(buildOptions(data, selected));
-                }
-            })
-            .fail(function () {
-                $requestType.html('<option value="" disabled>Failed to load</option>');
-            });
-        }
+            function loadRequestTypes(selected = null) {
+                $requestType.html('<option value="" disabled>Loading...</option>');
+                $.getJSON("{{ route('requesttypes.byDoctype') }}", {
+                        doctype: DOCTYPE
+                    })
+                    .done(function(res) {
+                        const data = res?.data || [];
+                        if (!data.length) {
+                            $requestType.html('<option value="" disabled>No request type</option>');
+                        } else {
+                            $requestType.html(buildOptions(data, selected));
+                        }
+                    })
+                    .fail(function() {
+                        $requestType.html('<option value="" disabled>Failed to load</option>');
+                    });
+            }
 
-        // initial load pakai selected dari $sppk
-        loadRequestTypes(selectedRT);
+            // initial load pakai selected dari $sppk
+            loadRequestTypes(selectedRT);
         });
     </script>
 
@@ -1697,7 +1711,7 @@
                     .fail(function() {
                         $locTbody.html(
                             '<tr><td colspan="3" class="p-3 text-center text-red-600">Failed to load</td></tr>'
-                            );
+                        );
                         $locCount.text('');
                         $('#locPrev, #locNext').prop('disabled', true);
                     });
@@ -1862,7 +1876,7 @@
                     .fail(function() {
                         $subLocTbody.html(
                             '<tr><td colspan="3" class="p-3 text-center text-red-600">Failed to load</td></tr>'
-                            );
+                        );
                         $subLocCount.text('');
                         $('#subLocPrev, #subLocNext').prop('disabled', true);
                     });
@@ -2066,7 +2080,7 @@
                     .fail(function() {
                         $coaTbody.html(
                             '<tr><td colspan="4" class="p-3 text-center text-red-600">Failed to load</td></tr>'
-                            );
+                        );
                         $coaCount.text('');
                         $('#coaPrev, #coaNext').prop('disabled', true);
                     });
@@ -2232,7 +2246,7 @@
                     .fail(function() {
                         $uomTbody.html(
                             '<tr><td colspan="5" class="p-3 text-center text-red-600">Failed to load</td></tr>'
-                            );
+                        );
                         $uomCount.text('');
                         $('#uomPrev, #uomNext').prop('disabled', true);
                     });
@@ -2263,167 +2277,176 @@
     </script>
 
     <script>
-        $(function () {
-        const $nopol   = $('#nopol');
-        const $pemilik = $('#pemilikkendaraan');
-        const $nama    = $('#namakendaraan');
-        const $km      = $('#km_input');
+        $(function() {
+            const $nopol = $('#nopol');
+            const $pemilik = $('#pemilikkendaraan');
+            const $nama = $('#namakendaraan');
+            const $km = $('#km_input');
 
-        // KM hanya angka
-        $(document).on('input', '#km_input', function () {
-            this.value = this.value.replace(/[^0-9]/g,'');
-        });
-
-        function buildLabel(item) {
-            const nopol = (item.no_polisi || item.id || '').toString().trim();
-            const namaK = (item.namakendaraan || item.nama || item.text || '').toString().trim();
-            // Jika dua-duanya kosong, kembalikan '—'
-            if (!nopol && !namaK) return '—';
-            return namaK ? `${nopol} - ${namaK}` : nopol;
-        }
-
-        // Template untuk list & terpilih (fallback kalau text kosong)
-        function templateResult(item) {
-            if (item.loading) return item.text;
-            const label = item.text && item.text.trim() ? item.text : buildLabel(item);
-            return $('<span>').text(label);
-        }
-        function templateSelection(item) {
-            const label = item.text && item.text.trim() ? item.text : buildLabel(item);
-            return label || 'Pilih nopol...';
-        }
-
-        // Init Select2 (AJAX + fallback)
-        $nopol.select2({
-        placeholder: "Cari No. Polisi…",
-        allowClear: true,
-        width: '100%',
-        minimumInputLength: 0,
-        dropdownParent: $nopol.parent(),
-        templateResult: function (item) {
-            if (item.loading) return item.text;
-            // Di dropdown list → tampil nopol - namakendaraan
-            return `${item.no_polisi || item.id} - ${item.namakendaraan || ''}`;
-        },
-        templateSelection: function (item) {
-            // Saat dipilih → hanya tampil nopol
-            return item.no_polisi || item.id || '';
-        },
-        ajax: {
-            url: "{{ route('kendaraan.all') }}",
-            dataType: 'json',
-            delay: 250,
-            data: function (params) {
-            return {
-                search: params.term || '',
-                page: params.page || 1,
-                per_page: 20
-            };
-            },
-            processResults: function (res, params) {
-            params.page = params.page || 1;
-            const rows = Array.isArray(res?.data) ? res.data : [];
-            const results = rows.map(item => {
-                return {
-                id: (item.no_polisi || '').toString(),
-                text: `${item.no_polisi} - ${item.namakendaraan || ''}`, // untuk dropdown
-                no_polisi: item.no_polisi || '',
-                namakendaraan: item.namakendaraan || '',
-                pemilikkendaraan: item.pemilikkendaraan || ''
-                };
+            // KM hanya angka
+            $(document).on('input', '#km_input', function() {
+                this.value = this.value.replace(/[^0-9]/g, '');
             });
-            return {
-                results,
-                pagination: { more: (params.page * (res.per_page || 20)) < (res.total || 0) }
-            };
-            },
-            cache: true
-        }
-        });
 
+            function buildLabel(item) {
+                const nopol = (item.no_polisi || item.id || '').toString().trim();
+                const namaK = (item.namakendaraan || item.nama || item.text || '').toString().trim();
+                // Jika dua-duanya kosong, kembalikan '—'
+                if (!nopol && !namaK) return '—';
+                return namaK ? `${nopol} - ${namaK}` : nopol;
+            }
 
-        // Preload halaman pertama (agar langsung ada opsi meski belum mengetik)
-        (function preloadFirstPage(){
-            $.getJSON("{{ route('kendaraan.all') }}", { page: 1, per_page: 20 })
-            .done(function(res){
-                const data = Array.isArray(res?.data) ? res.data : [];
-                if (!data.length) return;
-                // Append opsi pertama-pertama ke <select> agar terlihat saat dibuka
-                data.forEach(item => {
-                const id   = (item.no_polisi || '').toString();
-                const text = `${(item.no_polisi || '').toString()} - ${(item.namakendaraan || '').toString()}`;
-                // hindari duplikat jika sudah ada
-                if (!$nopol.find(`option[value="${id}"]`).length) {
-                    const opt = new Option(text, id, false, false);
-                    $nopol.append(opt);
-                }
-                });
-                // trigger agar Select2 re-scan opsi
-                $nopol.trigger('change.select2');
-            })
-            .fail(function(){
-                // silent fail; AJAX utama masih akan jalan saat user search
-            });
-        })();
+            // Template untuk list & terpilih (fallback kalau text kosong)
+            function templateResult(item) {
+                if (item.loading) return item.text;
+                const label = item.text && item.text.trim() ? item.text : buildLabel(item);
+                return $('<span>').text(label);
+            }
 
-        // Autofill saat dipilih
-        $nopol.on('select2:select', function (e) {
-            const d = e.params.data || {};
-            // data dari processResults: fields pemilikkendaraan & namakendaraan
-            $pemilik.val(d.pemilikkendaraan || '');
-            $nama.val(d.namakendaraan || '');
-            // bersihkan error jika ada
-            $nopol.removeClass('is-invalid').next('.error-feedback').remove();
-        });
+            function templateSelection(item) {
+                const label = item.text && item.text.trim() ? item.text : buildLabel(item);
+                return label || 'Pilih nopol...';
+            }
 
-        // Clear field turunan saat clear
-        $nopol.on('select2:clear', function () {
-            $pemilik.val('');
-            $nama.val('');
-        });
-
-        });
-
-
-         $('#nopol').select2({
-                width: '100%',
-                placeholder: 'Select',
+            // Init Select2 (AJAX + fallback)
+            $nopol.select2({
+                placeholder: "Cari No. Polisi…",
                 allowClear: true,
-                // dropdownAutoWidth: true
+                width: '100%',
+                minimumInputLength: 0,
+                dropdownParent: $nopol.parent(),
+                templateResult: function(item) {
+                    if (item.loading) return item.text;
+                    // Di dropdown list → tampil nopol - namakendaraan
+                    return `${item.no_polisi || item.id} - ${item.namakendaraan || ''}`;
+                },
+                templateSelection: function(item) {
+                    // Saat dipilih → hanya tampil nopol
+                    return item.no_polisi || item.id || '';
+                },
+                ajax: {
+                    url: "{{ route('kendaraan.all') }}",
+                    dataType: 'json',
+                    delay: 250,
+                    data: function(params) {
+                        return {
+                            search: params.term || '',
+                            page: params.page || 1,
+                            per_page: 20
+                        };
+                    },
+                    processResults: function(res, params) {
+                        params.page = params.page || 1;
+                        const rows = Array.isArray(res?.data) ? res.data : [];
+                        const results = rows.map(item => {
+                            return {
+                                id: (item.no_polisi || '').toString(),
+                                text: `${item.no_polisi} - ${item.namakendaraan || ''}`, // untuk dropdown
+                                no_polisi: item.no_polisi || '',
+                                namakendaraan: item.namakendaraan || '',
+                                pemilikkendaraan: item.pemilikkendaraan || ''
+                            };
+                        });
+                        return {
+                            results,
+                            pagination: {
+                                more: (params.page * (res.per_page || 20)) < (res.total || 0)
+                            }
+                        };
+                    },
+                    cache: true
+                }
             });
+
+
+            // Preload halaman pertama (agar langsung ada opsi meski belum mengetik)
+            (function preloadFirstPage() {
+                $.getJSON("{{ route('kendaraan.all') }}", {
+                        page: 1,
+                        per_page: 20
+                    })
+                    .done(function(res) {
+                        const data = Array.isArray(res?.data) ? res.data : [];
+                        if (!data.length) return;
+                        // Append opsi pertama-pertama ke <select> agar terlihat saat dibuka
+                        data.forEach(item => {
+                            const id = (item.no_polisi || '').toString();
+                            const text =
+                                `${(item.no_polisi || '').toString()} - ${(item.namakendaraan || '').toString()}`;
+                            // hindari duplikat jika sudah ada
+                            if (!$nopol.find(`option[value="${id}"]`).length) {
+                                const opt = new Option(text, id, false, false);
+                                $nopol.append(opt);
+                            }
+                        });
+                        // trigger agar Select2 re-scan opsi
+                        $nopol.trigger('change.select2');
+                    })
+                    .fail(function() {
+                        // silent fail; AJAX utama masih akan jalan saat user search
+                    });
+            })();
+
+            // Autofill saat dipilih
+            $nopol.on('select2:select', function(e) {
+                const d = e.params.data || {};
+                // data dari processResults: fields pemilikkendaraan & namakendaraan
+                $pemilik.val(d.pemilikkendaraan || '');
+                $nama.val(d.namakendaraan || '');
+                // bersihkan error jika ada
+                $nopol.removeClass('is-invalid').next('.error-feedback').remove();
+            });
+
+            // Clear field turunan saat clear
+            $nopol.on('select2:clear', function() {
+                $pemilik.val('');
+                $nama.val('');
+            });
+
+        });
+
+
+        $('#nopol').select2({
+            width: '100%',
+            placeholder: 'Select',
+            allowClear: true,
+            // dropdownAutoWidth: true
+        });
     </script>
 
     <script>
-        $(function () {
-        const $nopol   = $('#nopol');
-        const $pemilik = $('#pemilikkendaraan');
-        const $nama    = $('#namakendaraan');
+        $(function() {
+            const $nopol = $('#nopol');
+            const $pemilik = $('#pemilikkendaraan');
+            const $nama = $('#namakendaraan');
 
-        // ---- PREFILL EDIT MODE: kalau dari server sudah ada no_polisi, sinkronkan field auto ----
-        const initNoPol   = @json(old('no_polisi', $sppk->no_polisi ?? ''));
-        const initPemilik = @json(old('pemilikkendaraan', $sppk->pemilikkendaraan ?? ''));
-        const initNama    = @json(old('namakendaraan', $sppk->namakendaraan ?? ''));
+            // ---- PREFILL EDIT MODE: kalau dari server sudah ada no_polisi, sinkronkan field auto ----
+            const initNoPol = @json(old('no_polisi', $sppk->no_polisi ?? ''));
+            const initPemilik = @json(old('pemilikkendaraan', $sppk->pemilikkendaraan ?? ''));
+            const initNama = @json(old('namakendaraan', $sppk->namakendaraan ?? ''));
 
-        if (initNoPol) {
-            // Pastikan select2 membaca option yang kita inject di Blade
-            $nopol.val(initNoPol).trigger('change', { silentPrefill: true });
-            // Isi field turunan
-            $pemilik.val(initPemilik || '');
-            $nama.val(initNama || '');
-        }
+            if (initNoPol) {
+                // Pastikan select2 membaca option yang kita inject di Blade
+                $nopol.val(initNoPol).trigger('change', {
+                    silentPrefill: true
+                });
+                // Isi field turunan
+                $pemilik.val(initPemilik || '');
+                $nama.val(initNama || '');
+            }
 
-        // Saat pilih dari Select2 → isi field turunan
-        $nopol.on('select2:select', function (e) {
-            const d = e.params.data || {};
-            $pemilik.val(d.pemilikkendaraan || '');
-            $nama.val(d.namakendaraan || '');
-        });
+            // Saat pilih dari Select2 → isi field turunan
+            $nopol.on('select2:select', function(e) {
+                const d = e.params.data || {};
+                $pemilik.val(d.pemilikkendaraan || '');
+                $nama.val(d.namakendaraan || '');
+            });
 
-        // Saat di-clear
-        $nopol.on('select2:clear', function () {
-            $pemilik.val('');
-            $nama.val('');
-        });
+            // Saat di-clear
+            $nopol.on('select2:clear', function() {
+                $pemilik.val('');
+                $nama.val('');
+            });
         });
     </script>
 

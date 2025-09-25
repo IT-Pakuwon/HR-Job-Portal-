@@ -852,13 +852,13 @@
                                         <div style="font-size:12px;color:#333">                                    
                                             <div style="margin-top:10px;">
                                                 ${members.map(m => `
-                                                                                                                    <div style="display:flex;align-items:center;margin-bottom:6px;">
-                                                                                                                        <img src="${m.image}" style="width:30px;height:30px;border-radius:50%;margin-right:8px;" />
-                                                                                                                        <span style="font-size:12px; color:${m.name.toUpperCase() === 'VACANT' ? 'red' : '#000'};">
-                                                                                                                            ${m.name} (${m.company})
-                                                                                                                        </span>
-                                                                                                                    </div>
-                                                                                                                `).join('')}
+                                                                                                                        <div style="display:flex;align-items:center;margin-bottom:6px;">
+                                                                                                                            <img src="${m.image}" style="width:30px;height:30px;border-radius:50%;margin-right:8px;" />
+                                                                                                                            <span style="font-size:12px; color:${m.name.toUpperCase() === 'VACANT' ? 'red' : '#000'};">
+                                                                                                                                ${m.name} (${m.company})
+                                                                                                                            </span>
+                                                                                                                        </div>
+                                                                                                                    `).join('')}
                                             </div>
                                         </div>
                                     </div>
@@ -1150,13 +1150,13 @@
                                         <div style="font-size:12px;color:#333">                                    
                                             <div style="margin-top:10px;">
                                                 ${members.map(m => `
-                                                                                                                    <div style="display:flex;align-items:center;margin-bottom:6px;">
-                                                                                                                        <img src="${m.image}" style="width:30px;height:30px;border-radius:50%;margin-right:8px;" />
-                                                                                                                        <span style="font-size:12px; color:${m.name.toUpperCase() === 'VACANT' ? 'red' : '#000'};">
-                                                                                                                            ${m.name} (${m.company})
-                                                                                                                        </span>
-                                                                                                                    </div>
-                                                                                                                `).join('')}
+                                                                                                                        <div style="display:flex;align-items:center;margin-bottom:6px;">
+                                                                                                                            <img src="${m.image}" style="width:30px;height:30px;border-radius:50%;margin-right:8px;" />
+                                                                                                                            <span style="font-size:12px; color:${m.name.toUpperCase() === 'VACANT' ? 'red' : '#000'};">
+                                                                                                                                ${m.name} (${m.company})
+                                                                                                                            </span>
+                                                                                                                        </div>
+                                                                                                                    `).join('')}
                                             </div>
                                         </div>
                                     </div>
@@ -1198,7 +1198,7 @@
                 $('#attachmentsContainer').append(`
             <div class="attachment-row flex items-center gap-2">
                 <input type="file" name="attachments[]" form="stoForm" class="flex-grow rounded-md border border-gray-200 bg-white px-4 py-2 text-sm text-gray-700 file:mr-4 file:rounded-full file:border-0 file:bg-indigo-100 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-indigo-700 hover:file:bg-indigo-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:file:bg-indigo-700 dark:file:text-white dark:hover:file:bg-indigo-600">
-                    <button type="button" class="removeAttachment bg-red-200/30 mt-4 text-red-600 p-3 rounded hidden border border-red-600 hover:text-white hover:bg-red-600 transition">🗑️</button>
+                    <button type="button" class="removeAttachment rounded border border-red-600 bg-red-200/30 p-3 text-red-600 transition hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">🗑️</button>
             </div>
         `);
                 toggleDeleteButton();

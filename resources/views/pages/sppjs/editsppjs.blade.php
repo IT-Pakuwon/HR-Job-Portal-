@@ -838,40 +838,42 @@
 
 
     <script>
-        $(function () {
-        const DOCTYPE = 'SPPJ';
-        const $requestType = $('#requesttypeid');
-        const selectedRT = @json($sppj->requesttypeid);
+        $(function() {
+            const DOCTYPE = 'SPPJ';
+            const $requestType = $('#requesttypeid');
+            const selectedRT = @json($sppj->requesttypeid);
 
-        function buildOptions(list, selected) {
-            let opts = '<option value="" disabled>Select Request Type</option>';
-            list.forEach(rt => {
-            const sel = String(selected) === String(rt.requesttypeid) ? 'selected' : '';
-            opts += `<option value="${rt.requesttypeid}" ${sel}>
+            function buildOptions(list, selected) {
+                let opts = '<option value="" disabled>Select Request Type</option>';
+                list.forEach(rt => {
+                    const sel = String(selected) === String(rt.requesttypeid) ? 'selected' : '';
+                    opts += `<option value="${rt.requesttypeid}" ${sel}>
                         ${rt.requesttype_name ?? rt.requesttypeid}
                     </option>`;
-            });
-            return opts;
-        }
+                });
+                return opts;
+            }
 
-        function loadRequestTypes(selected = null) {
-            $requestType.html('<option value="" disabled>Loading...</option>');
-            $.getJSON("{{ route('requesttypes.byDoctype') }}", { doctype: DOCTYPE })
-            .done(function (res) {
-                const data = res?.data || [];
-                if (!data.length) {
-                $requestType.html('<option value="" disabled>No request type</option>');
-                } else {
-                $requestType.html(buildOptions(data, selected));
-                }
-            })
-            .fail(function () {
-                $requestType.html('<option value="" disabled>Failed to load</option>');
-            });
-        }
+            function loadRequestTypes(selected = null) {
+                $requestType.html('<option value="" disabled>Loading...</option>');
+                $.getJSON("{{ route('requesttypes.byDoctype') }}", {
+                        doctype: DOCTYPE
+                    })
+                    .done(function(res) {
+                        const data = res?.data || [];
+                        if (!data.length) {
+                            $requestType.html('<option value="" disabled>No request type</option>');
+                        } else {
+                            $requestType.html(buildOptions(data, selected));
+                        }
+                    })
+                    .fail(function() {
+                        $requestType.html('<option value="" disabled>Failed to load</option>');
+                    });
+            }
 
-        // initial load pakai selected dari $sppj
-        loadRequestTypes(selectedRT);
+            // initial load pakai selected dari $sppj
+            loadRequestTypes(selectedRT);
         });
     </script>
 
@@ -1137,7 +1139,7 @@
                     // UoM (cek visible & hidden)
                     const uomText = ($uomVis.val() || '').trim();
                     if ((uomText === '' || uomText === '-') && (($uomTo.val() || '').trim() ===
-                        '')) {
+                            '')) {
                         addDetailError($uomVis, 'UoM wajib dipilih.');
                         anyInvalid = true;
                     }
@@ -1347,7 +1349,7 @@
                     .fail(function() {
                         $tbody.html(
                             `<tr><td colspan="4" class="p-3 text-center text-red-600">Failed to load inventory</td></tr>`
-                            );
+                        );
                         $invCount.text('');
                         $('#invPrev, #invNext').prop('disabled', true);
                     });
@@ -1400,8 +1402,8 @@
             $('#addAttachment').click(function() {
                 $('#attachmentsContainer').append(`
             <div class="attachment-row flex items-center gap-2">
-                <input type="file" name="attachments[]" class="flex-grow rounded-md border border-gray-200 bg-white px-4 py-2 text-sm text-gray-700 file:mr-4 file:rounded-full file:border-0 file:bg-indigo-100 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-indigo-700 hover:file:bg-indigo-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:file:bg-indigo-700 dark:file:text-white dark:hover:file:bg-indigo-600">
-                    <button type="button" class="removeAttachment bg-red-200/30 mt-4 text-red-600 p-3 rounded hidden border border-red-600 hover:text-white hover:bg-red-600 transition">🗑️</button>
+                <input type="file" name="attachments[]" class="mt-2 flex-grow rounded-md border border-gray-200 bg-white px-4 py-2 text-sm text-gray-700 file:mr-4 file:rounded-full file:border-0 file:bg-indigo-100 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-indigo-700 hover:file:bg-indigo-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:file:bg-indigo-700 dark:file:text-white dark:hover:file:bg-indigo-600">
+                    <button type="button" class="removeAttachment rounded border border-red-600 bg-red-200/30 p-3 text-red-600 transition hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">🗑️</button>
             </div>
         `);
                 toggleDeleteButton();
@@ -1509,40 +1511,42 @@
     </script> --}}
 
     <script>
-        $(function () {
-        const DOCTYPE = 'SPPJ';
-        const $requestType = $('#requesttypeid');
-        const selectedRT = @json($sppj->requesttypeid);
+        $(function() {
+            const DOCTYPE = 'SPPJ';
+            const $requestType = $('#requesttypeid');
+            const selectedRT = @json($sppj->requesttypeid);
 
-        function buildOptions(list, selected) {
-            let opts = '<option value="" disabled>Select Request Type</option>';
-            list.forEach(rt => {
-            const sel = String(selected) === String(rt.requesttypeid) ? 'selected' : '';
-            opts += `<option value="${rt.requesttypeid}" ${sel}>
+            function buildOptions(list, selected) {
+                let opts = '<option value="" disabled>Select Request Type</option>';
+                list.forEach(rt => {
+                    const sel = String(selected) === String(rt.requesttypeid) ? 'selected' : '';
+                    opts += `<option value="${rt.requesttypeid}" ${sel}>
                         ${rt.requesttype_name ?? rt.requesttypeid}
                     </option>`;
-            });
-            return opts;
-        }
+                });
+                return opts;
+            }
 
-        function loadRequestTypes(selected = null) {
-            $requestType.html('<option value="" disabled>Loading...</option>');
-            $.getJSON("{{ route('requesttypes.byDoctype') }}", { doctype: DOCTYPE })
-            .done(function (res) {
-                const data = res?.data || [];
-                if (!data.length) {
-                $requestType.html('<option value="" disabled>No request type</option>');
-                } else {
-                $requestType.html(buildOptions(data, selected));
-                }
-            })
-            .fail(function () {
-                $requestType.html('<option value="" disabled>Failed to load</option>');
-            });
-        }
+            function loadRequestTypes(selected = null) {
+                $requestType.html('<option value="" disabled>Loading...</option>');
+                $.getJSON("{{ route('requesttypes.byDoctype') }}", {
+                        doctype: DOCTYPE
+                    })
+                    .done(function(res) {
+                        const data = res?.data || [];
+                        if (!data.length) {
+                            $requestType.html('<option value="" disabled>No request type</option>');
+                        } else {
+                            $requestType.html(buildOptions(data, selected));
+                        }
+                    })
+                    .fail(function() {
+                        $requestType.html('<option value="" disabled>Failed to load</option>');
+                    });
+            }
 
-        // initial load pakai selected dari $sppj
-        loadRequestTypes(selectedRT);
+            // initial load pakai selected dari $sppj
+            loadRequestTypes(selectedRT);
         });
     </script>
 
@@ -1655,7 +1659,7 @@
                     .fail(function() {
                         $locTbody.html(
                             '<tr><td colspan="3" class="p-3 text-center text-red-600">Failed to load</td></tr>'
-                            );
+                        );
                         $locCount.text('');
                         $('#locPrev, #locNext').prop('disabled', true);
                     });
@@ -1820,7 +1824,7 @@
                     .fail(function() {
                         $subLocTbody.html(
                             '<tr><td colspan="3" class="p-3 text-center text-red-600">Failed to load</td></tr>'
-                            );
+                        );
                         $subLocCount.text('');
                         $('#subLocPrev, #subLocNext').prop('disabled', true);
                     });
@@ -2024,7 +2028,7 @@
                     .fail(function() {
                         $coaTbody.html(
                             '<tr><td colspan="4" class="p-3 text-center text-red-600">Failed to load</td></tr>'
-                            );
+                        );
                         $coaCount.text('');
                         $('#coaPrev, #coaNext').prop('disabled', true);
                     });
@@ -2190,7 +2194,7 @@
                     .fail(function() {
                         $uomTbody.html(
                             '<tr><td colspan="5" class="p-3 text-center text-red-600">Failed to load</td></tr>'
-                            );
+                        );
                         $uomCount.text('');
                         $('#uomPrev, #uomNext').prop('disabled', true);
                     });
