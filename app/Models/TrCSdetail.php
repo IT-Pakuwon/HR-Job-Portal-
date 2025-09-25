@@ -65,7 +65,7 @@ class TrCSdetail extends Model
 
         // pengikat header numerik (kalau dipakai)
         'cs_no'                 => 'integer',
-        'sppj_no'               => 'integer',
+        'sppbjkt_no'               => 'integer',
     ];
 
     /* =========================
