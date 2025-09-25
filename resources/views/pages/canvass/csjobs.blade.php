@@ -506,10 +506,7 @@
                 searchDelay:400, stateSave:true, responsive:true
                 });
 
-            
-
-
-             
+ 
                 function fetchCountsForTab(tabKey){
                 $.get("{{ route('csjobs.counts') }}", { tab: tabKey })
                     .done(function(res){
@@ -544,7 +541,6 @@
                 setActiveTab('mine');
                 });
                 </script>
-
 
 
 

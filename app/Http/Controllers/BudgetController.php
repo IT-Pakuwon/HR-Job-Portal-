@@ -721,7 +721,15 @@ class BudgetController extends Controller
             $budget->status = 'C';
             $budget->completed_by = $user->username;
             $budget->completed_at = $datestamp;
-            $budget->save();           
+            $budget->save();        
+            
+            $budgetdetail = BudgetDetail::where('budget_id', $budget->budget_id)           
+                ->get();
+
+            foreach ($budgetdetail as $d) {
+                $d->status = 'C'; 
+                $d->save();
+            }
         }
 
         $t_approval_next = T_approval::where('docid', $budget->budget_id)

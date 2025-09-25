@@ -48,6 +48,7 @@ use App\Http\Controllers\SppkController;
 use App\Http\Controllers\BqController;
 use App\Http\Controllers\ReceivedListController;
 use App\Http\Controllers\CsJobController;
+use App\Http\Controllers\CsListController;
 use App\Http\Controllers\CanvassController;
 
 
@@ -513,6 +514,15 @@ Route::post('/logout', function () {
     Route::get('/csjobs/counts', [CsJobController::class,'CsJobsCounts'])->name('csjobs.counts');    
     Route::get('/csjobs/entry.json', [CsJobController::class, 'CsJobsEntryJson'])->name('csjobs.entry.json')->middleware('auth');
 
+    
+    Route::get('/cslist', [\App\Http\Controllers\CsListController::class, 'index'])->name('cslist');
+
+    Route::get('/cslist/my.json',         [CsListController::class, 'jsonMy'])->name('cslist.my.json');
+    Route::get('/cslist/onprogress.json', [CsListController::class, 'jsonOnprogress'])->name('cslist.onprogress.json');
+    Route::get('/cslist/rejected.json',   [CsListController::class, 'jsonRejected'])->name('cslist.rejected.json');
+    Route::get('/cslist/completed.json',  [CsListController::class, 'jsonCompleted'])->name('cslist.completed.json');
+    Route::get('/cslist/all.json',        [CsListController::class, 'jsonAll'])->name('cslist.all.json');
+    Route::get('/cslist/counts',          [CsListController::class, 'counts'])->name('cslist.counts');
 
 
     Route::get('/createcs/{doc}/{src}', [CanvassController::class, 'createCS'])

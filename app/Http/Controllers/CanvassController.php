@@ -303,7 +303,7 @@ class CanvassController extends Controller
                 $det->setConnection('pgsql');
                 $det->csid                = $csid;
                 $det->cs_no               = $lineNo;
-                $det->sppj_no             = $srcRefNo; // isi dengan nomor baris sumber apapun namanya
+                $det->sppbjkt_no             = $srcRefNo; // isi dengan nomor baris sumber apapun namanya
 
                 $det->inventoryid         = $d['inventoryid']        ?? ($src->inventoryid ?? null);
                 $det->inventory_descr     = $d['inventory_descr']    ?? ($src->inventory_descr ?? null);
@@ -728,7 +728,7 @@ class CanvassController extends Controller
             $safeSet($cs, $csTable, 'woid',           $srcHeader->woid           ?? null);
             $safeSet($cs, $csTable, 'spbid',          $srcHeader->spbid          ?? null);
 
-            $cs->status     = 'P';
+            $cs->status     = 'H';
             $cs->created_by = $username;
 
             // Map maksimal 6 vendor (sudah dari view kamu urut sesuai kolom)
@@ -779,7 +779,7 @@ class CanvassController extends Controller
                 $det->setConnection('pgsql');
                 $det->csid                = $csid;
                 $det->cs_no               = $lineNo;
-                $det->sppj_no             = $srcRefNo; // isi dengan nomor baris sumber apapun namanya
+                $det->sppbjkt_no             = $srcRefNo; // isi dengan nomor baris sumber apapun namanya
 
                 $det->inventoryid         = $d['inventoryid']        ?? ($src->inventoryid ?? null);
                 $det->inventory_descr     = $d['inventory_descr']    ?? ($src->inventory_descr ?? null);
@@ -822,7 +822,7 @@ class CanvassController extends Controller
                     $det->{"vendor{$idx}selected"}   = (bool)$sel;
                 }
 
-                $det->status      = 'P';
+                $det->status      = 'H';
                 $det->created_by  = $username;
                 $det->save();
             }
