@@ -343,7 +343,7 @@
                     <div x-data="{ activeTab: 'approval' }"
                         class="rounded-xl bg-white    duration-300 hover:   dark:bg-gray-800">
                         <header
-                            class="flex items-center rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
+                            class="sticky top-0 z-10 flex items-center rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
                             <nav class="-mb-px flex flex-grow"> {{-- Added -mb-px to negative margin to overlap border --}}
                                 <button @click="activeTab = 'approval'"
                                     :class="{

@@ -264,7 +264,7 @@
                 $('#attachmentsContainer').append(`
             <div class="attachment-row flex items-center gap-2">
                 <input type="file" name="attachments[]" class="w-full mt-4 p-3 text-lg border rounded mt-4">
-                    <button type="button" class="removeAttachment bg-red-200/30 mt-4 text-red-600 p-3 rounded hidden border border-red-600 hover:text-white hover:bg-red-600 transition">🗑️</button>
+                    <button type="button" class="removeAttachment rounded border border-red-600 bg-red-200/30 p-3 text-red-600 transition hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">🗑️</button>
             </div>
         `);
                 toggleDeleteButton();

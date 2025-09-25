@@ -153,7 +153,7 @@
                 {{-- Left card (SPPB Info) --}}
                 <div class="flex flex-1 flex-col overflow-y-auto rounded-xl bg-white dark:bg-gray-800">
                     <header
-                        class="flex items-center justify-between rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
+                        class="sticky top-0 z-10 flex items-center justify-between rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
                         <h1 class="flex items-center gap-2 text-2xl font-bold text-gray-800 dark:text-gray-100">
                             <span class="text-indigo-500">🆔</span>
                             {{ $sppb->sppbid }}
@@ -193,7 +193,7 @@
                         </div>
                     </header>
 
-                    <div class="flex flex-1 flex-col gap-6 p-4">
+                    <div class="flex flex-1 flex-col gap-6 overflow-y-auto p-4">
                         @php
                             $row1 = [
                                 ['label' => 'Company', 'value' => $sppb->cpny_id],
@@ -236,7 +236,7 @@
                         {{-- Row 3 (Keperluan) --}}
                         <div
                             class="rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-800">
-                            <p class="text-xs text-gray-500 dark:text-gray-400">Keperluan</p>
+                            <p class="text-xs text-gray-500 dark:text-gray-400">Purpose</p>
                             <p class="text-sm font-medium text-gray-900 dark:text-gray-100">
                                 {{ $sppb->keperluan }}
                             </p>
@@ -248,7 +248,7 @@
                 <div class="flex flex-1 flex-col overflow-y-auto rounded-xl bg-white dark:bg-gray-800">
                     <div x-data="{ activeTab: 'attachment' }" class="flex flex-1 flex-col">
                         <header
-                            class="flex items-center rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
+                            class="sticky top-0 z-10 flex items-center rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
                             <nav class="flex flex-grow">
                                 <button @click="activeTab = 'attachment'"
                                     :class="activeTab === 'attachment'
@@ -280,7 +280,7 @@
                         {{-- Tabs Content --}}
                         <div class="flex flex-1 flex-col rounded-b-xl bg-white dark:bg-gray-800">
                             {{-- Approval tab --}}
-                            <div x-show="activeTab === 'approval'" class="flex-1 transition-all">
+                            <div x-show="activeTab === 'approval'" class="flex-1 p-4 transition-all">
                                 <table class="w-full text-sm">
                                     <thead>
                                         <tr
@@ -443,8 +443,6 @@
                 </div>
             </div>
         </div>
-    </div>
-    </div>
     </div>
     {{-- <div id="loadingSpinnerContainer" class="flex h-16 items-center justify-center">
         <svg class="h-10 w-10 animate-spin text-indigo-500" xmlns="http://www.w3.org/2000/svg" fill="none"

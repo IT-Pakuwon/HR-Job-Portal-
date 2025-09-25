@@ -127,7 +127,7 @@
                     @csrf
                     <div class="w-full rounded-xl bg-white p-6 dark:bg-gray-800">
                         <div class="mb-6 border-b border-gray-200 pb-4 dark:border-gray-700">
-                            <h2 class="text-xl font-extrabold text-gray-800 dark:text-white">Create SPPJ</h2>                            
+                            <h2 class="text-xl font-extrabold text-gray-800 dark:text-white">Create SPPJ</h2>
                         </div>
                         <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
                             <div class="flex flex-col gap-2">
@@ -780,7 +780,7 @@
                 if (validRows === 0) {
                     toastr.error(
                         'Minimal 1 baris detail harus lengkap (Product, Qty, UoM, Location, Sub Location, COA).'
-                        );
+                    );
                     return false;
                 }
 
@@ -1072,7 +1072,7 @@
                     .fail(function() {
                         $tbody.html(
                             `<tr><td colspan="4" class="p-3 text-center text-red-600">Failed to load inventory</td></tr>`
-                            );
+                        );
                         $invCount.text('');
                         $('#invPrev, #invNext').prop('disabled', true);
                     });
@@ -1134,8 +1134,8 @@
             $('#addAttachment').click(function() {
                 $('#attachmentsContainer').append(`
             <div class="attachment-row flex items-center gap-2">
-                <input type="file" name="attachments[]" class="flex-grow rounded-md border border-gray-200 bg-white px-4 py-2 text-sm text-gray-700 file:mr-4 file:rounded-full file:border-0 file:bg-indigo-100 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-indigo-700 hover:file:bg-indigo-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:file:bg-indigo-700 dark:file:text-white dark:hover:file:bg-indigo-600">
-                    <button type="button" class="removeAttachment bg-red-200/30 mt-4 text-red-600 p-3 rounded hidden border border-red-600 hover:text-white hover:bg-red-600 transition">🗑️</button>
+                <input type="file" name="attachments[]" class="mt-2 flex-grow rounded-md border border-gray-200 bg-white px-4 py-2 text-sm text-gray-700 file:mr-4 file:rounded-full file:border-0 file:bg-indigo-100 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-indigo-700 hover:file:bg-indigo-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:file:bg-indigo-700 dark:file:text-white dark:hover:file:bg-indigo-600">
+                    <button type="button" class="removeAttachment rounded border border-red-600 bg-red-200/30 p-3 text-red-600 transition hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">🗑️</button>
             </div>
         `);
                 toggleDeleteButton();
@@ -1313,7 +1313,7 @@
                     .fail(function() {
                         $locTbody.html(
                             '<tr><td colspan="3" class="p-3 text-center text-red-600">Failed to load</td></tr>'
-                            );
+                        );
                         $locCount.text('');
                         $('#locPrev, #locNext').prop('disabled', true);
                     });
@@ -1482,7 +1482,7 @@
                     .fail(function() {
                         $subLocTbody.html(
                             '<tr><td colspan="3" class="p-3 text-center text-red-600">Failed to load</td></tr>'
-                            );
+                        );
                         $subLocCount.text('');
                         $('#subLocPrev, #subLocNext').prop('disabled', true);
                     });
@@ -1689,7 +1689,7 @@
                     .fail(function() {
                         $coaTbody.html(
                             '<tr><td colspan="4" class="p-3 text-center text-red-600">Failed to load</td></tr>'
-                            );
+                        );
                         $coaCount.text('');
                         $('#coaPrev, #coaNext').prop('disabled', true);
                     });
@@ -1858,7 +1858,7 @@
                     .fail(function() {
                         $uomTbody.html(
                             '<tr><td colspan="5" class="p-3 text-center text-red-600">Failed to load</td></tr>'
-                            );
+                        );
                         $uomCount.text('');
                         $('#uomPrev, #uomNext').prop('disabled', true);
                     });

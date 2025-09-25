@@ -120,41 +120,49 @@
                 transform: translateY(0);
             }
         }
-    </style>   
-    
+    </style>
+
     <style>
         /* Samakan tinggi Select2 tenant & pic ≈ input p-2.5 (~40px) */
-        #tenant_select + .select2 .select2-selection--single,
-        #pic_select + .select2 .select2-selection--single{
+        #tenant_select+.select2 .select2-selection--single,
+        #pic_select+.select2 .select2-selection--single {
             height: 45px !important;
             min-height: 45px;
             border: 1px solid #d1d5db;
-            border-radius: .375rem; /* rounded-md */
+            border-radius: .375rem;
+            /* rounded-md */
             background-color: #fff;
         }
-        #tenant_select + .select2 .select2-selection__rendered,
-        #pic_select + .select2 .select2-selection__rendered{
+
+        #tenant_select+.select2 .select2-selection__rendered,
+        #pic_select+.select2 .select2-selection__rendered {
             line-height: 45px !important;
-            padding-left: 10px;   /* biar sejajar dengan p-2.5 */
+            padding-left: 10px;
+            /* biar sejajar dengan p-2.5 */
             padding-right: 28px;
-            color: #111827;       /* text-gray-900 */
+            color: #111827;
+            /* text-gray-900 */
         }
-        #tenant_select + .select2 .select2-selection__arrow,
-        #pic_select + .select2 .select2-selection__arrow{
+
+        #tenant_select+.select2 .select2-selection__arrow,
+        #pic_select+.select2 .select2-selection__arrow {
             height: 45px !important;
             right: 6px;
         }
 
         /* Dark mode tweak */
-        .dark #tenant_select + .select2 .select2-selection--single,
-        .dark #pic_select + .select2 .select2-selection--single{
-            background-color: #1f2937; /* gray-800 */
-            border-color: #4b5563;     /* gray-600 */
-            color: #e5e7eb;            /* gray-200 */
+        .dark #tenant_select+.select2 .select2-selection--single,
+        .dark #pic_select+.select2 .select2-selection--single {
+            background-color: #1f2937;
+            /* gray-800 */
+            border-color: #4b5563;
+            /* gray-600 */
+            color: #e5e7eb;
+            /* gray-200 */
         }
     </style>
 
-   
+
 
     <div class="max-w-9xl mx-auto w-full px-4 py-4 sm:px-6 lg:px-8">
         <div class="grid grid-cols-1 gap-8 lg:grid-cols-2 lg:grid-rows-[minmax(0,auto)_1fr]">
@@ -163,7 +171,7 @@
                     @csrf
                     <div class="w-full rounded-xl bg-white p-6 dark:bg-gray-800">
                         <div class="mb-6 border-b border-gray-200 pb-4 dark:border-gray-700">
-                            <h2 class="text-xl font-extrabold text-gray-800 dark:text-white">Create SPPT</h2>                            
+                            <h2 class="text-xl font-extrabold text-gray-800 dark:text-white">Create SPPT</h2>
                         </div>
                         <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
                             <div class="flex flex-col gap-2">
@@ -222,70 +230,76 @@
                             </div>
                         </div>
                         <!-- ====== Row: Tenant, Lantai-Unit, PIC, Status Unit ====== -->
-                        <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4 mt-6">
-                        <!-- Nama Tenant (Select2 Ajax) -->
-                        <div class="flex flex-col gap-2">
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 req">Nama Tenant</label>
-                            <input type="hidden" name="nama_tenant" id="nama_tenant">
-                            <input type="hidden" name="tenant_id" id="tenant_id">
-                            <input type="hidden" name="unit_id" id="unit_id">
-                            <select id="tenant_select"
+                        <div class="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
+                            <!-- Nama Tenant (Select2 Ajax) -->
+                            <div class="flex flex-col gap-2">
+                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Nama
+                                    Tenant</label>
+                                <input type="hidden" name="nama_tenant" id="nama_tenant">
+                                <input type="hidden" name="tenant_id" id="tenant_id">
+                                <input type="hidden" name="unit_id" id="unit_id">
+                                <select id="tenant_select"
                                     class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                     data-placeholder="Cari tenant...">
-                            </select>
-                        </div>
+                                </select>
+                            </div>
 
-                        <!-- Lantai - Unit (auto dari tenant) -->
-                        <div class="flex flex-col gap-2">
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Lantai - Unit</label>
-                            <input type="text" name="no_unit_tenant" id="no_unit_tenant"
-                                {{-- class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300" --}}
-                                class="w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-gray-700 shadow-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
-                                placeholder="Otomatis dari Tenant" readonly>
-                        </div>
+                            <!-- Lantai - Unit (auto dari tenant) -->
+                            <div class="flex flex-col gap-2">
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Lantai -
+                                    Unit</label>
+                                <input type="text" name="no_unit_tenant" id="no_unit_tenant" {{-- class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300" --}}
+                                    class="w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-gray-700 shadow-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                    placeholder="Otomatis dari Tenant" readonly>
+                            </div>
 
-                        <!-- PIC (Select2 Ajax Users) -->
-                        <div class="flex flex-col gap-2">
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 req">PIC</label>
-                            <input type="hidden" name="pic_pengawas" id="pic_pengawas">
-                            <select id="pic_select"
+                            <!-- PIC (Select2 Ajax Users) -->
+                            <div class="flex flex-col gap-2">
+                                <label
+                                    class="req block text-sm font-medium text-gray-700 dark:text-gray-300">PIC</label>
+                                <input type="hidden" name="pic_pengawas" id="pic_pengawas">
+                                <select id="pic_select"
                                     class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                     data-placeholder="Cari PIC (User)...">
-                            </select>
-                        </div>
+                                </select>
+                            </div>
 
-                        <!-- Status Unit -->
-                        <div class="flex flex-col gap-2">
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 req">Status Unit</label>
-                            <select name="condition_unit" id="condition_unit"
-                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300" required>
-                            <option value="" disabled selected>-- pilih status --</option>
-                            <option value="Buka">Buka</option>
-                            <option value="Tutup">Tutup</option>
-                            </select>
-                        </div>
+                            <!-- Status Unit -->
+                            <div class="flex flex-col gap-2">
+                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Status
+                                    Unit</label>
+                                <select name="condition_unit" id="condition_unit"
+                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                    required>
+                                    <option value="" disabled selected>-- pilih status --</option>
+                                    <option value="Buka">Buka</option>
+                                    <option value="Tutup">Tutup</option>
+                                </select>
+                            </div>
                         </div>
 
                         <!-- ====== Row: Beban Biaya, WO No. ====== -->
                         <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
-                        <!-- Beban Biaya -->
-                        <div class="flex flex-col gap-2">
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 req">Beban Biaya</label>
-                            <select name="beban" id="beban"
-                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300" required>
-                            <option value="" disabled selected>-- pilih beban biaya --</option>
-                            <option value="Tenant">Tenant</option>
-                            <option value="Pakuwon">Pakuwon</option>
-                            </select>
-                        </div>
+                            <!-- Beban Biaya -->
+                            <div class="flex flex-col gap-2">
+                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Beban
+                                    Biaya</label>
+                                <select name="beban" id="beban"
+                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                    required>
+                                    <option value="" disabled selected>-- pilih beban biaya --</option>
+                                    <option value="Tenant">Tenant</option>
+                                    <option value="Pakuwon">Pakuwon</option>
+                                </select>
+                            </div>
 
-                        <!-- WO No. -->
-                        <div class="flex flex-col gap-2">
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">WO No.</label>
-                            <input type="text" name="wo_no" id="wo_no"
-                                class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
-                                placeholder="Opsional">
-                        </div>
+                            <!-- WO No. -->
+                            <div class="flex flex-col gap-2">
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">WO No.</label>
+                                <input type="text" name="wo_no" id="wo_no"
+                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                    placeholder="Opsional">
+                            </div>
                         </div>
 
                         <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
@@ -307,7 +321,8 @@
                                 <summary
                                     class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-xl font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
                                     <span>SPPT Detail</span>
-                                    <span class="text-sm font-medium text-gray-500 transition-all group-open:hidden">See
+                                    <span
+                                        class="text-sm font-medium text-gray-500 transition-all group-open:hidden">See
                                         details &rarr;</span>
                                     <span
                                         class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline">Hide
@@ -883,7 +898,7 @@
                 if (validRows === 0) {
                     toastr.error(
                         'Minimal 1 baris detail harus lengkap (Product, Qty, UoM, Location, Sub Location, COA).'
-                        );
+                    );
                     return false;
                 }
 
@@ -1175,7 +1190,7 @@
                     .fail(function() {
                         $tbody.html(
                             `<tr><td colspan="4" class="p-3 text-center text-red-600">Failed to load inventory</td></tr>`
-                            );
+                        );
                         $invCount.text('');
                         $('#invPrev, #invNext').prop('disabled', true);
                     });
@@ -1237,8 +1252,8 @@
             $('#addAttachment').click(function() {
                 $('#attachmentsContainer').append(`
             <div class="attachment-row flex items-center gap-2">
-                <input type="file" name="attachments[]" class="flex-grow rounded-md border border-gray-200 bg-white px-4 py-2 text-sm text-gray-700 file:mr-4 file:rounded-full file:border-0 file:bg-indigo-100 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-indigo-700 hover:file:bg-indigo-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:file:bg-indigo-700 dark:file:text-white dark:hover:file:bg-indigo-600">
-                    <button type="button" class="removeAttachment bg-red-200/30 mt-4 text-red-600 p-3 rounded hidden border border-red-600 hover:text-white hover:bg-red-600 transition">🗑️</button>
+                <input type="file" name="attachments[]" class="mt-2 flex-grow rounded-md border border-gray-200 bg-white px-4 py-2 text-sm text-gray-700 file:mr-4 file:rounded-full file:border-0 file:bg-indigo-100 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-indigo-700 hover:file:bg-indigo-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:file:bg-indigo-700 dark:file:text-white dark:hover:file:bg-indigo-600">
+                    <button type="button" class="removeAttachment rounded border border-red-600 bg-red-200/30 p-3 text-red-600 transition hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">🗑️</button>
             </div>
         `);
                 toggleDeleteButton();
@@ -1416,7 +1431,7 @@
                     .fail(function() {
                         $locTbody.html(
                             '<tr><td colspan="3" class="p-3 text-center text-red-600">Failed to load</td></tr>'
-                            );
+                        );
                         $locCount.text('');
                         $('#locPrev, #locNext').prop('disabled', true);
                     });
@@ -1559,8 +1574,10 @@
                     .done(function(res) {
                         // Expected: { data: [{sub_location_id / sub_location_id, sub_location_name / sub_location_name}], total,... }
                         const rows = (res.data || []).map(item => {
-                            const id = item.sub_location_id ?? item.sublocation_id ?? item.sub_loc_id ?? '';
-                            const name = item.sub_location_name ?? item.sublocation_name ?? item.sub_loc_name ?? '';
+                            const id = item.sub_location_id ?? item.sublocation_id ?? item.sub_loc_id ??
+                                '';
+                            const name = item.sub_location_name ?? item.sublocation_name ?? item
+                                .sub_loc_name ?? '';
                             return `
                 <tr>
                     <td class="border p-2">${id}</td>
@@ -1585,7 +1602,7 @@
                     .fail(function() {
                         $subLocTbody.html(
                             '<tr><td colspan="3" class="p-3 text-center text-red-600">Failed to load</td></tr>'
-                            );
+                        );
                         $subLocCount.text('');
                         $('#subLocPrev, #subLocNext').prop('disabled', true);
                     });
@@ -1792,7 +1809,7 @@
                     .fail(function() {
                         $coaTbody.html(
                             '<tr><td colspan="4" class="p-3 text-center text-red-600">Failed to load</td></tr>'
-                            );
+                        );
                         $coaCount.text('');
                         $('#coaPrev, #coaNext').prop('disabled', true);
                     });
@@ -1961,7 +1978,7 @@
                     .fail(function() {
                         $uomTbody.html(
                             '<tr><td colspan="5" class="p-3 text-center text-red-600">Failed to load</td></tr>'
-                            );
+                        );
                         $uomCount.text('');
                         $('#uomPrev, #uomNext').prop('disabled', true);
                     });
@@ -1995,169 +2012,181 @@
     </script>
 
     <script>
-        $(function () {
-        // Helper: format result tenant
-        function formatTenant (item) {
-            if (!item.id) return item.text;
-            const unit = item.unit_label ? `<span class="text-gray-500"> — ${item.unit_label}</span>` : '';
-            return $(`<span>${item.text}${unit}</span>`);
-        }
-
-        // TENANT Select2 (Ajax MsTenant)
-        // $('#tenant_select').select2({
-        //     width: '100%',
-        //     placeholder: $('#tenant_select').data('placeholder') || 'Cari tenant...',
-        //     allowClear: true,
-        //     ajax: {
-        //     url: "{{ route('tenants.search') }}",
-        //     dataType: 'json',
-        //     delay: 250,
-        //     data: function (params) {
-        //         return {
-        //         q: params.term || '',
-        //         page: params.page || 1,
-        //         per_page: 10
-        //         };
-        //     },
-        //     processResults: function (data, params) {
-        //         params.page = params.page || 1;
-        //         // backend response format: {data:[{id,text,unit_label,floor,unit}], total}
-        //         const results = (data.data || []).map(it => ({
-        //         id: it.id,
-        //         text: it.text,            // tenant name
-        //         unit_label: it.unit_label,
-        //         floor: it.floor || it.lantai || '',
-        //         unit: it.unit || ''
-        //         }));
-        //         return {
-        //         results: results,
-        //         pagination: {
-        //             more: (params.page * 10) < (data.total || 0)
-        //         }
-        //         };
-        //     },
-        //     cache: true
-        //     },
-        //     templateResult: formatTenant,
-        //     templateSelection: function (item) { return item.text || item.id; },
-        //     escapeMarkup: function (m) { return m; }
-        // })
-        // .on('select2:select', function (e) {
-        //     const d = e.params.data || {};
-        //     // set hidden & field tampilan
-        //     $('#nama_tenant').val(d.id || '');
-        //     const label = d.unit_label || ( (d.floor || '') && (d.unit || '') ? `${d.floor} - ${d.unit}` : '' );
-        //     $('#no_unit_tenant').val(label);
-        // })
-        // .on('select2:clear', function () {
-        //     $('#nama_tenant').val('');
-        //     $('#no_unit_tenant').val('');
-        // });
-
-       
-        $(document).ready(function() {
-        $('#tenant_select').select2({
-            placeholder: 'Cari tenant...',
-            allowClear: true,
-            ajax: {
-            url: "{{ route('tenants.search') }}",
-            dataType: 'json',
-            delay: 250,
-            data: function (params) {
-                return {
-                q: params.term || '',
-                page: params.page || 1,
-                per_page: 10,
-                cpnyid: $('select[name="cpnyid"]').val() || '' // ikut filter company
-                };
-            },
-            processResults: function (data, params) {
-                params.page = params.page || 1;
-                const results = (data.data || []).map(it => ({
-                id: it.id,
-                text: it.text,             // store_name
-                unit_label: it.unit_label, // floor + unit
-                unit_id: it.unit,          // simpan unit_id
-                cpnyid: it.cpnyid          // kalau perlu
-                }));
-                return {
-                results,
-                pagination: { more: (params.page * 10) < (data.total || 0) }
-                };
+        $(function() {
+            // Helper: format result tenant
+            function formatTenant(item) {
+                if (!item.id) return item.text;
+                const unit = item.unit_label ? `<span class="text-gray-500"> — ${item.unit_label}</span>` : '';
+                return $(`<span>${item.text}${unit}</span>`);
             }
-            },
-            templateResult: function (item) {
-            if (!item.id) return item.text;
-            const unit = item.unit_label ? `<span class="text-gray-500"> — ${item.unit_label}</span>` : '';
-            return $(`<span>${item.text}${unit}</span>`);
-            },
-            templateSelection: function (item) {
-            return item.text || item.id;
-            },
-            escapeMarkup: function (m) { return m; }
-        });
 
-        // Event saat user pilih tenant
-        $('#tenant_select').on('select2:select', function (e) {
-            const data = e.params.data;
-            $('#tenant_id').val(data.id);              // simpan tenant id
-            $('#nama_tenant').val(data.text);          // simpan store_name
-            $('#unit_id').val(data.unit_id || '');     // simpan unit_id
-            $('#no_unit_tenant').val(data.unit_label); // simpan lantai-unit
-        });
+            // TENANT Select2 (Ajax MsTenant)
+            // $('#tenant_select').select2({
+            //     width: '100%',
+            //     placeholder: $('#tenant_select').data('placeholder') || 'Cari tenant...',
+            //     allowClear: true,
+            //     ajax: {
+            //     url: "{{ route('tenants.search') }}",
+            //     dataType: 'json',
+            //     delay: 250,
+            //     data: function (params) {
+            //         return {
+            //         q: params.term || '',
+            //         page: params.page || 1,
+            //         per_page: 10
+            //         };
+            //     },
+            //     processResults: function (data, params) {
+            //         params.page = params.page || 1;
+            //         // backend response format: {data:[{id,text,unit_label,floor,unit}], total}
+            //         const results = (data.data || []).map(it => ({
+            //         id: it.id,
+            //         text: it.text,            // tenant name
+            //         unit_label: it.unit_label,
+            //         floor: it.floor || it.lantai || '',
+            //         unit: it.unit || ''
+            //         }));
+            //         return {
+            //         results: results,
+            //         pagination: {
+            //             more: (params.page * 10) < (data.total || 0)
+            //         }
+            //         };
+            //     },
+            //     cache: true
+            //     },
+            //     templateResult: formatTenant,
+            //     templateSelection: function (item) { return item.text || item.id; },
+            //     escapeMarkup: function (m) { return m; }
+            // })
+            // .on('select2:select', function (e) {
+            //     const d = e.params.data || {};
+            //     // set hidden & field tampilan
+            //     $('#nama_tenant').val(d.id || '');
+            //     const label = d.unit_label || ( (d.floor || '') && (d.unit || '') ? `${d.floor} - ${d.unit}` : '' );
+            //     $('#no_unit_tenant').val(label);
+            // })
+            // .on('select2:clear', function () {
+            //     $('#nama_tenant').val('');
+            //     $('#no_unit_tenant').val('');
+            // });
 
-        // Event clear (kalau allowClear true)
-        $('#tenant_select').on('select2:clear', function () {
-            $('#tenant_id').val('');
-            $('#nama_tenant').val('');
-            $('#unit_id').val('');
-            $('#no_unit_tenant').val('');
-        });
-        });
 
-
-
-        // PIC Select2 (Ajax Users)
-        $('#pic_select').select2({
-                width: '100%',
-                placeholder: $('#pic_select').data('placeholder') || 'Cari PIC (User)...',
-                allowClear: true,
-                ajax: {
-                    url: "{{ route('users.search') }}",
-                    dataType: 'json',
-                    delay: 250,
-                    data: params => ({ q: params.term || '', page: params.page || 1, per_page: 10 }),
-                    processResults: function (data, params) {
-                    params.page = params.page || 1;
-                    const results = (data.data || []).map(it => ({
-                        id: it.id,
-                        text: it.text,
-                        email: it.email,
-                        // username: it.username   // ⬅️ pastikan ikut dibawa ke front-end
-                    }));
-                    return {
-                        results,
-                        pagination: { more: (params.page * 10) < (data.total || 0) }
-                    };
+            $(document).ready(function() {
+                $('#tenant_select').select2({
+                    placeholder: 'Cari tenant...',
+                    allowClear: true,
+                    ajax: {
+                        url: "{{ route('tenants.search') }}",
+                        dataType: 'json',
+                        delay: 250,
+                        data: function(params) {
+                            return {
+                                q: params.term || '',
+                                page: params.page || 1,
+                                per_page: 10,
+                                cpnyid: $('select[name="cpnyid"]').val() ||
+                                    '' // ikut filter company
+                            };
+                        },
+                        processResults: function(data, params) {
+                            params.page = params.page || 1;
+                            const results = (data.data || []).map(it => ({
+                                id: it.id,
+                                text: it.text, // store_name
+                                unit_label: it.unit_label, // floor + unit
+                                unit_id: it.unit, // simpan unit_id
+                                cpnyid: it.cpnyid // kalau perlu
+                            }));
+                            return {
+                                results,
+                                pagination: {
+                                    more: (params.page * 10) < (data.total || 0)
+                                }
+                            };
+                        }
                     },
-                    cache: true
-                },
-                templateResult: function (item) {
-                    if (!item.id) return item.text;
-                    const email = item.email ? `` : '';
-                    return $(`<span>${item.text}${email}</span>`);
-                },
-                templateSelection: item => item.text || item.id,
-                escapeMarkup: m => m
-                })
-                .on('select2:select', function (e) {
-                const d = e.params.data || {};
-                // ⬇️ sekarang simpan USERNAME ke hidden field pic_pengawas
-                $('#pic_pengawas').val(d.id || '');
-                })
-                .on('select2:clear', function () {
-                $('#pic_pengawas').val('');
+                    templateResult: function(item) {
+                        if (!item.id) return item.text;
+                        const unit = item.unit_label ?
+                            `<span class="text-gray-500"> — ${item.unit_label}</span>` : '';
+                        return $(`<span>${item.text}${unit}</span>`);
+                    },
+                    templateSelection: function(item) {
+                        return item.text || item.id;
+                    },
+                    escapeMarkup: function(m) {
+                        return m;
+                    }
+                });
+
+                // Event saat user pilih tenant
+                $('#tenant_select').on('select2:select', function(e) {
+                    const data = e.params.data;
+                    $('#tenant_id').val(data.id); // simpan tenant id
+                    $('#nama_tenant').val(data.text); // simpan store_name
+                    $('#unit_id').val(data.unit_id || ''); // simpan unit_id
+                    $('#no_unit_tenant').val(data.unit_label); // simpan lantai-unit
+                });
+
+                // Event clear (kalau allowClear true)
+                $('#tenant_select').on('select2:clear', function() {
+                    $('#tenant_id').val('');
+                    $('#nama_tenant').val('');
+                    $('#unit_id').val('');
+                    $('#no_unit_tenant').val('');
+                });
             });
+
+
+
+            // PIC Select2 (Ajax Users)
+            $('#pic_select').select2({
+                    width: '100%',
+                    placeholder: $('#pic_select').data('placeholder') || 'Cari PIC (User)...',
+                    allowClear: true,
+                    ajax: {
+                        url: "{{ route('users.search') }}",
+                        dataType: 'json',
+                        delay: 250,
+                        data: params => ({
+                            q: params.term || '',
+                            page: params.page || 1,
+                            per_page: 10
+                        }),
+                        processResults: function(data, params) {
+                            params.page = params.page || 1;
+                            const results = (data.data || []).map(it => ({
+                                id: it.id,
+                                text: it.text,
+                                email: it.email,
+                                // username: it.username   // ⬅️ pastikan ikut dibawa ke front-end
+                            }));
+                            return {
+                                results,
+                                pagination: {
+                                    more: (params.page * 10) < (data.total || 0)
+                                }
+                            };
+                        },
+                        cache: true
+                    },
+                    templateResult: function(item) {
+                        if (!item.id) return item.text;
+                        const email = item.email ? `` : '';
+                        return $(`<span>${item.text}${email}</span>`);
+                    },
+                    templateSelection: item => item.text || item.id,
+                    escapeMarkup: m => m
+                })
+                .on('select2:select', function(e) {
+                    const d = e.params.data || {};
+                    // ⬇️ sekarang simpan USERNAME ke hidden field pic_pengawas
+                    $('#pic_pengawas').val(d.id || '');
+                })
+                .on('select2:clear', function() {
+                    $('#pic_pengawas').val('');
+                });
 
         });
     </script>

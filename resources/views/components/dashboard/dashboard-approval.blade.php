@@ -38,7 +38,7 @@
                         <th class="px-4 py-2 text-center uppercase">DocID</th>
                         <th class="px-4 py-2 text-center uppercase">Date</th>
                         <th class="px-4 py-2 text-center uppercase">Company</th>
-                        <th class="px-4 py-2 text-center uppercase">Department</th>
+                        <th class="px-4 py-2 text-left uppercase">Department</th>
                         <th class="px-4 py-2 text-center uppercase">Info</th>
                     </tr>
                 </thead>
@@ -75,8 +75,8 @@
                         <th class="px-4 py-2 text-center uppercase">DocID</th>
                         <th class="px-4 py-2 text-center uppercase">Date</th>
                         <th class="px-4 py-2 text-center uppercase">Company</th>
-                        <th class="px-4 py-2 text-center uppercase">Department</th>
-                        <th class="px-4 py-2 text-center uppercase">Info</th>
+                        <th class="px-4 py-2 text-left uppercase">Department</th>
+                        <th class="max-w-xs px-4 py-2 text-center uppercase">Info</th>
                     </tr>
                 </thead>
                 <tbody class="text-sm text-gray-800 dark:text-gray-300">
@@ -138,13 +138,13 @@
             paged.forEach(ap => {
                 tbody.innerHTML += `
                     <tr class="border-b border-gray-200 transition hover:bg-gray-100 dark:border-gray-700 dark:hover:bg-gray-800">
-                        <td class="whitespace-nowrap p-3 text-left">
+                        <td class="whitespace-nowrap p-3 text-center">
                             <a href="${ap.url}/${ap.id}" target="_blank" class="rounded-md bg-blue-500 px-3 py-1 text-white transition hover:bg-blue-600">${ap.docid}</a>
                         </td>
-                        <td class="whitespace-nowrap p-3 text-left">${ap.docdate ?? '-'}</td>
-                        <td class="whitespace-nowrap p-3 text-left">${ap.cpnyid ?? '-'}</td>
-                        <td class="whitespace-nowrap p-3 text-left">${ap.departementid ?? '-'}</td>
-                        <td class="whitespace-nowrap p-3 text-left">${ap.infohd ?? '-'}</td>
+<td class="px-4 py-2 text-center break-words whitespace-normal max-w-xs">${ap.docdate ?? '-'}</td>
+<td class="px-4 py-2 text-center break-words whitespace-normal max-w-xs">${ap.cpnyid ?? '-'}</td>
+<td class="px-4 py-2 text-left break-words whitespace-normal max-w-xs">${ap.departementid ?? '-'}</td>
+<td class="px-4 py-2 text-left break-words whitespace-normal max-w-xs">${ap.infohd ?? '-'}</td>    
                     </tr>
                 `;
             });

@@ -46,7 +46,7 @@
             <div class="flex flex-col gap-6 sm:w-1/2 md:w-full">
                 <div class="rounded-xl bg-white duration-300 dark:bg-gray-800">
                     <header
-                        class="flex items-center justify-between rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
+                        class="sticky top-0 z-10 flex items-center justify-between rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
                         {{-- Rounded-t-xl, stronger border, and darker background for header --}}
                         <h1 class="flex items-center gap-2 text-2xl font-bold text-gray-800 dark:text-gray-100">
                             {{-- Larger, bolder title --}}

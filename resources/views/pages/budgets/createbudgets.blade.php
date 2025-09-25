@@ -57,51 +57,102 @@
 
     <style>
         /* Overlay full-screen */
-        #loadingSpinnerContainer{
+        #loadingSpinnerContainer {
             position: fixed;
             inset: 0;
-            display: none;                 /* akan ditampilkan via JS */
-            background: rgba(17,24,39,.55);
+            display: none;
+            /* akan ditampilkan via JS */
+            background: rgba(17, 24, 39, .55);
             backdrop-filter: blur(2px);
             z-index: 2000;
         }
 
         /* Kartu spinner di tengah */
-        #loadingSpinnerContainer .loading-card{
+        #loadingSpinnerContainer .loading-card {
             position: absolute;
-            top: 50%; left: 50%;
-            transform: translate(-50%,-50%);
-            display: flex; flex-direction: column; align-items: center; gap: 10px;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
             padding: 18px 22px;
             border-radius: 16px;
-            background: linear-gradient(180deg, rgba(31,41,55,.9), rgba(17,24,39,.9));
-            border: 1px solid rgba(255,255,255,.08);
-            box-shadow: 0 10px 30px rgba(0,0,0,.35), inset 0 0 0 1px rgba(255,255,255,.04);
+            background: linear-gradient(180deg, rgba(31, 41, 55, .9), rgba(17, 24, 39, .9));
+            border: 1px solid rgba(255, 255, 255, .08);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, .35), inset 0 0 0 1px rgba(255, 255, 255, .04);
         }
 
         /* Spinner dual ring */
-        #loadingSpinnerContainer .loading-spinner{
-            width: 54px; height: 54px; border-radius: 50%;
-            border: 4px solid transparent; border-top-color: #6366f1; /* indigo-500 */
-            animation: spin 1s linear infinite; position: relative;
+        #loadingSpinnerContainer .loading-spinner {
+            width: 54px;
+            height: 54px;
+            border-radius: 50%;
+            border: 4px solid transparent;
+            border-top-color: #6366f1;
+            /* indigo-500 */
+            animation: spin 1s linear infinite;
+            position: relative;
         }
-        #loadingSpinnerContainer .loading-spinner::after{
-            content: ""; position: absolute; inset: 6px; border-radius: 50%;
-            border: 4px solid transparent; border-left-color: #a5b4fc; /* indigo-200 */
+
+        #loadingSpinnerContainer .loading-spinner::after {
+            content: "";
+            position: absolute;
+            inset: 6px;
+            border-radius: 50%;
+            border: 4px solid transparent;
+            border-left-color: #a5b4fc;
+            /* indigo-200 */
             animation: spinReverse .75s linear infinite;
         }
 
-        #loadingSpinnerContainer .loading-text{ color:#e5e7eb; font-weight:600; letter-spacing:.02em; }
-        #loadingSpinnerContainer .loading-ellipsis span{ display:inline-block; animation: blink 1.4s infinite both; }
-        #loadingSpinnerContainer .loading-ellipsis span:nth-child(2){ animation-delay:.2s; }
-        #loadingSpinnerContainer .loading-ellipsis span:nth-child(3){ animation-delay:.4s; }
+        #loadingSpinnerContainer .loading-text {
+            color: #e5e7eb;
+            font-weight: 600;
+            letter-spacing: .02em;
+        }
 
-        @keyframes spin{ to{ transform: rotate(360deg); } }
-        @keyframes spinReverse{ to{ transform: rotate(-360deg); } }
-        @keyframes blink{
-            0%{ opacity:.3; transform: translateY(0); }
-            20%{ opacity:1; transform: translateY(-2px); }
-            100%{ opacity:.3; transform: translateY(0); }
+        #loadingSpinnerContainer .loading-ellipsis span {
+            display: inline-block;
+            animation: blink 1.4s infinite both;
+        }
+
+        #loadingSpinnerContainer .loading-ellipsis span:nth-child(2) {
+            animation-delay: .2s;
+        }
+
+        #loadingSpinnerContainer .loading-ellipsis span:nth-child(3) {
+            animation-delay: .4s;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        @keyframes spinReverse {
+            to {
+                transform: rotate(-360deg);
+            }
+        }
+
+        @keyframes blink {
+            0% {
+                opacity: .3;
+                transform: translateY(0);
+            }
+
+            20% {
+                opacity: 1;
+                transform: translateY(-2px);
+            }
+
+            100% {
+                opacity: .3;
+                transform: translateY(0);
+            }
         }
     </style>
 
@@ -119,67 +170,67 @@
                             </div>
 
                             <!-- Header fields: rapi & sejajar -->
-                            <div class="grid grid-cols-1 gap-4 items-end md:grid-cols-6">
+                            <div class="grid grid-cols-1 items-end gap-4 md:grid-cols-6">
 
                                 <!-- Company -->
                                 <div class="col-span-1">
-                                    <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Company</label>
+                                    <label
+                                        class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Company</label>
                                     <select name="cpny_id" required
-                                            class="h-[42px] w-full rounded-md border border-gray-300 bg-white px-3 focus:ring focus:ring-blue-300
-                                                dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
-                                    <option value="" disabled selected>Select</option>
-                                    @foreach ($companies as $p)
-                                        <option value="{{ $p->cpny_id }}">{{ $p->cpny_name }}</option>
-                                    @endforeach
+                                        class="h-[42px] w-full rounded-md border border-gray-300 bg-white px-3 focus:ring focus:ring-blue-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
+                                        <option value="" disabled selected>Select</option>
+                                        @foreach ($companies as $p)
+                                            <option value="{{ $p->cpny_id }}">{{ $p->cpny_name }}</option>
+                                        @endforeach
                                     </select>
                                 </div>
 
                                 <!-- Business Unit -->
                                 <div class="col-span-1">
-                                    <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Business Unit</label>
+                                    <label
+                                        class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Business
+                                        Unit</label>
                                     <select name="business_unit_id" required
-                                            class="h-[42px] w-full rounded-md border border-gray-300 bg-white px-3 focus:ring focus:ring-blue-300
-                                                dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
-                                    <option value="">Select</option>
+                                        class="h-[42px] w-full rounded-md border border-gray-300 bg-white px-3 focus:ring focus:ring-blue-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
+                                        <option value="">Select</option>
                                     </select>
                                 </div>
 
                                 <!-- Department (Select2) -->
                                 <div class="col-span-1">
-                                    <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Department</label>
+                                    <label
+                                        class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Department</label>
                                     <select name="department_fin_id" id="department_select" required
-                                            class="select2 h-[42px] w-full rounded-md border border-gray-300 bg-white px-3 focus:ring focus:ring-blue-300
-                                                dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
-                                    @foreach ($departements as $p)
-                                        <option value="{{ $p->deptname }}">{{ $p->deptname }}</option>
-                                    @endforeach
+                                        class="select2 h-[42px] w-full rounded-md border border-gray-300 bg-white px-3 focus:ring focus:ring-blue-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
+                                        @foreach ($departements as $p)
+                                            <option value="{{ $p->deptname }}">{{ $p->deptname }}</option>
+                                        @endforeach
                                     </select>
                                 </div>
 
                                 <!-- File -->
                                 <div class="col-span-1">
-                                    <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Import Excel</label>
+                                    <label
+                                        class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Import
+                                        Excel</label>
                                     <input type="file" name="file" id="file" required
-                                        class="h-[42px] w-full rounded-md border border-gray-300 bg-white px-3 py-2 focus:ring focus:ring-blue-300
-                                                dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
+                                        class="h-[42px] w-full rounded-md border border-gray-300 bg-white px-3 py-2 focus:ring focus:ring-blue-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
                                 </div>
 
                                 <!-- Import Button -->
                                 <div class="col-span-1 flex justify-end">
                                     <button type="submit" id="importBtn"
-                                            class="inline-flex h-[42px] items-center rounded-md bg-blue-600 px-6 text-white hover:bg-blue-700">
-                                    Import
+                                        class="inline-flex h-[42px] items-center rounded-md bg-blue-600 px-6 text-white hover:bg-blue-700">
+                                        Import
                                     </button>
                                 </div>
 
-                                    <!-- Download Template -->
+                                <!-- Download Template -->
                                 <div class="col-span-1 flex justify-end">
-                                    <a href="{{ asset('templates/import_budget.xlsx') }}"
-                                    target="_blank" rel="noopener" download
-                                    class="inline-flex h-[42px] items-center rounded-md border border-green-600 bg-green-600 px-4 text-white hover:bg-green-700
-                                            focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2
-                                            dark:border-green-500 dark:bg-green-700 dark:hover:bg-green-600">
-                                    Download Template Budget
+                                    <a href="{{ asset('templates/import_budget.xlsx') }}" target="_blank" rel="noopener"
+                                        download
+                                        class="inline-flex h-[42px] items-center rounded-md border border-green-600 bg-green-600 px-4 text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 dark:border-green-500 dark:bg-green-700 dark:hover:bg-green-600">
+                                        Download Template Budget
                                     </a>
                                 </div>
                             </div>
@@ -191,7 +242,8 @@
                     {{-- Table Preview Import --}}
                     @if (isset($tempData) && count($tempData) > 0)
                         <div class="rounded-2xl border bg-white p-4 shadow dark:bg-gray-800">
-                            <h2 class="mb-4 text-lg font-bold">📊 Import<span class="text-lg font-normal text-red-600"> (preview import)</span></h2> 
+                            <h2 class="mb-4 text-lg font-bold">📊 Import<span class="text-lg font-normal text-red-600">
+                                    (preview import)</span></h2>
 
                             {{-- ✅ Scroll Container --}}
                             <div class="w-full overflow-x-auto">
@@ -254,8 +306,7 @@
                                             <div class="flex h-auto flex-col justify-start">
                                                 <div id="attachmentsContainer">
                                                     <div class="attachment-row flex items-center gap-2">
-                                                        <input type="file" name="attachments[]"
-                                                            {{-- class="mt-4 w-full border p-3 text-lg"> --}}
+                                                        <input type="file" name="attachments[]" {{-- class="mt-4 w-full border p-3 text-lg"> --}}
                                                             class="flex-grow rounded-md border border-gray-200 bg-white px-4 py-2 text-sm text-gray-700 file:mr-4 file:rounded-full file:border-0 file:bg-indigo-100 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-indigo-700 hover:file:bg-indigo-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:file:bg-indigo-700 dark:file:text-white dark:hover:file:bg-indigo-600">
                                                         <button type="button"
                                                             class="removeAttachment mt-4 hidden rounded border border-red-600 bg-red-200/30 p-3 text-red-600 transition hover:bg-red-600 hover:text-white">
@@ -323,32 +374,33 @@
         <div class="loading-card">
             <div class="loading-spinner"></div>
             <div class="loading-text">
-            Processing
-            <span class="loading-ellipsis"><span>.</span><span>.</span><span>.</span></span>
+                Processing
+                <span class="loading-ellipsis"><span>.</span><span>.</span><span>.</span></span>
             </div>
         </div>
     </div>
 
     <script>
-        function showOverlay(text='Processing'){
+        function showOverlay(text = 'Processing') {
             const $ov = $('#loadingSpinnerContainer');
             $ov.find('.loading-text').html(
-            (text || 'Processing') +
-            '<span class="loading-ellipsis"><span>.</span><span>.</span><span>.</span></span>'
+                (text || 'Processing') +
+                '<span class="loading-ellipsis"><span>.</span><span>.</span><span>.</span></span>'
             );
             // pastikan tampil (tetap bisa fadeIn)
-            $ov.stop(true,true).fadeIn(120);
+            $ov.stop(true, true).fadeIn(120);
         }
-        function hideOverlay(){
-            $('#loadingSpinnerContainer').stop(true,true).fadeOut(120);
+
+        function hideOverlay() {
+            $('#loadingSpinnerContainer').stop(true, true).fadeOut(120);
         }
     </script>
 
     <script>
-        $(function(){
-            $('#budgetForm').on('submit', function(){
-            $('#importBtn').prop('disabled', true).text('Uploading…');
-            showOverlay('Uploading');
+        $(function() {
+            $('#budgetForm').on('submit', function() {
+                $('#importBtn').prop('disabled', true).text('Uploading…');
+                showOverlay('Uploading');
             });
         });
     </script>
@@ -406,8 +458,8 @@
             $('#addAttachment').click(function() {
                 $('#attachmentsContainer').append(`
             <div class="attachment-row flex items-center gap-2">
-                <input type="file" name="attachments[]" class="flex-grow rounded-md border border-gray-200 bg-white px-4 py-2 text-sm text-gray-700 file:mr-4 file:rounded-full file:border-0 file:bg-indigo-100 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-indigo-700 hover:file:bg-indigo-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:file:bg-indigo-700 dark:file:text-white dark:hover:file:bg-indigo-600">
-                    <button type="button" class="removeAttachment bg-red-200/30 mt-4 text-red-600 p-3 rounded hidden border border-red-600 hover:text-white hover:bg-red-600 transition">🗑️</button>
+                <input type="file" name="attachments[]" class="mt-2 flex-grow rounded-md border border-gray-200 bg-white px-4 py-2 text-sm text-gray-700 file:mr-4 file:rounded-full file:border-0 file:bg-indigo-100 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-indigo-700 hover:file:bg-indigo-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:file:bg-indigo-700 dark:file:text-white dark:hover:file:bg-indigo-600">
+                    <button type="button" class="removeAttachment rounded border border-red-600 bg-red-200/30 p-3 text-red-600 transition hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">🗑️</button>
             </div>
         `);
                 toggleDeleteButton();
