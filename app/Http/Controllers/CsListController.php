@@ -30,6 +30,8 @@ use App\Models\vCsRevision;
 use Mail;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
+use Vinkla\Hashids\Facades\Hashids;
+
 
 
 class CsListController extends Controller
@@ -57,42 +59,79 @@ class CsListController extends Controller
         $length = (int) $req->input('length', 25);
         $search = trim((string) $req->input('search.value', ''));
 
-        // kolom yang bisa di-sort
         $columns = [
             0 => 'csid',
-            1 => 'csdate',
-            2 => 'cpny_id',
-            3 => 'department_id',
-            4 => 'user_peminta',
-            5 => 'status',
+            1 => 'sppbjktid',
+            2 => 'csdate',
+            3 => 'user_peminta',
+            4 => 'cpny_id',
+            5 => 'department_id',
+            6 => 'created_by',
+            7 => 'csnote',
+            8 => 'assigndate',
+            9 => 'submitdate',
+            10 => 'days',
         ];
-        $orderIdx = (int) $req->input('order.0.column', 1);
+        $orderIdx = (int) $req->input('order.0.column', 2);
         $orderDir = $req->input('order.0.dir', 'desc') === 'asc' ? 'asc' : 'desc';
         $orderCol = $columns[$orderIdx] ?? 'csdate';
 
-        $recordsTotal = (clone $base)->count();
+        $csTable = (new TrCS)->getTable();
+        $prefixExpr = "SUBSTRING({$csTable}.sppbjktid FROM 1 FOR 2)";
 
         if ($search !== '') {
-            $base->where(function($q) use ($search){
-                $q->where('csid', 'ilike', "%{$search}%")
-                  ->orWhere('cpny_id', 'ilike', "%{$search}%")
-                  ->orWhere('department_id', 'ilike', "%{$search}%")
-                  ->orWhere('user_peminta', 'ilike', "%{$search}%")
-                  ->orWhere('created_by', 'ilike', "%{$search}%")
-                  ->orWhere('status', 'ilike', "%{$search}%")
-                  ->orWhere('sppbjktid', 'ilike', "%{$search}%")
-                  ->orWhereRaw("TO_CHAR(csdate,'YYYY-MM-DD HH24:MI:SS') ILIKE ?", ["%{$search}%"]);
+            $base->where(function($q) use ($search, $csTable){
+                $q->where($csTable.'.csid', 'ilike', "%{$search}%")
+                ->orWhere($csTable.'.sppbjktid', 'ilike', "%{$search}%")
+                ->orWhere($csTable.'.cpny_id', 'ilike', "%{$search}%")
+                ->orWhere($csTable.'.department_id', 'ilike', "%{$search}%")
+                ->orWhere($csTable.'.user_peminta', 'ilike', "%{$search}%")
+                ->orWhere($csTable.'.created_by', 'ilike', "%{$search}%")
+                ->orWhere($csTable.'.csnote', 'ilike', "%{$search}%")
+                ->orWhereRaw("TO_CHAR({$csTable}.csdate,'YYYY-MM-DD HH24:MI:SS') ILIKE ?", ["%{$search}%"])
+                ->orWhereRaw("TO_CHAR({$csTable}.assigndate,'YYYY-MM-DD HH24:MI:SS') ILIKE ?", ["%{$search}%"])
+                ->orWhereRaw("TO_CHAR({$csTable}.submitdate,'YYYY-MM-DD HH24:MI:SS') ILIKE ?", ["%{$search}%"]);
             });
         }
 
+        $recordsTotal    = (clone $base)->count();
         $recordsFiltered = (clone $base)->count();
 
         $rows = $base->select(
-                    'id','csid','csdate','cpny_id','department_id',
-                    'user_peminta','status','created_by','sppbjktid','csnote'
+                    $csTable.'.id',
+                    $csTable.'.csid',
+                    $csTable.'.sppbjktid',
+                    $csTable.'.csdate',
+                    $csTable.'.user_peminta',
+                    $csTable.'.cpny_id',
+                    $csTable.'.department_id',
+                    $csTable.'.created_by',
+                    $csTable.'.csnote',
+                    $csTable.'.assigndate',
+                    $csTable.'.submitdate',
+                    DB::raw("$prefixExpr AS sppbjkt_prefix"),
+                    DB::raw("(CASE
+                        WHEN $prefixExpr = 'PB' THEN (SELECT id FROM tr_sppb WHERE tr_sppb.sppbid = {$csTable}.sppbjktid LIMIT 1)
+                        WHEN $prefixExpr = 'PJ' THEN (SELECT id FROM tr_sppj WHERE tr_sppj.sppjid = {$csTable}.sppbjktid LIMIT 1)
+                        WHEN $prefixExpr = 'PK' THEN (SELECT id FROM tr_sppk WHERE tr_sppk.sppkid = {$csTable}.sppbjktid LIMIT 1)
+                        WHEN $prefixExpr = 'PT' THEN (SELECT id FROM tr_sppt WHERE tr_sppt.spptid = {$csTable}.sppbjktid LIMIT 1)
+                        ELSE NULL
+                    END) AS sppbjkt_src_id")
                 )
-                ->orderBy($orderCol, $orderDir)->orderBy('csid','desc')
-                ->skip($start)->take($length)->get();
+                ->orderBy($orderCol === 'days' ? $csTable.'.csdate' : $orderCol, $orderDir)
+                ->orderBy($csTable.'.csid', 'desc')
+                ->skip($start)->take($length)
+                ->get();
+
+        // compute days + encode id → eid
+        $rows->transform(function($r){
+            $assign = $r->assigndate ? Carbon::parse($r->assigndate) : null;
+            $submit = $r->submitdate ? Carbon::parse($r->submitdate) : null;
+            $r->days = ($assign && $submit) ? $assign->diffInDays($submit, false) : null;
+
+            $r->eid = Hashids::encode($r->id); // ← encoded id for frontend
+            return $r;
+        });
 
         return response()->json([
             'draw'            => $draw,
@@ -101,6 +140,8 @@ class CsListController extends Controller
             'data'            => $rows,
         ]);
     }
+
+
 
     /** TAB 1: My CS (semua status) created_by = user login */
     public function jsonMy(Request $req)

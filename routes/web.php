@@ -530,7 +530,7 @@ Route::post('/logout', function () {
         ->name('canvass.createcs');
     Route::post('/csstore', [CanvassController::class, 'storeCS'])->name('cs.store');
     Route::post('/cssave', [CanvassController::class, 'saveCS'])->name('cs.save');
-    Route::get('/showcs/{id}', [CanvassController::class, 'showCS']);
+    Route::get('/showcs/{hash}', [CanvassController::class, 'showCS']);
     Route::get('/cs/{id}/comments', [CanvassController::class, 'fetchComments']);
     Route::post('/cs/{id}/comments', [CanvassController::class, 'storeComment']);
     Route::post('/cs/{id}/approve', [CanvassController::class, 'approveCS']);

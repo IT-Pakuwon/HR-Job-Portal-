@@ -213,6 +213,7 @@
                     <input type="hidden" name="department_id" value="{{ $header->department_id }}">
                     <input type="hidden" name="bqid" value="{{ $header->bqid ?? '' }}">
                     <input type="hidden" name="user_peminta" value="{{ optional($header->creator)->name }}">
+                    <input type="hidden" name="assigndate" value="{{ $header->assigndate ?? '' }}">
 
                     <!-- Create CS Header -->
                     <div class="w-full rounded-xl bg-white p-6 shadow-md dark:bg-gray-800">
