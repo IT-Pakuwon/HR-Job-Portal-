@@ -641,17 +641,17 @@
 
         <script>
             $(document).ready(function() {
-                let sppbid = "{{ $cs->sppbid }}"; // Ambil task ID dari PHP ke JavaScript
-                loadComments(sppbid);
+                let csid = "{{ $cs->csid }}"; // Ambil task ID dari PHP ke JavaScript
+                loadComments(csid);
 
                 // **Fungsi untuk Memuat Komentar**
-                function loadComments(sppbid) {
-                    console.log("Loading comments for Doc ID:", sppbid);
+                function loadComments(csid) {
+                    console.log("Loading comments for Doc ID:", csid);
                     let commentList = $('#commentList');
                     commentList.html('<p class="text-gray-500 italic">Loading comments...</p>'); // Loader
 
                     $.ajax({
-                        url: `/sppb/${sppbid}/comments`,
+                        url: `/cs/${csid}/comments`,
                         type: 'GET',
                         success: function(response) {
                             console.log("Comments Loaded:", response);
@@ -701,10 +701,10 @@
                     $('#postCommentBtn').prop('disabled', true).text('Posting... 🚀'); // Disable button saat proses
 
                     $.ajax({
-                        url: `/sppb/${sppbid}/comments`,
+                        url: `/cs/${csid}/comments`,
                         type: 'POST',
                         data: {
-                            sppbid: sppbid,
+                            csid: csid,
                             comment: input,
                             _token: '{{ csrf_token() }}'
                         },
@@ -712,7 +712,7 @@
                             console.log('Comment added successfully:', response);
 
                             if (response.status === "success") {
-                                loadComments(sppbid); // **Reload komentar setelah menambahkan**
+                                loadComments(csid); // **Reload komentar setelah menambahkan**
                                 $('#commentInput').val(''); // Kosongkan input setelah sukses
                             }
                         },
@@ -744,22 +744,22 @@
         </script>
         <script>
             $(document).on("click", "#approveBtn", function() {
-                let sppbid = "{{ $cs->sppbid }}"; // Ambil Task ID dari modal        
-                approveSPPB(sppbid);
+                let csid = "{{ $cs->csid }}"; // Ambil Task ID dari modal        
+                approveCS(csid);
             });
 
-            function approveSPPB(sppbid) {
+            function approveCS(csid) {
                 let $spinner = $("#loadingSpinnerContainer"); // Ambil elemen spinner
 
                 // Tampilkan spinner di kanan bawah
                 $spinner.fadeIn();
 
                 $.ajax({
-                    url: `/sppb/${sppbid}/approve`,
+                    url: `/cs/${csid}/approve`,
                     type: "POST",
                     data: {
                         _token: "{{ csrf_token() }}",
-                        sppbid: sppbid
+                        csid: csid
                     },
                     success: function(response) {
                         if (response.success) {
@@ -771,8 +771,8 @@
                                 );
 
                             // Tampilkan alert sukses
-                            toastr.success("SPPB approved successfully!");
-                            window.location.href = "/sppbs";
+                            toastr.success("CS approved successfully!");
+                            window.location.href = "/cs";
                         } else {
                             toastr.error(response.message);
                         }
@@ -781,9 +781,9 @@
                         console.error(xhr.responseText);
 
                         if (xhr.status === 403) {
-                            toastr.error("You are not authorized to approve this sppb.");
+                            toastr.error("You are not authorized to approve this cs.");
                         } else {
-                            toastr.error("Error: Unable to approve sppb.");
+                            toastr.error("Error: Unable to approve cs.");
                         }
                     },
                     complete: function() {
@@ -801,8 +801,8 @@
                 $(document).on("click", "#rejectBtn", function() {
                     $("#rejectReason").val(""); // Reset alasan reject
                     // $("#rejectTaskModal").removeClass("hidden").css("z-index", "60");
-                    let sppbid = "{{ $cs->sppbid }}";
-                    checkApproval(sppbid, "reject");
+                    let csid = "{{ $cs->csid }}";
+                    checkApproval(csid, "reject");
 
                 });
 
@@ -813,7 +813,7 @@
 
                 // Saat tombol "Reject" ditekan, proses perubahan status
                 $(document).on("click", "#confirmRejectBtn", function() {
-                    let sppbid = "{{ $cs->sppbid }}"; // Ambil ID tugas dari modal detail
+                    let csid = "{{ $cs->csid }}"; // Ambil ID tugas dari modal detail
                     let rejectReason = $("#rejectReason").val().trim();
 
                     if (rejectReason === "") {
@@ -826,18 +826,18 @@
                     $spinner.fadeIn();
 
                     $.ajax({
-                        url: `/sppb/${sppbid}/reject`,
+                        url: `/cs/${csid}/reject`,
                         type: "POST",
                         data: {
                             _token: "{{ csrf_token() }}",
-                            docid: sppbid,
+                            docid: csid,
                             reason: rejectReason
                         },
                         success: function(response) {
                             if (response.success) {
                                 // alert("Task has been rejected successfully.");
 
-                                // Update status di modal sppb
+                                // Update status di modal cs
                                 $("#xstatus").text("Rejected")
                                     .removeClass()
                                     .addClass(
@@ -845,9 +845,9 @@
                                     );
                                 $spinner.fadeOut();
 
-                                window.location.href = "/sppbs";
+                                window.location.href = "/cs";
                             } else {
-                                alert("Failed to reject sppb.");
+                                alert("Failed to reject cs.");
                             }
                         },
                         error: function(xhr) {
@@ -856,7 +856,7 @@
                             if (xhr.status === 403) {
                                 alert("You Can't Rejected!"); // Popup jika user tidak berhak
                             } else {
-                                alert("Error: Unable to reject sppb status.");
+                                alert("Error: Unable to reject cs status.");
                             }
                         },
                     });
@@ -869,8 +869,8 @@
                 $(document).on("click", "#reviseBtn", function() {
                     $("#reviseReason").val(""); // Reset alasan revise
                     // $("#reviseTaskModal").removeClass("hidden").css("z-index", "60");
-                    let sppbid = "{{ $cs->sppbid }}";
-                    checkApproval(sppbid, "revise");
+                    let csid = "{{ $cs->csid }}";
+                    checkApproval(csid, "revise");
 
                 });
 
@@ -881,7 +881,7 @@
 
                 // Saat tombol "Revise" ditekan, proses perubahan status
                 $(document).on("click", "#confirmReviseBtn", function() {
-                    let sppbid = "{{ $cs->sppbid }}"; // Ambil ID tugas dari modal detail
+                    let csid = "{{ $cs->csid }}"; // Ambil ID tugas dari modal detail
                     let reviseReason = $("#reviseReason").val().trim();
 
                     if (reviseReason === "") {
@@ -893,27 +893,27 @@
                     $spinner.fadeIn();
 
                     $.ajax({
-                        url: `/sppb/${sppbid}/revise`,
+                        url: `/cs/${csid}/revise`,
                         type: "POST",
                         data: {
                             _token: "{{ csrf_token() }}",
-                            docid: sppbid,
+                            docid: csid,
                             reason: reviseReason
                         },
                         success: function(response) {
                             if (response.success) {
                                 // alert("Task has been reviseed successfully.");
 
-                                // Update status di modal sppb
+                                // Update status di modal cs
                                 $("#xstatus").text("Revised")
                                     .removeClass()
                                     .addClass(
                                         "w-full max-w-32 bg-red-300/30 dark:bg-red-300 text-red-600 flex justify-items-center focus:outline-none pointer-events-none    -none font-semibold px-2 py-0.5 rounded"
                                     );
                                 $spinner.fadeOut();
-                                window.location.href = "/sppbs";
+                                window.location.href = "/cs";
                             } else {
-                                alert("Failed to revise sppb.");
+                                alert("Failed to revise cs.");
                             }
                         },
                         error: function(xhr) {
@@ -922,7 +922,7 @@
                             if (xhr.status === 403) {
                                 alert("You Can't Revised!"); // Popup jika user tidak berhak
                             } else {
-                                alert("Error: Unable to revise sppb status.");
+                                alert("Error: Unable to revise cs status.");
                             }
                         },
                     });
@@ -935,10 +935,10 @@
         <!-- Toastr JS -->
         <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
         <script>
-            function checkApproval(sppbid, action) {
-                console.log(sppbid, '-', action);
+            function checkApproval(csid, action) {
+                console.log(csid, '-', action);
                 $.ajax({
-                    url: `/sppb/${sppbid}/check-approval/${action}`,
+                    url: `/cs/${csid}/check-approval/${action}`,
                     type: "GET",
                     success: function(response) {
                         if (response.canPerformAction) {
@@ -950,11 +950,11 @@
                                 $("#reviseReason").val(""); // Reset alasan revise
                                 $("#reviseTaskModal").removeClass("hidden").css("z-index", "60");
                                 // } else if (action === "approve") {
-                                //     approveSPPB(sppbid); // Jika approve, langsung jalankan proses approval
+                                //     approveCS(csid); // Jika approve, langsung jalankan proses approval
                             }
                         } else {
                             // Jika user tidak boleh melakukan aksi, tampilkan popup toastr
-                            toastr.error("You are not authorized to " + action + " this sppb.");
+                            toastr.error("You are not authorized to " + action + " this cs.");
                         }
                     },
                     error: function() {

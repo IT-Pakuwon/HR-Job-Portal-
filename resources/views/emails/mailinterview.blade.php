@@ -41,8 +41,15 @@
 
         <p>Notes: Obligated to bring your own stationary (pen & pencil) with dresscode formal attire</p>
 
-        <p style="margin-top: 30px;">Please confirm by replying with Attend / Not Attend / Reschedule to email: <strong>recruitment@pakuwon.com</strong>
-. If you have any questions, feel free to contact us via email. Thank you.</p><br>
+        <p>Kindly confirm your attendance by replying with Attend / Not Attend / Reschedule via WhatsApp to <strong>+62 858 9001 4129</strong>.
+If you have any questions, feel free to contact us via email.</p>
+
+<p>Thank you, and we look forward to meeting you.</p>
+
+        
+
+        {{-- <p style="margin-top: 30px;">Please confirm by replying with Attend / Not Attend / Reschedule to email: <strong>recruitment@pakuwon.com</strong>
+. If you have any questions, feel free to contact us via email. Thank you.</p><br> --}}
 
         <p>Warm regards,</p>
         <p><strong>Talent Acquisition Pakuwon Group Jakarta</strong></p>

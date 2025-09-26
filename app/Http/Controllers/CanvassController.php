@@ -51,6 +51,7 @@ class CanvassController extends Controller
         $header = null;
         $detail = collect();
         $docno  = null;
+        $srcLineKey = null;
 
         switch ($doc) {
             case 'SPPB':                
@@ -60,7 +61,9 @@ class CanvassController extends Controller
                     'purchaser:username,name' 
                 ])
                 ->findOrFail($src); 
-                $detail = TrSPPBdetail::where('sppbid', $header->sppbid)->get();
+                $detail = TrSPPBdetail::where('sppbid', $header->sppbid)
+                    ->orderBy('sppb_no', 'asc')
+                    ->get();
                 $attachment = Attachment::where('docid', $header->sppbid)    
                     ->where('status','A')        
                     ->get();
@@ -74,7 +77,9 @@ class CanvassController extends Controller
                     'purchaser:username,name' 
                 ])
                 ->findOrFail($src);
-                $detail = TrSPPJdetail::where('sppjid', $header->sppjid)->get();
+                $detail = TrSPPJdetail::where('sppjid', $header->sppjid)
+                    ->orderBy('sppj_no', 'asc')
+                    ->get();
                 $attachment = Attachment::where('docid', $header->sppjid)    
                     ->where('status','A')        
                     ->get();
@@ -88,7 +93,9 @@ class CanvassController extends Controller
                     'purchaser:username,name' 
                 ])
                 ->findOrFail($src);                
-                $detail = TrSPPKdetail::where('sppkid', $header->sppkid)->get();
+                $detail = TrSPPKdetail::where('sppkid', $header->sppkid)    
+                    ->orderBy('sppk_no', 'asc')
+                    ->get();
                 $attachment = Attachment::where('docid', $header->sppkid)    
                     ->where('status','A')        
                     ->get();
@@ -102,7 +109,9 @@ class CanvassController extends Controller
                     'purchaser:username,name' 
                 ])
                 ->findOrFail($src);
-                $detail = TrSPPTdetail::where('spptid', $header->spptid)->get();
+                $detail = TrSPPTdetail::where('spptid', $header->spptid)
+                    ->orderBy('sppt_no', 'asc')
+                    ->get();
                 $attachment = Attachment::where('docid', $header->spptid)    
                     ->where('status','A')        
                     ->get();
@@ -175,30 +184,44 @@ class CanvassController extends Controller
             $srcHeader = null;
             $srcDetails = collect();
             $srcLineKey = null; // nama kolom nomor urut detail di sumber
+
             switch ($doc) {
                 case 'SPPB':
-                    $srcHeader = TrSPPB::with(['requestType', 'creator', 'purchaser'])->findOrFail($srcId);
-                    $srcDetails = TrSPPBdetail::where('sppbid', $srcHeader->sppbid)->get();
+                    $srcHeader  = TrSPPB::with(['requestType', 'creator', 'purchaser'])->findOrFail($srcId);
                     $srcLineKey = 'sppb_no';
+                    $srcDetails = TrSPPBdetail::where('sppbid', $srcHeader->sppbid)
+                                ->orderBy($srcLineKey, 'asc')
+                                ->get();
                     break;
+
                 case 'SPPJ':
-                    $srcHeader = TrSPPJ::with(['requestType', 'creator', 'purchaser'])->findOrFail($srcId);
-                    $srcDetails = TrSPPJdetail::where('sppjid', $srcHeader->sppjid)->get();
+                    $srcHeader  = TrSPPJ::with(['requestType', 'creator', 'purchaser'])->findOrFail($srcId);
                     $srcLineKey = 'sppj_no';
+                    $srcDetails = TrSPPJdetail::where('sppjid', $srcHeader->sppjid)
+                                ->orderBy($srcLineKey, 'asc')
+                                ->get();
                     break;
+
                 case 'SPPK':
-                    $srcHeader = TrSPPK::with(['requestType', 'creator', 'purchaser'])->findOrFail($srcId);
-                    $srcDetails = TrSPPKdetail::where('sppkid', $srcHeader->sppkid)->get();
+                    $srcHeader  = TrSPPK::with(['requestType', 'creator', 'purchaser'])->findOrFail($srcId);
                     $srcLineKey = 'sppk_no';
+                    $srcDetails = TrSPPKdetail::where('sppkid', $srcHeader->sppkid)
+                                ->orderBy($srcLineKey, 'asc')
+                                ->get();
                     break;
+
                 case 'SPPT':
-                    $srcHeader = TrSPPT::with(['requestType', 'creator', 'purchaser'])->findOrFail($srcId);
-                    $srcDetails = TrSPPTdetail::where('spptid', $srcHeader->spptid)->get();
+                    $srcHeader  = TrSPPT::with(['requestType', 'creator', 'purchaser'])->findOrFail($srcId);
                     $srcLineKey = 'sppt_no';
+                    $srcDetails = TrSPPTdetail::where('spptid', $srcHeader->spptid)
+                                ->orderBy($srcLineKey, 'asc')
+                                ->get();
                     break;
+
                 default:
                     abort(422, 'Invalid doc type');
             }
+
 
             // Index-kan detail sumber untuk memudahkan pencocokan
             // Kunci: inventoryid|uom|inventory_descr
@@ -302,6 +325,7 @@ class CanvassController extends Controller
                 $det = new TrCSdetail();
                 $det->setConnection('pgsql');
                 $det->csid                = $csid;
+                $det->sppbjktid = $sppbjktid;
                 $det->cs_no               = $lineNo;
                 $det->sppbjkt_no             = $srcRefNo; // isi dengan nomor baris sumber apapun namanya
 
@@ -513,28 +537,36 @@ class CanvassController extends Controller
             }
 
             // ==== 7) Attachments (opsional) ====
-            if ($request->hasFile('attachments')) {
+            if ($request->hasfile('attachments')) {
                 foreach ($request->file('attachments') as $file) {
                     $randomNumber = random_int(10000000, 99999999);
+                    $filename = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+                   
                     $originalName = str_replace('%', '', $file->getClientOriginalName());
-                    $attachfile   = md5($randomNumber) . '-' . $originalName;
+                    $attachfile = md5($randomNumber) . '-' . $originalName;
 
-                    $folderYear = public_path('attachments/' . $year);
-                    if (!is_dir($folderYear)) {
-                        @mkdir($folderYear, 0777, true);
+                    //attach to folder
+                    $folder_attach = public_path() . '/attachments/'.$year;
+                    $config['upload_path'] = $folder_attach;                   
+                    if(!is_dir($folder_attach))
+                    {
+                        mkdir($folder_attach, 0777);
                     }
-                    $file->move($folderYear, $attachfile);
+                    
+                    $folder_upload = $folder_attach;                 
+                    $file->move($folder_upload, $attachfile);
 
-                    Attachment::create([
-                        'docid'        => $csid,
-                        'name'         => pathinfo($originalName, PATHINFO_FILENAME),
-                        'attachfile'   => $attachfile,
-                        'status'       => 'A',
-                        'extention'    => $file->getClientOriginalExtension(),
-                        'created_user' => $username,
-                    ]);
+                    //insert to table attachments
+                    $attach = new Attachment();
+                    $attach->docid = $csid;
+                    $attach->name = $filename;
+                    $attach->attachfile = $attachfile;
+                    $attach->status = 'A';
+                    $attach->extention = $file->getClientOriginalExtension();
+                    $attach->created_user = $user->username;
+                    $attach->save();
                 }
-            }
+            }            
 
             // ==== 8) Email ke approver pertama ====
             $firstApproval = T_approval::where('docid', $csid)
@@ -826,33 +858,38 @@ class CanvassController extends Controller
                 $det->created_by  = $username;
                 $det->save();
             }
-
-           
-
+          
             // ==== 7) Attachments (opsional) ====
-            if ($request->hasFile('attachments')) {
+            if ($request->hasfile('attachments')) {
                 foreach ($request->file('attachments') as $file) {
                     $randomNumber = random_int(10000000, 99999999);
+                    $filename = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+                   
                     $originalName = str_replace('%', '', $file->getClientOriginalName());
-                    $attachfile   = md5($randomNumber) . '-' . $originalName;
+                    $attachfile = md5($randomNumber) . '-' . $originalName;
 
-                    $folderYear = public_path('attachments/' . $year);
-                    if (!is_dir($folderYear)) {
-                        @mkdir($folderYear, 0777, true);
+                    //attach to folder
+                    $folder_attach = public_path() . '/attachments/'.$year;
+                    $config['upload_path'] = $folder_attach;                   
+                    if(!is_dir($folder_attach))
+                    {
+                        mkdir($folder_attach, 0777);
                     }
-                    $file->move($folderYear, $attachfile);
+                    
+                    $folder_upload = $folder_attach;                 
+                    $file->move($folder_upload, $attachfile);
 
-                    Attachment::create([
-                        'docid'        => $csid,
-                        'name'         => pathinfo($originalName, PATHINFO_FILENAME),
-                        'attachfile'   => $attachfile,
-                        'status'       => 'A',
-                        'extention'    => $file->getClientOriginalExtension(),
-                        'created_user' => $username,
-                    ]);
+                    //insert to table attachments
+                    $attach = new Attachment();
+                    $attach->docid = $csid;
+                    $attach->name = $filename;
+                    $attach->attachfile = $attachfile;
+                    $attach->status = 'A';
+                    $attach->extention = $file->getClientOriginalExtension();
+                    $attach->created_user = $user->username;
+                    $attach->save();
                 }
-            }
-
+            }   
            
             DB::connection('pgsql')->commit();
 
@@ -967,6 +1004,649 @@ class CanvassController extends Controller
         ]);
     }
 
+    public function fetchComments($id)
+    {
+    
+        $comments = T_Message::where('docid', $id)
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return response()->json([
+            'status' => 'success',
+            'comments' => $comments
+        ]);
+    }
+    public function storeComment(Request $request, $id)
+    {
+        $request->validate([
+            'comment' => 'required|string|max:500',
+        ]);
+        // dd($id);
+        $user = request()->user();
+        $comment = new T_Message();
+        $comment->docid = $id;
+        $comment->doctype = 'CS';
+        $comment->username = $user->username; 
+        $comment->name = $user->name; 
+        $comment->message = $request->comment;
+        $comment->status = 'A';
+        $comment->created_at = now();
+        $comment->save();
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Comment added successfully!',
+            'comment' => $comment
+        ]);
+    }
+
+    public function approveCS(Request $request, $docid)
+    {
+        $now  = Carbon::now();
+        $user = $request->user();
+
+        // $cs = TrCS::where('csid', $docid)->first();
+        $cs = TrCS::with('creator')
+            ->where('csid', $docid)
+            ->first();
+        $fullname = data_get($cs, 'creator.name') ?: $cs->created_by;
+
+        if (!$cs) {
+            return response()->json(['success' => false, 'message' => 'CS not found'], 404);
+        }
+
+        // pastikan user memang approver aktif (status P) di doc ini
+        $tApproval = T_approval::where('docid', $cs->csid)
+            ->where('status', 'P')
+            ->where('aprvusername', 'like', "%{$user->username}%")
+            ->orderBy('aprvid', 'ASC')
+            ->first();
+
+        if (!$tApproval) {
+            return response()->json(['success' => false, 'message' => "You can't approve!"], 403);
+        }
+
+        DB::beginTransaction();
+        try {
+            // Set current approver -> Approved
+            $tApproval->status         = 'A';
+            $tApproval->aprvdateafter  = $now;
+            $tApproval->aprvusername   = $user->username;
+            $tApproval->name           = $user->name;
+            $tApproval->save();
+
+            // Update header informasi "terakhir diproses"
+            $cs->completed_by = $user->username;
+            $cs->completed_at = $now;
+            $cs->save();
+
+            // Hitung sisa pending setelah approve ini
+            $pendingCount = T_approval::where('docid', $cs->csid)
+                ->where('status', 'P')
+                ->count();
+
+            // Pemetaan judul sesuai status
+            $subjectMap = [
+                'P' => 'Waiting Approval',
+                'R' => 'Rejected Approval',
+                'D' => 'Revise Approval',
+                'A' => 'Approved',
+                'C' => 'Completed',
+            ];
+
+            if ($pendingCount === 0) {
+                // Tidak ada approver lagi -> dokumen complete
+                $cs->status       = 'C';
+                $cs->completed_by = $user->username;
+                $cs->completed_at = $now;
+                $cs->save();
+
+                $csdetail = TrCSdetail::where('csid', $cs->csid)                
+                    ->get();
+
+                foreach ($csdetail as $d) {
+                    $d->status = 'C'; 
+                    $d->save();
+                }
+
+                // Kirim email ke requester (creator)
+                $status        = 'C';
+                $subjectSuffix = $subjectMap[$status] ?? 'Notification';
+
+                $data = [
+                    'docid'     => $cs->csid,
+                    'cpnyid'    => $cs->cpny_id ?? $cs->cpnyid ?? '',
+                    'deptname'  => $cs->department_id ?? $cs->departementid ?? '',
+                    'date'      => $cs->csdate,
+                    'fullname'  => $fullname,  // nama penerima di email
+                    'name'      => $fullname,  // fallback
+                    'createdby' => $fullname,
+                    'docname'   => 'CS',
+                    'info'      => $cs->keperluan,
+                    'status'    => $status,
+                    'url'       => url('/showcs/' . $cs->id),
+                ];
+
+                $recipients = User::where('username', $cs->created_by)
+                    ->where('status', 'A')
+                    ->get();
+
+                foreach ($recipients as $rcp) {
+                    try {
+                        Mail::send('emails.mailapprovenew', $data, function ($message) use ($data, $rcp, $subjectSuffix) {
+                            $to = $rcp->test_email ?? $rcp->email; // pakai field yang memang ada
+                            $message->to($to)
+                                ->subject($data['docid'] . ' - ' . $subjectSuffix . ' CS')
+                                ->from('digitalserver@pakuwon.com', 'Pakuwon System');
+                        });
+                    } catch (\Throwable $e) {
+                        Log::error('Failed sending CS completion email', ['error' => $e->getMessage()]);
+                    }
+                }
+            } else {
+                // Masih ada approver berikutnya -> cari level berikutnya (P terrendah aprvid)
+                $next = T_approval::where('docid', $cs->csid)
+                    ->where('status', 'P')
+                    ->orderBy('aprvid', 'ASC')
+                    ->first();
+
+                if ($next) {
+                    // Stempel "datebefore" untuk approver berikutnya
+                    $next->aprvdatebefore = $now;
+                    $next->save();
+
+                    // Kirim email ke semua username yang ada di kolom aprvusername (dipisah koma)
+                    $status        = 'P';
+                    $subjectSuffix = $subjectMap[$status] ?? 'Notification';
+
+                    $data = [
+                        'docid'     => $next->docid,
+                        'cpnyid'    => $next->aprvcpnyid,
+                        'deptname'  => $next->aprvdeptid,
+                        'date'      => $next->aprvdatebefore,
+                        'fullname'  => $next->name,
+                        'name'      => $next->name,
+                        'createdby' => $cs->created_by,
+                        'docname'   => 'CS',
+                        'info'      => $cs->keperluan,
+                        'status'    => $status,
+                        'url'       => url('/showcs/' . $cs->id),
+                    ];
+
+                    $usernames = array_filter(array_map('trim', explode(',', (string) $next->aprvusername)));
+                    if (!empty($usernames)) {
+                        $recipients = User::whereIn('username', $usernames)
+                            ->where('status', 'A')
+                            ->get();
+
+                        foreach ($recipients as $rcp) {
+                            try {
+                                Mail::send('emails.mailapprovenew', $data, function ($message) use ($data, $rcp, $subjectSuffix) {
+                                    $to = $rcp->test_email ?? $rcp->email;
+                                    $message->to($to)
+                                        ->subject($data['docid'] . ' - ' . $subjectSuffix . ' CS')
+                                        ->from('digitalserver@pakuwon.com', 'Pakuwon System');
+                                });
+                            } catch (\Throwable $e) {
+                                Log::error('Failed sending CS waiting-approval email', ['error' => $e->getMessage()]);
+                            }
+                        }
+                    } else {
+                        Log::warning('Next approver has empty aprvusername list', ['docid' => $cs->csid]);
+                    }
+                }
+            }
+
+            DB::commit();
+            return response()->json(['success' => true, 'message' => 'Task approved successfully']);
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            Log::error('Approve CS failed', ['error' => $e->getMessage()]);
+            return response()->json(['success' => false, 'message' => 'Approve failed'], 500);
+        }
+    }
+    
+    public function rejectCS(Request $request, $docid)
+    {
+        $now  = Carbon::now();
+        $user = $request->user();
+
+        // $cs = TrCS::where('csid', $docid)->first();
+        $cs = TrCS::with('creator')
+            ->where('csid', $docid)
+            ->first();
+        $fullname = data_get($cs, 'creator.name') ?: $cs->created_by;
+
+        if (!$cs) {
+            return response()->json(['success' => false, 'message' => 'Task not found'], 404);
+        }
+
+        // Validasi: user harus approver aktif (status P) pada dokumen ini
+        $tApproval = T_approval::where('docid', $cs->csid)
+            ->where('status', 'P')
+            ->where('aprvusername', 'like', "%{$user->username}%")
+            ->orderBy('aprvid', 'ASC')
+            ->first();
+
+        if (!$tApproval) {
+            return response()->json(['success' => false, 'message' => "You can't reject!"], 403);
+        }
+
+        DB::beginTransaction();
+        try {
+            // Tandai approval saat ini sebagai Rejected
+            $tApproval->status        = 'R';
+            $tApproval->aprvdateafter = $now;
+            $tApproval->aprvusername  = $user->username; // catat siapa yang reject
+            $tApproval->name          = $user->name;
+            $tApproval->save();
+
+            // Update header CS
+            $cs->status       = 'R';
+            $cs->completed_by = $user->username;
+            $cs->completed_at = $now;
+            $cs->save();
+
+            // Batalkan semua approval yang masih pending
+            T_approval::where('docid', $cs->csid)
+                ->where('status', 'P')
+                ->update(['status' => 'X']);
+
+            DB::commit();
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            Log::error('Reject CS failed', ['docid' => $docid, 'error' => $e->getMessage()]);
+            return response()->json(['success' => false, 'message' => 'Reject failed'], 500);
+        }
+
+        // === Kirim Email ke requester (creator) ===
+        $status = 'R'; // Rejected
+        $subjectMap = [
+            'P' => 'Waiting Approval',
+            'R' => 'Rejected Approval',
+            'D' => 'Revise Approval',
+            'A' => 'Approved',
+            'C' => 'Completed',
+        ];
+        $subjectSuffix = $subjectMap[$status] ?? 'Notification';
+
+        $data = [
+            'docid'     => $cs->csid,
+            'cpnyid'    => $cs->cpny_id ?? $cs->cpnyid ?? '',
+            'deptname'  => $cs->department_id ?? $cs->departementid ?? '',
+            'date'      => $now->toDateString(),            // bisa juga pakai $tApproval->aprvdateafter
+            'fullname'  => $fullname,               // view email kita pakai $fullname
+            'name'      => $fullname,               // fallback jika view pakai $name
+            'createdby' => $fullname,
+            'docname'   => 'CS',
+            'info'      => $cs->keperluan,
+            'status'    => $status,
+            'url'       => url('/showcs/' . $cs->id),
+        ];
+
+        $recipients = User::where('username', $cs->created_by)
+            ->where('status', 'A')
+            ->get();
+
+        foreach ($recipients as $rcp) {
+            try {
+                $to = $rcp->test_email ?? $rcp->email; // sesuaikan field yang tersedia
+                Mail::send('emails.mailapprovenew', $data, function ($message) use ($data, $to, $subjectSuffix) {
+                    $message->to($to)
+                        ->subject($data['docid'] . ' - ' . $subjectSuffix . ' CS')
+                        ->from('digitalserver@pakuwon.com', 'Pakuwon System');
+                });
+            } catch (\Throwable $e) {
+                Log::error('Failed sending CS rejected email', [
+                    'docid' => $data['docid'],
+                    'to'    => $rcp->username,
+                    'error' => $e->getMessage()
+                ]);
+            }
+        }
+
+        // Simpan komentar penolakan (jika ada)
+        try {
+            app('App\Http\Controllers\SendCommentController')
+                ->sendmsg($cs->id, 'CS', $request);
+        } catch (\Throwable $e) {
+            Log::warning('SendComment after reject failed', [
+                'docid' => $cs->csid,
+                'error' => $e->getMessage()
+            ]);
+        }
+
+        return response()->json(['success' => true, 'message' => 'CS rejected successfully']);
+    }
+
+    public function reviseCS(Request $request, $docid)
+    {
+        $now  = Carbon::now();
+        $user = $request->user();
+
+        // $cs = TrCS::where('csid', $docid)->first();
+        $cs = TrCS::with('creator')
+            ->where('csid', $docid)
+            ->first();
+        $fullname = data_get($cs, 'creator.name') ?: $cs->created_by;
+            
+        if (!$cs) {
+            return response()->json(['success' => false, 'message' => 'CS not found'], 404);
+        }
+
+        // Pastikan user adalah approver aktif (status P) dokumen ini
+        $tApproval = T_approval::where('docid', $cs->csid)
+            ->where('status', 'P')
+            ->where('aprvusername', 'like', "%{$user->username}%")
+            ->orderBy('aprvid', 'ASC')
+            ->first();
+
+        if (!$tApproval) {
+            return response()->json(['success' => false, 'message' => "You can't revise!"], 403);
+        }
+
+        DB::beginTransaction();
+        try {
+            // Tandai approval saat ini sebagai Revise (D)
+            $tApproval->status        = 'D';
+            $tApproval->aprvdateafter = $now;
+            $tApproval->aprvusername  = $user->username;  // catat siapa yang revise
+            $tApproval->name          = $user->name;
+            $tApproval->save();
+
+            // Update header CS
+            $cs->status       = 'D';
+            $cs->completed_by = $user->username;        // mengikuti pola existing
+            $cs->completed_at = $now;
+            $cs->save();
+
+            // Batalkan approval lain yang masih pending
+            T_approval::where('docid', $cs->csid)
+                ->where('status', 'P')
+                ->update(['status' => 'X']);
+
+            DB::commit();
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            Log::error('Revise CS failed', ['docid' => $docid, 'error' => $e->getMessage()]);
+            return response()->json(['success' => false, 'message' => 'Revise failed'], 500);
+        }
+
+        // === Kirim email ke requester (creator) ===
+        $status = 'D'; // Revise
+        $subjectMap = [
+            'P' => 'Waiting Approval',
+            'R' => 'Rejected Approval',
+            'D' => 'Revise Approval',
+            'A' => 'Approved',
+            'C' => 'Completed',
+        ];
+        $subjectSuffix = $subjectMap[$status] ?? 'Notification';
+
+        $data = [
+            'docid'     => $cs->csid,
+            'cpnyid'    => $cs->cpny_id ?? $cs->cpnyid ?? '',
+            'deptname'  => $cs->department_id ?? $cs->departementid ?? '',
+            'date'      => $now->toDateString(),          // atau $tApproval->aprvdateafter
+            'fullname'  => $fullname,             // template email pakai $fullname
+            'name'      => $fullname,             // fallback jika view pakai $name
+            'createdby' => $fullname,
+            'docname'   => 'CS',
+            'info'      => $cs->keperluan,
+            'status'    => $status,
+            'url'       => url('/showcs/' . $cs->id),
+        ];
+
+        $recipients = User::where('username', $cs->created_by)
+            ->where('status', 'A')
+            ->get();
+
+        foreach ($recipients as $rcp) {
+            try {
+                $to = $rcp->test_email ?? $rcp->email; // sesuaikan dengan kolom yang ada
+                Mail::send('emails.mailapprovenew', $data, function ($message) use ($data, $to, $subjectSuffix) {
+                    $message->to($to)
+                        ->subject($data['docid'] . ' - ' . $subjectSuffix . ' CS')
+                        ->from('digitalserver@pakuwon.com', 'Pakuwon System');
+                });
+            } catch (\Throwable $e) {
+                Log::error('Failed sending CS revise email', [
+                    'docid' => $data['docid'],
+                    'to'    => $rcp->username,
+                    'error' => $e->getMessage()
+                ]);
+            }
+        }
+
+        // Simpan komentar revisi (jika ada)
+        try {
+            app('App\Http\Controllers\SendCommentController')
+                ->sendmsg($cs->id, 'CS', $request);
+        } catch (\Throwable $e) {
+            Log::warning('SendComment after revise failed', [
+                'docid' => $cs->csid,
+                'error' => $e->getMessage()
+            ]);
+        }
+
+        return response()->json(['success' => true, 'message' => 'CS revised successfully']);
+    }
+    
+
+    public function checkApproval($id, $action)
+    {
+        $user = Auth::user(); // Ambil user yang login
+        // dd($action);
+        // Query dasar untuk pengecekan
+        $query = T_approval::where('docid', $id)
+                    ->where('aprvusername', 'like', '%' . $user->username . '%')
+                    ->where('status', 'P');                 
+
+        // Jika aksi adalah reject atau revise, pastikan aprvdatebefore tidak null
+        if (in_array($action, ['reject', 'revise','approve'])) {
+            $query->whereNotNull('aprvdatebefore');
+        }
+
+        // Cek apakah user bisa melakukan aksi
+        $canPerformAction = $query->exists();
+
+        return response()->json(['canPerformAction' => $canPerformAction]);
+    }
+
+    public function tracking($id)
+    {
+        $cs = TrCS::findOrFail($id);
+
+        $getName = function (?string $username) {
+            if (!$username) return null;
+            $u = \App\Models\User::where('username', $username)->first();
+            return $u->name ?? $username;
+        };
+
+        $createdByName = $getName($cs->created_by ?? null);
+        $createdAt     = $cs->created_at ? \Carbon\Carbon::parse($cs->created_at)->format('Y-m-d H:i') : null;
+
+        $completedByName = $getName($cs->completed_by ?? null);
+        $completedAt     = $cs->completed_at ? \Carbon\Carbon::parse($cs->completed_at)->format('Y-m-d H:i') : null;
+
+        // kolom opsional, kalau tidak ada biarkan null
+        $rejectedByName  = $getName($cs->rejected_by ?? null);
+        $rejectedAt      = isset($cs->rejected_at) ? \Carbon\Carbon::parse($cs->rejected_at)->format('Y-m-d H:i') : null;
+
+        $revisedByName   = $getName($cs->revised_by ?? null);
+        $revisedAt       = isset($cs->revised_at) ? \Carbon\Carbon::parse($cs->revised_at)->format('Y-m-d H:i') : null;
+
+        $status = (string) ($cs->status ?? '');
+        $labelMap = [
+            'P' => 'Waiting approval',
+            'R' => 'Rejected',
+            'D' => 'Revise',
+            'C' => 'Completed',
+        ];
+        $statusLabel = $labelMap[$status] ?? $status;
+
+        // selalu mulai dari Submitted
+        $steps = [[
+            'key'          => 'submitted',
+            'title'        => 'CS',
+            'status'       => 'C',              // dibuat = completed
+            'status_label' => 'Submitted',
+            'by'           => $createdByName,
+            'at'           => $createdAt,
+        ]];
+
+        switch ($status) {
+            case 'P':
+                // masih menunggu/berjalan → tampilkan Approval saja
+                $steps[] = [
+                    'key'          => 'approval',
+                    'title'        => 'Approval',
+                    'status'       => 'P',
+                    'status_label' => 'Waiting approval',
+                    'by'           => $completedByName,
+                    'at'           => $completedAt,
+                ];
+                break;
+
+            case 'R':
+                // DITOLAK → langsung Submitted → Rejected (tanpa Approval)
+                $steps[] = [
+                    'key'          => 'rejected',
+                    'title'        => 'Rejected',
+                    'status'       => 'R',
+                    'status_label' => 'Rejected',
+                    'by'           => $completedByName,
+                    'at'           => $completedAt,
+                ];
+                break;
+
+            case 'D':
+                // REVISE → Submitted → Revise
+                $steps[] = [
+                    'key'          => 'revise',
+                    'title'        => 'Revise',
+                    'status'       => 'D',
+                    'status_label' => 'Revise',
+                    'by'           => $completedByName,
+                    'at'           => $completedAt,
+                ];
+                break;
+
+            case 'C':
+                // SELESAI → bisa langsung Submitted → Completed
+                // (kalau kamu ingin menampilkan Approval yang sudah dilalui,
+                // tambahkan step 'approval' sebelum 'completed')
+                $steps[] = [
+                    'key'          => 'completed',
+                    'title'        => 'Completed',
+                    'status'       => 'C',
+                    'status_label' => 'Completed',
+                    'by'           => $completedByName,
+                    'at'           => $completedAt,
+                ];
+                break;
+
+            default:
+                // status tidak dikenal → biarkan hanya Submitted
+                break;
+        }
+
+        return response()->json([
+            'doc'   => $cs->csid ?? (string)$cs->id,
+            'steps' => $steps,
+            'status'=> $status,
+            'status_label' => $statusLabel,
+        ]);
+    }
+
+    public function printCS(int $id)
+    {
+        $authUser = Auth::user();
+        if (!$authUser) {
+            return redirect()->route('login');
+        }
+
+        // Ambil CS + relasi yang dibutuhkan
+        $cs = TrCS::with([
+                'requestType:requesttypeid,requesttype_name',
+                'creator:username,name',
+            ])
+            ->findOrFail($id);
+
+        // Detail baris CS
+        $csdetail = TrCSdetail::with([
+                'location:location_id,location_name',
+                'subLocation:sub_location_id,sub_location_name',
+            ])
+            ->where('csid', $cs->csid)
+            ->get();
+
+        // Approval list (non-cancelled)
+        $approval = T_approval::where('docid', $cs->csid)
+            ->where('status', '<>', 'X')
+            ->orderBy('aprvid')
+            ->orderBy('created_at')
+            ->get();
+
+        $approve_count = $approval->count();
+
+        // Company (handle null)
+        $company = Company::where('cpnyid', $cs->cpny_id)->first();
+
+        // Mapping status dokumen
+        switch ($cs->status) {
+            case 'R':
+                $status_doc = 'Rejected';
+                break;
+            case 'C':
+                $status_doc = 'Completed';
+                break;
+            case 'D':
+                $status_doc = 'Hold';
+                break;
+            case 'X':
+                $status_doc = 'Cancel';
+                break;
+            default:
+                $status_doc = 'On Progress';
+                break;
+        }
+
+        $data = [
+            'title'               => 'Surat Permintaan Pembelian Barang',
+            'doc_type'            => 'CS',
+            'docid'               => $cs->csid,
+            'department_id'       => $cs->department_id,
+            'cpnyname'            => optional($company)->cpnyname,
+            'parent'              => optional($company)->parent,
+            'project'             => optional($company)->project,
+            // identitas & tanggal
+            'created_by_username' => $cs->created_by,
+            'created_by_name'     => ucwords(strtolower(optional($cs->creator)->name)),
+            'created_at_fmt'      => optional($cs->created_at)->format('d F Y'),
+            'req_date_fmt'        => optional($cs->created_at)->format('d M Y H:i'),
+            'csdate'            => \Carbon\Carbon::parse($cs->csdate)->format('d F Y'),
+            // konten
+            'keperluan'           => $cs->keperluan,
+            'status_doc'          => $status_doc,
+            'requesttype_name'    => optional($cs->requestType)->requesttype_name,
+        ];
+
+        // Kirim ke view
+        $pdf = \PDF::loadView(
+            'pages.cs.pdf_cs',
+            array_merge($data, [
+                'detail'         => $csdetail,
+                'approval'       => $approval,
+                'approve_count'  => $approve_count,
+            ])
+        );
+
+        // Portrait jika <= 5 approver, else landscape
+        $pdf->setPaper('A4', ($approve_count <= 5) ? 'portrait' : 'landscape');
+
+        return $pdf->stream("pdf_cs_{$cs->csid}.pdf");
+    }
 
     
 

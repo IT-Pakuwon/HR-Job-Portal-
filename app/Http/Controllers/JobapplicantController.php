@@ -43,7 +43,7 @@ class JobapplicantController extends Controller
         // Ambil jumlah total pelamar dari viewtrxcareer     
         $all = ViewCareer::count();
         $unchecked = ViewCareer::where('is_read', 'N')->count();
-        $checked = ViewCareer::where('is_read', 'Y')->count();
+        $checked = ViewCareer::where('is_read', 'Y')->whereIn('status', ['H', 'P'])->count();
         $reject = ViewCareer::where('status', 'R')->count();       
         $approved = ViewCareer::where('status', 'C')->count();
 
@@ -85,7 +85,7 @@ class JobapplicantController extends Controller
         // Filter "tetap" (status, cpnyid) – ini memang bagian dari dataset
         if (!empty($status)) {
             if ($status === 'is_read_Y') {
-                $base->where('vc.is_read', 'Y');
+                $base->where('vc.is_read', 'Y')->whereIn('status', ['H', 'P']);
             } elseif ($status === 'is_read_N') {
                 $base->where('vc.is_read', 'N');
             } else {

@@ -531,6 +531,15 @@ Route::post('/logout', function () {
     Route::post('/csstore', [CanvassController::class, 'storeCS'])->name('cs.store');
     Route::post('/cssave', [CanvassController::class, 'saveCS'])->name('cs.save');
     Route::get('/showcs/{id}', [CanvassController::class, 'showCS']);
+    Route::get('/cs/{id}/comments', [CanvassController::class, 'fetchComments']);
+    Route::post('/cs/{id}/comments', [CanvassController::class, 'storeComment']);
+    Route::post('/cs/{id}/approve', [CanvassController::class, 'approveCS']);
+    Route::post('/cs/{id}/reject', [CanvassController::class, 'rejectCS']);
+    Route::post('/cs/{id}/revise', [CanvassController::class, 'reviseCS']);
+    Route::get('/editcs/{id}', [CanvassController::class, 'editCS']);
+    Route::put('/cs/{id}', [CanvassController::class, 'updateCS'])->name('cs.update');
+    Route::put('/cs/remove-attachment/{id}', [CanvassController::class, 'removeAttachment']);    
+    Route::get('/cs/{id}/check-approval/{action}', [CanvassController::class, 'checkApproval']); 
     
 
     Route::get('/inventory/list', [MasterController::class, 'InventoryList'])->name('inventory.list');
