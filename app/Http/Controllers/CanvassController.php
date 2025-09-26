@@ -40,6 +40,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Schema;
+use Vinkla\Hashids\Facades\Hashids;
 
 class CanvassController extends Controller
 {
@@ -143,7 +144,7 @@ class CanvassController extends Controller
         $bqid         = $request->input('bqid');
         $userPeminta  = $request->input('user_peminta');
         $csnote       = $request->input('keperluan');                // textarea #keperluan
-
+        $assigndate   = $request->input('assigndate');             // hidden #assigndate
         // Dari JS: vendors[] + details[]
         $vendors = json_decode($request->input('vendors', '[]'), true) ?: [];
         $details = json_decode($request->input('details', '[]'), true) ?: [];
@@ -268,6 +269,8 @@ class CanvassController extends Controller
             $cs->department_id = $deptId ?: ($srcHeader->department_id ?? null);
             $cs->user_peminta  = $userPeminta ?: (optional($srcHeader->creator)->name ?? null);
             $cs->csnote        = $csnote ?: null;
+            $cs->assigndate    = $assigndate ?: null;
+            $cs->submitdate    = $dt;
 
             // Lengkapi dari header sumber kalau kolom ada di tr_cs
             $csTable = $cs->getTable();
@@ -642,7 +645,7 @@ class CanvassController extends Controller
         $bqid         = $request->input('bqid');
         $userPeminta  = $request->input('user_peminta');
         $csnote       = $request->input('keperluan');                // textarea #keperluan
-
+        $assigndate   = $request->input('assigndate');             // hidden #assigndate
         // Dari JS: vendors[] + details[]
         $vendors = json_decode($request->input('vendors', '[]'), true) ?: [];
         $details = json_decode($request->input('details', '[]'), true) ?: [];
@@ -753,6 +756,7 @@ class CanvassController extends Controller
             $cs->department_id = $deptId ?: ($srcHeader->department_id ?? null);
             $cs->user_peminta  = $userPeminta ?: (optional($srcHeader->creator)->name ?? null);
             $cs->csnote        = $csnote ?: null;
+            $cs->assigndate    = $assigndate ?: null;
 
             // Lengkapi dari header sumber kalau kolom ada di tr_cs
             $csTable = $cs->getTable();
@@ -838,6 +842,7 @@ class CanvassController extends Controller
                 $det->budget_department_fin_id  = $src->budget_department_fin_id  ?? null;
                 $det->budget_account_id         = $src->budget_account_id         ?? null;
                 $det->budget_activity_id        = $src->budget_activity_id        ?? null;
+                
 
                 // Map harga per vendor (maks 6)
                 for ($i = 0; $i < min(count($d['vendor'] ?? []), 6); $i++) {
@@ -909,8 +914,11 @@ class CanvassController extends Controller
         }
     }
 
-    public function showCS($id)
+    public function showCS($hash)
     {
+        $id = Hashids::decode($hash)[0] ?? null;
+        abort_if(!$id, 404);
+
         $user = Auth::user();
         if (!$user) return redirect()->route('login');
 

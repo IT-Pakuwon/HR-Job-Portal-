@@ -328,7 +328,7 @@ class SppkController extends Controller
                 $detail->assignby                 = null;
                 $detail->assigndate               = null;
                 $detail->assignpurchasing         = null;
-                $detail->openordered              = 0;
+                $detail->openordered              = $qty;
                 $detail->ordered                  = 0;
                 $detail->rejectordered            = 0;
                 $detail->completeordered          = 0;
@@ -635,7 +635,7 @@ class SppkController extends Controller
                     'budget_department_fin_id' => $deptFinIds[$i] ?? null,
                     'budget_account_id'        => $coaIds[$i] ?? null,
                     'budget_activity_id'       => $actIds[$i] ?? null,
-                    'openordered'              => 0,
+                    'openordered'              => $qty,
                     'ordered'                  => 0,
                     'location_id'              => $locIds[$i] ?? null,
                     'sub_location_id'          => $subLocIds[$i] ?? null,
@@ -675,7 +675,7 @@ class SppkController extends Controller
             // Hitung total qty (kalau mau pakai base_qty, ganti ke sum('base_qty'))
             $totalQty = TrSPPKdetail::where('sppkid', $header->sppkid)->sum('qty');
             $header->totalqty = $totalQty;
-            // $header->totalopenordered = $totalQty;
+            $header->totalopenordered = $totalQty;
             $header->save();
 
             // === regenerasi T_approval (opsional, ikuti logikamu) ===
