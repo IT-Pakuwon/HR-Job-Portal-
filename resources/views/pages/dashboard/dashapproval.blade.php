@@ -43,8 +43,13 @@
                 }
 
                 #agendasxTable_filter input {
-                    width: 200px;
-                    /* Adjust the width of the input box */
+                    width: auto;
+                    padding: 5px;
+                    min-width: 80px;
+                    padding: 0.25rem 0.5rem;
+                    border-radius: 0.5rem;
+                    border: 1px solid #d1d5db;
+                    background-color: #f9fafb;
                 }
 
 
@@ -83,6 +88,10 @@
                     width: auto;
                     padding: 5px;
                     min-width: 80px;
+                    padding: 0.25rem 0.5rem;
+                    border-radius: 0.5rem;
+                    border: 1px solid #d1d5db;
+                    background-color: #f9fafb;
                 }
 
                 #agendasxTable_length select option {

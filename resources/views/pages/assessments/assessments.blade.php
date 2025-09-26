@@ -338,8 +338,13 @@
                 }
 
                 #assessmentsTable_filter input {
-                    width: 200px;
-                    /* Adjust the width of the input box */
+                    width: auto;
+                    padding: 5px;
+                    min-width: 80px;
+                    padding: 0.25rem 0.5rem;
+                    border-radius: 0.5rem;
+                    border: 1px solid #d1d5db;
+                    background-color: #f9fafb;
                 }
 
 
@@ -375,11 +380,13 @@
                 }
 
                 #assessmentsTable_length select {
-                    width: 80px;
-                    /* Lebar otomatis untuk select dropdown */
+                    width: auto;
                     padding: 5px;
-                    Menambahkan padding agar lebih nyaman min-width: 0px;
-                    /* Lebar minimal untuk memastikan angka tidak tertutup */
+                    min-width: 80px;
+                    padding: 0.25rem 0.5rem;
+                    border-radius: 0.5rem;
+                    border: 1px solid #d1d5db;
+                    background-color: #f9fafb;
                 }
 
                 #assessmentsTable_length select option {

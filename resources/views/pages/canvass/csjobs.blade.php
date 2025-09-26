@@ -93,14 +93,13 @@
         /* Style the select and input nicely */
         .dataTables_wrapper .dataTables_length select,
         .dataTables_wrapper .dataTables_filter input {
-            width: 200px;
-            /* take full width of parent */
+            width: auto;
+            padding: 5px;
+            min-width: 80px;
             padding: 0.25rem 0.5rem;
             border-radius: 0.5rem;
             border: 1px solid #d1d5db;
-            /* Tailwind gray-300 */
             background-color: #f9fafb;
-            /* Tailwind gray-50 */
         }
 
         /* Optional: spacing inside the label for "Show entries" */
@@ -307,15 +306,30 @@
 
         <div class="grid">
             <div class="mt-6 rounded-2xl bg-white dark:bg-gray-800">
-                <div
-                    class="flex flex-col items-start justify-between gap-4 border-b border-gray-200 p-4 sm:flex-row sm:items-center dark:border-gray-700">
-                    {{-- Changed text-3xl to text-xl --}}
-                    <h1 class="text-xl font-extrabold text-gray-700 dark:text-white">CS Jobs</h1>
+                <div class="border-b border-gray-200 dark:border-gray-700">
+                    <nav class="flex gap-2 p-4">
+                        <button
+                            class="tab-btn active border-b-2 border-indigo-600 px-4 py-2 text-xl font-semibold text-indigo-700 dark:text-indigo-300"
+                            data-tab="mine">CS Jobs</button>
+                        <button
+                            class="tab-btn px-4 py-2 text-xl font-semibold hover:border-b-2 hover:border-gray-400 dark:hover:border-gray-500"
+                            data-tab="entry">Entry CS</button>
+                        <button
+                            class="tab-btn px-4 py-2 text-xl font-semibold hover:border-b-2 hover:border-gray-400 dark:hover:border-gray-500"
+                            data-tab="all">All Jobs</button>
+                        <button
+                            class="tab-btn px-4 py-2 text-xl font-semibold hover:border-b-2 hover:border-gray-400 dark:hover:border-gray-500"
+                            data-tab="revision">My Revision</button>
+                        <button
+                            class="tab-btn px-4 py-2 text-xl font-semibold hover:border-b-2 hover:border-gray-400 dark:hover:border-gray-500"
+                            data-tab="sppbjkt">SPPBJKT IN Progress</button>
+                    </nav>
                 </div>
+
 
                 <div class="overflow-x-auto p-6">
                     <!-- Tabs header -->
-                    <div class="mb-4 border-b border-gray-200 dark:border-gray-700">
+                    {{-- <div class="mb-4 border-b border-gray-200 dark:border-gray-700">
                         <nav class="flex gap-2">
                             <button
                                 class="tab-btn active rounded-t bg-indigo-50 px-4 py-2 text-sm font-semibold text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300"
@@ -334,7 +348,7 @@
                                 data-tab="sppbjkt">SPPBJKT IN Progress</button>
                         </nav>
 
-                    </div>
+                    </div> --}}
 
                     <!-- CS Jobs (mine) -->
                     <div id="tab-mine" class="tab-pane block">
@@ -487,315 +501,329 @@
                         </table>
                     </div>
                 </div>
-                <script>
-                    $(function() {
-                        let docTypeFilter = ''; // '' = all
+            </div>
+        </div>
+    </div>
+    <script>
+        $(function() {
+            let docTypeFilter = ''; // '' = all
 
-                        // const mapCreateUrl = { SPPB:'createcs_sppb', SPPJ:'createcs_sppj', SPPK:'createcs_sppk', SPPT:'createcs_sppt' };
-                        const mapShowUrl = {
-                            SPPB: 'showsppbs',
-                            SPPJ: 'showsppjs',
-                            SPPK: 'showsppks',
-                            SPPT: 'showsppts'
-                        };
+            // const mapCreateUrl = { SPPB:'createcs_sppb', SPPJ:'createcs_sppj', SPPK:'createcs_sppk', SPPT:'createcs_sppt' };
+            const mapShowUrl = {
+                SPPB: 'showsppbs',
+                SPPJ: 'showsppjs',
+                SPPK: 'showsppks',
+                SPPT: 'showsppts'
+            };
 
-                        function buildCreateUrl(row) {
-                            // /createcs/{doc}/{src}/{row}
-                            const r = row.row_id ?? '';
-                            return `/createcs/${row.doc_type}/${row.src_id}`;
-                        }
+            function buildCreateUrl(row) {
+                // /createcs/{doc}/{src}/{row}
+                const r = row.row_id ?? '';
+                return `/createcs/${row.doc_type}/${row.src_id}`;
+            }
 
-                        function renderDocBtn(row) {
-                            const base = mapShowUrl[row.doc_type] || '#';
-                            const url = `/${base}/${row.src_id}`;
-                            return `<a href="${url}" class="inline-flex items-center rounded px-3 py-1.5 bg-blue-600 text-white hover:bg-blue-700 text-sm font-semibold">${row.doc_no}</a>`;
-                        }
+            function renderDocBtn(row) {
+                const base = mapShowUrl[row.doc_type] || '#';
+                const url = `/${base}/${row.src_id}`;
+                return `<a href="${url}" class="inline-flex items-center rounded px-3 py-1.5 bg-blue-600 text-white hover:bg-blue-700 text-sm font-semibold">${row.doc_no}</a>`;
+            }
 
-                        function colSetWithoutCreate() {
-                            return [
-                                // 0) DocID (button to show page)
-                                {
-                                    data: null,
-                                    className: 'text-left',
-                                    render: (_d, _t, row) => renderDocBtn(row)
-                                },
-                                // 1) assigndate
-                                {
-                                    data: 'assigndate',
-                                    className: 'text-center',
-                                    render: (v) => v ? (isNaN(new Date(v)) ? v : new Date(v).toLocaleDateString('id-ID')) :
-                                        ''
-                                },
-                                // 2) doc_date
-                                {
-                                    data: 'doc_date',
-                                    className: 'text-center',
-                                    render: (v) => v ? (isNaN(new Date(v)) ? v : new Date(v).toLocaleDateString('id-ID')) :
-                                        ''
-                                },
-                                // 3) cpny_id
-                                {
-                                    data: 'cpny_id',
-                                    className: 'text-center'
-                                },
-                                // 4) created_by_name
-                                {
-                                    data: 'created_by_name',
-                                    className: 'text-center',
-                                    defaultContent: '-'
-                                },
-                                // 5) assignpurchasing
-                                {
-                                    data: 'assignpurchasing',
-                                    className: 'text-center',
-                                    defaultContent: ''
-                                },
-                                // 6) assignby
-                                {
-                                    data: 'assignby',
-                                    className: 'text-center',
-                                    defaultContent: ''
-                                },
-                                // 7) department_id
-                                {
-                                    data: 'department_id',
-                                    className: 'text-center'
-                                },
-                                // 8) keperluan
-                                {
-                                    data: 'keperluan',
-                                    className: 'text-left'
-                                },
-                            ];
-                        }
+            function colSetWithoutCreate() {
+                return [
+                    // 0) DocID (button to show page)
+                    {
+                        data: null,
+                        className: 'text-left',
+                        render: (_d, _t, row) => renderDocBtn(row)
+                    },
+                    // 1) assigndate
+                    {
+                        data: 'assigndate',
+                        className: 'text-center',
+                        render: (v) => v ? (isNaN(new Date(v)) ? v : new Date(v).toLocaleDateString('id-ID')) :
+                            ''
+                    },
+                    // 2) doc_date
+                    {
+                        data: 'doc_date',
+                        className: 'text-center',
+                        render: (v) => v ? (isNaN(new Date(v)) ? v : new Date(v).toLocaleDateString('id-ID')) :
+                            ''
+                    },
+                    // 3) cpny_id
+                    {
+                        data: 'cpny_id',
+                        className: 'text-center'
+                    },
+                    // 4) created_by_name
+                    {
+                        data: 'created_by_name',
+                        className: 'text-center',
+                        defaultContent: '-'
+                    },
+                    // 5) assignpurchasing
+                    {
+                        data: 'assignpurchasing',
+                        className: 'text-center',
+                        defaultContent: ''
+                    },
+                    // 6) assignby
+                    {
+                        data: 'assignby',
+                        className: 'text-center',
+                        defaultContent: ''
+                    },
+                    // 7) department_id
+                    {
+                        data: 'department_id',
+                        className: 'text-center'
+                    },
+                    // 8) keperluan
+                    {
+                        data: 'keperluan',
+                        className: 'text-left'
+                    },
+                ];
+            }
 
-                        function colSetWithCreate() {
-                            const createCol = {
-                                data: null,
-                                orderable: false,
-                                searchable: false,
-                                className: 'text-left',
-                                render: function(_d, _t, row) {
-                                    const url = buildCreateUrl(row);
-                                    return `<a href="${url}" class="inline-flex items-center rounded px-3 py-1.5 bg-indigo-600 text-white hover:bg-indigo-700 text-sm font-semibold">Create CS</a>`;
-                                }
-                            };
-                            return [createCol, ...colSetWithoutCreate()];
-                        }
+            function colSetWithCreate() {
+                const createCol = {
+                    data: null,
+                    orderable: false,
+                    searchable: false,
+                    className: 'text-left',
+                    render: function(_d, _t, row) {
+                        const url = buildCreateUrl(row);
+                        return `<a href="${url}" class="inline-flex items-center rounded px-3 py-1.5 bg-indigo-600 text-white hover:bg-indigo-700 text-sm font-semibold">Create CS</a>`;
+                    }
+                };
+                return [createCol, ...colSetWithoutCreate()];
+            }
 
-                        // Tables
-                        const tblMine = $('#tblMine').DataTable({
-                            processing: true,
-                            serverSide: true,
-                            deferRender: true,
-                            pageLength: 25,
-                            lengthMenu: [10, 25, 50, 100, 250],
-                            ajax: {
-                                url: "{{ route('csjobs.mine.json') }}",
-                                type: "GET",
-                                data: (d) => {
-                                    d.doc = docTypeFilter;
-                                }
-                            },
-                            // indeks: 0 create, 1 doc_no(btn), 2 assigndate, 3 doc_date
-                            order: [
-                                [3, 'desc'],
-                                [1, 'desc']
-                            ],
-                            columns: colSetWithCreate(),
-                            searchDelay: 400,
-                            stateSave: true,
-                            responsive: true
-                        });
+            // Tables
+            const tblMine = $('#tblMine').DataTable({
+                processing: true,
+                serverSide: true,
+                deferRender: true,
+                pageLength: 25,
+                lengthMenu: [10, 25, 50, 100, 250],
+                ajax: {
+                    url: "{{ route('csjobs.mine.json') }}",
+                    type: "GET",
+                    data: (d) => {
+                        d.doc = docTypeFilter;
+                    }
+                },
+                // indeks: 0 create, 1 doc_no(btn), 2 assigndate, 3 doc_date
+                order: [
+                    [3, 'desc'],
+                    [1, 'desc']
+                ],
+                columns: colSetWithCreate(),
+                searchDelay: 400,
+                stateSave: true,
+                responsive: true
+            });
 
-                        const tblAll = $('#tblAll').DataTable({
-                            processing: true,
-                            serverSide: true,
-                            deferRender: true,
-                            pageLength: 25,
-                            lengthMenu: [10, 25, 50, 100, 250],
-                            ajax: {
-                                url: "{{ route('csjobs.all.json') }}",
-                                type: "GET",
-                                data: (d) => {
-                                    d.doc = docTypeFilter;
-                                }
-                            },
-                            // indeks: 0 doc_no(btn), 1 assigndate, 2 doc_date
-                            order: [
-                                [2, 'desc'],
-                                [0, 'desc']
-                            ],
-                            columns: colSetWithoutCreate(),
-                            searchDelay: 400,
-                            stateSave: true,
-                            responsive: true
-                        });
+            const tblAll = $('#tblAll').DataTable({
+                processing: true,
+                serverSide: true,
+                deferRender: true,
+                pageLength: 25,
+                lengthMenu: [10, 25, 50, 100, 250],
+                ajax: {
+                    url: "{{ route('csjobs.all.json') }}",
+                    type: "GET",
+                    data: (d) => {
+                        d.doc = docTypeFilter;
+                    }
+                },
+                // indeks: 0 doc_no(btn), 1 assigndate, 2 doc_date
+                order: [
+                    [2, 'desc'],
+                    [0, 'desc']
+                ],
+                columns: colSetWithoutCreate(),
+                searchDelay: 400,
+                stateSave: true,
+                responsive: true
+            });
 
-                        const tblRevision = $('#tblRevision').DataTable({
-                            processing: true,
-                            serverSide: true,
-                            deferRender: true,
-                            pageLength: 25,
-                            lengthMenu: [10, 25, 50, 100, 250],
-                            ajax: {
-                                url: "{{ route('csjobs.revision.json') }}",
-                                type: "GET",
-                                data: (d) => {
-                                    d.doc = docTypeFilter;
-                                }
-                            },
-                            order: [
-                                [3, 'desc'],
-                                [1, 'desc']
-                            ],
-                            columns: colSetWithCreate(),
-                            searchDelay: 400,
-                            stateSave: true,
-                            responsive: true
-                        });
+            const tblRevision = $('#tblRevision').DataTable({
+                processing: true,
+                serverSide: true,
+                deferRender: true,
+                pageLength: 25,
+                lengthMenu: [10, 25, 50, 100, 250],
+                ajax: {
+                    url: "{{ route('csjobs.revision.json') }}",
+                    type: "GET",
+                    data: (d) => {
+                        d.doc = docTypeFilter;
+                    }
+                },
+                order: [
+                    [3, 'desc'],
+                    [1, 'desc']
+                ],
+                columns: colSetWithCreate(),
+                searchDelay: 400,
+                stateSave: true,
+                responsive: true
+            });
 
-                        const tblSppbjkt = $('#tblSppbjkt').DataTable({
-                            processing: true,
-                            serverSide: true,
-                            deferRender: true,
-                            pageLength: 25,
-                            lengthMenu: [10, 25, 50, 100, 250],
-                            ajax: {
-                                url: "{{ route('csjobs.sppbjkt.progress.json') }}",
-                                type: "GET",
-                                data: (d) => {
-                                    d.doc = docTypeFilter;
-                                }
-                            },
-                            order: [
-                                [2, 'desc'],
-                                [0, 'desc']
-                            ],
-                            columns: colSetWithoutCreate(),
-                            searchDelay: 400,
-                            stateSave: true,
-                            responsive: true
-                        });
+            const tblSppbjkt = $('#tblSppbjkt').DataTable({
+                processing: true,
+                serverSide: true,
+                deferRender: true,
+                pageLength: 25,
+                lengthMenu: [10, 25, 50, 100, 250],
+                ajax: {
+                    url: "{{ route('csjobs.sppbjkt.progress.json') }}",
+                    type: "GET",
+                    data: (d) => {
+                        d.doc = docTypeFilter;
+                    }
+                },
+                order: [
+                    [2, 'desc'],
+                    [0, 'desc']
+                ],
+                columns: colSetWithoutCreate(),
+                searchDelay: 400,
+                stateSave: true,
+                responsive: true
+            });
 
-                        // === ENTRY CS table (TrCS status H & created_by = user login) ===
-                        const tblEntryCS = $('#tblEntryCS').DataTable({
-                            processing: true,
-                            serverSide: true,
-                            deferRender: true,
-                            pageLength: 25,
-                            lengthMenu: [10, 25, 50, 100, 250],
-                            ajax: {
-                                url: "{{ route('csjobs.entry.json') }}",
-                                type: "GET"
-                            }, // <— endpoint baru
-                            order: [
-                                [1, 'desc'],
-                                [0, 'desc']
-                            ], // csdate desc, csid desc
-                            columns: [{
-                                    data: 'csid',
-                                    className: 'text-left',
-                                    render: (v, _t, row) =>
-                                        `<a href="/showcs/${row.id}" class="inline-flex items-center rounded px-3 py-1.5 bg-blue-600 text-white hover:bg-blue-700 text-sm font-semibold">${row.csid}</a>`
-                                },
-                                {
-                                    data: 'csdate',
-                                    className: 'text-center',
-                                    render: (v) => v ? (isNaN(new Date(v)) ? v : new Date(v).toLocaleDateString(
-                                        'id-ID')) : ''
-                                },
-                                {
-                                    data: 'cpny_id',
-                                    className: 'text-center'
-                                },
-                                {
-                                    data: 'department_id',
-                                    className: 'text-center'
-                                },
-                                {
-                                    data: 'user_peminta',
-                                    className: 'text-left',
-                                    defaultContent: '-'
-                                },
-                                {
-                                    data: 'csnote',
-                                    className: 'text-left',
-                                    defaultContent: '-'
-                                },
-                                {
-                                    data: null,
-                                    orderable: false,
-                                    searchable: false,
-                                    className: 'text-left',
-                                    render: (_d, _t, row) => {
-                                        // sesuaikan route edit/lanjutkan draft CS Anda
-                                        return `
+            // === ENTRY CS table (TrCS status H & created_by = user login) ===
+            const tblEntryCS = $('#tblEntryCS').DataTable({
+                processing: true,
+                serverSide: true,
+                deferRender: true,
+                pageLength: 25,
+                lengthMenu: [10, 25, 50, 100, 250],
+                ajax: {
+                    url: "{{ route('csjobs.entry.json') }}",
+                    type: "GET"
+                }, // <— endpoint baru
+                order: [
+                    [1, 'desc'],
+                    [0, 'desc']
+                ], // csdate desc, csid desc
+                columns: [{
+                        data: 'csid',
+                        className: 'text-left',
+                        render: (v, _t, row) =>
+                            `<a href="/showcs/${row.id}" class="inline-flex items-center rounded px-3 py-1.5 bg-blue-600 text-white hover:bg-blue-700 text-sm font-semibold">${row.csid}</a>`
+                    },
+                    {
+                        data: 'csdate',
+                        className: 'text-center',
+                        render: (v) => v ? (isNaN(new Date(v)) ? v : new Date(v).toLocaleDateString(
+                            'id-ID')) : ''
+                    },
+                    {
+                        data: 'cpny_id',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'department_id',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'user_peminta',
+                        className: 'text-left',
+                        defaultContent: '-'
+                    },
+                    {
+                        data: 'csnote',
+                        className: 'text-left',
+                        defaultContent: '-'
+                    },
+                    {
+                        data: null,
+                        orderable: false,
+                        searchable: false,
+                        className: 'text-left',
+                        render: (_d, _t, row) => {
+                            // sesuaikan route edit/lanjutkan draft CS Anda
+                            return `
                         <div class="flex gap-2">
                             <a href="/showcs/${row.id}" class="inline-flex items-center rounded px-3 py-1.5 bg-indigo-600 text-white hover:bg-indigo-700 text-sm font-semibold">Open</a>
                         </div>`;
-                                    }
-                                }
-                            ],
-                            searchDelay: 400,
-                            stateSave: true,
-                            responsive: true
-                        });
-
-
-                        function fetchCountsForTab(tabKey) {
-                            $.get("{{ route('csjobs.counts') }}", {
-                                    tab: tabKey
-                                })
-                                .done(function(res) {
-                                    $('#count-all').text(res.all);
-                                    $('#count-sppb').text(res.sppb);
-                                    $('#count-sppj').text(res.sppj);
-                                    $('#count-sppk').text(res.sppk);
-                                    $('#count-sppt').text(res.sppt);
-                                })
-                                .fail(function() {
-                                    // optional: toastr.warning('Gagal mengambil count.');
-                                });
                         }
+                    }
+                ],
+                searchDelay: 400,
+                stateSave: true,
+                responsive: true
+            });
 
 
-                        // Tabs switching
-                        function setActiveTab(key) {
-                            $('.tab-btn').removeClass(
-                                'active bg-indigo-50 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300');
-                            $(`.tab-btn[data-tab="${key}"]`).addClass(
-                                'active bg-indigo-50 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300');
-                            $('.tab-pane').addClass('hidden').removeClass('block');
-                            $(`#tab-${key}`).removeClass('hidden').addClass('block');
-                            if (key === 'mine') {
-                                tblMine.columns.adjust();
-                            }
-                            if (key === 'entry') {
-                                tblEntryCS.columns.adjust();
-                            } // <— NEW
-                            if (key === 'all') {
-                                tblAll.columns.adjust();
-                            }
-                            if (key === 'revision') {
-                                tblRevision.columns.adjust();
-                            }
-                            if (key === 'sppbjkt') {
-                                tblSppbjkt.columns.adjust();
-                            }
-
-                            fetchCountsForTab(key);
-                        }
-
-                        $('.tab-btn').on('click', function() {
-                            setActiveTab($(this).data('tab'));
-                        });
-                        setActiveTab('mine');
+            function fetchCountsForTab(tabKey) {
+                $.get("{{ route('csjobs.counts') }}", {
+                        tab: tabKey
+                    })
+                    .done(function(res) {
+                        $('#count-all').text(res.all);
+                        $('#count-sppb').text(res.sppb);
+                        $('#count-sppj').text(res.sppj);
+                        $('#count-sppk').text(res.sppk);
+                        $('#count-sppt').text(res.sppt);
+                    })
+                    .fail(function() {
+                        // optional: toastr.warning('Gagal mengambil count.');
                     });
-                </script>
+            }
+
+
+            // Tabs switching
+            function setActiveTab(key) {
+                $('.tab-btn').removeClass(
+                    'active bg-indigo-50 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300');
+                $(`.tab-btn[data-tab="${key}"]`).addClass(
+                    'active bg-indigo-50 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300');
+                $('.tab-pane').addClass('hidden').removeClass('block');
+                $(`#tab-${key}`).removeClass('hidden').addClass('block');
+                if (key === 'mine') {
+                    tblMine.columns.adjust();
+                }
+                if (key === 'entry') {
+                    tblEntryCS.columns.adjust();
+                } // <— NEW
+                if (key === 'all') {
+                    tblAll.columns.adjust();
+                }
+                if (key === 'revision') {
+                    tblRevision.columns.adjust();
+                }
+                if (key === 'sppbjkt') {
+                    tblSppbjkt.columns.adjust();
+                }
+
+                fetchCountsForTab(key);
+            }
+
+            $('.tab-btn').on('click', function() {
+                setActiveTab($(this).data('tab'));
+            });
+            setActiveTab('mine');
+        });
+    </script>
+
+    <script>
+        document.querySelectorAll(".tab-btn").forEach((btn) => {
+            btn.addEventListener("click", function() {
+                document.querySelectorAll(".tab-btn").forEach((b) => {
+                    b.classList.remove("active", "border-b-2", "border-indigo-600",
+                        "text-indigo-700", "dark:text-indigo-300");
+                });
+                this.classList.add("active", "border-b-2", "border-indigo-600", "text-indigo-700",
+                    "dark:text-indigo-300");
+            });
+        });
+    </script>
 
 
 
-            </div>
-        </div>
 </x-app-layout>

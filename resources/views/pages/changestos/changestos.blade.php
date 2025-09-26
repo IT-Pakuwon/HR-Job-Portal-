@@ -118,7 +118,13 @@
                 }
 
                 #changestosTable_filter input {
-                    width: 200px;
+                    width: auto;
+                    padding: 5px;
+                    min-width: 80px;
+                    padding: 0.25rem 0.5rem;
+                    border-radius: 0.5rem;
+                    border: 1px solid #d1d5db;
+                    background-color: #f9fafb;
                 }
 
                 #changestosTable_wrapper {
@@ -147,6 +153,10 @@
                     width: auto;
                     padding: 5px;
                     min-width: 80px;
+                    padding: 0.25rem 0.5rem;
+                    border-radius: 0.5rem;
+                    border: 1px solid #d1d5db;
+                    background-color: #f9fafb;
                 }
 
                 #changestosTable_length select option {
@@ -380,7 +390,7 @@
                                     let buttonClass =
                                         'px-4 py-2.5 bg-indigo-500 text-white rounded hover:bg-indigo-700';
                                     let buttonText = row
-                                    .changerequest_id; // Menggunakan row.changerequest_id untuk teks tombol
+                                        .changerequest_id; // Menggunakan row.changerequest_id untuk teks tombol
 
                                     // Cek apakah user yang login sama dengan created_user dan status = D (Revise/Draft)
                                     if (row.status === 'D' && row.created_user === currentUser) {

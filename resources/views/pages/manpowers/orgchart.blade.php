@@ -53,8 +53,13 @@
                 }
 
                 #manpowersTable_filter input {
-                    width: 200px;
-                    /* Adjust the width of the input box */
+                    width: auto;
+                    padding: 5px;
+                    min-width: 80px;
+                    padding: 0.25rem 0.5rem;
+                    border-radius: 0.5rem;
+                    border: 1px solid #d1d5db;
+                    background-color: #f9fafb;
                 }
 
 
@@ -93,6 +98,10 @@
                     width: auto;
                     padding: 5px;
                     min-width: 80px;
+                    padding: 0.25rem 0.5rem;
+                    border-radius: 0.5rem;
+                    border: 1px solid #d1d5db;
+                    background-color: #f9fafb;
                 }
 
                 #manpowersTable_length select option {
@@ -421,11 +430,11 @@
                                         <strong>Employee:</strong>
                                         <div style="margin-top:10px;">
                                             ${members.map(m => `
-                                                                        <div style="display:flex;align-items:center;margin-bottom:6px;">
-                                                                            <img src="${m.image}" style="width:20px;height:20px;border-radius:50%;margin-right:8px;" />
-                                                                            <span style="font-size:12px;">${m.name} (${m.company} - ${m.position})</span>
-                                                                        </div>
-                                                                    `).join('')}
+                                                                                                <div style="display:flex;align-items:center;margin-bottom:6px;">
+                                                                                                    <img src="${m.image}" style="width:20px;height:20px;border-radius:50%;margin-right:8px;" />
+                                                                                                    <span style="font-size:12px;">${m.name} (${m.company} - ${m.position})</span>
+                                                                                                </div>
+                                                                                            `).join('')}
                                         </div>
                                     </div>
                                 </div>

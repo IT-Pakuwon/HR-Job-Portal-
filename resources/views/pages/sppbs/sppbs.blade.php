@@ -118,7 +118,13 @@
                 }
 
                 #sppbsTable_filter input {
-                    width: 200px;
+                    width: auto;
+                    padding: 5px;
+                    min-width: 80px;
+                    padding: 0.25rem 0.5rem;
+                    border-radius: 0.5rem;
+                    border: 1px solid #d1d5db;
+                    background-color: #f9fafb;
                 }
 
                 #sppbsTable_wrapper {
@@ -147,6 +153,10 @@
                     width: auto;
                     padding: 5px;
                     min-width: 80px;
+                    padding: 0.25rem 0.5rem;
+                    border-radius: 0.5rem;
+                    border: 1px solid #d1d5db;
+                    background-color: #f9fafb;
                 }
 
                 #sppbsTable_length select option {
@@ -384,7 +394,6 @@
             </div>
 
             <script>
-              
                 function renderTimeline(steps = []) {
                     const list = document.getElementById('tlList');
                     if (!list) return;
