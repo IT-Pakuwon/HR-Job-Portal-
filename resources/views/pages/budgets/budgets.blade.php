@@ -326,7 +326,8 @@
                         columns: [{
                                 data: 'id',
                                 render: function(data, type, row) {
-                                    let url = `/showbudgets/${row.id}`;
+                                    // let url = `/showbudgets/${row.id}`;
+                                    let url = `/showbudgets/${row.eid}`;
                                     let buttonClass =
                                         'px-4 py-2.5 bg-indigo-500 text-white rounded hover:bg-indigo-700';
                                     let buttonText = row.budget_id;

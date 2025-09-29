@@ -25,6 +25,7 @@ use App\Models\MsSubLocationPG;
 use Mail;
 use Illuminate\Support\Facades\Log;
 use PDF;
+use Vinkla\Hashids\Facades\Hashids;
 
 class SppbController extends Controller
 {
@@ -39,6 +40,7 @@ class SppbController extends Controller
         return view('pages.sppbs.sppbs', compact('all', 'onProgress', 'reject', 'revise', 'completed'));
     }
 
+    
     public function json(Request $request)
     {
         $draw   = (int) $request->input('draw', 1);
@@ -59,9 +61,8 @@ class SppbController extends Controller
             6 => 'sppb.status',
         ];
 
-        // ⬇️ default ke kolom 0 (sppb.sppbid) dan desc
         $orderIdx = (int) $request->input('order.0.column', 0);
-        $orderDir = $request->input('order.0.dir', 'desc') === 'asc' ? 'asc' : 'desc';
+        $orderDir = $request->input('order.0.dir', 'asc') === 'asc' ? 'asc' : 'desc';
         $orderCol = $columns[$orderIdx] ?? 'sppb.sppbid';
 
         $base = TrSPPB::from($baseTable.' as sppb')
@@ -100,11 +101,18 @@ class SppbController extends Controller
                     'sppb.status',
                     'sppb.created_by'
                 )
-                ->orderBy($orderCol, $orderDir)                  // ← mengikuti request, default ke sppbid desc
-                ->orderBy('sppb.sppbid', 'desc')                 // ← tie-breaker agar stabil
+                ->orderBy($orderCol, $orderDir)
+                ->orderBy('sppb.sppbid', 'desc')
                 ->skip($start)
                 ->take($length)
                 ->get();
+
+        // Encode id dengan hashids → tambahkan field eid
+        $data->transform(function ($row) {
+            $row->eid = Hashids::encode($row->id);
+            unset($row->id); // opsional: sembunyikan id asli
+            return $row;
+        });
 
         return response()->json([
             'draw'            => $draw,
@@ -113,6 +121,7 @@ class SppbController extends Controller
             'data'            => $data,
         ]);
     }
+
 
 
     
@@ -424,6 +433,8 @@ class SppbController extends Controller
                     'C' => 'Completed',
                 ];
                 $subjectSuffix = $subjectMap[$status] ?? 'Notification';
+
+                $header->eid = Hashids::encode($header->id);
                 
                 $data = [
                     'docid'    => $firstApproval->docid,
@@ -435,7 +446,7 @@ class SppbController extends Controller
                     'info'     => $request->keperluan,
                     'status'   => $status,
                     'docname'  => 'SPPB',
-                    'url'      => url('/showsppbs/' . $header->id),
+                    'url'      => url('/showsppbs/' . $header->eid),
                 ];
                 
                 $approvers = array_filter(array_map('trim', explode(',', (string)$firstApproval->aprvusername)));
@@ -754,6 +765,8 @@ class SppbController extends Controller
                     'C' => 'Completed',
                 ];
                 $subjectSuffix = $subjectMap[$status] ?? 'Notification';
+
+                $header->eid = Hashids::encode($header->id);
                 
                 $data = [
                     'docid'    => $firstApproval->docid,
@@ -765,7 +778,7 @@ class SppbController extends Controller
                     'info'     => $request->keperluan,
                     'status'   => $status,
                     'docname'  => 'SPPB',
-                    'url'      => url('/showsppbs/' . $header->id),
+                    'url'      => url('/showsppbs/' . $header->eid),
                 ];
 
                 $approvers = array_filter(array_map('trim', explode(',', (string)$firstApproval->aprvusername)));
@@ -807,8 +820,11 @@ class SppbController extends Controller
     }
  
 
-    public function showSppb($id)
+    public function showSppb($hash)
     {        
+        $id = Hashids::decode($hash)[0] ?? null;
+        abort_if(!$id, 404);
+
         $user = Auth::user();       
 
         if (!$user) {
@@ -933,6 +949,8 @@ class SppbController extends Controller
                 'C' => 'Completed',
             ];
 
+            $sppb->eid = Hashids::encode($sppb->id);
+
             if ($pendingCount === 0) {
                 // Tidak ada approver lagi -> dokumen complete
                 $sppb->status       = 'C';
@@ -950,7 +968,7 @@ class SppbController extends Controller
 
                 // Kirim email ke requester (creator)
                 $status        = 'C';
-                $subjectSuffix = $subjectMap[$status] ?? 'Notification';
+                $subjectSuffix = $subjectMap[$status] ?? 'Notification';                
 
                 $data = [
                     'docid'     => $sppb->sppbid,
@@ -963,7 +981,7 @@ class SppbController extends Controller
                     'docname'   => 'SPPB',
                     'info'      => $sppb->keperluan,
                     'status'    => $status,
-                    'url'       => url('/showsppbs/' . $sppb->id),
+                    'url'       => url('/showsppbs/' . $sppb->eid),
                 ];
 
                 $recipients = User::where('username', $sppb->created_by)
@@ -1009,7 +1027,7 @@ class SppbController extends Controller
                         'docname'   => 'SPPB',
                         'info'      => $sppb->keperluan,
                         'status'    => $status,
-                        'url'       => url('/showsppbs/' . $sppb->id),
+                        'url'       => url('/showsppbs/' . $sppb->eid),
                     ];
 
                     $usernames = array_filter(array_map('trim', explode(',', (string) $next->aprvusername)));
@@ -1108,6 +1126,7 @@ class SppbController extends Controller
             'C' => 'Completed',
         ];
         $subjectSuffix = $subjectMap[$status] ?? 'Notification';
+        $sppb->eid = Hashids::encode($sppb->id);
 
         $data = [
             'docid'     => $sppb->sppbid,
@@ -1120,7 +1139,7 @@ class SppbController extends Controller
             'docname'   => 'SPPB',
             'info'      => $sppb->keperluan,
             'status'    => $status,
-            'url'       => url('/showsppbs/' . $sppb->id),
+            'url'       => url('/showsppbs/' . $sppb->eid),
         ];
 
         $recipients = User::where('username', $sppb->created_by)
@@ -1221,6 +1240,7 @@ class SppbController extends Controller
             'C' => 'Completed',
         ];
         $subjectSuffix = $subjectMap[$status] ?? 'Notification';
+        $sppb->eid = Hashids::encode($sppb->id);
 
         $data = [
             'docid'     => $sppb->sppbid,
@@ -1233,7 +1253,7 @@ class SppbController extends Controller
             'docname'   => 'SPPB',
             'info'      => $sppb->keperluan,
             'status'    => $status,
-            'url'       => url('/showsppbs/' . $sppb->id),
+            'url'       => url('/showsppbs/' . $sppb->eid),
         ];
 
         $recipients = User::where('username', $sppb->created_by)

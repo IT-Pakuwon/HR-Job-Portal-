@@ -42,6 +42,7 @@ use App\Models\MsBudgetTemp;
 use App\Models\CompanyPG;
 use App\Models\BusinessUnitPG;
 use Illuminate\Support\Str;
+use Vinkla\Hashids\Facades\Hashids;
 
 
 class BudgetController extends Controller
@@ -69,6 +70,13 @@ class BudgetController extends Controller
 
         $budget = $query->orderBy('id', 'desc')->get();
 
+        // Encode id dengan hashids → tambahkan field eid
+        $budget->transform(function ($row) {
+            $row->eid = Hashids::encode($row->id);
+            unset($row->id); // opsional: sembunyikan id asli
+            return $row;
+        });
+        
         return response()->json(['data' => $budget]);
     }
 
@@ -623,8 +631,11 @@ class BudgetController extends Controller
     }
  
 
-    public function showBudget($id)
+    public function showBudget($hash)
     {        
+        $id = Hashids::decode($hash)[0] ?? null;
+        abort_if(!$id, 404);
+
         $user = Auth::user();       
 
         if (!$user) {

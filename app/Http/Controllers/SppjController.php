@@ -30,6 +30,7 @@ use PDF;
 use Illuminate\Support\Str;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Imports\BqDetailTempImport; 
+use Vinkla\Hashids\Facades\Hashids;
 
 
 class SppjController extends Controller
@@ -111,6 +112,13 @@ class SppjController extends Controller
                 ->skip($start)
                 ->take($length)
                 ->get();
+
+        // Encode id dengan hashids → tambahkan field eid
+        $data->transform(function ($row) {
+            $row->eid = Hashids::encode($row->id);
+            unset($row->id); // opsional: sembunyikan id asli
+            return $row;
+        });
 
         return response()->json([
             'draw'            => $draw,
@@ -431,6 +439,9 @@ class SppjController extends Controller
                 ];
                 $subjectSuffix = $subjectMap[$status] ?? 'Notification';
                 
+                $header->eid = Hashids::encode($header->id);
+                
+                
                 $data = [
                     'docid'    => $firstApproval->docid,
                     'cpnyid'   => $firstApproval->aprvcpnyid,
@@ -441,7 +452,7 @@ class SppjController extends Controller
                     'info'     => $request->keperluan,
                     'status'   => $status,
                     'docname'  => 'SPPJ',
-                    'url'      => url('/showsppjs/' . $header->id),
+                    'url'      => url('/showsppjs/' . $header->eid),
                 ];
                 
                 $approvers = array_filter(array_map('trim', explode(',', (string)$firstApproval->aprvusername)));
@@ -760,6 +771,8 @@ class SppjController extends Controller
                     'C' => 'Completed',
                 ];
                 $subjectSuffix = $subjectMap[$status] ?? 'Notification';
+
+                $header->eid = Hashids::encode($header->id);
                 
                 $data = [
                     'docid'    => $firstApproval->docid,
@@ -771,7 +784,7 @@ class SppjController extends Controller
                     'info'     => $request->keperluan,
                     'status'   => $status,
                     'docname'  => 'SPPJ',
-                    'url'      => url('/showsppjs/' . $header->id),
+                    'url'      => url('/showsppjs/' . $header->eid),
                 ];
 
                 $approvers = array_filter(array_map('trim', explode(',', (string)$firstApproval->aprvusername)));
@@ -813,8 +826,11 @@ class SppjController extends Controller
     }
  
 
-    public function showSppj($id)
+    public function showSppj($hash)
     {        
+        $id = Hashids::decode($hash)[0] ?? null;
+        abort_if(!$id, 404);
+
         $user = Auth::user();       
 
         if (!$user) {
@@ -847,6 +863,10 @@ class SppjController extends Controller
             
         $bq = Bq::where('bqid', $sppj->bqid)   
             ->first();            
+
+        if ($bq) {
+            $bq->eid = Hashids::encode($bq->id);
+        }
        
         return view('pages.sppjs.showsppjs', compact('sppj','approval','attachment','sppjdetail','bq'));
     }
@@ -942,6 +962,8 @@ class SppjController extends Controller
                 'C' => 'Completed',
             ];
 
+            $sppj->eid = Hashids::encode($sppj->id);
+
             if ($pendingCount === 0) {
                 // Tidak ada approver lagi -> dokumen complete
                 $sppj->status       = 'C';
@@ -959,7 +981,7 @@ class SppjController extends Controller
 
                 // Kirim email ke requester (creator)
                 $status        = 'C';
-                $subjectSuffix = $subjectMap[$status] ?? 'Notification';
+                $subjectSuffix = $subjectMap[$status] ?? 'Notification';                
 
                 $data = [
                     'docid'     => $sppj->sppjid,
@@ -972,7 +994,7 @@ class SppjController extends Controller
                     'docname'   => 'SPPJ',
                     'info'      => $sppj->keperluan,
                     'status'    => $status,
-                    'url'       => url('/showsppjs/' . $sppj->id),
+                    'url'       => url('/showsppjs/' . $sppj->eid),
                 ];
 
                 $recipients = User::where('username', $sppj->created_by)
@@ -1018,7 +1040,7 @@ class SppjController extends Controller
                         'docname'   => 'SPPJ',
                         'info'      => $sppj->keperluan,
                         'status'    => $status,
-                        'url'       => url('/showsppjs/' . $sppj->id),
+                        'url'       => url('/showsppjs/' . $sppj->eid),
                     ];
 
                     $usernames = array_filter(array_map('trim', explode(',', (string) $next->aprvusername)));
@@ -1117,6 +1139,7 @@ class SppjController extends Controller
             'C' => 'Completed',
         ];
         $subjectSuffix = $subjectMap[$status] ?? 'Notification';
+        $sppj->eid = Hashids::encode($sppj->id);
 
         $data = [
             'docid'     => $sppj->sppjid,
@@ -1129,7 +1152,7 @@ class SppjController extends Controller
             'docname'   => 'SPPJ',
             'info'      => $sppj->keperluan,
             'status'    => $status,
-            'url'       => url('/showsppjs/' . $sppj->id),
+            'url'       => url('/showsppjs/' . $sppj->eid),
         ];
 
         $recipients = User::where('username', $sppj->created_by)
@@ -1230,6 +1253,7 @@ class SppjController extends Controller
             'C' => 'Completed',
         ];
         $subjectSuffix = $subjectMap[$status] ?? 'Notification';
+        $sppj->eid = Hashids::encode($sppj->id);
 
         $data = [
             'docid'     => $sppj->sppjid,
@@ -1242,7 +1266,7 @@ class SppjController extends Controller
             'docname'   => 'SPPJ',
             'info'      => $sppj->keperluan,
             'status'    => $status,
-            'url'       => url('/showsppjs/' . $sppj->id),
+            'url'       => url('/showsppjs/' . $sppj->eid),
         ];
 
         $recipients = User::where('username', $sppj->created_by)
@@ -1407,8 +1431,11 @@ class SppjController extends Controller
         ]);
     }
 
-    public function showBQ($id)
+    public function showBQ($hash)
     {        
+        $id = Hashids::decode($hash)[0] ?? null;
+        abort_if(!$id, 404);
+
         $user = Auth::user();       
 
         if (!$user) {

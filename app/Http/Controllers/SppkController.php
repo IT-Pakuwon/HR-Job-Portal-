@@ -25,6 +25,7 @@ use App\Models\MsSubLocationPG;
 use Mail;
 use Illuminate\Support\Facades\Log;
 use PDF;
+use Vinkla\Hashids\Facades\Hashids;
 
 class SppkController extends Controller
 {
@@ -89,22 +90,29 @@ class SppkController extends Controller
         $recordsFiltered = (clone $base)->distinct('sppk.sppkid')->count('sppk.sppkid');
 
         $data = $base->select(
-                    'sppk.id',
-                    'sppk.sppkid',
-                    'sppk.sppkdate',
-                    'sppk.cpny_id',
-                    'sppk.department_id',
-                    'sppk.requesttypeid',
-                    'rt.requesttype_name',
-                    'sppk.keperluan',
-                    'sppk.status',
-                    'sppk.created_by'
-                )
-                ->orderBy($orderCol, $orderDir)                  // ← mengikuti request, default ke sppkid desc
-                ->orderBy('sppk.sppkid', 'desc')                 // ← tie-breaker agar stabil
-                ->skip($start)
-                ->take($length)
-                ->get();
+                'sppk.id',
+                'sppk.sppkid',
+                'sppk.sppkdate',
+                'sppk.cpny_id',
+                'sppk.department_id',
+                'sppk.requesttypeid',
+                'rt.requesttype_name',
+                'sppk.keperluan',
+                'sppk.status',
+                'sppk.created_by'
+            )
+            ->orderBy($orderCol, $orderDir)                  // ← mengikuti request, default ke sppkid desc
+            ->orderBy('sppk.sppkid', 'desc')                 // ← tie-breaker agar stabil
+            ->skip($start)
+            ->take($length)
+            ->get();
+
+        // Encode id dengan hashids → tambahkan field eid
+        $data->transform(function ($row) {
+            $row->eid = Hashids::encode($row->id);
+            unset($row->id); // opsional: sembunyikan id asli
+            return $row;
+        });
 
         return response()->json([
             'draw'            => $draw,
@@ -113,8 +121,6 @@ class SppkController extends Controller
             'data'            => $data,
         ]);
     }
-
-
     
     public function createSppk()
     {        
@@ -131,8 +137,7 @@ class SppkController extends Controller
         return view('pages.sppks.createsppks', compact('usercpny','usercpny2','userdept','userdept2'));
     }
 
-    
-    
+        
     public function storeSppk(Request $request)
     {
         // dd($request->all()); // Debugging: check request data
@@ -426,6 +431,8 @@ class SppkController extends Controller
                     'C' => 'Completed',
                 ];
                 $subjectSuffix = $subjectMap[$status] ?? 'Notification';
+
+                $header->eid = Hashids::encode($header->id);
                 
                 $data = [
                     'docid'    => $firstApproval->docid,
@@ -437,7 +444,7 @@ class SppkController extends Controller
                     'info'     => $request->keperluan,
                     'status'   => $status,
                     'docname'  => 'SPPK',
-                    'url'      => url('/showsppks/' . $header->id),
+                    'url'      => url('/showsppks/' . $header->eid),
                 ];
                 
                 $approvers = array_filter(array_map('trim', explode(',', (string)$firstApproval->aprvusername)));
@@ -759,6 +766,8 @@ class SppkController extends Controller
                     'C' => 'Completed',
                 ];
                 $subjectSuffix = $subjectMap[$status] ?? 'Notification';
+
+                $header->eid = Hashids::encode($header->id);
                 
                 $data = [
                     'docid'    => $firstApproval->docid,
@@ -770,7 +779,7 @@ class SppkController extends Controller
                     'info'     => $request->keperluan,
                     'status'   => $status,
                     'docname'  => 'SPPK',
-                    'url'      => url('/showsppks/' . $header->id),
+                    'url'      => url('/showsppks/' . $header->eid),
                 ];
 
                 $approvers = array_filter(array_map('trim', explode(',', (string)$firstApproval->aprvusername)));
@@ -812,8 +821,11 @@ class SppkController extends Controller
     }
  
 
-    public function showSppk($id)
+    public function showSppk($hash)
     {        
+        $id = Hashids::decode($hash)[0] ?? null;
+        abort_if(!$id, 404);
+
         $user = Auth::user();       
 
         if (!$user) {
@@ -938,6 +950,8 @@ class SppkController extends Controller
                 'C' => 'Completed',
             ];
 
+            $sppk->eid = Hashids::encode($sppk->id);
+
             if ($pendingCount === 0) {
                 // Tidak ada approver lagi -> dokumen complete
                 $sppk->status       = 'C';
@@ -968,7 +982,7 @@ class SppkController extends Controller
                     'docname'   => 'SPPK',
                     'info'      => $sppk->keperluan,
                     'status'    => $status,
-                    'url'       => url('/showsppks/' . $sppk->id),
+                    'url'       => url('/showsppks/' . $sppk->eid),
                 ];
 
                 $recipients = User::where('username', $sppk->created_by)
@@ -1014,7 +1028,7 @@ class SppkController extends Controller
                         'docname'   => 'SPPK',
                         'info'      => $sppk->keperluan,
                         'status'    => $status,
-                        'url'       => url('/showsppks/' . $sppk->id),
+                        'url'       => url('/showsppks/' . $sppk->eid),
                     ];
 
                     $usernames = array_filter(array_map('trim', explode(',', (string) $next->aprvusername)));
@@ -1114,6 +1128,8 @@ class SppkController extends Controller
         ];
         $subjectSuffix = $subjectMap[$status] ?? 'Notification';
 
+        $sppk->eid = Hashids::encode($sppk->id);
+
         $data = [
             'docid'     => $sppk->sppkid,
             'cpnyid'    => $sppk->cpny_id ?? $sppk->cpnyid ?? '',
@@ -1125,7 +1141,7 @@ class SppkController extends Controller
             'docname'   => 'SPPK',
             'info'      => $sppk->keperluan,
             'status'    => $status,
-            'url'       => url('/showsppks/' . $sppk->id),
+            'url'       => url('/showsppks/' . $sppk->eid),
         ];
 
         $recipients = User::where('username', $sppk->created_by)
@@ -1227,6 +1243,8 @@ class SppkController extends Controller
         ];
         $subjectSuffix = $subjectMap[$status] ?? 'Notification';
 
+        $sppk->eid = Hashids::encode($sppk->id);
+
         $data = [
             'docid'     => $sppk->sppkid,
             'cpnyid'    => $sppk->cpny_id ?? $sppk->cpnyid ?? '',
@@ -1238,7 +1256,7 @@ class SppkController extends Controller
             'docname'   => 'SPPK',
             'info'      => $sppk->keperluan,
             'status'    => $status,
-            'url'       => url('/showsppks/' . $sppk->id),
+            'url'       => url('/showsppks/' . $sppk->eid),
         ];
 
         $recipients = User::where('username', $sppk->created_by)

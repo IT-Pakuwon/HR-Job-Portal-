@@ -316,10 +316,10 @@
                             data-tab="entry">Entry CS</button>
                         <button
                             class="tab-btn px-4 py-2 text-xl font-semibold hover:border-b-2 hover:border-gray-400 dark:hover:border-gray-500"
-                            data-tab="all">All Jobs</button>
+                            data-tab="revision">My Revision</button>
                         <button
                             class="tab-btn px-4 py-2 text-xl font-semibold hover:border-b-2 hover:border-gray-400 dark:hover:border-gray-500"
-                            data-tab="revision">My Revision</button>
+                            data-tab="all">All Jobs</button>                       
                         <button
                             class="tab-btn px-4 py-2 text-xl font-semibold hover:border-b-2 hover:border-gray-400 dark:hover:border-gray-500"
                             data-tab="sppbjkt">SPPBJKT IN Progress</button>
@@ -524,7 +524,8 @@
 
             function renderDocBtn(row) {
                 const base = mapShowUrl[row.doc_type] || '#';
-                const url = `/${base}/${row.src_id}`;
+                // const url = `/${base}/${row.src_id}`;
+                const url = `/${base}/${row.eid}`;
                 return `<a href="${url}" class="inline-flex items-center rounded px-3 py-1.5 bg-blue-600 text-white hover:bg-blue-700 text-sm font-semibold">${row.doc_no}</a>`;
             }
 
@@ -697,67 +698,30 @@
 
             // === ENTRY CS table (TrCS status H & created_by = user login) ===
             const tblEntryCS = $('#tblEntryCS').DataTable({
-                processing: true,
-                serverSide: true,
-                deferRender: true,
-                pageLength: 25,
-                lengthMenu: [10, 25, 50, 100, 250],
-                ajax: {
-                    url: "{{ route('csjobs.entry.json') }}",
-                    type: "GET"
-                }, // <— endpoint baru
-                order: [
-                    [1, 'desc'],
-                    [0, 'desc']
-                ], // csdate desc, csid desc
-                columns: [{
-                        data: 'csid',
-                        className: 'text-left',
-                        render: (v, _t, row) =>
-                            `<a href="/showcs/${row.id}" class="inline-flex items-center rounded px-3 py-1.5 bg-blue-600 text-white hover:bg-blue-700 text-sm font-semibold">${row.csid}</a>`
-                    },
+                processing:true, serverSide:true, deferRender:true,
+                pageLength:25, lengthMenu:[10,25,50,100,250],
+                ajax:{ url:"{{ route('csjobs.entry.json') }}", type:"GET" },
+                order:[[1,'desc'],[0,'desc']], // csdate desc, csid desc
+                columns:[
                     {
-                        data: 'csdate',
-                        className: 'text-center',
-                        render: (v) => v ? (isNaN(new Date(v)) ? v : new Date(v).toLocaleDateString(
-                            'id-ID')) : ''
+                    data:'csid',
+                    className:'text-left',
+                    render:(v,_t,row)=>
+                        `<a href="/editcs/${row.eid}" class="inline-flex items-center rounded px-3 py-1.5
+                        bg-amber-500 text-white hover:bg-amber-600 text-sm font-semibold">
+                        Edit CS: ${v}
+                        </a>`
                     },
-                    {
-                        data: 'cpny_id',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'department_id',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'user_peminta',
-                        className: 'text-left',
-                        defaultContent: '-'
-                    },
-                    {
-                        data: 'csnote',
-                        className: 'text-left',
-                        defaultContent: '-'
-                    },
-                    {
-                        data: null,
-                        orderable: false,
-                        searchable: false,
-                        className: 'text-left',
-                        render: (_d, _t, row) => {
-                            // sesuaikan route edit/lanjutkan draft CS Anda
-                            return `
-                        <div class="flex gap-2">
-                            <a href="/showcs/${row.id}" class="inline-flex items-center rounded px-3 py-1.5 bg-indigo-600 text-white hover:bg-indigo-700 text-sm font-semibold">Open</a>
-                        </div>`;
-                        }
-                    }
+                    { data:'csdate', className:'text-center',
+                    render:(v)=> v ? (isNaN(new Date(v)) ? v : new Date(v).toLocaleDateString('id-ID')) : '' },
+                    { data:'cpny_id', className:'text-center' },
+                    { data:'department_id', className:'text-center' },
+                    { data:'user_peminta', className:'text-left', defaultContent:'-' },
+                    { data:'csnote', className:'text-left', defaultContent:'-' },
                 ],
-                searchDelay: 400,
-                stateSave: true,
-                responsive: true
+                searchDelay:400, stateSave:true, responsive:true
             });
+
 
 
             function fetchCountsForTab(tabKey) {
