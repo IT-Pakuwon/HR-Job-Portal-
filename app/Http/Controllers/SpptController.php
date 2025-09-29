@@ -30,6 +30,7 @@ use PDF;
 use Illuminate\Support\Str;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Imports\BqDetailTempImport; 
+use Vinkla\Hashids\Facades\Hashids;
 
 
 class SpptController extends Controller
@@ -95,22 +96,29 @@ class SpptController extends Controller
         $recordsFiltered = (clone $base)->distinct('sppt.spptid')->count('sppt.spptid');
 
         $data = $base->select(
-                    'sppt.id',
-                    'sppt.spptid',
-                    'sppt.spptdate',
-                    'sppt.cpny_id',
-                    'sppt.department_id',
-                    'sppt.requesttypeid',
-                    'rt.requesttype_name',
-                    'sppt.keperluan',
-                    'sppt.status',
-                    'sppt.created_by'
-                )
-                ->orderBy($orderCol, $orderDir)                  // ← mengikuti request, default ke spptid desc
-                ->orderBy('sppt.spptid', 'desc')                 // ← tie-breaker agar stabil
-                ->skip($start)
-                ->take($length)
-                ->get();
+                'sppt.id',
+                'sppt.spptid',
+                'sppt.spptdate',
+                'sppt.cpny_id',
+                'sppt.department_id',
+                'sppt.requesttypeid',
+                'rt.requesttype_name',
+                'sppt.keperluan',
+                'sppt.status',
+                'sppt.created_by'
+            )
+            ->orderBy($orderCol, $orderDir)                  // ← mengikuti request, default ke spptid desc
+            ->orderBy('sppt.spptid', 'desc')                 // ← tie-breaker agar stabil
+            ->skip($start)
+            ->take($length)
+            ->get();
+
+        // Encode id dengan hashids → tambahkan field eid
+        $data->transform(function ($row) {
+            $row->eid = Hashids::encode($row->id);
+            unset($row->id); // opsional: sembunyikan id asli
+            return $row;
+        });
 
         return response()->json([
             'draw'            => $draw,
@@ -435,6 +443,8 @@ class SpptController extends Controller
                     'C' => 'Completed',
                 ];
                 $subjectSuffix = $subjectMap[$status] ?? 'Notification';
+
+                $header->eid = Hashids::encode($header->id);
                 
                 $data = [
                     'docid'    => $firstApproval->docid,
@@ -446,7 +456,7 @@ class SpptController extends Controller
                     'info'     => $request->keperluan,
                     'status'   => $status,
                     'docname'  => 'SPPT',
-                    'url'      => url('/showsppts/' . $header->id),
+                    'url'      => url('/showsppts/' . $header->eid),
                 ];
                 
                 $approvers = array_filter(array_map('trim', explode(',', (string)$firstApproval->aprvusername)));
@@ -770,6 +780,8 @@ class SpptController extends Controller
                     'C' => 'Completed',
                 ];
                 $subjectSuffix = $subjectMap[$status] ?? 'Notification';
+
+                $header->eid = Hashids::encode($header->id);
                 
                 $data = [
                     'docid'    => $firstApproval->docid,
@@ -781,7 +793,7 @@ class SpptController extends Controller
                     'info'     => $request->keperluan,
                     'status'   => $status,
                     'docname'  => 'SPPT',
-                    'url'      => url('/showsppts/' . $header->id),
+                    'url'      => url('/showsppts/' . $header->eid),
                 ];
 
                 $approvers = array_filter(array_map('trim', explode(',', (string)$firstApproval->aprvusername)));
@@ -823,8 +835,10 @@ class SpptController extends Controller
     }
  
 
-    public function showSppt($id)
+    public function showSppt($hash)
     {        
+        $id = Hashids::decode($hash)[0] ?? null;
+        abort_if(!$id, 404);
         $user = Auth::user();       
 
         if (!$user) {
@@ -858,7 +872,11 @@ class SpptController extends Controller
             ->get();    
             
         $bq = Bq::where('bqid', $sppt->bqid)   
-            ->first();            
+            ->first();          
+            
+        if ($bq) {
+            $bq->eid = Hashids::encode($bq->id);
+        }
        
         return view('pages.sppts.showsppts', compact('sppt','approval','attachment','spptdetail','bq'));
     }
@@ -954,6 +972,8 @@ class SpptController extends Controller
                 'C' => 'Completed',
             ];
 
+            $sppt->eid = Hashids::encode($sppt->id);
+
             if ($pendingCount === 0) {
                 // Tidak ada approver lagi -> dokumen complete
                 $sppt->status       = 'C';
@@ -984,7 +1004,7 @@ class SpptController extends Controller
                     'docname'   => 'SPPT',
                     'info'      => $sppt->keperluan,
                     'status'    => $status,
-                    'url'       => url('/showsppts/' . $sppt->id),
+                    'url'       => url('/showsppts/' . $sppt->eid),
                 ];
 
                 $recipients = User::where('username', $sppt->created_by)
@@ -1030,7 +1050,7 @@ class SpptController extends Controller
                         'docname'   => 'SPPT',
                         'info'      => $sppt->keperluan,
                         'status'    => $status,
-                        'url'       => url('/showsppts/' . $sppt->id),
+                        'url'       => url('/showsppts/' . $sppt->eid),
                     ];
 
                     $usernames = array_filter(array_map('trim', explode(',', (string) $next->aprvusername)));
@@ -1130,6 +1150,8 @@ class SpptController extends Controller
         ];
         $subjectSuffix = $subjectMap[$status] ?? 'Notification';
 
+        $sppt->eid = Hashids::encode($sppt->id);
+
         $data = [
             'docid'     => $sppt->spptid,
             'cpnyid'    => $sppt->cpny_id ?? $sppt->cpnyid ?? '',
@@ -1141,7 +1163,7 @@ class SpptController extends Controller
             'docname'   => 'SPPT',
             'info'      => $sppt->keperluan,
             'status'    => $status,
-            'url'       => url('/showsppts/' . $sppt->id),
+            'url'       => url('/showsppts/' . $sppt->eid),
         ];
 
         $recipients = User::where('username', $sppt->created_by)
@@ -1243,6 +1265,8 @@ class SpptController extends Controller
         ];
         $subjectSuffix = $subjectMap[$status] ?? 'Notification';
 
+        $sppt->eid = Hashids::encode($sppt->id);
+
         $data = [
             'docid'     => $sppt->spptid,
             'cpnyid'    => $sppt->cpny_id ?? $sppt->cpnyid ?? '',
@@ -1254,7 +1278,7 @@ class SpptController extends Controller
             'docname'   => 'SPPT',
             'info'      => $sppt->keperluan,
             'status'    => $status,
-            'url'       => url('/showsppts/' . $sppt->id),
+            'url'       => url('/showsppts/' . $sppt->eid),
         ];
 
         $recipients = User::where('username', $sppt->created_by)
@@ -1419,8 +1443,11 @@ class SpptController extends Controller
         ]);
     }
 
-    public function showBQ($id)
+    public function showBQ($hash)
     {        
+        $id = Hashids::decode($hash)[0] ?? null;
+        abort_if(!$id, 404);
+
         $user = Auth::user();       
 
         if (!$user) {

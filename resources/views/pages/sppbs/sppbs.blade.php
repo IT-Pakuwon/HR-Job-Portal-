@@ -590,7 +590,8 @@
                             {
                                 data: 'sppbid',
                                 render: function(data, type, row) {
-                                    let url = `/showsppbs/${row.id}`;
+                                    // let url = `/showsppbs/${row.id}`;
+                                    let url = `/showsppbs/${row.eid}`;
                                     let cls =
                                         'shrink-0 px-3 py-1.5 bg-indigo-500 text-white rounded hover:bg-indigo-700 text-sm';
                                     const text = data || row.id;

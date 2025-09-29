@@ -143,7 +143,7 @@ class CanvassController extends Controller
         $deptId       = $request->input('department_id');
         $bqid         = $request->input('bqid');
         $userPeminta  = $request->input('user_peminta');
-        $csnote       = $request->input('keperluan');                // textarea #keperluan
+        $csnote       = $request->input('csnote');                // textarea #keperluan
         $assigndate   = $request->input('assigndate');             // hidden #assigndate
         // Dari JS: vendors[] + details[]
         $vendors = json_decode($request->input('vendors', '[]'), true) ?: [];
@@ -588,6 +588,8 @@ class CanvassController extends Controller
                 ];
                 $subjectSuffix = $subjectMap[$status] ?? 'Notification';
 
+                $cs->eid = Hashids::encode($cs->id);
+
                 $data = [
                     'docid'    => $firstApproval->docid,
                     'cpnyid'   => $firstApproval->aprvcpnyid,
@@ -595,10 +597,10 @@ class CanvassController extends Controller
                     'date'     => $firstApproval->aprvdatebefore,
                     'name'     => $firstApproval->name,
                     'createdby'=> $cs->created_by,
-                    'info'     => $csnote,
+                    'info'     => $srcHeader->keperluan,
                     'status'   => $status,
                     'docname'  => 'CS',
-                    'url'      => url('/showcs/' . $cs->id), // sesuaikan route "show"
+                    'url'      => url('/showcs/' . $cs->eid), // sesuaikan route "show"
                 ];
 
                 $approvers = array_filter(array_map('trim', explode(',', (string)$firstApproval->aprvusername)));
@@ -644,7 +646,7 @@ class CanvassController extends Controller
         $deptId       = $request->input('department_id');
         $bqid         = $request->input('bqid');
         $userPeminta  = $request->input('user_peminta');
-        $csnote       = $request->input('keperluan');                // textarea #keperluan
+        $csnote       = $request->input('csnote');                // textarea #keperluan
         $assigndate   = $request->input('assigndate');             // hidden #assigndate
         // Dari JS: vendors[] + details[]
         $vendors = json_decode($request->input('vendors', '[]'), true) ?: [];
@@ -1059,6 +1061,20 @@ class CanvassController extends Controller
             ->first();
         $fullname = data_get($cs, 'creator.name') ?: $cs->created_by;
 
+        $prefix = strtoupper(substr((string)$cs->sppbjktid, 0, 2));
+
+        if ($prefix == 'PB') {
+                $srcHeader = TrSPPB::with(['requestType', 'creator', 'purchaser'])->where('sppbid', $cs->sppbjktid)->first();              
+        } else if ($prefix == 'PJ') {
+                $srcHeader = TrSPPJ::with(['requestType', 'creator', 'purchaser'])->where('sppjid', $cs->sppbjktid)->first();               
+        } else if ($prefix == 'PK') {
+                $srcHeader = TrSPPK::with(['requestType', 'creator', 'purchaser'])->where('sppkid', $cs->sppbjktid)->first();                
+        } else if ($prefix == 'PT') {
+                $srcHeader = TrSPPT::with(['requestType', 'creator', 'purchaser'])->where('spptid', $cs->sppbjktid)->first();              
+        } else {
+            abort(422, 'Invalid doc type');
+        }   
+
         if (!$cs) {
             return response()->json(['success' => false, 'message' => 'CS not found'], 404);
         }
@@ -1102,6 +1118,8 @@ class CanvassController extends Controller
                 'C' => 'Completed',
             ];
 
+            $cs->eid = Hashids::encode($cs->id);
+
             if ($pendingCount === 0) {
                 // Tidak ada approver lagi -> dokumen complete
                 $cs->status       = 'C';
@@ -1120,6 +1138,7 @@ class CanvassController extends Controller
                 // Kirim email ke requester (creator)
                 $status        = 'C';
                 $subjectSuffix = $subjectMap[$status] ?? 'Notification';
+                
 
                 $data = [
                     'docid'     => $cs->csid,
@@ -1130,9 +1149,9 @@ class CanvassController extends Controller
                     'name'      => $fullname,  // fallback
                     'createdby' => $fullname,
                     'docname'   => 'CS',
-                    'info'      => $cs->keperluan,
+                    'info'      => $srcHeader->keperluan,
                     'status'    => $status,
-                    'url'       => url('/showcs/' . $cs->id),
+                    'url'       => url('/showcs/' . $cs->eid),
                 ];
 
                 $recipients = User::where('username', $cs->created_by)
@@ -1178,7 +1197,7 @@ class CanvassController extends Controller
                         'docname'   => 'CS',
                         'info'      => $cs->keperluan,
                         'status'    => $status,
-                        'url'       => url('/showcs/' . $cs->id),
+                        'url'       => url('/showcs/' . $cs->eid),
                     ];
 
                     $usernames = array_filter(array_map('trim', explode(',', (string) $next->aprvusername)));
@@ -1224,6 +1243,20 @@ class CanvassController extends Controller
             ->where('csid', $docid)
             ->first();
         $fullname = data_get($cs, 'creator.name') ?: $cs->created_by;
+
+        $prefix = strtoupper(substr((string)$cs->sppbjktid, 0, 2));
+
+        if ($prefix == 'PB') {
+                $srcHeader = TrSPPB::with(['requestType', 'creator', 'purchaser'])->where('sppbid', $cs->sppbjktid)->first();              
+        } else if ($prefix == 'PJ') {
+                $srcHeader = TrSPPJ::with(['requestType', 'creator', 'purchaser'])->where('sppjid', $cs->sppbjktid)->first();               
+        } else if ($prefix == 'PK') {
+                $srcHeader = TrSPPK::with(['requestType', 'creator', 'purchaser'])->where('sppkid', $cs->sppbjktid)->first();                
+        } else if ($prefix == 'PT') {
+                $srcHeader = TrSPPT::with(['requestType', 'creator', 'purchaser'])->where('spptid', $cs->sppbjktid)->first();              
+        } else {
+            abort(422, 'Invalid doc type');
+        }   
 
         if (!$cs) {
             return response()->json(['success' => false, 'message' => 'Task not found'], 404);
@@ -1278,6 +1311,8 @@ class CanvassController extends Controller
         ];
         $subjectSuffix = $subjectMap[$status] ?? 'Notification';
 
+        $cs->eid = Hashids::encode($cs->id);
+
         $data = [
             'docid'     => $cs->csid,
             'cpnyid'    => $cs->cpny_id ?? $cs->cpnyid ?? '',
@@ -1287,9 +1322,9 @@ class CanvassController extends Controller
             'name'      => $fullname,               // fallback jika view pakai $name
             'createdby' => $fullname,
             'docname'   => 'CS',
-            'info'      => $cs->keperluan,
+            'info'      => $srcHeader->keperluan,
             'status'    => $status,
-            'url'       => url('/showcs/' . $cs->id),
+            'url'       => url('/showcs/' . $cs->eid),
         ];
 
         $recipients = User::where('username', $cs->created_by)
@@ -1336,7 +1371,22 @@ class CanvassController extends Controller
         $cs = TrCS::with('creator')
             ->where('csid', $docid)
             ->first();
+
         $fullname = data_get($cs, 'creator.name') ?: $cs->created_by;
+
+        $prefix = strtoupper(substr((string)$cs->sppbjktid, 0, 2));
+
+        if ($prefix == 'PB') {
+                $srcHeader = TrSPPB::with(['requestType', 'creator', 'purchaser'])->where('sppbid', $cs->sppbjktid)->first();              
+        } else if ($prefix == 'PJ') {
+                $srcHeader = TrSPPJ::with(['requestType', 'creator', 'purchaser'])->where('sppjid', $cs->sppbjktid)->first();               
+        } else if ($prefix == 'PK') {
+                $srcHeader = TrSPPK::with(['requestType', 'creator', 'purchaser'])->where('sppkid', $cs->sppbjktid)->first();                
+        } else if ($prefix == 'PT') {
+                $srcHeader = TrSPPT::with(['requestType', 'creator', 'purchaser'])->where('spptid', $cs->sppbjktid)->first();              
+        } else {
+            abort(422, 'Invalid doc type');
+        }           
             
         if (!$cs) {
             return response()->json(['success' => false, 'message' => 'CS not found'], 404);
@@ -1391,6 +1441,8 @@ class CanvassController extends Controller
         ];
         $subjectSuffix = $subjectMap[$status] ?? 'Notification';
 
+        $cs->eid = Hashids::encode($cs->id);
+
         $data = [
             'docid'     => $cs->csid,
             'cpnyid'    => $cs->cpny_id ?? $cs->cpnyid ?? '',
@@ -1400,9 +1452,9 @@ class CanvassController extends Controller
             'name'      => $fullname,             // fallback jika view pakai $name
             'createdby' => $fullname,
             'docname'   => 'CS',
-            'info'      => $cs->keperluan,
+            'info'      => $srcHeader->keperluan,
             'status'    => $status,
-            'url'       => url('/showcs/' . $cs->id),
+            'url'       => url('/showcs/' . $cs->eid),
         ];
 
         $recipients = User::where('username', $cs->created_by)

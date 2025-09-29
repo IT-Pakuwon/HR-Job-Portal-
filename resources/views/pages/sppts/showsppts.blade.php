@@ -472,7 +472,7 @@
             {{-- Bottom card (SPPT Detail Table + Button BQ) --}}
             @php
                 $bqId = $sppt->bqid ?? '';
-                $bqIdx = $bq->id ?? '';
+                $bqIdx = $bq->eid ?? '';
                 $spptId = $sppt->id ?? '';
                 $hasBq = filled($bqId);
             @endphp

@@ -772,7 +772,7 @@
 
                             // Tampilkan alert sukses
                             toastr.success("CS approved successfully!");
-                            window.location.href = "/cs";
+                            window.location.href = "/dashboard";
                         } else {
                             toastr.error(response.message);
                         }
@@ -845,7 +845,7 @@
                                     );
                                 $spinner.fadeOut();
 
-                                window.location.href = "/cs";
+                                window.location.href = "/dashboard";
                             } else {
                                 alert("Failed to reject cs.");
                             }
@@ -911,7 +911,7 @@
                                         "w-full max-w-32 bg-red-300/30 dark:bg-red-300 text-red-600 flex justify-items-center focus:outline-none pointer-events-none    -none font-semibold px-2 py-0.5 rounded"
                                     );
                                 $spinner.fadeOut();
-                                window.location.href = "/cs";
+                                window.location.href = "/dashboard";
                             } else {
                                 alert("Failed to revise cs.");
                             }

@@ -24,12 +24,13 @@ use App\Models\MsLocationPG;
 use App\Models\MsSubLocationPG;
 use App\Models\vReceivedList;
 use App\Models\vSppbjktOnProgress;
- use App\Models\TrCS;
+use App\Models\TrCS;
 use App\Models\vCsJobs;
 use App\Models\vCsRevision;
 use Mail;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
+use Vinkla\Hashids\Facades\Hashids;
 
 
 class CsJobController extends Controller
@@ -122,8 +123,10 @@ class CsJobController extends Controller
             $row->assigndate        = $row->assigndate ?? null;
             $row->assignby          = $row->assignby ?? null;
             $row->assignpurchasing  = $row->assignpurchasing ?? null;
+            $row->eid = Hashids::encode($row->src_id);
             return $row;
         });
+        
 
         return response()->json([
             'draw'            => $draw,

@@ -45,7 +45,6 @@ use App\Http\Controllers\SppbController;
 use App\Http\Controllers\SppjController; 
 use App\Http\Controllers\SpptController; 
 use App\Http\Controllers\SppkController; 
-use App\Http\Controllers\BqController;
 use App\Http\Controllers\ReceivedListController;
 use App\Http\Controllers\CsJobController;
 use App\Http\Controllers\CsListController;
@@ -394,7 +393,7 @@ Route::post('/logout', function () {
     Route::get('/budgets/json', [BudgetController::class, 'json'])->name('budgets.json');
     Route::get('/createbudgets', [BudgetController::class, 'createBudget'])->name('budget.create');
     Route::post('/budgets', [BudgetController::class, 'storeBudget'])->name('budgets.store');
-    Route::get('/showbudgets/{id}', [BudgetController::class, 'showBudget']);
+    Route::get('/showbudgets/{hash}', [BudgetController::class, 'showBudget']);
     Route::get('/budget/{id}/comments', [BudgetController::class, 'fetchComments']);
     Route::post('/budget/{id}/comments', [BudgetController::class, 'storeComment']);
     Route::post('/budget/{id}/approve', [BudgetController::class, 'approveBudget']);
@@ -413,7 +412,7 @@ Route::post('/logout', function () {
     Route::get('/sppbs/json', [SppbController::class, 'json'])->name('sppbs.json');
     Route::get('/createsppbs', [SppbController::class, 'createSppb']);
     Route::post('/sppbs', [SppbController::class, 'storeSppb'])->name('sppbs.store');
-    Route::get('/showsppbs/{id}', [SppbController::class, 'showSppb']);
+    Route::get('/showsppbs/{hash}', [SppbController::class, 'showSppb']);
     Route::get('/sppb/{id}/comments', [SppbController::class, 'fetchComments']);
     Route::post('/sppb/{id}/comments', [SppbController::class, 'storeComment']);
     Route::post('/sppb/{id}/approve', [SppbController::class, 'approveSppb']);
@@ -430,7 +429,7 @@ Route::post('/logout', function () {
     Route::get('/sppjs/json', [SppjController::class, 'json'])->name('sppjs.json');
     Route::get('/createsppjs', [SppjController::class, 'createSppj']);
     Route::post('/sppjs', [SppjController::class, 'storeSppj'])->name('sppjs.store');
-    Route::get('/showsppjs/{id}', [SppjController::class, 'showSppj']);
+    Route::get('/showsppjs/{hash}', [SppjController::class, 'showSppj']);
     Route::get('/sppj/{id}/comments', [SppjController::class, 'fetchComments']);
     Route::post('/sppj/{id}/comments', [SppjController::class, 'storeComment']);
     Route::post('/sppj/{id}/approve', [SppjController::class, 'approveSppj']);
@@ -441,7 +440,7 @@ Route::post('/logout', function () {
     Route::put('/sppjs/remove-attachment/{id}', [SppjController::class, 'removeAttachment']);    
     Route::get('/sppj/{id}/check-approval/{action}', [SppjController::class, 'checkApproval']);     
     Route::get('/sppjs/{id}/tracking', [SppjController::class, 'tracking'])->name('sppjs.tracking');
-    Route::get('/showbqsppjs/{id}', [SppjController::class, 'showBQ']);
+    Route::get('/showbqsppjs/{hash}', [SppjController::class, 'showBQ']);
     Route::get('/editbqsppjs/{id}', [SppjController::class, 'editBQ'])->name('bqsppj.edit');    
     Route::put('/bqs/remove-attachment/{id}', [SppjController::class, 'removeAttachment']);
     Route::get('/pdf_sppjs/{id}', [SppjController::class, 'printSppj']);
@@ -462,7 +461,7 @@ Route::post('/logout', function () {
     Route::get('/sppts/json', [SpptController::class, 'json'])->name('sppts.json');
     Route::get('/createsppts', [SpptController::class, 'createSppt']);
     Route::post('/sppts', [SpptController::class, 'storeSppt'])->name('sppts.store');
-    Route::get('/showsppts/{id}', [SpptController::class, 'showSppt']);
+    Route::get('/showsppts/{hash}', [SpptController::class, 'showSppt']);
     Route::get('/sppt/{id}/comments', [SpptController::class, 'fetchComments']);
     Route::post('/sppt/{id}/comments', [SpptController::class, 'storeComment']);
     Route::post('/sppt/{id}/approve', [SpptController::class, 'approveSppt']);
@@ -473,7 +472,7 @@ Route::post('/logout', function () {
     Route::put('/sppts/remove-attachment/{id}', [SpptController::class, 'removeAttachment']);    
     Route::get('/sppt/{id}/check-approval/{action}', [SpptController::class, 'checkApproval']);     
     Route::get('/sppts/{id}/tracking', [SpptController::class, 'tracking'])->name('sppts.tracking');
-    Route::get('/showbqsppts/{id}', [SpptController::class, 'showBQ']);
+    Route::get('/showbqsppts/{hash}', [SpptController::class, 'showBQ']);
     Route::get('/editbqsppts/{id}', [SpptController::class, 'editBQ'])->name('bqsppt.edit');    
     Route::put('/bqs/remove-attachment/{id}', [SpptController::class, 'removeAttachment']);
     Route::get('/pdf_sppts/{id}', [SpptController::class, 'printSppt']);
@@ -488,7 +487,7 @@ Route::post('/logout', function () {
     Route::get('/sppks/json', [SppkController::class, 'json'])->name('sppks.json');
     Route::get('/createsppks', [SppkController::class, 'createSppk']);
     Route::post('/sppks', [SppkController::class, 'storeSppk'])->name('sppks.store');
-    Route::get('/showsppks/{id}', [SppkController::class, 'showSppk']);
+    Route::get('/showsppks/{hash}', [SppkController::class, 'showSppk']);
     Route::get('/sppk/{id}/comments', [SppkController::class, 'fetchComments']);
     Route::post('/sppk/{id}/comments', [SppkController::class, 'storeComment']);
     Route::post('/sppk/{id}/approve', [SppkController::class, 'approveSppk']);

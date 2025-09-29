@@ -299,7 +299,7 @@
                                 <!-- Note CS -->
                                 <div>
                                     <label class="text-sm font-medium text-gray-600 dark:text-gray-400">Note CS</label>
-                                    <textarea name="keperluan" id="keperluan"
+                                    <textarea name="csnote" id="csnote"
                                         class="mt-1 w-full rounded-md border border-gray-300 bg-white p-3 text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500/50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200"
                                         rows="8"></textarea>
                                 </div>
@@ -1292,6 +1292,7 @@
                 success: function(res) {
                     hideOverlay();
                     toastr.success('CS berhasil disimpan.');
+                    window.location.href = "/csjobs";
                     // window.location.href = res.redirect ?? window.location.href;
                 },
                 error: function(xhr) {
@@ -1482,6 +1483,7 @@
                 success: function(res) {
                     hideOverlay();
                     toastr.success('CS berhasil disimpan.');
+                    window.location.href = "/cslist";
                     // window.location.href = res.redirect ?? window.location.href;
                 },
                 error: function(xhr) {

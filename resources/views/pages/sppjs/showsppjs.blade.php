@@ -434,7 +434,7 @@
             {{-- Bottom card (SPPJ Detail Table + Button BQ) --}}
             @php
                 $bqId = $sppj->bqid ?? '';
-                $bqIdx = $bq->id ?? '';
+                $bqIdx = $bq->eid ?? '';
                 $sppjId = $sppj->id ?? '';
                 $hasBq = filled($bqId);
             @endphp
