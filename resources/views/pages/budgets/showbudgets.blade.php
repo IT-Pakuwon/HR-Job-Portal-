@@ -169,7 +169,7 @@
             <div class="flex flex-col gap-6 sm:w-1/2 md:w-full xl:flex-row">
                 <div class="rounded-xl bg-white duration-300 sm:w-1/2 md:w-full dark:bg-gray-800">
                     <header
-                        class="dark: flex items-center justify-between rounded-t-xl border-b border-gray-200 border-gray-700 bg-gray-50 px-6 py-4 dark:bg-gray-700">
+                        class="sticky top-0 z-10 flex items-center justify-between rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
                         {{-- Rounded-t-xl, stronger    , and darker background for header --}}
                         <h1 class="flex items-center gap-2 text-2xl font-bold text-gray-800 dark:text-gray-100">
                             {{-- Larger, bolder title --}}
@@ -187,20 +187,13 @@
                                 default => 'Unknown',
                             };
 
-                            // Define the status badge classes based on the status
-                            $statusClasses = '';
-                            if ($budget->status === 'D') {
-                                $statusClasses = 'bg-blue-100 text-blue-700 dark:bg-blue-800/30 dark:text-blue-300';
-                            } elseif ($budget->status === 'P') {
-                                $statusClasses =
-                                    'bg-yellow-100 text-yellow-700 dark:bg-yellow-800/30 dark:text-yellow-300';
-                            } elseif ($budget->status === 'C') {
-                                $statusClasses = 'bg-green-100 text-green-700 dark:bg-green-800/30 dark:text-green-300';
-                            } elseif (in_array($budget->status, ['X', 'R'])) {
-                                $statusClasses = 'bg-red-100 text-red-700 dark:bg-red-800/30 dark:text-red-300';
-                            } else {
-                                $statusClasses = 'bg-gray-100 text-gray-700 dark:bg-gray-800/30 dark:text-gray-300';
-                            }
+                            $statusClasses = match ($budget->status) {
+                                'D' => 'bg-blue-100 text-blue-700 dark:bg-blue-800/30 dark:text-blue-300',
+                                'P' => 'bg-yellow-100 text-yellow-700 dark:bg-yellow-800/30 dark:text-yellow-300',
+                                'C' => 'bg-green-100 text-green-700 dark:bg-green-800/30 dark:text-green-300',
+                                'X', 'R' => 'bg-red-100 text-red-700 dark:bg-red-800/30 dark:text-red-300',
+                                default => 'bg-gray-100 text-gray-700 dark:bg-gray-800/30 dark:text-gray-300',
+                            };
                         @endphp
                         <span
                             class="{{ $statusClasses }} inline-flex items-center rounded-full px-4 py-1 text-sm font-semibold transition-colors duration-200">
@@ -241,14 +234,11 @@
                             @endphp
                             @foreach ($jobDetails as $detail)
                                 <div
-                                    class="flex items-center gap-4 rounded-lg border-gray-200 bg-gray-200/10 p-3 dark:border-gray-700 dark:bg-gray-800">
-                                    <div>
-                                        <p class="text-base font-medium text-gray-900 dark:text-gray-100">
-                                            <span
-                                                class="mr-1 text-xs text-gray-500 dark:text-gray-400">{{ $detail['label'] }}:</span>
-                                            {{ $detail['value'] }}
-                                        </p>
-                                    </div>
+                                    class="rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-800">
+                                    <p class="text-xs text-gray-500 dark:text-gray-400">{{ $detail['label'] }}</p>
+                                    <p class="text-sm font-medium text-gray-900 dark:text-gray-100">
+                                        {{ $detail['value'] }}
+                                    </p>
                                 </div>
                             @endforeach
                         </div>
