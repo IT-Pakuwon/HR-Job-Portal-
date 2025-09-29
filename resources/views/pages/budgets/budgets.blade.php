@@ -271,7 +271,7 @@
                     class="flex flex-col items-start justify-between gap-4 border-b border-gray-200 p-4 sm:flex-row sm:items-center dark:border-gray-700">
                     <h1 class="text-xl font-extrabold text-gray-700 dark:text-white">Budget</h1>
                     <a href="{{ url('/createbudgets') }}"
-                        class="inline-flex items-center rounded-xl bg-indigo-600 px-6 py-2 text-base font-semibold text-white transition-colors duration-200 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                        class="inline-flex items-center rounded-xl bg-blue-600 px-6 py-2 text-base font-semibold text-white transition-colors duration-200 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
                         <i class="fas fa-plus pr-2"></i>Import Budget</a>
                 </div>
                 <div class="overflow-x-auto p-6">
@@ -329,14 +329,14 @@
                                     // let url = `/showbudgets/${row.id}`;
                                     let url = `/showbudgets/${row.eid}`;
                                     let buttonClass =
-                                        'px-4 py-2.5 bg-indigo-500 text-white rounded hover:bg-indigo-700';
+                                        'px-6 py-2 bg-gray-500 text-white rounded hover:bg-gray-700';
                                     let buttonText = row.budget_id;
 
                                     // **Cek apakah user yang login sama dengan created_user dan status = D**
                                     if (row.status === 'D' && row.created_by === currentUser) {
                                         url = `/editbudgets/${row.id}`;
                                         buttonClass =
-                                            'px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-700';
+                                            'px-4 py-2 bg-amber-500 text-white rounded hover:bg-amber-700';
                                     }
 
                                     return `<a href="${url}" class="px-3 py-1 ${buttonClass} text-white rounded">${buttonText}</a>`;

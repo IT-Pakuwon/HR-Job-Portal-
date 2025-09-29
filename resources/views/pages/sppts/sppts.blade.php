@@ -300,7 +300,7 @@
                     {{-- Changed text-3xl to text-xl --}}
                     <h1 class="text-xl font-extrabold text-gray-700 dark:text-white">Request SPPT</h1>
                     <a href="{{ url('/createsppts') }}"
-                        class="inline-flex items-center rounded-xl bg-indigo-600 px-6 py-2 text-base font-semibold text-white transition-colors duration-200 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                        class="inline-flex items-center rounded-xl bg-blue-600 px-6 py-2 text-base font-semibold text-white transition-colors duration-200 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
                         <i class="fas fa-plus pr-2"></i>Create
                     </a>
                 </div>
@@ -648,7 +648,7 @@
                                     // let url = `/showsppts/${row.id}`;
                                     let url = `/showsppts/${row.eid}`;
                                     let cls =
-                                        'shrink-0 px-3 py-1.5 bg-indigo-500 text-white rounded hover:bg-indigo-700 text-sm';
+                                        'shrink-0 px-6 py-2 bg-gray-500 text-white rounded hover:bg-gray-700 text-sm';
                                     const text = data || row.id;
 
                                     // jika status Draft & milik current user → ke halaman edit

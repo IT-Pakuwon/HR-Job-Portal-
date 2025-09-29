@@ -300,7 +300,7 @@
                     {{-- Changed text-3xl to text-xl --}}
                     <h1 class="text-xl font-extrabold text-gray-700 dark:text-white">Request SPPJ</h1>
                     <a href="{{ url('/createsppjs') }}"
-                        class="inline-flex items-center rounded-xl bg-indigo-600 px-6 py-2 text-base font-semibold text-white transition-colors duration-200 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                        class="inline-flex items-center rounded-xl bg-blue-600 px-6 py-2 text-base font-semibold text-white transition-colors duration-200 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
                         <i class="fas fa-plus pr-2"></i>Create
                     </a>
                 </div>
@@ -648,7 +648,7 @@
                                     // let url = `/showsppjs/${row.id}`;
                                     let url = `/showsppjs/${row.eid}`;
                                     let cls =
-                                        'shrink-0 px-3 py-1.5 bg-indigo-500 text-white rounded hover:bg-indigo-700 text-sm';
+                                        'shrink-0 px-6 py-2 bg-gray-500 text-white rounded hover:bg-gray-700 text-sm';
                                     const text = data || row.id;
 
                                     // jika status Draft & milik current user → ke halaman edit
@@ -662,7 +662,7 @@
                                     <div class="flex items-center gap-2 whitespace-nowrap">
                                         <a href="${url}" class="${cls}">${text}</a>
                                         <button type="button"
-                                        class="tracking-btn inline-flex items-center justify-center rounded-full p-2
+                                        class="tracking-btn inline-flex items-center justify-center p-2
                                                 text-red-600 hover:text-red-700 hover:bg-red-50"
                                         data-id="${row.id}" aria-label="Tracking" title="Tracking">
                                         <i class="fa-solid fa-paper-plane"></i>

@@ -260,7 +260,7 @@
         $currentPage = Route::currentRouteName() == 'canvass' ? 'HR' : '';
     @endphp
     <div class="max-w-9xl mx-auto w-full px-4 py-4 sm:px-6 lg:px-8">
-        <div class="grid-col-1 grid gap-6 xl:grid-cols-5 xl:grid-rows-1">
+        <div class="mb-4 grid grid-cols-1 gap-4 sm:grid-cols-5">
             <div
                 class="flex items-center gap-4 rounded-lg border border-orange-700 bg-orange-200/20 p-3 text-orange-600">
                 <span class="text-xl">📄</span>
@@ -319,7 +319,7 @@
                             data-tab="revision">My Revision</button>
                         <button
                             class="tab-btn px-4 py-2 text-xl font-semibold hover:border-b-2 hover:border-gray-400 dark:hover:border-gray-500"
-                            data-tab="all">All Jobs</button>                       
+                            data-tab="all">All Jobs</button>
                         <button
                             class="tab-btn px-4 py-2 text-xl font-semibold hover:border-b-2 hover:border-gray-400 dark:hover:border-gray-500"
                             data-tab="sppbjkt">SPPBJKT IN Progress</button>
@@ -355,8 +355,8 @@
                         <table id="tblMine" class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                             <thead class="bg-gray-50 dark:bg-gray-700">
                                 <tr>
-                                    <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">
-                                        Create CS</th>
+                                    <th class="w-32 px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">
+                                        Action</th>
                                     <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">DocID
                                     </th>
                                     <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">
@@ -444,8 +444,8 @@
                         <table id="tblRevision" class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                             <thead class="bg-gray-50 dark:bg-gray-700">
                                 <tr>
-                                    <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">
-                                        Create CS</th>
+                                    <th class="w-2 px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">
+                                        Action</th>
                                     <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">
                                         DocID</th>
                                     <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">
@@ -526,7 +526,7 @@
                 const base = mapShowUrl[row.doc_type] || '#';
                 // const url = `/${base}/${row.src_id}`;
                 const url = `/${base}/${row.eid}`;
-                return `<a href="${url}" class="inline-flex items-center rounded px-3 py-1.5 bg-blue-600 text-white hover:bg-blue-700 text-sm font-semibold">${row.doc_no}</a>`;
+                return `<a href="${url}" class="rounded px-6 py-2 bg-gray-500 text-white rounded hover:bg-gray-700 w-32">${row.doc_no}</a>`;
             }
 
             function colSetWithoutCreate() {
@@ -547,37 +547,37 @@
                     // 2) doc_date
                     {
                         data: 'doc_date',
-                        className: 'text-center',
+                        className: 'text-left',
                         render: (v) => v ? (isNaN(new Date(v)) ? v : new Date(v).toLocaleDateString('id-ID')) :
                             ''
                     },
                     // 3) cpny_id
                     {
                         data: 'cpny_id',
-                        className: 'text-center'
+                        className: 'text-left'
                     },
                     // 4) created_by_name
                     {
                         data: 'created_by_name',
-                        className: 'text-center',
+                        className: 'text-left',
                         defaultContent: '-'
                     },
                     // 5) assignpurchasing
                     {
                         data: 'assignpurchasing',
-                        className: 'text-center',
+                        className: 'text-left',
                         defaultContent: ''
                     },
                     // 6) assignby
                     {
                         data: 'assignby',
-                        className: 'text-center',
+                        className: 'text-left',
                         defaultContent: ''
                     },
                     // 7) department_id
                     {
                         data: 'department_id',
-                        className: 'text-center'
+                        className: 'text-left'
                     },
                     // 8) keperluan
                     {
@@ -595,7 +595,9 @@
                     className: 'text-left',
                     render: function(_d, _t, row) {
                         const url = buildCreateUrl(row);
-                        return `<a href="${url}" class="inline-flex items-center rounded px-3 py-1.5 bg-indigo-600 text-white hover:bg-indigo-700 text-sm font-semibold">Create CS</a>`;
+                        return `<a href="${url}" class="inline-flex items-center rounded bg-indigo-600 px-6 py-2 text-base font-semibold text-white transition-colors duration-200 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                        <i class="fas fa-plus"></i>
+                    </a>`;
                     }
                 };
                 return [createCol, ...colSetWithoutCreate()];
@@ -698,28 +700,56 @@
 
             // === ENTRY CS table (TrCS status H & created_by = user login) ===
             const tblEntryCS = $('#tblEntryCS').DataTable({
-                processing:true, serverSide:true, deferRender:true,
-                pageLength:25, lengthMenu:[10,25,50,100,250],
-                ajax:{ url:"{{ route('csjobs.entry.json') }}", type:"GET" },
-                order:[[1,'desc'],[0,'desc']], // csdate desc, csid desc
-                columns:[
-                    {
-                    data:'csid',
-                    className:'text-left',
-                    render:(v,_t,row)=>
-                        `<a href="/editcs/${row.eid}" class="inline-flex items-center rounded px-3 py-1.5
+                processing: true,
+                serverSide: true,
+                deferRender: true,
+                pageLength: 25,
+                lengthMenu: [10, 25, 50, 100, 250],
+                ajax: {
+                    url: "{{ route('csjobs.entry.json') }}",
+                    type: "GET"
+                },
+                order: [
+                    [1, 'desc'],
+                    [0, 'desc']
+                ], // csdate desc, csid desc
+                columns: [{
+                        data: 'csid',
+                        className: 'text-left',
+                        render: (v, _t, row) =>
+                            `<a href="/editcs/${row.eid}" class="rounded px-6 py-2
                         bg-amber-500 text-white hover:bg-amber-600 text-sm font-semibold">
                         Edit CS: ${v}
                         </a>`
                     },
-                    { data:'csdate', className:'text-center',
-                    render:(v)=> v ? (isNaN(new Date(v)) ? v : new Date(v).toLocaleDateString('id-ID')) : '' },
-                    { data:'cpny_id', className:'text-center' },
-                    { data:'department_id', className:'text-center' },
-                    { data:'user_peminta', className:'text-left', defaultContent:'-' },
-                    { data:'csnote', className:'text-left', defaultContent:'-' },
+                    {
+                        data: 'csdate',
+                        className: 'text-center',
+                        render: (v) => v ? (isNaN(new Date(v)) ? v : new Date(v).toLocaleDateString(
+                            'id-ID')) : ''
+                    },
+                    {
+                        data: 'cpny_id',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'department_id',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'user_peminta',
+                        className: 'text-left',
+                        defaultContent: '-'
+                    },
+                    {
+                        data: 'csnote',
+                        className: 'text-left',
+                        defaultContent: '-'
+                    },
                 ],
-                searchDelay:400, stateSave:true, responsive:true
+                searchDelay: 400,
+                stateSave: true,
+                responsive: true
             });
 
 

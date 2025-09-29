@@ -306,14 +306,14 @@
                                 render: function(data, type, row) {
                                     let url = `/showjobpostings/${row.id}`;
                                     let buttonClass =
-                                        'px-4 py-2.5 bg-indigo-500 text-white rounded hover:bg-indigo-700';
+                                        'px-6 py-2 bg-gray-500 text-white rounded hover:bg-gray-700';
                                     let buttonText = row.docid;
 
                                     // **Cek apakah user yang login sama dengan created_user dan status = D**
                                     if (row.status === 'D' && row.created_user === currentUser) {
                                         url = `/editjobpostings/${row.id}`;
                                         buttonClass =
-                                            'px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-700';
+                                            'px-4 py-2 bg-amber-500 text-white rounded hover:bg-amber-700';
                                     }
 
                                     return `<a href="${url}" class="px-3 py-1 ${buttonClass} text-white rounded">${buttonText}</a>`;

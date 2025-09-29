@@ -489,7 +489,7 @@
                                 render: function(data, type, row) {
                                     let url = `/showjobpostings/${row.id}`;
                                     let buttonClass =
-                                        'px-4 py-2.5 bg-indigo-500 text-white rounded hover:bg-indigo-700';
+                                        'px-6 py-2 bg-gray-500 text-white rounded hover:bg-gray-700';
                                     let buttonText = row.docid;
 
                                     return `<a href="${url}" class="px-3 py-1 ${buttonClass} text-white rounded">${buttonText}</a>`;

@@ -272,7 +272,7 @@
                     <h1 class="text-xl font-extrabold text-gray-700 dark:text-white">Organization Structure</h1>
                     <div class="flex gap-2">
                         <a href="{{ url('/createstos') }}"
-                            class="inline-flex items-center rounded-xl bg-indigo-600 px-6 py-2 text-base font-semibold text-white transition-colors duration-200 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                            class="inline-flex items-center rounded-xl bg-blue-600 px-6 py-2 text-base font-semibold text-white transition-colors duration-200 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
                             <i class="fas fa-plus pr-2"></i>Create
                         </a>
                         <a href="{{ url('/stoall') }}"
@@ -347,13 +347,13 @@
                                 render: function(data, type, row) {
                                     let url = `/showstos/${row.id}`;
                                     let buttonClass =
-                                        'px-4 py-2.5 bg-indigo-500 text-white rounded hover:bg-indigo-700';
+                                        'px-6 py-2 bg-gray-500 text-white rounded hover:bg-gray-700';
                                     let buttonText = row.sto_id;
 
                                     if (row.status === 'D' && row.created_user === currentUser) {
                                         url = `/editstos/${row.id}`;
                                         buttonClass =
-                                            'px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-700';
+                                            'px-4 py-2 bg-amber-500 text-white rounded hover:bg-amber-700';
                                     }
                                     // Jika status H, arahkan ke /createstos?id=...
                                     if (row.status === 'H' && row.created_user === currentUser) {

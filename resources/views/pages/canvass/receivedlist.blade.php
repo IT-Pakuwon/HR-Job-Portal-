@@ -301,7 +301,7 @@
                     {{-- Changed text-3xl to text-xl --}}
                     <h1 class="text-xl font-extrabold text-gray-700 dark:text-white">Received List</h1>
                     <button id="btnAssignPurchasing"
-                        class="inline-flex items-center rounded-xl bg-indigo-600 px-6 py-2 text-base font-semibold text-white transition-colors duration-200 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                        class="inline-flex items-center rounded-xl bg-blue-600 px-6 py-2 text-base font-semibold text-white transition-colors duration-200 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
                         <i class="fas fa-check pr-2"></i>Assign Purchasing
                     </button>
                 </div>
@@ -467,7 +467,7 @@
                                     .on('select2:select', function(e) {
                                         const d = e.params.data;
                                         console.log('selected:',
-                                        d); // {id: 'username', text: 'Nama'}
+                                            d); // {id: 'username', text: 'Nama'}
                                     })
                                     .on('select2:clear', function() {
                                         $(this).val('').trigger('change');
