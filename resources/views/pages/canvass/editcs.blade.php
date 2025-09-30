@@ -1293,6 +1293,7 @@
             const fd = new FormData(document.getElementById('csForm'));
             fd.append('vendors', JSON.stringify(vendors));
             fd.append('details', JSON.stringify(details));
+            fd.append('action', 'save');
 
             showOverlay('Submitting');
 
@@ -1492,18 +1493,21 @@
             const fd = new FormData(document.getElementById('csForm'));
             fd.append('vendors', JSON.stringify(vendors));
             fd.append('details', JSON.stringify(details));
+            fd.append('action', 'submit');
 
             showOverlay('Submitting');
 
             $.ajax({
-                url: "{{ route('cs.store') }}",
+                // url: "{{ route('cs.store') }}",
+                url: "{{ route('csjobs.update', $cs->csid) }}",
                 method: 'POST',
                 data: fd,
                 processData: false,
                 contentType: false,
+                beforeSend: function(xhr){ fd.append('_method','PUT'); },
                 success: function(res) {
                     hideOverlay();
-                    toastr.success('CS berhasil disimpan.');
+                    toastr.success('CS berhasil disubmit.');
                     window.location.href = "/cslist";
                     // window.location.href = res.redirect ?? window.location.href;
                 },

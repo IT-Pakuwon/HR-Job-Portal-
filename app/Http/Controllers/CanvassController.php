@@ -625,7 +625,7 @@ class CanvassController extends Controller
                 ];
                 $subjectSuffix = $subjectMap[$status] ?? 'Notification';
 
-                $cs->eid = Hashids::encode($cs->id);
+                $eid = Hashids::encode($cs->id);
 
                 $data = [
                     'docid'    => $firstApproval->docid,
@@ -637,7 +637,7 @@ class CanvassController extends Controller
                     'info'     => $srcHeader->keperluan,
                     'status'   => $status,
                     'docname'  => 'CS',
-                    'url'      => url('/showcs/' . $cs->eid), // sesuaikan route "show"
+                    'url'      => url('/showcs/' . $eid), // sesuaikan route "show"
                 ];
 
                 $approvers = array_filter(array_map('trim', explode(',', (string)$firstApproval->aprvusername)));
@@ -1049,6 +1049,7 @@ class CanvassController extends Controller
             'srcHeader'     => $srcHeader,
             'docid'     => $docid,
             'prefix'    => $prefix,
+            'hash'      => $hash,
         ]);
     }
 
@@ -1156,7 +1157,7 @@ class CanvassController extends Controller
                 'C' => 'Completed',
             ];
 
-            $cs->eid = Hashids::encode($cs->id);
+            $eid = Hashids::encode($cs->id);
 
             if ($pendingCount === 0) {
                 // Tidak ada approver lagi -> dokumen complete
@@ -1189,7 +1190,7 @@ class CanvassController extends Controller
                     'docname'   => 'CS',
                     'info'      => $srcHeader->keperluan,
                     'status'    => $status,
-                    'url'       => url('/showcs/' . $cs->eid),
+                    'url'       => url('/showcs/' . $eid),
                 ];
 
                 $recipients = User::where('username', $cs->created_by)
@@ -1235,7 +1236,7 @@ class CanvassController extends Controller
                         'docname'   => 'CS',
                         'info'      => $cs->keperluan,
                         'status'    => $status,
-                        'url'       => url('/showcs/' . $cs->eid),
+                        'url'       => url('/showcs/' . $eid),
                     ];
 
                     $usernames = array_filter(array_map('trim', explode(',', (string) $next->aprvusername)));
@@ -1349,7 +1350,7 @@ class CanvassController extends Controller
         ];
         $subjectSuffix = $subjectMap[$status] ?? 'Notification';
 
-        $cs->eid = Hashids::encode($cs->id);
+        $eid = Hashids::encode($cs->id);
 
         $data = [
             'docid'     => $cs->csid,
@@ -1362,7 +1363,7 @@ class CanvassController extends Controller
             'docname'   => 'CS',
             'info'      => $srcHeader->keperluan,
             'status'    => $status,
-            'url'       => url('/showcs/' . $cs->eid),
+            'url'       => url('/showcs/' . $eid),
         ];
 
         $recipients = User::where('username', $cs->created_by)
@@ -1479,7 +1480,7 @@ class CanvassController extends Controller
         ];
         $subjectSuffix = $subjectMap[$status] ?? 'Notification';
 
-        $cs->eid = Hashids::encode($cs->id);
+        $eid = Hashids::encode($cs->id);
 
         $data = [
             'docid'     => $cs->csid,
@@ -1492,7 +1493,7 @@ class CanvassController extends Controller
             'docname'   => 'CS',
             'info'      => $srcHeader->keperluan,
             'status'    => $status,
-            'url'       => url('/showcs/' . $cs->eid),
+            'url'       => url('/showcs/' . $eid),
         ];
 
         $recipients = User::where('username', $cs->created_by)
@@ -1657,41 +1658,39 @@ class CanvassController extends Controller
         ]);
     }
 
-    public function printCS(int $id)
+    public function printCS($hash)
     {
+        $id = Hashids::decode($hash)[0] ?? null;
+        abort_if(!$id, 404);
+
         $authUser = Auth::user();
         if (!$authUser) {
             return redirect()->route('login');
         }
 
-        // Ambil CS + relasi yang dibutuhkan
+        // Header CS + relasi
         $cs = TrCS::with([
-                'requestType:requesttypeid,requesttype_name',
-                'creator:username,name',
-            ])
-            ->findOrFail($id);
+            'creator:username,name',
+            'updater:username,name',
+            'completer:username,name',                      
+        ])->findOrFail($id);
 
-        // Detail baris CS
+        // Detail
         $csdetail = TrCSdetail::with([
-                'location:location_id,location_name',
-                'subLocation:sub_location_id,sub_location_name',
-            ])
-            ->where('csid', $cs->csid)
-            ->get();
+            'location:location_id,location_name',
+            'subLocation:sub_location_id,sub_location_name',
+        ])->where('csid', $cs->csid)->orderBy('cs_no')->get();
 
-        // Approval list (non-cancelled)
+        // Approval
         $approval = T_approval::where('docid', $cs->csid)
             ->where('status', '<>', 'X')
-            ->orderBy('aprvid')
-            ->orderBy('created_at')
-            ->get();
-
+            ->orderBy('aprvid')->orderBy('created_at')->get();
         $approve_count = $approval->count();
 
-        // Company (handle null)
+        // Company
         $company = Company::where('cpnyid', $cs->cpny_id)->first();
 
-        // Mapping status dokumen
+        // Map status
         switch ($cs->status) {
             case 'R':
                 $status_doc = 'Rejected';
@@ -1710,41 +1709,61 @@ class CanvassController extends Controller
                 break;
         }
 
+        // --- susun daftar vendor dinamis dari kolom vendor1..vendor6 di header CS
+        $vendors = [];
+        for ($i = 1; $i <= 6; $i++) {
+            $idCol   = "vendorid{$i}";
+            $nameCol = "vendorname{$i}";
+            if (!filled($cs->{$idCol}) && !filled($cs->{$nameCol})) continue;
+
+            $vendors[] = [
+                'idx'         => $i,
+                'id'          => $cs->{$idCol},
+                'name'        => $cs->{$nameCol},
+                'addr'        => $cs->{"vendoralamat{$i}"} ?? null,
+                'cp'          => $cs->{"vendorcp{$i}"} ?? null,
+                'telp'        => $cs->{"vendortelp{$i}"} ?? null,
+                'top'         => $cs->{"vendortop{$i}"} ?? null,
+                // ringkasan
+                'total'       => (float) ($cs->{"totalvendor{$i}"} ?? 0),
+                'tax'         => (float) ($cs->{"taxvendor{$i}"} ?? 0),
+                'grand'       => (float) ($cs->{"grandtotalvendor{$i}"} ?? 0),
+            ];
+        }
+        $vendorCount = count($vendors); // dipakai view untuk lebar kolom dll.
+
         $data = [
-            'title'               => 'Surat Permintaan Pembelian Barang',
+            'title'               => 'Canvassing Sheet',
             'doc_type'            => 'CS',
             'docid'               => $cs->csid,
             'department_id'       => $cs->department_id,
             'cpnyname'            => optional($company)->cpnyname,
             'parent'              => optional($company)->parent,
             'project'             => optional($company)->project,
-            // identitas & tanggal
             'created_by_username' => $cs->created_by,
             'created_by_name'     => ucwords(strtolower(optional($cs->creator)->name)),
             'created_at_fmt'      => optional($cs->created_at)->format('d F Y'),
             'req_date_fmt'        => optional($cs->created_at)->format('d M Y H:i'),
-            'csdate'            => \Carbon\Carbon::parse($cs->csdate)->format('d F Y'),
-            // konten
-            'keperluan'           => $cs->keperluan,
+            'csdate'              => \Carbon\Carbon::parse($cs->csdate)->format('d F Y'),
+            'keperluan'           => $cs->csnote ?? $cs->keperluan, // pilih yang tersedia
             'status_doc'          => $status_doc,
             'requesttype_name'    => optional($cs->requestType)->requesttype_name,
+            'vendors'             => $vendors,
+            'vendorCount'         => $vendorCount,
         ];
 
-        // Kirim ke view
-        $pdf = \PDF::loadView(
-            'pages.cs.pdf_cs',
-            array_merge($data, [
-                'detail'         => $csdetail,
-                'approval'       => $approval,
-                'approve_count'  => $approve_count,
-            ])
-        );
+        $pdf = \PDF::loadView('pages.canvass.pdf_cs', array_merge($data, [
+            'detail'        => $csdetail,
+            'approval'      => $approval,
+            'approve_count' => $approve_count,
+        ]));
 
-        // Portrait jika <= 5 approver, else landscape
-        $pdf->setPaper('A4', ($approve_count <= 5) ? 'portrait' : 'landscape');
+        // SELALU landscape (sesuai permintaan)
+        $pdf->setPaper('A4', 'landscape');
 
         return $pdf->stream("pdf_cs_{$cs->csid}.pdf");
     }
+
 
     
 

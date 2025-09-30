@@ -542,6 +542,7 @@ Route::post('/logout', function () {
     // Route::put('/cs/{id}', [CanvassController::class, 'updateCS'])->name('cs.update');
     Route::put('/cs/remove-attachment/{id}', [CanvassController::class, 'removeAttachment']);    
     Route::get('/cs/{id}/check-approval/{action}', [CanvassController::class, 'checkApproval']); 
+    Route::get('/pdf_cs/{hash}', [CanvassController::class, 'printCS']);
     
 
     Route::get('/inventory/list', [MasterController::class, 'InventoryList'])->name('inventory.list');

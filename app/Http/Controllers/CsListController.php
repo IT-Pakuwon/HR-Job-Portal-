@@ -39,6 +39,9 @@ class CsListController extends Controller
 
     public function index()
     {
+        $user = Auth::user();
+        if (!$user) return redirect()->route('login');
+
         // kartu ringkas (opsional): total per status created_by user login
         $u = Auth::user()->username ?? '';
 

@@ -48,6 +48,9 @@ class CsJobController extends Controller
 
     public function CsJobs()
     {
+        $user = Auth::user();
+        if (!$user) return redirect()->route('login');
+
         // Kartu ringkasan
         $all  = vCsJobs::count();
         $sppb = vCsJobs::where('doc_type', 'SPPB')->count();
@@ -391,7 +394,7 @@ class CsJobController extends Controller
     }
 
     public function updateCS(Request $request, $csid)
-    {
+    {      
         // dd($request->all());
         // ===== Validasi dasar payload (mirip saveCS) =====
         $request->validate([
@@ -629,6 +632,62 @@ class CsJobController extends Controller
                 }
             }
 
+            $action = strtolower($request->input('action', 'save'));
+
+            if (!in_array($action, ['save', 'submit'], true)) {
+                $action = 'save';
+            }
+
+           // setelah simpan header & detail:
+            if ($action === 'submit') {
+                // 0) Validasi submit server-side (baris berharga > 0 harus punya vendor selected, dst.)
+                $this->validateSubmitServerSide($details);
+
+                // 1) Pastikan approval line ada (doctype = 'CS')
+                $this->ensureApprovalLineExists($cs);
+
+                // 2) Set status header CS jadi Pending + cap submitted
+                $now = Carbon::now();
+                $cs->status = 'P';
+                if (Schema::connection('pgsql')->hasColumn($cs->getTable(), 'submitted_by')) {
+                    $cs->submitted_by = $username;
+                }
+                if (Schema::connection('pgsql')->hasColumn($cs->getTable(), 'submitted_at')) {
+                    $cs->submitted_at = $now;
+                }
+                $cs->save();
+
+                // 3) Ambil sumber (header+detail) persis seperti storeCS
+                [$srcHeader, $srcDetails, $srcLineKey, $srcIndex] = $this->buildSourceForDoc($doc, $srcId);
+
+                // 4) Update ordered/openordered di sumber (blok 5b storeCS)
+                $this->updateOrderedOnSource($details, $srcHeader, $srcDetails, $srcIndex, $cpnyId);
+
+                // 5) Reserve budget (blok 5c storeCS)
+                $this->reserveBudget($details, $cpnyId, $cs, $username);
+
+                // 6) Generate/picu T_approval + email approver pertama (blok 6 & 8 storeCS)
+                $this->createApprovalLinesAndNotify(
+                    $cs->csid,
+                    $cpnyId,
+                    $deptId,
+                    'CS',
+                    $username,
+                    $now, // untuk aprvdatebefore level-1
+                    [
+                        'docname'  => 'CS',
+                        'status'   => 'P',
+                        'info'     => $srcHeader->keperluan ?? $cs->csnote,
+                        // HATI-HATI: jangan set / update kolom "eid" di table karena kolom itu tak ada.
+                        // Untuk link, bikin on-the-fly: Hashids::encode($cs->id) langsung di variabel, JANGAN di-assign ke model.
+                        'url'      => url('/showcs/' . Hashids::encode($cs->id)),
+                        'createdby'=> $cs->created_by,
+                    ]
+                );
+            }
+
+
+
             DB::connection('pgsql')->commit();
 
             return response()->json([
@@ -647,92 +706,254 @@ class CsJobController extends Controller
         }
     }
 
+    private function validateSubmitServerSide(array $details): void
+    {
+        // Minimal 1 baris ada vendor selected kalau ada harga
+        $hasAnyPrice = false;
+        $everyPricedRowHasPick = true;
 
+        foreach ($details as $row) {
+            $rowHasPrice = false;
+            $rowHasPick  = false;
+            foreach (($row['vendor'] ?? []) as $v) {
+                $price = (float)($v['price'] ?? 0);
+                if ($price > 0) {
+                    $rowHasPrice = true;
+                    $hasAnyPrice = true;
+                }
+                if (!empty($v['selected'])) $rowHasPick = true;
+            }
+            if ($rowHasPrice && !$rowHasPick) {
+                $everyPricedRowHasPick = false;
+                break;
+            }
+        }
+
+        if (!$hasAnyPrice) {
+            abort(422, 'Total tidak boleh 0. Isi harga minimal pada salah satu vendor.');
+        }
+        if (!$everyPricedRowHasPick) {
+            abort(422, 'Ada baris yang memiliki harga tetapi belum memilih vendor.');
+        }
+
+        // Qty tidak boleh > qty kiriman (front-end sudah batasi; ini redundansi aman)
+        foreach ($details as $row) {
+            $qty = (float)($row['qty'] ?? 0);
+            if ($qty < 0) abort(422, 'Qty tidak valid.');
+        }
+    }
+
+    private function ensureApprovalLineExists(TrCS $cs): void
+    {
+        $cnt = M_approval::where([
+            ['status','=','A'],
+            ['aprvcpnyid','=',$cs->cpny_id],
+            ['aprvdeptid','=',$cs->department_id],
+            ['aprvdoctype','=','CS'],
+        ])->count();
+
+        if ($cnt === 0) {
+            abort(422, 'Approval line CS belum di-setup, please contact IT!');
+        }
+    }
+
+    private function buildSourceForDoc(string $doc, ?string $srcId): array {
+        switch ($doc) {
+            case 'SPPB':
+                $h = TrSPPB::with(['requestType','creator','purchaser'])->findOrFail($srcId);
+                $k = 'sppb_no';
+                $d = TrSPPBdetail::where('sppbid', $h->sppbid)->orderBy($k)->get();
+                break;
+            case 'SPPJ':
+                $h = TrSPPJ::with(['requestType','creator','purchaser'])->findOrFail($srcId);
+                $k = 'sppj_no';
+                $d = TrSPPJdetail::where('sppjid', $h->sppjid)->orderBy($k)->get();
+                break;
+            case 'SPPK':
+                $h = TrSPPK::with(['requestType','creator','purchaser'])->findOrFail($srcId);
+                $k = 'sppk_no';
+                $d = TrSPPKdetail::where('sppkid', $h->sppkid)->orderBy($k)->get();
+                break;
+            case 'SPPT':
+                $h = TrSPPT::with(['requestType','creator','purchaser'])->findOrFail($srcId);
+                $k = 'sppt_no';
+                $d = TrSPPTdetail::where('spptid', $h->spptid)->orderBy($k)->get();
+                break;
+            default: abort(422, 'Invalid doc type');
+        }
+        $idx = [];
+        foreach ($d as $sd) {
+            $key = strtoupper(trim($sd->inventoryid ?? '')) . '|' .
+                strtoupper(trim($sd->uom ?? '')) . '|' .
+                strtoupper(trim($sd->inventory_descr ?? ''));
+            $idx[$key] = $sd;
+        }
+        return [$h, $d, $k, $idx];
+    }
+
+    private function updateOrderedOnSource(array $details, $srcHeader, $srcDetails, array $srcIndex, string $cpnyId): void {
+    $addedTotalOrdered = 0.0;
+        foreach ($details as $i => $d) {
+            $hasPick = false;
+            foreach (($d['vendor'] ?? []) as $v) { if (!empty($v['selected'])) { $hasPick = true; break; } }
+            if (!$hasPick) continue;
+
+            $orderedQty = (float)($d['qty'] ?? 0);
+            if ($orderedQty <= 0) continue;
+
+            $key = strtoupper(trim(($d['inventoryid'] ?? ''))) . '|' .
+                strtoupper(trim(($d['uom'] ?? ''))) . '|' .
+                strtoupper(trim(($d['inventory_descr'] ?? '')));
+            $srcDet = $srcIndex[$key] ?? ($srcDetails[$i] ?? null);
+            if (!$srcDet) continue;
+
+            $detTable = $srcDet->getTable();
+            if (Schema::connection('pgsql')->hasColumn($detTable, 'ordered')) {
+                $srcDet->ordered = (float)($srcDet->ordered ?? 0) + $orderedQty;
+            }
+            if (Schema::connection('pgsql')->hasColumn($detTable, 'openordered')) {
+                $srcDet->openordered = max(0, (float)($srcDet->openordered ?? 0) - $orderedQty);
+            }
+            $srcDet->save();
+
+            $addedTotalOrdered += $orderedQty;
+        }
+
+        $hdrTable = $srcHeader->getTable();
+        if (Schema::connection('pgsql')->hasColumn($hdrTable, 'totalordered')) {
+            $srcHeader->totalordered = (float)($srcHeader->totalordered ?? 0) + $addedTotalOrdered;
+        }
+        if (Schema::connection('pgsql')->hasColumn($hdrTable, 'totalopenordered')) {
+            $srcHeader->totalopenordered = max(0, (float)($srcHeader->totalopenordered ?? 0) - $addedTotalOrdered);
+        }
+        $srcHeader->save();
+    }
+
+    private function reserveBudget(array $details, string $cpnyId, TrCS $cs, string $username): void {
+        $csDate   = Carbon::parse($cs->csdate ?? now());
+        $yearStr  = $csDate->format('Y'); // perpost YYYY
+        $periodCol = 'period' . $csDate->format('m') . '_reserve';
+
+        $buckets = [];
+        foreach ($details as $d) {
+            $selectedTotal = 0.0;
+            foreach (($d['vendor'] ?? []) as $v) { if (!empty($v['selected'])) { $selectedTotal = (float)($v['total'] ?? 0); break; } }
+            if ($selectedTotal <= 0) continue;
+
+            $key = json_encode([
+                'perpost'           => $yearStr,
+                'cpny_id'           => $d['budget_cpny_id'] ?? $cpnyId,
+                'business_unit_id'  => $d['budget_business_unit_id'] ?? null,
+                'department_fin_id' => $d['budget_department_fin_id'] ?? null,
+                'account_id'        => $d['budget_account_id'] ?? null,
+                'activity_id'       => $d['budget_activity_id'] ?? null,
+            ]);
+            $buckets[$key] = ($buckets[$key] ?? 0) + $selectedTotal;
+        }
+
+        foreach ($buckets as $keyJson => $amount) {
+            $crit = json_decode($keyJson, true);
+            $bd = BudgetDetail::where([['perpost','=',$crit['perpost']],['cpny_id','=',$crit['cpny_id']]])
+                ->when($crit['business_unit_id'],  fn($q,$v)=>$q->where('business_unit_id',$v))
+                ->when($crit['department_fin_id'], fn($q,$v)=>$q->where('department_fin_id',$v))
+                ->when($crit['account_id'],        fn($q,$v)=>$q->where('account_id',$v))
+                ->when($crit['activity_id'],       fn($q,$v)=>$q->where('activity_id',$v))
+                ->lockForUpdate()->first();
+
+            if (!$bd) {
+                $bd = new BudgetDetail();
+                $bd->setConnection('pgsql');
+                $bd->fill($crit);
+                $bd->status = 'A';
+                $bd->created_by = $username;
+                for ($m=1;$m<=12;$m++){
+                    $p = 'period'.str_pad($m,2,'0',STR_PAD_LEFT);
+                    $bd->{$p.'_budget'}  = $bd->{$p.'_budget'}  ?? 0;
+                    $bd->{$p.'_reserve'} = $bd->{$p.'_reserve'} ?? 0;
+                    $bd->{$p.'_used'}    = $bd->{$p.'_used'}    ?? 0;
+                }
+            }
+
+            $bd->{$periodCol} = (float)($bd->{$periodCol} ?? 0) + (float)$amount;
+            $bd->updated_by = $username;
+            $bd->save();
+        }
+    }
+
+
+    private function createApprovalLinesAndNotify(
+            string $docid,
+            string $cpnyId,
+            string $deptId,
+            string $doctype,
+            string $username,
+            Carbon $firstDate,
+            array $mail // ['docname','status','info','url','createdby']
+        ): void {
+            // Copy lines
+            $masters = M_approval::where([
+                ['status','=','A'],
+                ['aprvcpnyid','=',$cpnyId],
+                ['aprvdeptid','=',$deptId],
+                ['aprvdoctype','=',$doctype],
+            ])->orderBy('aprvid')->get();
+
+            foreach ($masters as $m) {
+                T_approval::updateOrCreate(
+                    ['docid'=>$docid,'aprvid'=>$m->aprvid,'aprvdoctype'=>$doctype],
+                    [
+                        'aprvcpnyid'     => $m->aprvcpnyid,
+                        'aprvdeptid'     => $m->aprvdeptid,
+                        'aprvusername'   => $m->aprvusername,
+                        'name'           => $m->name,
+                        'aprvdatebefore' => $m->aprvid==1 ? $firstDate : null,
+                        'aprvtotalday'   => 1,
+                        'status'         => 'P',
+                        'created_by'     => $username,
+                    ]
+                );
+            }
+
+            // Notifikasi approver pertama
+            $first = T_approval::where('docid',$docid)->where('aprvdoctype',$doctype)->where('status','P')->orderBy('aprvid')->first();
+            if ($first) {
+                $subjectMap = ['P'=>'Waiting Approval','R'=>'Rejected Approval','D'=>'Revise Approval','A'=>'Approved','C'=>'Completed'];
+                $subjectSuffix = $subjectMap[$mail['status'] ?? 'P'] ?? 'Notification';
+
+                $approvers = array_filter(array_map('trim', explode(',', (string)$first->aprvusername)));
+                $users = User::whereIn('username', $approvers)->where('status','A')->get();
+
+                $data = [
+                    'docid'    => $docid,
+                    'cpnyid'   => $cpnyId,
+                    'deptname' => $deptId,
+                    'date'     => $first->aprvdatebefore,
+                    'name'     => $first->name,
+                    'createdby'=> $mail['createdby'] ?? $username,
+                    'info'     => $mail['info'] ?? '',
+                    'status'   => $mail['status'] ?? 'P',
+                    'docname'  => $mail['docname'] ?? $doctype,
+                    'url'      => $mail['url'] ?? url('/'),
+                ];
+
+                foreach ($users as $u) {
+                    try {
+                        $to = $u->test_email ?? $u->email;
+                        Mail::send('emails.mailapprovenew', $data, function ($message) use ($to, $data, $subjectSuffix) {
+                            $message->to($to)
+                                ->subject($data['docid'].' - '.$subjectSuffix.' '.$data['docname'])
+                                ->from('digitalserver@pakuwon.com', 'Pakuwon System');
+                        });
+                    } catch (\Throwable $e) {
+                        Log::error('Failed sending CS waiting-approval email', ['error'=>$e->getMessage()]);
+                    }
+                }
+            }
+        }
 
 
     
-    /** Simpan perubahan CS (header + detail) */
-    public function updateCSx(Request $request, string $eid)
-    {
-        $ids = Hashids::decode($eid);
-        abort_if(empty($ids), 404);
-        $id = $ids[0];
-
-        $cs = TrCS::findOrFail($id);
-
-        // Ambil payload (sama formatnya seperti create)
-        $vendors = json_decode($request->input('vendors', '[]'), true) ?: [];
-        $details = json_decode($request->input('details', '[]'), true) ?: [];
-
-        DB::connection('pgsql')->beginTransaction();
-        try {
-            // Update header ringan
-            $cs->csnote        = $request->input('csnote', $cs->csnote);
-            // kalau ada field lain yang boleh diubah silakan set di sini...
-            $cs->save();
-
-            // Replace detail (paling sederhana; kalau mau “diff” juga bisa)
-            TrCSdetail::where('csid', $cs->csid)->delete();
-
-            $line = 0;
-            foreach ($details as $d) {
-                $line++;
-                $det = new TrCSdetail();
-                $det->setConnection('pgsql');
-                $det->csid               = $cs->csid;
-                $det->cs_no              = $line;
-                $det->sppbjkt_no         = $d['sppbjkt_no'] ?? null; // kalau dikirim
-                $det->inventoryid        = $d['inventoryid'] ?? null;
-                $det->inventory_descr    = $d['inventory_descr'] ?? null;
-                $det->qty                = (float)($d['qty'] ?? 0);
-                $det->uom                = $d['uom'] ?? null;
-                $det->inventory_last_price = (float)($d['inventory_last_price'] ?? 0);
-                $det->csnote_detail      = $d['csnote_detail'] ?? null;
-                // mapping harga vendor 1..6
-                for ($i=0; $i < min(count($d['vendor'] ?? []), 6); $i++) {
-                    $idx = $i + 1;
-                    $v   = $d['vendor'][$i];
-                    $det->{"vendorid{$idx}"}         = $v['vendorid'] ?? null;
-                    $det->{"vendorprice{$idx}"}      = (float)($v['price'] ?? 0);
-                    $det->{"vendortotalprice{$idx}"} = (float)($v['total'] ?? 0);
-                    $det->{"vendor{$idx}selected"}   = !empty($v['selected']);
-                }
-                $det->status = $cs->status; // tetap
-                $det->save();
-            }
-
-            // Attachments baru (opsional)
-            if ($request->hasFile('attachments')) {
-                foreach ($request->file('attachments') as $file) {
-                    $year      = now()->year;
-                    $random    = random_int(10000000, 99999999);
-                    $safeName  = str_replace('%','', $file->getClientOriginalName());
-                    $attachfile= md5($random).'-'.$safeName;
-
-                    $folder = public_path('attachments/'.$year);
-                    if (!is_dir($folder)) mkdir($folder, 0777, true);
-                    $file->move($folder, $attachfile);
-
-                    Attachment::create([
-                        'docid'        => $cs->csid,
-                        'name'         => pathinfo($safeName, PATHINFO_FILENAME),
-                        'attachfile'   => $attachfile,
-                        'status'       => 'A',
-                        'extention'    => $file->getClientOriginalExtension(),
-                        'created_user' => $request->user()->username ?? 'system',
-                    ]);
-                }
-            }
-
-            DB::connection('pgsql')->commit();
-            return response()->json(['message'=>'CS updated','csid'=>$cs->csid]);
-
-        } catch (\Throwable $e) {
-            DB::connection('pgsql')->rollBack();
-            report($e);
-            return response()->json(['message'=>'Failed to update CS','error'=>$e->getMessage()], 500);
-        }
-    }
+   
 
     public function removeAttachment($id)
     {      

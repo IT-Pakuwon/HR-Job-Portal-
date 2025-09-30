@@ -372,7 +372,11 @@
         function renderCSBtn(_v,row){
             return `<a href="/showcs/${row.eid}" class="inline-flex items-center rounded px-3 py-1.5 bg-indigo-600 text-white hover:bg-indigo-700 text-sm font-semibold">${row.csid ?? ''}</a>`;
         }
-        const showMap = { PB:'showsppbs', PJ:'showsppjs', PK:'showsppks', PT:'showsppts' };
+        // const showMap = {
+        //  PB:'showsppbs', 
+        //  PJ:'showsppjs', 
+        //  PK:'showsppks', 
+        //  PT:'showsppts' };
         function renderSPPBtn(_v,row){
             const prefix = (row.sppbjkt_prefix || '').toUpperCase();
             const srcId  = row.sppbjkt_src_id;
