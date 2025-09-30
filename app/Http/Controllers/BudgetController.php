@@ -393,8 +393,11 @@ class BudgetController extends Controller
         }
     }
     
-    public function editBudget($id)
+    public function editBudget($hash)
     {
+        $id = Hashids::decode($hash)[0] ?? null;
+        abort_if(!$id, 404);
+
         $budget = Budget::findOrFail($id);
 
         $companies     = CompanyPG::select('cpny_id', 'cpny_name')

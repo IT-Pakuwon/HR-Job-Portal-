@@ -432,7 +432,7 @@ class SppkController extends Controller
                 ];
                 $subjectSuffix = $subjectMap[$status] ?? 'Notification';
 
-                $header->eid = Hashids::encode($header->id);
+                $eid = Hashids::encode($header->id);
                 
                 $data = [
                     'docid'    => $firstApproval->docid,
@@ -444,7 +444,7 @@ class SppkController extends Controller
                     'info'     => $request->keperluan,
                     'status'   => $status,
                     'docname'  => 'SPPK',
-                    'url'      => url('/showsppks/' . $header->eid),
+                    'url'      => url('/showsppks/' . $eid),
                 ];
                 
                 $approvers = array_filter(array_map('trim', explode(',', (string)$firstApproval->aprvusername)));
@@ -481,8 +481,11 @@ class SppkController extends Controller
         }
     }
    
-    public function editSppk($id)
+    public function editSppk($hash)
     {
+        $id = Hashids::decode($hash)[0] ?? null;
+        abort_if(!$id, 404);
+
         $sppk = TrSPPK::findOrFail($id);
 
         // Ambil detail + eager load relasi lokasi & sublokasi
@@ -767,7 +770,7 @@ class SppkController extends Controller
                 ];
                 $subjectSuffix = $subjectMap[$status] ?? 'Notification';
 
-                $header->eid = Hashids::encode($header->id);
+                $eid = Hashids::encode($header->id);
                 
                 $data = [
                     'docid'    => $firstApproval->docid,
@@ -779,7 +782,7 @@ class SppkController extends Controller
                     'info'     => $request->keperluan,
                     'status'   => $status,
                     'docname'  => 'SPPK',
-                    'url'      => url('/showsppks/' . $header->eid),
+                    'url'      => url('/showsppks/' . $eid),
                 ];
 
                 $approvers = array_filter(array_map('trim', explode(',', (string)$firstApproval->aprvusername)));
@@ -856,7 +859,7 @@ class SppkController extends Controller
             ->where('status','A')        
             ->get();       
        
-        return view('pages.sppks.showsppks', compact('sppk','approval','attachment','sppkdetail'));
+        return view('pages.sppks.showsppks', compact('sppk','approval','attachment','sppkdetail','hash'));
     }
 
     
@@ -950,7 +953,7 @@ class SppkController extends Controller
                 'C' => 'Completed',
             ];
 
-            $sppk->eid = Hashids::encode($sppk->id);
+            $eid = Hashids::encode($sppk->id);
 
             if ($pendingCount === 0) {
                 // Tidak ada approver lagi -> dokumen complete
@@ -982,7 +985,7 @@ class SppkController extends Controller
                     'docname'   => 'SPPK',
                     'info'      => $sppk->keperluan,
                     'status'    => $status,
-                    'url'       => url('/showsppks/' . $sppk->eid),
+                    'url'       => url('/showsppks/' . $eid),
                 ];
 
                 $recipients = User::where('username', $sppk->created_by)
@@ -1028,7 +1031,7 @@ class SppkController extends Controller
                         'docname'   => 'SPPK',
                         'info'      => $sppk->keperluan,
                         'status'    => $status,
-                        'url'       => url('/showsppks/' . $sppk->eid),
+                        'url'       => url('/showsppks/' . $eid),
                     ];
 
                     $usernames = array_filter(array_map('trim', explode(',', (string) $next->aprvusername)));
@@ -1128,7 +1131,7 @@ class SppkController extends Controller
         ];
         $subjectSuffix = $subjectMap[$status] ?? 'Notification';
 
-        $sppk->eid = Hashids::encode($sppk->id);
+        $eid = Hashids::encode($sppk->id);
 
         $data = [
             'docid'     => $sppk->sppkid,
@@ -1141,7 +1144,7 @@ class SppkController extends Controller
             'docname'   => 'SPPK',
             'info'      => $sppk->keperluan,
             'status'    => $status,
-            'url'       => url('/showsppks/' . $sppk->eid),
+            'url'       => url('/showsppks/' . $eid),
         ];
 
         $recipients = User::where('username', $sppk->created_by)
@@ -1243,7 +1246,7 @@ class SppkController extends Controller
         ];
         $subjectSuffix = $subjectMap[$status] ?? 'Notification';
 
-        $sppk->eid = Hashids::encode($sppk->id);
+        $eid = Hashids::encode($sppk->id);
 
         $data = [
             'docid'     => $sppk->sppkid,
@@ -1256,7 +1259,7 @@ class SppkController extends Controller
             'docname'   => 'SPPK',
             'info'      => $sppk->keperluan,
             'status'    => $status,
-            'url'       => url('/showsppks/' . $sppk->eid),
+            'url'       => url('/showsppks/' . $eid),
         ];
 
         $recipients = User::where('username', $sppk->created_by)
@@ -1421,8 +1424,11 @@ class SppkController extends Controller
         ]);
     }
 
-    public function printSppk(int $id)
+    public function printSppk($hash)
     {
+        $id = Hashids::decode($hash)[0] ?? null;
+        abort_if(!$id, 404);
+
         $authUser = Auth::user();
         if (!$authUser) {
             return redirect()->route('login');

@@ -20,13 +20,13 @@
             <td>
                 <strong>Tanggal Wawancara</strong><br>(Date of Interview) :
                 <input type="date" name="interview_date"
-                    value="{{ $tr_assessment && $tr_assessment->assessment_date ? \Carbon\Carbon::parse($tr_assessment->assessment_date)->format('Y-m-d') : '' }}">
+                    value="{{ $tr_assessment && $tr_assessment->assessment_date ? \Carbon\Carbon::parse($tr_assessment->assessment_date)->format('Y-m-d') : '' }}" required>
             </td>
             <td></td>
             <td>
                 <strong>Jam</strong><br>( Time ) :
                 <input type="time" name="interview_time"
-                    value="{{ $tr_assessment && $tr_assessment->assessment_date ? \Carbon\Carbon::parse($tr_assessment->assessment_date)->format('H:i') : '' }}">
+                    value="{{ $tr_assessment && $tr_assessment->assessment_date ? \Carbon\Carbon::parse($tr_assessment->assessment_date)->format('H:i') : '' }}" required>
             </td>
             <td></td>
             <td><strong>Jumlah Nilai</strong><br>(Total Score)</td>
@@ -189,6 +189,7 @@
     $('#assessmentFormHC').on('submit', function(e) {
         e.preventDefault();
 
+       
         const formData = $(this).serialize();
 
         $.ajax({

@@ -358,10 +358,12 @@
         function renderSPPBtn(_v,row){
             const prefix = (row.sppbjkt_prefix || '').toUpperCase();
             const srcId  = row.sppbjkt_src_id;
+            const src_eid  = row.sppbjkid_eid;
             const docNo  = row.sppbjktid || '';
             const base   = showMap[prefix];
             if(!prefix || !srcId || !base) return docNo;
-            const url = `/${base}/${srcId}`;
+            // const url = `/${base}/${srcId}`;
+            const url = `/${base}/${src_eid}`;
             return `<a href="${url}" class="inline-flex items-center rounded px-3 py-1.5 bg-emerald-600 text-white hover:bg-emerald-700 text-sm font-semibold">${docNo}</a>`;
         }
         function renderDays(v){ return (v==null) ? '' : String(v); }

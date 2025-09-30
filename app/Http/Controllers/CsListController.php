@@ -130,6 +130,7 @@ class CsListController extends Controller
             $r->days = ($assign && $submit) ? $assign->diffInDays($submit, false) : null;
 
             $r->eid = Hashids::encode($r->id); // ← encoded id for frontend
+            $r->sppbjkid_eid = Hashids::encode($r->sppbjkt_src_id);
             return $r;
         });
 

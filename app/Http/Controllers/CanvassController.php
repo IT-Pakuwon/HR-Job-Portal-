@@ -44,8 +44,12 @@ use Vinkla\Hashids\Facades\Hashids;
 
 class CanvassController extends Controller
 {
-    public function createCS(string $doc, string $src)
+    public function createCS(string $doc, string $hash)
     {
+        
+        $src = Hashids::decode($hash)[0] ?? null;
+        abort_if(!$src, 404);
+
         $doc = strtoupper($doc);
         abort_unless(in_array($doc, ['SPPB','SPPJ','SPPK','SPPT']), 404, 'Invalid doc type');
 
@@ -120,7 +124,8 @@ class CanvassController extends Controller
                 break;
         }
      
-        $items = $detail;
+        // $items = $detail;
+        $items = $this->mapRemainingLines($detail);
 
         return view('pages.canvass.createcs', [
             'doc'     => $doc,
@@ -131,6 +136,38 @@ class CanvassController extends Controller
             'items'   => $items,  
         ]);
     }
+
+    private function mapRemainingLines($detail)
+    {
+        return $detail->map(function ($row) {
+            // Cast angka
+            $qty       = (float) ($row->qty ?? 0);
+            $ordered   = (float) ($row->ordered ?? 0);
+            $rejected  = (float) ($row->rejectordered ?? 0);
+            $completed = (float) ($row->completeordered ?? 0);
+
+            // Jika kolom openordered sudah ada & valid → pakai itu.
+            // Jika tidak, hitung manual dari komponen yang tersedia.
+            if (isset($row->openordered) && $row->openordered !== null) {
+                $remaining = (float) $row->openordered;
+            } else {
+                $remaining = max($qty - $ordered - $rejected - $completed, 0);
+            }
+
+            // Skip nanti bila remaining <= 0
+            $row->qty = $remaining;
+
+            // Sinkronkan base_qty jika ada base_multiplier
+            if (isset($row->base_multiplier) && is_numeric($row->base_multiplier)) {
+                $row->base_qty = round($remaining * (float) $row->base_multiplier, 3);
+            }
+
+            return $row;
+        })->filter(function ($row) {
+            return (float) $row->qty > 0;
+        })->values();
+    }
+
 
     public function storeCS(Request $request)
     {
@@ -816,6 +853,7 @@ class CanvassController extends Controller
                 $det = new TrCSdetail();
                 $det->setConnection('pgsql');
                 $det->csid                = $csid;
+                $det->sppbjktid = $sppbjktid;
                 $det->cs_no               = $lineNo;
                 $det->sppbjkt_no             = $srcRefNo; // isi dengan nomor baris sumber apapun namanya
 
