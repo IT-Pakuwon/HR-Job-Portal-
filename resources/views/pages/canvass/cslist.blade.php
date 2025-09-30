@@ -363,12 +363,28 @@
     </div>
 
     <script>
-        $(function() {
-            function fmtDate(v) {
-                if (!v) return '';
-                const d = new Date(v);
-                return Number.isNaN(d.getTime()) ? v : d.toLocaleDateString('id-ID');
-            }
+    $(function () {
+        function fmtDate(v){
+            if(!v) return '';
+            const d = new Date(v);
+            return Number.isNaN(d.getTime()) ? v : d.toLocaleDateString('id-ID');
+        }
+        function renderCSBtn(_v,row){
+            return `<a href="/showcs/${row.eid}" class="inline-flex items-center rounded px-3 py-1.5 bg-indigo-600 text-white hover:bg-indigo-700 text-sm font-semibold">${row.csid ?? ''}</a>`;
+        }
+        const showMap = { PB:'showsppbs', PJ:'showsppjs', PK:'showsppks', PT:'showsppts' };
+        function renderSPPBtn(_v,row){
+            const prefix = (row.sppbjkt_prefix || '').toUpperCase();
+            const srcId  = row.sppbjkt_src_id;
+            const src_eid  = row.sppbjkid_eid;
+            const docNo  = row.sppbjktid || '';
+            const base   = showMap[prefix];
+            if(!prefix || !srcId || !base) return docNo;
+            // const url = `/${base}/${srcId}`;
+            const url = `/${base}/${src_eid}`;
+            return `<a href="${url}" class="inline-flex items-center rounded px-3 py-1.5 bg-emerald-600 text-white hover:bg-emerald-700 text-sm font-semibold">${docNo}</a>`;
+        }
+        function renderDays(v){ return (v==null) ? '' : String(v); }
 
             function renderCSBtn(_v, row) {
                 return `<a href="/showcs/${row.eid}" class="rounded px-6 py-2 bg-indigo-500 text-white rounded hover:bg-indigo-700">${row.csid ?? ''}</a>`;

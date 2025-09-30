@@ -29,6 +29,7 @@ use App\Models\vCsRevision;
 use Mail;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
+use Vinkla\Hashids\Facades\Hashids;
 
 
 class ReceivedListController extends Controller
@@ -127,6 +128,7 @@ class ReceivedListController extends Controller
             if ($row->assignpurchasing === '0') {
                 $row->assignpurchasing = null;
             }
+            $row->eid = Hashids::encode($row->src_id);
             return $row;
         });
 

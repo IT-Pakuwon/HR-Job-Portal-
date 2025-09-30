@@ -399,7 +399,7 @@ Route::post('/logout', function () {
     Route::post('/budget/{id}/approve', [BudgetController::class, 'approveBudget']);
     Route::post('/budget/{id}/reject', [BudgetController::class, 'rejectBudget']);
     Route::post('/budget/{id}/revise', [BudgetController::class, 'reviseBudget']);
-    Route::get('/editbudgets/{id}', [BudgetController::class, 'editBudget'])->name('budget.edit');
+    Route::get('/editbudgets/{hash}', [BudgetController::class, 'editBudget'])->name('budget.edit');
     Route::put('/budgets/{id}', [BudgetController::class, 'updateBudget'])->name('budgets.update');
     Route::put('/budgets/remove-attachment/{id}', [BudgetController::class, 'removeAttachment']);    
     Route::get('/budget/{id}/check-approval/{action}', [BudgetController::class, 'checkApproval']);  
@@ -418,12 +418,12 @@ Route::post('/logout', function () {
     Route::post('/sppb/{id}/approve', [SppbController::class, 'approveSppb']);
     Route::post('/sppb/{id}/reject', [SppbController::class, 'rejectSppb']);
     Route::post('/sppb/{id}/revise', [SppbController::class, 'reviseSppb']);
-    Route::get('/editsppbs/{id}', [SppbController::class, 'editSppb']);
+    Route::get('/editsppbs/{hash}', [SppbController::class, 'editSppb']);
     Route::put('/sppbs/{id}', [SppbController::class, 'updateSppb'])->name('sppbs.update');
     Route::put('/sppbs/remove-attachment/{id}', [SppbController::class, 'removeAttachment']);    
     Route::get('/sppb/{id}/check-approval/{action}', [SppbController::class, 'checkApproval']);     
     Route::get('/sppbs/{id}/tracking', [SppbController::class, 'tracking'])->name('sppbs.tracking');
-    Route::get('/pdf_sppbs/{id}', [SppbController::class, 'printSppb']);
+    Route::get('/pdf_sppbs/{hash}', [SppbController::class, 'printSppb']);
 
     Route::get('/sppjs', [SppjController::class, 'index'])->name('sppjs');
     Route::get('/sppjs/json', [SppjController::class, 'json'])->name('sppjs.json');
@@ -435,7 +435,7 @@ Route::post('/logout', function () {
     Route::post('/sppj/{id}/approve', [SppjController::class, 'approveSppj']);
     Route::post('/sppj/{id}/reject', [SppjController::class, 'rejectSppj']);
     Route::post('/sppj/{id}/revise', [SppjController::class, 'reviseSppj']);
-    Route::get('/editsppjs/{id}', [SppjController::class, 'editSppj']);
+    Route::get('/editsppjs/{hash}', [SppjController::class, 'editSppj']);
     Route::put('/sppjs/{id}', [SppjController::class, 'updateSppj'])->name('sppjs.update');
     Route::put('/sppjs/remove-attachment/{id}', [SppjController::class, 'removeAttachment']);    
     Route::get('/sppj/{id}/check-approval/{action}', [SppjController::class, 'checkApproval']);     
@@ -443,7 +443,7 @@ Route::post('/logout', function () {
     Route::get('/showbqsppjs/{hash}', [SppjController::class, 'showBQ']);
     Route::get('/editbqsppjs/{id}', [SppjController::class, 'editBQ'])->name('bqsppj.edit');    
     Route::put('/bqs/remove-attachment/{id}', [SppjController::class, 'removeAttachment']);
-    Route::get('/pdf_sppjs/{id}', [SppjController::class, 'printSppj']);
+    Route::get('/pdf_sppjs/{hash}', [SppjController::class, 'printSppj']);
 
     Route::get('/createbqsppj/{id}', [SppjController::class, 'createBQ'])->name('bqsppj.create');   
     Route::post('/bqsppj/import', [SppjController::class, 'importCreate'])->name('bqsppj.import');
@@ -467,7 +467,7 @@ Route::post('/logout', function () {
     Route::post('/sppt/{id}/approve', [SpptController::class, 'approveSppt']);
     Route::post('/sppt/{id}/reject', [SpptController::class, 'rejectSppt']);
     Route::post('/sppt/{id}/revise', [SpptController::class, 'reviseSppt']);
-    Route::get('/editsppts/{id}', [SpptController::class, 'editSppt']);
+    Route::get('/editsppts/{hash}', [SpptController::class, 'editSppt']);
     Route::put('/sppts/{id}', [SpptController::class, 'updateSppt'])->name('sppts.update');
     Route::put('/sppts/remove-attachment/{id}', [SpptController::class, 'removeAttachment']);    
     Route::get('/sppt/{id}/check-approval/{action}', [SpptController::class, 'checkApproval']);     
@@ -475,7 +475,7 @@ Route::post('/logout', function () {
     Route::get('/showbqsppts/{hash}', [SpptController::class, 'showBQ']);
     Route::get('/editbqsppts/{id}', [SpptController::class, 'editBQ'])->name('bqsppt.edit');    
     Route::put('/bqs/remove-attachment/{id}', [SpptController::class, 'removeAttachment']);
-    Route::get('/pdf_sppts/{id}', [SpptController::class, 'printSppt']);
+    Route::get('/pdf_sppts/{hash}', [SpptController::class, 'printSppt']);
 
     Route::get('/createbqsppt/{id}', [SpptController::class, 'createBQ'])->name('bqsppt.create');   
     Route::post('/bqsppt/import', [SpptController::class, 'importCreate'])->name('bqsppt.import');
@@ -493,12 +493,12 @@ Route::post('/logout', function () {
     Route::post('/sppk/{id}/approve', [SppkController::class, 'approveSppk']);
     Route::post('/sppk/{id}/reject', [SppkController::class, 'rejectSppk']);
     Route::post('/sppk/{id}/revise', [SppkController::class, 'reviseSppk']);
-    Route::get('/editsppks/{id}', [SppkController::class, 'editSppk']);
+    Route::get('/editsppks/{hash}', [SppkController::class, 'editSppk']);
     Route::put('/sppks/{id}', [SppkController::class, 'updateSppk'])->name('sppks.update');
     Route::put('/sppks/remove-attachment/{id}', [SppkController::class, 'removeAttachment']);    
     Route::get('/sppk/{id}/check-approval/{action}', [SppkController::class, 'checkApproval']);     
     Route::get('/sppks/{id}/tracking', [SppkController::class, 'tracking'])->name('sppks.tracking');
-    Route::get('/pdf_sppks/{id}', [SppkController::class, 'printSppk']);
+    Route::get('/pdf_sppks/{hash}', [SppkController::class, 'printSppk']);
 
     Route::get('/receivedlist', [ReceivedListController::class, 'ReceivedList'])->name('receivedlist');
     Route::get('/receivedlist/json', [ReceivedListController::class, 'ReceivedListJson'])->name('receivedlist.json');
@@ -512,6 +512,9 @@ Route::post('/logout', function () {
     Route::get('/csjobs/sppbjkt-progress/json', [CsJobController::class, 'SppbjktOnProgressJson'])->name('csjobs.sppbjkt.progress.json'); 
     Route::get('/csjobs/counts', [CsJobController::class,'CsJobsCounts'])->name('csjobs.counts');    
     Route::get('/csjobs/entry.json', [CsJobController::class, 'CsJobsEntryJson'])->name('csjobs.entry.json')->middleware('auth');
+    Route::get('/editcs/{eid}', [CsJobController::class, 'editCS'])->name('csjobs.edit');      
+    Route::put('/csjobs/{csid}', [CsJobController::class, 'updateCS'])->name('csjobs.update');
+    Route::put('/csjobs/remove-attachment/{id}', [CsJobController::class, 'removeAttachment']);
 
     
     Route::get('/cslist', [\App\Http\Controllers\CsListController::class, 'index'])->name('cslist');
@@ -524,7 +527,7 @@ Route::post('/logout', function () {
     Route::get('/cslist/counts',          [CsListController::class, 'counts'])->name('cslist.counts');
 
 
-    Route::get('/createcs/{doc}/{src}', [CanvassController::class, 'createCS'])
+    Route::get('/createcs/{doc}/{hash}', [CanvassController::class, 'createCS'])
         ->where(['doc' => 'SPPB|SPPJ|SPPK|SPPT', 'src' => '[0-9]+'])
         ->name('canvass.createcs');
     Route::post('/csstore', [CanvassController::class, 'storeCS'])->name('cs.store');
@@ -535,8 +538,8 @@ Route::post('/logout', function () {
     Route::post('/cs/{id}/approve', [CanvassController::class, 'approveCS']);
     Route::post('/cs/{id}/reject', [CanvassController::class, 'rejectCS']);
     Route::post('/cs/{id}/revise', [CanvassController::class, 'reviseCS']);
-    Route::get('/editcs/{id}', [CanvassController::class, 'editCS']);
-    Route::put('/cs/{id}', [CanvassController::class, 'updateCS'])->name('cs.update');
+    // Route::get('/editcs/{id}', [CanvassController::class, 'editCS']);
+    // Route::put('/cs/{id}', [CanvassController::class, 'updateCS'])->name('cs.update');
     Route::put('/cs/remove-attachment/{id}', [CanvassController::class, 'removeAttachment']);    
     Route::get('/cs/{id}/check-approval/{action}', [CanvassController::class, 'checkApproval']); 
     

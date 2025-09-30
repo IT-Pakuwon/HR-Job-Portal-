@@ -519,7 +519,8 @@
             function buildCreateUrl(row) {
                 // /createcs/{doc}/{src}/{row}
                 const r = row.row_id ?? '';
-                return `/createcs/${row.doc_type}/${row.src_id}`;
+                // return `/createcs/${row.doc_type}/${row.src_id}`;
+                return `/createcs/${row.doc_type}/${row.eid}`;
             }
 
             function renderDocBtn(row) {
@@ -719,7 +720,7 @@
                         render: (v, _t, row) =>
                             `<a href="/editcs/${row.eid}" class="rounded px-6 py-2
                         bg-amber-500 text-white hover:bg-amber-600 text-sm font-semibold">
-                        Edit CS: ${v}
+                        ${v}
                         </a>`
                     },
                     {

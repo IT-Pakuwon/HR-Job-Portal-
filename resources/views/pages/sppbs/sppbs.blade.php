@@ -598,7 +598,8 @@
 
                                     // jika status Draft & milik current user → ke halaman edit
                                     if (row.status === 'D' && row.created_by === currentUser) {
-                                        url = `/editsppbs/${row.id}`;
+                                        // url = `/editsppbs/${row.id}`;
+                                        url = `/editsppbs/${row.eid}`;
                                         cls =
                                             'shrink-0 px-3 py-1.5 bg-yellow-500 text-white rounded hover:bg-yellow-700 text-sm';
                                     }

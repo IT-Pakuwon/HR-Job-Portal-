@@ -334,7 +334,8 @@
 
                                     // **Cek apakah user yang login sama dengan created_user dan status = D**
                                     if (row.status === 'D' && row.created_by === currentUser) {
-                                        url = `/editbudgets/${row.id}`;
+                                        // url = `/editbudgets/${row.id}`;
+                                        url = `/editbudgets/${row.eid}`;
                                         buttonClass =
                                             'px-4 py-2 bg-amber-500 text-white rounded hover:bg-amber-700';
                                     }

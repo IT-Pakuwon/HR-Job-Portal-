@@ -439,7 +439,7 @@ class SppjController extends Controller
                 ];
                 $subjectSuffix = $subjectMap[$status] ?? 'Notification';
                 
-                $header->eid = Hashids::encode($header->id);
+                $eid = Hashids::encode($header->id);
                 
                 
                 $data = [
@@ -452,7 +452,7 @@ class SppjController extends Controller
                     'info'     => $request->keperluan,
                     'status'   => $status,
                     'docname'  => 'SPPJ',
-                    'url'      => url('/showsppjs/' . $header->eid),
+                    'url'      => url('/showsppjs/' . $eid),
                 ];
                 
                 $approvers = array_filter(array_map('trim', explode(',', (string)$firstApproval->aprvusername)));
@@ -489,8 +489,11 @@ class SppjController extends Controller
         }
     }
    
-    public function editSppj($id)
+    public function editSppj($hash)
     {
+        $id = Hashids::decode($hash)[0] ?? null;
+        abort_if(!$id, 404);
+
         $sppj = TrSPPJ::findOrFail($id);
 
         // Ambil detail + eager load relasi lokasi & sublokasi
@@ -772,7 +775,7 @@ class SppjController extends Controller
                 ];
                 $subjectSuffix = $subjectMap[$status] ?? 'Notification';
 
-                $header->eid = Hashids::encode($header->id);
+                $eid = Hashids::encode($header->id);
                 
                 $data = [
                     'docid'    => $firstApproval->docid,
@@ -784,7 +787,7 @@ class SppjController extends Controller
                     'info'     => $request->keperluan,
                     'status'   => $status,
                     'docname'  => 'SPPJ',
-                    'url'      => url('/showsppjs/' . $header->eid),
+                    'url'      => url('/showsppjs/' . $eid),
                 ];
 
                 $approvers = array_filter(array_map('trim', explode(',', (string)$firstApproval->aprvusername)));
@@ -868,7 +871,7 @@ class SppjController extends Controller
             $bq->eid = Hashids::encode($bq->id);
         }
        
-        return view('pages.sppjs.showsppjs', compact('sppj','approval','attachment','sppjdetail','bq'));
+        return view('pages.sppjs.showsppjs', compact('sppj','approval','attachment','sppjdetail','bq','hash'));
     }
 
     
@@ -962,7 +965,7 @@ class SppjController extends Controller
                 'C' => 'Completed',
             ];
 
-            $sppj->eid = Hashids::encode($sppj->id);
+            $eid = Hashids::encode($sppj->id);
 
             if ($pendingCount === 0) {
                 // Tidak ada approver lagi -> dokumen complete
@@ -994,7 +997,7 @@ class SppjController extends Controller
                     'docname'   => 'SPPJ',
                     'info'      => $sppj->keperluan,
                     'status'    => $status,
-                    'url'       => url('/showsppjs/' . $sppj->eid),
+                    'url'       => url('/showsppjs/' . $eid),
                 ];
 
                 $recipients = User::where('username', $sppj->created_by)
@@ -1040,7 +1043,7 @@ class SppjController extends Controller
                         'docname'   => 'SPPJ',
                         'info'      => $sppj->keperluan,
                         'status'    => $status,
-                        'url'       => url('/showsppjs/' . $sppj->eid),
+                        'url'       => url('/showsppjs/' . $eid),
                     ];
 
                     $usernames = array_filter(array_map('trim', explode(',', (string) $next->aprvusername)));
@@ -1139,7 +1142,7 @@ class SppjController extends Controller
             'C' => 'Completed',
         ];
         $subjectSuffix = $subjectMap[$status] ?? 'Notification';
-        $sppj->eid = Hashids::encode($sppj->id);
+        $eid = Hashids::encode($sppj->id);
 
         $data = [
             'docid'     => $sppj->sppjid,
@@ -1152,7 +1155,7 @@ class SppjController extends Controller
             'docname'   => 'SPPJ',
             'info'      => $sppj->keperluan,
             'status'    => $status,
-            'url'       => url('/showsppjs/' . $sppj->eid),
+            'url'       => url('/showsppjs/' . $eid),
         ];
 
         $recipients = User::where('username', $sppj->created_by)
@@ -1253,7 +1256,7 @@ class SppjController extends Controller
             'C' => 'Completed',
         ];
         $subjectSuffix = $subjectMap[$status] ?? 'Notification';
-        $sppj->eid = Hashids::encode($sppj->id);
+        $eid = Hashids::encode($sppj->id);
 
         $data = [
             'docid'     => $sppj->sppjid,
@@ -1266,7 +1269,7 @@ class SppjController extends Controller
             'docname'   => 'SPPJ',
             'info'      => $sppj->keperluan,
             'status'    => $status,
-            'url'       => url('/showsppjs/' . $sppj->eid),
+            'url'       => url('/showsppjs/' . $eid),
         ];
 
         $recipients = User::where('username', $sppj->created_by)
@@ -1496,8 +1499,11 @@ class SppjController extends Controller
         ));
     }
     
-    public function printSppj(int $id)
+    public function printSppj($hash)
     {
+        $id = Hashids::decode($hash)[0] ?? null;
+        abort_if(!$id, 404);
+        
         $authUser = Auth::user();
         if (!$authUser) {
             return redirect()->route('login');

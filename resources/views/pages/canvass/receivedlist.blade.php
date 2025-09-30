@@ -381,7 +381,8 @@
                                         SPPT: 'showsppts'
                                     };
                                     const base = map[row.doc_type] || '#';
-                                    const url = `/${base}/${row.src_id}`;
+                                    // const url = `/${base}/${row.src_id}`;
+                                    const url = `/${base}/${row.eid}`;
                                     return `
                             <a href="${url}" class="inline-flex items-center rounded px-3 py-1.5
                                 bg-blue-600 text-white hover:bg-blue-700 text-sm font-semibold">${data}</a>`;
