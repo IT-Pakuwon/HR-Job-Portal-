@@ -1006,7 +1006,7 @@
                 <td class="p-3 border">
                     <div class="flex items-center gap-2">
                         <input type="hidden" name="sub_location_id[]" class="subLocationIdField">
-                        <input type="text"   name="sub_location[]"    class="subLocationNameField w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0" placeholder="Select sub location..." readonly>
+                        <input type="text"   name="sub_location[]" class="subLocationNameField w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0" placeholder="Select sub location..." readonly>
                         <button type="button" class="openSubLocationModal rounded border border-gray-500 px-1 py-1 hover:bg-gray-100 dark:hover:bg-gray-700" title="Lookup">🔎</button>
                     </div>
                 </td>
