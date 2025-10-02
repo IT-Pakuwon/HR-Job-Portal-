@@ -50,6 +50,7 @@ use App\Http\Controllers\CsJobController;
 use App\Http\Controllers\CsListController;
 use App\Http\Controllers\CanvassController;
 use App\Http\Controllers\BqCSController;
+use App\Http\Controllers\PoListController;
 
 use App\Http\Controllers\CanvassxController;
 
@@ -517,14 +518,17 @@ Route::post('/logout', function () {
     Route::put('/csjobs/remove-attachment/{id}', [CsJobController::class, 'removeAttachment']);
 
     
-    Route::get('/cslist', [\App\Http\Controllers\CsListController::class, 'index'])->name('cslist');
+    // Route::get('/cslist', [CsListController::class, 'index'])->name('cslist');
+    // Route::get('/cslist/my.json',         [CsListController::class, 'jsonMy'])->name('cslist.my.json');
+    // Route::get('/cslist/onprogress.json', [CsListController::class, 'jsonOnprogress'])->name('cslist.onprogress.json');
+    // Route::get('/cslist/rejected.json',   [CsListController::class, 'jsonRejected'])->name('cslist.rejected.json');
+    // Route::get('/cslist/completed.json',  [CsListController::class, 'jsonCompleted'])->name('cslist.completed.json');
+    // Route::get('/cslist/all.json',        [CsListController::class, 'jsonAll'])->name('cslist.all.json');
+    // Route::get('/cslist/counts',          [CsListController::class, 'counts'])->name('cslist.counts');
 
-    Route::get('/cslist/my.json',         [CsListController::class, 'jsonMy'])->name('cslist.my.json');
-    Route::get('/cslist/onprogress.json', [CsListController::class, 'jsonOnprogress'])->name('cslist.onprogress.json');
-    Route::get('/cslist/rejected.json',   [CsListController::class, 'jsonRejected'])->name('cslist.rejected.json');
-    Route::get('/cslist/completed.json',  [CsListController::class, 'jsonCompleted'])->name('cslist.completed.json');
-    Route::get('/cslist/all.json',        [CsListController::class, 'jsonAll'])->name('cslist.all.json');
-    Route::get('/cslist/counts',          [CsListController::class, 'counts'])->name('cslist.counts');
+    Route::get('/cslist', [CsListController::class, 'index'])->name('cslist');
+    Route::get('/cslist/json', [CsListController::class, 'json'])->name('cslist.json');
+
 
 
     Route::get('/createcs/{doc}/{hash}', [CanvassController::class, 'createCS'])
@@ -548,6 +552,8 @@ Route::post('/logout', function () {
     Route::post('/bqcs', [BQCSController::class, 'store'])->name('bqcs.store');
 
 
+    Route::get('/polist', [PoListController::class, 'index'])->name('polist');
+    Route::get('/polist/json', [PoListController::class, 'json'])->name('polist.json');
 
     Route::get('/inventory/list', [MasterController::class, 'InventoryList'])->name('inventory.list');
     Route::get('/request-types/by-doctype', [MasterController::class, 'RequestType'])->name('requesttypes.byDoctype');
