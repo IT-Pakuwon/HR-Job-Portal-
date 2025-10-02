@@ -182,11 +182,12 @@
                                 <span
                                     class="{{ $statusClasses }} inline-flex items-center rounded-full px-4 py-1 text-sm font-semibold">
                                     {{ $statusText }}
-                                </span>
-
-                                <a href="{{ url('/pdf_cs') }}/{{ $hash }}" target="_blank">
+                                </span>           
+                                {{-- Tombol Print PDF --}}                   
+                                <a href="{{ url('/pdf_cs') }}/{{ $hash }}" target="_blank" rel="noopener">
                                     <button
-                                        class="inline-flex items-center gap-2 rounded-full bg-indigo-600 px-4 py-1 text-sm font-semibold text-white transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                                        title="Klik untuk membuka PDF"
+                                        class="inline-flex items-center gap-2 rounded-full bg-indigo-600 px-4 py-1 text-sm font-semibold text-white transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 cursor-pointer">
                                         Print PDF
                                     </button>
                                 </a>
@@ -194,11 +195,24 @@
                         </header>
 
                         <div class="flex flex-1 flex-col gap-6 overflow-y-auto p-4">
-                            @php
+                            @php                              
+
+                                $routeMap  = ['PB' => 'showsppbs', 'PJ' => 'showsppjs', 'PK' => 'showsppks', 'PT' => 'showsppts'];
+                                $routeBase = $routeMap[$prefix] ?? null;
+                                $docUrl    = $routeBase ? url("/{$routeBase}/{$eid_sppbjkt}") : null;
+
+                                // tombol/link untuk SPPB/J/K/T ID
+                                $docBtn = $docUrl
+                                    ? '<a href="'.$docUrl.'" target="_blank" rel="noopener"
+                                        class="inline-flex items-center gap-2 rounded-full bg-emerald-600 px-3 py-1 text-xs font-semibold text-white hover:bg-emerald-700">
+                                        '.$docid.'
+                                    </a>'
+                                    : e($docid);
+
                                 $row1 = [
-                                    ['label' => 'SPPB/J/K/T ID', 'value' => $docid],
-                                    ['label' => 'Company', 'value' => $srcHeader->cpny_id],
-                                    ['label' => 'Department', 'value' => $srcHeader->department_id],
+                                    ['label' => 'SPPB/J/K/T ID', 'value' => $docBtn, 'is_html' => true],
+                                    ['label' => 'Company',       'value' => e($srcHeader->cpny_id)],
+                                    ['label' => 'Department',    'value' => e($srcHeader->department_id)],
                                 ];
 
                                 $row2 = [
@@ -218,14 +232,17 @@
                             @endphp
 
                             {{-- Row 1 (3 cols) --}}
-                            <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
+                            <div class="grid grid-cols-1 gap-4 md:grid-cols-3">                                
                                 @foreach ($row1 as $detail)
-                                    <div
-                                        class="rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-800">
-                                        <p class="text-xs text-gray-500 dark:text-gray-400">{{ $detail['label'] }}</p>
-                                        <p class="text-sm font-medium text-gray-900 dark:text-gray-100">
-                                            {{ $detail['value'] }}
-                                        </p>
+                                    <div class="rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-800">
+                                    <p class="text-xs text-gray-500 dark:text-gray-400">{{ $detail['label'] }}</p>
+                                    <p class="text-sm font-medium text-gray-900 dark:text-gray-100">
+                                        @if (!empty($detail['is_html']))
+                                        {!! $detail['value'] !!}   {{-- value berupa HTML (tombol link) --}}
+                                        @else
+                                        {{ $detail['value'] }}      {{-- value biasa --}}
+                                        @endif
+                                    </p>
                                     </div>
                                 @endforeach
                             </div>

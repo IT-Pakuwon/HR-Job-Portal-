@@ -1017,6 +1017,7 @@ class CanvassController extends Controller
             abort(422, 'Invalid doc type');
         }   
        
+        $eid_sppbjkt = Hashids::encode($srcHeader->id);
             
 
         // ---- susun vendor header: maksimal 6 kolom ----
@@ -1053,6 +1054,7 @@ class CanvassController extends Controller
             'docid'     => $docid,
             'prefix'    => $prefix,
             'hash'      => $hash,
+            'eid_sppbjkt' => $eid_sppbjkt,
         ]);
     }
 
