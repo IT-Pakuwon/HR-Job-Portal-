@@ -299,7 +299,7 @@
                             {{-- Tabs Content --}}
                             <div class="flex flex-1 flex-col rounded-b-xl bg-white dark:bg-gray-800">
                                 {{-- Approval tab --}}
-                                <div x-show="activeTab === 'approval'" class="flex-1 p-4 transition-all">
+                                <div x-show="activeTab === 'approval'" class="flex-1 p-2 transition-all">
                                     <table class="w-full text-sm">
                                         <thead>
                                             <tr
@@ -357,316 +357,306 @@
                                 </div>
 
                                 {{-- Attachment tab --}}
-                                <div x-show="activeTab === 'attachment'" class="flex-1 transition-all">
-                                    <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
-                                        <!-- Attachment PB -->
-                                        <div class="rounded-xl bg-white p-6 dark:bg-gray-800">
-                                            <h3
-                                                class="border-b pb-2 text-lg font-bold text-gray-800 dark:text-gray-100">
-                                                📂 Attachments PB
-                                            </h3>
-                                            <ul class="mt-4 space-y-3">
-                                                @forelse ($attachmentBJKT as $at)
-                                                    @php
-                                                        $year = $at->created_at->year;
-                                                        $fileUrl = url("/attachments/{$year}/{$at->attachfile}");
-                                                    @endphp
-                                                    <li
-                                                        class="flex flex-col rounded-lg border border-gray-200 p-3 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700">
-                                                        <a href="{{ $fileUrl }}" target="_blank"
-                                                            class="font-medium text-indigo-600 hover:underline dark:text-indigo-400">
-                                                            📎 {{ $at->name }}
-                                                        </a>
-                                                        <div class="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                                                            By {{ $at->created_user }} •
-                                                            {{ $at->created_at->format('d M Y') }}
-                                                        </div>
-                                                    </li>
-                                                @empty
-                                                    <li class="p-3 text-sm italic text-gray-500 dark:text-gray-400">
-                                                        No PB attachments found.
-                                                    </li>
-                                                @endforelse
-                                            </ul>
-                                        </div>
+                                <div x-show="activeTab === 'attachment'" class="flex-1 p-2 transition-all">
+                                    <table class="w-full text-sm">
+                                        <thead class="text-gray-600 dark:text-gray-300">
+                                            <tr
+                                                class="border-b border-gray-200 text-gray-600 dark:border-gray-700 dark:text-gray-300">
+                                                <th class="p-3 text-left font-semibold">Filename</th>
+                                                <th class="p-3 text-left font-semibold">Type</th>
+                                                <th class="p-3 text-left font-semibold">Created By</th>
+                                                <th class="p-3 text-left font-semibold">Date</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @php
+                                                $allAttachments = collect($attachmentBJKT)
+                                                    ->map(function ($at) {
+                                                        $at->type = 'PB';
+                                                        return $at;
+                                                    })
+                                                    ->merge(
+                                                        collect($attachmentCS)->map(function ($at) {
+                                                            $at->type = 'CS';
+                                                            return $at;
+                                                        }),
+                                                    );
+                                            @endphp
 
-                                        <!-- Attachment CS -->
-                                        <div class="rounded-xl bg-white p-6 dark:bg-gray-800">
-                                            <h3
-                                                class="border-b pb-2 text-lg font-bold text-gray-800 dark:text-gray-100">
-                                                📂 Attachments CS
-                                            </h3>
-                                            <ul class="mt-4 space-y-3">
-                                                @forelse ($attachmentCS as $at)
-                                                    @php
-                                                        $year = \Carbon\Carbon::parse($at->created_at)->year;
-                                                        $fileUrl = url("/attachments/{$year}/{$at->attachfile}");
-                                                    @endphp
-                                                    <li
-                                                        class="flex flex-col rounded-lg border border-gray-200 p-3 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700">
+                                            @forelse ($allAttachments as $at)
+                                                @php
+                                                    $year = \Carbon\Carbon::parse($at->created_at)->year;
+                                                    $fileUrl = url("/attachments/{$year}/{$at->attachfile}");
+                                                @endphp
+                                                <tr
+                                                    class="border-b border-gray-200 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700">
+                                                    <td class="px-3 py-2">
                                                         <a href="{{ $fileUrl }}" target="_blank"
                                                             class="font-medium text-indigo-600 hover:underline dark:text-indigo-400">
                                                             📎 {{ $at->name }}
                                                         </a>
-                                                        <div class="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                                                            By {{ $at->created_user }} •
-                                                            {{ \Carbon\Carbon::parse($at->created_at)->format('d M Y') }}
-                                                        </div>
-                                                    </li>
-                                                @empty
-                                                    <li class="p-3 text-sm italic text-gray-500 dark:text-gray-400">
-                                                        No CS attachments found.
-                                                    </li>
-                                                @endforelse
-                                            </ul>
-                                        </div>
-                                    </div>
+                                                    </td>
+                                                    <td class="px-3 py-2">{{ $at->type }}</td>
+                                                    <td class="px-3 py-2">{{ $at->created_user }}</td>
+                                                    <td class="px-3 py-2">
+                                                        {{ \Carbon\Carbon::parse($at->created_at)->format('d M Y') }}
+                                                    </td>
+                                                </tr>
+                                            @empty
+                                                <tr>
+                                                    <td colspan="4"
+                                                        class="p-3 text-center text-sm italic text-gray-500 dark:text-gray-400">
+                                                        No attachments found.
+                                                    </td>
+                                                </tr>
+                                            @endforelse
+                                        </tbody>
+                                    </table>
                                 </div>
 
+                            </div>
 
 
 
-                                {{-- Comments tab --}}
-                                <div x-show="activeTab === 'comments'" class="flex-1 transition-all">
-                                    <div x-data="{ comments: [], newComment: '', currentUser: 'User1' }" class="flex h-full flex-col">
-                                        <div id="commentList"
-                                            class="custom-scrollbar flex-1 flex-col space-y-4 overflow-y-auto p-4">
-                                            <p class="py-4 text-center italic text-gray-500">Loading comments...</p>
-                                        </div>
-                                        <div
-                                            class="flex items-center gap-3 border-t border-gray-200 p-4 dark:border-gray-700">
-                                            <input id="commentInput" x-model="newComment" type="text"
-                                                placeholder="Write a comment..."
-                                                class="flex-1 rounded-lg bg-gray-100 p-3 text-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white dark:focus:ring-indigo-400">
-                                            <button id="postCommentBtn" type="button"
-                                                class="rounded-lg bg-indigo-600 px-5 py-3 text-sm font-semibold text-white transition-all duration-200 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 active:scale-95 dark:focus:ring-offset-gray-800">
-                                                Post 🚀
-                                            </button>
-                                        </div>
+
+                            {{-- Comments tab --}}
+                            <div x-show="activeTab === 'comments'" class="flex-1 p-2 transition-all">
+                                <div x-data="{ comments: [], newComment: '', currentUser: 'User1' }" class="flex h-full flex-col">
+                                    <div id="commentList"
+                                        class="custom-scrollbar flex-1 flex-col space-y-4 overflow-y-auto p-4">
+                                        <p class="py-4 text-center italic text-gray-500">Loading comments...</p>
+                                    </div>
+                                    <div
+                                        class="flex items-center gap-3 border-t border-gray-200 p-4 dark:border-gray-700">
+                                        <input id="commentInput" x-model="newComment" type="text"
+                                            placeholder="Write a comment..."
+                                            class="flex-1 rounded-lg bg-gray-100 p-3 text-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white dark:focus:ring-indigo-400">
+                                        <button id="postCommentBtn" type="button"
+                                            class="rounded-lg bg-indigo-600 px-5 py-3 text-sm font-semibold text-white transition-all duration-200 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 active:scale-95 dark:focus:ring-offset-gray-800">
+                                            Post 🚀
+                                        </button>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-                <!-- CS Detail -->
-                <div class="rounded-2xl bg-white p-4 shadow-md dark:bg-gray-800">
-                    <div
-                        class="flex items-center justify-between border-b border-gray-200 pb-3 text-lg font-bold text-gray-800 dark:border-gray-700 dark:text-white">
-                        <span>CS Detail</span>
-                    </div>
-                    <div class="mt-4 overflow-x-auto">
-                        <div class="relative overflow-y-auto">
-                            <table class="min-w-full border-separate border-spacing-0 text-sm">
-                                <!-- Table Head -->
-                                <thead
-                                    class="sticky top-0 z-20 bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300">
-                                    <tr>
-                                        <th class="w-64 px-3 py-2 text-left">Inventory Descr</th>
-                                        <th class="w-20 px-3 py-2 text-center">Qty</th>
-                                        <th class="w-16 px-3 py-2 text-center">UOM</th>
-                                        <th class="w-40 px-3 py-2 text-left">Note</th>
-                                        @foreach ($vendors as $v)
-                                            <th class="max-w-xs px-3 py-2 text-left align-top">
-                                                <div class="font-semibold">{{ $v['vendorname'] }}</div>
-                                                <div
-                                                    class="mt-0.5 space-y-0.5 text-sm text-gray-500 dark:text-gray-400">
-                                                    <div>👤 {{ $v['vendorcp'] ?: '-' }}</div>
-                                                    <div>☎️ {{ $v['vendortelp'] ?: '-' }}</div>
-                                                    <div>🏠 {{ $v['vendoralamat'] ?: '-' }}</div>
-                                                </div>
-                                                @if ($v['vendortop'])
-                                                    <span
-                                                        class="text-sm font-semibold text-gray-600 dark:text-gray-300">Payment
-                                                        Term:</span>
-                                                    <span
-                                                        class="inline-block rounded-full border px-2 py-0.5 text-xs text-gray-700 dark:text-gray-300">
-                                                        {{ $v['vendortop'] }}
-                                                    </span>
-                                                @endif
-                                            </th>
-                                        @endforeach
-                                    </tr>
-                                </thead>
-
-                                <!-- Table Body -->
-                                <tbody id="cvBody" class="divide-y divide-gray-100 dark:divide-gray-700">
-                                    @foreach ($csdetail as $row)
-                                        <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50">
-                                            <td class="px-3 py-2">{{ $row->inventory_descr }}</td>
-                                            <td class="px-3 py-2 text-center">
-                                                <input type="text" readonly
-                                                    class="w-20 rounded border bg-gray-50 px-2 text-center dark:bg-gray-700"
-                                                    value="{{ number_format((float) $row->qty, 2, ',', '.') }}">
-                                            </td>
-                                            <td class="px-3 py-2 text-center">{{ $row->uom }}</td>
-                                            <td class="px-3 py-2">{{ $row->csnote_detail }}</td>
-
-                                            @foreach ($vendors as $v)
-                                                @php
-                                                    $i = $v['i'];
-                                                    $prc = (float) ($row->{"vendorprice{$i}"} ?? 0);
-                                                    $tot = (float) ($row->{"vendortotalprice{$i}"} ?? 0);
-                                                    $sel = (bool) ($row->{"vendor{$i}selected"} ?? false);
-                                                @endphp
-                                                <td class="px-3 py-2 text-center">
-                                                    <div class="space-y-1">
-                                                        <input type="text" readonly
-                                                            class="w-full rounded border bg-gray-50 px-1 text-right text-sm dark:bg-gray-700"
-                                                            value="{{ number_format($prc, 2, ',', '.') }}">
-                                                        <div
-                                                            class="text-xs font-semibold text-gray-600 dark:text-gray-300">
-                                                            {{ number_format($tot, 0, ',', '.') }}
-                                                        </div>
-                                                        <input type="radio" class="h-3 w-3 text-indigo-600"
-                                                            {{ $sel ? 'checked' : '' }} disabled>
-                                                    </div>
-                                                </td>
-                                            @endforeach
-                                        </tr>
+            </div>
+            <!-- CS Detail -->
+            <div class="rounded-2xl bg-white p-4 shadow-md dark:bg-gray-800">
+                <div
+                    class="flex items-center justify-between border-b border-gray-200 pb-3 text-lg font-bold text-gray-800 dark:border-gray-700 dark:text-white">
+                    <span>CS Detail</span>
+                </div>
+                <div class="mt-4 overflow-x-auto">
+                    <div class="relative overflow-y-auto">
+                        <table class="min-w-full border-separate border-spacing-0 text-sm">
+                            <!-- Table Head -->
+                            <thead
+                                class="sticky top-0 z-20 bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300">
+                                <tr>
+                                    <th class="w-64 px-3 py-2 text-left">Inventory Descr</th>
+                                    <th class="w-20 px-3 py-2 text-center">Qty</th>
+                                    <th class="w-16 px-3 py-2 text-center">UOM</th>
+                                    <th class="w-40 px-3 py-2 text-left">Note</th>
+                                    @foreach ($vendors as $v)
+                                        <th class="max-w-xs px-3 py-2 text-left align-top">
+                                            <div class="font-semibold">{{ $v['vendorname'] }}</div>
+                                            <div class="mt-0.5 space-y-0.5 text-sm text-gray-500 dark:text-gray-400">
+                                                <div>👤 {{ $v['vendorcp'] ?: '-' }}</div>
+                                                <div>☎️ {{ $v['vendortelp'] ?: '-' }}</div>
+                                                <div>🏠 {{ $v['vendoralamat'] ?: '-' }}</div>
+                                            </div>
+                                            @if ($v['vendortop'])
+                                                <span
+                                                    class="text-sm font-semibold text-gray-600 dark:text-gray-300">Payment
+                                                    Term:</span>
+                                                <span
+                                                    class="inline-block rounded-full border px-2 py-0.5 text-xs text-gray-700 dark:text-gray-300">
+                                                    {{ $v['vendortop'] }}
+                                                </span>
+                                            @endif
+                                        </th>
                                     @endforeach
-                                </tbody>
+                                </tr>
+                            </thead>
 
-                                <!-- Table Footer (Summary) -->
-                                <tfoot
-                                    class="sticky bottom-0 z-10 bg-gray-50 text-xs text-gray-700 dark:bg-gray-700/40 dark:text-gray-300">
-                                    <tr class="text-sm">
-                                        <!-- Summary label -->
-                                        <td colspan="4"
-                                            class="px-3 py-2 text-right font-semibold text-gray-700 dark:text-gray-200">
-                                            Summary
+                            <!-- Table Body -->
+                            <tbody id="cvBody" class="divide-y divide-gray-100 dark:divide-gray-700">
+                                @foreach ($csdetail as $row)
+                                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                                        <td class="px-3 py-2">{{ $row->inventory_descr }}</td>
+                                        <td class="px-3 py-2 text-center">
+                                            <input type="text" readonly
+                                                class="w-20 rounded border bg-gray-50 px-2 text-center dark:bg-gray-700"
+                                                value="{{ number_format((float) $row->qty, 2, ',', '.') }}">
                                         </td>
+                                        <td class="px-3 py-2 text-center">{{ $row->uom }}</td>
+                                        <td class="px-3 py-2">{{ $row->csnote_detail }}</td>
 
-                                        <!-- Vendor totals -->
                                         @foreach ($vendors as $v)
                                             @php
-                                                $ppn = (float) ($v['ppn'] ?? 11);
-                                                $pph = (float) ($v['pph'] ?? 0);
+                                                $i = $v['i'];
+                                                $prc = (float) ($row->{"vendorprice{$i}"} ?? 0);
+                                                $tot = (float) ($row->{"vendortotalprice{$i}"} ?? 0);
+                                                $sel = (bool) ($row->{"vendor{$i}selected"} ?? false);
                                             @endphp
-                                            <td class="max-w-xs space-y-1 px-3 py-2">
-                                                <div class="flex justify-between">
-                                                    <span class="font-semibold">Total:</span>
-                                                    <span>{{ number_format($v['total'], 0, ',', '.') }}</span>
-                                                </div>
-
-                                                <div
-                                                    class="flex justify-between gap-2 font-semibold text-gray-700 dark:text-gray-300">
-                                                    <span>PPN:</span>
-                                                    <span>{{ number_format($ppn, 2, ',', '.') }}%</span>
-
-                                                    <span>PPh:</span>
-                                                    <span>{{ number_format($pph, 2, ',', '.') }}%</span>
-                                                </div>
-
-                                                <div class="flex justify-between">
-                                                    <span class="font-semibold">Grand:</span>
-                                                    <span>{{ number_format($v['grand'], 0, ',', '.') }}</span>
-                                                </div>
-
-                                                <div class="flex justify-between">
-                                                    <span class="font-semibold">G.Total Sel:</span>
-                                                    <span>{{ number_format($v['selected_grand'] ?: $v['selected_total'], 0, ',', '.') }}</span>
+                                            <td class="px-3 py-2 text-center">
+                                                <div class="space-y-1">
+                                                    <input type="text" readonly
+                                                        class="w-full rounded border bg-gray-50 px-1 text-right text-sm dark:bg-gray-700"
+                                                        value="{{ number_format($prc, 2, ',', '.') }}">
+                                                    <div
+                                                        class="text-xs font-semibold text-gray-600 dark:text-gray-300">
+                                                        {{ number_format($tot, 0, ',', '.') }}
+                                                    </div>
+                                                    <input type="radio" class="h-3 w-3 text-indigo-600"
+                                                        {{ $sel ? 'checked' : '' }} disabled>
                                                 </div>
                                             </td>
                                         @endforeach
                                     </tr>
-                                </tfoot>
+                                @endforeach
+                            </tbody>
 
-                            </table>
-                        </div>
+                            <!-- Table Footer (Summary) -->
+                            <tfoot
+                                class="sticky bottom-0 z-10 bg-gray-50 text-xs text-gray-700 dark:bg-gray-700/40 dark:text-gray-300">
+                                <tr class="text-sm">
+                                    <!-- Summary label -->
+                                    <td colspan="4"
+                                        class="px-3 py-2 text-right font-semibold text-gray-700 dark:text-gray-200">
+                                        Summary
+                                    </td>
+
+                                    <!-- Vendor totals -->
+                                    @foreach ($vendors as $v)
+                                        @php
+                                            $ppn = (float) ($v['ppn'] ?? 11);
+                                            $pph = (float) ($v['pph'] ?? 0);
+                                        @endphp
+                                        <td class="max-w-xs space-y-1 px-3 py-2">
+                                            <div class="flex justify-between">
+                                                <span class="font-semibold">Total:</span>
+                                                <span>{{ number_format($v['total'], 0, ',', '.') }}</span>
+                                            </div>
+
+                                            <div
+                                                class="flex justify-between gap-2 font-semibold text-gray-700 dark:text-gray-300">
+                                                <span>PPN:</span>
+                                                <span>{{ number_format($ppn, 2, ',', '.') }}%</span>
+
+                                                <span>PPh:</span>
+                                                <span>{{ number_format($pph, 2, ',', '.') }}%</span>
+                                            </div>
+
+                                            <div class="flex justify-between">
+                                                <span class="font-semibold">Grand:</span>
+                                                <span>{{ number_format($v['grand'], 0, ',', '.') }}</span>
+                                            </div>
+
+                                            <div class="flex justify-between">
+                                                <span class="font-semibold">G.Total Sel:</span>
+                                                <span>{{ number_format($v['selected_grand'] ?: $v['selected_total'], 0, ',', '.') }}</span>
+                                            </div>
+                                        </td>
+                                    @endforeach
+                                </tr>
+                            </tfoot>
+
+                        </table>
                     </div>
                 </div>
+            </div>
 
+
+        </div>
+    </div>
+
+    <div id="loadingSpinnerContainer" role="status" aria-live="polite" aria-label="Loading">
+        <div class="loading-card">
+            <div class="loading-spinner"></div>
+            <div class="loading-text">
+                Processing<span class="loading-ellipsis"><span>.</span><span>.</span><span>.</span></span>
+            </div>
+        </div>
+    </div>
+
+
+    <div id="rejectTaskModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50">
+        <div class="w-full max-w-md rounded-lg bg-white p-6 dark:bg-gray-700">
+            <h2 class="mb-4 text-xl font-semibold text-gray-800 dark:text-white">Reject</h2>
+            <textarea id="rejectReason" class="mt-2 w-full rounded-lg p-3 focus:outline-none dark:bg-gray-800 dark:text-white"
+                placeholder="Enter rejection reason..."></textarea>
+
+            <div class="mt-4 flex justify-between">
+                <button id="cancelRejectBtn" class="rounded-lg bg-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-400">
+                    Cancel
+                </button>
+                <button id="confirmRejectBtn" class="rounded-lg bg-red-500 px-4 py-2 text-white hover:bg-red-600">
+                    Reject
+                </button>
+            </div>
+        </div>
+    </div>
+    <div id="reviseTaskModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50">
+        <div class="w-full max-w-md rounded-lg bg-white p-6 dark:bg-gray-700">
+            <h2 class="mb-4 text-xl font-semibold text-gray-800 dark:text-white">Revise Task</h2>
+            <textarea id="reviseReason" class="mt-2 w-full rounded-lg p-3 focus:outline-none dark:bg-gray-800 dark:text-white"
+                placeholder="Enter revise reason..."></textarea>
+
+            <div class="mt-4 flex justify-between">
+                <button id="cancelReviseBtn" class="rounded-lg bg-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-400">
+                    Cancel
+                </button>
+                <button id="confirmReviseBtn"
+                    class="inline-flex items-center gap-1 rounded-md bg-gray-500 px-3 py-2 text-sm font-medium text-gray-100 transition-colors hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:bg-gray-100 dark:bg-gray-700/30 dark:text-gray-300 dark:hover:bg-gray-600/50">
+                    Revise
+                </button>
 
             </div>
         </div>
+    </div>
 
-        <div id="loadingSpinnerContainer" role="status" aria-live="polite" aria-label="Loading">
-            <div class="loading-card">
-                <div class="loading-spinner"></div>
-                <div class="loading-text">
-                    Processing<span class="loading-ellipsis"><span>.</span><span>.</span><span>.</span></span>
-                </div>
-            </div>
-        </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dayjs/1.11.10/dayjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dayjs/1.11.10/plugin/relativeTime.min.js"></script>
+    <script>
+        dayjs.extend(dayjs_plugin_relativeTime);
 
+        const $spinner = $("#loadingSpinnerContainer");
+        $spinner.fadeIn(); // tampilkan saat mulai proses
+        // ...
+        $spinner.fadeOut(); // sembunyikan saat selesai
+    </script>
 
-        <div id="rejectTaskModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50">
-            <div class="w-full max-w-md rounded-lg bg-white p-6 dark:bg-gray-700">
-                <h2 class="mb-4 text-xl font-semibold text-gray-800 dark:text-white">Reject</h2>
-                <textarea id="rejectReason" class="mt-2 w-full rounded-lg p-3 focus:outline-none dark:bg-gray-800 dark:text-white"
-                    placeholder="Enter rejection reason..."></textarea>
+    <script>
+        $(document).ready(function() {
+            let csid = "{{ $cs->csid }}"; // Ambil task ID dari PHP ke JavaScript
+            loadComments(csid);
 
-                <div class="mt-4 flex justify-between">
-                    <button id="cancelRejectBtn"
-                        class="rounded-lg bg-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-400">
-                        Cancel
-                    </button>
-                    <button id="confirmRejectBtn" class="rounded-lg bg-red-500 px-4 py-2 text-white hover:bg-red-600">
-                        Reject
-                    </button>
-                </div>
-            </div>
-        </div>
-        <div id="reviseTaskModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50">
-            <div class="w-full max-w-md rounded-lg bg-white p-6 dark:bg-gray-700">
-                <h2 class="mb-4 text-xl font-semibold text-gray-800 dark:text-white">Revise Task</h2>
-                <textarea id="reviseReason" class="mt-2 w-full rounded-lg p-3 focus:outline-none dark:bg-gray-800 dark:text-white"
-                    placeholder="Enter revise reason..."></textarea>
+            // **Fungsi untuk Memuat Komentar**
+            function loadComments(csid) {
+                console.log("Loading comments for Doc ID:", csid);
+                let commentList = $('#commentList');
+                commentList.html('<p class="text-gray-500 italic">Loading comments...</p>'); // Loader
 
-                <div class="mt-4 flex justify-between">
-                    <button id="cancelReviseBtn"
-                        class="rounded-lg bg-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-400">
-                        Cancel
-                    </button>
-                    <button id="confirmReviseBtn"
-                        class="inline-flex items-center gap-1 rounded-md bg-gray-500 px-3 py-2 text-sm font-medium text-gray-100 transition-colors hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:bg-gray-100 dark:bg-gray-700/30 dark:text-gray-300 dark:hover:bg-gray-600/50">
-                        Revise
-                    </button>
+                $.ajax({
+                    url: `/cs/${csid}/comments`,
+                    type: 'GET',
+                    success: function(response) {
+                        console.log("Comments Loaded:", response);
+                        commentList.empty();
 
-                </div>
-            </div>
-        </div>
-
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/dayjs/1.11.10/dayjs.min.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/dayjs/1.11.10/plugin/relativeTime.min.js"></script>
-        <script>
-            dayjs.extend(dayjs_plugin_relativeTime);
-
-            const $spinner = $("#loadingSpinnerContainer");
-            $spinner.fadeIn(); // tampilkan saat mulai proses
-            // ...
-            $spinner.fadeOut(); // sembunyikan saat selesai
-        </script>
-
-        <script>
-            $(document).ready(function() {
-                let csid = "{{ $cs->csid }}"; // Ambil task ID dari PHP ke JavaScript
-                loadComments(csid);
-
-                // **Fungsi untuk Memuat Komentar**
-                function loadComments(csid) {
-                    console.log("Loading comments for Doc ID:", csid);
-                    let commentList = $('#commentList');
-                    commentList.html('<p class="text-gray-500 italic">Loading comments...</p>'); // Loader
-
-                    $.ajax({
-                        url: `/cs/${csid}/comments`,
-                        type: 'GET',
-                        success: function(response) {
-                            console.log("Comments Loaded:", response);
-                            commentList.empty();
-
-                            if (response.comments.length === 0) {
-                                commentList.append(
-                                    '<p class="text-gray-500 italic">No comments yet. Be the first to comment!</p>'
-                                );
-                            } else {
-                                response.comments.forEach(comment => {
-                                    // let timeAgo = moment(comment.created_at)
-                                    //     .fromNow(); // Format waktu seperti "4 days ago"
-                                    let timeAgo = dayjs(comment.created_at).fromNow();
-                                    commentList.append(`
+                        if (response.comments.length === 0) {
+                            commentList.append(
+                                '<p class="text-gray-500 italic">No comments yet. Be the first to comment!</p>'
+                            );
+                        } else {
+                            response.comments.forEach(comment => {
+                                // let timeAgo = moment(comment.created_at)
+                                //     .fromNow(); // Format waktu seperti "4 days ago"
+                                let timeAgo = dayjs(comment.created_at).fromNow();
+                                commentList.append(`
                                         <div class="p-3 bg-gray-100 dark:bg-gray-800 rounded-lg mb-2        -gray-300 dark:   -gray-700">
                                             <p class="text-sm font-semibold">${comment.username} 
                                                 <span class="text-xs text-gray-500">(${timeAgo})</span>
@@ -674,295 +664,295 @@
                                             <p class="text-gray-800 dark:text-gray-200">${comment.message}</p>
                                         </div>
                                 `);
-                                });
-                            }
-                        },
-                        error: function(xhr) {
-                            console.error("Error fetching comments:", xhr.responseText);
-                            commentList.html('<p class="text-red-500 italic">Failed to load comments.</p>');
+                            });
                         }
-                    });
-                }
-
-                $(document).on('click', '#postCommentBtn', function(e) {
-                    e.preventDefault();
-                    addComment();
-                });
-
-                // **Fungsi untuk Menambahkan Komentar**
-                function addComment() {
-                    let input = $('#commentInput').val().trim();
-
-                    if (input === "") {
-                        alert("Please enter a comment.");
-                        return;
-                    }
-
-                    $('#postCommentBtn').prop('disabled', true).text('Posting... 🚀'); // Disable button saat proses
-
-                    $.ajax({
-                        url: `/cs/${csid}/comments`,
-                        type: 'POST',
-                        data: {
-                            csid: csid,
-                            comment: input,
-                            _token: '{{ csrf_token() }}'
-                        },
-                        success: function(response) {
-                            console.log('Comment added successfully:', response);
-
-                            if (response.status === "success") {
-                                loadComments(csid); // **Reload komentar setelah menambahkan**
-                                $('#commentInput').val(''); // Kosongkan input setelah sukses
-                            }
-                        },
-                        error: function(xhr) {
-                            console.error("Error adding comment:", xhr);
-                            alert("Error: " + (xhr.responseJSON ? xhr.responseJSON.message :
-                                "Unknown Error"));
-                        },
-                        complete: function() {
-                            $('#postCommentBtn').prop('disabled', false).text(
-                                'Post 🚀'); // Aktifkan kembali tombol
-                        }
-                    });
-                }
-
-                // **Event Listener untuk Tombol "Post"**
-                $('#postCommentBtn').click(function() {
-                    addComment();
-                });
-
-                // **Event Listener untuk Enter (Tanpa Shift) di Input**
-                $('#commentInput').keypress(function(event) {
-                    if (event.which === 13 && !event.shiftKey) {
-                        event.preventDefault();
-                        addComment();
+                    },
+                    error: function(xhr) {
+                        console.error("Error fetching comments:", xhr.responseText);
+                        commentList.html('<p class="text-red-500 italic">Failed to load comments.</p>');
                     }
                 });
-            });
-        </script>
-        <script>
-            $(document).on("click", "#approveBtn", function() {
-                let csid = "{{ $cs->csid }}"; // Ambil Task ID dari modal        
-                approveCS(csid);
+            }
+
+            $(document).on('click', '#postCommentBtn', function(e) {
+                e.preventDefault();
+                addComment();
             });
 
-            function approveCS(csid) {
-                let $spinner = $("#loadingSpinnerContainer"); // Ambil elemen spinner
+            // **Fungsi untuk Menambahkan Komentar**
+            function addComment() {
+                let input = $('#commentInput').val().trim();
 
+                if (input === "") {
+                    alert("Please enter a comment.");
+                    return;
+                }
+
+                $('#postCommentBtn').prop('disabled', true).text('Posting... 🚀'); // Disable button saat proses
+
+                $.ajax({
+                    url: `/cs/${csid}/comments`,
+                    type: 'POST',
+                    data: {
+                        csid: csid,
+                        comment: input,
+                        _token: '{{ csrf_token() }}'
+                    },
+                    success: function(response) {
+                        console.log('Comment added successfully:', response);
+
+                        if (response.status === "success") {
+                            loadComments(csid); // **Reload komentar setelah menambahkan**
+                            $('#commentInput').val(''); // Kosongkan input setelah sukses
+                        }
+                    },
+                    error: function(xhr) {
+                        console.error("Error adding comment:", xhr);
+                        alert("Error: " + (xhr.responseJSON ? xhr.responseJSON.message :
+                            "Unknown Error"));
+                    },
+                    complete: function() {
+                        $('#postCommentBtn').prop('disabled', false).text(
+                            'Post 🚀'); // Aktifkan kembali tombol
+                    }
+                });
+            }
+
+            // **Event Listener untuk Tombol "Post"**
+            $('#postCommentBtn').click(function() {
+                addComment();
+            });
+
+            // **Event Listener untuk Enter (Tanpa Shift) di Input**
+            $('#commentInput').keypress(function(event) {
+                if (event.which === 13 && !event.shiftKey) {
+                    event.preventDefault();
+                    addComment();
+                }
+            });
+        });
+    </script>
+    <script>
+        $(document).on("click", "#approveBtn", function() {
+            let csid = "{{ $cs->csid }}"; // Ambil Task ID dari modal        
+            approveCS(csid);
+        });
+
+        function approveCS(csid) {
+            let $spinner = $("#loadingSpinnerContainer"); // Ambil elemen spinner
+
+            // Tampilkan spinner di kanan bawah
+            $spinner.fadeIn();
+
+            $.ajax({
+                url: `/cs/${csid}/approve`,
+                type: "POST",
+                data: {
+                    _token: "{{ csrf_token() }}",
+                    csid: csid
+                },
+                success: function(response) {
+                    if (response.success) {
+                        // Update status di UI
+                        $("#xstatus").text("Approved")
+                            .removeClass()
+                            .addClass(
+                                "w-full max-w-32 bg-green-300/30 dark:bg-green-300 text-green-600 flex justify-items-center focus:outline-none pointer-events-none    -none font-semibold px-2 py-0.5 rounded"
+                            );
+
+                        // Tampilkan alert sukses
+                        toastr.success("CS approved successfully!");
+                        window.location.href = "/dashboard";
+                    } else {
+                        toastr.error(response.message);
+                    }
+                },
+                error: function(xhr) {
+                    console.error(xhr.responseText);
+
+                    if (xhr.status === 403) {
+                        toastr.error("You are not authorized to approve this cs.");
+                    } else {
+                        toastr.error("Error: Unable to approve cs.");
+                    }
+                },
+                complete: function() {
+                    // Sembunyikan spinner setelah request selesai
+                    $spinner.fadeOut();
+                }
+            });
+        }
+    </script>
+
+
+    <script>
+        $(document).ready(function() {
+            // Saat tombol "Reject" ditekan, tampilkan modal Reject di depan
+            $(document).on("click", "#rejectBtn", function() {
+                $("#rejectReason").val(""); // Reset alasan reject
+                // $("#rejectTaskModal").removeClass("hidden").css("z-index", "60");
+                let csid = "{{ $cs->csid }}";
+                checkApproval(csid, "reject");
+
+            });
+
+            // Saat tombol "Cancel" ditekan, tutup modal Reject
+            $(document).on("click", "#cancelRejectBtn", function() {
+                $("#rejectTaskModal").addClass("hidden");
+            });
+
+            // Saat tombol "Reject" ditekan, proses perubahan status
+            $(document).on("click", "#confirmRejectBtn", function() {
+                let csid = "{{ $cs->csid }}"; // Ambil ID tugas dari modal detail
+                let rejectReason = $("#rejectReason").val().trim();
+
+                if (rejectReason === "") {
+                    toastr.error("Please provide a reason for rejection.");
+                    return;
+                }
+
+                let $spinner = $("#loadingSpinnerContainer"); // Ambil elemen spinner        
                 // Tampilkan spinner di kanan bawah
                 $spinner.fadeIn();
 
                 $.ajax({
-                    url: `/cs/${csid}/approve`,
+                    url: `/cs/${csid}/reject`,
                     type: "POST",
                     data: {
                         _token: "{{ csrf_token() }}",
-                        csid: csid
+                        docid: csid,
+                        reason: rejectReason
                     },
                     success: function(response) {
                         if (response.success) {
-                            // Update status di UI
-                            $("#xstatus").text("Approved")
+                            // alert("Task has been rejected successfully.");
+
+                            // Update status di modal cs
+                            $("#xstatus").text("Rejected")
                                 .removeClass()
                                 .addClass(
-                                    "w-full max-w-32 bg-green-300/30 dark:bg-green-300 text-green-600 flex justify-items-center focus:outline-none pointer-events-none    -none font-semibold px-2 py-0.5 rounded"
+                                    "w-full max-w-32 bg-red-300/30 dark:bg-red-300 text-red-600 flex justify-items-center focus:outline-none pointer-events-none    -none font-semibold px-2 py-0.5 rounded"
                                 );
+                            $spinner.fadeOut();
 
-                            // Tampilkan alert sukses
-                            toastr.success("CS approved successfully!");
                             window.location.href = "/dashboard";
                         } else {
-                            toastr.error(response.message);
+                            alert("Failed to reject cs.");
                         }
                     },
                     error: function(xhr) {
                         console.error(xhr.responseText);
 
                         if (xhr.status === 403) {
-                            toastr.error("You are not authorized to approve this cs.");
+                            alert("You Can't Rejected!"); // Popup jika user tidak berhak
                         } else {
-                            toastr.error("Error: Unable to approve cs.");
+                            alert("Error: Unable to reject cs status.");
                         }
                     },
-                    complete: function() {
-                        // Sembunyikan spinner setelah request selesai
-                        $spinner.fadeOut();
-                    }
-                });
-            }
-        </script>
-
-
-        <script>
-            $(document).ready(function() {
-                // Saat tombol "Reject" ditekan, tampilkan modal Reject di depan
-                $(document).on("click", "#rejectBtn", function() {
-                    $("#rejectReason").val(""); // Reset alasan reject
-                    // $("#rejectTaskModal").removeClass("hidden").css("z-index", "60");
-                    let csid = "{{ $cs->csid }}";
-                    checkApproval(csid, "reject");
-
-                });
-
-                // Saat tombol "Cancel" ditekan, tutup modal Reject
-                $(document).on("click", "#cancelRejectBtn", function() {
-                    $("#rejectTaskModal").addClass("hidden");
-                });
-
-                // Saat tombol "Reject" ditekan, proses perubahan status
-                $(document).on("click", "#confirmRejectBtn", function() {
-                    let csid = "{{ $cs->csid }}"; // Ambil ID tugas dari modal detail
-                    let rejectReason = $("#rejectReason").val().trim();
-
-                    if (rejectReason === "") {
-                        toastr.error("Please provide a reason for rejection.");
-                        return;
-                    }
-
-                    let $spinner = $("#loadingSpinnerContainer"); // Ambil elemen spinner        
-                    // Tampilkan spinner di kanan bawah
-                    $spinner.fadeIn();
-
-                    $.ajax({
-                        url: `/cs/${csid}/reject`,
-                        type: "POST",
-                        data: {
-                            _token: "{{ csrf_token() }}",
-                            docid: csid,
-                            reason: rejectReason
-                        },
-                        success: function(response) {
-                            if (response.success) {
-                                // alert("Task has been rejected successfully.");
-
-                                // Update status di modal cs
-                                $("#xstatus").text("Rejected")
-                                    .removeClass()
-                                    .addClass(
-                                        "w-full max-w-32 bg-red-300/30 dark:bg-red-300 text-red-600 flex justify-items-center focus:outline-none pointer-events-none    -none font-semibold px-2 py-0.5 rounded"
-                                    );
-                                $spinner.fadeOut();
-
-                                window.location.href = "/dashboard";
-                            } else {
-                                alert("Failed to reject cs.");
-                            }
-                        },
-                        error: function(xhr) {
-                            console.error(xhr.responseText);
-
-                            if (xhr.status === 403) {
-                                alert("You Can't Rejected!"); // Popup jika user tidak berhak
-                            } else {
-                                alert("Error: Unable to reject cs status.");
-                            }
-                        },
-                    });
                 });
             });
-        </script>
-        <script>
-            $(document).ready(function() {
-                // Saat tombol "Revise" ditekan, tampilkan modal Revise di depan
-                $(document).on("click", "#reviseBtn", function() {
-                    $("#reviseReason").val(""); // Reset alasan revise
-                    // $("#reviseTaskModal").removeClass("hidden").css("z-index", "60");
-                    let csid = "{{ $cs->csid }}";
-                    checkApproval(csid, "revise");
+        });
+    </script>
+    <script>
+        $(document).ready(function() {
+            // Saat tombol "Revise" ditekan, tampilkan modal Revise di depan
+            $(document).on("click", "#reviseBtn", function() {
+                $("#reviseReason").val(""); // Reset alasan revise
+                // $("#reviseTaskModal").removeClass("hidden").css("z-index", "60");
+                let csid = "{{ $cs->csid }}";
+                checkApproval(csid, "revise");
 
-                });
-
-                // Saat tombol "Cancel" ditekan, tutup modal Revise
-                $(document).on("click", "#cancelReviseBtn", function() {
-                    $("#reviseTaskModal").addClass("hidden");
-                });
-
-                // Saat tombol "Revise" ditekan, proses perubahan status
-                $(document).on("click", "#confirmReviseBtn", function() {
-                    let csid = "{{ $cs->csid }}"; // Ambil ID tugas dari modal detail
-                    let reviseReason = $("#reviseReason").val().trim();
-
-                    if (reviseReason === "") {
-                        toastr.error("Please provide a reason for revise.");
-                        return;
-                    }
-                    let $spinner = $("#loadingSpinnerContainer"); // Ambil elemen spinner        
-                    // Tampilkan spinner di kanan bawah
-                    $spinner.fadeIn();
-
-                    $.ajax({
-                        url: `/cs/${csid}/revise`,
-                        type: "POST",
-                        data: {
-                            _token: "{{ csrf_token() }}",
-                            docid: csid,
-                            reason: reviseReason
-                        },
-                        success: function(response) {
-                            if (response.success) {
-                                // alert("Task has been reviseed successfully.");
-
-                                // Update status di modal cs
-                                $("#xstatus").text("Revised")
-                                    .removeClass()
-                                    .addClass(
-                                        "w-full max-w-32 bg-red-300/30 dark:bg-red-300 text-red-600 flex justify-items-center focus:outline-none pointer-events-none    -none font-semibold px-2 py-0.5 rounded"
-                                    );
-                                $spinner.fadeOut();
-                                window.location.href = "/dashboard";
-                            } else {
-                                alert("Failed to revise cs.");
-                            }
-                        },
-                        error: function(xhr) {
-                            console.error(xhr.responseText);
-
-                            if (xhr.status === 403) {
-                                alert("You Can't Revised!"); // Popup jika user tidak berhak
-                            } else {
-                                alert("Error: Unable to revise cs status.");
-                            }
-                        },
-                    });
-                });
             });
-        </script>
 
-        <!-- Toastr CSS -->
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
-        <!-- Toastr JS -->
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
-        <script>
-            function checkApproval(csid, action) {
-                console.log(csid, '-', action);
+            // Saat tombol "Cancel" ditekan, tutup modal Revise
+            $(document).on("click", "#cancelReviseBtn", function() {
+                $("#reviseTaskModal").addClass("hidden");
+            });
+
+            // Saat tombol "Revise" ditekan, proses perubahan status
+            $(document).on("click", "#confirmReviseBtn", function() {
+                let csid = "{{ $cs->csid }}"; // Ambil ID tugas dari modal detail
+                let reviseReason = $("#reviseReason").val().trim();
+
+                if (reviseReason === "") {
+                    toastr.error("Please provide a reason for revise.");
+                    return;
+                }
+                let $spinner = $("#loadingSpinnerContainer"); // Ambil elemen spinner        
+                // Tampilkan spinner di kanan bawah
+                $spinner.fadeIn();
+
                 $.ajax({
-                    url: `/cs/${csid}/check-approval/${action}`,
-                    type: "GET",
+                    url: `/cs/${csid}/revise`,
+                    type: "POST",
+                    data: {
+                        _token: "{{ csrf_token() }}",
+                        docid: csid,
+                        reason: reviseReason
+                    },
                     success: function(response) {
-                        if (response.canPerformAction) {
-                            // Jika user bisa melakukan aksi, tampilkan modal atau langsung proses approval
-                            if (action === "reject") {
-                                $("#rejectReason").val(""); // Reset alasan reject
-                                $("#rejectTaskModal").removeClass("hidden").css("z-index", "60");
-                            } else if (action === "revise") {
-                                $("#reviseReason").val(""); // Reset alasan revise
-                                $("#reviseTaskModal").removeClass("hidden").css("z-index", "60");
-                                // } else if (action === "approve") {
-                                //     approveCS(csid); // Jika approve, langsung jalankan proses approval
-                            }
+                        if (response.success) {
+                            // alert("Task has been reviseed successfully.");
+
+                            // Update status di modal cs
+                            $("#xstatus").text("Revised")
+                                .removeClass()
+                                .addClass(
+                                    "w-full max-w-32 bg-red-300/30 dark:bg-red-300 text-red-600 flex justify-items-center focus:outline-none pointer-events-none    -none font-semibold px-2 py-0.5 rounded"
+                                );
+                            $spinner.fadeOut();
+                            window.location.href = "/dashboard";
                         } else {
-                            // Jika user tidak boleh melakukan aksi, tampilkan popup toastr
-                            toastr.error("You are not authorized to " + action + " this cs.");
+                            alert("Failed to revise cs.");
                         }
                     },
-                    error: function() {
-                        toastr.error("Error checking approval status.");
-                    }
+                    error: function(xhr) {
+                        console.error(xhr.responseText);
+
+                        if (xhr.status === 403) {
+                            alert("You Can't Revised!"); // Popup jika user tidak berhak
+                        } else {
+                            alert("Error: Unable to revise cs status.");
+                        }
+                    },
                 });
-            }
-        </script>
+            });
+        });
+    </script>
+
+    <!-- Toastr CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+    <!-- Toastr JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+    <script>
+        function checkApproval(csid, action) {
+            console.log(csid, '-', action);
+            $.ajax({
+                url: `/cs/${csid}/check-approval/${action}`,
+                type: "GET",
+                success: function(response) {
+                    if (response.canPerformAction) {
+                        // Jika user bisa melakukan aksi, tampilkan modal atau langsung proses approval
+                        if (action === "reject") {
+                            $("#rejectReason").val(""); // Reset alasan reject
+                            $("#rejectTaskModal").removeClass("hidden").css("z-index", "60");
+                        } else if (action === "revise") {
+                            $("#reviseReason").val(""); // Reset alasan revise
+                            $("#reviseTaskModal").removeClass("hidden").css("z-index", "60");
+                            // } else if (action === "approve") {
+                            //     approveCS(csid); // Jika approve, langsung jalankan proses approval
+                        }
+                    } else {
+                        // Jika user tidak boleh melakukan aksi, tampilkan popup toastr
+                        toastr.error("You are not authorized to " + action + " this cs.");
+                    }
+                },
+                error: function() {
+                    toastr.error("Error checking approval status.");
+                }
+            });
+        }
+    </script>
 
 
 
