@@ -388,7 +388,11 @@
             const url = `/${base}/${src_eid}`;
             return `<a href="${url}" class="inline-flex items-center rounded px-3 py-1.5 bg-emerald-600 text-white hover:bg-emerald-700 text-sm font-semibold">${docNo}</a>`;
         }
-        function renderDays(v){ return (v==null) ? '' : String(v); }
+        // function renderDays(v){ return (v==null) ? '' : String(v); }
+            function renderDays(v){
+                return (v == null) ? '' : `${v} days`;
+            }
+
 
             function renderCSBtn(_v, row) {
                 return `<a href="/showcs/${row.eid}" class="rounded px-6 py-2 bg-indigo-500 text-white rounded hover:bg-indigo-700">${row.csid ?? ''}</a>`;
@@ -463,7 +467,7 @@
                 },
                 {
                     data: 'days',
-                    className: 'text-lefts',
+                    className: 'text-left',
                     render: (v) => renderDays(v)
                 },
             ];

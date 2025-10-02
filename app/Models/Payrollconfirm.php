@@ -32,5 +32,10 @@ class Payrollconfirm extends Model
         'completed_user'      
         
     ];
+
+    protected $casts = [
+        'gross_salary' => 'encrypted',
+        'net_salary'   => 'encrypted',
+    ];
     
 }

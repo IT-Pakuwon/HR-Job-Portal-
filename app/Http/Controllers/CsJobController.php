@@ -649,11 +649,11 @@ class CsJobController extends Controller
                 // 2) Set status header CS jadi Pending + cap submitted
                 $now = Carbon::now();
                 $cs->status = 'P';
-                if (Schema::connection('pgsql')->hasColumn($cs->getTable(), 'submitted_by')) {
-                    $cs->submitted_by = $username;
+                if (Schema::connection('pgsql')->hasColumn($cs->getTable(), 'updated_by')) {
+                    $cs->updated_by = $username;
                 }
-                if (Schema::connection('pgsql')->hasColumn($cs->getTable(), 'submitted_at')) {
-                    $cs->submitted_at = $now;
+                if (Schema::connection('pgsql')->hasColumn($cs->getTable(), 'submitdate')) {                   
+                    $cs->submitdate = $now;
                 }
                 $cs->save();
 

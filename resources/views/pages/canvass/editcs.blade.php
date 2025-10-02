@@ -267,14 +267,43 @@
                                 </div>
 
                                 <!-- BQ ID -->
-                                @if (in_array($doc, ['SPPJ', 'SPPT']))
+                                {{-- @if (in_array($doc, ['SPPJ', 'SPPT']))
                                     <div>
                                         <label class="text-sm font-medium text-gray-600 dark:text-gray-400">BQ
                                             ID</label>
                                         <input type="text" value="{{ $header->bqid }}" readonly
                                             class="mt-1 w-full rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
                                     </div>
+                                @endif --}}
+                                {{-- BQ ID --}}
+                                @if (in_array($doc, ['SPPJ','SPPT']))
+                                <div class="flex items-end gap-2">
+                                    <div class="flex-1">
+                                    <label class="text-sm font-medium text-gray-600 dark:text-gray-400">BQ ID</label>
+                                    <input type="text" value="{{ $header->bqid }}" readonly
+                                            class="mt-1 w-full rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
+                                    </div>
+
+                                    {{-- Create BQ button --}}
+                                    @php
+                                    // jika halaman ini punya csid (mis. mode edit), kirimkan csid; kalau tidak ada -> disabled
+                                    $csidForBQ = $cs->csid ?? null;   // sesuaikan: jika variabel $cs tidak ada, ganti dengan variabel CS kamu
+                                    @endphp
+
+                                    @if($csidForBQ)
+                                    <a href="{{ route('bqcs.createFromCS', $csidForBQ) }}"
+                                        class="mt-6 inline-flex items-center gap-2 rounded-lg bg-amber-600 px-4 py-2 text-sm font-semibold text-white hover:bg-amber-700">
+                                        ➕ Create BQ
+                                    </a>
+                                    @else
+                                    <button type="button" title="Simpan CS dulu, baru buat BQ"
+                                            class="mt-6 inline-flex cursor-not-allowed items-center gap-2 rounded-lg bg-gray-400 px-4 py-2 text-sm font-semibold text-white">
+                                        ➕ Create BQ
+                                    </button>
+                                    @endif
+                                </div>
                                 @endif
+
 
                                 <div class="flex w-full flex-col gap-2">
                                     <label class="req text-sm font-medium text-gray-600 dark:text-gray-400">Select

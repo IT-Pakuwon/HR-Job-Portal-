@@ -11,9 +11,15 @@
         margin: 10mm; }
 
     body { 
-        font-family: Arial, sans-serif; 
-        font-size: 11px; 
+        font-family: "DejaVu Sans", Arial, sans-serif; 
+        font-size: 14px; 
         color:#000; 
+    }
+    .tick{
+        font-family: "DejaVu Sans", "Segoe UI Symbol", "Arial Unicode MS", Arial, sans-serif; /* <= tambah fallback unicode */
+        font-size: 20px;
+        font-weight: 700; /* boleh normal juga */
+        line-height: 1;
     }
 
     h2 { 
@@ -64,7 +70,7 @@
     .td-right { text-align:right; }
     .td-bold { font-weight:bold; }
     .muted { color:#666; font-size:9px; }
-    .tick { font-weight:bold; font-size:13px; }
+    /* .tick { font-weight:bold; font-size:13px; } */
     .status { font-weight:700; }
     .status.blue { color:blue; } 
     .status.red { color:red; } 
@@ -143,8 +149,8 @@
                 Vendor Info
             </th>
 
-            <th rowspan="2" style="width:120px; text-align:center; vertical-align:middle;">Location</th>
-            <th rowspan="2" style="width:120px; text-align:center; vertical-align:middle;">Sub Location</th>
+            <th rowspan="2" style="width:120px; text-align:center; vertical-align:middle;">Budget Account</th>
+            <th rowspan="2" style="width:120px; text-align:center; vertical-align:middle;">Last Price</th>
         </tr>
 
         <tr>
@@ -195,7 +201,8 @@
                             {{ nf($price) }}<br>
                             <span class="muted">{{ nf($total) }}</span>
                             @if($sel)
-                                <div class="td-center"><span class="tick">✔</span></div>
+                                {{-- <div class="td-center"><span class="tick">✔</span></div> --}}
+                                <div class="td-center"><span class="tick">&#10003;</span></div>
                             @endif
                         </td>
                     @else
@@ -203,8 +210,8 @@
                     @endif
                 @endfor
 
-                <td>{{ optional($dt->location)->location_name }}</td>
-                <td>{{ optional($dt->subLocation)->sub_location_name }}</td>
+                <td>{{ $dt->budget_account_id }}</td>
+                <td>{{ $dt->inventory_last_price }}</td>
             </tr>
         @empty
             <tr>
@@ -218,7 +225,7 @@
                 'Total' => fn($k) => collect($detail)->sum(fn($d) => (float) ($d->{"vendortotalprice".($k+1)} ?? 0)),
                 'Amount Tax' => fn($k) => data_get($vendors[$k] ?? [], 'tax', 0),
                 'Grand Total' => fn($k) => data_get($vendors[$k] ?? [], 'grand', 0),
-                'Grand Total Selected' => fn($k) => data_get($vendors[$k] ?? [], 'grand', 0),
+                'Grand Total Selected' => fn($k) => data_get($vendors[$k] ?? [], 'grandselected', 0),
             ];
         @endphp
 

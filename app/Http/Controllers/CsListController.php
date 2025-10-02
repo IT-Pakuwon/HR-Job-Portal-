@@ -99,7 +99,7 @@ class CsListController extends Controller
 
         $recordsTotal    = (clone $base)->count();
         $recordsFiltered = (clone $base)->count();
-
+            
         $rows = $base->select(
                     $csTable.'.id',
                     $csTable.'.csid',
@@ -126,16 +126,18 @@ class CsListController extends Controller
                 ->skip($start)->take($length)
                 ->get();
 
-        // compute days + encode id → eid
+        // Hitung selisih hari (days) antara assigndate dan submitdate
         $rows->transform(function($r){
-            $assign = $r->assigndate ? Carbon::parse($r->assigndate) : null;
-            $submit = $r->submitdate ? Carbon::parse($r->submitdate) : null;
-            $r->days = ($assign && $submit) ? $assign->diffInDays($submit, false) : null;
+            $assign = $r->assigndate ? \Carbon\Carbon::parse($r->assigndate)->startOfDay() : null;
+            $submit = $r->submitdate ? \Carbon\Carbon::parse($r->submitdate)->startOfDay() : null;
 
-            $r->eid = Hashids::encode($r->id); // ← encoded id for frontend
-            $r->sppbjkid_eid = Hashids::encode($r->sppbjkt_src_id);
+            $r->days = ($assign && $submit) ? $assign->diffInDays($submit) : null;
+
+            $r->eid = \Hashids::encode($r->id);
+            $r->sppbjkid_eid = \Hashids::encode($r->sppbjkt_src_id);
             return $r;
         });
+
 
         return response()->json([
             'draw'            => $draw,

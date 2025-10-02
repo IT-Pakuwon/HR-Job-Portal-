@@ -41,6 +41,9 @@ use Illuminate\Validation\Rule;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Schema;
 use Vinkla\Hashids\Facades\Hashids;
+use App\Models\TrPO;
+use App\Models\TrPOdetail;
+
 
 class CanvassController extends Controller
 {
@@ -1158,7 +1161,7 @@ class CanvassController extends Controller
             ];
 
             $eid = Hashids::encode($cs->id);
-
+            // dd($pendingCount);
             if ($pendingCount === 0) {
                 // Tidak ada approver lagi -> dokumen complete
                 $cs->status       = 'C';
@@ -1177,6 +1180,8 @@ class CanvassController extends Controller
                 // Kirim email ke requester (creator)
                 $status        = 'C';
                 $subjectSuffix = $subjectMap[$status] ?? 'Notification';
+
+                $this->generatePOFromCS($cs, $user, $prefix);
                 
 
                 $data = [
@@ -1728,12 +1733,13 @@ class CanvassController extends Controller
                 'total'       => (float) ($cs->{"totalvendor{$i}"} ?? 0),
                 'tax'         => (float) ($cs->{"taxvendor{$i}"} ?? 0),
                 'grand'       => (float) ($cs->{"grandtotalvendor{$i}"} ?? 0),
+                'grandselected'       => (float) ($cs->{"grandtotalselectedvendor{$i}"} ?? 0),
             ];
         }
         $vendorCount = count($vendors); // dipakai view untuk lebar kolom dll.
 
         $data = [
-            'title'               => 'Canvassing Sheet',
+            'title'               => 'Canvass Sheet',
             'doc_type'            => 'CS',
             'docid'               => $cs->csid,
             'department_id'       => $cs->department_id,
@@ -1762,6 +1768,228 @@ class CanvassController extends Controller
         $pdf->setPaper('A4', 'landscape');
 
         return $pdf->stream("pdf_cs_{$cs->csid}.pdf");
+    }
+
+   
+
+    private function generatePOFromCS(TrCS $cs, $user, $prefix): void
+    {
+        
+        // Idempotent: kalau sudah ada PO untuk CS ini, jangan bikin lagi
+        $already = TrPO::where('csid', $cs->csid)->exists();
+        if ($already) return;
+
+        // Ambil semua detail CS
+        $details = TrCSdetail::where('csid', $cs->csid)->get();
+        if ($details->isEmpty()) return;
+
+        // Kelompokkan baris per vendor yg DIPILIH (vendor1..vendor6)
+        // map: vendorIndex(1..6) => [rows...]
+        $pickedByVendorIdx = collect([1,2,3,4,5,6])->mapWithKeys(function($i){
+            return [$i => collect()];
+        });
+
+        foreach ($details as $row) {
+            for ($i = 1; $i <= 6; $i++) {
+                $sel = (bool) ($row->{"vendor{$i}selected"} ?? false);
+                $vid = $row->{"vendorid{$i}"} ?? null;
+                if ($sel && $vid) {
+                    $pickedByVendorIdx[$i] = $pickedByVendorIdx[$i]->push($row);
+                    break; // satu baris hanya boleh 1 vendor terpilih
+                }
+            }
+        }
+
+        // Tidak ada vendor terpilih? stop
+        $nonEmptyGroups = $pickedByVendorIdx->filter(fn($g)=>$g->isNotEmpty());
+        if ($nonEmptyGroups->isEmpty()) return;
+
+        // nomor otomatis (pakai tabel autonbr doctype=PO, format: POYYMM####)
+        $now   = Carbon::now();
+        // $year  = $now->year;
+        // $month = str_pad($now->month, 2, '0', STR_PAD_LEFT);
+
+        // $mkPonbr = function() use ($year, $month) {
+        //     $tglbln = substr($year, 2) . $month; // YYMM
+        //     $autonbr = Autonbr::lockForUpdate()
+        //         ->where('doctype','PO')->where('year',$year)->where('month',$month)->first();
+
+        //     if (!$autonbr) {
+        //         $autonbr = Autonbr::create([
+        //             'doctype' => 'PO', 'year' => $year, 'month' => $month, 'status' => 'A', 'number' => 1,
+        //         ]);
+        //         $seq = 1;
+        //     } else {
+        //         $seq = $autonbr->number + 1;
+        //         $autonbr->update(['number' => $seq]);
+        //     }
+        //     $ponbr = 'PO'.$tglbln.sprintf('%04d',$seq);
+        //     return [$ponbr, $seq];
+        // };
+
+        // nomor otomatis 10 digit per company (tanpa tahun/bulan)
+        $mkPonbr = function() use ($cs) {
+            $company = strtoupper((string)$cs->cpny_id);
+            $digits  = 10;
+
+            // base counter per company
+            $base = ($company === 'GPS') ? 0 : 8000000000;
+
+            // lock row autonbr untuk company ini, tanpa year/month
+            $autonbr = Autonbr::lockForUpdate()
+                ->where('doctype', $company)               
+                ->first();
+
+            // ambil nilai saat ini (kalau belum ada, mulai dari base)
+            $current = $autonbr ? (int)$autonbr->number : (int)$base;
+
+            // nomor berikutnya
+            $next = $current + 1;
+
+            if (!$autonbr) {
+                $autonbr = Autonbr::create([
+                    'doctype' => $company,                   
+                    'status'  => 'A',
+                    'number'  => $next,   // simpan posisi counter setelah dipakai
+                ]);
+            } else {
+                $autonbr->update(['number' => $next]);
+            }
+
+            // format 10 digit (tanpa prefix)
+            $ponbr = str_pad((string)$next, $digits, '0', STR_PAD_LEFT);
+
+            // kalau Anda masih ingin menyimpan "poautonbr" sebagai angka mentah, return keduanya
+            return [$ponbr, $next];
+        };
+
+        
+        DB::connection('pgsql')->beginTransaction();
+        try {
+
+            foreach ($nonEmptyGroups as $i => $rows) {
+
+                // Ambil info vendor dari header CS (vendorid{i}, vendorname{i}, dst.)
+                $vendorId   = $cs->{"vendorid{$i}"}      ?? null;
+                $vendorName = $cs->{"vendorname{$i}"}    ?? null;
+                $vendorAddr = $cs->{"vendoralamat{$i}"}  ?? null;
+                $vendorTelp = $cs->{"vendortelp{$i}"}    ?? null;
+                $vendorCP   = $cs->{"vendorcp{$i}"}      ?? null;
+                $vendorTOP  = $cs->{"vendortop{$i}"}     ?? null;
+
+                if (!$vendorId) continue; // skip kalau header kosong
+
+                // Totals ambil dari kolom "selected" versi header CS (sudah dihitung saat submit)
+                $ppnPct      = (float) ($cs->{"ppnvendor{$i}"} ?? 0);   // %
+                $pphPct      = (float) ($cs->{"pphvendor{$i}"} ?? 0);   // %
+                $totalSel    = (float) ($cs->{"totalselectedvendor{$i}"}      ?? 0);
+                $taxSel      = (float) ($cs->{"taxselectedvendor{$i}"}        ?? 0);
+                $grandSel    = (float) ($cs->{"grandtotalselectedvendor{$i}"} ?? 0);
+                $taxCodeId   = $cs->{"taxcodevendor{$i}"} ?? null;
+
+                // Generate nomor PO
+                [$ponbr, $poautonbr] = $mkPonbr();
+
+                // === PO HEADER ===
+                $po = new TrPO();
+                $po->setConnection('pgsql');
+
+                $po->ponbr           = $ponbr;
+                $po->poautonbr       = $poautonbr;
+                $po->podate          = $now->toDateString();
+                $po->potype          = $prefix; 
+                $po->cpny_id         = $cs->cpny_id;
+                $po->csid            = $cs->csid;
+                $po->sppbjktid       = $cs->sppbjktid;
+                $po->department_id   = $cs->department_id;
+                $po->user_peminta    = $cs->user_peminta;
+                $po->keperluan       = $cs->csnote ?? $cs->keperluan;
+
+                $po->ponote          = null;
+
+                $po->vendorid        = $vendorId;
+                $po->vendorname      = $vendorName;
+                $po->vendoralamat    = $vendorAddr;
+                $po->vendortelp      = $vendorTelp;
+                $po->vendorcp        = $vendorCP;
+                $po->vendortop       = $vendorTOP;
+
+                $po->totalamt        = $totalSel;
+                $po->taxcodeid       = $taxCodeId;
+                $po->taxamt          = $taxSel;
+                $po->grandtotalamt   = $grandSel;
+
+                $po->submitdate      = $now;
+                // field tanggal pengiriman/kontrak bisa diisi belakangan
+                $po->status          = 'H'; // draft/hold; sesuaikan workflow-mu
+                $po->created_by      = $user->username ?? 'system';
+
+                $po->save();
+
+                // === PO DETAIL untuk vendor ini saja ===
+                foreach ($rows as $row) {
+                    $unitCost  = (float) ($row->{"vendorprice{$i}"}      ?? 0);
+                    $totalCost = (float) ($row->{"vendortotalprice{$i}"} ?? 0);
+
+                    // hitung tax per-baris sesuai % header (jika mau)
+                    $lineTax = $totalCost * (($ppnPct + $pphPct) / 100);
+
+                    $pd = new TrPOdetail();
+                    $pd->setConnection('pgsql');
+
+                    $pd->ponbr                = $ponbr;
+                    $pd->csid                 = $cs->csid;
+                    $pd->cs_no                = $row->cs_no ?? null;
+                    $pd->sppbjktid            = $row->sppbjktid ?? $cs->sppbjktid;
+                    $pd->sppbjktid_no         = $row->sppbjkt_no ?? null;
+
+                    $pd->inventory_type       = $row->inventory_type ?? null;
+                    $pd->inventoryid          = $row->inventoryid;
+                    $pd->inventory_descr      = $row->inventory_descr;
+                    $pd->ponote_detail        = $row->csnote_detail ?? null;
+
+                    $pd->qty                  = (float) $row->qty;
+                    $pd->uom                  = $row->uom;
+
+                    $pd->type_multiplier      = $row->type_multiplier ?? null;
+                    $pd->base_multiplier      = $row->base_multiplier ?? null;
+                    $pd->base_qty             = $row->base_qty ?? null;
+                    $pd->base_uom             = $row->base_uom ?? null;
+
+                    $pd->unitcost             = $unitCost;
+                    $pd->taxcodeid            = $taxCodeId;
+                    $pd->taxamt               = $lineTax;
+                    $pd->totalcost            = $totalCost;
+
+                    $pd->qty_received         = 0;
+                    $pd->base_qty_received    = 0;
+                    $pd->qty_completed        = 0;
+                    $pd->base_qty_completed   = 0;
+                    $pd->received             = false;
+                    $pd->completed            = false;
+                    $pd->canceled             = false;
+
+                    // map akun/aktivitas dari CS detail bila ada
+                    $pd->account_id           = $row->budget_account_id  ?? null;
+                    $pd->activity_id          = $row->budget_activity_id ?? null;
+
+                    $pd->status               = 'H';     // detail draft
+                    $pd->created_by           = $user->username ?? 'system';
+
+                    $pd->save();
+                }
+            }
+
+            DB::connection('pgsql')->commit();
+
+        } catch (\Throwable $e) {
+            DB::connection('pgsql')->rollBack();
+            // catat error tapi jangan batalkan approve yg sudah C
+            Log::error('Generate PO from CS failed', [
+                'csid' => $cs->csid,
+                'error'=> $e->getMessage()
+            ]);
+        }
     }
 
 

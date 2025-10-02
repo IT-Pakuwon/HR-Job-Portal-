@@ -49,7 +49,7 @@ use App\Http\Controllers\ReceivedListController;
 use App\Http\Controllers\CsJobController;
 use App\Http\Controllers\CsListController;
 use App\Http\Controllers\CanvassController;
-
+use App\Http\Controllers\BqCSController;
 
 use App\Http\Controllers\CanvassxController;
 
@@ -294,8 +294,8 @@ Route::post('/logout', function () {
     Route::post('/payrollconfirm/store', [CareerController::class, 'storePayroll'])->name('payrollconfirm.store');
     Route::post('/payrollconfirm/update', [CareerController::class, 'updatePayroll'])->name('payrollconfirm.update');
     Route::get('/payrollconfirm/{id}', [CareerController::class, 'editPayroll'])->name('payrollconfirm.edit');
-    Route::get('/onboarding/checklist/{docid_onboarding}', [CareerController::class, 'getChecklist'])->name('onboarding.checklist');
-    Route::post('/onboarding/checklist/update', [CareerController::class, 'updateChecklist'])->name('onboarding.checklist.update');
+    Route::get('/onboarding/{docid_onboarding}', [CareerController::class, 'getChecklist'])->name('onboarding.checklist');
+    Route::post('/onboarding/update', [CareerController::class, 'updateChecklist'])->name('onboarding.checklist.update');
     Route::post('/applicant-profile/pdf', [CareerController::class, 'pdfApplicantprofile'])->name('applicantprofile.pdf');
 
     Route::post('/signconfirm/store', [CareerController::class, 'storeSign'])->name('signconfirm.store');
@@ -543,7 +543,11 @@ Route::post('/logout', function () {
     Route::put('/cs/remove-attachment/{id}', [CanvassController::class, 'removeAttachment']);    
     Route::get('/cs/{id}/check-approval/{action}', [CanvassController::class, 'checkApproval']); 
     Route::get('/pdf_cs/{hash}', [CanvassController::class, 'printCS']);
-    
+        
+    Route::get('/bqcs/create-from-cs/{csid}', [BQCSController::class, 'createFromCS'])->name('bqcs.createFromCS');
+    Route::post('/bqcs', [BQCSController::class, 'store'])->name('bqcs.store');
+
+
 
     Route::get('/inventory/list', [MasterController::class, 'InventoryList'])->name('inventory.list');
     Route::get('/request-types/by-doctype', [MasterController::class, 'RequestType'])->name('requesttypes.byDoctype');

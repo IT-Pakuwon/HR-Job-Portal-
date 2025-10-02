@@ -1776,6 +1776,7 @@ class CareerController extends Controller
             ->where('hr_trx_onboarding_checklist.docid',$docid_onboarding)      
             ->orderBy('hr_trx_onboarding_checklist.step_order', 'ASC')
             ->get();
+            
 
         return response()->json($checklists);
     }
