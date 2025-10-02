@@ -219,7 +219,8 @@
                     <div class="w-full rounded-xl bg-white p-6 shadow-md dark:bg-gray-800">
                         <!-- Header -->
                         <div class="mb-6 border-b border-gray-200 pb-4 dark:border-gray-700">
-                            <h2 class="text-xl font-extrabold text-gray-800 dark:text-white"><span class="text-indigo-500">🆔</span>
+                            <h2 class="text-xl font-extrabold text-gray-800 dark:text-white"><span
+                                    class="text-indigo-500">🆔</span>
                                 {{ $cs->csid }}</h2>
                         </div>
 
@@ -276,32 +277,33 @@
                                     </div>
                                 @endif --}}
                                 {{-- BQ ID --}}
-                                @if (in_array($doc, ['SPPJ','SPPT']))
-                                <div class="flex items-end gap-2">
-                                    <div class="flex-1">
-                                    <label class="text-sm font-medium text-gray-600 dark:text-gray-400">BQ ID</label>
-                                    <input type="text" value="{{ $header->bqid }}" readonly
-                                            class="mt-1 w-full rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
+                                @if (in_array($doc, ['SPPJ', 'SPPT']))
+                                    <div class="flex items-end gap-2">
+                                        <div class="flex-1">
+                                            <label class="text-sm font-medium text-gray-600 dark:text-gray-400">BQ
+                                                ID</label>
+                                            <input type="text" value="{{ $header->bqid }}" readonly
+                                                class="mt-1 w-full rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
+                                        </div>
+
+                                        {{-- Create BQ button --}}
+                                        @php
+                                            // jika halaman ini punya csid (mis. mode edit), kirimkan csid; kalau tidak ada -> disabled
+                                            $csidForBQ = $cs->csid ?? null; // sesuaikan: jika variabel $cs tidak ada, ganti dengan variabel CS kamu
+                                        @endphp
+
+                                        @if ($csidForBQ)
+                                            <a href="{{ route('bqcs.createFromCS', $csidForBQ) }}"
+                                                class="mt-6 inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700">
+                                                Create BQ
+                                            </a>
+                                        @else
+                                            <button type="button" title="Simpan CS dulu, baru buat BQ"
+                                                class="mt-6 inline-flex cursor-not-allowed items-center gap-2 rounded-lg bg-gray-400 px-4 py-2 text-sm font-semibold text-white">
+                                                Create BQ
+                                            </button>
+                                        @endif
                                     </div>
-
-                                    {{-- Create BQ button --}}
-                                    @php
-                                    // jika halaman ini punya csid (mis. mode edit), kirimkan csid; kalau tidak ada -> disabled
-                                    $csidForBQ = $cs->csid ?? null;   // sesuaikan: jika variabel $cs tidak ada, ganti dengan variabel CS kamu
-                                    @endphp
-
-                                    @if($csidForBQ)
-                                    <a href="{{ route('bqcs.createFromCS', $csidForBQ) }}"
-                                        class="mt-6 inline-flex items-center gap-2 rounded-lg bg-amber-600 px-4 py-2 text-sm font-semibold text-white hover:bg-amber-700">
-                                        ➕ Create BQ
-                                    </a>
-                                    @else
-                                    <button type="button" title="Simpan CS dulu, baru buat BQ"
-                                            class="mt-6 inline-flex cursor-not-allowed items-center gap-2 rounded-lg bg-gray-400 px-4 py-2 text-sm font-semibold text-white">
-                                        ➕ Create BQ
-                                    </button>
-                                    @endif
-                                </div>
                                 @endif
 
 
@@ -331,7 +333,7 @@
                                     <label class="text-sm font-medium text-gray-600 dark:text-gray-400">Note CS</label>
                                     <textarea name="csnote" id="csnote"
                                         class="mt-1 w-full rounded-md border border-gray-300 bg-white p-3 text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500/50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200"
-                                        rows="8">{{ $cs->csnote }}</textarea>                                   
+                                        rows="8">{{ $cs->csnote }}</textarea>
                                 </div>
                             </div>
                         </div>
@@ -366,7 +368,7 @@
                                                 <td class="border px-3 py-2">{{ $row->inventory_descr }}</td>
                                                 <td class="border px-3 py-2 text-center">
                                                     <input type="text"
-                                                        class="qty-input w-24 rounded border px-2 text-right"
+                                                        class="qty-input w-full rounded-md border border-gray-400 px-2 py-1 text-right shadow-sm focus:ring-2 focus:ring-indigo-400 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200"
                                                         value="{{ number_format((float) $row->qty, 2, ',', '') }}"
                                                         inputmode="decimal" autocomplete="off" placeholder="0,00"
                                                         aria-label="Qty">
@@ -441,42 +443,43 @@
 
                         <!-- New Attachments -->
                         <div class="w-full rounded-xl bg-white p-6 shadow-md dark:bg-gray-800">
-                           <details class="group" open>
-                            <summary
-                                class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-xl font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
-                                <span>Attachments CS</span>
-                                <span class="text-sm font-medium text-gray-500 transition-all group-open:hidden">See
-                                    details &rarr;</span>
-                                <span
-                                    class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline">Hide
-                                    details &darr;</span>
-                            </summary>
-                            <div class="flex h-auto flex-col justify-start">
-                                <div id="attachmentsContainer">
-                                    @foreach ($attachmentCS as $attach)
-                                        <div class="attachment-row flex items-center gap-2"
-                                            data-attachid="{{ $attach->id }}">
-                                            <a href="{{ url('/attachments/' . $attach->attachfile) }}"
-                                                target="_blank" class="mt-4 w-full border p-3 text-lg">📎
-                                                {{ $attach->name }}</a>
-                                            <button type="button"
-                                                class="removeAttachment2 mt-4 rounded border border-red-700 bg-red-200/10 px-3 py-3 text-white hover:border-red-700 hover:bg-red-400/30 dark:bg-red-700/30"
-                                                data-id="{{ $attach->id }}">🗑️
-                                            </button>
-                                        </div>
-                                    @endforeach
+                            <details class="group" open>
+                                <summary
+                                    class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-xl font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
+                                    <span>Attachments CS</span>
+                                    <span
+                                        class="text-sm font-medium text-gray-500 transition-all group-open:hidden">See
+                                        details &rarr;</span>
+                                    <span
+                                        class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline">Hide
+                                        details &darr;</span>
+                                </summary>
+                                <div class="flex h-auto flex-col justify-start">
+                                    <div id="attachmentsContainer">
+                                        @foreach ($attachmentCS as $attach)
+                                            <div class="attachment-row flex items-center gap-2"
+                                                data-attachid="{{ $attach->id }}">
+                                                <a href="{{ url('/attachments/' . $attach->attachfile) }}"
+                                                    target="_blank" class="mt-4 w-full border p-3 text-lg">📎
+                                                    {{ $attach->name }}</a>
+                                                <button type="button"
+                                                    class="removeAttachment2 mt-4 rounded border border-red-700 bg-red-200/10 px-3 py-3 text-white hover:border-red-700 hover:bg-red-400/30 dark:bg-red-700/30"
+                                                    data-id="{{ $attach->id }}">🗑️
+                                                </button>
+                                            </div>
+                                        @endforeach
+                                    </div>
                                 </div>
-                            </div>
-                            <button type="button" id="addAttachment"
-                                class="mt-4 flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 bg-gray-50 px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20"
-                                    fill="currentColor">
-                                    <path fill-rule="evenodd"
-                                        d="M10 2a1 1 0 011 1v6h6a1 1 0 110 2h-6v6a1 1 0 11-2 0v-6H3a1 1 0 110-2h6V3a1 1 0 011-1z"
-                                        clip-rule="evenodd" />
-                                </svg> Add Attachment
-                            </button>
-                        </details>
+                                <button type="button" id="addAttachment"
+                                    class="mt-4 flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 bg-gray-50 px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20"
+                                        fill="currentColor">
+                                        <path fill-rule="evenodd"
+                                            d="M10 2a1 1 0 011 1v6h6a1 1 0 110 2h-6v6a1 1 0 11-2 0v-6H3a1 1 0 110-2h6V3a1 1 0 011-1z"
+                                            clip-rule="evenodd" />
+                                    </svg> Add Attachment
+                                </button>
+                            </details>
                             <!-- Action Buttons -->
                             <div class="mt-6 flex w-full justify-end gap-4">
                                 <button type="button" id="cancelBtn"
@@ -587,8 +590,8 @@
             $('#loadingSpinnerContainer').stop(true, true).fadeOut(120);
         }
     </script>
- 
-    
+
+
     <script>
         $(document).ready(function() {
             // Fungsi Tambah Attachment
@@ -659,63 +662,72 @@
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
     <script>
-        $(function () {
-        /* --- stubs agar tidak undefined bila dipanggil lebih awal --- */
-        if (typeof window.calcCellTotal !== 'function') { window.calcCellTotal = function(){}; }
-        if (typeof window.recalcSummaryVendor !== 'function') { window.recalcSummaryVendor = function(){}; }
-
-        /* ========== 1) Master Vendor ke <select> ========== */
-        $('#vendorSelect').empty().append('<option></option>');
-        let vendorMaster = [];
-        $.getJSON('/vendorscs', function (data) {
-            vendorMaster = data || [];
-            vendorMaster.forEach(v => $('#vendorSelect').append(new Option(v.vendor_name, v.id)));
-        });
-
-        /* ========== 2) Select2 ========== */
-        $('#vendorSelect').select2({ width:'100%', theme:'default', placeholder:'Select', allowClear:true });
-
-        /* (opsional) tombol add vendor */
-        $('#btnAddVendor').on('click', function () {
-            $('#vendorSelect').val(null).trigger('change');
-            $('#vendorSelect').select2('open');
-        });
-
-        /* ========== 3) Tambah kolom saat vendor dipilih ========== */
-        let vendorCount = 0;
-
-        $('#vendorSelect').on('select2:select', function (e) {
-            const pkId  = String(e.params.data.id);
-            const v     = vendorMaster.find(x => String(x.id) === pkId);
-            if (!v) return;
-
-            const colKey = String(v.vendor_id);               // kunci kolom adalah vendor_id (kode)
-
-            // limit
-            if ($('#cvTable thead th[id^="th-vendor-"]').length >= 6) {
-            toastr.warning('Maksimal 6 vendor.');
-            $(this).val(null).trigger('change');
-            return;
+        $(function() {
+            /* --- stubs agar tidak undefined bila dipanggil lebih awal --- */
+            if (typeof window.calcCellTotal !== 'function') {
+                window.calcCellTotal = function() {};
             }
-            // cegah duplikat
-            if ($('#th-vendor-' + CSS.escape(colKey)).length) {
-            toastr.warning('Vendor sudah ada.');
-            $(this).val(null).trigger('change');
-            // return;
+            if (typeof window.recalcSummaryVendor !== 'function') {
+                window.recalcSummaryVendor = function() {};
             }
 
-            addHeader(colKey, v);
-            addPriceCells(colKey);
+            /* ========== 1) Master Vendor ke <select> ========== */
+            $('#vendorSelect').empty().append('<option></option>');
+            let vendorMaster = [];
+            $.getJSON('/vendorscs', function(data) {
+                vendorMaster = data || [];
+                vendorMaster.forEach(v => $('#vendorSelect').append(new Option(v.vendor_name, v.id)));
+            });
 
-            vendorCount++;
-            $('#emptyMsg').toggle(vendorCount === 0);
-            $(this).val(null).trigger('change');
-        });
+            /* ========== 2) Select2 ========== */
+            $('#vendorSelect').select2({
+                width: '100%',
+                theme: 'default',
+                placeholder: 'Select',
+                allowClear: true
+            });
 
-        /* ========== 4) Header vendor + summary cell ========== */
-        function addHeader(idKey, v) {
-            const colWidth = '20rem';
-            const $th = $(`
+            /* (opsional) tombol add vendor */
+            $('#btnAddVendor').on('click', function() {
+                $('#vendorSelect').val(null).trigger('change');
+                $('#vendorSelect').select2('open');
+            });
+
+            /* ========== 3) Tambah kolom saat vendor dipilih ========== */
+            let vendorCount = 0;
+
+            $('#vendorSelect').on('select2:select', function(e) {
+                const pkId = String(e.params.data.id);
+                const v = vendorMaster.find(x => String(x.id) === pkId);
+                if (!v) return;
+
+                const colKey = String(v.vendor_id); // kunci kolom adalah vendor_id (kode)
+
+                // limit
+                if ($('#cvTable thead th[id^="th-vendor-"]').length >= 6) {
+                    toastr.warning('Maksimal 6 vendor.');
+                    $(this).val(null).trigger('change');
+                    return;
+                }
+                // cegah duplikat
+                if ($('#th-vendor-' + CSS.escape(colKey)).length) {
+                    toastr.warning('Vendor sudah ada.');
+                    $(this).val(null).trigger('change');
+                    // return;
+                }
+
+                addHeader(colKey, v);
+                addPriceCells(colKey);
+
+                vendorCount++;
+                $('#emptyMsg').toggle(vendorCount === 0);
+                $(this).val(null).trigger('change');
+            });
+
+            /* ========== 4) Header vendor + summary cell ========== */
+            function addHeader(idKey, v) {
+                const colWidth = '20rem';
+                const $th = $(`
             <th id="th-vendor-${idKey}"
                 class="relative border px-3 py-2 align-top w-72 max-w-xs sm:w-80 sm:max-w-sm md:w-96 md:max-w-md lg:w-[20rem]"
                 data-vendor-id="${_.escape(idKey)}"
@@ -743,9 +755,9 @@
                 <button type="button" class="btn-del absolute top-1 right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-600 text-xs text-white shadow hover:bg-red-700" data-id="${idKey}">✕</button>
             </th>
             `);
-            $('#cvTable thead tr').append($th);
+                $('#cvTable thead tr').append($th);
 
-            const $sumTd = $(`
+                const $sumTd = $(`
             <td id="td-sum-${idKey}" class="border px-3 py-2 text-xs align-top" style="width:${colWidth};max-width:${colWidth};">
                 <div class="flex flex-col gap-2 text-gray-700 dark:text-gray-200">
                 <div><span class="font-semibold">Total:</span> <span class="sum-total">0</span></div>
@@ -768,150 +780,164 @@
                 </div>
             </td>
             `);
-            $('#summaryRow').append($sumTd);
+                $('#summaryRow').append($sumTd);
 
-            // perubahan pajak -> recalc
-            $sumTd.find('.sum-ppn, .sum-pph').on('input', function () {
-            recalcSummaryVendor(String(idKey));
-            });
-        }
+                // perubahan pajak -> recalc
+                $sumTd.find('.sum-ppn, .sum-pph').on('input', function() {
+                    recalcSummaryVendor(String(idKey));
+                });
+            }
 
-        /* ========== 5) Tambah cell harga tiap baris ========== */
-        function addPriceCells(idKey) {
-            $('#cvBody tr').each(function (rowIdx) {
-            const $input = $(`
-                <input type="text" class="price-input w-full border rounded px-1 text-right"
+            /* ========== 5) Tambah cell harga tiap baris ========== */
+            function addPriceCells(idKey) {
+                $('#cvBody tr').each(function(rowIdx) {
+                    const $input = $(`
+                <input type="text" class="price-input  w-full rounded-md border border-gray-400 px-2 py-1 text-right shadow-sm focus:ring-2 focus:ring-indigo-400 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200"
                     data-row="${rowIdx}" data-vendor="${idKey}"
                     value="0,00" inputmode="decimal" autocomplete="off" placeholder="0,00">
             `);
-            const $td = $(`<td class="border px-3 py-2"><div class="flex flex-col items-center gap-0.5 w-full"></div></td>`);
-            const $total = $(`<small class="total-label text-right text-xs font-bold text-gray-600">0</small>`);
-            const $radio = $(`
+                    const $td = $(
+                        `<td class="border px-3 py-2"><div class="flex flex-col items-center gap-0.5 w-full"></div></td>`
+                    );
+                    const $total = $(
+                        `<small class="total-label text-right text-sm dark:text-gray-300 font-bold text-gray-600">0</small>`
+                    );
+                    const $radio = $(`
                 <div class="flex justify-center mt-0.5">
                 <input type="radio" name="selected_vendor_${rowIdx}" value="${idKey}" class="pick-vendor h-3 w-3 text-indigo-600 border-gray-300 focus:ring-indigo-500">
                 </div>
             `);
-            $td.find('div').append($input, $total, $radio);
-            $(this).append($td);
+                    $td.find('div').append($input, $total, $radio);
+                    $(this).append($td);
 
-            // bind hitung ulang
-            $input.on('input', function () { calcCellTotal($(this)); });
-            });
-        }
-
-        /* ========== 6) PRELOAD dari controller ========== */
-        if (typeof VENDORS_USED !== 'undefined' && Array.isArray(VENDORS_USED)) {
-            VENDORS_USED.forEach(v => {
-            const colKey = String(v.vendor_id);
-            addHeader(colKey, v);
-            addPriceCells(colKey);
-            });
-
-            // set TOP & pajak + angka ringkasan awal
-            VENDORS_USED.forEach(v => {
-            const id = String(v.vendor_id);
-            const $th  = $(`#th-vendor-${CSS.escape(id)}`);
-            const $sum = $(`#td-sum-${CSS.escape(id)}`);
-            if ($th.length) $th.find('select.cara-bayar').val(v.top || '30D');
-            if ($sum.length) {
-                $sum.find('.sum-ppn').val((v.ppn ?? 11).toFixed(2));
-                $sum.find('.sum-pph').val((v.pph ?? 0).toFixed(2));
-                $sum.find('.sum-ppn-id').val(v.ppn_id || '');
-                $sum.find('.sum-pph-id').val(v.pph_id || '');
-                if (v.total     != null) $sum.find('.sum-total').text((+v.total).toLocaleString('id-ID'));
-                if (v.grand     != null) $sum.find('.sum-grand').text((+v.grand).toLocaleString('id-ID'));
-                if (v.sel_total != null) $sum.find('.sum-selected').text((+v.sel_total).toLocaleString('id-ID'));
+                    // bind hitung ulang
+                    $input.on('input', function() {
+                        calcCellTotal($(this));
+                    });
+                });
             }
-            });
-        }
 
-        if (typeof DETAIL_MATRIX !== 'undefined' && Array.isArray(DETAIL_MATRIX)) {
-            $('#cvBody tr').each(function (rowIdx) {
-            const rowMap = DETAIL_MATRIX[rowIdx] || {};
-            Object.keys(rowMap).forEach(vcode => {
-                const cell   = rowMap[vcode];
-                const $price = $(`#cvBody tr:eq(${rowIdx}) input.price-input[data-vendor="${CSS.escape(vcode)}"]`);
-                if (!$price.length) return;
-                $price.val(formatPrice2(cell.price ?? 0));
-                $price.closest('td').find('.total-label').text(((cell.total ?? 0)).toLocaleString('id-ID'));
-                if (cell.selected) { $price.closest('td').find('input.pick-vendor').prop('checked', true); }
-            });
-            });
-        }
+            /* ========== 6) PRELOAD dari controller ========== */
+            if (typeof VENDORS_USED !== 'undefined' && Array.isArray(VENDORS_USED)) {
+                VENDORS_USED.forEach(v => {
+                    const colKey = String(v.vendor_id);
+                    addHeader(colKey, v);
+                    addPriceCells(colKey);
+                });
 
-        // recalc awal semua vendor
-        $('#cvTable thead th[id^="th-vendor-"]').each(function () {
-            const vid = String($(this).data('vendor-id'));
-            recalcSummaryVendor(vid);
-        });
-
-        /* ========== 7) Definisi fungsi GLOBAL ========== */
-        // -> jangan pakai let/const supaya jadi binding global (dipakai file lain yang memanggil langsung)
-        calcCellTotal = function ($input) {
-            const $tr   = $input.closest('tr');
-            const qty   = parseQty($tr.find('.qty-input').val());
-            const price = parsePrice($input.val());
-            const total = qty * price;
-            $input.closest('td').find('.total-label').text(total.toLocaleString('id-ID'));
-            const vid = String($input.data('vendor'));
-            recalcSummaryVendor(vid);
-        };
-
-        recalcSummaryVendor = function (vendorId) {
-            const key = String(vendorId);
-            let total = 0;
-
-            $(`input.price-input[data-vendor="${CSS.escape(key)}"]`).each(function () {
-            const price = parsePrice($(this).val());
-            const qty   = parseQty($(this).closest('tr').find('.qty-input').val());
-            total += qty * price;
-            });
-
-            const $sumCell = $(`#td-sum-${CSS.escape(key)}`);
-            $sumCell.find('.sum-total').text((+total || 0).toLocaleString('id-ID'));
-
-            const ppn   = Number($sumCell.find('.sum-ppn').val() || 0) / 100;
-            const pph   = Number($sumCell.find('.sum-pph').val() || 0) / 100;
-            const grand = total * (1 + ppn + pph);
-            $sumCell.find('.sum-grand').text((+grand || 0).toLocaleString('id-ID'));
-
-            let selTotal = 0;
-            $('#cvBody tr').each(function () {
-            const picked = String($(this).find('input.pick-vendor:checked').val() || '');
-            if (picked === key) {
-                const lbl = $(this).find(`input.price-input[data-vendor="${CSS.escape(key)}"]`)
-                                .closest('td').find('.total-label');
-                selTotal += Number((lbl.text() || '0').replace(/[^0-9]/g, ''));
+                // set TOP & pajak + angka ringkasan awal
+                VENDORS_USED.forEach(v => {
+                    const id = String(v.vendor_id);
+                    const $th = $(`#th-vendor-${CSS.escape(id)}`);
+                    const $sum = $(`#td-sum-${CSS.escape(id)}`);
+                    if ($th.length) $th.find('select.cara-bayar').val(v.top || '30D');
+                    if ($sum.length) {
+                        $sum.find('.sum-ppn').val((v.ppn ?? 11).toFixed(2));
+                        $sum.find('.sum-pph').val((v.pph ?? 0).toFixed(2));
+                        $sum.find('.sum-ppn-id').val(v.ppn_id || '');
+                        $sum.find('.sum-pph-id').val(v.pph_id || '');
+                        if (v.total != null) $sum.find('.sum-total').text((+v.total).toLocaleString(
+                            'id-ID'));
+                        if (v.grand != null) $sum.find('.sum-grand').text((+v.grand).toLocaleString(
+                            'id-ID'));
+                        if (v.sel_total != null) $sum.find('.sum-selected').text((+v.sel_total)
+                            .toLocaleString('id-ID'));
+                    }
+                });
             }
+
+            if (typeof DETAIL_MATRIX !== 'undefined' && Array.isArray(DETAIL_MATRIX)) {
+                $('#cvBody tr').each(function(rowIdx) {
+                    const rowMap = DETAIL_MATRIX[rowIdx] || {};
+                    Object.keys(rowMap).forEach(vcode => {
+                        const cell = rowMap[vcode];
+                        const $price = $(
+                            `#cvBody tr:eq(${rowIdx}) input.price-input[data-vendor="${CSS.escape(vcode)}"]`
+                        );
+                        if (!$price.length) return;
+                        $price.val(formatPrice2(cell.price ?? 0));
+                        $price.closest('td').find('.total-label').text(((cell.total ?? 0))
+                            .toLocaleString('id-ID'));
+                        if (cell.selected) {
+                            $price.closest('td').find('input.pick-vendor').prop('checked', true);
+                        }
+                    });
+                });
+            }
+
+            // recalc awal semua vendor
+            $('#cvTable thead th[id^="th-vendor-"]').each(function() {
+                const vid = String($(this).data('vendor-id'));
+                recalcSummaryVendor(vid);
             });
-            $sumCell.find('.sum-selected').text((+selTotal || 0).toLocaleString('id-ID'));
-        };
 
-        /* ========== 8) Hapus kolom vendor ========== */
-        $(document).on('click', '.btn-del', function () {
-            const id = String($(this).data('id'));             // vendor_id
-            const $header = $('#th-vendor-' + CSS.escape(id));
-            const colIdx  = $header.index();
+            /* ========== 7) Definisi fungsi GLOBAL ========== */
+            // -> jangan pakai let/const supaya jadi binding global (dipakai file lain yang memanggil langsung)
+            calcCellTotal = function($input) {
+                const $tr = $input.closest('tr');
+                const qty = parseQty($tr.find('.qty-input').val());
+                const price = parsePrice($input.val());
+                const total = qty * price;
+                $input.closest('td').find('.total-label').text(total.toLocaleString('id-ID'));
+                const vid = String($input.data('vendor'));
+                recalcSummaryVendor(vid);
+            };
 
-            $header.remove();
-            $('#td-sum-' + CSS.escape(id)).remove();
-            $('#cvBody tr').each(function () {
-            $(this).children('td').eq(colIdx).remove();
+            recalcSummaryVendor = function(vendorId) {
+                const key = String(vendorId);
+                let total = 0;
+
+                $(`input.price-input[data-vendor="${CSS.escape(key)}"]`).each(function() {
+                    const price = parsePrice($(this).val());
+                    const qty = parseQty($(this).closest('tr').find('.qty-input').val());
+                    total += qty * price;
+                });
+
+                const $sumCell = $(`#td-sum-${CSS.escape(key)}`);
+                $sumCell.find('.sum-total').text((+total || 0).toLocaleString('id-ID'));
+
+                const ppn = Number($sumCell.find('.sum-ppn').val() || 0) / 100;
+                const pph = Number($sumCell.find('.sum-pph').val() || 0) / 100;
+                const grand = total * (1 + ppn + pph);
+                $sumCell.find('.sum-grand').text((+grand || 0).toLocaleString('id-ID'));
+
+                let selTotal = 0;
+                $('#cvBody tr').each(function() {
+                    const picked = String($(this).find('input.pick-vendor:checked').val() || '');
+                    if (picked === key) {
+                        const lbl = $(this).find(`input.price-input[data-vendor="${CSS.escape(key)}"]`)
+                            .closest('td').find('.total-label');
+                        selTotal += Number((lbl.text() || '0').replace(/[^0-9]/g, ''));
+                    }
+                });
+                $sumCell.find('.sum-selected').text((+selTotal || 0).toLocaleString('id-ID'));
+            };
+
+            /* ========== 8) Hapus kolom vendor ========== */
+            $(document).on('click', '.btn-del', function() {
+                const id = String($(this).data('id')); // vendor_id
+                const $header = $('#th-vendor-' + CSS.escape(id));
+                const colIdx = $header.index();
+
+                $header.remove();
+                $('#td-sum-' + CSS.escape(id)).remove();
+                $('#cvBody tr').each(function() {
+                    $(this).children('td').eq(colIdx).remove();
+                });
+
+                // recalc sisa vendor
+                $('#cvTable thead th[id^="th-vendor-"]').each(function() {
+                    recalcSummaryVendor(String($(this).data('vendor-id')));
+                });
+
+                vendorCount--;
+                $('#emptyMsg').toggle(vendorCount === 0);
             });
 
-            // recalc sisa vendor
-            $('#cvTable thead th[id^="th-vendor-"]').each(function () {
-            recalcSummaryVendor(String($(this).data('vendor-id')));
+            /* ========== 9) Radio change -> recalc selected ========== */
+            $(document).on('change', '.pick-vendor', function() {
+                recalcSummaryVendor(String($(this).val()));
             });
-
-            vendorCount--;
-            $('#emptyMsg').toggle(vendorCount === 0);
-        });
-
-        /* ========== 9) Radio change -> recalc selected ========== */
-        $(document).on('change', '.pick-vendor', function () {
-            recalcSummaryVendor(String($(this).val()));
-        });
         });
     </script>
 
@@ -1085,44 +1111,44 @@
     </script>
 
     <script>
-        $(function () {
-        // ======== TAX PICKER (Fix) =========
-        let taxCache = null;          // cache data pajak
-        let taxTargetInput = null;    // jQuery object input .sum-ppn / .sum-pph
-        let taxTargetVendorId = null; // vendor_id (kolom)
-        let taxTargetType = null;     // 'ppn' | 'pph'
+        $(function() {
+            // ======== TAX PICKER (Fix) =========
+            let taxCache = null; // cache data pajak
+            let taxTargetInput = null; // jQuery object input .sum-ppn / .sum-pph
+            let taxTargetVendorId = null; // vendor_id (kolom)
+            let taxTargetType = null; // 'ppn' | 'pph'
 
-        function openTaxModal($input, vendorId, type) {
-            taxTargetInput    = $input;
-            taxTargetVendorId = String(vendorId);
-            taxTargetType     = String(type);
+            function openTaxModal($input, vendorId, type) {
+                taxTargetInput = $input;
+                taxTargetVendorId = String(vendorId);
+                taxTargetType = String(type);
 
-            const $modal = $('#taxModal');
-            $modal.removeClass('hidden');
+                const $modal = $('#taxModal');
+                $modal.removeClass('hidden');
 
-            if (!taxCache) {
-            $.getJSON('{{ route('taxes.index') }}', function (data) {
-                taxCache = Array.isArray(data) ? data : [];
-                renderTaxTable(taxCache);
-            });
-            } else {
-            renderTaxTable(taxCache);
+                if (!taxCache) {
+                    $.getJSON('{{ route('taxes.index') }}', function(data) {
+                        taxCache = Array.isArray(data) ? data : [];
+                        renderTaxTable(taxCache);
+                    });
+                } else {
+                    renderTaxTable(taxCache);
+                }
+                setTimeout(() => $('#taxSearch').trigger('focus'), 50);
             }
-            setTimeout(() => $('#taxSearch').trigger('focus'), 50);
-        }
 
-        function closeTaxModal() {
-            $('#taxModal').addClass('hidden');
-            taxTargetInput = null;
-            taxTargetVendorId = null;
-            taxTargetType = null;
-        }
+            function closeTaxModal() {
+                $('#taxModal').addClass('hidden');
+                taxTargetInput = null;
+                taxTargetVendorId = null;
+                taxTargetType = null;
+            }
 
-        function renderTaxTable(rows) {
-            const $tbody = $('#taxTableBody');
-            $tbody.empty();
-            rows.forEach(r => {
-            $tbody.append(`
+            function renderTaxTable(rows) {
+                const $tbody = $('#taxTableBody');
+                $tbody.empty();
+                rows.forEach(r => {
+                    $tbody.append(`
                 <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
                 <td class="px-3 py-2 text-sm">${r.taxid ?? ''}</td>
                 <td class="px-3 py-2 text-sm">${Number(r.taxrate ?? 0).toFixed(2)}</td>
@@ -1135,74 +1161,77 @@
                 </td>
                 </tr>
             `);
-            });
-        }
-
-        // Buka modal saat klik kaca pembesar
-        $(document).on('click', '.btn-pick-tax', function () {
-            const vendorId = $(this).data('vendor');            // vendor_id (kolom)
-            const type     = $(this).data('for');               // 'ppn' | 'pph'
-            const $cell    = $(`#td-sum-${CSS.escape(String(vendorId))}`);
-            const $input   = (type === 'ppn') ? $cell.find('.sum-ppn') : $cell.find('.sum-pph');
-            openTaxModal($input, vendorId, type);
-        });
-
-        // Tutup modal
-        $('#taxModalClose, #taxModalOverlay').on('click', closeTaxModal);
-        $(document).on('keydown', function(e){ if (e.key === 'Escape') closeTaxModal(); });
-
-        // Cari di modal
-        $('#taxSearch').on('input', function () {
-            const q = ($(this).val() || '').toLowerCase();
-            if (!taxCache) return;
-            const filtered = taxCache.filter(r => {
-            const s1 = String(r.taxid ?? '').toLowerCase();
-            const s2 = String(r.descr ?? '').toLowerCase();
-            const s3 = String(r.taxrate ?? '').toLowerCase();
-            return s1.includes(q) || s2.includes(q) || s3.includes(q);
-            });
-            renderTaxTable(filtered);
-        });
-
-        // Pilih pajak → set nilai + hidden taxid + recalc
-        $(document).on('click', '.btn-choose-tax', function () {
-            if (!taxTargetInput) return;
-
-            const taxid = $(this).data('taxid');
-            const rate  = Number($(this).data('taxrate') || 0);
-
-            // set nilai ke input & trigger input event (agar handler existing jalan)
-            taxTargetInput.val(rate.toFixed(2)).trigger('input');
-
-            // set hidden id sesuai tipe
-            const $cell = $(`#td-sum-${CSS.escape(String(taxTargetVendorId))}`);
-            if (taxTargetType === 'ppn') {
-            $cell.find('.sum-ppn-id').val(taxid);
-            } else {
-            $cell.find('.sum-pph-id').val(taxid);
+                });
             }
 
-            // pastikan summary vendor dihitung ulang
-            if (typeof recalcSummaryVendor === 'function') {
-            recalcSummaryVendor(String(taxTargetVendorId));
-            }
+            // Buka modal saat klik kaca pembesar
+            $(document).on('click', '.btn-pick-tax', function() {
+                const vendorId = $(this).data('vendor'); // vendor_id (kolom)
+                const type = $(this).data('for'); // 'ppn' | 'pph'
+                const $cell = $(`#td-sum-${CSS.escape(String(vendorId))}`);
+                const $input = (type === 'ppn') ? $cell.find('.sum-ppn') : $cell.find('.sum-pph');
+                openTaxModal($input, vendorId, type);
+            });
 
-            closeTaxModal();
-        });
+            // Tutup modal
+            $('#taxModalClose, #taxModalOverlay').on('click', closeTaxModal);
+            $(document).on('keydown', function(e) {
+                if (e.key === 'Escape') closeTaxModal();
+            });
+
+            // Cari di modal
+            $('#taxSearch').on('input', function() {
+                const q = ($(this).val() || '').toLowerCase();
+                if (!taxCache) return;
+                const filtered = taxCache.filter(r => {
+                    const s1 = String(r.taxid ?? '').toLowerCase();
+                    const s2 = String(r.descr ?? '').toLowerCase();
+                    const s3 = String(r.taxrate ?? '').toLowerCase();
+                    return s1.includes(q) || s2.includes(q) || s3.includes(q);
+                });
+                renderTaxTable(filtered);
+            });
+
+            // Pilih pajak → set nilai + hidden taxid + recalc
+            $(document).on('click', '.btn-choose-tax', function() {
+                if (!taxTargetInput) return;
+
+                const taxid = $(this).data('taxid');
+                const rate = Number($(this).data('taxrate') || 0);
+
+                // set nilai ke input & trigger input event (agar handler existing jalan)
+                taxTargetInput.val(rate.toFixed(2)).trigger('input');
+
+                // set hidden id sesuai tipe
+                const $cell = $(`#td-sum-${CSS.escape(String(taxTargetVendorId))}`);
+                if (taxTargetType === 'ppn') {
+                    $cell.find('.sum-ppn-id').val(taxid);
+                } else {
+                    $cell.find('.sum-pph-id').val(taxid);
+                }
+
+                // pastikan summary vendor dihitung ulang
+                if (typeof recalcSummaryVendor === 'function') {
+                    recalcSummaryVendor(String(taxTargetVendorId));
+                }
+
+                closeTaxModal();
+            });
         });
     </script>
 
     {{-- 1) suntik payload dari controller --}}
     <script>
-        const VENDORS_USED  = @json($vendorsUsed ?? []);        // [{ vendor_id, vendor_name, vendor_addr1, phone_number, contact_person, top, ppn, pph, ppn_id, pph_id, total, grand, sel_total }]
-        const DETAIL_MATRIX = @json($detailVendorMatrix ?? []);  // array per baris: { [vendor_id]: { price, total, selected } }
+        const VENDORS_USED =
+            @json($vendorsUsed ?? []); // [{ vendor_id, vendor_name, vendor_addr1, phone_number, contact_person, top, ppn, pph, ppn_id, pph_id, total, grand, sel_total }]
+        const DETAIL_MATRIX = @json($detailVendorMatrix ?? []); // array per baris: { [vendor_id]: { price, total, selected } }
     </script>
 
     <script>
         $('#saveBtn').on('click', function(e) {
             e.preventDefault();
 
-            $('#cvTable thead th[id^="th-vendor-"]').each(function () {
+            $('#cvTable thead th[id^="th-vendor-"]').each(function() {
                 recalcSummaryVendor(String($(this).data('vendor-id')));
             });
 
@@ -1332,7 +1361,9 @@
                 data: fd,
                 processData: false,
                 contentType: false,
-                beforeSend: function(xhr){ fd.append('_method','PUT'); },
+                beforeSend: function(xhr) {
+                    fd.append('_method', 'PUT');
+                },
                 success: function(res) {
                     hideOverlay();
                     toastr.success('CS berhasil disimpan.');
@@ -1533,7 +1564,9 @@
                 data: fd,
                 processData: false,
                 contentType: false,
-                beforeSend: function(xhr){ fd.append('_method','PUT'); },
+                beforeSend: function(xhr) {
+                    fd.append('_method', 'PUT');
+                },
                 success: function(res) {
                     hideOverlay();
                     toastr.success('CS berhasil disubmit.');
@@ -1568,51 +1601,53 @@
         function validateQtyLimit() {
             let ok = true;
 
-            $('#cvBody tr').each(function () {
-            const $tr = $(this);
-            const max = Number($tr.data('original_qty'));   // qty awal dari server
-            const $inp = $tr.find('.qty-input');
-            const cur = parseQty($inp.val());
+            $('#cvBody tr').each(function() {
+                const $tr = $(this);
+                const max = Number($tr.data('original_qty')); // qty awal dari server
+                const $inp = $tr.find('.qty-input');
+                const cur = parseQty($inp.val());
 
-            // reset state
-            $inp.removeClass('is-invalid');
-            $tr.find('.qty-error').remove();
+                // reset state
+                $inp.removeClass('is-invalid');
+                $tr.find('.qty-error').remove();
 
-            if (isFinite(max) && cur > max) {
-                ok = false;
-                $inp.addClass('is-invalid');
-                $('<div class="error-feedback qty-error">Qty tidak boleh melebihi ' + formatQty2(max) + '.</div>')
-                .insertAfter($inp);
-            }
+                if (isFinite(max) && cur > max) {
+                    ok = false;
+                    $inp.addClass('is-invalid');
+                    $('<div class="error-feedback qty-error">Qty tidak boleh melebihi ' + formatQty2(max) +
+                            '.</div>')
+                        .insertAfter($inp);
+                }
             });
 
             return ok;
         }
 
         // saat user keluar dari field qty → auto-koreksi ke max jika melebihi
-        $(document).on('blur', '.qty-input', function () {
-            const $tr  = $(this).closest('tr');
-            const max  = Number($tr.data('original_qty'));
+        $(document).on('blur', '.qty-input', function() {
+            const $tr = $(this).closest('tr');
+            const max = Number($tr.data('original_qty'));
             const curN = parseQty($(this).val());
 
             if (isFinite(max) && curN > max) {
-            $(this).addClass('is-invalid');
-            // tampilkan/refresh pesan error
-            $tr.find('.qty-error').remove();
-            $('<div class="error-feedback qty-error">Qty dikembalikan ke maksimum: ' + formatQty2(max) + '.</div>')
-                .insertAfter($(this));
+                $(this).addClass('is-invalid');
+                // tampilkan/refresh pesan error
+                $tr.find('.qty-error').remove();
+                $('<div class="error-feedback qty-error">Qty dikembalikan ke maksimum: ' + formatQty2(max) +
+                        '.</div>')
+                    .insertAfter($(this));
 
-            // kembalikan ke max dan format
-            $(this).val(formatQty2(max));
+                // kembalikan ke max dan format
+                $(this).val(formatQty2(max));
 
-            // trigger hitung ulang total per vendor di baris ini
-            const $row = $tr;
-            $row.find('input.price-input').each(function () {
-                window.calcCellTotal($(this));
-            });
+                // trigger hitung ulang total per vendor di baris ini
+                const $row = $tr;
+                $row.find('input.price-input').each(function() {
+                    window.calcCellTotal($(this));
+                });
             } else {
-            $(this).removeClass('is-invalid');
-            $tr.find('.qty-error').remove();
+                $(this).removeClass('is-invalid');
+                $tr.find('.qty-error').remove();
             }
         });
     </script>

@@ -10,15 +10,13 @@
             font-size: 12px;
             margin-top: 6px;
         }
-    </style>
-    <style>
+
         .req::after {
             content: " *";
             color: #dc2626;
             font-weight: 700;
         }
-    </style>
-    <style>
+
         /* Overlay full-screen */
         #loadingSpinnerContainer {
             position: fixed;
@@ -117,8 +115,7 @@
                 transform: translateY(0);
             }
         }
-    </style>
-    <style>
+
         .vendor-title {
             white-space: normal;
             /* boleh turun baris */
@@ -129,8 +126,7 @@
             line-height: 1.1;
             /* rapatkan sedikit */
         }
-    </style>
-    <style>
+
         .tax-2col {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -198,9 +194,6 @@
         }
     </style>
 
-
-
-
     <div class="max-w-9xl mx-auto w-full px-4 py-4 sm:px-6 lg:px-8">
         <div class="grid grid-cols-1 gap-8 lg:grid-cols-2 lg:grid-rows-[minmax(0,auto)_1fr]">
             <div class="flex flex-col gap-8 lg:col-span-2 lg:row-span-1">
@@ -240,6 +233,7 @@
                                         value="{{ ucwords(strtolower(optional($header->creator)->name)) }}" readonly
                                         class="mt-1 w-full rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
                                 </div>
+
 
                                 <!-- Company -->
                                 <div>
@@ -336,7 +330,7 @@
                                                 <td class="border px-3 py-2">{{ $row->inventory_descr }}</td>
                                                 <td class="border px-3 py-2 text-center">
                                                     <input type="text"
-                                                        class="qty-input w-24 rounded border px-2 text-right"
+                                                        class="qty-input w-full rounded-md border border-gray-400 px-2 py-1 text-right shadow-sm focus:ring-2 focus:ring-indigo-400 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200"
                                                         value="{{ number_format((float) $row->qty, 2, ',', '') }}"
                                                         inputmode="decimal" autocomplete="off" placeholder="0,00"
                                                         aria-label="Qty">
@@ -771,7 +765,7 @@
                     const $input = $(`
                     <input
                         type="text"
-                        class="price-input w-full border rounded px-1 text-right"
+                        class="price-input  w-full rounded-md border border-gray-400 px-2 py-1 text-right shadow-sm focus:ring-2 focus:ring-indigo-400 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200"
                         data-row="${rowIdx}" data-vendor="${id}"
                         value="0,00" inputmode="decimal" autocomplete="off" placeholder="0,00">
                     `);
@@ -783,7 +777,7 @@
                     `);
 
                     const $total = $(
-                        `<small class="total-label text-right text-xs font-bold text-gray-600">0</small>`
+                        `<small class="total-label text-right text-sm dark:text-gray-300 font-bold text-gray-600">0</small>`
                     );
                     const $radio = $(`
                     <div class="flex justify-center mt-0.5">
@@ -1525,51 +1519,53 @@
         function validateQtyLimit() {
             let ok = true;
 
-            $('#cvBody tr').each(function () {
-            const $tr = $(this);
-            const max = Number($tr.data('original_qty'));   // qty awal dari server
-            const $inp = $tr.find('.qty-input');
-            const cur = parseQty($inp.val());
+            $('#cvBody tr').each(function() {
+                const $tr = $(this);
+                const max = Number($tr.data('original_qty')); // qty awal dari server
+                const $inp = $tr.find('.qty-input');
+                const cur = parseQty($inp.val());
 
-            // reset state
-            $inp.removeClass('is-invalid');
-            $tr.find('.qty-error').remove();
+                // reset state
+                $inp.removeClass('is-invalid');
+                $tr.find('.qty-error').remove();
 
-            if (isFinite(max) && cur > max) {
-                ok = false;
-                $inp.addClass('is-invalid');
-                $('<div class="error-feedback qty-error">Qty tidak boleh melebihi ' + formatQty2(max) + '.</div>')
-                .insertAfter($inp);
-            }
+                if (isFinite(max) && cur > max) {
+                    ok = false;
+                    $inp.addClass('is-invalid');
+                    $('<div class="error-feedback qty-error">Qty tidak boleh melebihi ' + formatQty2(max) +
+                            '.</div>')
+                        .insertAfter($inp);
+                }
             });
 
             return ok;
         }
 
         // saat user keluar dari field qty → auto-koreksi ke max jika melebihi
-        $(document).on('blur', '.qty-input', function () {
-            const $tr  = $(this).closest('tr');
-            const max  = Number($tr.data('original_qty'));
+        $(document).on('blur', '.qty-input', function() {
+            const $tr = $(this).closest('tr');
+            const max = Number($tr.data('original_qty'));
             const curN = parseQty($(this).val());
 
             if (isFinite(max) && curN > max) {
-            $(this).addClass('is-invalid');
-            // tampilkan/refresh pesan error
-            $tr.find('.qty-error').remove();
-            $('<div class="error-feedback qty-error">Qty dikembalikan ke maksimum: ' + formatQty2(max) + '.</div>')
-                .insertAfter($(this));
+                $(this).addClass('is-invalid');
+                // tampilkan/refresh pesan error
+                $tr.find('.qty-error').remove();
+                $('<div class="error-feedback qty-error">Qty dikembalikan ke maksimum: ' + formatQty2(max) +
+                        '.</div>')
+                    .insertAfter($(this));
 
-            // kembalikan ke max dan format
-            $(this).val(formatQty2(max));
+                // kembalikan ke max dan format
+                $(this).val(formatQty2(max));
 
-            // trigger hitung ulang total per vendor di baris ini
-            const $row = $tr;
-            $row.find('input.price-input').each(function () {
-                window.calcCellTotal($(this));
-            });
+                // trigger hitung ulang total per vendor di baris ini
+                const $row = $tr;
+                $row.find('input.price-input').each(function() {
+                    window.calcCellTotal($(this));
+                });
             } else {
-            $(this).removeClass('is-invalid');
-            $tr.find('.qty-error').remove();
+                $(this).removeClass('is-invalid');
+                $tr.find('.qty-error').remove();
             }
         });
     </script>
