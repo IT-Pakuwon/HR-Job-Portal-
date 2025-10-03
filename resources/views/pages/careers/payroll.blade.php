@@ -229,8 +229,16 @@
                                 {{ $p->bank_account }}</td>
                             <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-700 dark:text-gray-300">
                                 {{ $p->bank_name }}</td>
-                            <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-700 dark:text-gray-300">
-                                {{ number_format($p->net_salary, 0, ',', '.') }}</td>
+                            {{-- <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-700 dark:text-gray-300">
+                                {{ number_format($p->net_salary, 0, ',', '.') }}</td> --}}
+                                 <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-700 dark:text-gray-300">
+                                    <span class="salary-mask" data-id="{{ $p->id }}">••••••</span>
+                                    <button type="button"
+                                        class="revealSalaryBtn inline-flex items-center rounded-md px-2 py-1 ml-2 text-xs bg-gray-200 hover:bg-gray-300 dark:bg-gray-600 dark:hover:bg-gray-500"
+                                        data-id="{{ $p->id }}" aria-label="Reveal salary" title="Lihat gaji">
+                                        <i data-lucide="eye" class="h-4 w-4"></i>
+                                    </button>
+                                </td>
                             <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-700 dark:text-gray-300">
                                 {{ $p->other_facility }}</td>
                             <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-700 dark:text-gray-300">
@@ -408,58 +416,114 @@
                 </tbody>
             </table>
         </div>
+
+        <div id="salaryPasswordModal"
+                class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 p-4">
+            <div class="w-full max-w-md rounded-xl bg-white p-6 dark:bg-gray-700">
+                <h3 class="mb-4 text-lg font-semibold text-gray-800 dark:text-white"></h3>
+                <form id="salaryPasswordForm">
+                @csrf
+                <input type="hidden" id="salary_payroll_id" name="payroll_id">
+                <div class="mb-4">
+                    <label class="mb-1 block text-sm text-gray-600 dark:text-gray-300">Password Anda</label>
+                    <input type="password" id="salary_password" name="password" autocomplete="current-password"
+                        class="w-full rounded-lg border border-gray-300 p-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                        required>
+                </div>
+                <div class="flex justify-end gap-2">
+                    <button type="button" id="salaryModalCancel"
+                            class="rounded-lg bg-gray-200 px-4 py-2 text-gray-800 hover:bg-gray-300 dark:bg-gray-600 dark:text-white">
+                    Batal
+                    </button>
+                    <button type="submit"
+                            class="rounded-lg bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700">
+                    Verifikasi
+                    </button>
+                </div>
+                </form>
+            </div>
+        </div>
+
     </div>
 </div>
 <script>
-    $('#payrollpdf').on('submit', function(e) {
-        e.preventDefault();
-        var form = $(this);
+  // === GLOBALS ===
+  let _pendingAction   = null; // 'pdf-payroll' | 'pdf-offering' | 'edit-payroll' | 'reveal-salary'
+  let _pendingFormEl   = null; // form element untuk PDF
+  let _pendingPayrollId = null; // id payroll untuk edit/reveal
 
-        $.ajax({
-            url: "{{ route('payrollconfirmation.pdf') }}",
-            method: 'POST',
-            data: form.serialize(),
-            xhrFields: {
-                responseType: 'blob'
-            },
-            headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-            },
-            success: function(blob) {
-                const url = window.URL.createObjectURL(blob);
-                window.open(url, '_blank'); // 👈 preview PDF di tab baru
-            },
-            error: function() {
-                alert("Failed to generate PDF.");
-            }
-        });
-    });
+  function openPasswordModal() {
+    // tampilkan modal password yang SUDAH ada: #salaryPasswordModal
+    $('#salary_password').val('');
+    $('#salaryPasswordModal').removeClass('hidden').addClass('flex');
+    setTimeout(() => $('#salary_password').trigger('focus'), 0);
+  }
 </script>
 
 <script>
-    $('#offeringForm').on('submit', function(e) {
-        e.preventDefault();
-        var form = $(this);
+    // $('#payrollpdf').on('submit', function(e) {
+    //     e.preventDefault();
+    //     var form = $(this);
 
-        $.ajax({
-            url: "{{ route('offeringletter.pdf') }}",
-            method: 'POST',
-            data: form.serialize(),
-            xhrFields: {
-                responseType: 'blob'
-            },
-            headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-            },
-            success: function(blob) {
-                const url = window.URL.createObjectURL(blob);
-                window.open(url, '_blank'); // 👈 preview PDF di tab baru
-            },
-            error: function() {
-                alert("Failed to generate PDF.");
-            }
-        });
+    //     $.ajax({
+    //         url: "{{ route('payrollconfirmation.pdf') }}",
+    //         method: 'POST',
+    //         data: form.serialize(),
+    //         xhrFields: {
+    //             responseType: 'blob'
+    //         },
+    //         headers: {
+    //             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+    //         },
+    //         success: function(blob) {
+    //             const url = window.URL.createObjectURL(blob);
+    //             window.open(url, '_blank'); // 👈 preview PDF di tab baru
+    //         },
+    //         error: function() {
+    //             alert("Failed to generate PDF.");
+    //         }
+    //     });
+    // });
+    $('#payrollpdf').on('submit', function(e){
+    e.preventDefault();
+    _pendingAction = 'pdf-payroll';
+    _pendingFormEl = this;
+    openPasswordModal();
     });
+
+</script>
+
+<script>
+    // $('#offeringForm').on('submit', function(e) {
+    //     e.preventDefault();
+    //     var form = $(this);
+
+    //     $.ajax({
+    //         url: "{{ route('offeringletter.pdf') }}",
+    //         method: 'POST',
+    //         data: form.serialize(),
+    //         xhrFields: {
+    //             responseType: 'blob'
+    //         },
+    //         headers: {
+    //             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+    //         },
+    //         success: function(blob) {
+    //             const url = window.URL.createObjectURL(blob);
+    //             window.open(url, '_blank'); // 👈 preview PDF di tab baru
+    //         },
+    //         error: function() {
+    //             alert("Failed to generate PDF.");
+    //         }
+    //     });
+    // });
+    $('#offeringForm').on('submit', function(e){
+    e.preventDefault();
+    _pendingAction = 'pdf-offering';
+    _pendingFormEl = this;
+    openPasswordModal();
+    });
+
 </script>
 <script>
     $('#addPayrollBtn').click(function() {
@@ -469,20 +533,65 @@
         $('#payrollModal').removeClass('hidden');
     });
 
-    $('.editPayrollBtn').click(function() {
-        var id = $(this).closest('tr').data('id');
-        $.get('/payrollconfirm/' + id, function(data) {
-            for (let key in data) {
-                $('[name="' + key + '"]').val(data[key]);
-            }
-            // khusus net_salary → format tampilan
-            if (typeof data.net_salary !== 'undefined' && data.net_salary !== null) {
-                $('#net_salary').val(formatThousandsID(String(data.net_salary)));
-            }
-            $('#payroll_id').val(data.id);
-            $('#payrollModal').removeClass('hidden');
-        });
+    // $('.editPayrollBtn').click(function() {
+    //     var id = $(this).closest('tr').data('id');
+    //     $.get('/payrollconfirm/' + id, function(data) {
+    //         for (let key in data) {
+    //             $('[name="' + key + '"]').val(data[key]);
+    //         }
+    //         // khusus net_salary → format tampilan
+    //         if (typeof data.net_salary !== 'undefined' && data.net_salary !== null) {
+    //             $('#net_salary').val(formatThousandsID(String(data.net_salary)));
+    //         }
+    //         $('#payroll_id').val(data.id);
+    //         $('#payrollModal').removeClass('hidden');
+    //     });
+    // });
+
+    // $('.editPayrollBtn').click(function () {
+    //     const id = $(this).closest('tr').data('id');
+    //     // simpan id sementara
+    //     window._editingPayrollId = id;
+    //     // buka modal password yang sama dengan “eye”
+    //     $('#salary_payroll_id').val(id);
+    //     $('#salary_password').val('');
+    //     $('#salaryPasswordModal').removeClass('hidden').addClass('flex');
+
+    //     // ganti submit modal agar dipakai untuk “edit preload”
+    //     $('#salaryPasswordForm')
+    //         .off('submit.editPreload')
+    //         .on('submit.editPreload', function(e){
+    //         e.preventDefault();
+    //         const pwd = $('#salary_password').val();
+    //         const pid = window._editingPayrollId;
+
+    //         $.get('/payrollconfirm/' + pid, { password: pwd }, function(data){
+    //             // isi form
+    //             for (let key in data) {
+    //             $('[name="'+key+'"]').val(data[key]);
+    //             }
+    //             if (data.net_salary != null) {
+    //             $('#net_salary').val(formatThousandsID(String(data.net_salary)));
+    //             }
+    //             $('#payroll_id').val(data.id);
+    //             $('#payrollModal').removeClass('hidden');
+    //             // tutup modal password
+    //             $('#salaryPasswordModal').addClass('hidden').removeClass('flex');
+    //         }).fail(function(xhr){
+    //             if (xhr.status === 401) toastr.error('Password salah.');
+    //             else if (xhr.status === 403) toastr.error('Anda tidak memiliki akses.');
+    //             else toastr.error('Gagal mengambil data.');
+    //         });
+    //         });
+    //     });
+
+    $('.editPayrollBtn').click(function(){
+    _pendingAction = 'edit-payroll';
+    _pendingPayrollId = $(this).closest('tr').data('id');
+    openPasswordModal();
     });
+
+
 
     $('#closeModal').click(function() {
         $('#payrollModal').addClass('hidden');
@@ -529,6 +638,110 @@
         });
     });
 </script>
+<script>
+    //Submit modal password
+    // $('#passwordForm').on('submit', function(e){
+    // e.preventDefault();
+    // const pwd = $('#password_input').val();
+
+    // if (_pendingAction === 'pdf-payroll') {
+    //     sendPdfRequest("{{ route('payrollconfirmation.pdf') }}", _pendingFormEl, pwd);
+    // }
+    // else if (_pendingAction === 'pdf-offering') {
+    //     sendPdfRequest("{{ route('offeringletter.pdf') }}", _pendingFormEl, pwd);
+    // }
+    // else if (_pendingAction === 'edit-payroll') {
+    //     loadPayrollForEdit(_pendingPayrollId, pwd);
+    // }
+    // });
+    // Submit modal password (SATU untuk semua aksi)
+// sekali saja di atas:
+$('#salaryPasswordForm')
+  .off('submit.payroll')
+  .on('submit.payroll', function (e) {
+    e.preventDefault();
+    const pwd = $('#salary_password').val();
+
+    if (_pendingAction === 'pdf-payroll') {
+      sendPdfRequest("{{ route('payrollconfirmation.pdf') }}", _pendingFormEl, pwd);
+    } else if (_pendingAction === 'pdf-offering') {
+      sendPdfRequest("{{ route('offeringletter.pdf') }}", _pendingFormEl, pwd);
+    } else if (_pendingAction === 'edit-payroll') {
+      loadPayrollForEdit(_pendingPayrollId, pwd);
+    } else if (_pendingAction === 'reveal-salary') {
+      // panggil reveal di sini (seperti yang sudah kamu punya)
+      $.post("{{ route('payrollconfirm.reveal') }}", {
+        _token: $('meta[name="csrf-token"]').attr('content'),
+        payroll_id: _pendingPayrollId,
+        password: pwd
+      })
+      .done(function(resp){
+        if (resp && resp.success) {
+          const formatted = formatThousandsID(String(resp.salary));
+          $('.salary-mask[data-id="'+_pendingPayrollId+'"]').text(formatted);
+          $('.revealSalaryBtn[data-id="'+_pendingPayrollId+'"] i[data-lucide]')
+            .attr('data-lucide','eye-off');
+          if (window.lucide) lucide.createIcons();
+          toastr.success('Gaji ditampilkan.');
+          $('#salaryPasswordModal').addClass('hidden').removeClass('flex');
+        } else {
+          toastr.error(resp?.message || 'Gagal verifikasi.');
+        }
+      })
+      .fail(function(xhr){
+        if (xhr.status === 401) toastr.error('Password salah.');
+        else if (xhr.status === 403) toastr.error('Anda tidak memiliki akses.');
+        else toastr.error('Terjadi kesalahan. Coba lagi.');
+      });
+    }
+});
+
+
+
+   function sendPdfRequest(url, formEl, pwd) {
+  const fd = new FormData(formEl);
+  fd.append('password', pwd);
+  $.ajax({
+    url, method:'POST', data: fd,
+    processData: false, contentType: false,
+    xhrFields: { responseType:'blob' },
+    success: function(blob, status, xhr){
+      const ct = xhr.getResponseHeader('Content-Type') || '';
+      if (ct.includes('pdf')) {
+        const pdfUrl = URL.createObjectURL(blob);
+        window.open(pdfUrl, '_blank');
+        toastr.success('Dokumen dibuka.');
+        $('#salaryPasswordModal').addClass('hidden').removeClass('flex');
+      } else {
+        toastr.error('Gagal buka dokumen.');
+      }
+    },
+    error: function(){
+      toastr.error('Verifikasi gagal');
+    }
+  });
+}
+
+function loadPayrollForEdit(id, pwd){
+  $.get('/payrollconfirm/'+id, { password: pwd }, function(data){
+    for (let key in data) {
+      $('[name="'+key+'"]').val(data[key]);
+    }
+    if (data.net_salary != null) {
+      $('#net_salary').val(formatThousandsID(String(data.net_salary)));
+    } else {
+      $('#net_salary').val('');
+    }
+    $('#payroll_id').val(data.id);
+    $('#payrollModal').removeClass('hidden');
+    $('#salaryPasswordModal').addClass('hidden').removeClass('flex');
+  }).fail(function(xhr){
+    toastr.error(xhr.responseJSON?.message || 'Akses ditolak');
+  });
+}
+
+
+</script>
 
 <script>
     $('#addSignBtn').click(function() {
@@ -554,35 +767,7 @@
         $('#signModal').addClass('hidden');
     });
 
-    // $('#signForm').submit(function(e) {
-    //     e.preventDefault();
-    //     let form = $(this);
-    //     let url = form.find('#sign_id').val() ?
-    //         "{{ route('signconfirm.update') }}" :
-    //         "{{ route('signconfirm.store') }}";
-
-    //     $.ajax({
-    //         type: 'POST',
-    //         url: url,
-    //         data: form.serialize(),
-    //         success: function(response) {
-    //             if (response.success) {
-    //                 toastr.success('Data sign berhasil disimpan.');
-    //                 setTimeout(() => location.reload(), 1000); // reload setelah toastr tampil
-    //             } else {
-    //                 toastr.error('Gagal menyimpan data sign.');
-    //             }
-    //         },
-    //         error: function(xhr) {
-    //             if (xhr.status === 409 && xhr.responseJSON?.message) {
-    //                 toastr.warning(xhr.responseJSON
-    //                     .message); // pesan duplikat sign atau onboarding
-    //             } else {
-    //                 toastr.error('Terjadi kesalahan sistem. Coba lagi.');
-    //             }
-    //         }
-    //     });
-    // });
+ 
 </script>
 
 <script>
@@ -783,3 +968,68 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
 <!-- Toastr JS -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+
+<script>
+  // buka modal minta password
+//   $(document).on('click', '.revealSalaryBtn', function () {
+//       const id = $(this).data('id');
+//       $('#salary_payroll_id').val(id);
+//       $('#salary_password').val('');
+//       $('#salaryPasswordModal').removeClass('hidden').addClass('flex');
+//       setTimeout(() => $('#salary_password').trigger('focus'), 0);
+//   });
+// buka modal minta password saat klik ikon mata
+$(document).on('click', '.revealSalaryBtn', function () {
+  const id = $(this).data('id');
+  _pendingAction = 'reveal-salary';
+  _pendingPayrollId = id;
+  $('#salary_payroll_id').val(id); // boleh tetap diisi kalau butuh
+  openPasswordModal();
+});
+
+
+  // tutup modal
+  $('#salaryModalCancel').on('click', function () {
+      $('#salaryPasswordModal').addClass('hidden').removeClass('flex');
+  });
+
+  // submit verifikasi
+//   $('#salaryPasswordForm').on('submit', function (e) {
+//       e.preventDefault();
+
+//       const payload = $(this).serialize(); // payroll_id + password + _token
+//       const payrollId = $('#salary_payroll_id').val();
+
+//       $.ajax({
+//           type: 'POST',
+//           url: "{{ route('payrollconfirm.reveal') }}",
+//           data: payload,
+//           success: function (resp) {
+//               if (resp && resp.success) {
+//                   const formatted = formatThousandsID(String(resp.salary));
+//                   const $cellSpan = $('.salary-mask[data-id="' + payrollId + '"]');
+//                   $cellSpan.text(formatted);
+//                   // opsional: ganti ikon jadi eye-off
+//                   const $btn = $('.revealSalaryBtn[data-id="' + payrollId + '"] i[data-lucide]');
+//                   $btn.attr('data-lucide', 'eye-off');
+//                   if (window.lucide) { lucide.createIcons(); }
+
+//                   toastr.success('Gaji ditampilkan.');
+//                   $('#salaryPasswordModal').addClass('hidden').removeClass('flex');
+//               } else {
+//                   toastr.error(resp?.message || 'Gagal verifikasi.');
+//               }
+//           },
+//           error: function (xhr) {
+//               if (xhr.status === 401) {
+//                   toastr.error('Password salah.');
+//               } else if (xhr.status === 403) {
+//                   toastr.error('Anda tidak memiliki akses.');
+//               } else {
+//                   toastr.error('Terjadi kesalahan. Coba lagi.');
+//               }
+//           }
+//       });
+//   });
+</script>
+

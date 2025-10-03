@@ -41,6 +41,8 @@ use Illuminate\Validation\Rule;
 use Vinkla\Hashids\Facades\Hashids;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
+use App\Models\TrBQCS;
+use App\Models\TrBQCSDetail;
 
 
 class CsJobController extends Controller
@@ -377,6 +379,46 @@ class CsJobController extends Controller
 
         $eid = Hashids::encode($cs->id);
 
+        $bq = null;
+        $bq_eid = null;
+        if (!empty($cs->bqid)) {
+            $bq = TrBQCS::where('bqid', $cs->bqid)->first();   // <— sesuai permintaan
+            if ($bq) {
+                $bq_eid = Hashids::encode($bq->id);
+            }
+        }
+
+        // --- siapkan pembanding: total per vendor dari CS & BQ
+        $csVendorTotals = [];  // [idx => ['vendorid','vendorname','total_cs']]
+        $bqVendorTotals = [];  // [idx => ['grand_mat','grand_jsa','sum_bq']]
+
+        for ($i = 1; $i <= 6; $i++) {
+            $vid = $cs->{"vendorid{$i}"} ?? null;
+            $vnm = $cs->{"vendorname{$i}"} ?? null;
+
+            // total dari CS (kolom totalvendor{i})
+            $totalCS = (float) ($cs->{"totalvendor{$i}"} ?? 0);
+
+            if ($vid || $vnm || $totalCS > 0) {
+                $csVendorTotals[$i] = [
+                    'vendorid'   => $vid,
+                    'vendorname' => $vnm,
+                    'total_cs'   => $totalCS,
+                ];
+            }
+
+            // total dari BQ: grandtotalmaterialvendor{i} + grandtotaljasavendor{i}
+            if ($bq) {
+                $gmat = (float) ($bq->{"grandtotalmaterialvendor{$i}"} ?? 0);
+                $gjsa = (float) ($bq->{"grandtotaljasavendor{$i}"} ?? 0);
+                $bqVendorTotals[$i] = [
+                    'grand_mat' => $gmat,
+                    'grand_jsa' => $gjsa,
+                    'sum_bq'    => $gmat + $gjsa,
+                ];
+            }
+        }
+
         return view('pages.canvass.editcs', [
             'eid'        => $eid,
             'doc'        => $doc,
@@ -390,6 +432,10 @@ class CsJobController extends Controller
             // payload untuk preload JS
             'vendorsUsed'         => $vendorsUsed,
             'detailVendorMatrix'  => $detailVendorMatrix,
+            'bq'         => $bq,
+            'bq_eid'     => $bq_eid,
+            'csVendorTotals'  => $csVendorTotals,
+            'bqVendorTotals'  => $bqVendorTotals,
         ]);
     }
 

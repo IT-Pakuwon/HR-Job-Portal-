@@ -971,12 +971,22 @@ class CanvassController extends Controller
             'completer:username,name',
         ])->findOrFail($id);
 
+        // $csdetail = TrCSdetail::with([
+        //     'location:location_id,location_name',
+        //     'subLocation:sub_location_id,sub_location_name'
+        // ])->where('csid', $cs->csid)
+        // ->orderBy('cs_no')
+        // ->get();
         $csdetail = TrCSdetail::with([
             'location:location_id,location_name',
             'subLocation:sub_location_id,sub_location_name'
-        ])->where('csid', $cs->csid)
+        ])
+        ->where('csid', $cs->csid)
+        ->whereNotNull('qty')           // aman kalau kolom bisa null
+        ->where('qty', '!=', 0)         // terjemah ke SQL: qty <> 0
         ->orderBy('cs_no')
         ->get();
+
 
         $approval = T_approval::where('docid', $cs->csid)
             ->where('status','<>','X')

@@ -11,7 +11,7 @@
                 <div class="mb-5 border-b border-gray-200 pb-4 dark:border-gray-700">
                     <h2 class="text-xl font-extrabold text-gray-800 dark:text-white"><span
                             class="text-indigo-500"></span>
-                        Create BQ from : 🆔 {{ $cs->csid }}</h2>
+                        Create BQ CS : 🆔 {{ $cs->csid }}</h2>
                 </div>
 
                 <!-- Grid Form -->
@@ -72,7 +72,7 @@
                         <thead
                             class="bg-gray-100 text-gray-900 dark:border-gray-700 dark:bg-gray-700 dark:text-gray-100">
                             <tr>
-                                <th class="border px-4 py-3 text-left font-semibold">BQ No</th>
+                                <th class="border px-4 py-3 text-left font-semibold">No</th>
                                 <th class="border px-4 py-3 text-left font-semibold">Line</th>
                                 <th class="border px-4 py-3 text-left font-semibold">Description</th>
                                 <th class="border px-4 py-3 text-left font-semibold">Qty</th>

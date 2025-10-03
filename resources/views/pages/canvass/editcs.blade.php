@@ -266,45 +266,43 @@
                                         value="{{ ucwords(strtolower(optional($header->purchaser)->name)) }}" readonly
                                         class="mt-1 w-full rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
                                 </div>
-
-                                <!-- BQ ID -->
-                                {{-- @if (in_array($doc, ['SPPJ', 'SPPT']))
-                                    <div>
-                                        <label class="text-sm font-medium text-gray-600 dark:text-gray-400">BQ
-                                            ID</label>
-                                        <input type="text" value="{{ $header->bqid }}" readonly
-                                            class="mt-1 w-full rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
-                                    </div>
-                                @endif --}}
+                         
                                 {{-- BQ ID --}}
                                 @if (in_array($doc, ['SPPJ', 'SPPT']))
                                     <div class="flex items-end gap-2">
                                         <div class="flex-1">
-                                            <label class="text-sm font-medium text-gray-600 dark:text-gray-400">BQ
-                                                ID</label>
-                                            <input type="text" value="{{ $header->bqid }}" readonly
+                                            <label class="text-sm font-medium text-gray-600 dark:text-gray-400">BQ ID</label>
+                                            <input type="text"
+                                                value="{{ $bq?->bqid ?? ($header->bqid ?? '') }}"
+                                                readonly
                                                 class="mt-1 w-full rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
                                         </div>
 
-                                        {{-- Create BQ button --}}
                                         @php
-                                            // jika halaman ini punya csid (mis. mode edit), kirimkan csid; kalau tidak ada -> disabled
-                                            $csidForBQ = $cs->csid ?? null; // sesuaikan: jika variabel $cs tidak ada, ganti dengan variabel CS kamu
+                                            // $eid = CS hash id (sudah dikirim dari controller)
+                                            $csidForBQ = $eid ?? null;
                                         @endphp
 
-                                        @if ($csidForBQ)
+                                        {{-- Kondisi: jika BQ SUDAH ADA → tombol Open BQ, kalau BELUM → tombol Create BQ --}}
+                                        @if ($bq && $bq_eid)
+                                            <a href="{{ route('bqcs.edit', $bq_eid) }}"
+                                            class="mt-6 inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700">
+                                                Open BQ
+                                            </a>
+                                        @elseif ($csidForBQ)
                                             <a href="{{ route('bqcs.createFromCS', $csidForBQ) }}"
-                                                class="mt-6 inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700">
+                                            class="mt-6 inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700">
                                                 Create BQ
                                             </a>
                                         @else
                                             <button type="button" title="Simpan CS dulu, baru buat BQ"
-                                                class="mt-6 inline-flex cursor-not-allowed items-center gap-2 rounded-lg bg-gray-400 px-4 py-2 text-sm font-semibold text-white">
+                                                    class="mt-6 inline-flex cursor-not-allowed items-center gap-2 rounded-lg bg-gray-400 px-4 py-2 text-sm font-semibold text-white">
                                                 Create BQ
                                             </button>
                                         @endif
                                     </div>
                                 @endif
+
 
 
                                 <div class="flex w-full flex-col gap-2">
@@ -558,6 +556,37 @@
             </div>
             <!-- /TAX PICKER MODAL -->
 
+            <!-- MISMATCH POPUP -->
+            <div id="bqcsMismatchModal" class="fixed inset-0 z-[3500] hidden">
+            <div class="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
+            <div class="absolute left-1/2 top-1/2 w-[92vw] max-w-3xl -translate-x-1/2 -translate-y-1/2 rounded-xl bg-white p-4 shadow-xl dark:bg-gray-800">
+                <div class="mb-3 flex items-center justify-between border-b pb-2 dark:border-gray-700">
+                <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-100">Tidak bisa Submit — Perbedaan Nilai BQ vs CS</h3>
+                <button id="bqcsMismatchClose" class="rounded px-2 py-1 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700">✖</button>
+                </div>
+                <p class="mb-3 text-sm text-gray-700 dark:text-gray-300">
+                Terdapat vendor dengan nilai berbeda antara <b>(BQ: Grand Material + Grand Jasa)</b> dan <b>(CS: Total Vendor)</b>. Periksa tabel di bawah ini:
+                </p>
+                <div class="max-h-[60vh] overflow-auto">
+                <table class="min-w-full divide-y divide-gray-200 text-sm dark:divide-gray-700">
+                    <thead class="bg-gray-50 dark:bg-gray-700">
+                    <tr>
+                        <th class="px-3 py-2 text-left font-semibold">Vendor</th>
+                        <th class="px-3 py-2 text-right font-semibold">BQ Grand (Mat+Jasa)</th>
+                        <th class="px-3 py-2 text-right font-semibold">CS Total Vendor</th>
+                        <th class="px-3 py-2 text-right font-semibold">Selisih</th>
+                    </tr>
+                    </thead>
+                    <tbody id="bqcsMismatchBody" class="divide-y divide-gray-100 bg-white dark:divide-gray-700 dark:bg-gray-800"></tbody>
+                </table>
+                </div>
+                <div class="mt-4 text-right">
+                <button id="bqcsMismatchOk" class="rounded bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700">OK</button>
+                </div>
+            </div>
+            </div>
+
+
             <div id="successMessage" class="mt-4 hidden font-bold text-green-600 lg:col-span-2">
                 CS Created Successfully!
             </div>
@@ -776,7 +805,7 @@
                     </div>
                 </div>
                 <div><span class="font-semibold">Grand Total:</span> <span class="sum-grand">0</span></div>
-                <div><span class="font-semibold">G.Total Selected:</span> <span class="sum-selected">0</span></div>
+                <div><span class="font-semibold">G.Total Selected:</span><span class="sum-selected" data-raw="0">0</span></div>
                 </div>
             </td>
             `);
@@ -840,8 +869,17 @@
                             'id-ID'));
                         if (v.grand != null) $sum.find('.sum-grand').text((+v.grand).toLocaleString(
                             'id-ID'));
-                        if (v.sel_total != null) $sum.find('.sum-selected').text((+v.sel_total)
-                            .toLocaleString('id-ID'));
+                        // if (v.sel_total != null) $sum.find('.sum-selected').text((+v.sel_total)
+                        //     .toLocaleString('id-ID'));
+                        if (v.sel_total != null) {
+                            const selTotal = +v.sel_total || 0;           // NET (tanpa pajak) dari server
+                            const ppn = +(v.ppn ?? 11) / 100;
+                            const pph = +(v.pph ?? 0)  / 100;
+                            const selGrand = selTotal * (1 + ppn + pph);  // GROSS utk tampilan
+                            $sum.find('.sum-selected')
+                                .attr('data-raw', String(selTotal))       // simpan NET untuk payload
+                                .text(selGrand.toLocaleString('id-ID'));
+                        }
                     }
                 });
             }
@@ -910,7 +948,13 @@
                         selTotal += Number((lbl.text() || '0').replace(/[^0-9]/g, ''));
                     }
                 });
-                $sumCell.find('.sum-selected').text((+selTotal || 0).toLocaleString('id-ID'));
+                // $sumCell.find('.sum-selected').text((+selTotal || 0).toLocaleString('id-ID'));
+                // tampilkan TERMASUK pajak (seperti Grand Total)
+                    const selGrand = selTotal * (1 + ppn + pph);
+                    const $sel = $sumCell.find('.sum-selected');
+                    $sel.text((+selGrand || 0).toLocaleString('id-ID'));
+                    // simpan raw (tanpa pajak) agar payload tidak double count
+                    $sel.attr('data-raw', String(selTotal || 0));
             };
 
             /* ========== 8) Hapus kolom vendor ========== */
@@ -937,6 +981,7 @@
             /* ========== 9) Radio change -> recalc selected ========== */
             $(document).on('change', '.pick-vendor', function() {
                 recalcSummaryVendor(String($(this).val()));
+                recalcAllVendors();
             });
         });
     </script>
@@ -1277,7 +1322,23 @@
                 const pphId = $sum.find('.sum-pph-id').val() || '';
                 const tax = total * (ppn / 100) + total * (pph / 100);
                 const grand = total + tax;
-                const selTotal = numFromText($sum.find('.sum-selected').text());
+                // const selTotal = numFromText($sum.find('.sum-selected').text());
+                let selTotal = Number($sum.find('.sum-selected').attr('data-raw') || 0);
+                if (!selTotal) {
+                // fallback aman kalau attr belum ada (mis. data lama)
+                let tmp = 0;
+                $('#cvBody tr').each(function () {
+                    const picked = String($(this).find('input.pick-vendor:checked').val() || '');
+                    if (picked === vid) {
+                    const lbl = $(this)
+                        .find(`input.price-input[data-vendor="${CSS.escape(vid)}"]`)
+                        .closest('td').find('.total-label');
+                    tmp += Number((lbl.text() || '0').replace(/[^0-9]/g, ''));
+                    }
+                });
+                selTotal = tmp;
+                }
+
                 const selTax = selTotal * (ppn / 100) + selTotal * (pph / 100);
                 const selGrand = selTotal + selTax;
 
@@ -1367,8 +1428,8 @@
                 success: function(res) {
                     hideOverlay();
                     toastr.success('CS berhasil disimpan.');
-                    window.location.href = "/csjobs";
-                    // window.location.href = res.redirect ?? window.location.href;
+                    // window.location.href = "/csjobs";
+                    window.location.href = res.redirect ?? window.location.href;
                 },
                 error: function(xhr) {
                     hideOverlay();
@@ -1399,6 +1460,11 @@
 
             if (!validateQtyLimit()) {
                 toastr.error('Ada qty yang melebihi qty awal. Periksa kembali.');
+                return;
+            }
+
+            if (!validateBQvsCS()) {
+                // akan muncul modal mismatch jika gagal
                 return;
             }
 
@@ -1479,8 +1545,23 @@
                 const pphId = $sum.find('.sum-pph-id').val() || '';
                 const tax = total * (ppn / 100) + total * (pph / 100);
                 const grand = total + tax;
-                const selTotal = numFromText($sum.find('.sum-selected').text());
-                const selTax = selTotal * (ppn / 100) + selTotal * (pph / 100);
+                // const selTotal = numFromText($sum.find('.sum-selected').text());
+                let selTotal = Number($sum.find('.sum-selected').attr('data-raw') || 0);
+                if (!selTotal) {
+                // fallback aman kalau attr belum ada (mis. data lama)
+                let tmp = 0;
+                $('#cvBody tr').each(function () {
+                    const picked = String($(this).find('input.pick-vendor:checked').val() || '');
+                    if (picked === vid) {
+                    const lbl = $(this)
+                        .find(`input.price-input[data-vendor="${CSS.escape(vid)}"]`)
+                        .closest('td').find('.total-label');
+                    tmp += Number((lbl.text() || '0').replace(/[^0-9]/g, ''));
+                    }
+                });
+                selTotal = tmp;
+                }
+                const selTax   = selTotal * (ppn / 100) + selTotal * (pph / 100);
                 const selGrand = selTotal + selTax;
 
                 vendors.push({
@@ -1652,6 +1733,101 @@
         });
     </script>
 
+    <script>
+        const CS_VENDOR_TOTALS = @json($csVendorTotals ?? []);
+        const BQ_VENDOR_TOTALS = @json($bqVendorTotals ?? []);
+        const BQ_EXISTS        = @json(!!($bq ?? null));
+    </script>
+
+    <script>
+        (function() {
+        // toleransi perbandingan (mis. 1 rupiah)
+        const EPS = 1;
+
+        function fmtIDR(n) {
+            return (Number(n) || 0).toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+
+        // Render isi modal mismatch
+        function showMismatchTable(rows) {
+            const $tbody = $('#bqcsMismatchBody').empty();
+            rows.forEach(r => {
+            const cls = 'text-red-600 dark:text-red-400 font-semibold';
+            $tbody.append(`
+                <tr>
+                <td class="px-3 py-2">${_.escape(r.vendor_label)}</td>
+                <td class="px-3 py-2 text-right ${cls}">${fmtIDR(r.bq)}</td>
+                <td class="px-3 py-2 text-right ${cls}">${fmtIDR(r.cs)}</td>
+                <td class="px-3 py-2 text-right ${cls}">${fmtIDR(r.diff)}</td>
+                </tr>
+            `);
+            });
+            $('#bqcsMismatchModal').removeClass('hidden');
+        }
+
+        $('#bqcsMismatchClose, #bqcsMismatchOk').on('click', function() {
+            $('#bqcsMismatchModal').addClass('hidden');
+        });
+
+        // validasi utama — dipanggil sebelum submit
+        window.validateBQvsCS = function() {
+            // kalau bukan SPPJ/SPPT, aturan ini optional — kalau kamu mau hanya berlaku utk dok tsb:
+            const docType = "{{ $doc }}";
+            const requiresBQ = (docType === 'SPPJ' || docType === 'SPPT');
+
+            if (requiresBQ && !BQ_EXISTS) {
+            toastr.error('BQ belum dibuat untuk dokumen ini. Buat/isi BQ terlebih dahulu sebelum submit.');
+            return false;
+            }
+
+            // jika tidak ada data perbandingan, anggap lolos
+            if (!requiresBQ) return true;
+            if (!CS_VENDOR_TOTALS || !BQ_VENDOR_TOTALS) return true;
+
+            const mismatches = [];
+
+            // loop index 1..6
+            for (let i = 1; i <= 6; i++) {
+            const csRow = CS_VENDOR_TOTALS[i];
+            const bqRow = BQ_VENDOR_TOTALS[i];
+
+            // Jika vendor tidak ada di keduanya, lewati
+            if (!csRow && !bqRow) continue;
+
+            const vendorName = (csRow?.vendorname || csRow?.vendorid || `Vendor ${i}`);
+            const csTotal = Number(csRow?.total_cs || 0);
+            const bqSum   = Number(bqRow?.sum_bq   || 0);
+
+            // Kalau dua-duanya 0, anggap cocok
+            const diff = Math.abs(bqSum - csTotal);
+            if (diff > EPS) {
+                mismatches.push({
+                idx: i,
+                vendor_label: vendorName,
+                bq: bqSum,
+                cs: csTotal,
+                diff: bqSum - csTotal
+                });
+            }
+            }
+
+            if (mismatches.length > 0) {
+            showMismatchTable(mismatches);
+            return false;
+            }
+
+            return true;
+        };
+        })();
+    </script>
+ <script>
+    function recalcAllVendors() {
+  $('#cvTable thead th[id^="th-vendor-"]').each(function () {
+    const vid = String($(this).data('vendor-id'));
+    recalcSummaryVendor(vid);
+  });
+}
+</script>
 
 
     <!-- Toastr CSS -->
