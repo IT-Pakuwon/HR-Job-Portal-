@@ -148,311 +148,317 @@
             </div>
         </div>
         <div class="flex w-full flex-col gap-6 xl:flex-col">
-            <div class="flex w-full flex-col gap-6 md:h-[35vh] xl:flex-col">
-                <div class="flex w-full flex-col gap-6 md:h-[35vh] xl:flex-row">
-                    <div class="flex flex-1 flex-col overflow-y-auto rounded-xl bg-white dark:bg-gray-800">
-                        <header
-                            class="sticky top-0 z-10 flex items-center justify-between rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
-                            <h1 class="flex items-center gap-2 text-2xl font-bold text-gray-800 dark:text-gray-100">
-                                <span class="text-indigo-500">🆔</span>
-                                {{ $cs->csid }}
-                            </h1>
+            <div class="flex w-full items-stretch gap-6 xl:flex-row">
+                <div class="flex flex-1 flex-col overflow-y-auto rounded-xl bg-white dark:bg-gray-800">
+                    <header
+                        class="sticky top-0 z-10 flex items-center justify-between rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
+                        <h1 class="flex items-center gap-2 text-2xl font-bold text-gray-800 dark:text-gray-100">
+                            <span class="text-indigo-500">🆔</span>
+                            {{ $cs->csid }}
+                        </h1>
 
-                            @php
-                                $statusText = match ($cs->status) {
-                                    'D' => 'Revise',
-                                    'H' => 'Hold',
-                                    'P' => 'On Progress',
-                                    'C' => 'Completed',
-                                    'X' => 'Cancelled',
-                                    'R' => 'Rejected',
-                                    default => 'Unknown',
-                                };
+                        @php
+                            $statusText = match ($cs->status) {
+                                'D' => 'Revise',
+                                'H' => 'Hold',
+                                'P' => 'On Progress',
+                                'C' => 'Completed',
+                                'X' => 'Cancelled',
+                                'R' => 'Rejected',
+                                default => 'Unknown',
+                            };
 
-                                $statusClasses = match ($cs->status) {
-                                    'H', 'D' => 'bg-blue-100 text-blue-700 dark:bg-blue-800/30 dark:text-blue-300',
-                                    'P' => 'bg-yellow-100 text-yellow-700 dark:bg-yellow-800/30 dark:text-yellow-300',
-                                    'C' => 'bg-green-100 text-green-700 dark:bg-green-800/30 dark:text-green-300',
-                                    'X', 'R' => 'bg-red-100 text-red-700 dark:bg-red-800/30 dark:text-red-300',
-                                    default => 'bg-gray-100 text-gray-700 dark:bg-gray-800/30 dark:text-gray-300',
-                                };
-                            @endphp
+                            $statusClasses = match ($cs->status) {
+                                'H', 'D' => 'bg-blue-100 text-blue-700 dark:bg-blue-800/30 dark:text-blue-300',
+                                'P' => 'bg-yellow-100 text-yellow-700 dark:bg-yellow-800/30 dark:text-yellow-300',
+                                'C' => 'bg-green-100 text-green-700 dark:bg-green-800/30 dark:text-green-300',
+                                'X', 'R' => 'bg-red-100 text-red-700 dark:bg-red-800/30 dark:text-red-300',
+                                default => 'bg-gray-100 text-gray-700 dark:bg-gray-800/30 dark:text-gray-300',
+                            };
+                        @endphp
 
-                            <div class="flex items-center gap-3">
-                                <span
-                                    class="{{ $statusClasses }} inline-flex items-center rounded-full px-4 py-1 text-sm font-semibold">
-                                    {{ $statusText }}
-                                </span>           
-                                {{-- Tombol Print PDF --}}                   
-                                <a href="{{ url('/pdf_cs') }}/{{ $hash }}" target="_blank" rel="noopener">
-                                    <button
-                                        title="Klik untuk membuka PDF"
-                                        class="inline-flex items-center gap-2 rounded-full bg-indigo-600 px-4 py-1 text-sm font-semibold text-white transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 cursor-pointer">
-                                        Print PDF
-                                    </button>
-                                </a>
-                            </div>
-                        </header>
+                        <div class="flex items-center gap-3">
+                            <span
+                                class="{{ $statusClasses }} inline-flex items-center rounded-full px-4 py-1 text-sm font-semibold">
+                                {{ $statusText }}
+                            </span>
+                            {{-- Tombol Print PDF --}}
+                            <a href="{{ url('/pdf_cs') }}/{{ $hash }}" target="_blank" rel="noopener">
+                                <button title="Klik untuk membuka PDF"
+                                    class="inline-flex cursor-pointer items-center gap-2 rounded-full bg-indigo-600 px-4 py-1 text-sm font-semibold text-white transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                                    Print PDF
+                                </button>
+                            </a>
+                        </div>
+                    </header>
 
-                        <div class="flex flex-1 flex-col gap-6 overflow-y-auto p-4">
-                            @php                              
+                    <div class="flex flex-1 flex-col gap-6 overflow-y-auto p-4">
+                        @php
 
-                                $routeMap  = ['PB' => 'showsppbs', 'PJ' => 'showsppjs', 'PK' => 'showsppks', 'PT' => 'showsppts'];
-                                $routeBase = $routeMap[$prefix] ?? null;
-                                $docUrl    = $routeBase ? url("/{$routeBase}/{$eid_sppbjkt}") : null;
+                            $routeMap = [
+                                'PB' => 'showsppbs',
+                                'PJ' => 'showsppjs',
+                                'PK' => 'showsppks',
+                                'PT' => 'showsppts',
+                            ];
+                            $routeBase = $routeMap[$prefix] ?? null;
+                            $docUrl = $routeBase ? url("/{$routeBase}/{$eid_sppbjkt}") : null;
 
-                                // tombol/link untuk SPPB/J/K/T ID
-                                $docBtn = $docUrl
-                                    ? '<a href="'.$docUrl.'" target="_blank" rel="noopener"
+                            // tombol/link untuk SPPB/J/K/T ID
+                            $docBtn = $docUrl
+                                ? '<a href="' .
+                                    $docUrl .
+                                    '" target="_blank" rel="noopener"
                                         class="inline-flex items-center gap-2 rounded-full bg-emerald-600 px-3 py-1 text-xs font-semibold text-white hover:bg-emerald-700">
-                                        '.$docid.'
+                                        ' .
+                                    $docid .
+                                    '
                                     </a>'
-                                    : e($docid);
+                                : e($docid);
 
-                                $row1 = [
-                                    ['label' => 'SPPB/J/K/T ID', 'value' => $docBtn, 'is_html' => true],
-                                    ['label' => 'Company',       'value' => e($srcHeader->cpny_id)],
-                                    ['label' => 'Department',    'value' => e($srcHeader->department_id)],
-                                ];
+                            $row1 = [
+                                ['label' => 'SPPB/J/K/T ID', 'value' => $docBtn, 'is_html' => true],
+                                ['label' => 'Company', 'value' => e($srcHeader->cpny_id)],
+                                ['label' => 'Department', 'value' => e($srcHeader->department_id)],
+                            ];
 
-                                $row2 = [
-                                    [
-                                        'label' => 'User',
-                                        'value' => ucwords(strtolower(optional($srcHeader->creator)->name)),
-                                    ],
-                                    [
-                                        'label' => 'Purchaser',
-                                        'value' => ucwords(strtolower(optional($srcHeader->purchaser)->name)),
-                                    ],
-                                ];
+                            $row2 = [
+                                [
+                                    'label' => 'User',
+                                    'value' => ucwords(strtolower(optional($srcHeader->creator)->name)),
+                                ],
+                                [
+                                    'label' => 'Purchaser',
+                                    'value' => ucwords(strtolower(optional($srcHeader->purchaser)->name)),
+                                ],
+                            ];
 
-                                if ($cs->bqid) {
-                                    $row2[] = ['label' => 'BQ ID', 'value' => $srcHeader->bqid];
-                                }
-                            @endphp
+                            if ($cs->bqid) {
+                                $row2[] = ['label' => 'BQ ID', 'value' => $srcHeader->bqid];
+                            }
+                        @endphp
 
-                            {{-- Row 1 (3 cols) --}}
-                            <div class="grid grid-cols-1 gap-4 md:grid-cols-3">                                
-                                @foreach ($row1 as $detail)
-                                    <div class="rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-800">
+                        {{-- Row 1 (3 cols) --}}
+                        <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
+                            @foreach ($row1 as $detail)
+                                <div
+                                    class="rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-800">
                                     <p class="text-xs text-gray-500 dark:text-gray-400">{{ $detail['label'] }}</p>
                                     <p class="text-sm font-medium text-gray-900 dark:text-gray-100">
                                         @if (!empty($detail['is_html']))
-                                        {!! $detail['value'] !!}   {{-- value berupa HTML (tombol link) --}}
+                                            {!! $detail['value'] !!} {{-- value berupa HTML (tombol link) --}}
                                         @else
-                                        {{ $detail['value'] }}      {{-- value biasa --}}
+                                            {{ $detail['value'] }} {{-- value biasa --}}
                                         @endif
                                     </p>
-                                    </div>
-                                @endforeach
+                                </div>
+                            @endforeach
+                        </div>
+
+                        {{-- Row 2 (2-3 cols depending on BQ ID) --}}
+                        <div class="md:grid-cols-{{ count($row2) }} grid grid-cols-1 gap-4">
+                            @foreach ($row2 as $detail)
+                                <div
+                                    class="rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-800">
+                                    <p class="text-xs text-gray-500 dark:text-gray-400">{{ $detail['label'] }}</p>
+                                    <p class="text-sm font-medium text-gray-900 dark:text-gray-100">
+                                        {{ $detail['value'] }}
+                                    </p>
+                                </div>
+                            @endforeach
+                        </div>
+
+                        {{-- Row 3 (Keperluan) --}}
+                        <div
+                            class="rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-800">
+                            <p class="text-xs text-gray-500 dark:text-gray-400">Purpose</p>
+                            <p class="text-sm font-medium text-gray-900 dark:text-gray-100">
+                                {{ $srcHeader->keperluan }}
+                            </p>
+                        </div>
+
+                        {{-- Row 4 (Note CS) --}}
+                        <div
+                            class="rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-800">
+                            <p class="mb-1 text-xs text-gray-500 dark:text-gray-400">Note CS</p>
+                            <p class="text-sm font-medium text-gray-900 dark:text-gray-100">
+                                {{ $cs->csnote }}
+                            </p>
+                        </div>
+
+                    </div>
+                </div>
+
+                <div class="flex flex-1 flex-col overflow-y-auto rounded-xl bg-white dark:bg-gray-800">
+                    <div x-data="{ activeTab: 'attachment' }" class="flex flex-1 flex-col">
+                        <header
+                            class="sticky top-0 z-10 flex items-center rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
+                            <nav class="flex flex-grow">
+                                <button @click="activeTab = 'attachment'"
+                                    :class="activeTab === 'attachment'
+                                        ?
+                                        'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400' :
+                                        'border-b-2 border-transparent text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-gray-100'"
+                                    class="flex-1 px-4 py-2 text-center text-sm font-medium transition-colors duration-200">
+                                    Attachment
+                                </button>
+                                <button @click="activeTab = 'approval'"
+                                    :class="activeTab === 'approval'
+                                        ?
+                                        'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400' :
+                                        'border-b-2 border-transparent text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-gray-100'"
+                                    class="flex-1 px-4 py-2 text-center text-sm font-medium transition-colors duration-200">
+                                    Approval Details
+                                </button>
+                                <button @click="activeTab = 'comments'"
+                                    :class="activeTab === 'comments'
+                                        ?
+                                        'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400' :
+                                        'border-b-2 border-transparent text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-gray-100'"
+                                    class="flex-1 px-4 py-2 text-center text-sm font-medium transition-colors duration-200">
+                                    Comments
+                                </button>
+                            </nav>
+                        </header>
+
+                        {{-- Tabs Content --}}
+                        <div class="flex flex-1 flex-col rounded-b-xl bg-white dark:bg-gray-800">
+                            {{-- Approval tab --}}
+                            <div x-show="activeTab === 'approval'" class="flex-1 p-2 transition-all">
+                                <table class="w-full text-sm">
+                                    <thead>
+                                        <tr
+                                            class="border-b border-gray-200 text-gray-600 dark:border-gray-700 dark:text-gray-300">
+                                            <th class="p-3 text-left font-semibold">Level</th>
+                                            <th class="p-3 text-left font-semibold">Name</th>
+                                            <th class="p-3 text-left font-semibold">Date</th>
+                                            <th class="p-3 text-left font-semibold">Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach ($approval as $ap)
+                                            <tr
+                                                class="border-b border-gray-100 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700">
+                                                <td class="p-3">{{ $ap->aprvid }}</td>
+                                                <td class="p-3">{{ $ap->name }}</td>
+                                                <td class="p-3">
+                                                    {{ \Carbon\Carbon::parse($ap->aprvdatebefore)->format('d M Y') }}
+                                                </td>
+                                                <td class="p-3">
+                                                    @php
+                                                        $statusText = '';
+                                                        $statusClass = '';
+                                                        switch ($ap->status) {
+                                                            case 'P':
+                                                                $statusText = 'Waiting Approval';
+                                                                $statusClass = 'bg-yellow-500 text-white';
+                                                                break;
+                                                            case 'A':
+                                                                $statusText = 'Approved';
+                                                                $statusClass = 'bg-green-500 text-white';
+                                                                break;
+                                                            case 'R':
+                                                                $statusText = 'Rejected';
+                                                                $statusClass = 'bg-red-500 text-white';
+                                                                break;
+                                                            case 'D':
+                                                                $statusText = 'Revise';
+                                                                $statusClass = 'bg-blue-500 text-white';
+                                                                break;
+                                                            default:
+                                                                $statusText = 'Unknown';
+                                                                $statusClass = 'bg-gray-500 text-white';
+                                                        }
+                                                    @endphp
+                                                    <span
+                                                        class="{{ $statusClass }} inline-block rounded-full px-3 py-1 text-xs font-semibold">
+                                                        {{ $statusText }}
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
                             </div>
 
-                            {{-- Row 2 (2-3 cols depending on BQ ID) --}}
-                            <div class="md:grid-cols-{{ count($row2) }} grid grid-cols-1 gap-4">
-                                @foreach ($row2 as $detail)
-                                    <div
-                                        class="rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-800">
-                                        <p class="text-xs text-gray-500 dark:text-gray-400">{{ $detail['label'] }}</p>
-                                        <p class="text-sm font-medium text-gray-900 dark:text-gray-100">
-                                            {{ $detail['value'] }}
-                                        </p>
-                                    </div>
-                                @endforeach
-                            </div>
+                            {{-- Attachment tab --}}
+                            <div x-show="activeTab === 'attachment'" class="flex-1 p-2 transition-all">
+                                <table class="w-full text-sm">
+                                    <thead class="text-gray-600 dark:text-gray-300">
+                                        <tr
+                                            class="border-b border-gray-200 text-gray-600 dark:border-gray-700 dark:text-gray-300">
+                                            <th class="p-3 text-left font-semibold">Filename</th>
+                                            <th class="p-3 text-left font-semibold">Type</th>
+                                            <th class="p-3 text-left font-semibold">Created By</th>
+                                            <th class="p-3 text-left font-semibold">Date</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @php
+                                            $allAttachments = collect($attachmentBJKT)
+                                                ->map(function ($at) {
+                                                    $at->type = 'PB';
+                                                    return $at;
+                                                })
+                                                ->merge(
+                                                    collect($attachmentCS)->map(function ($at) {
+                                                        $at->type = 'CS';
+                                                        return $at;
+                                                    }),
+                                                );
+                                        @endphp
 
-                            {{-- Row 3 (Keperluan) --}}
-                            <div
-                                class="rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-800">
-                                <p class="text-xs text-gray-500 dark:text-gray-400">Purpose</p>
-                                <p class="text-sm font-medium text-gray-900 dark:text-gray-100">
-                                    {{ $srcHeader->keperluan }}
-                                </p>
-                            </div>
-
-                            {{-- Row 4 (Note CS) --}}
-                            <div
-                                class="rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-800">
-                                <p class="mb-1 text-xs text-gray-500 dark:text-gray-400">Note CS</p>
-                                <p class="text-sm font-medium text-gray-900 dark:text-gray-100">
-                                    {{ $cs->csnote }}
-                                </p>
+                                        @forelse ($allAttachments as $at)
+                                            @php
+                                                $year = \Carbon\Carbon::parse($at->created_at)->year;
+                                                $fileUrl = url("/attachments/{$year}/{$at->attachfile}");
+                                            @endphp
+                                            <tr
+                                                class="border-b border-gray-200 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700">
+                                                <td class="px-3 py-2">
+                                                    <a href="{{ $fileUrl }}" target="_blank"
+                                                        class="font-medium text-indigo-600 hover:underline dark:text-indigo-400">
+                                                        📎 {{ $at->name }}
+                                                    </a>
+                                                </td>
+                                                <td class="px-3 py-2">{{ $at->type }}</td>
+                                                <td class="px-3 py-2">{{ $at->created_user }}</td>
+                                                <td class="px-3 py-2">
+                                                    {{ \Carbon\Carbon::parse($at->created_at)->format('d M Y') }}
+                                                </td>
+                                            </tr>
+                                        @empty
+                                            <tr>
+                                                <td colspan="4"
+                                                    class="p-3 text-center text-sm italic text-gray-500 dark:text-gray-400">
+                                                    No attachments found.
+                                                </td>
+                                            </tr>
+                                        @endforelse
+                                    </tbody>
+                                </table>
                             </div>
 
                         </div>
-                    </div>
 
-                    <div class="flex flex-1 flex-col overflow-y-auto rounded-xl bg-white dark:bg-gray-800">
-                        <div x-data="{ activeTab: 'attachment' }" class="flex flex-1 flex-col">
-                            <header
-                                class="sticky top-0 z-10 flex items-center rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
-                                <nav class="flex flex-grow">
-                                    <button @click="activeTab = 'attachment'"
-                                        :class="activeTab === 'attachment'
-                                            ?
-                                            'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400' :
-                                            'border-b-2 border-transparent text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-gray-100'"
-                                        class="flex-1 px-4 py-2 text-center text-sm font-medium transition-colors duration-200">
-                                        Attachment
-                                    </button>
-                                    <button @click="activeTab = 'approval'"
-                                        :class="activeTab === 'approval'
-                                            ?
-                                            'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400' :
-                                            'border-b-2 border-transparent text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-gray-100'"
-                                        class="flex-1 px-4 py-2 text-center text-sm font-medium transition-colors duration-200">
-                                        Approval Details
-                                    </button>
-                                    <button @click="activeTab = 'comments'"
-                                        :class="activeTab === 'comments'
-                                            ?
-                                            'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400' :
-                                            'border-b-2 border-transparent text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-gray-100'"
-                                        class="flex-1 px-4 py-2 text-center text-sm font-medium transition-colors duration-200">
-                                        Comments
-                                    </button>
-                                </nav>
-                            </header>
 
-                            {{-- Tabs Content --}}
-                            <div class="flex flex-1 flex-col rounded-b-xl bg-white dark:bg-gray-800">
-                                {{-- Approval tab --}}
-                                <div x-show="activeTab === 'approval'" class="flex-1 p-2 transition-all">
-                                    <table class="w-full text-sm">
-                                        <thead>
-                                            <tr
-                                                class="border-b border-gray-200 text-gray-600 dark:border-gray-700 dark:text-gray-300">
-                                                <th class="p-3 text-left font-semibold">Level</th>
-                                                <th class="p-3 text-left font-semibold">Name</th>
-                                                <th class="p-3 text-left font-semibold">Date</th>
-                                                <th class="p-3 text-left font-semibold">Status</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            @foreach ($approval as $ap)
-                                                <tr
-                                                    class="border-b border-gray-100 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700">
-                                                    <td class="p-3">{{ $ap->aprvid }}</td>
-                                                    <td class="p-3">{{ $ap->name }}</td>
-                                                    <td class="p-3">
-                                                        {{ \Carbon\Carbon::parse($ap->aprvdatebefore)->format('d M Y') }}
-                                                    </td>
-                                                    <td class="p-3">
-                                                        @php
-                                                            $statusText = '';
-                                                            $statusClass = '';
-                                                            switch ($ap->status) {
-                                                                case 'P':
-                                                                    $statusText = 'Waiting Approval';
-                                                                    $statusClass = 'bg-yellow-500 text-white';
-                                                                    break;
-                                                                case 'A':
-                                                                    $statusText = 'Approved';
-                                                                    $statusClass = 'bg-green-500 text-white';
-                                                                    break;
-                                                                case 'R':
-                                                                    $statusText = 'Rejected';
-                                                                    $statusClass = 'bg-red-500 text-white';
-                                                                    break;
-                                                                case 'D':
-                                                                    $statusText = 'Revise';
-                                                                    $statusClass = 'bg-blue-500 text-white';
-                                                                    break;
-                                                                default:
-                                                                    $statusText = 'Unknown';
-                                                                    $statusClass = 'bg-gray-500 text-white';
-                                                            }
-                                                        @endphp
-                                                        <span
-                                                            class="{{ $statusClass }} inline-block rounded-full px-3 py-1 text-xs font-semibold">
-                                                            {{ $statusText }}
-                                                        </span>
-                                                    </td>
-                                                </tr>
-                                            @endforeach
-                                        </tbody>
-                                    </table>
+
+
+                        {{-- Comments tab --}}
+                        <div x-show="activeTab === 'comments'" class="flex-1 p-2 transition-all">
+                            <div x-data="{ comments: [], newComment: '', currentUser: 'User1' }" class="flex h-full flex-col">
+                                <div id="commentList"
+                                    class="custom-scrollbar flex-1 flex-col space-y-4 overflow-y-auto p-4">
+                                    <p class="py-4 text-center italic text-gray-500">Loading comments...</p>
                                 </div>
-
-                                {{-- Attachment tab --}}
-                                <div x-show="activeTab === 'attachment'" class="flex-1 p-2 transition-all">
-                                    <table class="w-full text-sm">
-                                        <thead class="text-gray-600 dark:text-gray-300">
-                                            <tr
-                                                class="border-b border-gray-200 text-gray-600 dark:border-gray-700 dark:text-gray-300">
-                                                <th class="p-3 text-left font-semibold">Filename</th>
-                                                <th class="p-3 text-left font-semibold">Type</th>
-                                                <th class="p-3 text-left font-semibold">Created By</th>
-                                                <th class="p-3 text-left font-semibold">Date</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            @php
-                                                $allAttachments = collect($attachmentBJKT)
-                                                    ->map(function ($at) {
-                                                        $at->type = 'PB';
-                                                        return $at;
-                                                    })
-                                                    ->merge(
-                                                        collect($attachmentCS)->map(function ($at) {
-                                                            $at->type = 'CS';
-                                                            return $at;
-                                                        }),
-                                                    );
-                                            @endphp
-
-                                            @forelse ($allAttachments as $at)
-                                                @php
-                                                    $year = \Carbon\Carbon::parse($at->created_at)->year;
-                                                    $fileUrl = url("/attachments/{$year}/{$at->attachfile}");
-                                                @endphp
-                                                <tr
-                                                    class="border-b border-gray-200 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700">
-                                                    <td class="px-3 py-2">
-                                                        <a href="{{ $fileUrl }}" target="_blank"
-                                                            class="font-medium text-indigo-600 hover:underline dark:text-indigo-400">
-                                                            📎 {{ $at->name }}
-                                                        </a>
-                                                    </td>
-                                                    <td class="px-3 py-2">{{ $at->type }}</td>
-                                                    <td class="px-3 py-2">{{ $at->created_user }}</td>
-                                                    <td class="px-3 py-2">
-                                                        {{ \Carbon\Carbon::parse($at->created_at)->format('d M Y') }}
-                                                    </td>
-                                                </tr>
-                                            @empty
-                                                <tr>
-                                                    <td colspan="4"
-                                                        class="p-3 text-center text-sm italic text-gray-500 dark:text-gray-400">
-                                                        No attachments found.
-                                                    </td>
-                                                </tr>
-                                            @endforelse
-                                        </tbody>
-                                    </table>
-                                </div>
-
-                            </div>
-
-
-
-
-                            {{-- Comments tab --}}
-                            <div x-show="activeTab === 'comments'" class="flex-1 p-2 transition-all">
-                                <div x-data="{ comments: [], newComment: '', currentUser: 'User1' }" class="flex h-full flex-col">
-                                    <div id="commentList"
-                                        class="custom-scrollbar flex-1 flex-col space-y-4 overflow-y-auto p-4">
-                                        <p class="py-4 text-center italic text-gray-500">Loading comments...</p>
-                                    </div>
-                                    <div
-                                        class="flex items-center gap-3 border-t border-gray-200 p-4 dark:border-gray-700">
-                                        <input id="commentInput" x-model="newComment" type="text"
-                                            placeholder="Write a comment..."
-                                            class="flex-1 rounded-lg bg-gray-100 p-3 text-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white dark:focus:ring-indigo-400">
-                                        <button id="postCommentBtn" type="button"
-                                            class="rounded-lg bg-indigo-600 px-5 py-3 text-sm font-semibold text-white transition-all duration-200 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 active:scale-95 dark:focus:ring-offset-gray-800">
-                                            Post 🚀
-                                        </button>
-                                    </div>
+                                <div class="flex items-center gap-3 border-t border-gray-200 p-4 dark:border-gray-700">
+                                    <input id="commentInput" x-model="newComment" type="text"
+                                        placeholder="Write a comment..."
+                                        class="flex-1 rounded-lg bg-gray-100 p-3 text-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white dark:focus:ring-indigo-400">
+                                    <button id="postCommentBtn" type="button"
+                                        class="rounded-lg bg-indigo-600 px-5 py-3 text-sm font-semibold text-white transition-all duration-200 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 active:scale-95 dark:focus:ring-offset-gray-800">
+                                        Post 🚀
+                                    </button>
                                 </div>
                             </div>
                         </div>

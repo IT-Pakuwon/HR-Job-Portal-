@@ -149,9 +149,9 @@
             </div>
         </div>
         <div class="flex w-full flex-col gap-6 xl:flex-col">
-            <div class="flex w-full flex-col gap-6 md:h-[35vh] xl:flex-row">
+            <div class="flex w-full items-stretch gap-6 xl:flex-row">
                 {{-- Left card (SPPB Info) --}}
-                <div class="flex flex-1 flex-col overflow-y-auto rounded-xl bg-white dark:bg-gray-800">
+                <div class="flex flex-1 flex-col rounded-xl bg-white dark:bg-gray-800">
                     <header
                         class="sticky top-0 z-10 flex items-center justify-between rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
                         <h1 class="flex items-center gap-2 text-2xl font-bold text-gray-800 dark:text-gray-100">
@@ -245,7 +245,7 @@
                 </div>
 
                 {{-- Right card (Tabs) --}}
-                <div class="flex flex-1 flex-col overflow-y-auto rounded-xl bg-white dark:bg-gray-800">
+                <div class="flex flex-1 flex-col rounded-xl bg-white dark:bg-gray-800">
                     <div x-data="{ activeTab: 'attachment' }" class="flex flex-1 flex-col">
                         <header
                             class="sticky top-0 z-10 flex items-center rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
@@ -280,7 +280,7 @@
                         {{-- Tabs Content --}}
                         <div class="flex flex-1 flex-col rounded-b-xl bg-white dark:bg-gray-800">
                             {{-- Approval tab --}}
-                            <div x-show="activeTab === 'approval'" class="flex-1 p-2 transition-all">
+                            <div x-show="activeTab === 'approval'" class="flex-1 p-4 transition-all">
                                 <table class="w-full text-sm">
                                     <thead>
                                         <tr
@@ -338,7 +338,7 @@
                             </div>
 
                             {{-- Attachment tab --}}
-                            <div x-show="activeTab === 'attachment'" class="flex-1 p-2 transition-all">
+                            <div x-show="activeTab === 'attachment'" class="flex-1 transition-all">
                                 <table class="w-full text-sm">
                                     <thead class="text-gray-600 dark:text-gray-300">
                                         <tr class="border-b border-gray-200 dark:border-gray-700">
@@ -378,7 +378,7 @@
                             </div>
 
                             {{-- Comments tab --}}
-                            <div x-show="activeTab === 'comments'" class="flex-1 p-2 transition-all">
+                            <div x-show="activeTab === 'comments'" class="flex-1 transition-all">
                                 <div x-data="{ comments: [], newComment: '', currentUser: 'User1' }" class="flex h-full flex-col">
                                     <div id="commentList"
                                         class="custom-scrollbar flex-1 flex-col space-y-4 overflow-y-auto p-4">
