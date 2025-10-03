@@ -311,7 +311,7 @@
                         {{-- Tabs Content --}}
                         <div class="rounded-b-x flex flex-1 flex-col overflow-y-auto bg-white dark:bg-gray-800">
                             {{-- Approval tab --}}
-                            <div x-show="activeTab === 'approval'" class="flex-1 p-4 transition-all">
+                            <div x-show="activeTab === 'approval'" class="flex-1 p-2 transition-all">
                                 <table class="w-full text-sm">
                                     <thead>
                                         <tr
@@ -369,7 +369,7 @@
                             </div>
 
                             {{-- Attachment tab --}}
-                            <div x-show="activeTab === 'attachment'" class="flex-1 transition-all">
+                            <div x-show="activeTab === 'attachment'" class="flex-1 p-2 transition-all">
                                 <table class="w-full text-sm">
                                     <thead class="text-gray-600 dark:text-gray-300">
                                         <tr class="border-b border-gray-200 dark:border-gray-700">
@@ -409,7 +409,7 @@
                             </div>
 
                             {{-- Comments tab --}}
-                            <div x-show="activeTab === 'comments'" class="flex-1 transition-all">
+                            <div x-show="activeTab === 'comments'" class="flex-1 p-2 transition-all">
                                 <div x-data="{ comments: [], newComment: '', currentUser: 'User1' }" class="flex h-full flex-col">
                                     <div id="commentList"
                                         class="custom-scrollbar flex-1 flex-col space-y-4 overflow-y-auto p-4">

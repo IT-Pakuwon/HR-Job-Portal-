@@ -299,7 +299,7 @@
                             <ul class="space-y-4 text-gray-700 dark:text-gray-300"> {{-- Increased space-y --}}
                                 <div class="grid grid-cols-1 gap-4 md:grid-cols-2"> {{-- Changed to grid for better layout of education/experience --}}
                                     <li
-                                        class="py-3dark:border-gray-700 flex items-center gap-3 rounded-lg border border-gray-200 bg-gray-100 px-4 dark:bg-gray-900">
+                                        class="flex items-center gap-3 rounded-lg border border-gray-200 bg-gray-100 p-4 dark:border-gray-700 dark:border-gray-700 dark:bg-gray-800">
                                         {{-- Smoother background, better padding, border --}}
                                         <span
                                             class="flex-shrink-0 text-xl text-indigo-500 dark:text-indigo-400">🎓</span>
@@ -311,7 +311,7 @@
                                         {{-- Bolder value --}}
                                     </li>
                                     <li
-                                        class="py-3dark:border-gray-700 flex items-center gap-3 rounded-lg border border-gray-200 bg-gray-100 px-4 dark:bg-gray-900">
+                                        class="flex items-center gap-3 rounded-lg border border-gray-200 bg-gray-100 p-4 dark:border-gray-700 dark:border-gray-700 dark:bg-gray-800">
                                         {{-- Smoother background, better padding, border --}}
                                         <span
                                             class="flex-shrink-0 text-xl text-indigo-500 dark:text-indigo-400">💼</span>

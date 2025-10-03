@@ -309,7 +309,7 @@
                         {{-- Tabs Content --}}
                         <div class="rounded-b-x flex flex-1 flex-col overflow-y-auto bg-white dark:bg-gray-800">
                             {{-- Approval tab --}}
-                            <div x-show="activeTab === 'approval'" class="flex-1 overflow-y-auto p-2">
+                            <div x-show="activeTab === 'approval'" class="flex-1 overflow-y-auto">
                                 <table class="w-full text-sm">
                                     <thead>
                                         <tr
