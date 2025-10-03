@@ -1,80 +1,87 @@
 <x-app-layout>
     @php
-        $currentPage = Route::currentRouteName() == 'polist' ? 'PO' : '';
+        $currentPage = Route::currentRouteName() == 'polist.index' ? 'PO' : '';
     @endphp
 
     <div class="max-w-9xl mx-auto w-full px-4 py-4 sm:px-6 lg:px-8">
-        <div class="grid-col-1 grid gap-6 xl:grid-cols-5 xl:grid-rows-1">
-            {{-- My PO --}}
-            <button>
-                <a href="#" class="scope-filter" data-scope="my">
-                    <div class="flex items-center gap-4 rounded-lg border border-orange-700 bg-orange-200/20 p-3 text-orange-600">
-                        <span class="text-xl">📄</span>
-                        <div class="flex flex-grow items-center justify-between">
-                            <p class="text-lg font-medium">My PO</p>
-                            <p class="text-right text-xl font-extrabold">{{ $my }}</p>
-                        </div>
-                    </div>
-                </a>
-            </button>
 
-            {{-- On Progress --}}
-            <button>
-                <a href="#" class="scope-filter" data-scope="onprogress">
-                    <div class="flex items-center gap-4 rounded-lg border border-blue-700 bg-blue-200/20 p-3 text-blue-600">
-                        <span class="text-xl">⏳</span>
-                        <div class="flex flex-grow items-center justify-between">
-                            <p class="text-lg font-medium">On Progress</p>
-                            <p class="text-right text-xl font-extrabold">{{ $onProgress }}</p>
-                        </div>
+        {{-- Mini cards 7 status --}}
+        <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-7">
+            <a href="#" class="scope-filter group" data-scope="hold">
+                <div class="flex items-center gap-2 rounded-md border border-blue-700/60 bg-blue-50/40 p-2 text-blue-700 hover:bg-blue-50">
+                    <span class="text-base">🧊</span>
+                    <div class="flex w-full items-center justify-between">
+                        <p class="text-sm font-medium">Hold</p>
+                        <p class="text-right text-lg font-extrabold">{{ $hold }}</p>
                     </div>
-                </a>
-            </button>
+                </div>
+            </a>
 
-            {{-- Rejected --}}
-            <button>
-                <a href="#" class="scope-filter" data-scope="rejected">
-                    <div class="flex items-center gap-4 rounded-lg border border-red-700 bg-red-200/20 p-3 text-red-600">
-                        <span class="text-xl">⛔️</span>
-                        <div class="flex flex-grow items-center justify-between">
-                            <p class="text-lg font-medium">Rejected</p>
-                            <p class="text-right text-xl font-extrabold">{{ $reject }}</p>
-                        </div>
+            <a href="#" class="scope-filter group" data-scope="purchase">
+                <div class="flex items-center gap-2 rounded-md border border-indigo-700/60 bg-indigo-50/40 p-2 text-indigo-700 hover:bg-indigo-50">
+                    <span class="text-base">🛒</span>
+                    <div class="flex w-full items-center justify-between">
+                        <p class="text-sm font-medium">Purchase</p>
+                        <p class="text-right text-lg font-extrabold">{{ $purchase }}</p>
                     </div>
-                </a>
-            </button>
+                </div>
+            </a>
 
-            {{-- Completed --}}
-            <button>
-                <a href="#" class="scope-filter" data-scope="completed">
-                    <div class="flex items-center gap-4 rounded-lg border border-green-700 bg-green-200/20 p-3 text-green-600">
-                        <span class="text-xl">✅</span>
-                        <div class="flex flex-grow items-center justify-between">
-                            <p class="text-lg font-medium">Completed</p>
-                            <p class="text-right text-xl font-extrabold">{{ $completed }}</p>
-                        </div>
+            <a href="#" class="scope-filter group" data-scope="partial">
+                <div class="flex items-center gap-2 rounded-md border border-amber-700/60 bg-amber-50/40 p-2 text-amber-700 hover:bg-amber-50">
+                    <span class="text-base">📦</span>
+                    <div class="flex w-full items-center justify-between">
+                        <p class="text-sm font-medium">Partial</p>
+                        <p class="text-right text-lg font-extrabold">{{ $partial }}</p>
                     </div>
-                </a>
-            </button>
+                </div>
+            </a>
 
-            {{-- All PO --}}
-            <button>
-                <a href="#" class="scope-filter" data-scope="all">
-                    <div class="flex items-center gap-4 rounded-lg border border-gray-700 bg-gray-200/20 p-3 text-gray-600 dark:border-white dark:text-white">
-                        <span class="text-xl">🧾</span>
-                        <div class="flex flex-grow items-center justify-between">
-                            <p class="text-lg font-medium">All PO</p>
-                            <p class="text-right text-xl font-extrabold">{{ $all }}</p>
-                        </div>
+            <a href="#" class="scope-filter group" data-scope="completed">
+                <div class="flex items-center gap-2 rounded-md border border-green-700/60 bg-green-50/40 p-2 text-green-700 hover:bg-green-50">
+                    <span class="text-base">✅</span>
+                    <div class="flex w-full items-center justify-between">
+                        <p class="text-sm font-medium">Completed</p>
+                        <p class="text-right text-lg font-extrabold">{{ $completed }}</p>
                     </div>
-                </a>
-            </button>
+                </div>
+            </a>
+
+            <a href="#" class="scope-filter group" data-scope="cancel">
+                <div class="flex items-center gap-2 rounded-md border border-red-700/60 bg-red-50/40 p-2 text-red-700 hover:bg-red-50">
+                    <span class="text-base">✖️</span>
+                    <div class="flex w-full items-center justify-between">
+                        <p class="text-sm font-medium">Cancel</p>
+                        <p class="text-right text-lg font-extrabold">{{ $cancel }}</p>
+                    </div>
+                </div>
+            </a>
+
+            <a href="#" class="scope-filter group" data-scope="reuse">
+                <div class="flex items-center gap-2 rounded-md border border-gray-700/60 bg-gray-50/40 p-2 text-gray-700 hover:bg-gray-50 dark:border-gray-400 dark:text-gray-200 dark:bg-gray-700/30">
+                    <span class="text-base">♻️</span>
+                    <div class="flex w-full items-center justify-between">
+                        <p class="text-sm font-medium">Reuse</p>
+                        <p class="text-right text-lg font-extrabold">{{ $reuse }}</p>
+                    </div>
+                </div>
+            </a>
+
+            <a href="#" class="scope-filter group" data-scope="all">
+                <div class="flex items-center gap-2 rounded-md border border-slate-700/60 bg-slate-50/40 p-2 text-slate-700 hover:bg-slate-50 dark:border-white/50 dark:text-white">
+                    <span class="text-base">🧾</span>
+                    <div class="flex w-full items-center justify-between">
+                        <p class="text-sm font-medium">All PO</p>
+                        <p class="text-right text-lg font-extrabold">{{ $all }}</p>
+                    </div>
+                </div>
+            </a>
         </div>
 
         <div class="grid">
             <style>
                 table.dataTable { width: 100% !important; }
-                #poTable_filter { margin-bottom: 20px; display:flex; align-items:center; }
+                #poTable_filter { margin-bottom: 16px; display:flex; align-items:center; }
                 #poTable_filter input { width:auto; padding:.25rem .5rem; border-radius:.5rem; border:1px solid #d1d5db; background:#f9fafb; }
                 #poTable td { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
                 #poTable th, #poTable td { padding: 10px; max-width: 240px; }
@@ -113,14 +120,16 @@
 
             <script>
                 $(document).ready(function () {
-                    let scope = 'my';
+                    let scope = 'purchase'; // default: Purchase Order (P)
 
                     const $title = $('h1.text-xl.font-extrabold');
                     const titleMap = {
-                        my:        'Purchase Order - My PO',
-                        onprogress:'Purchase Order - On Progress',
-                        rejected:  'Purchase Order - Rejected',
+                        hold:      'Purchase Order - Hold',
+                        purchase:  'Purchase Order - Purchase',
+                        partial:   'Purchase Order - Partial Release',
                         completed: 'Purchase Order - Completed',
+                        cancel:    'Purchase Order - Cancel',
+                        reuse:     'Purchase Order - Reuse',
                         all:       'Purchase Order - All',
                     };
                     function updateTitle(sc){ $title.text(titleMap[sc] ?? 'Purchase Order'); }
@@ -143,7 +152,7 @@
                     function renderPONbr(_v, row){
                         const url = `/showpo/${row.eid}`;
                         const text = row.ponbr || row.eid;
-                        return `<a href="${url}" class="px-4 py-1.5 rounded bg-indigo-600 text-white hover:bg-indigo-700 text-sm font-semibold" target="_blank" rel="noopener">${text}</a>`;
+                        return `<a href="${url}" class="px-3 py-1.5 rounded bg-indigo-600 text-white hover:bg-indigo-700 text-sm font-semibold" rel="noopener">${text}</a>`;
                     }
 
                     const table = $('#poTable').DataTable({
@@ -173,9 +182,10 @@
                         responsive: true
                     });
 
+                    // Klik kartu → ubah scope, update judul, highlight, reload table
                     $('.scope-filter').on('click', function(e){
                         e.preventDefault();
-                        scope = $(this).data('scope') || 'my';
+                        scope = $(this).data('scope') || 'purchase';
                         updateTitle(scope);
                         highlightActive(scope);
                         table.ajax.reload(null, true);

@@ -61,7 +61,7 @@
             <button>
                 <a href="#" class="scope-filter" data-scope="all">
                     <div class="flex items-center gap-4 rounded-lg border border-gray-700 bg-gray-200/20 p-3 text-gray-600 dark:border-white dark:text-white">
-                        <span class="text-xl">✏️</span>
+                        <span class="text-xl">🧾</span>
                         <div class="flex flex-grow items-center justify-between">
                             <p class="text-lg font-medium">All CS</p>
                             <p class="text-right text-xl font-extrabold">{{ $all }}</p>

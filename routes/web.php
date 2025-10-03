@@ -51,6 +51,8 @@ use App\Http\Controllers\CsListController;
 use App\Http\Controllers\CanvassController;
 use App\Http\Controllers\BqCSController;
 use App\Http\Controllers\PoListController;
+use App\Http\Controllers\PoController;
+
 
 use App\Http\Controllers\CanvassxController;
 
@@ -554,6 +556,13 @@ Route::post('/logout', function () {
 
     Route::get('/polist', [PoListController::class, 'index'])->name('polist');
     Route::get('/polist/json', [PoListController::class, 'json'])->name('polist.json');
+    Route::get('/showpo/{hash}', [PoController::class, 'showPo']);
+    Route::get('/po/{id}/comments', [PoController::class, 'fetchComments']);
+    Route::post('/po/{id}/comments', [PoController::class, 'storeComment']);
+ 
+    Route::post('/po/{poid}/submit',       [PoController::class, 'submit'])->name('po.submit');
+    Route::post('/po/{poid}/cancel-reuse', [PoController::class, 'cancelReuse'])->name('po.cancel_reuse');
+    Route::post('/po/{poid}/cancel',       [PoController::class, 'cancel'])->name('po.cancel');
 
     Route::get('/inventory/list', [MasterController::class, 'InventoryList'])->name('inventory.list');
     Route::get('/request-types/by-doctype', [MasterController::class, 'RequestType'])->name('requesttypes.byDoctype');

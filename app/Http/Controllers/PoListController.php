@@ -16,44 +16,42 @@ class PoListController extends Controller
     {
         $user = Auth::user();
         if (!$user) return redirect()->route('login');
-
         $u = $user->username ?? '';
 
-        $my         = TrPO::where('created_by', $u)->count();
-        $onProgress = TrPO::where('created_by', $u)->where('status','P')->count();
-        $reject     = TrPO::where('created_by', $u)->where('status','R')->count();
-        $completed  = TrPO::where('created_by', $u)->where('status','C')->count();
-        $all        = TrPO::count();
+        // Hitung per status (created_by untuk 6 status pertama)
+        $hold      = TrPO::where('created_by', $u)->where('status','H')->count();
+        $purchase  = TrPO::where('created_by', $u)->where('status','P')->count();
+        $partial   = TrPO::where('created_by', $u)->where('status','O')->count();
+        $completed = TrPO::where('created_by', $u)->where('status','C')->count();
+        $cancel    = TrPO::where('created_by', $u)->where('status','X')->count();
+        $reuse     = TrPO::where('created_by', $u)->where('status','R')->count();
 
-        // pakai view khusus PO
-        return view('pages.purchase.polist', compact('my','onProgress','reject','completed','all'));
+        // "All" tanpa filter status & tanpa filter created_by
+        $all = TrPO::count();
+
+        return view('pages.purchase.polist', compact(
+            'hold','purchase','partial','completed','cancel','reuse','all'
+        ));
     }
 
     /** DataTables server-side */
     public function json(Request $req)
     {
-        $scope = strtolower((string) $req->query('scope', 'my'));
+        $scope = strtolower((string) $req->query('scope', 'purchase')); // default: Purchase Order (P)
         $u = Auth::user()->username ?? '';
 
         $base = TrPO::query();
 
+        // Scope → filter (6 status pertama ikut created_by)
         switch ($scope) {
-            case 'all':
-                // tampilkan semua, tanpa filter created_by/status
-                break;
-            case 'onprogress':
-                $base->where('created_by', $u)->where('status','P');
-                break;
-            case 'rejected':
-                $base->where('created_by', $u)->where('status','R');
-                break;
-            case 'completed':
-                $base->where('created_by', $u)->where('status','C');
-                break;
-            case 'my':
-            default:
-                $base->where('created_by', $u);
-                break;
+            case 'hold':       $base->where('created_by', $u)->where('status','H'); break;
+            case 'purchase':   $base->where('created_by', $u)->where('status','P'); break;
+            case 'partial':    $base->where('created_by', $u)->where('status','O'); break;
+            case 'completed':  $base->where('created_by', $u)->where('status','C'); break;
+            case 'cancel':     $base->where('created_by', $u)->where('status','X'); break;
+            case 'reuse':      $base->where('created_by', $u)->where('status','R'); break;
+            case 'all':        /* no filter */ break;
+            default:           $base->where('created_by', $u)->where('status','P'); break;
         }
 
         return $this->buildJsonTrPO($req, $base);
@@ -67,10 +65,9 @@ class PoListController extends Controller
         $length = (int) $req->input('length', 25);
         $search = trim((string) $req->input('search.value', ''));
 
-        $poTable = (new TrPO)->getTable(); // mis. "tr_po"
+        $poTable = (new TrPO)->getTable(); // ex: "tr_po"
 
-        // mapping index kolom → nama kolom db untuk order
-        // urutannya mengikuti requirement: ponbr, podate, vendorname, podeliverydate, totalamt, taxamt, grandtotalamt, created_by
+        // Urutan kolom sesuai permintaan
         $columns = [
             0 => "$poTable.ponbr",
             1 => "$poTable.podate",
@@ -82,11 +79,10 @@ class PoListController extends Controller
             7 => "$poTable.created_by",
         ];
 
-        $orderIdx = (int) $req->input('order.0.column', 1); // default sort by podate
+        $orderIdx = (int) $req->input('order.0.column', 1);
         $orderDir = $req->input('order.0.dir', 'desc') === 'asc' ? 'asc' : 'desc';
         $orderCol = $columns[$orderIdx] ?? "$poTable.podate";
 
-        // pencarian
         if ($search !== '') {
             $base->where(function($q) use ($search, $poTable){
                 $q->where("$poTable.ponbr", 'ilike', "%{$search}%")
@@ -120,7 +116,6 @@ class PoListController extends Controller
                 ->skip($start)->take($length)
                 ->get();
 
-        // tambah eid
         $rows->transform(function($r){
             $r->eid = Hashids::encode($r->id);
             unset($r->id);
