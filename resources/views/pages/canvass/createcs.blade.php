@@ -457,6 +457,7 @@
                                         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
                                     </svg>
                                 </button>
+                                @if (in_array($doc, ['SPPB', 'SPPK']))
                                 <button type="submit" id="submitBtn"
                                     class="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-6 py-3 text-sm font-semibold text-white shadow-md transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
                                     <span id="btnText">Submit Approval</span>
@@ -467,6 +468,7 @@
                                         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
                                     </svg>
                                 </button>
+                                @endif
                             </div>
                         </div>
 
@@ -654,99 +656,99 @@
             function addHeader(id, v) {
                 const colWidth = '20rem';
                 const $th = $(`
-    <th id="th-vendor-${id}" 
-          class="relative border px-3 py-2 align-top 
-               w-72 max-w-xs sm:w-80 sm:max-w-sm md:w-96 md:max-w-md lg:w-[20rem]"
-        data-vendor-id="${_.escape(v.id)}"
-        data-vendor-code="${_.escape(v.vendor_id)}"
-        data-vendor-name="${_.escape(v.vendor_name)}"
-        data-vendor-addr="${_.escape(v.vendor_addr1 ?? '')}"
-        data-vendor-phone="${_.escape(v.phone_number ?? '')}"
-        data-vendor-cp="${_.escape(v.contact_person ?? '')}"
-    >
-        <!-- Vendor Card -->
-        <div class="flex flex-col items-left text-left text-sm">
-            <div class="font-bold text-gray-800 dark:text-gray-100 break-words">
-                ${v.vendor_name}
-            </div>
-
-            <div class="mt-1 space-y-0.5 text-xs text-gray-600 dark:text-gray-300 leading-4">
-                <div>✉️ ${v.contact_person ?? '-'}</div>
-                <div>☎️ ${v.phone_number ?? '-'}</div>
-                <div>🏠 ${v.vendor_addr1 ?? '-'}</div>
-            </div>
-<div class="flex items-center gap-2">
-    <span class="text-xs font-semibold text-gray-600 dark:text-gray-300">Payment Term:</span>
-    <select name="cara_bayar_${id}" 
-        class="cara-bayar w-40 rounded-full border border-gray-300 bg-white px-3 py-1 
-               text-xs font-medium shadow-sm focus:border-indigo-500 focus:ring 
-               focus:ring-indigo-500/50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200">
-        <option value="14D">14 Days</option>
-        <option value="30D">30 Days</option>
-        <option value="Cash">Cash</option>
-    </select>
-</div>
-
-
-        </div>
-
-        <!-- Delete Button -->
-<button type="button"
-    class="btn-del absolute top-1 right-1 flex h-5 w-5 items-center justify-center 
-           rounded-full bg-red-600 text-xs text-white shadow hover:bg-red-700"
-    data-id="${id}">
-    ✕
-</button>
-    </th>
-`);
-                $('#cvTable thead tr').append($th);
-
-                const $sumTd = $(`
-    <td id="td-sum-${id}" 
-        class="border px-3 py-2 text-xs align-top"
-        style="width:${colWidth}; max-width:${colWidth};">
-
-        <!-- Summary Card -->
-        <div class="flex flex-col gap-2 text-gray-700 dark:text-gray-200">
-
-            <div><span class="font-semibold">Total:</span> <span class="sum-total">0</span></div>
-
-            <!-- Taxes Side by Side -->
-            <div class="flex justify-between gap-2">
-                <!-- PPN -->
-                <div class="flex items-center gap-1 rounded-md bg-gray-100 px-2 py-1 dark:bg-gray-700">
-                    <span class="text-xs font-medium">PPN</span>
-                    <input type="number" 
-                        class="sum-ppn tax-input w-16 rounded border border-gray-300 px-1 text-right text-xs focus:border-indigo-500 focus:ring focus:ring-indigo-500/50 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-200"
-                        value="11.00" step="0.01" min="0">
-                    <button type="button" 
-                        class="btn-pick-tax rounded bg-indigo-100 px-1 text-xs text-indigo-700 hover:bg-indigo-200 dark:bg-indigo-800 dark:text-white dark:hover:bg-indigo-700"
-                        data-for="ppn" data-vendor="${id}" title="Pilih PPN">
-                        🔍
-                    </button>
-                    <input type="hidden" class="sum-ppn-id" value="">
+        <th id="th-vendor-${id}" 
+            class="relative border px-3 py-2 align-top 
+                w-72 max-w-xs sm:w-80 sm:max-w-sm md:w-96 md:max-w-md lg:w-[20rem]"
+            data-vendor-id="${_.escape(v.id)}"
+            data-vendor-code="${_.escape(v.vendor_id)}"
+            data-vendor-name="${_.escape(v.vendor_name)}"
+            data-vendor-addr="${_.escape(v.vendor_addr1 ?? '')}"
+            data-vendor-phone="${_.escape(v.phone_number ?? '')}"
+            data-vendor-cp="${_.escape(v.contact_person ?? '')}"
+        >
+            <!-- Vendor Card -->
+            <div class="flex flex-col items-left text-left text-sm">
+                <div class="font-bold text-gray-800 dark:text-gray-100 break-words">
+                    ${v.vendor_name}
                 </div>
 
-                <!-- PPh -->
-                <div class="flex items-center gap-1 rounded-md bg-gray-100 px-2 py-1 dark:bg-gray-700">
-                    <span class="text-xs font-medium">PPh</span>
-                    <input type="number" 
-                        class="sum-pph tax-input w-16 rounded border border-gray-300 px-1 text-right text-xs focus:border-indigo-500 focus:ring focus:ring-indigo-500/50 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-200"
-                        value="0" step="0.01" min="0">
-                    <button type="button" 
-                        class="btn-pick-tax rounded bg-indigo-100 px-1 text-xs text-indigo-700 hover:bg-indigo-200 dark:bg-indigo-800 dark:text-white dark:hover:bg-indigo-700"
-                        data-for="pph" data-vendor="${id}" title="Pilih PPh">
-                        🔍
-                    </button>
-                    <input type="hidden" class="sum-pph-id" value="">
+                <div class="mt-1 space-y-0.5 text-xs text-gray-600 dark:text-gray-300 leading-4">
+                    <div>✉️ ${v.contact_person ?? '-'}</div>
+                    <div>☎️ ${v.phone_number ?? '-'}</div>
+                    <div>🏠 ${v.vendor_addr1 ?? '-'}</div>
                 </div>
-            </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-xs font-semibold text-gray-600 dark:text-gray-300">Payment Term:</span>
+                    <select name="cara_bayar_${id}" 
+                        class="cara-bayar w-40 rounded-full border border-gray-300 bg-white px-3 py-1 
+                            text-xs font-medium shadow-sm focus:border-indigo-500 focus:ring 
+                            focus:ring-indigo-500/50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200">
+                        <option value="14D">14 Days</option>
+                        <option value="30D">30 Days</option>
+                        <option value="Cash">Cash</option>
+                    </select>
+                </div>
 
-            <div><span class="font-semibold">Grand Total:</span> <span class="sum-grand">0</span></div>
-            <div><span class="font-semibold">G.Total Selected:</span> <span class="sum-selected">0</span></div>
-        </div>
-    </td>
-`);
+
+                        </div>
+
+                        <!-- Delete Button -->
+                <button type="button"
+                    class="btn-del absolute top-1 right-1 flex h-5 w-5 items-center justify-center 
+                        rounded-full bg-red-600 text-xs text-white shadow hover:bg-red-700"
+                    data-id="${id}">
+                    ✕
+                </button>
+                    </th>
+                `);
+                                $('#cvTable thead tr').append($th);
+
+                                const $sumTd = $(`
+                    <td id="td-sum-${id}" 
+                        class="border px-3 py-2 text-xs align-top"
+                        style="width:${colWidth}; max-width:${colWidth};">
+
+                        <!-- Summary Card -->
+                        <div class="flex flex-col gap-2 text-gray-700 dark:text-gray-200">
+
+                            <div><span class="font-semibold">Total:</span> <span class="sum-total">0</span></div>
+
+                            <!-- Taxes Side by Side -->
+                            <div class="flex justify-between gap-2">
+                                <!-- PPN -->
+                                <div class="flex items-center gap-1 rounded-md bg-gray-100 px-2 py-1 dark:bg-gray-700">
+                                    <span class="text-xs font-medium">PPN</span>
+                                    <input type="number" 
+                                        class="sum-ppn tax-input w-16 rounded border border-gray-300 px-1 text-right text-xs focus:border-indigo-500 focus:ring focus:ring-indigo-500/50 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-200"
+                                        value="11.00" step="0.01" min="0">
+                                    <button type="button" 
+                                        class="btn-pick-tax rounded bg-indigo-100 px-1 text-xs text-indigo-700 hover:bg-indigo-200 dark:bg-indigo-800 dark:text-white dark:hover:bg-indigo-700"
+                                        data-for="ppn" data-vendor="${id}" title="Pilih PPN">
+                                        🔍
+                                    </button>
+                                    <input type="hidden" class="sum-ppn-id" value="">
+                                </div>
+
+                                <!-- PPh -->
+                                <div class="flex items-center gap-1 rounded-md bg-gray-100 px-2 py-1 dark:bg-gray-700">
+                                    <span class="text-xs font-medium">PPh</span>
+                                    <input type="number" 
+                                        class="sum-pph tax-input w-16 rounded border border-gray-300 px-1 text-right text-xs focus:border-indigo-500 focus:ring focus:ring-indigo-500/50 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-200"
+                                        value="0" step="0.01" min="0">
+                                    <button type="button" 
+                                        class="btn-pick-tax rounded bg-indigo-100 px-1 text-xs text-indigo-700 hover:bg-indigo-200 dark:bg-indigo-800 dark:text-white dark:hover:bg-indigo-700"
+                                        data-for="pph" data-vendor="${id}" title="Pilih PPh">
+                                        🔍
+                                    </button>
+                                    <input type="hidden" class="sum-pph-id" value="">
+                                </div>
+                            </div>
+
+                            <div><span class="font-semibold">Grand Total:</span> <span class="sum-grand">0</span></div>
+                            <div><span class="font-semibold">G.Total Selected:</span><span class="sum-selected">0</span><span class="sum-selected-base hidden">0</span></div>
+                        </div>
+                    </td>
+                `);
                 $('#summaryRow').append($sumTd);
 
 
@@ -841,8 +843,9 @@
 
             // total selected berubah saat radio dipilih
             $(document).on('change', '.pick-vendor', function() {
-                const vid = Number($(this).val());
-                recalcSummaryVendor(vid);
+                // const vid = Number($(this).val());
+                // recalcSummaryVendor(vid);
+                recalcAllVendors();
             });
 
             // ===== Helper format =====
@@ -851,33 +854,81 @@
             }
 
             // ===== Ringkasan per-vendor =====
-            window.recalcSummaryVendor = function(vendorId) {
+            // window.recalcSummaryVendor = function(vendorId) {
+            //     let total = 0;
+            //     $(`input.price-input[data-vendor="${vendorId}"]`).each(function() {
+            //         const price = parsePrice($(this).val());
+            //         const qty = parseQty($(this).closest('tr').find('.qty-input').val());
+            //         total += qty * price;
+            //     });
+
+            //     const $sumCell = $(`#td-sum-${vendorId}`);
+            //     $sumCell.find('.sum-total').text(formatNum(total));
+
+            //     const ppn = Number($sumCell.find('.sum-ppn').val() || 0) / 100;
+            //     const pph = Number($sumCell.find('.sum-pph').val() || 0) / 100;
+            //     const grand = total * (1 + ppn + pph);
+            //     $sumCell.find('.sum-grand').text(formatNum(grand));
+
+            //     // let selTotal = 0;
+            //     let selBase = 0;
+            //     $('#cvBody tr').each(function() {
+            //         const picked = $(this).find('input.pick-vendor:checked').val();
+            //         if (Number(picked) === vendorId) {
+            //             // const lbl = $(this).find(`input.price-input[data-vendor="${vendorId}"]`).next(
+            //             //     '.total-label');
+            //             // selTotal += Number((lbl.text() || '0').replace(/[^0-9]/g, ''));
+            //             const lbl = $(this).find(`input.price-input[data-vendor="${vendorId}"]`)
+            //            .closest('td')
+            //            .find('.total-label');
+            //             selBase += Number((lbl.text() || '0').replace(/[^0-9]/g, ''));
+            //         }
+            //     });
+            //     // $sumCell.find('.sum-selected').text(formatNum(selTotal));
+            //     const selGrand = selBase * (1 + ppn + pph);
+            //     $sumCell.find('.sum-selected').text(formatNum(selGrand));
+            //     $sumCell.find('.sum-selected-base').text(String(selBase));
+            // }
+
+            window.recalcSummaryVendor = function (vendorId) {
+                vendorId = String(vendorId); // <- pastikan string
+
+                // Total semua baris (harga x qty) utk vendor ini
                 let total = 0;
-                $(`input.price-input[data-vendor="${vendorId}"]`).each(function() {
+                $(`input.price-input[data-vendor="${vendorId}"]`).each(function () {
                     const price = parsePrice($(this).val());
-                    const qty = parseQty($(this).closest('tr').find('.qty-input').val());
+                    const qty   = parseQty($(this).closest('tr').find('.qty-input').val());
                     total += qty * price;
                 });
 
-                const $sumCell = $(`#td-sum-${vendorId}`);
+                const $sumCell = $(`#td-sum-${CSS.escape(vendorId)}`);
                 $sumCell.find('.sum-total').text(formatNum(total));
 
-                const ppn = Number($sumCell.find('.sum-ppn').val() || 0) / 100;
-                const pph = Number($sumCell.find('.sum-pph').val() || 0) / 100;
+                const ppn  = Number($sumCell.find('.sum-ppn').val() || 0) / 100;
+                const pph  = Number($sumCell.find('.sum-pph').val() || 0) / 100;
                 const grand = total * (1 + ppn + pph);
                 $sumCell.find('.sum-grand').text(formatNum(grand));
 
+                // Total baris TERPILIH utk vendor ini
                 let selTotal = 0;
-                $('#cvBody tr').each(function() {
-                    const picked = $(this).find('input.pick-vendor:checked').val();
-                    if (Number(picked) === vendorId) {
-                        const lbl = $(this).find(`input.price-input[data-vendor="${vendorId}"]`).next(
-                            '.total-label');
-                        selTotal += Number((lbl.text() || '0').replace(/[^0-9]/g, ''));
+                $('#cvBody tr').each(function () {
+                    const picked = String($(this).find('input.pick-vendor:checked').val() || '');
+                    if (picked === vendorId) {
+                    const lbl = $(this)
+                        .find(`input.price-input[data-vendor="${vendorId}"]`)
+                        .closest('td').find('.total-label');
+                    selTotal += Number((lbl.text() || '0').replace(/[^0-9]/g, ''));
                     }
                 });
-                $sumCell.find('.sum-selected').text(formatNum(selTotal));
-            }
+
+                // Jika "G.Total Selected" harus termasuk PPN/PPh, pakai ini:
+                const selTax   = selTotal * (ppn + pph);
+                const selGrand = selTotal + selTax;
+                $sumCell.find('.sum-selected').text(formatNum(selGrand));
+
+                // Kalau mau yang tanpa pajak, ganti baris di atas menjadi:
+                // $sumCell.find('.sum-selected').text(formatNum(selTotal));
+            };
 
 
         });
@@ -1206,9 +1257,12 @@
                 const pphId = $sum.find('.sum-pph-id').val() || '';
                 const tax = total * (ppn / 100) + total * (pph / 100);
                 const grand = total + tax;
-                const selTotal = numFromText($sum.find('.sum-selected').text());
-                const selTax = selTotal * (ppn / 100) + selTotal * (pph / 100);
-                const selGrand = selTotal + selTax;
+                // const selTotal = numFromText($sum.find('.sum-selected').text());
+                // const selTax = selTotal * (ppn / 100) + selTotal * (pph / 100);
+                // const selGrand = selTotal + selTax;
+                const selBase = numFromText($sum.find('.sum-selected-base').text());
+                const selTax  = selBase * (ppn / 100) + selBase * (pph / 100);
+                const selGrand = selBase + selTax;
 
                 vendors.push({
                     id: vid,
@@ -1227,7 +1281,8 @@
                     tax: round2(tax),
                     grand: round2(grand),
 
-                    selected_total: round2(selTotal),
+                    // selected_total: round2(selTotal),
+                    selected_total: round2(selBase),
                     selected_tax: round2(selTax),
                     selected_grand: round2(selGrand),
                 });
@@ -1402,9 +1457,12 @@
                 const pphId = $sum.find('.sum-pph-id').val() || '';
                 const tax = total * (ppn / 100) + total * (pph / 100);
                 const grand = total + tax;
-                const selTotal = numFromText($sum.find('.sum-selected').text());
-                const selTax = selTotal * (ppn / 100) + selTotal * (pph / 100);
-                const selGrand = selTotal + selTax;
+                // const selTotal = numFromText($sum.find('.sum-selected').text());                
+                // const selTax = selTotal * (ppn / 100) + selTotal * (pph / 100);
+                // const selGrand = selTotal + selTax;
+                const selBase = numFromText($sum.find('.sum-selected-base').text());
+                const selTax  = selBase * (ppn / 100) + selBase * (pph / 100);
+                const selGrand = selBase + selTax;
 
                 vendors.push({
                     id: vid,
@@ -1423,7 +1481,8 @@
                     tax: round2(tax),
                     grand: round2(grand),
 
-                    selected_total: round2(selTotal),
+                    // selected_total: round2(selTotal),
+                    selected_total: round2(selBase),
                     selected_tax: round2(selTax),
                     selected_grand: round2(selGrand),
                 });
@@ -1568,6 +1627,14 @@
                 $tr.find('.qty-error').remove();
             }
         });
+    </script>
+    <script>
+        function recalcAllVendors() {
+        $('#cvTable thead th[id^="th-vendor-"]').each(function () {
+            const vid = String($(this).data('vendor-id'));            
+            recalcSummaryVendor(vid);
+        });
+        }
     </script>
 
 

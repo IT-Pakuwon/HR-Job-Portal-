@@ -58,6 +58,7 @@ use App\Models\SignPayroll;
 use App\Models\GroupAccspecific;
 use App\Models\CompanyAddress;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Hash;
 
 
 class CareerController extends Controller
@@ -2192,6 +2193,68 @@ class CareerController extends Controller
             'email' => $applicant->email_address,
             'career_docid' => $career->docid ?? null,
         ]);
+    }
+
+    public function revealSalary(Request $request)
+    {
+        $user = auth()->user();
+        if (!$user) {
+            return response()->json(['message' => 'Unauthorized'], 401);
+        }
+
+        $request->validate([
+            'payroll_id' => 'required|integer',
+            'password'   => 'required|string',
+        ]);
+
+        // Cek group akses (harus terdaftar di GroupAccspecific & aktif)
+        $inGroup = GroupAccspecific::where('username', $user->username)
+            ->where('status', 'A')
+            ->exists();
+
+        if (!$inGroup) {
+            return response()->json(['message' => 'Anda tidak memiliki akses untuk melihat gaji.'], 403);
+        }
+
+        // Cek password user
+        if (!Hash::check($request->input('password'), $user->password)) {
+            return response()->json(['message' => 'Password salah.'], 401);
+        }
+
+        $payroll = Payrollconfirm::findOrFail($request->input('payroll_id'));
+
+        return response()->json([
+            'success' => true,
+            'salary'  => (int) $payroll->net_salary,
+        ]);
+    }
+
+    public function getPayroll($id, Request $request)
+    {
+        $user = auth()->user();
+        if (!$user) {
+            return response()->json(['message' => 'Unauthorized'], 401);
+        }
+
+        $p = Payrollconfirm::findOrFail($id);
+        $data = $p->toArray();
+
+        // default: sembunyikan salary
+        unset($data['net_salary']);
+
+        // opsional: kalau mau dukung reveal via parameter (edit flow),
+        // bisa minta password lagi di sini
+        if ($request->filled('password')) {
+            $inGroup = GroupAccspecific::where('username', $user->username)
+                ->where('status', 'A')
+                ->exists();
+
+            if ($inGroup && Hash::check($request->input('password'), $user->password)) {
+                $data['net_salary'] = (int) $p->net_salary;
+            }
+        }
+
+        return response()->json($data);
     }
 
 

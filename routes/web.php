@@ -309,6 +309,10 @@ Route::post('/logout', function () {
     Route::post('/onboarding/schedule/update', [CareerController::class, 'updateSchedule'])
      ->name('onboarding.schedule.update');
 
+    Route::post('/payrollconfirm/reveal', [CareerController::class, 'revealSalary'])->name('payrollconfirm.reveal');
+    Route::get('/payrollconfirm/{id}', [CareerController::class, 'getPayroll'])->name('payrollconfirm.get');
+
+
 
 
 
@@ -550,8 +554,12 @@ Route::post('/logout', function () {
     Route::get('/cs/{id}/check-approval/{action}', [CanvassController::class, 'checkApproval']); 
     Route::get('/pdf_cs/{hash}', [CanvassController::class, 'printCS']);
         
-    Route::get('/bqcs/create-from-cs/{csid}', [BQCSController::class, 'createFromCS'])->name('bqcs.createFromCS');
-    Route::post('/bqcs', [BQCSController::class, 'store'])->name('bqcs.store');
+    Route::get('/bqcs/create-from-cs/{hash}', [BQCSController::class, 'createFromCS'])->name('bqcs.createFromCS');
+    Route::post('/bqcs', [BQCSController::class, 'storeBQCS'])->name('bqcs.store');
+    Route::get('/bqcs/edit/{hash}', [BQCSController::class, 'EditBQCS'])->name('bqcs.edit');
+    // Route::post('/bqcs/update/{hash}', [BQCSController::class, 'updateBQCS'])->name('bqcs.update');
+    Route::put('bqcs/update/{hash}', [BQCSController::class, 'updateBQCS'])->name('bqcs.update');
+
 
 
     Route::get('/polist', [PoListController::class, 'index'])->name('polist');
