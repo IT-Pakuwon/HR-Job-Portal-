@@ -149,13 +149,16 @@
             </div>
         </div>
         <div class="flex w-full flex-col gap-6 xl:flex-col">
-            <div class="flex w-full flex-col gap-6 md:h-[35vh] xl:flex-row">
+            <div class="flex w-full items-stretch gap-6 xl:flex-row">
                 {{-- Left card (PO Info) --}}
-                <div class="flex flex-1 flex-col overflow-y-auto rounded-xl bg-white dark:bg-gray-800">
-                   <header
+                <div class="flex flex-1 flex-col rounded-xl bg-white dark:bg-gray-800">
+                    <header
                         class="sticky top-0 z-10 flex items-center justify-between rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
-                        <h1 class="flex items-center gap-2 text-2xl font-bold text-gray-800 dark:text-gray-100">
-                            <span class="text-indigo-500">🆔</span>
+                        <h1 class="flex items-center gap-2 text-lg font-bold text-gray-800 dark:text-gray-100">
+                            <span
+                                class="inline-flex items-center rounded-md bg-purple-100 px-2 py-1 text-sm font-semibold text-purple-700">
+                                ID
+                            </span>
                             {{ $po->ponbr }}
                         </h1>
 
@@ -182,18 +185,19 @@
                             };
 
                             // Helper number format
-                            $nf0 = fn($n) => number_format((float)$n, 0, ',', '.');
-                            $nf2 = fn($n) => number_format((float)$n, 2, ',', '.');
+                            $nf0 = fn($n) => number_format((float) $n, 0, ',', '.');
+                            $nf2 = fn($n) => number_format((float) $n, 2, ',', '.');
                         @endphp
 
                         <div class="flex items-center gap-3">
-                            <span class="{{ $statusClasses }} inline-flex items-center rounded-full px-4 py-1 text-sm font-semibold transition-colors duration-200">
+                            <span
+                                class="{{ $statusClasses }} inline-flex items-center rounded-full px-4 py-1 text-sm font-semibold transition-colors duration-200">
                                 {{ $statusText }}
                             </span>
 
                             <a href="{{ url('/pdf_po') }}/{{ $hash }}" target="_blank">
                                 <button
-                                    class="inline-flex items-center gap-2 rounded-full bg-indigo-600 px-4 py-1 text-sm font-semibold text-white transition-colors duration-200 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 cursor-pointer"
+                                    class="inline-flex cursor-pointer items-center gap-2 rounded-full bg-indigo-600 px-4 py-1 text-sm font-semibold text-white transition-colors duration-200 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
                                     title="Open PO PDF">
                                     Print PDF
                                 </button>
@@ -204,84 +208,104 @@
 
                     <div class="flex flex-1 flex-col gap-6 overflow-y-auto p-4">
                         {{-- ROW 1: Empat kolom utama --}}
-                        <div class="grid grid-cols-1 gap-4 md:grid-cols-4">                            
+                        <div class="grid grid-cols-1 gap-4 md:grid-cols-4">
 
-                            <div class="rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-800">
+                            <div
+                                class="rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-800">
                                 <p class="text-xs text-gray-500 dark:text-gray-400">PO Date</p>
-                                <p class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ \Carbon\Carbon::parse($po->podate)->format('d M Y') }}</p>
+                                <p class="text-sm font-medium text-gray-900 dark:text-gray-100">
+                                    {{ \Carbon\Carbon::parse($po->podate)->format('d M Y') }}</p>
                             </div>
 
-                            <div class="rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-800">
+                            <div
+                                class="rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-800">
                                 <p class="text-xs text-gray-500 dark:text-gray-400">Company</p>
                                 <p class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ $po->cpny_id }}</p>
                             </div>
 
-                            <div class="rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-800">
+                            <div
+                                class="rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-800">
                                 <p class="text-xs text-gray-500 dark:text-gray-400">Department</p>
-                                <p class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ $po->department_id }}</p>
+                                <p class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ $po->department_id }}
+                                </p>
                             </div>
-                             <div class="rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-800">
+                            <div
+                                class="rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-800">
                                 <p class="text-xs text-gray-500 dark:text-gray-400">Requester</p>
-                                <p class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ $po->user_peminta }}</p>
+                                <p class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ $po->user_peminta }}
+                                </p>
                             </div>
                         </div>
 
                         {{-- ROW 2: Empat kolom berikutnya --}}
-                        <div class="grid grid-cols-1 gap-4 md:grid-cols-4">                          
+                        <div class="grid grid-cols-1 gap-4 md:grid-cols-4">
 
-                            <div class="rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-800">
+                            <div
+                                class="rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-800">
                                 <p class="text-xs text-gray-500 dark:text-gray-400">SPPB/J/K/T ID</p>
                                 <p class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ $po->sppbjktid }}</p>
                             </div>
-                            <div class="rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-800">
+                            <div
+                                class="rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-800">
                                 <p class="text-xs text-gray-500 dark:text-gray-400">CS ID</p>
                                 <p class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ $po->csid }}</p>
                             </div>
-                            <div class="rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-800">
+                            <div
+                                class="rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-800">
                                 <p class="text-xs text-gray-500 dark:text-gray-400">Vendor ID</p>
                                 <p class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ $po->vendorid }}</p>
                             </div>
-                            <div class="rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-800">
+                            <div
+                                class="rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-800">
                                 <p class="text-xs text-gray-500 dark:text-gray-400">Vendor</p>
-                                <p class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ $po->vendorname }}</p>
+                                <p class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ $po->vendorname }}
+                                </p>
                             </div>
                         </div>
 
                         {{-- ROW 3: Amounts --}}
                         <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
-                            <div class="rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-800">
+                            <div
+                                class="rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-800">
                                 <p class="text-xs text-gray-500 dark:text-gray-400">Total Amount</p>
-                                <p class="text-sm font-semibold text-gray-900 dark:text-gray-100"> {{ $nf0($po->totalamt) }}</p>
+                                <p class="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                                    {{ $nf0($po->totalamt) }}</p>
                             </div>
-                            <div class="rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-800">
+                            <div
+                                class="rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-800">
                                 <p class="text-xs text-gray-500 dark:text-gray-400">Tax Amount</p>
-                                <p class="text-sm font-semibold text-gray-900 dark:text-gray-100"> {{ $nf0($po->taxamt) }}</p>
+                                <p class="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                                    {{ $nf0($po->taxamt) }}</p>
                             </div>
 
-                            <div class="rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-800">
+                            <div
+                                class="rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-800">
                                 <p class="text-xs text-gray-500 dark:text-gray-400">Grand Total</p>
-                                <p class="text-sm font-semibold text-gray-900 dark:text-gray-100"> {{ $nf0($po->grandtotalamt) }}</p>
+                                <p class="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                                    {{ $nf0($po->grandtotalamt) }}</p>
                             </div>
                         </div>
 
                         {{-- Optional: Purpose/Note jika masih mau ditampilkan --}}
-                        @if(!empty($po->keperluan))
-                        <div class="rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-800">
-                            <p class="text-xs text-gray-500 dark:text-gray-400">Purpose</p>
-                            <p class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ $po->keperluan }}</p>
-                        </div>
+                        @if (!empty($po->keperluan))
+                            <div
+                                class="rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-800">
+                                <p class="text-xs text-gray-500 dark:text-gray-400">Purpose</p>
+                                <p class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ $po->keperluan }}
+                                </p>
+                            </div>
                         @endif
                     </div>
 
                 </div>
 
                 {{-- Right card (Tabs) --}}
-                <div class="flex flex-1 flex-col overflow-y-auto rounded-xl bg-white dark:bg-gray-800">
+                <div class="flex flex-1 flex-col rounded-xl bg-white dark:bg-gray-800">
                     <div x-data="{ activeTab: 'information_po' }" class="flex flex-1 flex-col">
                         <header
                             class="sticky top-0 z-10 flex items-center rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
                             <nav class="flex flex-grow">
-                                 <button @click="activeTab = 'information_po'"
+                                <button @click="activeTab = 'information_po'"
                                     :class="activeTab === 'information_po'
                                         ?
                                         'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400' :
@@ -296,7 +320,7 @@
                                         'border-b-2 border-transparent text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-gray-100'"
                                     class="flex-1 px-4 py-2 text-center text-sm font-medium transition-colors duration-200">
                                     Attachment
-                                </button>                               
+                                </button>
                                 <button @click="activeTab = 'comments'"
                                     :class="activeTab === 'comments'
                                         ?
@@ -313,25 +337,25 @@
                             {{-- Approval tab --}}
                             <div x-show="activeTab === 'information_po'" class="flex-1 p-4 transition-all">
                                 <form id="infoPoForm">
-                                @csrf
+                                    @csrf
                                     @php
                                         $isPB = strtoupper($po->potype ?? '') === 'PB';
                                     @endphp
 
-                                    @if($isPB)
+                                    @if ($isPB)
                                         {{-- ====== PO TYPE = PB : hanya tanggal delivery ====== --}}
-                                        <div class="rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800">
-                                            <h3 class="mb-3 text-base font-semibold text-gray-800 dark:text-gray-100">Delivery</h3>
+                                        <div
+                                            class="rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800">
+                                            <h3 class="mb-3 text-base font-semibold text-gray-800 dark:text-gray-100">
+                                                Delivery</h3>
                                             <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
                                                 <div>
-                                                    <label class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-300">Delivery Date</label>
-                                                    <input
-                                                        type="date"
-                                                        name="po_deliverydate"
-                                                        id="po_deliverydate"
+                                                    <label
+                                                        class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-300">Delivery
+                                                        Date</label>
+                                                    <input type="date" name="po_deliverydate" id="po_deliverydate"
                                                         value="{{ old('po_deliverydate', optional($po->po_deliverydate ?? null)->format('Y-m-d')) }}"
-                                                        class="w-full rounded-lg border border-gray-300 bg-white p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
-                                                    />
+                                                        class="w-full rounded-lg border border-gray-300 bg-white p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" />
                                                 </div>
                                             </div>
                                         </div>
@@ -340,76 +364,96 @@
                                         <div class="space-y-4">
 
                                             {{-- Baris 1: Tanggal Pelaksanaan (range) --}}
-                                            <div class="rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800">
-                                                <h3 class="mb-3 text-base font-semibold text-gray-800 dark:text-gray-100">
+                                            <div
+                                                class="rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800">
+                                                <h3
+                                                    class="mb-3 text-base font-semibold text-gray-800 dark:text-gray-100">
                                                     Tanggal Pelaksanaan Pekerjaan
                                                 </h3>
                                                 <div class="grid grid-cols-1 gap-4 md:grid-cols-4">
                                                     <div>
-                                                        <label class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-300">Dari Tanggal</label>
-                                                        <input type="date" name="work_date_from" id="work_date_from"
-                                                            value="{{ old('work_date_from') }}"
+                                                        <label
+                                                            class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-300">Dari
+                                                            Tanggal</label>
+                                                        <input type="date" name="work_date_from"
+                                                            id="work_date_from" value="{{ old('work_date_from') }}"
                                                             class="w-full rounded-lg border border-gray-300 bg-white p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
                                                     </div>
                                                     <div>
-                                                        <label class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-300">Sampai Tanggal</label>
+                                                        <label
+                                                            class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-300">Sampai
+                                                            Tanggal</label>
                                                         <input type="date" name="work_date_to" id="work_date_to"
                                                             value="{{ old('work_date_to') }}"
                                                             class="w-full rounded-lg border border-gray-300 bg-white p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
                                                     </div>
-                                                    <div class="md:col-span-2 flex items-end text-sm text-gray-600 dark:text-gray-300">
+                                                    <div
+                                                        class="flex items-end text-sm text-gray-600 md:col-span-2 dark:text-gray-300">
                                                         (Pelaksanaan Pekerjaan)
                                                     </div>
                                                 </div>
                                             </div>
 
                                             {{-- Baris 2: Lama Pekerjaan (hari kerja) --}}
-                                            <div class="rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800">
-                                                <h3 class="mb-3 text-base font-semibold text-gray-800 dark:text-gray-100">
+                                            <div
+                                                class="rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800">
+                                                <h3
+                                                    class="mb-3 text-base font-semibold text-gray-800 dark:text-gray-100">
                                                     Lama Pekerjaan
                                                 </h3>
                                                 <div class="grid grid-cols-1 gap-4 md:grid-cols-4">
                                                     <div>
-                                                        <label class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-300">Jumlah Hari Kerja</label>
-                                                        <input type="number" min="0" step="1" name="work_days" id="work_days"
-                                                            value="{{ old('work_days') }}"
-                                                            placeholder="05"
+                                                        <label
+                                                            class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-300">Jumlah
+                                                            Hari Kerja</label>
+                                                        <input type="number" min="0" step="1"
+                                                            name="work_days" id="work_days"
+                                                            value="{{ old('work_days') }}" placeholder="05"
                                                             class="w-full rounded-lg border border-gray-300 bg-white p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
                                                     </div>
-                                                    <div class="md:col-span-3 flex items-end text-sm text-gray-600 dark:text-gray-300">
+                                                    <div
+                                                        class="flex items-end text-sm text-gray-600 md:col-span-3 dark:text-gray-300">
                                                         (Tidak Termasuk Hari Sabtu / Minggu / Hari Libur Nasional)
                                                     </div>
                                                 </div>
                                             </div>
 
                                             {{-- Baris 3: Waktu Pelaksanaan (hari & jam) --}}
-                                            <div class="rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800">
-                                                <h3 class="mb-3 text-base font-semibold text-gray-800 dark:text-gray-100">
+                                            <div
+                                                class="rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800">
+                                                <h3
+                                                    class="mb-3 text-base font-semibold text-gray-800 dark:text-gray-100">
                                                     Waktu Pelaksanaan Pekerjaan
                                                 </h3>
                                                 <div class="grid grid-cols-1 gap-4 md:grid-cols-6">
                                                     <div class="md:col-span-2">
-                                                        <label class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-300">Hari (Dari)</label>
+                                                        <label
+                                                            class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-300">Hari
+                                                            (Dari)</label>
                                                         <input type="text" name="work_day_from" id="work_day_from"
-                                                            value="{{ old('work_day_from') }}"
-                                                            placeholder="Senin"
+                                                            value="{{ old('work_day_from') }}" placeholder="Senin"
                                                             class="w-full rounded-lg border border-gray-300 bg-white p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
                                                     </div>
                                                     <div class="md:col-span-2">
-                                                        <label class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-300">Hari (Sampai)</label>
+                                                        <label
+                                                            class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-300">Hari
+                                                            (Sampai)</label>
                                                         <input type="text" name="work_day_to" id="work_day_to"
-                                                            value="{{ old('work_day_to') }}"
-                                                            placeholder="Jumat"
+                                                            value="{{ old('work_day_to') }}" placeholder="Jumat"
                                                             class="w-full rounded-lg border border-gray-300 bg-white p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
                                                     </div>
                                                     <div>
-                                                        <label class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-300">Pukul (Dari)</label>
-                                                        <input type="time" name="work_time_from" id="work_time_from"
-                                                            value="{{ old('work_time_from') }}"
+                                                        <label
+                                                            class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-300">Pukul
+                                                            (Dari)</label>
+                                                        <input type="time" name="work_time_from"
+                                                            id="work_time_from" value="{{ old('work_time_from') }}"
                                                             class="w-full rounded-lg border border-gray-300 bg-white p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
                                                     </div>
                                                     <div>
-                                                        <label class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-300">Pukul (Sampai)</label>
+                                                        <label
+                                                            class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-300">Pukul
+                                                            (Sampai)</label>
                                                         <input type="time" name="work_time_to" id="work_time_to"
                                                             value="{{ old('work_time_to') }}"
                                                             class="w-full rounded-lg border border-gray-300 bg-white p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
@@ -419,35 +463,45 @@
                                             </div>
 
                                             {{-- Baris 4: Man Power --}}
-                                            <div class="rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800">
-                                                <h3 class="mb-3 text-base font-semibold text-gray-800 dark:text-gray-100">
+                                            <div
+                                                class="rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800">
+                                                <h3
+                                                    class="mb-3 text-base font-semibold text-gray-800 dark:text-gray-100">
                                                     Total Man Power
                                                 </h3>
                                                 <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
                                                     <div>
-                                                        <label class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-300">Jumlah Orang</label>
-                                                        <input type="number" min="0" step="1" name="manpower_total" id="manpower_total"
-                                                            value="{{ old('manpower_total') }}"
-                                                            placeholder="0"
+                                                        <label
+                                                            class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-300">Jumlah
+                                                            Orang</label>
+                                                        <input type="number" min="0" step="1"
+                                                            name="manpower_total" id="manpower_total"
+                                                            value="{{ old('manpower_total') }}" placeholder="0"
                                                             class="w-full rounded-lg border border-gray-300 bg-white p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
                                                     </div>
                                                 </div>
                                             </div>
 
                                             {{-- Baris 5: PIC --}}
-                                            <div class="rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800">
-                                                <h3 class="mb-3 text-base font-semibold text-gray-800 dark:text-gray-100">
+                                            <div
+                                                class="rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800">
+                                                <h3
+                                                    class="mb-3 text-base font-semibold text-gray-800 dark:text-gray-100">
                                                     PIC / Person In Charge
                                                 </h3>
                                                 <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
                                                     <div>
-                                                        <label class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-300">Nama PIC</label>
+                                                        <label
+                                                            class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-300">Nama
+                                                            PIC</label>
                                                         <input type="text" name="pic_name" id="pic_name"
                                                             value="{{ old('pic_name', 'Bapak TIO') }}"
                                                             class="w-full rounded-lg border border-gray-300 bg-white p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
                                                     </div>
                                                     <div>
-                                                        <label class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-300">Nomor HP</label>
+                                                        <label
+                                                            class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-300">Nomor
+                                                            HP</label>
                                                         <input type="text" name="pic_phone" id="pic_phone"
                                                             value="{{ old('pic_phone', '0859 4612 0121') }}"
                                                             class="w-full rounded-lg border border-gray-300 bg-white p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
@@ -456,14 +510,18 @@
                                             </div>
 
                                             {{-- Baris 6: Cara Pembayaran --}}
-                                            <div class="rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800">
-                                                <h3 class="mb-3 text-base font-semibold text-gray-800 dark:text-gray-100">
+                                            <div
+                                                class="rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800">
+                                                <h3
+                                                    class="mb-3 text-base font-semibold text-gray-800 dark:text-gray-100">
                                                     Cara Pembayaran
                                                 </h3>
                                                 <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
                                                     <div>
-                                                        <label class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-300">Metode</label>
-                                                        <input type="text" name="payment_method" id="payment_method"
+                                                        <label
+                                                            class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-300">Metode</label>
+                                                        <input type="text" name="payment_method"
+                                                            id="payment_method"
                                                             value="{{ old('payment_method', 'PETTYCASH') }}"
                                                             class="w-full rounded-lg border border-gray-300 bg-white p-2 text-sm uppercase dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
                                                     </div>
@@ -471,13 +529,16 @@
                                             </div>
 
                                             {{-- Baris 7: Garansi --}}
-                                            <div class="rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800">
-                                                <h3 class="mb-3 text-base font-semibold text-gray-800 dark:text-gray-100">
+                                            <div
+                                                class="rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800">
+                                                <h3
+                                                    class="mb-3 text-base font-semibold text-gray-800 dark:text-gray-100">
                                                     Garansi Pekerjaan
                                                 </h3>
                                                 <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
                                                     <div>
-                                                        <label class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-300">Garansi</label>
+                                                        <label
+                                                            class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-300">Garansi</label>
                                                         <input type="text" name="warranty" id="warranty"
                                                             value="{{ old('warranty', '1 WEEK') }}"
                                                             class="w-full rounded-lg border border-gray-300 bg-white p-2 text-sm uppercase dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
@@ -580,8 +641,9 @@
                         </thead>
                         <tbody>
                             @foreach ($podetail as $i => $item)
-                                <tr class="border-t border-gray-200 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800">
-                                    <td class="px-4 py-2">{{ $i+1 }}</td>
+                                <tr
+                                    class="border-t border-gray-200 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800">
+                                    <td class="px-4 py-2">{{ $i + 1 }}</td>
                                     <td class="px-4 py-2">{{ $item->inventoryid }}</td>
                                     <td class="px-4 py-2">{{ $item->inventory_descr }}</td>
                                     <td class="px-4 py-2">{{ $item->ponote_detail }}</td>
@@ -603,40 +665,41 @@
 
     {{-- Modal: Cancel Reuse --}}
     <div id="modalCancelReuse" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50">
-    <div class="w-full max-w-md rounded-lg bg-white p-6 dark:bg-gray-700">
-        <h2 class="mb-4 text-xl font-semibold text-gray-800 dark:text-white">Cancel Reuse</h2>
-        <textarea id="reasonCancelReuse"
-        class="mt-2 w-full rounded-lg p-3 focus:outline-none dark:bg-gray-800 dark:text-white"
-        placeholder="Enter reason for cancel reuse..."></textarea>
+        <div class="w-full max-w-md rounded-lg bg-white p-6 dark:bg-gray-700">
+            <h2 class="mb-4 text-xl font-semibold text-gray-800 dark:text-white">Cancel Reuse</h2>
+            <textarea id="reasonCancelReuse"
+                class="mt-2 w-full rounded-lg p-3 focus:outline-none dark:bg-gray-800 dark:text-white"
+                placeholder="Enter reason for cancel reuse..."></textarea>
 
-        <div class="mt-4 flex justify-between">
-        <button id="btnCloseCancelReuse" class="rounded-lg bg-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-400">
-            Close
-        </button>
-        <button id="btnConfirmCancelReuse" class="rounded-lg bg-gray-600 px-4 py-2 text-white hover:bg-gray-700">
-            Confirm
-        </button>
+            <div class="mt-4 flex justify-between">
+                <button id="btnCloseCancelReuse"
+                    class="rounded-lg bg-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-400">
+                    Close
+                </button>
+                <button id="btnConfirmCancelReuse"
+                    class="rounded-lg bg-gray-600 px-4 py-2 text-white hover:bg-gray-700">
+                    Confirm
+                </button>
+            </div>
         </div>
-    </div>
     </div>
 
     {{-- Modal: Cancel --}}
     <div id="modalCancel" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50">
-    <div class="w-full max-w-md rounded-lg bg-white p-6 dark:bg-gray-700">
-        <h2 class="mb-4 text-xl font-semibold text-gray-800 dark:text-white">Cancel PO</h2>
-        <textarea id="reasonCancel"
-        class="mt-2 w-full rounded-lg p-3 focus:outline-none dark:bg-gray-800 dark:text-white"
-        placeholder="Enter reason for cancel..."></textarea>
+        <div class="w-full max-w-md rounded-lg bg-white p-6 dark:bg-gray-700">
+            <h2 class="mb-4 text-xl font-semibold text-gray-800 dark:text-white">Cancel PO</h2>
+            <textarea id="reasonCancel" class="mt-2 w-full rounded-lg p-3 focus:outline-none dark:bg-gray-800 dark:text-white"
+                placeholder="Enter reason for cancel..."></textarea>
 
-        <div class="mt-4 flex justify-between">
-        <button id="btnCloseCancel" class="rounded-lg bg-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-400">
-            Close
-        </button>
-        <button id="btnConfirmCancel" class="rounded-lg bg-red-600 px-4 py-2 text-white hover:bg-red-700">
-            Confirm
-        </button>
+            <div class="mt-4 flex justify-between">
+                <button id="btnCloseCancel" class="rounded-lg bg-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-400">
+                    Close
+                </button>
+                <button id="btnConfirmCancel" class="rounded-lg bg-red-600 px-4 py-2 text-white hover:bg-red-700">
+                    Confirm
+                </button>
+            </div>
         </div>
-    </div>
     </div>
 
     <div id="loadingSpinnerContainer" role="status" aria-live="polite" aria-label="Loading">
@@ -648,7 +711,7 @@
         </div>
     </div>
 
-    
+
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dayjs/1.11.10/dayjs.min.js"></script>
@@ -765,115 +828,174 @@
             });
         });
     </script>
-   <script>
-        $(function () {
-        const poid = "{{ $po->poid ?? $po->ponbr }}";
-        const statusNow = "{{ $po->status }}";
-        const isPB = "{{ strtoupper($po->potype ?? '') }}" === "PB";
+    <script>
+        $(function() {
+            const poid = "{{ $po->poid ?? $po->ponbr }}";
+            const statusNow = "{{ $po->status }}";
+            const isPB = "{{ strtoupper($po->potype ?? '') }}" === "PB";
 
-        function markInvalid($el) {
-            $el.addClass('ring-2 ring-red-400 border-red-400');
-        }
-        function clearMarks() {
-            $('#infoPoForm')
-            .find('input, textarea, select')
-            .removeClass('ring-2 ring-red-400 border-red-400');
-        }
-
-        function validateInfoForm() {
-            clearMarks();
-            const errors = [];
-
-            // helper to read & trim
-            const val = (id) => ($(`#${id}`).val() ?? '').toString().trim();
-
-            if (isPB) {
-            const d = val('po_deliverydate');
-            if (!d) {
-                errors.push({ id: 'po_deliverydate', msg: 'Delivery Date wajib diisi.' });
-            }
-            } else {
-            // 1) tanggal pelaksanaan
-            if (!val('work_date_from')) errors.push({ id:'work_date_from', msg:'Dari Tanggal wajib diisi.' });
-            if (!val('work_date_to'))   errors.push({ id:'work_date_to',   msg:'Sampai Tanggal wajib diisi.' });
-
-            // 2) lama pekerjaan
-            const wd = val('work_days');
-            if (!wd) errors.push({ id:'work_days', msg:'Jumlah Hari Kerja wajib diisi.' });
-            else if (isNaN(Number(wd)) || Number(wd) < 0)
-                errors.push({ id:'work_days', msg:'Jumlah Hari Kerja harus angka ≥ 0.' });
-
-            // 3) waktu pelaksanaan
-            if (!val('work_day_from'))  errors.push({ id:'work_day_from', msg:'Hari (Dari) wajib diisi.' });
-            if (!val('work_day_to'))    errors.push({ id:'work_day_to',   msg:'Hari (Sampai) wajib diisi.' });
-            if (!val('work_time_from')) errors.push({ id:'work_time_from',msg:'Pukul (Dari) wajib diisi.' });
-            if (!val('work_time_to'))   errors.push({ id:'work_time_to',  msg:'Pukul (Sampai) wajib diisi.' });
-
-            // 4) manpower
-            const mp = val('manpower_total');
-            if (!mp) errors.push({ id:'manpower_total', msg:'Total Man Power wajib diisi.' });
-            else if (isNaN(Number(mp)) || Number(mp) < 0)
-                errors.push({ id:'manpower_total', msg:'Total Man Power harus angka ≥ 0.' });
-
-            // 5) PIC
-            if (!val('pic_name'))  errors.push({ id:'pic_name',  msg:'Nama PIC wajib diisi.' });
-            if (!val('pic_phone')) errors.push({ id:'pic_phone', msg:'Nomor HP PIC wajib diisi.' });
-
-            // 6) pembayaran
-            if (!val('payment_method')) errors.push({ id:'payment_method', msg:'Cara Pembayaran wajib diisi.' });
-
-            // 7) garansi
-            if (!val('warranty')) errors.push({ id:'warranty', msg:'Garansi Pekerjaan wajib diisi.' });
+            function markInvalid($el) {
+                $el.addClass('ring-2 ring-red-400 border-red-400');
             }
 
-            if (errors.length) {
-            // highlight yg invalid dan fokus ke pertama
-            errors.forEach(e => markInvalid($(`#${e.id}`)));
-            const first = errors[0];
-            const $first = $(`#${first.id}`);
-            $first.focus()[0]?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            toastr.error(first.msg);
-            return { ok: false, errors };
-            }
-            return { ok: true };
-        }
-
-        // ===== SUBMIT PO with validation =====
-        $('#submitBtn').on('click', function (e) {
-            e.preventDefault();
-
-            if (statusNow !== 'H') {
-            toastr.warning('Dokumen hanya bisa di-Submit jika status = HOLD (H).');
-            return;
+            function clearMarks() {
+                $('#infoPoForm')
+                    .find('input, textarea, select')
+                    .removeClass('ring-2 ring-red-400 border-red-400');
             }
 
-            const { ok } = validateInfoForm();
-            if (!ok) return;
+            function validateInfoForm() {
+                clearMarks();
+                const errors = [];
 
-            const $spinner = $("#loadingSpinnerContainer").fadeIn();
+                // helper to read & trim
+                const val = (id) => ($(`#${id}`).val() ?? '').toString().trim();
 
-            $.ajax({
-            url: `/po/${poid}/submit`,
-            type: 'POST',
-            data: $('#infoPoForm').serialize(),
-            success(res){
-                if(res.success){
-                toastr.success('Submit berhasil. Status berubah menjadi Purchase Order (P).');
-                window.location.href = "/polist";
+                if (isPB) {
+                    const d = val('po_deliverydate');
+                    if (!d) {
+                        errors.push({
+                            id: 'po_deliverydate',
+                            msg: 'Delivery Date wajib diisi.'
+                        });
+                    }
                 } else {
-                toastr.error(res.message || 'Gagal submit.');
+                    // 1) tanggal pelaksanaan
+                    if (!val('work_date_from')) errors.push({
+                        id: 'work_date_from',
+                        msg: 'Dari Tanggal wajib diisi.'
+                    });
+                    if (!val('work_date_to')) errors.push({
+                        id: 'work_date_to',
+                        msg: 'Sampai Tanggal wajib diisi.'
+                    });
+
+                    // 2) lama pekerjaan
+                    const wd = val('work_days');
+                    if (!wd) errors.push({
+                        id: 'work_days',
+                        msg: 'Jumlah Hari Kerja wajib diisi.'
+                    });
+                    else if (isNaN(Number(wd)) || Number(wd) < 0)
+                        errors.push({
+                            id: 'work_days',
+                            msg: 'Jumlah Hari Kerja harus angka ≥ 0.'
+                        });
+
+                    // 3) waktu pelaksanaan
+                    if (!val('work_day_from')) errors.push({
+                        id: 'work_day_from',
+                        msg: 'Hari (Dari) wajib diisi.'
+                    });
+                    if (!val('work_day_to')) errors.push({
+                        id: 'work_day_to',
+                        msg: 'Hari (Sampai) wajib diisi.'
+                    });
+                    if (!val('work_time_from')) errors.push({
+                        id: 'work_time_from',
+                        msg: 'Pukul (Dari) wajib diisi.'
+                    });
+                    if (!val('work_time_to')) errors.push({
+                        id: 'work_time_to',
+                        msg: 'Pukul (Sampai) wajib diisi.'
+                    });
+
+                    // 4) manpower
+                    const mp = val('manpower_total');
+                    if (!mp) errors.push({
+                        id: 'manpower_total',
+                        msg: 'Total Man Power wajib diisi.'
+                    });
+                    else if (isNaN(Number(mp)) || Number(mp) < 0)
+                        errors.push({
+                            id: 'manpower_total',
+                            msg: 'Total Man Power harus angka ≥ 0.'
+                        });
+
+                    // 5) PIC
+                    if (!val('pic_name')) errors.push({
+                        id: 'pic_name',
+                        msg: 'Nama PIC wajib diisi.'
+                    });
+                    if (!val('pic_phone')) errors.push({
+                        id: 'pic_phone',
+                        msg: 'Nomor HP PIC wajib diisi.'
+                    });
+
+                    // 6) pembayaran
+                    if (!val('payment_method')) errors.push({
+                        id: 'payment_method',
+                        msg: 'Cara Pembayaran wajib diisi.'
+                    });
+
+                    // 7) garansi
+                    if (!val('warranty')) errors.push({
+                        id: 'warranty',
+                        msg: 'Garansi Pekerjaan wajib diisi.'
+                    });
                 }
-            },
-            error(xhr){
-                toastr.error(xhr.responseJSON?.message || 'Gagal submit.');
-            },
-            complete(){ $spinner.fadeOut(); }
+
+                if (errors.length) {
+                    // highlight yg invalid dan fokus ke pertama
+                    errors.forEach(e => markInvalid($(`#${e.id}`)));
+                    const first = errors[0];
+                    const $first = $(`#${first.id}`);
+                    $first.focus()[0]?.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'center'
+                    });
+                    toastr.error(first.msg);
+                    return {
+                        ok: false,
+                        errors
+                    };
+                }
+                return {
+                    ok: true
+                };
+            }
+
+            // ===== SUBMIT PO with validation =====
+            $('#submitBtn').on('click', function(e) {
+                e.preventDefault();
+
+                if (statusNow !== 'H') {
+                    toastr.warning('Dokumen hanya bisa di-Submit jika status = HOLD (H).');
+                    return;
+                }
+
+                const {
+                    ok
+                } = validateInfoForm();
+                if (!ok) return;
+
+                const $spinner = $("#loadingSpinnerContainer").fadeIn();
+
+                $.ajax({
+                    url: `/po/${poid}/submit`,
+                    type: 'POST',
+                    data: $('#infoPoForm').serialize(),
+                    success(res) {
+                        if (res.success) {
+                            toastr.success(
+                                'Submit berhasil. Status berubah menjadi Purchase Order (P).');
+                            window.location.href = "/polist";
+                        } else {
+                            toastr.error(res.message || 'Gagal submit.');
+                        }
+                    },
+                    error(xhr) {
+                        toastr.error(xhr.responseJSON?.message || 'Gagal submit.');
+                    },
+                    complete() {
+                        $spinner.fadeOut();
+                    }
+                });
             });
         });
-        });
-        </script>
+    </script>
 
-  
+
 
     <!-- Toastr CSS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">

@@ -177,13 +177,16 @@
             </div>
         </div>
         <div class="flex w-full flex-col gap-6 xl:flex-col">
-            <div class="flex w-full flex-col gap-6 md:h-[35vh] xl:flex-row">
+            <div class="flex w-full items-stretch gap-6 xl:flex-row">
                 {{-- Left card (SPPT Info) --}}
-                <div class="flex flex-1 flex-col overflow-y-auto rounded-xl bg-white dark:bg-gray-800">
+                <div class="flex flex-1 flex-col rounded-xl bg-white dark:bg-gray-800">
                     <header
                         class="sticky top-0 z-10 flex items-center justify-between rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
-                        <h1 class="flex items-center gap-2 text-2xl font-bold text-gray-800 dark:text-gray-100">
-                            <span class="text-indigo-500">🆔</span>
+                        <h1 class="flex items-center gap-2 text-lg font-bold text-gray-800 dark:text-gray-100">
+                            <span
+                                class="inline-flex items-center rounded-md bg-purple-100 px-2 py-1 text-sm font-semibold text-purple-700">
+                                ID
+                            </span>
                             {{ $sppt->spptid }}
                         </h1>
 
@@ -221,97 +224,118 @@
                         </div>
                     </header>
 
-                    <div class="flex flex-1 flex-col gap-6 overflow-y-auto p-4">
-                        @php
-                            $row1 = [
-                                ['label' => 'Company', 'value' => $sppt->cpny_id],
-                                ['label' => 'Department', 'value' => $sppt->department_id],
-                                ['label' => 'Date', 'value' => date('j F Y', strtotime($sppt->spptdate))],
-                            ];
 
-                            $row2 = [
-                                ['label' => 'User', 'value' => ucwords(strtolower(optional($sppt->creator)->name))],
-                                ['label' => 'Request Type', 'value' => optional($sppt->requestType)->requesttype_name],
-                            ];
+                    <div class="flex flex-1 flex-col overflow-y-auto p-4">
+                        <div class="grid grid-cols-1 gap-x-8 gap-y-3 text-sm sm:grid-cols-2">
 
-                            $row3 = [
-                                ['label' => 'Tenant', 'value' => optional($sppt->tenantname)->store_name],
-                                ['label' => 'Floor-Unit', 'value' => $sppt->no_unit_tenant],
-                                [
-                                    'label' => 'PIC - Person In Charge',
-                                    'value' => ucwords(strtolower(optional($sppt->pic)->name)),
-                                ],
-                            ];
+                            {{-- Company --}}
+                            <div class="flex items-center gap-2 p-2">
+                                <x-heroicon-o-building-office class="h-5 w-5 text-gray-400" />
+                                <span class="min-w-32 max-w-32 text-gray-500">Company</span>
+                                <span class="break-words font-medium text-gray-900">{{ $sppt->cpny_id }}</span>
+                            </div>
 
-                            $row4 = [
-                                ['label' => 'Unit Condition', 'value' => $sppt->condition_unit],
-                                ['label' => 'Expense', 'value' => $sppt->beban],
-                            ];
-                        @endphp
+                            {{-- Department --}}
+                            <div class="flex items-center gap-2 p-2">
+                                <x-heroicon-o-squares-2x2 class="h-5 w-5 text-gray-400" />
+                                <span class="min-w-32 max-w-32 text-gray-500">Department</span>
+                                <span class="break-words font-medium text-gray-900">{{ $sppt->department_id }}</span>
+                            </div>
 
-                        {{-- Row 1 (3 cols) --}}
-                        <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
-                            @foreach ($row1 as $detail)
-                                <div
-                                    class="rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-800">
-                                    <p class="text-xs text-gray-500 dark:text-gray-400">{{ $detail['label'] }}</p>
-                                    <p class="text-sm font-medium text-gray-900 dark:text-gray-100">
-                                        {{ $detail['value'] }}
-                                    </p>
+                            {{-- Date --}}
+                            <div class="flex items-center gap-2 p-2">
+                                <x-heroicon-o-calendar class="h-5 w-5 text-gray-400" />
+                                <span class="min-w-32 max-w-32 text-gray-500">Date</span>
+                                <span class="break-words font-medium text-gray-900">
+                                    {{ date('j F Y', strtotime($sppt->spptdate)) }}
+                                </span>
+                            </div>
+
+                            {{-- Created User --}}
+                            <div class="flex items-center gap-2 p-2">
+                                <x-heroicon-o-user class="h-5 w-5 text-gray-400" />
+                                <span class="min-w-32 max-w-32 text-gray-500">Created User</span>
+                                <span class="break-words font-medium text-gray-900">
+                                    {{ ucwords(strtolower(optional($sppt->creator)->name)) }}
+                                </span>
+                            </div>
+
+                            <div class="flex flex-col gap-2 p-2">
+
+                                <div class="flex flex-1 items-center gap-2">
+                                    <x-heroicon-o-calendar class="h-5 w-5 text-gray-400" />
+                                    <span class="min-w-32 max-w-32 text-gray-500">Tenant</span>
+                                    <span class="break-words font-medium text-gray-900">
+                                        {{ ucwords(strtolower(optional($sppt->tenantname)->store_name)) }}
+                                    </span>
                                 </div>
-                            @endforeach
-                        </div>
 
-                        {{-- Row 2 (2 cols) --}}
-                        <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-                            @foreach ($row2 as $detail)
-                                <div
-                                    class="rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-800">
-                                    <p class="text-xs text-gray-500 dark:text-gray-400">{{ $detail['label'] }}</p>
-                                    <p class="text-sm font-medium text-gray-900 dark:text-gray-100">
-                                        {{ $detail['value'] }}
-                                    </p>
+                                <div class="flex flex-1 items-center gap-2">
+                                    <x-heroicon-o-user class="h-5 w-5 text-gray-400" />
+                                    <span class="min-w-32 max-w-32 text-gray-500">Floor-Unit</span>
+                                    <span class="break-words font-medium text-gray-900">
+                                        {{ $sppt->no_unit_tenant }}
+                                    </span>
                                 </div>
-                            @endforeach
-                        </div>
 
-                        <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
-                            @foreach ($row3 as $detail)
-                                <div
-                                    class="rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-800">
-                                    <p class="text-xs text-gray-500 dark:text-gray-400">{{ $detail['label'] }}</p>
-                                    <p class="text-sm font-medium text-gray-900 dark:text-gray-100">
-                                        {{ $detail['value'] }}
-                                    </p>
+                            </div>
+
+
+                            {{-- PIC - Person In Charge --}}
+                            <div class="flex items-center gap-2 p-2">
+                                <x-heroicon-o-user class="h-5 w-5 text-gray-400" />
+                                <span class="min-w-32 max-w-32 text-gray-500">PIC - Person In Charge</span>
+                                <span class="break-words font-medium text-gray-900">
+                                    {{ ucwords(strtolower(optional($sppt->pic)->name)) }}
+                                </span>
+                            </div>
+
+                            {{-- Unit Condition --}}
+                            <div class="flex items-center gap-2 p-2">
+                                <x-heroicon-o-user class="h-5 w-5 text-gray-400" />
+                                <span class="min-w-32 max-w-32 text-gray-500">Unit Condition</span>
+                                <span class="break-words font-medium text-gray-900">
+                                    {{ $sppt->condition_unit }}
+                                </span>
+                            </div>
+
+                            {{-- Expense --}}
+                            <div class="flex items-center gap-2 p-2">
+                                <x-heroicon-o-user class="h-5 w-5 text-gray-400" />
+                                <span class="min-w-32 max-w-32 text-gray-500">Beban</span>
+                                <span class="break-words font-medium text-gray-900">
+                                    {{ $sppt->beban }}
+                                </span>
+                            </div>
+
+                            <div class="col-span-2 flex flex-col gap-3 sm:flex-row">
+                                {{-- Request Type --}}
+                                <div class="flex flex-1 items-center gap-2 rounded-md bg-gray-50 p-3 dark:bg-gray-700">
+                                    <x-heroicon-o-clipboard-document-list class="h-5 w-5 text-gray-400" />
+                                    <div class="flex flex-col">
+                                        <span class="text-gray-500">Request Type</span>
+                                        <span class="break-words font-medium text-gray-900">
+                                            {{ optional($sppt->requestType)->requesttype_name }}
+                                        </span>
+                                    </div>
                                 </div>
-                            @endforeach
-                        </div>
 
-                        <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-                            @foreach ($row4 as $detail)
-                                <div
-                                    class="rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-800">
-                                    <p class="text-xs text-gray-500 dark:text-gray-400">{{ $detail['label'] }}</p>
-                                    <p class="text-sm font-medium text-gray-900 dark:text-gray-100">
-                                        {{ $detail['value'] }}
-                                    </p>
+                                {{-- Purpose --}}
+                                <div class="flex flex-1 items-center gap-2 rounded-md bg-gray-50 p-3 dark:bg-gray-700">
+                                    <x-heroicon-o-clipboard-document-check class="h-5 w-5 text-gray-400" />
+                                    <div class="flex flex-col">
+                                        <span class="text-gray-500">Purpose</span>
+                                        <span
+                                            class="break-words font-medium text-gray-900">{{ $sppt->keperluan }}</span>
+                                    </div>
                                 </div>
-                            @endforeach
-                        </div>
-
-                        {{-- Row 3 (Keperluan) --}}
-                        <div
-                            class="rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-800">
-                            <p class="text-xs text-gray-500 dark:text-gray-400">Purpose</p>
-                            <p class="text-sm font-medium text-gray-900 dark:text-gray-100">
-                                {{ $sppt->keperluan }}
-                            </p>
+                            </div>
                         </div>
                     </div>
                 </div>
 
                 {{-- Right card (Tabs) --}}
-                <div class="flex flex-1 flex-col overflow-y-auto rounded-xl bg-white dark:bg-gray-800">
+                <div class="flex flex-1 flex-col rounded-xl bg-white dark:bg-gray-800">
                     <div x-data="{ activeTab: 'attachment' }" class="flex flex-1 flex-col">
                         {{-- Tabs Header --}}
                         <header
@@ -345,7 +369,7 @@
                         </header>
 
                         {{-- Tabs Content --}}
-                        <div class="rounded-b-x flex flex-1 flex-col overflow-y-auto bg-white dark:bg-gray-800">
+                        <div class="flex flex-1 flex-col overflow-y-auto rounded-xl bg-white dark:bg-gray-800">
                             {{-- Approval tab --}}
                             <div x-show="activeTab === 'approval'" class="flex-1 overflow-y-auto p-2">
                                 <table class="w-full text-sm">

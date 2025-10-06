@@ -7,7 +7,10 @@
                        <header
                            class="flex items-center rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
                            <h1 class="flex items-center gap-2 text-xl font-bold text-gray-800 dark:text-gray-100">
-                               <span class="text-indigo-500">🆔</span> {{ $jobposting->docid }}
+                               <span
+                                   class="inline-flex items-center rounded-md bg-purple-100 px-2 py-1 text-xs font-semibold text-purple-700">
+                                   ID
+                               </span> {{ $jobposting->docid }}
                            </h1>
                            {{-- Status badge can be added here if desired --}}
                        </header>

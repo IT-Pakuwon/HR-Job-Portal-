@@ -159,58 +159,66 @@
             </div>
         </div>
         <div class="flex w-full flex-col gap-6 xl:flex-col">
-            <div class="flex w-full flex-col gap-6 md:h-[35vh] xl:flex-row">
+            <div class="flex w-full items-stretch gap-6 xl:flex-row">
                 {{-- Left Card --}}
-                <div class="flex flex-1 flex-col overflow-y-auto rounded-xl bg-white dark:bg-gray-800">
+                <div class="flex flex-1 flex-col rounded-xl bg-white dark:bg-gray-800">
                     <header
                         class="sticky top-0 z-10 flex items-center justify-between rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
-                        <h1 class="flex items-center gap-2 text-2xl font-bold text-gray-800 dark:text-gray-100">
-                            <span class="text-indigo-500">🆔</span>
+                        <h1 class="flex items-center gap-2 text-lg font-bold text-gray-800 dark:text-gray-100">
+                            <span
+                                class="inline-flex items-center rounded-md bg-purple-100 px-2 py-1 text-sm font-semibold text-purple-700">
+                                ID
+                            </span>
                             {{ $bq->bqid }}
                         </h1>
-                        <h1 class="flex items-center gap-2 text-2xl font-bold text-gray-800 dark:text-gray-100">
-                            <span class="text-indigo-500">🆔</span>
+                        <h1 class="flex items-center gap-2 text-lg font-bold text-gray-800 dark:text-gray-100">
+                            <span
+                                class="inline-flex items-center rounded-md bg-purple-100 px-2 py-1 text-sm font-semibold text-purple-700">
+                                ID
+                            </span>
                             {{ $bq->sppjtid }}
                         </h1>
                     </header>
 
                     <div class="flex flex-1 flex-col overflow-y-auto p-4">
-                        <div class="grid grid-cols-1 gap-6 md:grid-cols-3">
-                            @php
-                                $jobDetails = [
-                                    ['label' => 'Company', 'value' => $bq->cpny_id],
-                                    ['label' => 'Date', 'value' => date('j F Y', strtotime($bq->created_at))],
-                                    [
-                                        'label' => 'Created By',
-                                        'value' => ucwords(strtolower(optional($bq->creator)->name)),
-                                    ],
-                                ];
-                            @endphp
-                            @foreach ($jobDetails as $detail)
-                                <div
-                                    class="flex items-center gap-4 rounded-lg border-gray-200 bg-gray-200/10 p-3 dark:border-gray-700 dark:bg-gray-800">
-                                    <div>
-                                        <p class="text-base font-medium text-gray-900 dark:text-gray-100">
-                                            <span
-                                                class="mr-1 text-xs text-gray-500 dark:text-gray-400">{{ $detail['label'] }}:</span>
-                                            {{ $detail['value'] }}
-                                        </p>
-                                    </div>
-                                </div>
-                            @endforeach
+                        <div class="grid grid-cols-1 gap-x-8 gap-y-3 text-sm sm:grid-cols-2">
+
+                            {{-- Company --}}
+                            <div class="flex items-center gap-2 p-2">
+                                <x-heroicon-o-building-office class="h-5 w-5 text-gray-400" />
+                                <span class="min-w-32 max-w-32 text-gray-500">Company</span>
+                                <span class="break-words font-medium text-gray-900">{{ $bq->cpny_id }}</span>
+                            </div>
+                            {{-- Date --}}
+                            <div class="flex items-center gap-2 p-2">
+                                <x-heroicon-o-calendar class="h-5 w-5 text-gray-400" />
+                                <span class="min-w-32 max-w-32 text-gray-500">Date</span>
+                                <span class="break-words font-medium text-gray-900">
+                                    {{ date('j F Y', strtotime($bq->created_at)) }}
+                                </span>
+                            </div>
+
+                            {{-- Created User --}}
+                            <div class="flex items-center gap-2 p-2">
+                                <x-heroicon-o-user class="h-5 w-5 text-gray-400" />
+                                <span class="min-w-32 max-w-32 text-gray-500">Created User</span>
+                                <span class="break-words font-medium text-gray-900">
+                                    {{ ucwords(strtolower(optional($bq->creator)->name)) }}
+                                </span>
+                            </div>
+
                         </div>
                     </div>
                 </div>
 
                 {{-- Right Card (Photo Before) --}}
-                <div class="flex flex-1 flex-col overflow-y-auto rounded-xl bg-white dark:bg-gray-800">
+                <div class="flex flex-1 flex-col rounded-xl bg-white dark:bg-gray-800">
                     <header
                         class="flex items-center rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
                         <h2 class="text-lg font-semibold text-gray-800 dark:text-gray-100">📸 Photo Before</h2>
                     </header>
-
                     <div class="flex-1 overflow-y-auto px-4 py-3">
-                        <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+                        <div class="grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8">
                             @forelse ($attachment as $at)
                                 @php
                                     $year = $at->created_at->year;
@@ -220,42 +228,53 @@
                                 @endphp
 
                                 <div
-                                    class="flex flex-col overflow-hidden rounded-lg bg-gray-50 transition-shadow duration-300 hover:shadow-md dark:bg-gray-700">
+                                    class="group relative flex flex-col overflow-hidden rounded-md border border-gray-200 bg-white transition hover:border-gray-500 dark:border-gray-700 dark:bg-gray-800">
+
+                                    {{-- Thumbnail kecil --}}
                                     <a href="{{ $fileUrl }}" target="_blank"
-                                        class="group relative block aspect-[4/2] overflow-hidden">
+                                        class="relative block aspect-square overflow-hidden">
                                         @if ($isImg)
                                             <img src="{{ $fileUrl }}" alt="{{ $at->name }}"
-                                                class="h-full w-full rounded-t-lg object-cover transition-transform duration-300 group-hover:scale-105"
+                                                class="h-full w-full object-cover transition group-hover:scale-105"
                                                 loading="lazy" referrerpolicy="no-referrer">
                                         @else
                                             <div
-                                                class="flex h-full w-full items-center justify-center bg-gray-100 dark:bg-gray-600">
-                                                <span class="text-4xl">📄</span>
+                                                class="flex h-full w-full items-center justify-center bg-gray-100 dark:bg-gray-700">
+                                                <span class="text-2xl">📄</span>
                                             </div>
                                         @endif
+
+                                        {{-- Hover overlay --}}
+                                        <div class="absolute inset-0 bg-black/0 transition group-hover:bg-black/20">
+                                        </div>
+
+                                        {{-- Action icons kecil --}}
                                         <div
-                                            class="absolute inset-0 rounded-t-lg bg-black/0 transition group-hover:bg-black/20">
+                                            class="absolute right-1 top-1 flex gap-1 opacity-0 transition group-hover:opacity-100">
+                                            <a href="{{ $fileUrl }}" target="_blank"
+                                                class="rounded bg-white p-1 text-xs shadow hover:bg-gray-100 dark:bg-gray-700">🔍</a>
+                                            <a href="{{ $fileUrl }}" download
+                                                class="rounded bg-white p-1 text-xs shadow hover:bg-gray-100 dark:bg-gray-700">⬇️</a>
                                         </div>
                                     </a>
 
-                                    <div class="px-3 py-2">
-                                        <div class="truncate text-sm font-medium text-gray-900 dark:text-gray-100"
+                                    {{-- Info ringkas --}}
+                                    <div class="px-2 py-1">
+                                        <div class="truncate text-xs font-medium text-gray-900 dark:text-gray-100"
                                             title="{{ $at->name }}">
                                             {{ $at->name }}
-                                        </div>
-                                        <div class="truncate text-xs text-gray-500 dark:text-gray-400">
-                                            {{ $at->created_user }} ·
-                                            {{ \Carbon\Carbon::parse($at->created_at)->format('d M Y') }}
                                         </div>
                                     </div>
                                 </div>
                             @empty
                                 <p class="col-span-full py-6 text-center italic text-gray-500 dark:text-gray-400">
-                                    No photos found.
+                                    No attachments found.
                                 </p>
                             @endforelse
                         </div>
                     </div>
+
+
                 </div>
             </div>
             <div class="flex max-h-[50rem] min-h-[12rem] flex-col rounded-2xl shadow dark:bg-gray-800">

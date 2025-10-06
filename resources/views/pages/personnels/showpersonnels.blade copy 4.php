@@ -15,7 +15,10 @@
                                     <h1
                                         class="flex items-center gap-2 text-2xl font-bold text-gray-800 dark:text-gray-100">
                                         {{-- Larger, bolder title --}}
-                                        <span class="text-indigo-500">🆔</span> {{-- Iconic color for the ID icon --}}
+                                            <span
+                                    class="inline-flex items-center rounded-md bg-purple-100 px-2 py-1 text-sm font-semibold text-purple-700">
+                                    ID
+                                </span> {{-- Iconic color for the ID icon --}}
                                         {{ $personnel->docid }}
                                     </h1>
                                     @php

@@ -660,7 +660,7 @@
                                     }
 
                                     return `
-                                    <div class="flex items-center gap-2 whitespace-nowrap">
+                             <div class="flex items-left gap-2 whitespace-nowrap">
                                         <a href="${url}" class="${cls}">${text}</a>
                                         <button type="button"
                                         class="tracking-btn inline-flex items-center justify-center rounded-full p-2
@@ -679,16 +679,16 @@
                             },
                             {
                                 data: 'cpny_id',
-                                className: 'text-center'
+                                className: 'text-center w-32'
                             },
                             {
                                 data: 'department_id',
-                                className: 'text-center'
+                                className: 'text-center whitespace-normal break-words'
                             },
                             {
                                 data: 'requesttype_name',
                                 defaultContent: '-',
-                                className: 'text-center'
+                                className: 'text-left'
                             },
                             {
                                 data: 'keperluan'
@@ -696,7 +696,7 @@
 
                             {
                                 data: 'status',
-                                className: 'text-center',
+                                className: 'text-left',
                                 render: function(data) {
                                     const map = {
                                         'D': {

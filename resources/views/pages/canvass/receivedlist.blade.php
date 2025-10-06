@@ -421,7 +421,7 @@
 
                             {
                                 data: 'cpny_id',
-                                className: 'text-center'
+                                className: 'text-center w-32'
                             },
                             {
                                 data: 'created_by_name',
@@ -429,7 +429,7 @@
                             },
                             {
                                 data: 'department_id',
-                                className: 'text-center'
+                                className: 'text-center whitespace-normal break-words'
                             },
                             {
                                 data: 'keperluan',

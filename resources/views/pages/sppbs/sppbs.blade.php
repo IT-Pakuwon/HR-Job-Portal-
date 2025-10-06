@@ -318,7 +318,7 @@
                                     Date
                                 </th>
                                 <th scope="col"
-                                    class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                                    class="w-32 px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
                                     Company
                                 </th>
                                 <th scope="col"
@@ -605,10 +605,10 @@
                                     }
 
                                     return `
-                                    <div class="flex items-center gap-2 whitespace-nowrap">
+                                    <div class="flex items-left gap-2 whitespace-nowrap">
                                         <a href="${url}" class="${cls}">${text}</a>
                                         <button type="button"
-                                        class="tracking-btn inline-flex items-center justify-center rounded-full p-2
+                                        class="tracking-btn inline-flex items-left justify-center rounded-full p-2
                                                 text-red-600 hover:text-red-700 hover:bg-red-50"
                                         data-id="${row.id}" aria-label="Tracking" title="Tracking">
                                         <i class="fa-solid fa-paper-plane"></i>
@@ -620,20 +620,20 @@
 
                             {
                                 data: 'sppbdate',
-                                className: 'text-center'
+                                className: 'text-left'
                             },
                             {
                                 data: 'cpny_id',
-                                className: 'text-center'
+                                className: 'text-center w-32'
                             },
                             {
                                 data: 'department_id',
-                                className: 'text-center'
+                                className: 'text-center whitespace-normal break-words'
                             },
                             {
                                 data: 'requesttype_name',
                                 defaultContent: '-',
-                                className: 'text-center'
+                                className: 'text-left'
                             },
                             {
                                 data: 'keperluan'
@@ -641,7 +641,7 @@
 
                             {
                                 data: 'status',
-                                className: 'text-center',
+                                className: 'text-left',
                                 render: function(data) {
                                     const map = {
                                         'D': {

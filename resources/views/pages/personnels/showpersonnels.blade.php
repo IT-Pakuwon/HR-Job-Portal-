@@ -48,9 +48,12 @@
                     <header
                         class="sticky top-0 z-10 flex items-center justify-between rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
                         {{-- Rounded-t-xl, stronger border, and darker background for header --}}
-                        <h1 class="flex items-center gap-2 text-2xl font-bold text-gray-800 dark:text-gray-100">
+                        <h1 class="flex items-center gap-2 text-lg font-bold text-gray-800 dark:text-gray-100">
                             {{-- Larger, bolder title --}}
-                            <span class="text-indigo-500">🆔</span> {{-- Iconic color for the ID icon --}}
+                            <span
+                                class="inline-flex items-center rounded-md bg-purple-100 px-2 py-1 text-sm font-semibold text-purple-700">
+                                ID
+                            </span> {{-- Iconic color for the ID icon --}}
                             {{ $personnel->docid }}
                         </h1>
                         @php
@@ -84,156 +87,129 @@
                             {{ $statusText }}
                         </span>
                     </header>
+                    <div class="flex flex-1 flex-col overflow-y-auto p-4">
+                        <div class="grid grid-cols-1 gap-x-8 gap-y-3 text-sm sm:grid-cols-2">
 
-                    <div class="space-y-4 p-4"> {{-- Increased padding and consistent vertical spacing --}}
-                        <div class="grid grid-cols-3 gap-4 sm:grid-cols-3"> {{-- Increased gap --}}
-                            @php
-                                $jobDetails = [
-                                    [
-                                        'label' => 'Company',
-                                        'value' => $personnel->cpnyid,
-                                    ],
-                                    [
-                                        'label' => 'Department',
-                                        'value' => ucwords(strtolower($personnel->departementid)),
-                                    ],
-                                    [
-                                        'label' => 'Job Title',
-                                        'value' => $personnel->job_title,
-                                    ],
-                                ];
-                            @endphp
-                            @foreach ($jobDetails as $detail)
-                                <div
-                                    class="transition- hover:-md flex flex-row items-center gap-4 rounded-lg border border-gray-200 bg-gray-50 p-4 duration-200 dark:border-gray-700 dark:bg-gray-800">
-                                    {{-- Rounded-lg, subtle background, , and hover effect --}}
-                                    <div>
-                                        <p class="text-xs font-medium text-gray-500 dark:text-gray-400">
-                                            {{ $detail['label'] }}</p> {{-- Label above value, smaller text --}}
-                                        <p class="text-base font-semibold text-gray-900 dark:text-gray-100">
-                                            {{ $detail['value'] }}</p> {{-- Bolder value --}}
+                            {{-- Company --}}
+                            <div class="flex items-center gap-2 p-2">
+                                <x-heroicon-o-building-office class="h-5 w-5 text-gray-400" />
+                                <span class="min-w-32 max-w-32 text-gray-500">Company</span>
+                                <span class="break-words font-medium text-gray-900">{{ $personnel->cpnyid }}</span>
+                            </div>
+
+                            {{-- Department --}}
+                            <div class="flex items-center gap-2 p-2">
+                                <x-heroicon-o-squares-2x2 class="h-5 w-5 text-gray-400" />
+                                <span class="min-w-32 max-w-32 text-gray-500">Department</span>
+                                <span
+                                    class="break-words font-medium text-gray-900">{{ $personnel->departementid }}</span>
+                            </div>
+
+                            {{-- Date --}}
+                            <div class="flex items-center gap-2 p-2">
+                                <x-heroicon-o-calendar class="h-5 w-5 text-gray-400" />
+                                <span class="min-w-32 max-w-32 text-gray-500">Date</span>
+                                <span class="break-words font-medium text-gray-900">
+                                    {{ date('j F Y', strtotime($personnel->spptdate)) }}
+                                </span>
+                            </div>
+
+                            {{-- Job Title --}}
+                            <div class="flex items-center gap-2 p-2">
+                                <x-heroicon-o-user class="h-5 w-5 text-gray-400" />
+                                <span class="min-w-32 max-w-32 text-gray-500">Job Title</span>
+                                <span class="break-words font-medium text-gray-900">
+                                    {{ ucwords(strtolower(optional($personnel)->job_title)) }}
+                                </span>
+                            </div>
+
+                            {{-- Job Type --}}
+                            <div class="flex items-center gap-2 p-2">
+                                <x-heroicon-o-user class="h-5 w-5 text-gray-400" />
+                                <span class="min-w-32 max-w-32 text-gray-500">Job Type</span>
+                                <span class="break-words font-medium text-gray-900">
+                                    {{ ucwords(strtolower(optional($personnel)->job_type)) }}
+                                </span>
+                            </div>
+
+                            {{-- Immediate Superior --}}
+                            <div class="flex items-center gap-2 p-2">
+                                <x-heroicon-o-user class="h-5 w-5 text-gray-400" />
+                                <span class="min-w-32 max-w-32 text-gray-500">Immediate Superior</span>
+                                <span class="break-words font-medium text-gray-900">
+                                    {{ ucwords(strtolower(optional($personnel)->immediate_superior)) }}
+                                </span>
+                            </div>
+
+                            {{-- Job Level --}}
+                            <div class="flex items-center gap-2 p-2">
+                                <x-heroicon-o-user class="h-5 w-5 text-gray-400" />
+                                <span class="min-w-32 max-w-32 text-gray-500">Job Level</span>
+                                <span class="break-words font-medium text-gray-900">
+                                    {{ ucwords(strtolower(optional($personnel)->job_level)) }}
+                                </span>
+                            </div>
+
+                            {{-- State Position --}}
+                            <div class="flex items-center gap-2 p-2">
+                                <x-heroicon-o-user class="h-5 w-5 text-gray-400" />
+                                <span class="min-w-32 max-w-32 text-gray-500">State Position</span>
+                                <span class="break-words font-medium text-gray-900">
+                                    {{ ucwords(strtolower(optional($personnel)->state_position)) }}
+
+                                </span>
+                            </div>
+
+                            {{-- Reason for Vacancy --}}
+                            <div
+                                class="col-span-2 flex flex-1 items-start gap-2 rounded-md bg-gray-50 p-3 dark:bg-gray-700">
+                                <x-heroicon-o-question-mark-circle class="h-5 w-5 text-pink-400" />
+                                <div class="flex flex-col">
+                                    <span class="text-gray-500">Reason for Vacancy</span>
+                                    <span class="break-words font-medium text-gray-900">
+                                        {{ $personnel->reason_vacancy ?: '-' }}
+                                    </span>
+                                </div>
+                            </div>
+
+                            {{-- Job Numbers --}}
+                            <div class="col-span-2 flex flex-1 gap-4 rounded-md bg-gray-50 p-3 dark:bg-gray-700">
+                                <x-heroicon-o-chart-bar class="h-5 w-5 text-emerald-500" />
+                                <div class="grid w-full grid-cols-3 gap-4">
+                                    <div class="flex">
+                                        <span class="min-w-32 max-w-32 text-xs text-gray-500">Total Required</span>
+                                        <span class="font-bold text-indigo-600">{{ $personnel->required }}</span>
+                                    </div>
+                                    <div class="flex">
+                                        <span class="min-w-32 max-w-32 text-xs text-gray-500">Actual</span>
+                                        <span class="font-bold text-indigo-600">{{ $personnel->actual }}</span>
+                                    </div>
+                                    <div class="flex">
+                                        <span class="min-w-32 max-w-32 text-xs text-gray-500">Actual Number</span>
+                                        <span class="font-bold text-indigo-600">{{ $personnel->total_actual }}</span>
                                     </div>
                                 </div>
-                            @endforeach
-                        </div>
-
-                        <div class="grid grid-cols-2 gap-6 md:grid-cols-2"> {{-- Adjusted to 2 columns on medium screens --}}
-                            <div class="flex flex-col gap-6"> {{-- Consistent gap for items within this column --}}
-                                @php
-                                    $jobDetail = [
-                                        [
-                                            'label' => 'Job Type',
-                                            'value' => $personnel->job_type,
-                                        ],
-                                        [
-                                            'label' => 'Immediate Superior',
-                                            'value' => $personnel->immediate_superior,
-                                        ],
-                                    ];
-                                @endphp
-                                @foreach ($jobDetail as $details)
-                                    <div
-                                        class="flex items-center gap-4 rounded-lg border border-gray-200 bg-gray-50 p-4 duration-200 hover:shadow-md dark:border-gray-700 dark:bg-gray-800">
-                                        <div>
-                                            <p class="text-xs font-medium text-gray-500 dark:text-gray-400">
-                                                {{ $details['label'] }}</p>
-                                            <p class="text-base font-semibold text-gray-900 dark:text-gray-100">
-                                                {{ $details['value'] }}</p>
-                                        </div>
-                                    </div>
-                                @endforeach
                             </div>
-                            <div class="flex flex-col gap-6"> {{-- Consistent gap for items within this column --}}
-                                @php
-                                    $jobDetail2 = [
-                                        [
-                                            'label' => 'Job Level',
-                                            'value' => $personnel->job_level,
-                                        ],
-                                        [
-                                            'label' => 'State Position',
-                                            'value' => $personnel->state_position,
-                                        ],
-                                    ];
-                                @endphp
-                                @foreach ($jobDetail2 as $details)
-                                    <div
-                                        class="transition- hover:-md flex items-center gap-4 rounded-lg border border-gray-200 bg-gray-50 p-4 duration-200 dark:border-gray-700 dark:bg-gray-800">
-                                        <div>
-                                            <p class="text-xs font-medium text-gray-500 dark:text-gray-400">
-                                                {{ $details['label'] }}</p>
-                                            <p class="text-base font-semibold text-gray-900 dark:text-gray-100">
-                                                {{ $details['value'] }}</p>
-                                        </div>
+
+                            {{-- Tags --}}
+                            <div
+                                class="col-span-2 flex flex-1 items-start gap-2 rounded-md bg-gray-50 p-3 dark:bg-gray-700">
+                                <x-heroicon-o-tag class="h-5 w-5 text-purple-500" />
+                                <div class="flex flex-col">
+                                    <span class="text-gray-500">🏷️ Tags</span>
+                                    <div class="mt-1 flex flex-wrap gap-2">
+                                        @forelse ($jobtag as $jt)
+                                            <span
+                                                class="inline-block rounded-full bg-purple-100 px-3 py-1 text-xs font-semibold text-purple-700 dark:bg-purple-800/30 dark:text-purple-300">
+                                                {{ $jt->job_tags }}
+                                            </span>
+                                        @empty
+                                            <span class="text-sm italic text-gray-400">No tags</span>
+                                        @endforelse
                                     </div>
-                                @endforeach
-                            </div>
-                        </div>
-
-                        <div
-                            class="rounded-xl border border-gray-200 bg-gray-50 p-6 dark:border-gray-700 dark:bg-gray-800">
-                            {{-- Rounded-xl, stronger  --}}
-                            <h3 class="mb-4 flex items-center gap-2 text-xl font-bold text-gray-800 dark:text-gray-100">
-                                {{-- Larger, bolder title --}}
-                                <span class="text-emerald-500">📊</span> Job Numbers
-                            </h3>
-                            <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
-                                @php
-                                    $jobNumbers = [
-                                        ['label' => 'Total Required', 'value' => $personnel->required],
-                                        ['label' => 'Actual', 'value' => $personnel->actual],
-                                        ['label' => 'Actual Number', 'value' => $personnel->total_actual],
-                                    ];
-                                @endphp
-
-                                @foreach ($jobNumbers as $job)
-                                    <div
-                                        class="hover:-md flex flex-row items-center justify-between space-y-1 rounded-lg border border-gray-200 bg-white p-2 transition-all duration-200 dark:border-gray-700 dark:bg-gray-900">
-                                        {{-- Flex-col for stacking, space-y, larger padding, rounded-lg, darker bg in dark mode, hover effect --}}
-                                        <span class="text-xs font-medium text-gray-500 dark:text-gray-400">
-                                            {{ $job['label'] }}</span>
-                                        <span
-                                            class="text-xl font-extrabold text-indigo-600 dark:text-indigo-400">{{ $job['value'] }}</span>
-                                        {{-- Much larger and bolder value --}}
-                                    </div>
-                                @endforeach
-                            </div>
-                        </div>
-
-                        <div
-                            class="rounded-xl border border-gray-200 bg-gray-50 p-6 dark:border-gray-700 dark:bg-gray-800">
-                            {{-- Rounded-xl, stronger  --}}
-                            <h3 class="mb-3 flex items-center gap-2 text-xl font-bold text-gray-800 dark:text-gray-100">
-                                {{-- Larger, bolder title --}}
-                                <span class="text-pink-500">🤔</span> Reason for Vacancy
-                            </h3>
-                            <p class="text-base leading-relaxed text-gray-700 dark:text-gray-300">
-                                {{ $personnel->reason_vacancy }}</p> {{-- Adjusted text color and line height --}}
-                        </div>
-
-                        <div
-                            class="rounded-xl border border-gray-200 bg-gray-50 p-6 dark:border-gray-700 dark:bg-gray-800">
-                            {{-- Rounded-xl, stronger  --}}
-                            <div class="flex flex-col md:flex-row md:items-center md:gap-4">
-                                <h3
-                                    class="mb-3 flex flex-shrink-0 items-center gap-2 text-xl font-bold text-gray-800 md:mb-0 dark:text-gray-100">
-                                    {{-- Larger, bolder title --}}
-                                    <span class="text-2xl text-purple-500">🏷️</span>
-                                    Tags
-                                </h3>
-                                <div x-data="{ isOpen: true }" class="mt-2 flex max-w-full flex-wrap gap-3 md:mt-0">
-                                    {{-- Added margin-top for mobile, consistent gap --}}
-                                    @foreach ($jobtag as $jt)
-                                        <span
-                                            class="-sm hover:-md inline-block cursor-pointer rounded-full bg-purple-100 px-4 py-1.5 text-sm font-semibold text-purple-700 transition-all duration-300 hover:bg-purple-200 dark:bg-purple-800/30 dark:text-purple-300 dark:hover:bg-purple-800">
-                                            {{-- Adjusted colors for tags, hover effects --}}
-                                            {{ $jt->job_tags }}
-                                        </span>
-                                    @endforeach
                                 </div>
                             </div>
                         </div>
-
                     </div>
                 </div>
             </div>

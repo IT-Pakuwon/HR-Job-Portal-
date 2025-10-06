@@ -10,9 +10,12 @@
                         <header
                             class="flex items-center justify-between rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
                             {{-- Rounded-t-xl, stronger border, and darker background for header --}}
-                            <h1 class="flex items-center gap-2 text-2xl font-bold text-gray-800 dark:text-gray-100">
+                            <h1 class="text-lg flex items-center gap-2 font-bold text-gray-800 dark:text-gray-100">
                                 {{-- Larger, bolder title --}}
-                                <span class="text-indigo-500">🆔</span> {{-- Iconic color for the ID icon --}}
+                                    <span
+                                    class="inline-flex items-center rounded-md bg-purple-100 px-2 py-1 text-sm font-semibold text-purple-700">
+                                    ID
+                                </span> {{-- Iconic color for the ID icon --}}
                                 {{ $personnel->docid }}
                             </h1>
                             @php
