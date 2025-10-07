@@ -3,35 +3,88 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+// use Illuminate\Database\Eloquent\SoftDeletes;
 
 class TrPOdetail extends Model
 {
+    // use SoftDeletes;
+
     protected $connection = 'pgsql';
     protected $table = 'tr_po_detail';
     protected $primaryKey = 'id';
     public $timestamps = true;
 
     protected $fillable = [
-        'ponbr','csid','cs_no','sppbjktid','sppbjktid_no',
-        'inventory_type','inventoryid','inventory_descr','ponote_detail',
-        'qty','uom','type_multiplier','base_multiplier','base_qty','base_uom',
-        'unitcost','taxcodeid','taxamt','totalcost',
-        'qty_received','base_qty_received','qty_completed','base_qty_completed',
-        'received','completed','canceled',
-        'account_id','activity_id',
-        'status','created_by','updated_by',
+        'ponbr',
+        'csid',
+        'cs_no',
+        'sppbjktid',
+        'sppbjktid_no',
+        'inventory_type',
+        'inventoryid',
+        'inventory_descr',
+        'ponote_detail',
+        'qty',
+        'uom',
+        'siteid',
+        'type_multiplier',
+        'base_multiplier',
+        'base_qty',
+        'base_uom',
+        'unitcost',
+        'taxcodeid',
+        'taxamt',
+        'totalcost',
+        'qty_received',
+        'base_qty_received',
+        'qty_return',
+        'base_qty_return',
+        'qty_completed',
+        'base_qty_completed',
+        'received',
+        'completed',
+        'canceled',
+        'budget_perpost',
+        'budget_cpny_id',
+        'budget_business_unit_id',
+        'budget_department_fin_id',
+        'budget_account_id',
+        'budget_activity_id',
+        'budget_activity_descr',
+        'status',
+        'created_by',
+        'updated_by',
+        'deleted_by',
     ];
 
     protected $casts = [
-        'qty' => 'float',
-        'unitcost' => 'float',
-        'totalcost' => 'float',
-        'taxamt' => 'float',
-        'received' => 'boolean',
-        'completed' => 'boolean',
-        'canceled' => 'boolean',
+        // numerik
+        'qty'                 => 'decimal:2',
+        'base_qty'            => 'decimal:2',
+        'unitcost'            => 'decimal:2',
+        'taxamt'              => 'decimal:2',
+        'totalcost'           => 'decimal:2',
+        'qty_received'        => 'decimal:2',
+        'base_qty_received'   => 'decimal:2',
+        'qty_return'          => 'decimal:2',
+        'base_qty_return'     => 'decimal:2',
+        'qty_completed'       => 'decimal:2',
+        'base_qty_completed'  => 'decimal:2',
+        'type_multiplier'     => 'integer',
+        'base_multiplier'     => 'integer',
+
+        // boolean
+        'received'            => 'boolean',
+        'completed'           => 'boolean',
+        'canceled'            => 'boolean',
+
+        // tanggal
+        'created_at'          => 'datetime',
+        'updated_at'          => 'datetime',
+        'deleted_at'          => 'datetime',
     ];
 
+    // Relasi ke PO
     public function po()
     {
         return $this->belongsTo(TrPO::class, 'ponbr', 'ponbr');

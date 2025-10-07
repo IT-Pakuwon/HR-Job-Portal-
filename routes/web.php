@@ -567,10 +567,17 @@ Route::post('/logout', function () {
     Route::get('/showpo/{hash}', [PoController::class, 'showPo']);
     Route::get('/po/{id}/comments', [PoController::class, 'fetchComments']);
     Route::post('/po/{id}/comments', [PoController::class, 'storeComment']);
+    Route::post('/po/{poid}/attachments', [PoController::class, 'uploadAttachments'])->name('po.attachments.upload');
+   
+    Route::get('/po/{ponbr}/attachments', [PoController::class, 'listAttachment'])->name('po.attachments.list');
+    Route::post('/po/{ponbr}/attachments', [PoController::class, 'uploadAttachments'])->name('po.attachments.upload');
+    Route::delete('/po/attachments/{id}', [PoController::class, 'removeAttachment'])->name('po.attachments.delete');
+
  
-    Route::post('/po/{poid}/submit',       [PoController::class, 'submit'])->name('po.submit');
+    Route::post('/po/{poid}/submit',       [PoController::class, 'submitPO'])->name('po.submit');
     Route::post('/po/{poid}/cancel-reuse', [PoController::class, 'cancelReuse'])->name('po.cancel_reuse');
     Route::post('/po/{poid}/cancel',       [PoController::class, 'cancel'])->name('po.cancel');
+    Route::get('/pdf_po/{hash}', [PoController::class, 'printPO']);
 
     Route::get('/inventory/list', [MasterController::class, 'InventoryList'])->name('inventory.list');
     Route::get('/request-types/by-doctype', [MasterController::class, 'RequestType'])->name('requesttypes.byDoctype');

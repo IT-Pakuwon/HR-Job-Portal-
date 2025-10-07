@@ -56,8 +56,9 @@ class PoController extends Controller
         ]);
     }
 
-    public function submit(Request $req, $ponbr)
+    public function submitPO(Request $req, $ponbr)
     {
+        // dd($req->all());
         $po = TrPO::where('ponbr', $ponbr)->firstOrFail();
 
         if ($po->status !== 'H') {
@@ -73,8 +74,7 @@ class PoController extends Controller
         // Validasi dinamis sesuai po type
         if (strtoupper($po->potype ?? '') === 'PB') {
             $validated = $req->validate([
-                'podeliverydate'   => ['nullable','date'],   // supaya lolos kalau pakai podeliverydate
-                'po_deliverydate'  => ['nullable','date'],   // dan juga po_deliverydate
+                'podeliverydate'   => ['nullable','date'],   // supaya lolos kalau pakai podeliverydate               
             ]);
 
             if (empty($deliveryDate)) {
@@ -96,7 +96,7 @@ class PoController extends Controller
                 'manpower_total'   => ['required','integer','min:0'],
                 'pic_name'         => ['required','string'],
                 'pic_phone'        => ['required','string'],
-                'payment_method'   => ['required','string'],
+                // 'payment_method'   => ['required','string'],
                 'warranty'         => ['required','string'],
             ]);
         }
@@ -135,9 +135,9 @@ class PoController extends Controller
                 $po->spkwarranty = $req->input('warranty');
 
                 // simpan "cara pembayaran" ke ponote (kolom yang ada)
-                $pm = strtoupper($req->input('payment_method'));
-                $po->ponote = trim(($po->ponote ? $po->ponote."\n" : '') .
-                    "Cara Pembayaran: {$pm}");
+                // $pm = strtoupper($req->input('payment_method'));
+                // $po->ponote = trim(($po->ponote ? $po->ponote."\n" : '') .
+                //     "Cara Pembayaran: {$pm}");
             }
 
             // ubah status ke Purchase Order
@@ -252,5 +252,155 @@ class PoController extends Controller
             'comment' => $comment
         ]);
     }
+
+    public function uploadAttachments(Request $request, $poid)
+    {
+        try {
+            $user = $request->user();
+            $year = (int) ($request->input('year') ?? now()->year);
+
+            $created = [];
+
+            if ($request->hasFile('attachments')) {
+                foreach ($request->file('attachments') as $file) {
+                    $randomNumber = random_int(10000000, 99999999);
+                    $filename     = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+
+                    // bersihkan nama original dari %
+                    $originalName = str_replace('%', '', $file->getClientOriginalName());
+                    $ext        = $file->getClientOriginalExtension();
+                    $attachfile = md5($randomNumber) . '.' . $ext;
+
+                    // folder tujuan
+                    $folder_attach = public_path('attachments/'.$year);
+                    if (!is_dir($folder_attach)) {
+                        @mkdir($folder_attach, 0777, true);
+                    }
+
+                    // pindahkan file (tanpa ekstensi di nama file, sesuai contoh kamu)
+                    $file->move($folder_attach, $attachfile);
+
+                    // simpan DB
+                    $attach = new Attachment();
+                    $attach->docid       = $poid;
+                    $attach->name        = $filename; // tampilkan nama tanpa ekstensi
+                    $attach->attachfile  = $attachfile;
+                    $attach->status      = 'A';
+                    $attach->extention   = $file->getClientOriginalExtension();
+                    $attach->created_user= $user->username ?? 'system';
+                    $attach->save();
+
+                    $created[] = [
+                        'id'         => $attach->id,
+                        'name'       => $attach->name,
+                        'attachfile' => $attach->attachfile,
+                        'ext'        => $attach->extention,
+                        'year'       => $year,
+                    ];
+                }
+            } else {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No files received.'
+                ], 422);
+            }
+
+            return response()->json([
+                'success'     => true,
+                'attachments' => $created
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+   
+    public function listAttachment($ponbr)
+    {
+        $rows = Attachment::where('docid', $ponbr)
+            ->where('status', 'A')
+            ->orderByDesc('id')->get()
+            ->map(function($a){
+            return [
+                'id'         => $a->id,
+                'name'       => $a->name . '.' . $a->extention,
+                'attachfile' => $a->attachfile,               // sudah termasuk extension
+                'year'       => optional($a->created_at)->year ?? now()->year,
+                'created_at' => optional($a->created_at)->toDateTimeString(),
+                'created_user'=> $a->created_user,
+                'url'        => url('/attachments/'.(optional($a->created_at)->year ?? now()->year).'/'.$a->attachfile),
+            ];
+        });
+
+        return response()->json(['success'=>true, 'attachments'=>$rows]);
+    }
+    
+
+    public function removeAttachment($id)
+    {
+        try {
+            $attachment = Attachment::findOrFail($id);
+            $attachment->update(['status' => 'X']); // Update status ke "D" (Deleted)
+
+            return response()->json(['success' => true, 'message' => 'Attachment status updated']);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => 'Failed to update attachment status', 'error' => $e->getMessage()], 500);
+        }
+
+        return response()->json(['success'=>true]);
+    }
+
+    public function printPO(string $hash)
+    {
+        $decoded = Hashids::decode($hash);
+        abort_if(empty($decoded), 404, 'Dokumen tidak ditemukan.');
+        $id = $decoded[0];
+
+        $authUser = Auth::user();
+        if (!$authUser) {
+            return redirect()->route('login');
+        }
+
+        // Header PO
+        $po = TrPO::findOrFail($id);
+
+        // Detail pakai ponbr
+        $podetail = TrPOdetail::where('ponbr', $po->ponbr)
+            ->orderBy('cs_no') // ganti jika nama kolom baris berbeda
+            ->get();
+
+        // --- Totals (anggap totalcost = DPP/Net line, taxamt = PPN line) ---
+        $dpp  = (float) $podetail->sum('totalcost');
+        $ppn  = (float) $podetail->sum('taxamt');
+        $grand = $dpp + $ppn;
+
+        // Data tambahan utk view
+        $data = [
+            'po'       => $po,
+            'podetail' => $podetail,
+            'totals'   => [
+                'dpp'   => $dpp,
+                'ppn'   => $ppn,
+                'grand' => $grand,
+            ],
+            'now'      => Carbon::now(),
+            'user'     => $authUser,
+        ];
+
+        // Pilih view
+        $view = $po->potype === 'PO'
+            ? 'pages.purchase.pdf_po'
+            : 'pages.purchase.pdf_spk';
+
+        $pdf = \PDF::loadView($view, $data)
+            ->setPaper('A4', 'portrait');
+
+        // Nama file stream yang informatif
+        $basename = $po->potype === 'PO' ? 'PO' : 'SPK';
+        return $pdf->stream("{$basename}_{$po->ponbr}.pdf");
+    }
+
 
 }

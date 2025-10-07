@@ -339,11 +339,11 @@
                                 <form id="infoPoForm">
                                     @csrf
                                     @php
-                                        $isPB = strtoupper($po->potype ?? '') === 'PO';
+                                        $isPB = strtoupper($po->potype ?? '') === 'PB';
                                         $readOnlyDelivery = ($po->status === 'P'); // <- read-only kalau status P
                                     @endphp
                                     @if ($isPB)
-                                        {{-- ====== PO TYPE = PO : hanya tanggal delivery ====== --}}
+                                        {{-- ====== PO TYPE = PB : hanya tanggal delivery ====== --}}
                                         <div
                                             class="rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800">                                           
                                             <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
@@ -372,7 +372,7 @@
                                                 $isHold = ($po->status === 'H');
                                             @endphp
                                         @if ($isHold)
-                                            {{-- ====== PO TYPE ≠ SPK : form pekerjaan lengkap ====== --}}
+                                            {{-- ====== PO TYPE ≠ PB : form pekerjaan lengkap ====== --}}
                                             <div class="space-y-4">
 
                                                 {{-- Baris 1: Tanggal Pelaksanaan (range) --}}

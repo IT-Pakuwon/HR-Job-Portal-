@@ -586,7 +586,8 @@ class CanvassController extends Controller
                     $filename = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
                    
                     $originalName = str_replace('%', '', $file->getClientOriginalName());
-                    $attachfile = md5($randomNumber);
+                    $ext        = $file->getClientOriginalExtension();
+                    $attachfile = md5($randomNumber) . '.' . $ext;
 
                     //attach to folder
                     $folder_attach = public_path() . '/attachments/'.$year;
@@ -914,7 +915,8 @@ class CanvassController extends Controller
                     $filename = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
                    
                     $originalName = str_replace('%', '', $file->getClientOriginalName());
-                    $attachfile = md5($randomNumber);
+                    $ext        = $file->getClientOriginalExtension();
+                    $attachfile = md5($randomNumber) . '.' . $ext;
 
                     //attach to folder
                     $folder_attach = public_path() . '/attachments/'.$year;
@@ -1118,13 +1120,17 @@ class CanvassController extends Controller
         $prefix = strtoupper(substr((string)$cs->sppbjktid, 0, 2));
 
         if ($prefix == 'PB') {
-                $srcHeader = TrSPPB::with(['requestType', 'creator', 'purchaser'])->where('sppbid', $cs->sppbjktid)->first();              
+                $srcHeader = TrSPPB::with(['requestType', 'creator', 'purchaser'])->where('sppbid', $cs->sppbjktid)->first();   
+                $potype = 'PO';           
         } else if ($prefix == 'PJ') {
-                $srcHeader = TrSPPJ::with(['requestType', 'creator', 'purchaser'])->where('sppjid', $cs->sppbjktid)->first();               
+                $srcHeader = TrSPPJ::with(['requestType', 'creator', 'purchaser'])->where('sppjid', $cs->sppbjktid)->first();   
+                $potype = 'SPK';            
         } else if ($prefix == 'PK') {
-                $srcHeader = TrSPPK::with(['requestType', 'creator', 'purchaser'])->where('sppkid', $cs->sppbjktid)->first();                
+                $srcHeader = TrSPPK::with(['requestType', 'creator', 'purchaser'])->where('sppkid', $cs->sppbjktid)->first();     
+                $potype = 'SPK';           
         } else if ($prefix == 'PT') {
-                $srcHeader = TrSPPT::with(['requestType', 'creator', 'purchaser'])->where('spptid', $cs->sppbjktid)->first();              
+                $srcHeader = TrSPPT::with(['requestType', 'creator', 'purchaser'])->where('spptid', $cs->sppbjktid)->first();  
+                $potype = 'SPK';            
         } else {
             abort(422, 'Invalid doc type');
         }   
@@ -1194,7 +1200,7 @@ class CanvassController extends Controller
                 $status        = 'C';
                 $subjectSuffix = $subjectMap[$status] ?? 'Notification';
 
-                $this->generatePOFromCS($cs, $user, $prefix);
+                $this->generatePOFromCS($cs, $user, $potype);
                 
 
                 $data = [
@@ -1787,13 +1793,13 @@ class CanvassController extends Controller
 
    
 
-    private function generatePOFromCS(TrCS $cs, $user, $prefix): void
+    private function generatePOFromCS(TrCS $cs, $user, $potype): void
     {
-        
+        // dd('hai');
         // Idempotent: kalau sudah ada PO untuk CS ini, jangan bikin lagi
-        $already = TrPO::where('csid', $cs->csid)->exists();
+        $already = TrPO::where('csid', $cs->csid)->exists();       
         if ($already) return;
-
+        
         // Ambil semua detail CS
         $details = TrCSdetail::where('csid', $cs->csid)->get();
         if ($details->isEmpty()) return;
@@ -1821,27 +1827,7 @@ class CanvassController extends Controller
 
         // nomor otomatis (pakai tabel autonbr doctype=PO, format: POYYMM####)
         $now   = Carbon::now();
-        // $year  = $now->year;
-        // $month = str_pad($now->month, 2, '0', STR_PAD_LEFT);
-
-        // $mkPonbr = function() use ($year, $month) {
-        //     $tglbln = substr($year, 2) . $month; // YYMM
-        //     $autonbr = Autonbr::lockForUpdate()
-        //         ->where('doctype','PO')->where('year',$year)->where('month',$month)->first();
-
-        //     if (!$autonbr) {
-        //         $autonbr = Autonbr::create([
-        //             'doctype' => 'PO', 'year' => $year, 'month' => $month, 'status' => 'A', 'number' => 1,
-        //         ]);
-        //         $seq = 1;
-        //     } else {
-        //         $seq = $autonbr->number + 1;
-        //         $autonbr->update(['number' => $seq]);
-        //     }
-        //     $ponbr = 'PO'.$tglbln.sprintf('%04d',$seq);
-        //     return [$ponbr, $seq];
-        // };
-
+       
         // nomor otomatis 10 digit per company (tanpa tahun/bulan)
         $mkPonbr = function() use ($cs) {
             $company = strtoupper((string)$cs->cpny_id);
@@ -1912,7 +1898,7 @@ class CanvassController extends Controller
                 $po->ponbr           = $ponbr;
                 $po->poautonbr       = $poautonbr;
                 $po->podate          = $now->toDateString();
-                $po->potype          = $prefix; 
+                $po->potype          = $potype; 
                 $po->cpny_id         = $cs->cpny_id;
                 $po->csid            = $cs->csid;
                 $po->sppbjktid       = $cs->sppbjktid;
@@ -1933,6 +1919,8 @@ class CanvassController extends Controller
                 $po->taxcodeid       = $taxCodeId;
                 $po->taxamt          = $taxSel;
                 $po->grandtotalamt   = $grandSel;
+                $po->totalqty        = 0;
+                $po->totalqtyreceived = 0;
 
                 $po->submitdate      = $now;
                 // field tanggal pengiriman/kontrak bisa diisi belakangan
@@ -1940,59 +1928,73 @@ class CanvassController extends Controller
                 $po->created_by      = $user->username ?? 'system';
 
                 $po->save();
-
-                // === PO DETAIL untuk vendor ini saja ===
+                
+                $totalQty = 0;                
+                // === PO DETAIL untuk vendor ini ===
                 foreach ($rows as $row) {
                     $unitCost  = (float) ($row->{"vendorprice{$i}"}      ?? 0);
                     $totalCost = (float) ($row->{"vendortotalprice{$i}"} ?? 0);
-
-                    // hitung tax per-baris sesuai % header (jika mau)
-                    $lineTax = $totalCost * (($ppnPct + $pphPct) / 100);
+                    $lineTax   = $totalCost * (($ppnPct + $pphPct) / 100);
 
                     $pd = new TrPOdetail();
-                    $pd->setConnection('pgsql');
 
-                    $pd->ponbr                = $ponbr;
-                    $pd->csid                 = $cs->csid;
-                    $pd->cs_no                = $row->cs_no ?? null;
-                    $pd->sppbjktid            = $row->sppbjktid ?? $cs->sppbjktid;
-                    $pd->sppbjktid_no         = $row->sppbjkt_no ?? null;
+                    $pd->ponbr              = $ponbr;
+                    $pd->csid               = $cs->csid;
+                    $pd->cs_no              = $row->cs_no ?? null;
+                    $pd->sppbjktid          = $row->sppbjktid ?? $cs->sppbjktid;
+                    $pd->sppbjktid_no       = $row->sppbjkt_no ?? null;
 
-                    $pd->inventory_type       = $row->inventory_type ?? null;
-                    $pd->inventoryid          = $row->inventoryid;
-                    $pd->inventory_descr      = $row->inventory_descr;
-                    $pd->ponote_detail        = $row->csnote_detail ?? null;
+                    $pd->inventory_type     = $row->inventory_type ?? null;
+                    $pd->inventoryid        = $row->inventoryid;
+                    $pd->inventory_descr    = $row->inventory_descr;
+                    $pd->ponote_detail      = $row->csnote_detail ?? null;
 
-                    $pd->qty                  = (float) $row->qty;
-                    $pd->uom                  = $row->uom;
+                    $pd->qty                = (float) $row->qty;
+                    $pd->uom                = $row->uom;
 
-                    $pd->type_multiplier      = $row->type_multiplier ?? null;
-                    $pd->base_multiplier      = $row->base_multiplier ?? null;
-                    $pd->base_qty             = $row->base_qty ?? null;
-                    $pd->base_uom             = $row->base_uom ?? null;
+                    $pd->type_multiplier    = $row->type_multiplier ?? null;
+                    $pd->base_multiplier    = $row->base_multiplier ?? null;
+                    $pd->base_qty           = $row->base_qty ?? null;
+                    $pd->base_uom           = $row->base_uom ?? null;
 
-                    $pd->unitcost             = $unitCost;
-                    $pd->taxcodeid            = $taxCodeId;
-                    $pd->taxamt               = $lineTax;
-                    $pd->totalcost            = $totalCost;
+                    $pd->unitcost           = $unitCost;
+                    $pd->taxcodeid          = $taxCodeId; // boleh null
+                    $pd->taxamt             = $lineTax;
+                    $pd->totalcost          = $totalCost;
 
-                    $pd->qty_received         = 0;
-                    $pd->base_qty_received    = 0;
-                    $pd->qty_completed        = 0;
-                    $pd->base_qty_completed   = 0;
-                    $pd->received             = false;
-                    $pd->completed            = false;
-                    $pd->canceled             = false;
+                    // qty states (pastikan semuanya diisi agar kolom insert konsisten)
+                    $pd->qty_received       = 0;
+                    $pd->base_qty_received  = 0;
+                    $pd->qty_return         = 0;
+                    $pd->base_qty_return    = 0;
+                    $pd->qty_completed      = 0;
+                    $pd->base_qty_completed = 0;
 
-                    // map akun/aktivitas dari CS detail bila ada
-                    $pd->account_id           = $row->budget_account_id  ?? null;
-                    $pd->activity_id          = $row->budget_activity_id ?? null;
+                    $pd->received           = false;
+                    $pd->completed          = false;
+                    $pd->canceled           = false;
 
-                    $pd->status               = 'H';     // detail draft
-                    $pd->created_by           = $user->username ?? 'system';
+                    // ⬇️ gunakan kolom yang benar (BUKAN account_id/activity_id)
+                    $pd->budget_cpny_id           = $row->budget_cpny_id           ?? null;
+                    $pd->budget_business_unit_id  = $row->budget_business_unit_id  ?? null;
+                    $pd->budget_department_fin_id = $row->budget_department_fin_id ?? null;
+                    $pd->budget_account_id        = $row->budget_account_id        ?? null;
+                    $pd->budget_activity_id       = $row->budget_activity_id       ?? null;
+                    $pd->budget_activity_descr    = $row->budget_activity_descr    ?? null;
+                    $pd->budget_perpost           = $row->budget_perpost           ?? null;
+
+                    $pd->status             = 'H';
+                    $pd->created_by         = $user->username ?? 'system';
 
                     $pd->save();
+
+                    $totalQty += (float) $row->qty;
                 }
+
+                // update totalqty header
+                $po->totalqty = $totalQty;                
+                $po->save();
+
             }
 
             DB::connection('pgsql')->commit();
