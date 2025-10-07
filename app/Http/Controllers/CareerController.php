@@ -1283,15 +1283,22 @@ class CareerController extends Controller
         $applicant = Applicant::where('applicant_id', $request->applicant_id)->first();
         $company = Company::select(['cpnyid', 'cpnyname'])->where('cpnyid', $request->cpnyid)->first();
         $payrollconfirm = Payrollconfirm::where('applicant_id', $request->applicant_id)->first();
+        $dept = Dept::where('deptname', $request->departementid)->first();
         $t_approval = SignPayroll::where('docid', $request->jobapply_id)
             ->orderby('aprvid','ASC')
             ->get();
 
         $net_salary   = (float) (optional($payrollconfirm)->net_salary ?? 0);
         // dd($t_approval);    
+        if($payrollconfirm->contract_term == null){
+            $contract_term = '';
+        }else{
+            $contract_term = '- Contract ' . $payrollconfirm->contract_term . ' bulan';
+        }
+
         $data = [
             'cpnyid' => $company->cpnyname,
-            'departementid' => $request->departementid,
+            'departementid' => ucwords(strtolower($dept->dept_fullname)) ?? ucwords(strtolower($request->departementid)),
             'full_name' => $applicant->full_name,
             'gender' => $applicant->gender,
             'birth_place' => $applicant->birth_place,
@@ -1309,6 +1316,7 @@ class CareerController extends Controller
             'other_facility' => $payrollconfirm->other_facility ?? '-',
             'availability_date' => $payrollconfirm->availability_date ?? '-',
             'work_start_date' => $payrollconfirm->work_start_date ?? '-',
+            'contract_term' => $contract_term,
             'employment_status' => $payrollconfirm->employment_status ?? '-', 
             'approvals' => $t_approval,
         ];
@@ -1333,6 +1341,7 @@ class CareerController extends Controller
          // Net salary aman + terbilang
         $net_salary   = (float) (optional($payrollconfirm)->net_salary ?? 0); // <- aman jika payroll null
         $salary_words = ucfirst($this->terbilang($net_salary)) . ' rupiah'; // <- pakai $this
+        $work_start_date = $payrollconfirm->work_start_date ? Carbon::parse($payrollconfirm->work_start_date)->translatedFormat('d F Y') : '-';
 
         $companyaddress = CompanyAddress::where('cpnyid', $request->cpnyid)->first();
         
@@ -1350,7 +1359,8 @@ class CareerController extends Controller
             'job_level' => $request->job_level,
             'date' => now()->format('d F Y'),    
             'net_salary' => number_format($net_salary) ?? '0',
-            'salary_words' => $salary_words,          
+            'salary_words' => $salary_words, 
+            'work_start_date' => $work_start_date,          
             'logo' => $company->cpnyid,
             'company_name' => $companyaddress->cpnyname ?? '-',
             'company_address' => $companyaddress->address ?? '-',
@@ -1644,6 +1654,7 @@ class CareerController extends Controller
                 'availability_date' => $request->availability_date,
                 'work_start_date' => $request->work_start_date,
                 'employment_status' => $request->employment_status,
+                'contract_term' => $request->employment_status === 'PKWT' ? $request->contract_term : null,
                 'status' => 'P',
                 'created_user' => $user->username,
             ]);
@@ -1682,6 +1693,7 @@ class CareerController extends Controller
         $payroll->availability_date = $request->availability_date;
         $payroll->work_start_date = $request->work_start_date;
         $payroll->employment_status = $request->employment_status;
+        $payroll->contract_term = $request->employment_status === 'PKWT' ? $request->contract_term : null;;
         $payroll->updated_user = $user->username;
         $payroll->save();          
 

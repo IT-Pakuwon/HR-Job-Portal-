@@ -315,7 +315,7 @@ class BudgetController extends Controller
                     $filename = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
                    
                     $originalName = str_replace('%', '', $file->getClientOriginalName());
-                    $attachfile = md5($randomNumber) . '-' . $originalName;
+                    $attachfile = md5($randomNumber);
 
                     //attach to folder
                     $folder_attach = public_path() . '/attachments/'.$year;
@@ -544,7 +544,7 @@ class BudgetController extends Controller
                     $filename = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
                    
                     $originalName = str_replace('%', '', $file->getClientOriginalName());
-                    $attachfile = md5($randomNumber) . '-' . $originalName;
+                    $attachfile = md5($randomNumber);
 
                     //attach to folder
                     $folder_attach = public_path() . '/attachments/'.$year;
@@ -721,6 +721,7 @@ class BudgetController extends Controller
         $tApproval = T_approval::where('docid', $budget->budget_id)
             ->where('status', 'P')
             ->where('aprvusername', 'like', "%{$user->username}%")
+            ->whereNotNull('aprvdatebefore') 
             ->orderBy('aprvid', 'ASC')
             ->first();
 
@@ -895,6 +896,7 @@ class BudgetController extends Controller
         $t_approval = T_approval::where('docid', $budget->budget_id)
             ->where('status', 'P')
             ->where('aprvusername', 'like', "%" . $user->username . "%")
+            ->whereNotNull('aprvdatebefore') 
             ->first();
         // dd($t_approval);
         if ($t_approval == null) {
@@ -985,6 +987,7 @@ class BudgetController extends Controller
         $t_approval = T_approval::where('docid', $budget->budget_id)
             ->where('status', 'P')
             ->where('aprvusername', 'like', "%" . $user->username . "%")
+            ->whereNotNull('aprvdatebefore') 
             ->first();
         // dd($t_approval);
         if ($t_approval == null) {

@@ -43,7 +43,7 @@
                                    'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400' :
                                    'text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200'"
                                class="whitespace-nowrap px-3 py-3 text-sm font-medium transition-colors duration-200 focus:outline-none sm:px-4 sm:text-base">
-                               Assessment HC
+                               Form Interview HC
                            </button>
                        @endif
                        <button @click="subtab = 'assessmentuser'"

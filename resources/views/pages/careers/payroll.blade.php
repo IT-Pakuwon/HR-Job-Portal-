@@ -111,7 +111,7 @@
                             <select name="bank_name" id="bank_name"
                                 class="w-full rounded-lg border border-gray-300 p-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
                                 required>
-                                <option value="">-- Pilih Bank --</option>
+                                <option value="">-- Bank Name --</option>
                                 <option value="BCA">BCA</option>
                                 <option value="MANDIRI">MANDIRI</option>
                             </select>
@@ -162,11 +162,26 @@
                         <select name="employment_status" id="employment_status"
                             class="w-full rounded-lg border border-gray-300 p-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
                             required>
-                            <option value="">-- Pilih Bank --</option>
+                            <option value="">-- Employment Status --</option>
                             <option value="PKWT">PKWT</option>
                             <option value="PKWTT">PKWTT</option>
                         </select>
+                        <div id="contract_term_wrap" class="mt-4 hidden">
+                            <label for="contract_term"
+                                    class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                Contract Term (PKWT)
+                            </label>
+                            <select name="contract_term" id="contract_term"
+                                    class="w-full rounded-lg border border-gray-300 p-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white">
+                                <option value="">-- Select Contract Term --</option>
+                                <option value="2">Contract 2 bulan</option>
+                                <option value="6">Contract 6 bulan</option>
+                                <option value="12">Contract 12 bulan</option>
+                            </select>
+                        </div>
                     </div>
+                    
+
 
 
                     <div class="mt-8 flex justify-end gap-3">
@@ -246,7 +261,7 @@
                             <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-700 dark:text-gray-300">
                                 {{ \Carbon\Carbon::parse($p->work_start_date)->format('d F Y') }}</td>
                             <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-700 dark:text-gray-300">
-                                {{ $p->employment_status }}</td>
+                                {{ $p->employment_status }} - Contract {{ $p->contract_term }} bulan</td>
                             <td class="whitespace-nowrap px-6 py-4 text-sm">
                                 <button
                                     class="editPayrollBtn inline-flex items-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors duration-200 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800">Edit</button>
@@ -530,6 +545,7 @@
         $('#payrollForm')[0].reset();
         $('#payroll_id').val('');
         $('#net_salary').val('');
+        toggleContractTerm($('#employment_status').val() || '');
         $('#payrollModal').removeClass('hidden');
     });
 
@@ -1031,5 +1047,21 @@ $(document).on('click', '.revealSalaryBtn', function () {
 //           }
 //       });
 //   });
+</script>
+<script>
+    function toggleContractTerm(statusVal) {
+  if (statusVal === 'PKWT') {
+    $('#contract_term_wrap').removeClass('hidden');
+  } else {
+    $('#contract_term_wrap').addClass('hidden');
+    $('#contract_term').val(''); // bersihkan jika bukan PKWT
+  }
+}
+
+// on-change handler
+$(document).on('change', '#employment_status', function () {
+  toggleContractTerm(this.value);
+});
+
 </script>
 

@@ -10,6 +10,7 @@ use App\Models\TrPO;
 use App\Models\TrPOdetail;
 use App\Models\T_approval;
 use App\Models\Attachment;
+use App\Models\T_Message;
 use Vinkla\Hashids\Facades\Hashids;
 
 class PoController extends Controller
@@ -165,10 +166,16 @@ class PoController extends Controller
         // simpan reason ke ponote (append)
         $stamp = Carbon::now()->format('d/m/Y H:i');
         $who   = Auth::user()->username ?? 'user';
-        $reasonLine = "[{$stamp}] {$who} → CANCEL REUSE: ".$data['reason'];
-
-        $po->ponote = trim(($po->ponote ? $po->ponote."\n" : '').$reasonLine);
+        $reasonLine = "CANCEL REUSE: ".$data['reason'];       
         $po->save();
+
+        $fakeReq = new \Illuminate\Http\Request([
+            'docid'  => $po->ponbr,
+            'reason' => $reasonLine,
+        ]);
+
+        app('App\Http\Controllers\SendCommentController')
+                ->sendmsg($po->ponbr, 'PO', $fakeReq);
 
         return response()->json([
             'success' => true,
@@ -191,14 +198,59 @@ class PoController extends Controller
         // simpan reason ke ponote (append)
         $stamp = Carbon::now()->format('d/m/Y H:i');
         $who   = Auth::user()->username ?? 'user';
-        $reasonLine = "[{$stamp}] {$who} → CANCEL: ".$data['reason'];
-
-        $po->ponote = trim(($po->ponote ? $po->ponote."\n" : '').$reasonLine);
+        $reasonLine = "CANCEL: ".$data['reason'];       
         $po->save();
+
+        $fakeReq = new \Illuminate\Http\Request([
+            'docid'  => $po->ponbr,
+            'reason' => $reasonLine,
+        ]);
+
+        app('App\Http\Controllers\SendCommentController')
+                ->sendmsg($po->ponbr, 'PO', $fakeReq);
 
         return response()->json([
             'success' => true,
             'message' => 'Status diubah menjadi CANCEL (X).'
         ]);
     }
+
+    public function fetchComments($id)
+    {
+    
+        $comments = T_Message::where('docid', $id)
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return response()->json([
+            'status' => 'success',
+            'comments' => $comments
+        ]);
+    }
+
+    public function storeComment(Request $request, $id)
+    {
+        $user = Auth::user();
+        $request->validate([
+            'comment' => 'required|string|max:500',
+        ]);
+        // dd($id);
+        $user = request()->user();
+        $comment = new T_Message();
+        $comment->docid = $id;
+        $comment->doctype = 'PO';
+        $comment->username = $user->username; 
+        $comment->name = $user->name; 
+        $comment->message = $request->comment;
+        $comment->status = 'A';
+        $comment->created_at = now();
+        $comment->save();
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Comment added successfully!',
+            'comment' => $comment
+        ]);
+    }
+
 }

@@ -375,16 +375,16 @@
                                                         <label
                                                             class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-300">Dari
                                                             Tanggal</label>
-                                                        <input type="date" name="work_date_from"
-                                                            id="work_date_from" value="{{ old('work_date_from') }}"
+                                                        <input type="date" name="spkstartworkingdate"
+                                                            id="spkstartworkingdate" value="{{ old('spkstartworkingdate') }}"
                                                             class="w-full rounded-lg border border-gray-300 bg-white p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
                                                     </div>
                                                     <div>
                                                         <label
                                                             class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-300">Sampai
                                                             Tanggal</label>
-                                                        <input type="date" name="work_date_to" id="work_date_to"
-                                                            value="{{ old('work_date_to') }}"
+                                                        <input type="date" name="spkendtworkingdate" id="spkendtworkingdate"
+                                                            value="{{ old('spkendtworkingdate') }}"
                                                             class="w-full rounded-lg border border-gray-300 bg-white p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
                                                     </div>
                                                     <div
@@ -407,8 +407,8 @@
                                                             class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-300">Jumlah
                                                             Hari Kerja</label>
                                                         <input type="number" min="0" step="1"
-                                                            name="work_days" id="work_days"
-                                                            value="{{ old('work_days') }}" placeholder="05"
+                                                            name="spktotalday" id="spktotalday"
+                                                            value="{{ old('spktotalday') }}" placeholder="05"
                                                             class="w-full rounded-lg border border-gray-300 bg-white p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
                                                     </div>
                                                     <div
@@ -475,8 +475,8 @@
                                                             class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-300">Jumlah
                                                             Orang</label>
                                                         <input type="number" min="0" step="1"
-                                                            name="manpower_total" id="manpower_total"
-                                                            value="{{ old('manpower_total') }}" placeholder="0"
+                                                            name="spkmanpower" id="spkmanpower"
+                                                            value="{{ old('spkmanpower') }}" placeholder="0"
                                                             class="w-full rounded-lg border border-gray-300 bg-white p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
                                                     </div>
                                                 </div>
@@ -495,7 +495,7 @@
                                                             class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-300">Nama
                                                             PIC</label>
                                                         <input type="text" name="pic_name" id="pic_name"
-                                                            value="{{ old('pic_name', 'Bapak TIO') }}"
+                                                            value="{{ old('pic_name', 'Bapak X') }}"
                                                             class="w-full rounded-lg border border-gray-300 bg-white p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
                                                     </div>
                                                     <div>
@@ -522,8 +522,8 @@
                                                             class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-300">Metode</label>
                                                         <input type="text" name="payment_method"
                                                             id="payment_method"
-                                                            value="{{ old('payment_method', 'PETTYCASH') }}"
-                                                            class="w-full rounded-lg border border-gray-300 bg-white p-2 text-sm uppercase dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
+                                                            value="{{ old('payment_method', 'Giro') }}"
+                                                            class="w-full rounded-lg border border-gray-300 bg-white p-2 text-sm uppercase dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" readonly>
                                                     </div>
                                                 </div>
                                             </div>
@@ -539,8 +539,8 @@
                                                     <div>
                                                         <label
                                                             class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-300">Garansi</label>
-                                                        <input type="text" name="warranty" id="warranty"
-                                                            value="{{ old('warranty', '1 WEEK') }}"
+                                                        <input type="text" name="spkwarranty" id="spkwarranty"
+                                                            value="{{ old('spkwarranty', '1 WEEK') }}"
                                                             class="w-full rounded-lg border border-gray-300 bg-white p-2 text-sm uppercase dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
                                                     </div>
                                                 </div>
@@ -554,6 +554,44 @@
 
                             {{-- Attachment tab --}}
                             <div x-show="activeTab === 'attachment'" class="flex-1 transition-all">
+                                @if ($po->status === 'H')
+                                    <form id="attachmentUploadForm" class="mb-4 rounded-lg border border-dashed border-gray-300 p-4 dark:border-gray-600"
+                                        enctype="multipart/form-data">
+                                        @csrf
+                                        <input type="hidden" name="ponbr" value="{{ $po->ponbr }}">
+                                        <div class="flex flex-col gap-3 md:flex-row md:items-center">
+                                            <div class="flex-1">
+                                                <label class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-300">
+                                                    Upload Attachment (PDF/JPG/PNG/Doc/Zip) — multiple allowed
+                                                </label>
+                                                <input type="file" id="attachFiles" name="attachments[]" multiple
+                                                    class="w-full rounded-lg border border-gray-300 bg-white p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" />
+                                                <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                                                    Maks 10 file, masing-masing s/d 15 MB.
+                                                </p>
+                                            </div>
+                                            <div class="flex gap-2">
+                                                <button type="button" id="btnUploadAttachment"
+                                                        class="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                                    Upload
+                                                </button>
+                                                <button type="button" id="btnResetAttachment"
+                                                        class="rounded-lg bg-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400">
+                                                    Reset
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        <div id="uploadProgress" class="mt-3 hidden">
+                                            <div class="h-2 w-full rounded bg-gray-200 dark:bg-gray-700">
+                                                <div id="uploadBar" class="h-2 w-0 rounded bg-indigo-600 transition-all"></div>
+                                            </div>
+                                            <p id="uploadPct" class="mt-1 text-xs text-gray-600 dark:text-gray-300">0%</p>
+                                        </div>
+                                    </form>
+                                @endif
+
+                                {{-- TABEL attachment existing --}}
                                 <table class="w-full text-sm">
                                     <thead class="text-gray-600 dark:text-gray-300">
                                         <tr class="border-b border-gray-200 dark:border-gray-700">
@@ -562,28 +600,25 @@
                                             <th class="p-3 text-left font-semibold">Date</th>
                                         </tr>
                                     </thead>
-                                    <tbody>
+                                    <tbody id="attachmentTbody">
                                         @forelse ($attachment as $at)
                                             @php
                                                 $year = $at->created_at->year;
                                                 $fileUrl = url('/attachments/' . $year . '/' . $at->attachfile);
                                             @endphp
-                                            <tr
-                                                class="border-b border-gray-100 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700">
+                                            <tr class="border-b border-gray-100 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700">
                                                 <td class="p-3">
                                                     <a href="{{ $fileUrl }}" target="_blank"
-                                                        class="flex items-center gap-2 font-medium text-indigo-600 hover:underline dark:text-indigo-400">
-                                                        📎 {{ $at->name }}
+                                                    class="flex items-center gap-2 font-medium text-indigo-600 hover:underline dark:text-indigo-400">
+                                                    📎 {{ $at->name }}
                                                     </a>
                                                 </td>
                                                 <td class="p-3">{{ $at->created_user }}</td>
-                                                <td class="p-3">
-                                                    {{ \Carbon\Carbon::parse($at->created_at)->format('d M Y') }}</td>
+                                                <td class="p-3">{{ \Carbon\Carbon::parse($at->created_at)->format('d M Y') }}</td>
                                             </tr>
                                         @empty
                                             <tr>
-                                                <td colspan="3"
-                                                    class="p-4 text-center italic text-gray-500 dark:text-gray-400">
+                                                <td colspan="3" class="p-4 text-center italic text-gray-500 dark:text-gray-400">
                                                     No attachments found.
                                                 </td>
                                             </tr>
@@ -591,6 +626,7 @@
                                     </tbody>
                                 </table>
                             </div>
+
 
                             {{-- Comments tab --}}
                             <div x-show="activeTab === 'comments'" class="flex-1 transition-all">
@@ -727,17 +763,17 @@
 
     <script>
         $(document).ready(function() {
-            let poid = "{{ $po->poid }}"; // Ambil task ID dari PHP ke JavaScript
-            loadComments(poid);
+            let ponbr = "{{ $po->ponbr }}"; // Ambil task ID dari PHP ke JavaScript
+            loadComments(ponbr);
 
             // **Fungsi untuk Memuat Komentar**
-            function loadComments(poid) {
-                console.log("Loading comments for Doc ID:", poid);
+            function loadComments(ponbr) {
+                console.log("Loading comments for Doc ID:", ponbr);
                 let commentList = $('#commentList');
                 commentList.html('<p class="text-gray-500 italic">Loading comments...</p>'); // Loader
 
                 $.ajax({
-                    url: `/po/${poid}/comments`,
+                    url: `/po/${ponbr}/comments`,
                     type: 'GET',
                     success: function(response) {
                         console.log("Comments Loaded:", response);
@@ -787,10 +823,10 @@
                 $('#postCommentBtn').prop('disabled', true).text('Posting... 🚀'); // Disable button saat proses
 
                 $.ajax({
-                    url: `/po/${poid}/comments`,
+                    url: `/po/${ponbr}/comments`,
                     type: 'POST',
                     data: {
-                        poid: poid,
+                        ponbr: ponbr,
                         comment: input,
                         _token: '{{ csrf_token() }}'
                     },
@@ -798,7 +834,7 @@
                         console.log('Comment added successfully:', response);
 
                         if (response.status === "success") {
-                            loadComments(poid); // **Reload komentar setelah menambahkan**
+                            loadComments(ponbr); // **Reload komentar setelah menambahkan**
                             $('#commentInput').val(''); // Kosongkan input setelah sukses
                         }
                     },
@@ -830,7 +866,7 @@
     </script>
     <script>
         $(function() {
-            const poid = "{{ $po->poid ?? $po->ponbr }}";
+            const ponbr = "{{ $po->ponbr ?? $po->ponbr }}";
             const statusNow = "{{ $po->status }}";
             const isPB = "{{ strtoupper($po->potype ?? '') }}" === "PB";
 
@@ -861,24 +897,24 @@
                     }
                 } else {
                     // 1) tanggal pelaksanaan
-                    if (!val('work_date_from')) errors.push({
-                        id: 'work_date_from',
+                    if (!val('spkstartworkingdate')) errors.push({
+                        id: 'spkstartworkingdate',
                         msg: 'Dari Tanggal wajib diisi.'
                     });
-                    if (!val('work_date_to')) errors.push({
-                        id: 'work_date_to',
+                    if (!val('spkendtworkingdate')) errors.push({
+                        id: 'spkendtworkingdate',
                         msg: 'Sampai Tanggal wajib diisi.'
                     });
 
                     // 2) lama pekerjaan
-                    const wd = val('work_days');
+                    const wd = val('spktotalday');
                     if (!wd) errors.push({
-                        id: 'work_days',
+                        id: 'spktotalday',
                         msg: 'Jumlah Hari Kerja wajib diisi.'
                     });
                     else if (isNaN(Number(wd)) || Number(wd) < 0)
                         errors.push({
-                            id: 'work_days',
+                            id: 'spktotalday',
                             msg: 'Jumlah Hari Kerja harus angka ≥ 0.'
                         });
 
@@ -901,20 +937,20 @@
                     });
 
                     // 4) manpower
-                    const mp = val('manpower_total');
+                    const mp = val('spkmanpower');
                     if (!mp) errors.push({
-                        id: 'manpower_total',
+                        id: 'spkmanpower',
                         msg: 'Total Man Power wajib diisi.'
                     });
                     else if (isNaN(Number(mp)) || Number(mp) < 0)
                         errors.push({
-                            id: 'manpower_total',
+                            id: 'spkmanpower',
                             msg: 'Total Man Power harus angka ≥ 0.'
                         });
 
                     // 5) PIC
-                    if (!val('pic_name')) errors.push({
-                        id: 'pic_name',
+                    if (!val('spkpic')) errors.push({
+                        id: 'spkpic',
                         msg: 'Nama PIC wajib diisi.'
                     });
                     if (!val('pic_phone')) errors.push({
@@ -972,7 +1008,7 @@
                 const $spinner = $("#loadingSpinnerContainer").fadeIn();
 
                 $.ajax({
-                    url: `/po/${poid}/submit`,
+                    url: `/po/${ponbr}/submit`,
                     type: 'POST',
                     data: $('#infoPoForm').serialize(),
                     success(res) {
@@ -994,6 +1030,59 @@
             });
         });
     </script>
+
+    <script>
+        $(function () {
+            const ponbr = "{{ $po->ponbr ?? $po->ponbr }}"; // sudah ada di bawah, biar konsisten
+
+            // ===== Modal helpers =====
+            const $modalCancel       = $('#modalCancel');
+            const $modalCancelReuse  = $('#modalCancelReuse');
+            const open  = ($m) => $m.removeClass('hidden').addClass('flex');
+            const close = ($m) => $m.addClass('hidden').removeClass('flex');
+
+            // Open modals
+            $('#cancelBtn').on('click',       () => open($modalCancel));
+            $('#cancelReuseBtn').on('click',  () => open($modalCancelReuse));
+
+            // Close buttons
+            $('#btnCloseCancel').on('click',        () => close($modalCancel));
+            $('#btnCloseCancelReuse').on('click',   () => close($modalCancelReuse));
+
+            // Klik backdrop untuk menutup
+            $modalCancel.on('click', function (e) { if (e.target === this) close($modalCancel); });
+            $modalCancelReuse.on('click', function (e) { if (e.target === this) close($modalCancelReuse); });
+
+            // ESC untuk menutup
+            $(document).on('keydown', function (e) {
+            if (e.key === 'Escape') {
+                close($modalCancel);
+                close($modalCancelReuse);
+            }
+            });
+
+            // (Opsional) aksi Confirm — silakan sesuaikan endpoint-nya
+            $('#btnConfirmCancel').on('click', function () {
+            const reason = $('#reasonCancel').val().trim();
+            if (!reason) { toastr.warning('Alasan wajib diisi.'); return; }
+            $("#loadingSpinnerContainer").fadeIn();
+            $.post(`/po/${ponbr}/cancel`, { reason, _token: '{{ csrf_token() }}' })
+                .done(res => { toastr.success(res.message || 'PO berhasil dicancel.'); location.reload(); })
+                .fail(xhr => { toastr.error(xhr.responseJSON?.message || 'Gagal cancel.'); })
+                .always(() => $("#loadingSpinnerContainer").fadeOut());
+            });
+
+            $('#btnConfirmCancelReuse').on('click', function () {
+            const reason = $('#reasonCancelReuse').val().trim();
+            if (!reason) { toastr.warning('Alasan wajib diisi.'); return; }
+            $("#loadingSpinnerContainer").fadeIn();
+            $.post(`/po/${ponbr}/cancel-reuse`, { reason, _token: '{{ csrf_token() }}' })
+                .done(res => { toastr.success(res.message || 'Cancel reuse berhasil.'); location.reload(); })
+                .fail(xhr => { toastr.error(xhr.responseJSON?.message || 'Gagal cancel reuse.'); })
+                .always(() => $("#loadingSpinnerContainer").fadeOut());
+            });
+        });
+        </script>
 
 
 

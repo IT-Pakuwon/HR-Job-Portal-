@@ -26,6 +26,7 @@ class Payrollconfirm extends Model
         'availability_date',
         'work_start_date',
         'employment_status',
+        'contract_term',
         'status',
         'created_user',     
         'updated_user',     

@@ -134,7 +134,7 @@
 
             <script>
                 $(document).ready(function () {
-                let scope = 'my';
+                let scope = 'onprogress';
 
                 // 1) Peta scope → judul yang ditampilkan
                 const titleMap = {

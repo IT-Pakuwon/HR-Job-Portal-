@@ -120,7 +120,7 @@
 
             <script>
                 $(document).ready(function () {
-                    let scope = 'purchase'; // default: Purchase Order (P)
+                    let scope = 'hold'; // default: Purchase Order (P)
 
                     const $title = $('h1.text-xl.font-extrabold');
                     const titleMap = {

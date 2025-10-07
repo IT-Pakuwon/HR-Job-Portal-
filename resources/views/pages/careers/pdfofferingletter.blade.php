@@ -196,7 +196,7 @@
                 <td>
                     <strong>Hormat Kami,</strong><br><br><br><br>
                     <strong>_______________</strong><br>
-                    HC Dev Ops Senior Manager<br>
+                    Christie Natali Dewi<br>
                     Tgl: ........................
                 </td>
                 <td style="text-align:right">

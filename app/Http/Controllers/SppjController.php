@@ -394,7 +394,7 @@ class SppjController extends Controller
                     $filename = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
                    
                     $originalName = str_replace('%', '', $file->getClientOriginalName());
-                    $attachfile = md5($randomNumber) . '-' . $originalName;
+                    $attachfile = md5($randomNumber);
 
                     //attach to folder
                     $folder_attach = public_path() . '/attachments/'.$year;
@@ -731,7 +731,7 @@ class SppjController extends Controller
                     $filename = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
                    
                     $originalName = str_replace('%', '', $file->getClientOriginalName());
-                    $attachfile = md5($randomNumber) . '-' . $originalName;
+                    $attachfile = md5($randomNumber);
 
                     //attach to folder
                     $folder_attach = public_path() . '/attachments/'.$year;
@@ -930,6 +930,7 @@ class SppjController extends Controller
         $tApproval = T_approval::where('docid', $sppj->sppjid)
             ->where('status', 'P')
             ->where('aprvusername', 'like', "%{$user->username}%")
+            ->whereNotNull('aprvdatebefore') 
             ->orderBy('aprvid', 'ASC')
             ->first();
 
@@ -1098,6 +1099,7 @@ class SppjController extends Controller
         $tApproval = T_approval::where('docid', $sppj->sppjid)
             ->where('status', 'P')
             ->where('aprvusername', 'like', "%{$user->username}%")
+            ->whereNotNull('aprvdatebefore') 
             ->orderBy('aprvid', 'ASC')
             ->first();
 
@@ -1212,6 +1214,7 @@ class SppjController extends Controller
         $tApproval = T_approval::where('docid', $sppj->sppjid)
             ->where('status', 'P')
             ->where('aprvusername', 'like', "%{$user->username}%")
+            ->whereNotNull('aprvdatebefore') 
             ->orderBy('aprvid', 'ASC')
             ->first();
 

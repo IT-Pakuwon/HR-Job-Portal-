@@ -389,7 +389,7 @@ class SppbController extends Controller
                     $filename = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
                    
                     $originalName = str_replace('%', '', $file->getClientOriginalName());
-                    $attachfile = md5($randomNumber) . '-' . $originalName;
+                    $attachfile = md5($randomNumber);
 
                     //attach to folder
                     $folder_attach = public_path() . '/attachments/'.$year;
@@ -725,7 +725,7 @@ class SppbController extends Controller
                     $filename = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
                    
                     $originalName = str_replace('%', '', $file->getClientOriginalName());
-                    $attachfile = md5($randomNumber) . '-' . $originalName;
+                    $attachfile = md5($randomNumber);
 
                     //attach to folder
                     $folder_attach = public_path() . '/attachments/'.$year;
@@ -918,6 +918,7 @@ class SppbController extends Controller
         $tApproval = T_approval::where('docid', $sppb->sppbid)
             ->where('status', 'P')
             ->where('aprvusername', 'like', "%{$user->username}%")
+            ->whereNotNull('aprvdatebefore') 
             ->orderBy('aprvid', 'ASC')
             ->first();
 
@@ -1086,6 +1087,7 @@ class SppbController extends Controller
         $tApproval = T_approval::where('docid', $sppb->sppbid)
             ->where('status', 'P')
             ->where('aprvusername', 'like', "%{$user->username}%")
+            ->whereNotNull('aprvdatebefore') 
             ->orderBy('aprvid', 'ASC')
             ->first();
 
@@ -1200,6 +1202,7 @@ class SppbController extends Controller
         $tApproval = T_approval::where('docid', $sppb->sppbid)
             ->where('status', 'P')
             ->where('aprvusername', 'like', "%{$user->username}%")
+            ->whereNotNull('aprvdatebefore')
             ->orderBy('aprvid', 'ASC')
             ->first();
 

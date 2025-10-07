@@ -152,7 +152,7 @@
     <tr><td>FASILITAS LAIN</td><td>:</td><td>{{ $other_facility }}</td></tr>
     <tr><td>TANGGAL KESEDIAAN</td><td>:</td><td>{{ $availability_date }}</td></tr>
     <tr><td>TANGGAL MULAI BEKERJA</td><td>:</td><td>{{ $work_start_date }}</td></tr>
-    <tr><td>STATUS KEPEGAWAIAN</td><td>:</td><td>{{ $employment_status }}</td></tr>
+    <tr><td>STATUS KEPEGAWAIAN</td><td>:</td><td>{{ $employment_status }} {{ $contract_term }}</td></tr>
   </table>
 
   <div class="signature-section">
