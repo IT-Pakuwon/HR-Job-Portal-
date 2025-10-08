@@ -123,7 +123,7 @@
                                                                     class="text-xs text-gray-500 dark:text-gray-400">DOB</span>
                                                                 <p
                                                                     class="w-full break-all text-base font-medium text-gray-900 dark:text-gray-100">
-                                                                    {{ $applicant->date_of_birth }}</p>
+                                                                    {{ \Carbon\Carbon::parse($applicant->date_of_birth)->translatedFormat('d F Y') }}</p>
                                                             </div>
                                                         </div>
                                                     </div>

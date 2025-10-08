@@ -1,30 +1,13 @@
 <x-app-layout>
-    <style>
-        /* tinggi ~42px seperti p-2.5 Tailwind */
-        .select2-container .select2-selection--single {
-            height: 42px;
-            border-radius: 0.5rem;
-        }
-
-        .select2-container--default .select2-selection--single .select2-selection__rendered {
-            line-height: 42px;
-            padding-left: .75rem;
-        }
-
-        .select2-container--default .select2-selection--single .select2-selection__arrow {
-            height: 42px;
-            right: .5rem;
-        }
-    </style>
-
     <div class="max-w-9xl mx-auto w-full px-4 py-4 sm:px-6 lg:px-8">
         <div class="grid grid-cols-1 gap-8 lg:grid-cols-2 lg:grid-rows-[minmax(0,auto)_1fr]">
             <div class="flex flex-col gap-8 lg:col-span-2 lg:row-span-1">
-                <form id="personnelForm" class="flex flex-col gap-4" enctype="multipart/form-data">
+                <form id="personnelForm" enctype="multipart/form-data" method="POST">
                     @csrf
                     <div class="w-full rounded-xl bg-white p-6 shadow-md dark:bg-gray-800">
                         <div class="mb-6 border-b border-gray-200 pb-4 dark:border-gray-700">
-                            <h2 class="text-xl font-extrabold text-gray-800 dark:text-white">Create Personnel Requisition
+                            <h2 class="text-xl font-extrabold text-gray-800 dark:text-white">Edit Personnel Requisition -
+                                {{ $personnel->docid ?? '' }}
                             </h2>
                         </div>
                         <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
@@ -36,7 +19,7 @@
                                     name="cpnyid" required>
                                     @foreach ($usercpny as $p)
                                         <option value="{{ $p->cpnyid }}"
-                                            {{ $p->cpnyid == $usercpny2->cpnyid ? 'selected' : '' }}>
+                                            {{ $p->cpnyid == $personnel->cpnyid ? 'selected' : '' }}>
                                             {{ $p->cpnyid }}</option>
                                     @endforeach
                                 </select>
@@ -47,9 +30,11 @@
                                 <select
                                     class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                     name="division" required>
-                                    <option value="" disabled selected>Select Division</option>
+                                    <option value="" disabled>Select Division</option>
                                     @foreach ($division as $p)
-                                        <option value="{{ $p->division_id }}">{{ $p->division_name }}</option>
+                                        <option value="{{ $p->division_id }}"
+                                            {{ $p->division_id == $personnel->division_id ? 'selected' : '' }}>
+                                            {{ $p->division_name }}</option>
                                     @endforeach
                                 </select>
                             </div>
@@ -59,24 +44,19 @@
                                 <select
                                     class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                     name="departementid" required>
-                                    {{-- @foreach ($userdept as $p)
+                                    @foreach ($userdept as $p)
                                         <option value="{{ $p->deptname }}"
-                                            {{ $p->deptname == $userdept2->deptname ? 'selected' : '' }}>
-                                            {{ $p->deptname }}</option>
-                                    @endforeach --}}
-                                    @foreach ($departements as $p)
-                                        <option value="{{ $p->deptname }}">
+                                            {{ $p->deptname == $personnel->departementid ? 'selected' : '' }}>
                                             {{ $p->deptname }}</option>
                                     @endforeach
                                 </select>
                             </div>
                             <div class="flex flex-col gap-2">
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Placement
-                                    Location</label>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Lokasi
+                                    Kerja</label>
                                 <select
                                     class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                     name="siteid" id="siteid" required>
-                                    <option value="">-- Select Site --</option>
                                 </select>
                             </div>
                         </div>
@@ -101,141 +81,115 @@
                                         <select name="job_type" id="job_type"
                                             class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                             required>
-                                            <option value="" disabled>Select Job Type</option>
-                                            <option value="New">New</option>
-                                            <option value="Replacement">Replacement</option>
+                                            <option value="New"
+                                                {{ old('job_type', $personnel->job_type ?? '') == 'New' ? 'selected' : '' }}>
+                                                New</option>
+                                            <option value="Replacement"
+                                                {{ old('job_type', $personnel->job_type ?? '') == 'Replacement' ? 'selected' : '' }}>
+                                                Replacement</option>
                                         </select>
                                     </div>
                                     <div class="flex flex-col gap-2">
                                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Job
                                             Title</label>
-                                        {{-- <select name="job_title" id="job_title"
+                                        <select name="job_title" id="job_title"
                                             class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                             required>
-                                            <option value="">Select/option>
-                                        </select> --}}
-                                        <input type="text" name="job_title" id="job_title"
-                                            class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
-                                            required>
+                                            <option value="">Select</option>
+                                        </select>
                                     </div>
                                     <div class="flex flex-col gap-2">
                                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Job
                                             Level</label>
-                                        {{-- <input type="hidden" name="subgrade_id" id="subgrade_id"> --}}
-                                        {{-- <input type="text" name="job_level" id="job_level"
+                                        <input type="hidden" name="subgrade_id" id="subgrade_id">
+                                        <input type="text" name="job_level" id="job_level"
                                             class="pointer-events-none w-full rounded-lg border border-gray-300 bg-gray-100 p-2.5 text-gray-700 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
-                                            readonly> --}}
-                                        <select
-                                            class="w-full rounded-sm border border-gray-200/50 bg-gray-200/10 p-3 focus:ring focus:ring-blue-300 dark:bg-gray-800"
-                                            name="subgrade_id" id="subgrade_id" required>
-                                            @foreach ($subgradings as $sg)
-                                                <option value="{{ $sg->subgrade_id }}">{{ $sg->subgrade_id }}-{{ $sg->subgrade_name }}</option>
-                                            @endforeach
-                                        </select>
+                                            readonly>
                                     </div>
                                     <div class="flex flex-col gap-2">
                                         <label
                                             class="block text-sm font-medium text-gray-700 dark:text-gray-300">Immediate
                                             Superior</label>
                                         <input type="text" name="immediate_superior" id="immediate_superior"
-                                            class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
+                                            class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                            value="{{ old('immediate_superior', $personnel->immediate_superior ?? '') }}">
                                     </div>
                                     <div class="flex flex-col gap-2">
                                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">State
                                             Position</label>
                                         <input type="text" name="state_position" id="state_position"
-                                            class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
+                                            class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                            value="{{ old('state_position', $personnel->state_position ?? '') }}">
                                     </div>
                                     <div class="flex flex-col gap-2">
                                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Reason
-                                            for
-                                            Vacancy</label>
+                                            for Vacancy</label>
                                         <textarea name="reason_vacancy" id="reason_vacancy"
                                             class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
-                                            required></textarea>
+                                            required>{{ old('reason_vacancy', $personnel->reason_vacancy ?? '') }}</textarea>
                                     </div>
                                 </div>
-                               
                                 <div
-                                    class="mb-6 mt-6 grid grid-cols-1 gap-4 rounded-l bg-gray-200/40 p-6 sm:grid-cols-3">
-                                    <div class="flex items-center gap-4">
-                                        <label class="font-medium text-gray-700 dark:text-gray-300">Actual</label>
-                                        <input type="number" name="actual" id="actual" min="0"
-                                            class="number-only w-50 w-full rounded-sm border border-gray-300/50 bg-white p-3 focus:ring focus:ring-blue-300 dark:bg-gray-800"
-                                            required>
-                                    </div>
-                                    <div class="flex items-center gap-4">
+                                    class="mt-8 grid grid-cols-1 gap-6 rounded-lg bg-gray-100/40 p-6 sm:grid-cols-3 dark:bg-gray-700/40">
+                                    <div class="flex flex-col gap-2">
                                         <label
-                                            class="mb-1 block w-40 font-medium text-gray-700 dark:text-gray-300">Number
+                                            class="block text-sm font-medium text-gray-700 dark:text-gray-300">Actual</label>
+                                        <input type="number" name="actual" id="actual" min="0"
+                                            class="pointer-events-none w-full rounded-lg border border-gray-300 bg-gray-100 p-2.5 text-gray-700 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                            readonly>
+                                    </div>
+                                    <div class="flex flex-col gap-2">
+                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Number
                                             Required</label>
                                         <input type="number" name="required" id="required" min="0"
-                                            class="number-only w-50 w-full rounded-sm border border-gray-300/50 bg-white p-3 focus:ring focus:ring-blue-300 dark:bg-gray-800"
-                                            required>
+                                            class="pointer-events-none w-full rounded-lg border border-gray-300 bg-gray-100 p-2.5 text-gray-700 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                            readonly>
                                     </div>
-                                    <div class="flex items-center gap-4">
-                                        <label
-                                            class="mb-1 block w-40 font-medium text-gray-700 dark:text-gray-300">Total
-                                            Actual Number</label>
+                                    <div class="flex flex-col gap-2">
+                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Total
+                                            Actual
+                                            Number</label>
                                         <input type="number" name="total_actual" id="total_actual" min="0"
-                                            class="number-only w-full rounded-sm border border-gray-300/50 bg-white p-3 focus:ring focus:ring-blue-300 dark:bg-gray-800"
-                                            required>
+                                            class="pointer-events-none w-full rounded-lg border border-gray-300 bg-gray-100 p-2.5 text-gray-700 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                            readonly>
                                     </div>
                                 </div>
                             </div>
                         </details>
                     </div>
 
-                    
-                    <div class="flex w-full flex-col gap-2 rounded-2xl border-b bg-white dark:bg-gray-800">
-                        <div class="flex w-full flex-col rounded-2xl p-4">
-                            <details class="group" open>
-                                <summary class="mb-4 flex cursor-pointer items-center justify-between rounded">
-                                    <span class="text-lg font-semibold">Job Responsibilities</span>
-                                    <span class="transition-all group-open:hidden">See details</span>
-                                    <span class="hidden transition-all group-open:inline">Hide details</span>
-                                </summary>
-                                <div class="flex h-auto flex-col justify-start">
-                                    <div class="overflow-y-auto">
-                                        <table class="mb-4 mt-3 w-full">
-                                            <thead class="bg-gray-100/10">
-                                                <tr>
-                                                    <th class="w-12 border p-3 text-center">No</th>
-                                                    <th class="border-l border-t p-3">Responsibility</th>
-                                                    <th class="w-16 border-r border-t p-3 text-center"></th>
-                                                </tr>
-                                            </thead>
-                                            <tbody id="responsibilitiesTable">
-                                                <tr class="responsibilities-row">
-                                                    <td class="border p-3 text-center">1</td>
-                                                    <td class="border p-3">
-                                                        <input type="text" name="responsibilities[]"
-                                                            placeholder="Type here..."
-                                                            class="w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0">
-                                                    </td>
-                                                    <td class="border-b border-r border-t p-3 text-center">
-                                                        <button type="button"
-                                                            class="removeResponsibilities hidden rounded border border-red-700 bg-red-200/10 px-3 py-3 text-white hover:border-red-700 hover:bg-red-400/30">🗑️</button>
-                                                    </td>
-                                                </tr>
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                    <button type="button" id="addResponsibilities"
-                                        class="mb-4 mt-4 flex items-center justify-center gap-2 rounded border border-gray-700 bg-gray-200/10 p-2 text-gray-800 hover:border-red-700 hover:bg-red-200/10 hover:font-medium hover:text-red-800">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5"
-                                            viewBox="0 0 20 20" fill="currentColor">
-                                            <path fill-rule="evenodd"
-                                                d="M10 2a1 1 0 011 1v6h6a1 1 0 110 2h-6v6a1 1 0 11-2 0v-6H3a1 1 0 110-2h6V3a1 1 0 011-1z"
-                                                clip-rule="evenodd" />
-                                        </svg>
-                                        Add Column
-                                    </button>
-                                </div>
-                            </details>
-                        </div>
+                    <div class="w-full rounded-xl bg-white p-6 shadow-md dark:bg-gray-800">
+                        <details class="group" open>
+                            <summary
+                                class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-xl font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
+                                <span>Job Responsibilities</span>
+                                <span class="text-sm font-medium text-gray-500 transition-all group-open:hidden">See
+                                    details &rarr;</span>
+                                <span
+                                    class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline">Hide
+                                    details &darr;</span>
+                            </summary>
+                            <div class="flex max-h-60 flex-col overflow-y-auto pt-6">
+                                <table id="jobProfileTable"
+                                    class="w-full border-collapse border border-gray-200 dark:border-gray-700">
+                                    <thead>
+                                        <tr class="bg-gray-50 dark:bg-gray-700">
+                                            <th
+                                                class="w-10 border border-gray-200 p-3 text-center text-sm font-semibold text-gray-600 dark:border-gray-700 dark:text-gray-300">
+                                                No</th>
+                                            <th
+                                                class="border border-gray-200 p-3 text-left text-sm font-semibold text-gray-600 dark:border-gray-700 dark:text-gray-300">
+                                                Job Purpose</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </details>
                     </div>
 
-                    {{-- <div class="w-full rounded-xl bg-white p-6 shadow-md dark:bg-gray-800">
+                    <div class="w-full rounded-xl bg-white p-6 shadow-md dark:bg-gray-800">
                         <details class="group" open>
                             <summary
                                 class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-xl font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
@@ -313,8 +267,13 @@
                                                     <td
                                                         class="border border-gray-200 p-3 text-center dark:border-gray-700">
                                                         <button type="button"
-                                                            class="removeQualification rounded border border-red-700 bg-red-200/10 px-3 py-3 text-white hover:border-red-700 hover:bg-red-400/30">
-                                                            🗑️
+                                                            class="removeQualification hidden h-8 w-8 items-center justify-center rounded-md bg-red-100 text-red-600 transition-colors hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">
+                                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4"
+                                                                viewBox="0 0 20 20" fill="currentColor">
+                                                                <path fill-rule="evenodd"
+                                                                    d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 011-1h4a1 1 0 110 2H8a1 1 0 01-1-1zm2 3a1 1 0 011-1h4a1 1 0 110 2H10a1 1 0 01-1-1zm0 3a1 1 0 011-1h4a1 1 0 110 2H10a1 1 0 01-1-1z"
+                                                                    clip-rule="evenodd" />
+                                                            </svg>
                                                         </button>
                                                     </td>
                                                 </tr>
@@ -333,100 +292,6 @@
                                 </div>
                             </div>
                         </details>
-                    </div> --}}
-                    <div class="flex w-full flex-col gap-2 rounded-2xl border-b bg-white dark:bg-gray-800">
-                        <div class="flex w-full flex-col gap-4 p-4">
-                            <details class="group" open>
-                                <summary class="mb-4 flex cursor-pointer items-center justify-between rounded">
-                                    <span class="text-lg font-semibold">Job Qualification</span>
-                                    <span class="transition-all group-open:hidden">See details</span>
-                                    <span class="hidden transition-all group-open:inline">Hide details</span>
-                                </summary>
-                                <!-- Education -->
-                                <div class="flex flex-col gap-2">
-                                    <label class="mb-2 font-semibold"> 🔹 Education</label>
-                                    <div class="relative pl-4">
-                                        <select name="education" id="education"
-                                            class="w-full rounded-lg border border-gray-300 bg-white p-3 text-gray-700 shadow-sm focus:ring-2 focus:ring-blue-400 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200">
-                                            <option value="" disabled selected>Select</option>
-                                            <option value="SMP">SMP</option>
-                                            <option value="SMA / SMK">SMA / SMK</option>
-                                            <option value="D1">D1</option>
-                                            <option value="D2">D2</option>
-                                            <option value="D3">D3</option>
-                                            <option value="D4">D4</option>
-                                            <option value="S1">S1</option>
-                                            <option value="S2">S2</option>
-                                            <option value="S3">S3</option>
-                                        </select>
-                                    </div>
-                                </div>
-
-                                <!-- Experience -->
-                                <div class="flex flex-col gap-2 pb-4 pt-4">
-                                    <label class="mb-2 font-semibold"> 🔹 Experience</label>
-                                    <div class="flex gap-4 pl-4">
-                                        <div class="flex w-1/2 flex-col">
-                                            <label
-                                                class="mb-2 font-medium text-gray-700 dark:text-gray-300">Start</label>
-                                            <input type="number" name="experience_start"
-                                                id="experience_start" min="0" placeholder="Input here"
-                                                class="w-full rounded-lg border border-gray-300 bg-white p-3 text-gray-700 shadow-sm focus:ring-2 focus:ring-blue-400 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200">
-                                        </div>
-                                        <div class="flex w-1/2 flex-col">
-                                            <label
-                                                class="mb-2 font-medium text-gray-700 dark:text-gray-300">End</label>
-                                            <input type="number" name="experience_end" id="experience_end"
-                                                min="0" placeholder="Input here"
-                                                class="w-full rounded-lg border border-gray-300 bg-white p-3 text-gray-700 shadow-sm focus:ring-2 focus:ring-blue-400 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200">
-                                        </div>
-                                    </div>
-                                </div>                                
-                                <div class="flex h-auto flex-col justify-start">
-                                    <label class="mb-2 font-semibold"> 🔹 Skill</label>
-                                    <div class="overflow-y-auto">
-                                        <table class="mb-4 mt-3 w-full">
-                                            <thead class="bg-gray-100/10">
-                                                <tr>
-                                                    <th class="w-12 border p-3 text-center">No</th>
-                                                    <th class="border-t p-3">Skill</th>
-                                                    <th class="w-16 border-r border-t p-3 text-center"></th>
-                                                </tr>
-                                            </thead>
-                                            <tbody id="qualificationTable">
-                                                <tr class="qualification-row">
-                                                    <td class="border p-3 text-center">1</td>
-                                                    <td class="border p-3">
-                                                        <input type="text" name="qualification[]"
-                                                            placeholder="Type here..."
-                                                            class="w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0">
-                                                    </td>
-                                                    <td class="border p-3 text-center">
-                                                        <button type="button"
-                                                            class="removeQualification hidden rounded border border-red-700 bg-red-200/10 px-3 py-3 text-white hover:border-red-700 hover:bg-red-400/30 dark:bg-red-700/30">🗑️</button>
-                                                </tr>
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                    <button type="button" id="addQualification"
-                                        class="mb-4 mt-4 flex items-center justify-center gap-2 rounded border border-gray-700 bg-gray-200/10 p-2 text-gray-800 hover:border-red-700 hover:bg-red-200/10 hover:font-medium hover:text-red-800">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5"
-                                            viewBox="0 0 20 20" fill="currentColor">
-                                            <path fill-rule="evenodd"
-                                                d="M10 2a1 1 0 011 1v6h6a1 1 0 110 2h-6v6a1 1 0 11-2 0v-6H3a1 1 0 110-2h6V3a1 1 0 011-1z"
-                                                clip-rule="evenodd" />
-                                        </svg> Add Column
-                                    </button>
-                                </div>
-                                <!-- Tags -->
-                                <div class="mt-4">
-                                    <label class="mb-2 font-semibold">🔹 Tags</label>
-                                    <select name="tags[]" id="tags" multiple
-                                        class="tags-input w-full rounded-lg border border-gray-300 bg-white p-3 text-gray-700 shadow-sm focus:ring-2 focus:ring-blue-400 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200">
-                                    </select>
-                                </div>
-                            </details>
-                        </div>
                     </div>
 
                     <div class="w-full rounded-xl bg-white p-6 shadow-md dark:bg-gray-800">
@@ -442,13 +307,18 @@
                             </summary>
                             <div class="flex max-h-[125px] flex-col overflow-y-auto pt-6">
                                 <div id="attachmentsContainer">
-                                    <div class="attachment-row flex items-center gap-2">
-                                        <input type="file" name="attachments[]"
-                                            class="flex-grow rounded-md border border-gray-200 bg-white px-4 py-2 text-sm text-gray-700 file:mr-4 file:rounded-full file:border-0 file:bg-indigo-100 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-indigo-700 hover:file:bg-indigo-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:file:bg-indigo-700 dark:file:text-white dark:hover:file:bg-indigo-600">
-                                        <button type="button"
-                                            class="removeAttachment hidden rounded border border-red-600 bg-red-200/30 p-3 text-red-600 transition-colors hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">🗑️
-                                        </button>
-                                    </div>
+                                    @foreach ($attachment as $attach)
+                                        <div class="attachment-row flex items-center gap-2"
+                                            data-attachid="{{ $attach->id }}">
+                                            <a href="{{ url('/attachments/' . $attach->attachfile) }}"
+                                                target="_blank" class="mt-4 w-full border p-3 text-lg">📎
+                                                {{ $attach->name }}</a>
+                                            <button type="button"
+                                                class="removeAttachment2 mt-4 rounded border border-red-700 bg-red-200/10 px-3 py-3 text-white hover:border-red-700 hover:bg-red-400/30 dark:bg-red-700/30"
+                                                data-id="{{ $attach->id }}">🗑️
+                                            </button>
+                                        </div>
+                                    @endforeach
                                 </div>
                             </div>
                             <button type="button" id="addAttachment"
@@ -494,38 +364,33 @@
         </div>
     </div>
 
-    <!-- Toastr CSS -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
-    <!-- Toastr JS -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
-
     <script>
         $(document).ready(function() {
             $('#personnelForm').submit(function(e) {
                 e.preventDefault();
 
                 let formData = new FormData(this);
+                let personnelId = "{{ $personnel->id }}"; // pastikan ID tersedia di view
+                let updateUrl = `/personnels/${personnelId}`;
 
                 // Tampilkan Loading, Disable Button
-                $('#submitBtn').attr('disabled', true); // Disable tombol
-                $('#btnText').text('Processing...'); // Ubah teks tombol
-                $('#loadingSpinner').removeClass('hidden'); // Tampilkan spinner
+                $('#submitBtn').attr('disabled', true);
+                $('#btnText').text('Processing...');
+                $('#loadingSpinner').removeClass('hidden');
 
                 $.ajax({
-                    url: "{{ route('personnels.store') }}",
+                    url: updateUrl,
                     type: "POST",
                     data: formData,
                     processData: false,
                     contentType: false,
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
+                        'X-HTTP-Method-Override': 'PUT'
+                    },
                     success: function(response) {
-                        $('#successMessage').removeClass('hidden'); // Tampilkan pesan sukses
-                        $('#personnelForm')[0].reset(); // Reset form setelah submit
-
-                        // Reset Tombol ke Semula
-                        $('#submitBtn').attr('disabled', false);
-                        $('#btnText').text('Submit Approval');
-                        $('#loadingSpinner').addClass('hidden'); // Sembunyikan spinner
-                        toastr.success("Personnel Requisition Submit Successfully!");
+                        $('#successMessage').removeClass('hidden');
+                        toastr.success("Personnel Requisition Updated Successfully!");
                         window.location.href = "/personnels";
                     },
                     error: function(xhr) {
@@ -535,7 +400,6 @@
                             alert('Error! Please check the input.');
                         }
 
-                        // Reset Tombol ke Semula
                         $('#submitBtn').attr('disabled', false);
                         $('#btnText').text('Submit Approval');
                         $('#loadingSpinner').addClass('hidden');
@@ -545,13 +409,7 @@
 
             $('#cancelBtn').click(function() {
                 const confirmed = confirm("Are you sure you want to cancel? Unsaved changes will be lost.");
-
                 if (confirmed) {
-                    $('#cancelBtn').attr('disabled', true);
-                    $('#cancelText').text('Cancelling...');
-                    $('#cancelSpinner').removeClass('hidden');
-
-                    // Redirect to /news
                     window.location.href = "{{ route('personnels') }}";
                 }
             });
@@ -585,6 +443,41 @@
                     $('.removeAttachment').addClass('hidden');
                 }
             }
+
+            $(document).on('click', '.removeAttachment2', function() {
+                let attachmentId = $(this).data('id'); // Ambil ID attachment
+                let row = $(this).closest('.attachment-row'); // Dapatkan row attachment
+
+                // Cek konfirmasi pengguna
+                let confirmDelete = confirm('Are you sure you want to remove this attachment?');
+
+                if (confirmDelete) {
+                    $.ajax({
+                        url: "/personnels/remove-attachment/" +
+                            attachmentId, // Endpoint ke controller
+                        type: "POST",
+                        data: {
+                            _method: "PUT",
+                            _token: "{{ csrf_token() }}"
+                        },
+                        success: function(response) {
+                            if (response.success) {
+                                row.remove(); // Hapus dari tampilan jika berhasil
+                                alert("Attachment removed successfully!");
+                            } else {
+                                alert("Failed to remove attachment.");
+                            }
+                        },
+                        error: function(xhr) {
+                            alert("Error! Unable to remove attachment.");
+                            console.error(xhr.responseText);
+                        }
+                    });
+                } else {
+                    // **TIDAK ADA AKSI JIKA USER MEMBATALKAN**
+                    return false;
+                }
+            });
         });
     </script>
     <script>
@@ -640,24 +533,27 @@
 
     <script>
         $(document).ready(function() {
-            let qualificationCount = 1;
+            // Hitung jumlah baris existing saat halaman dimuat
+            let qualificationCount = $('#qualificationTable .qualification-row').length || 0;
 
-            // Fungsi untuk Menambah Baris Qualification
             $('#addQualification').click(function() {
-                qualificationCount++;
+                // Hitung ulang total baris yang ada saat ini (termasuk baris dari data AJAX)
+                let qualificationCount = $('#qualificationTable tr.qualification-row').length + 1;
+
                 $('#qualificationTable').append(`
-                <tr class="qualification-row">
-                    <td class="p-3 border text-center">${qualificationCount}</td>
-                    <td class="p-3 border">
-                        <input type="text" name="qualification[]" placeholder="Type here..." class="w-full p-2 border-none focus:ring-0 focus:outline-none bg-transparent">
-                    </td>
-                    <td class="p-3 border text-center">
-                        <button type="button" class="removeQualification bg-red-200/10  hover:border-red-700  hover:bg-red-400/30  border-red-700 border text-white px-3 py-3 rounded hidden">🗑️</button>
-                    </td>
-                </tr>
-            `);
+                    <tr class="qualification-row">
+                        <td class="p-3 border text-center">${qualificationCount}</td>
+                        <td class="p-3 border">
+                            <input type="text" name="qualification[]" placeholder="Type here..." class="w-full p-2 border-none focus:ring-0 focus:outline-none bg-transparent">
+                        </td>
+                        <td class="p-3 border text-center">
+                            <button type="button" class="removeQualification bg-red-200/10 hover:border-red-700 hover:bg-red-400/30 border-red-700 border text-white px-3 py-3 rounded">🗑️</button>
+                        </td>
+                    </tr>
+                `);
                 updateRemoveButtons();
             });
+
 
             // Fungsi untuk Menghapus Baris Qualification
             $(document).on('click', '.removeQualification', function() {
@@ -669,7 +565,7 @@
             // Fungsi untuk Memperbarui Nomor pada Tabel
             function updateRowNumbers() {
                 qualificationCount = 0;
-                $('#qualificationTable tr').each(function() {
+                $('#qualificationTable .qualification-row').each(function(index) {
                     qualificationCount++;
                     $(this).find('td:first').text(qualificationCount);
                 });
@@ -677,7 +573,7 @@
 
             // Fungsi untuk Menyembunyikan Tombol Hapus Jika Hanya Satu Baris
             function updateRemoveButtons() {
-                if ($('.qualification-row').length > 1) {
+                if ($('#qualificationTable .qualification-row').length > 1) {
                     $('.removeQualification').removeClass('hidden');
                 } else {
                     $('.removeQualification').addClass('hidden');
@@ -687,6 +583,7 @@
             updateRemoveButtons();
         });
     </script>
+
     <script>
         $(document).ready(function() {
             // Cegah input selain angka saat mengetik
@@ -704,7 +601,10 @@
             });
         });
     </script>
-
+    <!-- Toastr CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+    <!-- Toastr JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 
     <script>
         $(document).ready(function() {
@@ -744,6 +644,9 @@
     </script>
     <script>
         $(document).ready(function() {
+            // Ambil siteid yang sedang diedit dari backend
+            var currentSiteId = "{{ $personnel->locationname }}";
+            console.log("Current Site ID:", currentSiteId);
             // Fungsi ketika Company berubah
             $('select[name="cpnyid"]').on('change', function() {
                 var cpnyid = $(this).val();
@@ -754,13 +657,16 @@
                         type: "GET",
                         dataType: "json",
                         success: function(data) {
+                            console.log("Received sites data:", data);
                             let $siteSelect = $('select[name="siteid"]');
                             $siteSelect.empty();
                             $siteSelect.append('<option value="">-- Select Site --</option>');
 
                             $.each(data, function(key, value) {
+                                // console.log("Adding site option:", value);
+                                // console.log("Current Site ID:", currentSiteId);
                                 $siteSelect.append(
-                                    `<option value="${value.site}">${value.site}</option>`
+                                    `<option value="${value.id}" ${(value.site == currentSiteId) ? 'selected' : ''}>${value.site}</option>`
                                 );
                             });
                         }
@@ -775,15 +681,51 @@
             $('select[name="cpnyid"]').trigger('change');
         });
     </script>
+
+
     <script>
         $(document).ready(function() {
+            // $('select[name="departementid"]').on('change', function() {
+            //     let deptId = $(this).val();
+            //     let $jobTitle = $('#job_title');
+            //     $jobTitle.empty().append('<option value="">Loading...</option>');
 
+            //     if (deptId) {
+            //         $.ajax({
+            //             url: `/api/vacant-employees/${deptId}`,
+            //             type: 'GET',
+            //             dataType: 'json',
+            //             success: function(data) {
+
+            //                 $jobTitle.empty().append(
+            //                     '<option value="">-- Select Vacant Position --</option>');
+            //                 if (data.length > 0) {
+            //                     $.each(data, function(key, emp) {
+            //                         $jobTitle.append(
+            //                             `<option value="${emp.departement_id}" data-title-level="${emp.subgrade_name}" data-parent-id="${emp.parent_id}">${emp.departement_name}-${emp.subgrade_name}</option>`
+            //                         );
+            //                     });
+            //                 } else {
+            //                     $jobTitle.append('<option value="">No vacant found</option>');
+            //                 }
+            //             },
+            //             error: function() {
+            //                 $jobTitle.empty().append(
+            //                     '<option value="">Error loading data</option>');
+            //             }
+            //         });
+            //     } else {
+            //         $jobTitle.empty().append('<option value="">-- Select Vacant Position --</option>');
+            //     }
+            // });
+
+            const selectedJobTitleId = "{{ $personnel->job_title }}";
 
             function loadJobTitles() {
                 let deptId = $('select[name="departementid"]').val();
                 let jobType = $('#job_type').val();
                 let $jobTitle = $('#job_title');
-
+                console.log("Selected Job Title ID:", selectedJobTitleId);
                 $jobTitle.empty().append('<option value="">Loading...</option>');
 
                 if (!deptId || !jobType) {
@@ -793,9 +735,8 @@
 
                 let url =
                     jobType === 'New' ?
-                    `/api/vacant-employees/${deptId}` // Untuk VACANT (default)
-                    :
-                    `/api/replacement-employees/${deptId}`; // Untuk pengganti (non-VACANT)
+                    `/api/vacant-employees/${deptId}` :
+                    `/api/replacement-employees/${deptId}`;
 
                 $.ajax({
                     url: url,
@@ -808,15 +749,22 @@
                         if (data.length > 0) {
                             $.each(data, function(key, emp) {
                                 const subgradeId = emp.subgrade_id ?? '';
-
+                                const isSelected = emp.departement_name == selectedJobTitleId ?
+                                    'selected' : '';
+                                console.log("Adding job title option:", emp.departement_name,
+                                    emp.subgrade_name, isSelected);
                                 $jobTitle.append(`
                                     <option value="${emp.departement_id}" 
                                             data-title-level="${emp.subgrade_name}" 
                                             data-parent-id="${emp.parent_id}"        
-                                            data-subgrade-id="${subgradeId}">                                    
+                                            data-subgrade-id="${subgradeId}"> 
+                                            ${isSelected}>
                                         ${emp.departement_name}-${emp.subgrade_name}
                                     </option>`);
                             });
+
+                            // Jika ditemukan dan dipilih otomatis, trigger change agar data lain ikut terisi
+                            $jobTitle.trigger('change');
                         } else {
                             $jobTitle.append('<option value="">No positions found</option>');
                         }
@@ -826,6 +774,7 @@
                     }
                 });
             }
+
 
             // Jalankan saat departementid atau job_type berubah
             $('select[name="departementid"], #job_type').on('change', function() {
@@ -838,6 +787,7 @@
                 let titleLevel = selected.data('title-level') || '';
                 let parentId = selected.data('parent-id') || '';
                 let deptId = $('select[name="departementid"]').val();
+                let docid = "{{ $personnel->docid }}";
 
                 $('#job_level').val(titleLevel).prop('readonly', true); // isi title level
 
@@ -847,10 +797,14 @@
 
                 if (parentId) {
                     $.ajax({
-                        url: `/api/job-parent-info/${parentId}/${selected.val()}/${deptId}`,
+                        url: `/api/job-parent-info-edit/${parentId}/${selected.val()}/${deptId}?docid=${docid}`,
                         type: 'GET',
                         dataType: 'json',
                         success: function(data) {
+
+                            console.log("Skill:", data.skill);
+                            console.log("Tags:", data.tags);
+
                             // Isi experience dan education
                             $('#experience_start').val(data.experience_min || '').prop(
                                 'readonly', true);
@@ -884,6 +838,50 @@
                                     '<tr><td colspan="2" class="text-center p-2 border">No job profile found</td></tr>'
                                 );
                             }
+
+                            // ✅ Tampilkan skill ke qualificationTable
+                            let $skillTable = $('#qualificationTable');
+                            $skillTable.empty(); // kosongkan isi sebelumnya
+
+                            if (data.skill && data.skill.length > 0) {
+                                $.each(data.skill, function(index, skill) {
+                                    $skillTable.append(`
+                                        <tr class="qualification-row">
+                                            <td class="border border-gray-200 p-3 text-center dark:border-gray-700">${index + 1}</td>
+                                            <td class="border border-gray-200 p-3 dark:border-gray-700">
+                                                <input type="text" name="qualification[]" value="${skill.job_qualification_descr}" class="w-full border-none bg-transparent p-1 focus:outline-none focus:ring-0">
+                                            </td>
+                                            <td class="border border-gray-200 p-3 text-center dark:border-gray-700">
+                                                <button type="button"
+                                                    class="removeQualification bg-red-200/10  hover:border-red-700  hover:bg-red-400/30  border-red-700 border text-white px-3 py-3 rounded">
+                                                    🗑️
+                                                </button>
+                                                
+                                            </td>
+                                        </tr>
+                                    `);
+                                });
+                            } else {
+                                $skillTable.append(
+                                    '<tr><td colspan="3" class="text-center p-2 border">No skill found</td></tr>'
+                                );
+                            }
+
+
+                            // ✅ Tampilkan tags ke input tags (misal input hidden atau tagify)
+                            let $tagsInput = $('#tags');
+                            $tagsInput.empty(); // kosongkan opsi lama
+
+                            if (data.tags && data.tags.length > 0) {
+                                $.each(data.tags, function(i, tag) {
+                                    $tagsInput.append(
+                                        `<option selected value="${tag.job_tags}">${tag.job_tags}</option>`
+                                    );
+                                });
+                                $tagsInput.trigger('change'); // jika pakai Select2
+                            }
+
+
                         },
                         error: function() {
                             $('#immediate_superior').val('');
@@ -906,48 +904,6 @@
             $('select[name="departementid"]').trigger('change');
         });
     </script>
-    {{-- <script>
-        $(function () {
-            const $cpny = $('select[name="cpnyid"]');
-            const $dept = $('select[name="departementid"]');
-
-            // Jadikan searchable
-            $cpny.select2({
-            placeholder: 'Select Company',
-            width: '100%',
-            allowClear: true
-            });
-
-            $dept.select2({
-            placeholder: 'Select Department',
-            width: '100%',
-            allowClear: true
-            });
-
-            // Catatan: event .on('change') yang sudah Anda tulis tetap bekerja dengan Select2.
-            // Jika dropdown berada di dalam modal/elemen ber-z-index tinggi, set:
-            // dropdownParent: $('#id-modal-anda')
-        });
-    </script> --}}
-    <script>
-        $(function() {
-            const $cpny = $('select[name="cpnyid"]');
-            const $dept = $('select[name="departementid"]');
-
-            $cpny.select2({
-                placeholder: 'Select Company',
-                width: '100%',
-                allowClear: true
-            });
-            $dept.select2({
-                placeholder: 'Select Department',
-                width: '100%',
-                allowClear: true
-            });
-        });
-    </script>
-
-
 
 
 

@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\Facades\Validator;
 use GuzzleHttp\Client;
+use Carbon\Carbon;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -27,6 +28,9 @@ class AppServiceProvider extends ServiceProvider
         Validator::extendImplicit('captcha', function ($attribute, $value, $parameters, $validator) {
             return $this->validateRecaptcha($value);
         }, 'Invalid reCAPTCHA. Please verify you are not a robot.');
+
+        Carbon::setLocale('id');
+        setlocale(LC_TIME, 'id_ID.UTF-8'); // untuk strftime
 
         // Load menu dari database dan bagikan ke semua view
         // $menus = DB::table('ms_screen')

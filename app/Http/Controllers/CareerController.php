@@ -1213,7 +1213,7 @@ class CareerController extends Controller
         $templateProcessor->setValue('full_name', $applicant->full_name);
         $templateProcessor->setValue('gender', $applicant->gender);
         $templateProcessor->setValue('birth_place', $applicant->birth_place);
-        $templateProcessor->setValue('datebirth', $datebirth);
+        $templateProcessor->setValue('datebirth', $applicant->date_of_birth);
         $templateProcessor->setValue('religion', $applicant->religion);
         $templateProcessor->setValue('ktp_id', $applicant->ktp_id);
         $templateProcessor->setValue('cpnyid', $company->cpnyname);

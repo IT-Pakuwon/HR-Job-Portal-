@@ -34,10 +34,13 @@
                                 <select
                                     class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                     name="cpnyid" required>
-                                    @foreach ($usercpny as $p)
+                                    {{-- @foreach ($usercpny as $p)
                                         <option value="{{ $p->cpnyid }}"
                                             {{ $p->cpnyid == $usercpny2->cpnyid ? 'selected' : '' }}>
                                             {{ $p->cpnyid }}</option>
+                                    @endforeach --}}
+                                    @foreach ($companies as $p)
+                                        <option value="{{ $p->cpnyid }}">{{ $p->cpnyid }}</option>
                                     @endforeach
                                 </select>
                             </div>
@@ -109,29 +112,19 @@
                                     <div class="flex flex-col gap-2">
                                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Job
                                             Title</label>
-                                        {{-- <select name="job_title" id="job_title"
+                                        <select name="job_title" id="job_title"
                                             class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                             required>
                                             <option value="">Select/option>
-                                        </select> --}}
-                                        <input type="text" name="job_title" id="job_title"
-                                            class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
-                                            required>
+                                        </select>
                                     </div>
                                     <div class="flex flex-col gap-2">
                                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Job
                                             Level</label>
-                                        {{-- <input type="hidden" name="subgrade_id" id="subgrade_id"> --}}
-                                        {{-- <input type="text" name="job_level" id="job_level"
+                                        <input type="hidden" name="subgrade_id" id="subgrade_id">
+                                        <input type="text" name="job_level" id="job_level"
                                             class="pointer-events-none w-full rounded-lg border border-gray-300 bg-gray-100 p-2.5 text-gray-700 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
-                                            readonly> --}}
-                                        <select
-                                            class="w-full rounded-sm border border-gray-200/50 bg-gray-200/10 p-3 focus:ring focus:ring-blue-300 dark:bg-gray-800"
-                                            name="subgrade_id" id="subgrade_id" required>
-                                            @foreach ($subgradings as $sg)
-                                                <option value="{{ $sg->subgrade_id }}">{{ $sg->subgrade_id }}-{{ $sg->subgrade_name }}</option>
-                                            @endforeach
-                                        </select>
+                                            readonly>
                                     </div>
                                     <div class="flex flex-col gap-2">
                                         <label
@@ -155,87 +148,67 @@
                                             required></textarea>
                                     </div>
                                 </div>
-                               
                                 <div
-                                    class="mb-6 mt-6 grid grid-cols-1 gap-4 rounded-l bg-gray-200/40 p-6 sm:grid-cols-3">
-                                    <div class="flex items-center gap-4">
-                                        <label class="font-medium text-gray-700 dark:text-gray-300">Actual</label>
-                                        <input type="number" name="actual" id="actual" min="0"
-                                            class="number-only w-50 w-full rounded-sm border border-gray-300/50 bg-white p-3 focus:ring focus:ring-blue-300 dark:bg-gray-800"
-                                            required>
-                                    </div>
-                                    <div class="flex items-center gap-4">
+                                    class="mt-8 grid grid-cols-1 gap-6 rounded-lg bg-gray-100/40 p-6 sm:grid-cols-3 dark:bg-gray-700/40">
+                                    <div class="flex flex-col gap-2">
                                         <label
-                                            class="mb-1 block w-40 font-medium text-gray-700 dark:text-gray-300">Number
+                                            class="block text-sm font-medium text-gray-700 dark:text-gray-300">Actual</label>
+                                        <input type="number" name="actual" id="actual" min="0"
+                                            class="pointer-events-none w-full rounded-lg border border-gray-300 bg-gray-100 p-2.5 text-gray-700 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                            readonly>
+                                    </div>
+                                    <div class="flex flex-col gap-2">
+                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Number
                                             Required</label>
                                         <input type="number" name="required" id="required" min="0"
-                                            class="number-only w-50 w-full rounded-sm border border-gray-300/50 bg-white p-3 focus:ring focus:ring-blue-300 dark:bg-gray-800"
-                                            required>
+                                            class="pointer-events-none w-full rounded-lg border border-gray-300 bg-gray-100 p-2.5 text-gray-700 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                            readonly>
                                     </div>
-                                    <div class="flex items-center gap-4">
-                                        <label
-                                            class="mb-1 block w-40 font-medium text-gray-700 dark:text-gray-300">Total
-                                            Actual Number</label>
+                                    <div class="flex flex-col gap-2">
+                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Total
+                                            Actual
+                                            Number</label>
                                         <input type="number" name="total_actual" id="total_actual" min="0"
-                                            class="number-only w-full rounded-sm border border-gray-300/50 bg-white p-3 focus:ring focus:ring-blue-300 dark:bg-gray-800"
-                                            required>
+                                            class="pointer-events-none w-full rounded-lg border border-gray-300 bg-gray-100 p-2.5 text-gray-700 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                            readonly>
                                     </div>
                                 </div>
                             </div>
                         </details>
                     </div>
 
-                    
-                    <div class="flex w-full flex-col gap-2 rounded-2xl border-b bg-white dark:bg-gray-800">
-                        <div class="flex w-full flex-col rounded-2xl p-4">
-                            <details class="group" open>
-                                <summary class="mb-4 flex cursor-pointer items-center justify-between rounded">
-                                    <span class="text-lg font-semibold">Job Responsibilities</span>
-                                    <span class="transition-all group-open:hidden">See details</span>
-                                    <span class="hidden transition-all group-open:inline">Hide details</span>
-                                </summary>
-                                <div class="flex h-auto flex-col justify-start">
-                                    <div class="overflow-y-auto">
-                                        <table class="mb-4 mt-3 w-full">
-                                            <thead class="bg-gray-100/10">
-                                                <tr>
-                                                    <th class="w-12 border p-3 text-center">No</th>
-                                                    <th class="border-l border-t p-3">Responsibility</th>
-                                                    <th class="w-16 border-r border-t p-3 text-center"></th>
-                                                </tr>
-                                            </thead>
-                                            <tbody id="responsibilitiesTable">
-                                                <tr class="responsibilities-row">
-                                                    <td class="border p-3 text-center">1</td>
-                                                    <td class="border p-3">
-                                                        <input type="text" name="responsibilities[]"
-                                                            placeholder="Type here..."
-                                                            class="w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0">
-                                                    </td>
-                                                    <td class="border-b border-r border-t p-3 text-center">
-                                                        <button type="button"
-                                                            class="removeResponsibilities hidden rounded border border-red-700 bg-red-200/10 px-3 py-3 text-white hover:border-red-700 hover:bg-red-400/30">🗑️</button>
-                                                    </td>
-                                                </tr>
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                    <button type="button" id="addResponsibilities"
-                                        class="mb-4 mt-4 flex items-center justify-center gap-2 rounded border border-gray-700 bg-gray-200/10 p-2 text-gray-800 hover:border-red-700 hover:bg-red-200/10 hover:font-medium hover:text-red-800">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5"
-                                            viewBox="0 0 20 20" fill="currentColor">
-                                            <path fill-rule="evenodd"
-                                                d="M10 2a1 1 0 011 1v6h6a1 1 0 110 2h-6v6a1 1 0 11-2 0v-6H3a1 1 0 110-2h6V3a1 1 0 011-1z"
-                                                clip-rule="evenodd" />
-                                        </svg>
-                                        Add Column
-                                    </button>
-                                </div>
-                            </details>
-                        </div>
+                    <div class="w-full rounded-xl bg-white p-6 shadow-md dark:bg-gray-800">
+                        <details class="group" open>
+                            <summary
+                                class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-xl font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
+                                <span>Job Responsibilities</span>
+                                <span class="text-sm font-medium text-gray-500 transition-all group-open:hidden">See
+                                    details &rarr;</span>
+                                <span
+                                    class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline">Hide
+                                    details &darr;</span>
+                            </summary>
+                            <div class="flex max-h-60 flex-col overflow-y-auto pt-6">
+                                <table id="jobProfileTable"
+                                    class="w-full border-collapse border border-gray-200 dark:border-gray-700">
+                                    <thead>
+                                        <tr class="bg-gray-50 dark:bg-gray-700">
+                                            <th
+                                                class="w-10 border border-gray-200 p-3 text-center text-sm font-semibold text-gray-600 dark:border-gray-700 dark:text-gray-300">
+                                                No</th>
+                                            <th
+                                                class="border border-gray-200 p-3 text-left text-sm font-semibold text-gray-600 dark:border-gray-700 dark:text-gray-300">
+                                                Job Purpose</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </details>
                     </div>
 
-                    {{-- <div class="w-full rounded-xl bg-white p-6 shadow-md dark:bg-gray-800">
+                    <div class="w-full rounded-xl bg-white p-6 shadow-md dark:bg-gray-800">
                         <details class="group" open>
                             <summary
                                 class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-xl font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
@@ -333,100 +306,6 @@
                                 </div>
                             </div>
                         </details>
-                    </div> --}}
-                    <div class="flex w-full flex-col gap-2 rounded-2xl border-b bg-white dark:bg-gray-800">
-                        <div class="flex w-full flex-col gap-4 p-4">
-                            <details class="group" open>
-                                <summary class="mb-4 flex cursor-pointer items-center justify-between rounded">
-                                    <span class="text-lg font-semibold">Job Qualification</span>
-                                    <span class="transition-all group-open:hidden">See details</span>
-                                    <span class="hidden transition-all group-open:inline">Hide details</span>
-                                </summary>
-                                <!-- Education -->
-                                <div class="flex flex-col gap-2">
-                                    <label class="mb-2 font-semibold"> 🔹 Education</label>
-                                    <div class="relative pl-4">
-                                        <select name="education" id="education"
-                                            class="w-full rounded-lg border border-gray-300 bg-white p-3 text-gray-700 shadow-sm focus:ring-2 focus:ring-blue-400 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200">
-                                            <option value="" disabled selected>Select</option>
-                                            <option value="SMP">SMP</option>
-                                            <option value="SMA / SMK">SMA / SMK</option>
-                                            <option value="D1">D1</option>
-                                            <option value="D2">D2</option>
-                                            <option value="D3">D3</option>
-                                            <option value="D4">D4</option>
-                                            <option value="S1">S1</option>
-                                            <option value="S2">S2</option>
-                                            <option value="S3">S3</option>
-                                        </select>
-                                    </div>
-                                </div>
-
-                                <!-- Experience -->
-                                <div class="flex flex-col gap-2 pb-4 pt-4">
-                                    <label class="mb-2 font-semibold"> 🔹 Experience</label>
-                                    <div class="flex gap-4 pl-4">
-                                        <div class="flex w-1/2 flex-col">
-                                            <label
-                                                class="mb-2 font-medium text-gray-700 dark:text-gray-300">Start</label>
-                                            <input type="number" name="experience_start"
-                                                id="experience_start" min="0" placeholder="Input here"
-                                                class="w-full rounded-lg border border-gray-300 bg-white p-3 text-gray-700 shadow-sm focus:ring-2 focus:ring-blue-400 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200">
-                                        </div>
-                                        <div class="flex w-1/2 flex-col">
-                                            <label
-                                                class="mb-2 font-medium text-gray-700 dark:text-gray-300">End</label>
-                                            <input type="number" name="experience_end" id="experience_end"
-                                                min="0" placeholder="Input here"
-                                                class="w-full rounded-lg border border-gray-300 bg-white p-3 text-gray-700 shadow-sm focus:ring-2 focus:ring-blue-400 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200">
-                                        </div>
-                                    </div>
-                                </div>                                
-                                <div class="flex h-auto flex-col justify-start">
-                                    <label class="mb-2 font-semibold"> 🔹 Skill</label>
-                                    <div class="overflow-y-auto">
-                                        <table class="mb-4 mt-3 w-full">
-                                            <thead class="bg-gray-100/10">
-                                                <tr>
-                                                    <th class="w-12 border p-3 text-center">No</th>
-                                                    <th class="border-t p-3">Skill</th>
-                                                    <th class="w-16 border-r border-t p-3 text-center"></th>
-                                                </tr>
-                                            </thead>
-                                            <tbody id="qualificationTable">
-                                                <tr class="qualification-row">
-                                                    <td class="border p-3 text-center">1</td>
-                                                    <td class="border p-3">
-                                                        <input type="text" name="qualification[]"
-                                                            placeholder="Type here..."
-                                                            class="w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0">
-                                                    </td>
-                                                    <td class="border p-3 text-center">
-                                                        <button type="button"
-                                                            class="removeQualification hidden rounded border border-red-700 bg-red-200/10 px-3 py-3 text-white hover:border-red-700 hover:bg-red-400/30 dark:bg-red-700/30">🗑️</button>
-                                                </tr>
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                    <button type="button" id="addQualification"
-                                        class="mb-4 mt-4 flex items-center justify-center gap-2 rounded border border-gray-700 bg-gray-200/10 p-2 text-gray-800 hover:border-red-700 hover:bg-red-200/10 hover:font-medium hover:text-red-800">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5"
-                                            viewBox="0 0 20 20" fill="currentColor">
-                                            <path fill-rule="evenodd"
-                                                d="M10 2a1 1 0 011 1v6h6a1 1 0 110 2h-6v6a1 1 0 11-2 0v-6H3a1 1 0 110-2h6V3a1 1 0 011-1z"
-                                                clip-rule="evenodd" />
-                                        </svg> Add Column
-                                    </button>
-                                </div>
-                                <!-- Tags -->
-                                <div class="mt-4">
-                                    <label class="mb-2 font-semibold">🔹 Tags</label>
-                                    <select name="tags[]" id="tags" multiple
-                                        class="tags-input w-full rounded-lg border border-gray-300 bg-white p-3 text-gray-700 shadow-sm focus:ring-2 focus:ring-blue-400 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200">
-                                    </select>
-                                </div>
-                            </details>
-                        </div>
                     </div>
 
                     <div class="w-full rounded-xl bg-white p-6 shadow-md dark:bg-gray-800">
