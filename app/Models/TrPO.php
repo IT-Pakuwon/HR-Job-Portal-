@@ -3,28 +3,87 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+// use Illuminate\Database\Eloquent\SoftDeletes;
 
 class TrPO extends Model
 {
+    // use SoftDeletes;
+
     protected $connection = 'pgsql';
     protected $table = 'tr_po';
     protected $primaryKey = 'id';
     public $timestamps = true;
 
     protected $fillable = [
-        'ponbr','poautonbr','podate','potype','cpny_id','csid','sppbjktid','department_id',
-        'user_peminta','keperluan','ponote',
-        'vendorid','vendorname','vendoralamat','vendortelp','vendorcp','vendortop',
-        'totalamt','taxcodeid','taxamt','grandtotalamt',
-        'submitdate','podeliverydate','spkstartworkingdate','spkendtworkingdate',
-        'spktotalday','spkworkschedule','spkmanpower','spkpic','spkwarranty',
-        'status','created_by','updated_by','completed_by','completed_at',
+        'ponbr',
+        'poautonbr',
+        'podate',
+        'potype',
+        'cpny_id',
+        'csid',
+        'sppbjktid',
+        'department_id',
+        'user_peminta',
+        'keperluan',
+        'ponote',
+        'vendorid',
+        'vendorname',
+        'vendoralamat',
+        'vendortelp',
+        'vendorcp',
+        'vendortop',
+        'totalamt',
+        'taxcodeid',
+        'taxamt',
+        'grandtotalamt',
+        'totalqty',
+        'totalqtyreceived',
+        'submitdate',
+        'podeliverydate',
+        'spkstartworkingdate',
+        'spkendtworkingdate',
+        'spktotalday',
+        'spkworkschedule',
+        'spkmanpower',
+        'spkpic',
+        'spkwarranty',
+        'spkcarabayar',
+        'send_email',
+        'send_email_at',
+        'reuse',
+        'reused_at',
+        'status',
+        'created_by',
+        'updated_by',
+        'deleted_by',
+        'completed_by',
+        'completed_at',
     ];
 
     protected $casts = [
-        'submitdate' => 'datetime',
-        'podate'     => 'date',
-        'completed_at' => 'datetime',
+        // tanggal / waktu
+        'podate'              => 'date',
+        'submitdate'          => 'datetime',
+        'podeliverydate'      => 'date',
+        'spkstartworkingdate' => 'date',
+        'spkendtworkingdate'  => 'date',
+        'send_email_at'       => 'datetime',
+        'reused_at'           => 'datetime',
+        'completed_at'        => 'datetime',
+        'deleted_at'          => 'datetime',
+
+        // numerik
+        'totalamt'            => 'decimal:2',
+        'taxamt'              => 'decimal:2',
+        'grandtotalamt'       => 'decimal:2',
+        'totalqty'            => 'decimal:2',
+        'totalqtyreceived'    => 'decimal:2',
+        'spktotalday'         => 'integer',
+        'spkmanpower'         => 'integer',
+
+        // boolean / flag
+        'send_email'          => 'boolean',
+        'reuse'               => 'boolean',
     ];
 
     // Relasi

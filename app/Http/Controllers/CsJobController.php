@@ -657,8 +657,9 @@ class CsJobController extends Controller
                 foreach ($request->file('attachments') as $file) {
                     $randomNumber = random_int(10000000, 99999999);
                     $filename     = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
-                    $originalName = str_replace('%', '', $file->getClientOriginalName());
-                    $attachfile   = md5($randomNumber) . '-' . $originalName;
+                    $originalName = str_replace('%', '', $file->getClientOriginalName());                    
+                    $ext        = $file->getClientOriginalExtension();
+                    $attachfile = md5($randomNumber) . '.' . $ext;
 
                     $folder_attach = public_path() . '/attachments/' . $year;
                     if (!is_dir($folder_attach)) {

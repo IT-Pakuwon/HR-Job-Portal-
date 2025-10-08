@@ -394,7 +394,8 @@ class SppjController extends Controller
                     $filename = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
                    
                     $originalName = str_replace('%', '', $file->getClientOriginalName());
-                    $attachfile = md5($randomNumber);
+                    $ext        = $file->getClientOriginalExtension();
+                    $attachfile = md5($randomNumber) . '.' . $ext;
 
                     //attach to folder
                     $folder_attach = public_path() . '/attachments/'.$year;
@@ -731,7 +732,8 @@ class SppjController extends Controller
                     $filename = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
                    
                     $originalName = str_replace('%', '', $file->getClientOriginalName());
-                    $attachfile = md5($randomNumber);
+                    $ext        = $file->getClientOriginalExtension();
+                    $attachfile = md5($randomNumber) . '.' . $ext;
 
                     //attach to folder
                     $folder_attach = public_path() . '/attachments/'.$year;

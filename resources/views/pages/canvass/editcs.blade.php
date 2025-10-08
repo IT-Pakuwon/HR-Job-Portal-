@@ -455,10 +455,13 @@
                                 <div class="flex h-auto flex-col justify-start">
                                     <div id="attachmentsContainer">
                                         @foreach ($attachmentCS as $attach)
+                                             @php
+                                                $year = $attach->created_at->year;
+                                                $fileUrl = url('/attachments/' . $year . '/' . $attach->attachfile);
+                                            @endphp
                                             <div class="attachment-row flex items-center gap-2"
                                                 data-attachid="{{ $attach->id }}">
-                                                <a href="{{ url('/attachments/' . $attach->attachfile) }}"
-                                                    target="_blank" class="mt-4 w-full border p-3 text-lg">📎
+                                                <a href="{{ $fileUrl }}" target="_blank" class="mt-4 w-full border p-3 text-lg">📎
                                                     {{ $attach->name }}</a>
                                                 <button type="button"
                                                     class="removeAttachment2 mt-4 rounded border border-red-700 bg-red-200/10 px-3 py-3 text-white hover:border-red-700 hover:bg-red-400/30 dark:bg-red-700/30"
