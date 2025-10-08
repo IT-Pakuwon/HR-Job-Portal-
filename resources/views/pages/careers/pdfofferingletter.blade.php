@@ -123,8 +123,8 @@
     <table>
         <tr>
             <td colspan="2">
-                <strong>1. {{ $job_title }} {{ $job_level }}</strong><br>
-                Saudara ditempatkan untuk posisi {{ $job_level }}.<br>
+                <strong>1. Jabatan </strong><br>
+                Saudara ditempatkan untuk posisi <strong>{{ $job_title }} {{ $job_level }}</strong> .<br>
                 Bertanggung jawab langsung kepada Manager atau pejabat lain yang ditunjuk kemudian.
             </td>
         </tr>
