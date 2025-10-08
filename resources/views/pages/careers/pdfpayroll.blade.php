@@ -136,7 +136,8 @@
   <table>
     <tr><td>NAMA LENGKAP</td><td>:</td><td>{{ $full_name }}</td></tr>
     <tr><td>JENIS KELAMIN</td><td>:</td><td>{{ $gender }}</td></tr>
-    <tr><td>TEMPAT / TANGGAL LAHIR</td><td>:</td><td>{{ $birth_place }}, {{ $datebirth }}</td></tr>
+    {{-- <tr><td>TEMPAT / TANGGAL LAHIR</td><td>:</td><td>{{ $birth_place }}, {{ $datebirth }}</td></tr> --}}
+    <tr><td>TEMPAT / TANGGAL LAHIR</td><td>:</td><td>{{ $birth_place }}, {{ \Carbon\Carbon::parse($datebirth)->translatedFormat('d F Y') }}</td></tr>
     <tr><td>AGAMA</td><td>:</td><td>{{ $religion }}</td></tr>
     <tr><td>STATUS PERNIKAHAN</td><td>:</td><td>{{ $martial_status }}</td></tr>
     <tr><td>JUMLAH TANGGUNGAN</td><td>:</td><td>{{ $tax_liability }}</td></tr>

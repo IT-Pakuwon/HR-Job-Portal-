@@ -1,10 +1,10 @@
 <!-- Button -->
-@if ($canAccessSchedule)
+{{-- @if ($canAccessSchedule) --}}
     <button type="button" onclick="openAgendaModal()"
         class="inline-flex items-center rounded-xl bg-indigo-600 px-6 py-2 text-base font-semibold text-white transition-colors duration-200 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
         <i class="fas fa-plus pr-2"></i>Create Schedule
     </button>
-@endif
+{{-- @endif --}}
 
 
 

@@ -34,8 +34,6 @@ use App\Models\StoJobProfile;
 use App\Models\StoJobSpec;
 use App\Models\Division;
 use App\Models\CompanyAddress;
-use App\Models\StoSubGrading;
-
 
 use Mail;
 
@@ -87,14 +85,8 @@ class PersonnelController extends Controller
         $joblevel = JobLevel::select('title_level')->get();
         $skillTags = MJobtag::select('id', 'job_tags')->get(); 
         $division = Division::select('division_id','division_name')->get();
-
-        $subgradings = StoSubGrading::select('subgrade_id','subgrade_name')
-            ->where('status', 'A')
-            ->orderBy('subgrade_id')
-            ->get();
-
        
-        return view('pages.personnels.createpersonnels', compact('companies','departements','joblevel','usercpny','usercpny2','userdept','userdept2','skillTags','division','subgradings'));
+        return view('pages.personnels.createpersonnels', compact('companies','departements','joblevel','usercpny','usercpny2','userdept','userdept2','skillTags','division'));
     }
 
     public function createPersonnelx()
@@ -128,7 +120,7 @@ class PersonnelController extends Controller
             'departementid' => 'required|string',
             // 'division' => 'required|string',
             'job_title' => 'required|string',
-            'subgrade_id' => 'required|string',
+            'job_level' => 'required|string',
             'immediate_superior' => 'required|string',
             'state_position' => 'required|string',
             'job_type' => 'required|string',
@@ -194,10 +186,6 @@ class PersonnelController extends Controller
             $title = StoDepartement::where('departement_id', $request->job_title)              
                 ->where('status', 'A')
                 ->first();
-
-            $grading = StoSubGrading::where('subgrade_id', $request->subgrade_id)              
-                ->where('status', 'A')
-                ->first();
                        
             $task = Personnel::create([
                 'docid' => $docid,
@@ -207,9 +195,9 @@ class PersonnelController extends Controller
                 'locationname' => $request->siteid ?? null,
                 'date' => $datenow,
                 'user' => $user->username,
-                'job_title' => $request->job_title,
+                'job_title' => $title->departement_name,
                 'subgrade_id' => $request->subgrade_id,
-                'job_level' => $grading->subgrade_name,                
+                'job_level' => $request->job_level,                
                 'immediate_superior' => $request->immediate_superior,                
                 'state_position' => $request->state_position,
                 'job_type' => $request->job_type,
@@ -395,24 +383,8 @@ class PersonnelController extends Controller
         $attachment = Attachment::where('docid', $personnel->docid)  
             ->where('status','A')         
             ->get();
-
-        $subgradings = StoSubGrading::select('subgrade_id','subgrade_name')
-            ->where('status', 'A')
-            ->orderBy('subgrade_id')
-            ->get();
-
-        $jobres = JobResponsiblities::where('docid', $personnel->docid)           
-            ->get();
-        $jobqua = JobQualification::where('docid', $personnel->docid)           
-            ->get();
-
-        $selectedTags = TrJobtag::where('docid', $personnel->docid)           
-            ->pluck('job_tags')
-            ->toArray();
-
-            
-
-        return view('pages.personnels.editpersonnels', compact('companies','departements','joblevel','usercpny','usercpny2','userdept','userdept2','skillTags','division','personnel','attachment','subgradings','jobres','jobqua','selectedTags'));
+       
+        return view('pages.personnels.editpersonnels', compact('companies','departements','joblevel','usercpny','usercpny2','userdept','userdept2','skillTags','division','personnel','attachment'));
     }
     
     public function updatePersonnel(Request $request, $id)
@@ -424,8 +396,7 @@ class PersonnelController extends Controller
             'cpnyid' => 'required|string',
             'departementid' => 'required|string',
             'job_title' => 'required|string',
-            // 'job_level' => 'required|string',
-            'subgrade_id' => 'required|string',
+            'job_level' => 'required|string',
             'immediate_superior' => 'required|string',
             'state_position' => 'required|string',
             'job_type' => 'required|string|in:Replacement,New',
@@ -450,20 +421,16 @@ class PersonnelController extends Controller
             $title = StoDepartement::where('departement_id', $request->job_title)              
                 ->where('status', 'A')
                 ->first();
-
-            $grading = StoSubGrading::where('subgrade_id', $request->subgrade_id)              
-                ->where('status', 'A')
-                ->first();
                        
             $personnel -> update([              
                 'cpnyid' => $request->cpnyid,
                 'departementid' => $request->departementid,
                 'date' => $datenow,
-                'locationname' => $request->siteid ?? null,
+                'locationname' => $site->site ?? null,
                 'user' => $user->username,
-                'job_title' => $request->job_title,
+                'job_title' => $title->departement_name,
                 'subgrade_id' => $request->subgrade_id,
-                'job_level' => $grading->subgrade_name,                
+                'job_level' => $request->job_level,                
                 'immediate_superior' => $request->immediate_superior,                
                 'state_position' => $request->state_position,
                 'job_type' => $request->job_type,
@@ -1036,8 +1003,7 @@ class PersonnelController extends Controller
             // Education
             $eduParts = array_filter([
                 $personnel->education ?? null,
-                // $personnel->education_jurusan ?? null,
-                'All Major',
+                $personnel->education_jurusan ?? null,
             ], fn ($v) => filled($v));
 
             if (count($eduParts)) {
@@ -1053,8 +1019,7 @@ class PersonnelController extends Controller
 
             // Experience
             $start = $personnel->experience_start ?? null;
-            // $role  = $personnel->experience_position ?? null;
-            $role  = $personnel->job_title ?? null;
+            $role  = $personnel->experience_position ?? null;
 
             $desc = null;
             if (filled($start) && filled($role)) {

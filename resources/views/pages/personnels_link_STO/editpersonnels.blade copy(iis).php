@@ -1,0 +1,342 @@
+<x-app-layout>
+{{-- <div class="py-4 w-full max-w-9xl mx-auto"> --}}
+<div class="py-1 w-full max-w-9xl mx-auto">
+     <div class="grid">
+        {{-- <div class="px-4 px-6 lg:px-8 py-4 w-full max-w-9xl mx-auto"> --}}
+        <div class="px-1 lg:px-8 py-4 w-full max-w-9xl mx-auto">
+            <div class="gap-6">  
+                <div class="flex flex-col xl:flex-col sm:col-span-1 lg:row-span-2 xl:col-span-1 gap-10 overflow-hidden">
+                    <form id="personnelForm" class="flex flex-col gap-4" enctype="multipart/form-data">
+                         @csrf
+                        <div class="flex flex-col gap-4">
+                            {{-- <div class="flex flex-col w-full rounded-2xl   border-b bg-white dark:bg-gray-800 w-full p-6"> --}}
+                            <div class="flex flex-col w-full  rounded-2xl shadow-sm border-b bg-white dark:bg-gray-800 w-full p-6">
+                                <div class="flex justify-between border-b dark:border-gray-600 mb-2">
+                                    <h2 class="text-xl font-bold mb-4">Edit Personnel Requisition</h2>
+                                    <h2 class="text-xl font-bold mb-4">{{ $personnel->docid }}</h2>
+                                </div>
+                                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6 dark:border-gray-600 ">
+                                        <input type="hidden" name="_method" value="PUT"> 
+                                        <div class="flex items-center gap-4">
+                                            <label class="text-gray-700 dark:text-gray-300 font-medium w-25">Company</label>
+                                            <select name="cpnyid"  class="flex-1 p-3 border border-gray-200/50 rounded-sm focus:ring focus:ring-blue-300 bg-gray-200/10 dark:bg-gray-800 select2">                        
+                                                @foreach($usercpny as $p) <option value="{{ $p->cpnyid }}" {{ $p->cpnyid == $personnel->cpnyid ? 'selected' : '' }}>{{ $p->cpnyid }}</option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                        <div class="flex items-center gap-4">
+                                            <label class="text-gray-700 dark:text-gray-300 font-medium w-25">Department</label>
+                                            <select name="departementid" class="flex-1 p-3 border border-gray-200/50 rounded-sm focus:ring focus:ring-blue-300 bg-gray-200/10 dark:bg-gray-800 select2">                       
+                                                @foreach($userdept as $p) <option value="{{ $p->deptname }}" {{ $p->deptname == $personnel->departementid ? 'selected' : '' }}>{{ $p->deptname }}</option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                        <div class="flex items-center gap-4">
+                                            <label class="text-gray-700 dark:text-gray-300 font-medium w-29">Job Title</label>
+                                                <input type="text" name="job_title" class="w-full p-3 border border-gray-200/50 rounded-sm focus:ring focus:ring-blue-300 bg-gray-200/10 dark:bg-gray-800" value="{{ $personnel->job_title }}">
+                                        </div>
+                                        <div class="flex items-center gap-4">
+                                            <label class="text-gray-700 dark:text-gray-300 font-medium w-29">Job Level</label>
+                                            <select name="job_level" class="w-full p-3 border border-gray-200/50 rounded-sm focus:ring focus:ring-blue-300 bg-gray-200/10 dark:bg-gray-800 select2">
+                                                @foreach($joblevel as $p)
+                                                    <option value="{{ $p->title_level }}" {{ $personnel->job_level == $p->title_level ? 'selected' : '' }}>{{ $p->title_level }}</option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                        <div class="flex items-center gap-4">
+                                            <label class="text-gray-700 dark:text-gray-300 font-medium w-29">Immediate Superior</label>
+                                                <input type="text" name="immediate_superior" id="immediate_superior" value={{ $personnel->immediate_superior }} class="w-full p-3 border border-gray-200/50 rounded-sm focus:ring focus:ring-blue-300 bg-gray-200/10 dark:bg-gray-800">
+                                        </div>
+                                        <div class="flex items-center gap-4">
+                                            <label class="text-gray-700 dark:text-gray-300 font-medium w-29">State Position</label>
+                                                <input type="text" name="state_position" id="state_position" value={{ $personnel->state_position }} class="w-full p-3 border border-gray-200/50 rounded-sm focus:ring focus:ring-blue-300 bg-gray-200/10 dark:bg-gray-800">
+                                        </div>
+                                        <div class="flex items-center gap-4">
+                                            <label class="text-gray-700 dark:text-gray-300 font-medium w-29">Job Type</label>
+                                            <select name="job_type" id="job_type" class="w-full p-3 border border-gray-200/50 rounded-sm focus:ring focus:ring-blue-300 bg-gray-200/10 dark:bg-gray-800">                  
+                                                    <option value="" {{ $personnel->job_type == '' ? 'selected' : '' }}></option>
+                                                    <option value="Replacement" {{ $personnel->job_type == 'Replacement' ? 'selected' : '' }}>Replacement</option>
+                                                    <option value="Temporary" {{ $personnel->job_type == 'Temporary' ? 'selected' : '' }}>Temporary</option>
+                                            </select>
+                                        </div>
+                                        <div class="flex items-center gap-4">
+                                            <label class="text-gray-700 dark:text-gray-300 font-medium w-29">Reason for Vacancy</label>
+                                                <textarea name="reason_vacancy" id="reason_vacancy"class="w-full p-3 border border-gray-200/50 rounded-sm focus:ring focus:ring-blue-300 bg-gray-200/10 dark:bg-gray-800">{{ $personnel->reason_vacancy }}</textarea>
+                                        </div> 
+                                    </div>   
+                                    <div class="grid grid-cols-1 sm:grid-cols-3 mb-6 mt-6 gap-4 bg-gray-200/40 p-6 rounded-l">
+                                        <div class="flex flex-row items-center gap-2">
+                                            <label class="text-gray-700 dark:text-gray-300 font-medium w-80">Total Number Required</label>
+                                            <input type="number" name="required" id="required" value="{{ $personnel->required }}" class=" number-only  w-full p-3 border border-gray-300/50 rounded-sm focus:ring focus:ring-blue-300 bg-white dark:bg-gray-800 w-50">
+                                        </div>
+                                        <div class="flex flex-row items-center gap-6">
+                                            <label class="text-gray-700 dark:text-gray-300 font-medium">Actual</label>
+                                            <input type="number" name="actual" id="actual" value="{{ $personnel->actual }}" class=" number-only w-full p-3 border border-gray-300/50 rounded-sm focus:ring focus:ring-blue-300 bg-white dark:bg-gray-800 w-50">
+                                        </div>
+                                        <div class="flex flex-row items-center gap-6">
+                                            <label class="text-gray-700 dark:text-gray-300 font-medium W-100">The Actual Number</label>
+                                            <input type="number" name="total_actual" id="total_actual" value="{{ $personnel->total_actual }}" class=" number-only  w-full p-3 border border-gray-300/50 rounded-sm focus:ring focus:ring-blue-300 bg-white dark:bg-gray-800">
+                                        </div>
+                                    </div>
+                                </div>
+                            {{-- </div> --}}
+                                <!-- Job Responsibilities (Editable) -->
+                                <div class="flex flex-col w-full rounded-2xl border-b gap-4">
+                                    <div class="flex flex-col w-full rounded-2xl border-b bg-white dark:bg-gray-800 p-6">
+                                        <details class="group border-b" open>
+                                            <summary class="flex items-center justify-between cursor-pointer mb-4 rounded">
+                                                <span class="text-lg font-semibold">Job Responsibilities</span>
+                                                <span class="transition-all group-open:hidden">See details</span>
+                                                <span class="hidden transition-all group-open:inline">Hide details</span>
+                                            </summary>
+                                            <div class="h-auto flex flex-col justify-start">
+                                                <button type="button" id="addResponsibilities" 
+                                                class="mt-4 mb-4 flex items-center justify-center  gap-2 rounded border hover:font-medium text-gray-800 border-gray-700 bg-gray-200/10 hover:text-red-800 hover:border-red-700 hover:bg-red-200/10 p-2 ">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                                        <path fill-rule="evenodd" d="M10 2a1 1 0 011 1v6h6a1 1 0 110 2h-6v6a1 1 0 11-2 0v-6H3a1 1 0 110-2h6V3a1 1 0 011-1z" clip-rule="evenodd"/>
+                                                    </svg>
+                                                    Add Column
+                                                </button>
+                                                <div class="overflow-y-auto"> 
+                                                    <table class="w-full mt-3 mb-10">
+                                                        <thead class="bg-gray-100/10">
+                                                            <tr>
+                                                                <th class="p-3 border text-center w-12">No</th>
+                                                                <th class="p-3 border">Responsibility</th>
+                                                                <th class="p-3 border text-center w-16">Action</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody id="responsibilitiesTable">
+                                                            @foreach ($jobres as $key => $resp)
+                                                            <tr>
+                                                                <td class="p-3 border text-center">{{ $key+1 }}</td>
+                                                                <td class="p-3 border">
+                                                                    <input type="text" placeholder="Type here..." name="responsibilities[]" class="w-full p-2 border-none focus:ring-0 focus:outline-none bg-transparent" value="{{ $resp->job_responsibilities_descr }}">
+                                                                </td>
+                                                                <td class="p-3 border text-center">
+                                                                    <button type="button" class="removeResponsibilities bg-red-200/10 hover:border-red-700 hover:bg-red-400/30 border-red-700 border text-white px-3 py-3 rounded">🗑️</button>
+                                                                </td>
+                                                            </tr>
+                                                            @endforeach
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            </div>
+                                        </details>
+                                    </div>
+                                    <!-- Job Qualification (Editable) -->
+                                    <div class="flex flex-col w-full rounded-2xl border-b gap-4">
+                                        <div class="flex flex-col w-full rounded-2xl border-b bg-white dark:bg-gray-800 p-6">
+                                            <details class="group border-b" open>
+                                                <summary class="flex items-center justify-between cursor-pointer mb-4 rounded">
+                                                    <span class="text-lg font-semibold">Job Qualification</span>
+                                                    <span class="transition-all group-open:hidden">See details</span>
+                                                    <span class="hidden transition-all group-open:inline">Hide details</span>
+                                                </summary>
+                                                <div class="h-auto flex flex-col justify-start">
+                                                    <button type="button" id="addQualification" class="mt-4 mb-4 flex items-center justify-center  gap-2 rounded border hover:font-medium text-gray-800 border-gray-700 bg-gray-200/10 hover:text-red-800 hover:border-red-700 hover:bg-red-200/10 p-2 ">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                                            <path fill-rule="evenodd" d="M10 2a1 1 0 011 1v6h6a1 1 0 110 2h-6v6a1 1 0 11-2 0v-6H3a1 1 0 110-2h6V3a1 1 0 011-1z" clip-rule="evenodd"/>
+                                                            </svg> Add Column
+                                                    </button>
+                                                    <div class="overflow-y-auto"> 
+                                                        <table class="w-full mt-3 mb-10">
+                                                            <thead class="bg-gray-100/10">
+                                                                <tr>
+                                                                    <th class="p-3  border text-center w-12">No</th>
+                                                                    <th class="p-3 border">Qualification</th>
+                                                                    <th class="p-3 border text-center w-16">Action</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody id="qualificationTable">
+                                                                 @foreach ($jobqua as $key => $resp)
+                                                                    <tr>
+                                                                        <td class="p-3 border text-center">{{ $key+1 }}</td>
+                                                                        <td class="p-3 border">
+                                                                            <input type="text" name="qualification[]" placeholder="Type here..." class="w-full p-2 border-none focus:ring-0 focus:outline-none bg-transparent" value="{{ $resp->job_qualification_descr }}">
+                                                                        </td>
+                                                                        <td class="p-3 border text-center">
+                                                                            <button type="button" class="removeQualification  bg-red-200/10 dark:bg-red-700/30 hover:border-red-700 hover:bg-red-400/30 border-red-700 border text-white px-3 py-3 rounded">🗑️
+                                                                            </button>
+                                                                        </td>
+                                                                    </tr>
+                                                                @endforeach
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                </div>
+                                            </details>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="flex flex-col w-full rounded-2xl border-b gap-4">
+                                    <div class="flex flex-col w-1/2 rounded-2xl border-b bg-white dark:bg-gray-800 p-6 w-full">
+                                        <div>
+                                            <div class="flex items-center justify-between">
+                                                <label class="block text-lg font-semibold">Attachments</label>
+                                                <button type="button" id="addAttachment" class="px-4 py-2 text-gray-700 rounded  hover:bg-red-200/10  border border-white hover:border-red-800 hover:font-medium  hover:text-red-800 hover: flex items-center gap-2">+ Add</button>
+                                            </div>
+                                            <div id="attachmentsContainer">
+                                                @foreach ($attachment as $attach)
+                                                    <div class="attachment-row flex items-center gap-2" data-attachid="{{ $attach->id }}">
+                                                        <a href="{{ url('/attachments/' . $attach->attachfile) }}" target="_blank" class="w-full p-3 mt-4 text-lg border">📎 {{ $attach->name }}</a>
+                                                            <button type="button" class="removeAttachment2 mt-4 bg-red-200/10 dark:bg-red-700/30 hover:border-red-700 hover:bg-red-400/30 border-red-700 border text-white px-3 py-3 rounded" data-id="{{ $attach->id }}">🗑️
+                                                            </button>
+                                                    </div>
+                                                @endforeach
+                                            </div>
+                                        </div>
+                                        <div class="text-right mt-6">
+                                            <button type="submit" id="submitBtn" class="px-4 py-2 bg-blue-500 text-white rounded">Submit Approval
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            {{-- </div> --}}
+    </div>
+</div>
+{{-- </div> --}}
+
+        
+    <script>
+        $(document).ready(function () {
+            $('#personnelForm').submit(function (e) {
+                e.preventDefault();
+    
+                let formData = new FormData(this);
+                let url = "{{ route('personnels.update', $personnel->id) }}";
+    
+                $.ajax({
+                    url: url,
+                    type: "POST",
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function (response) {
+                        alert("Personnel Requisition Updated Successfully!");
+                        window.location.href = "/personnels";
+                    },
+                    error: function (xhr) {
+                        alert("Error! Please check the input.");
+                    }
+                });
+            });
+        });  
+        
+    
+    </script>
+    <script>
+        // Add Responsibility
+        $('#addResponsibilities').click(function () {
+            let rowCount = $('#responsibilitiesTable tr').length + 1;
+            $('#responsibilitiesTable').append(`
+                <tr>
+                    <td class="p-3 border text-center">${rowCount}</td>
+                    <td class="p-3 border">
+                        <input type="text" placeholder="Type here..."  name="responsibilities[]" class="w-full p-2 border-none focus:ring-0 focus:outline-none bg-transparent">
+                    </td>
+                    <td class="p-3 border text-center">
+                        <button type="button" class="removeResponsibilities  bg-red-200/10  hover:border-red-700  hover:bg-red-400/30  border-red-700 border text-white px-3 py-3 rounded">🗑️</button>
+                    </td>
+                </tr>
+            `);
+        });
+    
+        // Remove Responsibility
+        $(document).on('click', '.removeResponsibilities', function () {
+            $(this).closest('tr').remove();
+            updateRowNumbers();
+        });
+    
+        // Update row numbers after deleting
+        function updateRowNumbers() {
+            $('#responsibilitiesTable tr').each(function (index) {
+                $(this).find('td:first').text(index + 1);
+            });
+        }
+
+        // Add Qualification
+        $('#addQualification').click(function () {
+            let rowCount = $('#qualificationTable tr').length + 1;
+            $('#qualificationTable').append(`
+                <tr>
+                    <td class="p-3 border text-center">${rowCount}</td>
+                    <td class="p-3 border">
+                        <input type="text" name="qualification[]" placeholder="Type here..." class="w-full p-2 border-none focus:ring-0 focus:outline-none bg-transparent">
+                    <td class="p-3 border text-center">
+                        <button type="button" class="removeQualification  bg-red-200/10 dark:bg-red-700/30 hover:border-red-700 hover:bg-red-400/30 border-red-700 border text-white px-3 py-3 rounded">🗑️</button>
+                    </td>
+                </tr>
+            `);
+        });
+    
+        // Remove Responsibility
+        $(document).on('click', '.removeQualification', function () {
+            $(this).closest('tr').remove();
+            updateRowNumbers();
+        });
+    
+        // Update row numbers after deleting
+        function updateRowNumbers() {
+            $('#qualificationTable tr').each(function (index) {
+                $(this).find('td:first').text(index + 1);
+            });
+        }
+    
+    
+        // Add Attachment
+        $('#addAttachment').click(function () {
+            $('#attachmentsContainer').append(`
+                <div class="attachment-row flex items-center gap-2">
+                    <input type="file" name="attachments[]" class="w-full mt-4 p-3 text-lg border rounded">
+                    <button type="button" class="removeAttachment mt-4 bg-red-200/10 dark:bg-red-700/30 hover:border-red-700 hover:bg-red-400/30 border-red-700 border text-white px-3 py-3 rounded">🗑️</button>
+                </div>
+            `);
+        });
+    
+        // Remove Attachment
+        $(document).on('click', '.removeAttachment', function () {
+            $(this).closest('.attachment-row').remove();
+        });
+
+        $(document).on('click', '.removeAttachment2', function () {
+            let attachmentId = $(this).data('id'); // Ambil ID attachment
+            let row = $(this).closest('.attachment-row'); // Dapatkan row attachment
+
+            // Cek konfirmasi pengguna
+            let confirmDelete = confirm('Are you sure you want to remove this attachment?');
+
+            if (confirmDelete) {
+                $.ajax({
+                    url: "/personnels/remove-attachment/" + attachmentId, // Endpoint ke controller
+                    type: "POST",
+                    data: {
+                        _method: "PUT",
+                        _token: "{{ csrf_token() }}"
+                    },
+                    success: function (response) {
+                        if (response.success) {
+                            row.remove(); // Hapus dari tampilan jika berhasil
+                            alert("Attachment removed successfully!");
+                        } else {
+                            alert("Failed to remove attachment.");
+                        }
+                    },
+                    error: function (xhr) {
+                        alert("Error! Unable to remove attachment.");
+                        console.error(xhr.responseText);
+                    }
+                });
+            } else {
+                // **TIDAK ADA AKSI JIKA USER MEMBATALKAN**
+                return false;
+            }
+        });
+
+    </script>
+</x-app-layout>
+    

@@ -83,7 +83,7 @@
         </tr>
         <tr>
             <td>Tempat/Tanggal Lahir <em>(Place/Date Birth)</em> :</td>
-            <td>{{ $applicant->birth_place }},{{ $applicant->date_of_birth }}</td>
+            <td>{{ $applicant->birth_place }},{{ \Carbon\Carbon::parse($applicant->date_of_birth)->translatedFormat('d F Y') }}</td>
             <td>Umur <em>(Age)</em>:</td>
             <td>{{ $applicant->age }}</td>
         </tr>

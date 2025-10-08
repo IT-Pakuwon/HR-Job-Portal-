@@ -111,7 +111,8 @@
     </div>
     <br>
 
-    <p>Jakarta, {{ $date }}</p>
+    {{-- <p>Jakarta, {{ $date }}</p> --}}
+    <p>Jakarta, {{ \Carbon\Carbon::parse($date)->translatedFormat('d F Y') }}</p>
 
     <p>Kepada Yth.<br><strong>{{ $full_name }}</strong><br>Di Tempat.</p>
 

@@ -257,9 +257,11 @@
                             <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-700 dark:text-gray-300">
                                 {{ $p->other_facility }}</td>
                             <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-700 dark:text-gray-300">
-                                {{ \Carbon\Carbon::parse($p->availability_date)->format('d F Y') }}</td>
+                                {{-- {{ \Carbon\Carbon::parse($p->availability_date)->format('d F Y') }}</td> --}}
+                                {{ \Carbon\Carbon::parse($p->availability_date)->translatedFormat('d F Y') }}</td>
                             <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-700 dark:text-gray-300">
-                                {{ \Carbon\Carbon::parse($p->work_start_date)->format('d F Y') }}</td>
+                                {{-- {{ \Carbon\Carbon::parse($p->work_start_date)->format('d F Y') }}</td> --}}
+                                 {{ \Carbon\Carbon::parse($p->work_start_date)->translatedFormat('d F Y') }}</td>
                             <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-700 dark:text-gray-300">
                                 {{ $p->employment_status }} - Contract {{ $p->contract_term }} bulan</td>
                             <td class="whitespace-nowrap px-6 py-4 text-sm">

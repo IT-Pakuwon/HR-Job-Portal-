@@ -110,8 +110,7 @@
                                 <x-heroicon-o-calendar class="h-5 w-5 text-gray-400" />
                                 <span class="min-w-32 max-w-32 text-gray-500">Date</span>
                                 <span class="break-words font-medium text-gray-900">
-                                    {{-- {{ date('j F Y', strtotime($personnel->date)) }} --}}
-                                    {{ \Carbon\Carbon::parse($personnel->date)->translatedFormat('d F Y') }}
+                                    {{ date('j F Y', strtotime($personnel->spptdate)) }}
                                 </span>
                             </div>
 
@@ -283,7 +282,7 @@
                                         {{-- Larger icon --}}
                                         <span class="font-semibold text-gray-800 dark:text-gray-100">Minimum
                                             <span class="font-bold">{{ $personnel->education }}</span> Educational
-                                            Background From All Major.</span>
+                                            Background From {{ $personnel->education_jurusan }}.</span>
 
                                         {{-- Bolder value --}}
                                     </li>
@@ -296,7 +295,7 @@
                                         <span class="font-semibold text-gray-800 dark:text-gray-100">Minimum
                                             <span class="font-bold">{{ $personnel->experience_start }}
                                                 Year of experience as
-                                                {{ $personnel->job_title }}.</span></span>
+                                                {{ $personnel->experience_position }}.</span></span>
                                         {{-- Bolder value --}}
                                     </li>
                                 </div>
@@ -457,7 +456,7 @@
                             </table>
                         </div>
 
-                        {{-- <div x-show="activeTab === 'comments'" x-transition:enter="transition ease-out duration-300"
+                        <div x-show="activeTab === 'comments'" x-transition:enter="transition ease-out duration-300"
                             x-transition:enter-start="opacity-0 translate-y-2"
                             x-transition:enter-end="opacity-100 translate-y-0"
                             x-transition:leave="transition ease-in duration-200"
@@ -479,32 +478,7 @@
                                     </button>
                                 </div>
                             </div>
-                        </div> --}}
-                        <div x-show="activeTab === 'comments'"
-                                x-transition:enter="transition ease-out duration-300"
-                                x-transition:enter-start="opacity-0 translate-y-2"
-                                x-transition:enter-end="opacity-100 translate-y-0"
-                                x-transition:leave="transition ease-in duration-200"
-                                x-transition:leave-start="opacity-100 translate-y-0"
-                                x-transition:leave-end="opacity-0 translate-y-2">
-
-                            <div class="flex w-full flex-col justify-center">
-                                <div id="commentList"
-                                    class="custom-scrollbar flex max-h-60 flex-col space-y-4 overflow-y-auto p-4">
-                                <p class="py-4 text-center italic text-gray-500">Loading comments...</p>
-                                </div>
-
-                                <div class="flex items-center gap-3 border-t border-gray-200 p-4 dark:border-gray-700">
-                                <input id="commentInput" type="text" placeholder="Write a comment..."
-                                        class="flex-1 rounded-lg border border-transparent bg-gray-100 p-3 text-gray-800 transition-all duration-200 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white dark:focus:ring-indigo-400" />
-                                <button id="postCommentBtn" type="button"
-                                        class="rounded-lg bg-indigo-600 px-5 py-3 text-sm font-semibold text-white transition-all duration-200 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 active:scale-95 dark:focus:ring-offset-gray-800">
-                                    Post 🚀
-                                </button>
-                                </div>
-                            </div>
-                            </div>
-
+                        </div>
                     </div>
                 </div>
             </div>
@@ -560,13 +534,10 @@
         </div>
     </div>
     <script>
-    if (window.lucide && typeof window.lucide.createIcons === 'function') {
-        window.lucide.createIcons();
-    }
+        lucide.createIcons();
     </script>
 
-
-    {{-- <script>
+    <script>
         $(document).ready(function() {
             let docid = "{{ $personnel->docid }}"; // Ambil task ID dari PHP ke JavaScript
             loadComments(docid);
@@ -663,128 +634,7 @@
                 }
             });
         });
-    </script> --}}
-    <script>
-$(function () {
-  const docid = @json($personnel->docid);
-  const $list = $('#commentList');
-  const $input = $('#commentInput');
-  const $btn = $('#postCommentBtn');
-
-  function escapeHtml(s) {
-    return String(s)
-      .replaceAll('&', '&amp;')
-      .replaceAll('<', '&lt;')
-      .replaceAll('>', '&gt;')
-      .replaceAll('"', '&quot;')
-      .replaceAll("'", '&#039;');
-  }
-
-  function prettyTime(ts) {
-    try {
-      if (window.moment) return moment(ts).fromNow();
-      // fallback tanpa moment
-      const d = new Date(ts);
-      return isNaN(d) ? '' : d.toLocaleString();
-    } catch (e) {
-      return '';
-    }
-  }
-
-  function renderComments(comments) {
-    $list.empty();
-    if (!comments || comments.length === 0) {
-      $list.append('<p class="py-4 text-center italic text-gray-500">No comments yet. Be the first to comment!</p>');
-      return;
-    }
-    comments.forEach(c => {
-      const user = escapeHtml(c.username ?? 'User');
-      const msg  = escapeHtml(c.message ?? '');
-      const when = prettyTime(c.created_at ?? c.createdAt ?? '');
-      $list.append(`
-        <div class="p-3 bg-gray-100 dark:bg-gray-800 rounded-lg mb-2 border border-gray-300 dark:border-gray-700">
-          <p class="text-sm font-semibold">${user}
-            <span class="text-xs text-gray-500">(${when})</span>
-          </p>
-          <p class="text-gray-800 dark:text-gray-200">${msg}</p>
-        </div>
-      `);
-    });
-  }
-
-  function loadComments() {
-    $list.html('<p class="text-gray-500 italic">Loading comments...</p>');
-    $.ajax({
-      url: `/personnel/${encodeURIComponent(docid)}/comments`,
-      type: 'GET',
-      dataType: 'json'
-    })
-    .done(function (res) {
-      renderComments(res?.comments || []);
-    })
-    .fail(function (xhr) {
-      console.error('Error fetching comments:', xhr.responseText);
-      $list.html('<p class="text-red-500 italic">Failed to load comments.</p>');
-    });
-  }
-
-  function addComment() {
-    const text = ($input.val() || '').trim();
-    if (!text) {
-      toastr.error('Please enter a comment.');
-      return;
-    }
-    $btn.prop('disabled', true).text('Posting...');
-    $.ajax({
-      url: `/personnel/${encodeURIComponent(docid)}/comments`,
-      type: 'POST',
-      dataType: 'json',
-      data: {
-        _token: @json(csrf_token()),
-        docid: docid,
-        comment: text
-      }
-    })
-    .done(function (res) {
-      if (res?.status === 'success' || res?.success) {
-        $input.val('');
-        loadComments();           // refresh list
-        toastr.success('Comment posted');
-      } else {
-        toastr.error(res?.message || 'Failed to post comment');
-      }
-    })
-    .fail(function (xhr) {
-      console.error('Error adding comment:', xhr);
-      toastr.error(xhr?.responseJSON?.message || 'Error posting comment');
-    })
-    .always(function () {
-      $btn.prop('disabled', false).text('Post 🚀');
-    });
-  }
-
-  // Bind actions
-  $btn.on('click', addComment);
-  $input.on('keypress', function (e) {
-    if (e.which === 13 && !e.shiftKey) {
-      e.preventDefault();
-      addComment();
-    }
-  });
-
-  // initial load
-  loadComments();
-});
-</script>
-{{-- <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.30.1/moment.min.js" integrity="sha512-TX..." crossorigin="anonymous" referrerpolicy="no-referrer"></script> --}}
-<script> if (window.moment) moment.updateLocale('en', {}); </script>
-<script
-  src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.30.1/moment.min.js"
-  integrity="sha512-QoJS4DOhdmG8kbbHkxmB/rtPdN62cGWXAdAFWWJPvUFF1/zxcPSdAnn4HhYZSIlVoLVEJ0LesfNlusgm2bPfnA=="
-  crossorigin="anonymous"
-  referrerpolicy="no-referrer">
-</script>
-
+    </script>
     <script>
         $(document).on("click", "#approveBtn", function() {
             let docid = "{{ $personnel->docid }}"; // Ambil Task ID dari modal        
