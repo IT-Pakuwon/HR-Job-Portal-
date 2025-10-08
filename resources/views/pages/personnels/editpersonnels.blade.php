@@ -2,7 +2,7 @@
     <div class="max-w-9xl mx-auto w-full px-4 py-4 sm:px-6 lg:px-8">
         <div class="grid grid-cols-1 gap-8 lg:grid-cols-2 lg:grid-rows-[minmax(0,auto)_1fr]">
             <div class="flex flex-col gap-8 lg:col-span-2 lg:row-span-1">
-                <form id="personnelForm" enctype="multipart/form-data" method="POST">
+                <form id="personnelForm" class="flex flex-col gap-4" enctype="multipart/form-data" method="POST">
                     @csrf
                     <div class="w-full rounded-xl bg-white p-6 shadow-md dark:bg-gray-800">
                         <div class="mb-6 border-b border-gray-200 pb-4 dark:border-gray-700">
@@ -97,8 +97,9 @@
                                             required>
                                             <option value="">Select</option>
                                         </select> --}}
-                                         <div>                                           
-                                            <input type="text" name="job_title" class="w-full p-2 border rounded" value="{{ $personnel->job_title }}">
+                                        <div>
+                                            <input type="text" name="job_title" class="w-full rounded border p-2"
+                                                value="{{ $personnel->job_title }}">
                                         </div>
                                     </div>
                                     <div class="flex flex-col gap-2">
@@ -108,16 +109,15 @@
                                         <input type="text" name="job_level" id="job_level"
                                             class="pointer-events-none w-full rounded-lg border border-gray-300 bg-gray-100 p-2.5 text-gray-700 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                             readonly> --}}
-                                            <select
-                                                class="w-full rounded-sm border border-gray-200/50 bg-gray-200/10 p-3 focus:ring focus:ring-blue-300 dark:bg-gray-800"
-                                                name="subgrade_id" id="subgrade_id" required>
-                                                @foreach ($subgradings as $sg)
-                                                    <option value="{{ $sg->subgrade_id }}"
-                                                        @selected((string) $sg->subgrade_id === (string) old('subgrade_id', $personnel->subgrade_id ?? ''))>
-                                                        {{ $sg->subgrade_id }}-{{ $sg->subgrade_name }}
-                                                    </option>
-                                                @endforeach
-                                            </select>
+                                        <select
+                                            class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                            name="subgrade_id" id="subgrade_id" required>
+                                            @foreach ($subgradings as $sg)
+                                                <option value="{{ $sg->subgrade_id }}" @selected((string) $sg->subgrade_id === (string) old('subgrade_id', $personnel->subgrade_id ?? ''))>
+                                                    {{ $sg->subgrade_id }}-{{ $sg->subgrade_name }}
+                                                </option>
+                                            @endforeach
+                                        </select>
 
                                     </div>
                                     <div class="flex flex-col gap-2">
@@ -148,14 +148,16 @@
                                     <div class="flex flex-col gap-2">
                                         <label
                                             class="block text-sm font-medium text-gray-700 dark:text-gray-300">Actual</label>
-                                        <input type="number" name="actual" id="actual" min="0" value={{ $personnel->actual }}
+                                        <input type="number" name="actual" id="actual" min="0"
+                                            value={{ $personnel->actual }}
                                             class="pointer-events-none w-full rounded-lg border border-gray-300 bg-gray-100 p-2.5 text-gray-700 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                             readonly>
                                     </div>
                                     <div class="flex flex-col gap-2">
                                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Number
                                             Required</label>
-                                        <input type="number" name="required" id="required" min="0" value={{ $personnel->required }}
+                                        <input type="number" name="required" id="required" min="0"
+                                            value={{ $personnel->required }}
                                             class="pointer-events-none w-full rounded-lg border border-gray-300 bg-gray-100 p-2.5 text-gray-700 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                             readonly>
                                     </div>
@@ -163,7 +165,8 @@
                                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Total
                                             Actual
                                             Number</label>
-                                        <input type="number" name="total_actual" id="total_actual" min="0" value={{ $personnel->total_actual }}
+                                        <input type="number" name="total_actual" id="total_actual" min="0"
+                                            value={{ $personnel->total_actual }}
                                             class="pointer-events-none w-full rounded-lg border border-gray-300 bg-gray-100 p-2.5 text-gray-700 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                             readonly>
                                     </div>
@@ -212,8 +215,8 @@
                                     </div>
                                     <button type="button" id="addResponsibilities"
                                         class="mb-4 mt-4 flex items-center justify-center gap-2 rounded border border-gray-700 bg-gray-200/10 p-2 text-gray-800 hover:border-red-700 hover:bg-red-200/10 hover:font-medium hover:text-red-800">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5"
-                                            viewBox="0 0 20 20" fill="currentColor">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20"
+                                            fill="currentColor">
                                             <path fill-rule="evenodd"
                                                 d="M10 2a1 1 0 011 1v6h6a1 1 0 110 2h-6v6a1 1 0 11-2 0v-6H3a1 1 0 110-2h6V3a1 1 0 011-1z"
                                                 clip-rule="evenodd" />
@@ -278,17 +281,14 @@
                                     <label class="font-semibold">🔹 Experience</label>
                                     <div class="mb-4 flex gap-4">
                                         <div class="w-1/2">
-                                            <label
-                                                class="font-medium text-gray-700 dark:text-gray-300">Start</label>
-                                            <input type="number" name="experience_start"
-                                                id="experience_start"
+                                            <label class="font-medium text-gray-700 dark:text-gray-300">Start</label>
+                                            <input type="number" name="experience_start" id="experience_start"
                                                 value="{{ $personnel->experience_start }}" min="0"
                                                 placeholder="Input here"
                                                 class="mt-2 w-full rounded-sm border border-gray-200/50 bg-gray-200/10 p-3 focus:ring focus:ring-blue-300 dark:bg-gray-800">
                                         </div>
                                         <div class="w-1/2">
-                                            <label
-                                                class="font-medium text-gray-700 dark:text-gray-300">End</label>
+                                            <label class="font-medium text-gray-700 dark:text-gray-300">End</label>
                                             <input type="number" name="experience_end" id="experience_end"
                                                 value="{{ $personnel->experience_end }}" min="0"
                                                 placeholder="Input here"
@@ -298,36 +298,38 @@
                                     <div class="border-b"></div>
                                 </div>
                                 <div class="flex flex-col gap-2">
-    <label class="block text-sm font-semibold text-gray-800 dark:text-gray-200">🔹 Tags</label>
+                                    <label class="block text-sm font-semibold text-gray-800 dark:text-gray-200">🔹
+                                        Tags</label>
 
-    @php
-        // Kumpulan tag terpilih (dari TrJobtag atau old())
-        $selected = collect(old('tags', $selectedTags ?? []))
-            ->filter(fn($t) => filled($t))
-            ->map(fn($t) => (string) trim($t))
-            ->unique()
-            ->values()
-            ->toArray();
+                                    @php
+                                        // Kumpulan tag terpilih (dari TrJobtag atau old())
+                                        $selected = collect(old('tags', $selectedTags ?? []))
+                                            ->filter(fn($t) => filled($t))
+                                            ->map(fn($t) => (string) trim($t))
+                                            ->unique()
+                                            ->values()
+                                            ->toArray();
 
-        // Master (opsional, dari MJobtag)
-        $master = collect($skillTags ?? [])
-            ->pluck('job_tags')
-            ->filter(fn($t) => filled($t))
-            ->map(fn($t) => (string) trim($t));
+                                        // Master (opsional, dari MJobtag)
+                                        $master = collect($skillTags ?? [])
+                                            ->pluck('job_tags')
+                                            ->filter(fn($t) => filled($t))
+                                            ->map(fn($t) => (string) trim($t));
 
-        // Gabungkan supaya tag yg tidak ada di master tetap tampil
-        $allTags = $master->merge($selected)->unique()->sort()->values();
-    @endphp
+                                        // Gabungkan supaya tag yg tidak ada di master tetap tampil
+                                        $allTags = $master->merge($selected)->unique()->sort()->values();
+                                    @endphp
 
-    <select name="tags[]" id="tags" multiple
-        class="tags-input w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
-        @foreach ($allTags as $tag)
-            <option value="{{ $tag }}" {{ in_array($tag, $selected, true) ? 'selected' : '' }}>
-                {{ $tag }}
-            </option>
-        @endforeach
-    </select>
-</div>
+                                    <select name="tags[]" id="tags" multiple
+                                        class="tags-input w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
+                                        @foreach ($allTags as $tag)
+                                            <option value="{{ $tag }}"
+                                                {{ in_array($tag, $selected, true) ? 'selected' : '' }}>
+                                                {{ $tag }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
 
 
 
@@ -364,14 +366,14 @@
                                     </div>
                                     <button type="button" id="addQualification"
                                         class="mb-4 flex items-center justify-center gap-2 rounded border border-gray-700 bg-gray-200/10 p-2 text-gray-800 hover:border-indigo-700 hover:bg-indigo-200/10 hover:font-medium hover:text-indigo-800">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5"
-                                            viewBox="0 0 20 20" fill="currentColor">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20"
+                                            fill="currentColor">
                                             <path fill-rule="evenodd"
                                                 d="M10 2a1 1 0 011 1v6h6a1 1 0 110 2h-6v6a1 1 0 11-2 0v-6H3a1 1 0 110-2h6V3a1 1 0 011-1z"
                                                 clip-rule="evenodd" />
                                         </svg> Add Column
                                     </button>
-                                </div>                               
+                                </div>
                             </details>
                         </div>
                         <div class="border-b"></div>
@@ -563,7 +565,7 @@
             });
         });
     </script>
-    
+
 
     <script>
         // Add Responsibility
@@ -622,9 +624,6 @@
                 $(this).find('td:first').text(index + 1);
             });
         }
-
-
-       
     </script>
     <script>
         $(document).ready(function() {
@@ -664,77 +663,77 @@
             });
         });
     </script>
-   <script>
-        $(function () {
-        const $tags = $('#tags');
-        const selectedTags = @json($selected ?? []);
+    <script>
+        $(function() {
+            const $tags = $('#tags');
+            const selectedTags = @json($selected ?? []);
 
-        // Jika ada tag terpilih yang belum ada sebagai <option>, tambahkan (aman untuk tags: true)
-        selectedTags.forEach(t => {
-            if ($tags.find('option[value="'+t.replace(/"/g, '\\"')+'"]').length === 0) {
-            $tags.append(new Option(t, t, true, true));
-            }
-        });
+            // Jika ada tag terpilih yang belum ada sebagai <option>, tambahkan (aman untuk tags: true)
+            selectedTags.forEach(t => {
+                if ($tags.find('option[value="' + t.replace(/"/g, '\\"') + '"]').length === 0) {
+                    $tags.append(new Option(t, t, true, true));
+                }
+            });
 
-        // Init Select2 TANPA 'data:' agar tidak menimpa <option> HTML
-        $tags.select2({
-            placeholder: "Select or type tags",
-            tags: true,
-            tokenSeparators: [',']
-        });
+            // Init Select2 TANPA 'data:' agar tidak menimpa <option> HTML
+            $tags.select2({
+                placeholder: "Select or type tags",
+                tags: true,
+                tokenSeparators: [',']
+            });
 
-        // Pastikan nilai ter-set (kalau Select2 re-init di tempat lain)
-        $tags.val(selectedTags).trigger('change');
+            // Pastikan nilai ter-set (kalau Select2 re-init di tempat lain)
+            $tags.val(selectedTags).trigger('change');
         });
     </script>
     <script>
-        $(function () {
-        const $cpny = $('select[name="cpnyid"]');
-        const $site = $('select[name="siteid"]');
+        $(function() {
+            const $cpny = $('select[name="cpnyid"]');
+            const $site = $('select[name="siteid"]');
 
-        // Pakai ID yg tersimpan di DB, bukan locationname
-        const currentSiteId = @json($personnel->locationname); // <-- penting: ID, bukan nama
+            // Pakai ID yg tersimpan di DB, bukan locationname
+            const currentSiteId = @json($personnel->locationname); // <-- penting: ID, bukan nama
 
-        function loadSites(cpnyid, selectedId) {
-            if (!cpnyid) {
-            $site.html('<option value="">-- Select Site --</option>');
-            return;
+            function loadSites(cpnyid, selectedId) {
+                if (!cpnyid) {
+                    $site.html('<option value="">-- Select Site --</option>');
+                    return;
+                }
+
+                $.getJSON(`/api/sites/${cpnyid}`, function(data) {
+                    $site.empty().append('<option value="">-- Select Site --</option>');
+
+                    // Pastikan key yg dipakai sesuai response API kamu (id & site)
+                    data.forEach(function(row) {
+                        // new Option(text, value, defaultSelected, selected)
+                        const isSelected = String(row.id) === String(selectedId);
+                        $site.append(new Option(row.site, row.id, false, isSelected));
+                    });
+
+                    // “Double set” untuk memastikan value benar-benar terpilih
+                    if (selectedId) {
+                        $site.val(String(selectedId)).trigger('change');
+                    }
+                });
             }
 
-            $.getJSON(`/api/sites/${cpnyid}`, function (data) {
-            $site.empty().append('<option value="">-- Select Site --</option>');
+            // Initial fill saat halaman dibuka
+            loadSites($cpny.val(), currentSiteId);
 
-            // Pastikan key yg dipakai sesuai response API kamu (id & site)
-            data.forEach(function (row) {
-                // new Option(text, value, defaultSelected, selected)
-                const isSelected = String(row.id) === String(selectedId);
-                $site.append(new Option(row.site, row.id, false, isSelected));
+            // Saat company berubah, muat ulang sites (tanpa preselect lama)
+            $cpny.on('change', function() {
+                loadSites(this.value, null);
             });
 
-            // “Double set” untuk memastikan value benar-benar terpilih
-            if (selectedId) {
-                $site.val(String(selectedId)).trigger('change');
-            }
+            // Debug cepat: lihat apa yg terkirim saat submit
+            $('#personnelForm').on('submit', function() {
+                const fd = new FormData(this);
+                console.log('siteid payload =', fd.get('siteid')); // harusnya ID (string)
             });
-        }
-
-        // Initial fill saat halaman dibuka
-        loadSites($cpny.val(), currentSiteId);
-
-        // Saat company berubah, muat ulang sites (tanpa preselect lama)
-        $cpny.on('change', function () {
-            loadSites(this.value, null);
-        });
-
-        // Debug cepat: lihat apa yg terkirim saat submit
-        $('#personnelForm').on('submit', function () {
-            const fd = new FormData(this);
-            console.log('siteid payload =', fd.get('siteid')); // harusnya ID (string)
-        });
         });
     </script>
 
-      
+
 
 
 

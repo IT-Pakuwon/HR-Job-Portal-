@@ -155,7 +155,7 @@
             <td colspan="2">
                 <strong>5. Periode Kontrak</strong><br>
                 Saudara mulai bekerja pada tanggal yang telah disepakati, dengan masa periode kontrak 3 Bulan. Terhitung
-                dari tanggal {{ $work_start_date }} <br>
+                dari tanggal {{ $availability_date }} sampai tanggal {{ $work_start_date }} <br>
             </td>
         </tr>
         <tr>

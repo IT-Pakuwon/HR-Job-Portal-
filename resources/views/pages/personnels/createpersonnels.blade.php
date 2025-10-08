@@ -126,10 +126,11 @@
                                             class="pointer-events-none w-full rounded-lg border border-gray-300 bg-gray-100 p-2.5 text-gray-700 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                             readonly> --}}
                                         <select
-                                            class="w-full rounded-sm border border-gray-200/50 bg-gray-200/10 p-3 focus:ring focus:ring-blue-300 dark:bg-gray-800"
+                                            class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                             name="subgrade_id" id="subgrade_id" required>
                                             @foreach ($subgradings as $sg)
-                                                <option value="{{ $sg->subgrade_id }}">{{ $sg->subgrade_id }}-{{ $sg->subgrade_name }}</option>
+                                                <option value="{{ $sg->subgrade_id }}">
+                                                    {{ $sg->subgrade_id }}-{{ $sg->subgrade_name }}</option>
                                             @endforeach
                                         </select>
                                     </div>
@@ -155,7 +156,7 @@
                                             required></textarea>
                                     </div>
                                 </div>
-                               
+
                                 <div
                                     class="mb-6 mt-6 grid grid-cols-1 gap-4 rounded-l bg-gray-200/40 p-6 sm:grid-cols-3">
                                     <div class="flex items-center gap-4">
@@ -185,7 +186,7 @@
                         </details>
                     </div>
 
-                    
+
                     <div class="flex w-full flex-col gap-2 rounded-2xl border-b bg-white dark:bg-gray-800">
                         <div class="flex w-full flex-col rounded-2xl p-4">
                             <details class="group" open>
@@ -222,8 +223,8 @@
                                     </div>
                                     <button type="button" id="addResponsibilities"
                                         class="mb-4 mt-4 flex items-center justify-center gap-2 rounded border border-gray-700 bg-gray-200/10 p-2 text-gray-800 hover:border-red-700 hover:bg-red-200/10 hover:font-medium hover:text-red-800">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5"
-                                            viewBox="0 0 20 20" fill="currentColor">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20"
+                                            fill="currentColor">
                                             <path fill-rule="evenodd"
                                                 d="M10 2a1 1 0 011 1v6h6a1 1 0 110 2h-6v6a1 1 0 11-2 0v-6H3a1 1 0 110-2h6V3a1 1 0 011-1z"
                                                 clip-rule="evenodd" />
@@ -369,8 +370,8 @@
                                         <div class="flex w-1/2 flex-col">
                                             <label
                                                 class="mb-2 font-medium text-gray-700 dark:text-gray-300">Start</label>
-                                            <input type="number" name="experience_start"
-                                                id="experience_start" min="0" placeholder="Input here"
+                                            <input type="number" name="experience_start" id="experience_start"
+                                                min="0" placeholder="Input here"
                                                 class="w-full rounded-lg border border-gray-300 bg-white p-3 text-gray-700 shadow-sm focus:ring-2 focus:ring-blue-400 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200">
                                         </div>
                                         <div class="flex w-1/2 flex-col">
@@ -381,7 +382,7 @@
                                                 class="w-full rounded-lg border border-gray-300 bg-white p-3 text-gray-700 shadow-sm focus:ring-2 focus:ring-blue-400 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200">
                                         </div>
                                     </div>
-                                </div>                                
+                                </div>
                                 <div class="flex h-auto flex-col justify-start">
                                     <label class="mb-2 font-semibold"> 🔹 Skill</label>
                                     <div class="overflow-y-auto">
@@ -410,8 +411,8 @@
                                     </div>
                                     <button type="button" id="addQualification"
                                         class="mb-4 mt-4 flex items-center justify-center gap-2 rounded border border-gray-700 bg-gray-200/10 p-2 text-gray-800 hover:border-red-700 hover:bg-red-200/10 hover:font-medium hover:text-red-800">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5"
-                                            viewBox="0 0 20 20" fill="currentColor">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20"
+                                            fill="currentColor">
                                             <path fill-rule="evenodd"
                                                 d="M10 2a1 1 0 011 1v6h6a1 1 0 110 2h-6v6a1 1 0 11-2 0v-6H3a1 1 0 110-2h6V3a1 1 0 011-1z"
                                                 clip-rule="evenodd" />
