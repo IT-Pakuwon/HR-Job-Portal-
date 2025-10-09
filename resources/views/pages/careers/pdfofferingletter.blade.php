@@ -116,7 +116,13 @@
 
     <p>Kepada Yth.<br><strong>{{ $full_name }}</strong><br>Di Tempat.</p>
 
-    <p style="padding-left: 5px"><strong>Perihal: SURAT PENAWARAN KERJA</strong></p>
+    <table style="width: 100%; margin-bottom: 1rem;">
+        <tr>
+            <td style="text-align: left; width: 5%;">Perihal</td>
+            <td style="text-align: center; font-weight: bold;">SURAT PENAWARAN KERJA</td>
+        </tr>
+    </table>
+
 
     <p>Dengan ini diberitahukan bahwa Saudara diterima bekerja di <strong>{{ $cpnyid }}</strong> dengan
         syarat-syarat dan kondisi sebagai berikut:</p>

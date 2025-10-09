@@ -266,7 +266,7 @@
                             KEBAYORAN LAMA, JAKARTA SELATAN, DKI JAKARTA 12240
                         </div>
                         <div style="font-size:12px; color:#374151;">
-                            (Ref: AW/PM/25-09/0061)
+
                         </div>
                     </td>
 
@@ -281,8 +281,7 @@
                             (Pls always indicate this PO No. on all related invoices and/or delivery
                             receipt.)
                         </div>
-                        <div style="font-size:12px; font-weight:700; color:#111827;">SPPB No:
-                            PB25090008</div>
+                        <div style="font-size:12px; font-weight:700; color:#111827;"></div>
                         <div style="font-size:10px; color:#374151;">
                             (Harap cantumkan No. PO ini pada invoice dan atau Surat Jalan.)
                         </div>
