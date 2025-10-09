@@ -13,7 +13,7 @@ class TrSPPBdetail extends Model
     protected $fillable = [
         'sppbid',
         'sppb_no',
-        'sppb_type',
+        'inventory_type',
         'sppb_category',
         'inventoryid',
         'inventory_descr',

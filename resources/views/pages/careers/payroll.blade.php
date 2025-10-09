@@ -137,22 +137,24 @@
                         </div>
 
                         <div class="flex flex-col">
-                            <label for="availability_date"
+                            <label for="work_start_date"
                                 class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Tgl
-                                Kesediaan</label>
-                            <input type="date" name="availability_date" id="availability_date"
+                                Masuk Kerja</label>
+                            <input type="date" name="work_start_date" id="work_start_date"
                                 class="w-full rounded-lg border border-gray-300 p-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
                                 required>
                         </div>
 
                         <div class="flex flex-col">
-                            <label for="work_start_date"
+                            <label for="availability_date"
                                 class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Tgl
-                                Kerja</label>
-                            <input type="date" name="work_start_date" id="work_start_date"
+                                Selesai Kerja</label>
+                            <input type="date" name="availability_date" id="availability_date"
                                 class="w-full rounded-lg border border-gray-300 p-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
                                 required>
                         </div>
+
+                        
                     </div>
 
                     <div class="mt-6 flex flex-col">
@@ -220,10 +222,11 @@
                             Fasilitas</th>
                         <th
                             class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300">
-                            Tgl Kesediaan</th>
+                            Tgl Masuk Kerja</th>
                         <th
                             class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300">
-                            Tgl Kerja</th>
+                            Tgl Selesai Kerja</th>
+                        
                         <th
                             class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300">
                             Status Kepegawaian</th>
@@ -257,11 +260,11 @@
                             <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-700 dark:text-gray-300">
                                 {{ $p->other_facility }}</td>
                             <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-700 dark:text-gray-300">
-                                {{-- {{ \Carbon\Carbon::parse($p->availability_date)->format('d F Y') }}</td> --}}
-                                {{ \Carbon\Carbon::parse($p->availability_date)->translatedFormat('d F Y') }}</td>
-                            <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-700 dark:text-gray-300">
                                 {{-- {{ \Carbon\Carbon::parse($p->work_start_date)->format('d F Y') }}</td> --}}
                                  {{ \Carbon\Carbon::parse($p->work_start_date)->translatedFormat('d F Y') }}</td>
+                            <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-700 dark:text-gray-300">
+                                {{-- {{ \Carbon\Carbon::parse($p->availability_date)->format('d F Y') }}</td> --}}
+                                {{ \Carbon\Carbon::parse($p->availability_date)->translatedFormat('d F Y') }}</td>                            
                             <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-700 dark:text-gray-300">
                                 {{ $p->employment_status }} - Contract {{ $p->contract_term }} bulan</td>
                             <td class="whitespace-nowrap px-6 py-4 text-sm">

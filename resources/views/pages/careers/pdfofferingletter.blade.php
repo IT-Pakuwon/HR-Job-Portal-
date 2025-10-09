@@ -116,7 +116,7 @@
 
     <p>Kepada Yth.<br><strong>{{ $full_name }}</strong><br>Di Tempat.</p>
 
-    <p><strong>Perihal: SURAT PENAWARAN KERJA</strong></p>
+    <p style="padding-left: 5px"><strong>Perihal: SURAT PENAWARAN KERJA</strong></p>
 
     <p>Dengan ini diberitahukan bahwa Saudara diterima bekerja di <strong>{{ $cpnyid }}</strong> dengan
         syarat-syarat dan kondisi sebagai berikut:</p>
@@ -155,7 +155,7 @@
             <td colspan="2">
                 <strong>5. Periode Kontrak</strong><br>
                 Saudara mulai bekerja pada tanggal yang telah disepakati, dengan masa periode kontrak 3 Bulan. Terhitung
-                dari tanggal {{ $availability_date }} sampai tanggal {{ $work_start_date }} <br>
+                dari tanggal {{ $work_start_date }} sampai tanggal {{ $availability_date }}<br>
             </td>
         </tr>
         <tr>

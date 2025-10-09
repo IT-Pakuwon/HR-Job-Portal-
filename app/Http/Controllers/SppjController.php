@@ -323,7 +323,7 @@ class SppjController extends Controller
                 $detail->qty                      = $qty;
                 $detail->uom                      = $uom;
                 $detail->note                     = $notes[$i]   ?? null;
-                $detail->sppj_type                = $item_types[$i] ?? null;
+                $detail->inventory_type                = $item_types[$i] ?? null;
                 $detail->sppj_category            = $item_categories[$i] ?? null;
                 $detail->base_uom                 = $baseUom;            // = purchase_unit
                 $detail->base_multiplier          = $rate;               // = uom_unitrate (float)
@@ -637,7 +637,7 @@ class SppjController extends Controller
                     'qty'                      => $qty,
                     'uom'                      => $displayUom,
                     'note'                     => $notes[$i] ?? null,
-                    'sppj_type'                => $itemTypes[$i] ?? null,
+                    'inventory_type'                => $itemTypes[$i] ?? null,
                     'sppj_category'            => $itemCats[$i] ?? null,
 
                     // >>> ini yang ditambahkan <<<

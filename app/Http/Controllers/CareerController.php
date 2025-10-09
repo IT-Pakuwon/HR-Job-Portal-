@@ -1342,6 +1342,7 @@ class CareerController extends Controller
         $net_salary   = (float) (optional($payrollconfirm)->net_salary ?? 0); // <- aman jika payroll null
         $salary_words = ucfirst($this->terbilang($net_salary)) . ' rupiah'; // <- pakai $this
         $work_start_date = $payrollconfirm->work_start_date ? Carbon::parse($payrollconfirm->work_start_date)->translatedFormat('d F Y') : '-';
+        $availability_date = $payrollconfirm->availability_date ? Carbon::parse($payrollconfirm->availability_date)->translatedFormat('d F Y') : '-';
 
         $companyaddress = CompanyAddress::where('cpnyid', $request->cpnyid)->first();
         

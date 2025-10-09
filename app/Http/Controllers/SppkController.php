@@ -316,7 +316,7 @@ class SppkController extends Controller
                 $detail->qty                      = $qty;
                 $detail->uom                      = $uom;
                 $detail->note                     = $notes[$i]   ?? null;
-                $detail->sppk_type                = $item_types[$i] ?? null;
+                $detail->inventory_type                = $item_types[$i] ?? null;
                 $detail->sppk_category            = $item_categories[$i] ?? null;
                 $detail->base_uom                 = $baseUom;            // = purchase_unit
                 $detail->base_multiplier          = $rate;               // = uom_unitrate (float)
@@ -632,7 +632,7 @@ class SppkController extends Controller
                     'qty'                      => $qty,
                     'uom'                      => $displayUom,
                     'note'                     => $notes[$i] ?? null,
-                    'sppk_type'                => $itemTypes[$i] ?? null,
+                    'inventory_type'                => $itemTypes[$i] ?? null,
                     'sppk_category'            => $itemCats[$i] ?? null,
 
                     // >>> ini yang ditambahkan <<<
