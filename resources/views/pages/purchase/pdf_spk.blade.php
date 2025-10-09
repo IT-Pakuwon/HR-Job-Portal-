@@ -1,274 +1,529 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Surat Perintah Kerja (SPK) — PT. Artisan Wahyu</title>
-  <style>
-    :root{
-      --ink:#111827; --muted:#4b5563; --line:#cbd5e1; --brand:#4f46e5;
-    }
-    *{box-sizing:border-box}
-    html,body{margin:0;padding:0;color:var(--ink);font:12px/1.4 Arial,Helvetica,sans-serif;background:#fff}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Surat Perintah Kerja — PT. Artisan Wahyu</title>
 
-    /* Print layout */
-    @page{size:A4; margin:18mm 16mm}
-    .page{width:210mm; min-height:297mm; margin:0 auto; position:relative}
-    .content{padding:0}
+    <style>
+        @page {
+            size: A4;
+            margin: 12mm;
+        }
 
-    h1,h2,h3,h4{margin:0}
-    .header{display:grid; grid-template-columns:1fr auto; gap:8px; align-items:start; margin-bottom:12px}
-    .company{font-weight:700; font-size:14px}
-    .sub{color:var(--muted)}
-    .badge{display:inline-block; padding:2px 8px; border:1px solid var(--line); border-radius:999px; font-size:11px}
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 11px;
+            margin: 0;
+            padding: 0;
+            color: #000;
+        }
 
-    .row{display:flex; gap:12px}
-    .col{flex:1}
-    .section{border:1px solid var(--line); border-radius:6px; padding:10px; margin-bottom:10px}
-    .section h3{font-size:12px; margin-bottom:6px}
+        .page {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            min-height: 100vh;
+            padding-bottom: 10px;
+            box-sizing: border-box;
 
-    .kv{display:grid; grid-template-columns:160px 1fr; gap:2px 10px}
-    .kv dt{color:var(--muted)}
-    .kv dd{margin:0; font-weight:600}
+            page-break-after: always;
+        }
 
-    table{width:100%; border-collapse:collapse}
-    thead th{font-size:12px; text-align:left; padding:8px; border-bottom:1px solid #000}
-    tbody td{padding:8px; border-bottom:1px dashed var(--line); vertical-align:top}
-    .ar{text-align:right}
+        .page:last-child {
+            page-break-after: auto;
+        }
 
-    .notes{font-size:11px}
-    .say{margin-top:6px; font-style:italic}
+        h1,
+        h2,
+        h3,
+        h4,
+        h5,
+        h6,
+        p {
+            margin: 0;
+            line-height: 1.4;
+        }
 
-    .totals{margin-top:8px}
-    .totals table{width:260px; border:1px solid var(--line)}
-    .totals td{padding:6px 8px}
-    .totals tr:not(:last-child) td{border-bottom:1px solid var(--line)}
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
 
-    .signatures{display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:18px}
-    .sigbox{border:1px dashed var(--line); border-radius:6px; padding:12px; height:90px}
+        td,
+        th {
+            vertical-align: top;
+            padding: 4px;
+        }
 
-    .footer{position:absolute; left:0; right:0; bottom:0; font-size:10.5px; color:var(--muted)}
-    .footer .line{height:1px; background:var(--line); margin-bottom:6px}
-    .footer .row{justify-content:space-between; align-items:center}
+        .header {
+            text-align: center;
+            margin-bottom: 10px;
+        }
 
-    .page-break{page-break-before:always}
+        .header h2 {
+            text-transform: uppercase;
+            text-decoration: underline;
+        }
 
-    @media print{ .no-print{display:none!important} .page{box-shadow:none} }
-  </style>
+        .signature {
+            margin-top: 40px;
+            text-align: right;
+        }
+
+        .signature .box {
+            display: inline-block;
+            text-align: center;
+            width: 220px;
+            height: 100px;
+            border-top: 1px solid #000;
+            padding-top: 5px;
+            font-size: 11px;
+            line-height: 1.3;
+        }
+
+        /* Footer (Company + Paraf PIHAK KEDUA) */
+        .footer {
+            position: absolute;
+            bottom: 55px;
+            /* keep it above the fixed footer */
+            left: 0;
+            right: 0;
+            font-size: 10px;
+            line-height: 1.4;
+            background: #fff;
+            padding: 4px 25px;
+            box-sizing: border-box;
+        }
+
+        .footer table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .footer td {
+            vertical-align: top;
+            padding: 0;
+        }
+
+        .footer td:first-child {
+            text-align: left;
+        }
+
+        .footer td:last-child {
+            text-align: right;
+        }
+
+        .footer .sign {
+            border-top: 1px solid #000;
+            display: inline-block;
+            padding-top: 3px;
+            margin-top: 2px;
+            font-weight: bold;
+        }
+
+        /* Fixed footer (Created by + Page) */
+        .fixed-footer {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            font-size: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 1px solid #000;
+            padding: 6px 20px;
+            background: #fff;
+            box-sizing: border-box;
+        }
+
+        ol {
+            counter-reset: item;
+            padding-left: 18px;
+            margin: 0;
+        }
+
+        ol>li {
+            display: block;
+            position: relative;
+        }
+
+        ol>li:before {
+            content: counters(item, ".") ". ";
+            counter-increment: item;
+            position: absolute;
+            left: -2em;
+            width: 2em;
+            text-align: right;
+        }
+    </style>
 </head>
+
 <body>
-  <!-- PAGE 1: Ringkasan SPK -->
-  <div class="page">
-    <div class="content">
-      <div class="header">
-        <div>
-          <div class="company">PT. Artisan Wahyu</div>
-          <div class="sub">JL. Sultan Iskandar Muda No 8, Jakarta, DKI JAKARTA</div>
-          <div class="sub">Telp: (622) 129-0080 00 &nbsp; Fax: (622) 129-0531 91</div>
-          <div class="sub">NPWP : 01.070.808.9-058.000</div>
-          <div class="sub">Alamat NPWP : GEDUNG GANDARIA 8 OFFICE TOWER LT.32, JL SULTAN ISKANDAR MUDA KEBAYORAN LAMA UTARA, KEBAYORAN LAMA, JAKARTA SELATAN, DKI JAKARTA 12240</div>
+    {{-- PAGE 1 --}}
+    <div class="page">
+        <div class="header">
+            <h2><strong>SURAT PERINTAH KERJA</strong></h2>
+            <p>8000006114</p>
+            <p>(Ref: AW/PS/25-09/0011)</p>
         </div>
-        <div style="text-align:right">
-          <div class="badge">SURAT PERINTAH KERJA (SPK)</div>
-          <div style="margin-top:6px; font-weight:700">No. SPK: 8000006114</div>
-          <div class="sub">(Ref: AW/PS/25-09/0011)</div>
-        </div>
-      </div>
 
-      <div class="section">
-        <h3>Para Pihak</h3>
-        <div class="row">
-          <div class="col">
-            <dl class="kv">
-              <dt>PIHAK I</dt><dd>PT. Artisan Wahyu</dd>
-              <dt>Alamat</dt><dd>JL. Sultan Iskandar Muda No 8, Jakarta, DKI JAKARTA</dd>
-            </dl>
-          </div>
-          <div class="col">
-            <dl class="kv">
-              <dt>PIHAK II</dt><dd>RODA NURMALA, PT</dd>
-              <dt>Alamat</dt><dd>Komplek Perkantoran Royal Sunter, Jl. Danau Sunter Selatan Blok F No. 16-17, Kel. Sunter Jaya, Kec. Tanjung Priok</dd>
-            </dl>
-          </div>
-        </div>
-      </div>
+        <p><strong>Yang bertanda tangan di bawah ini:</strong></p>
+        <p><strong>Perusahaan :</strong> Artisan Wahyu, PT</p>
+        <p><strong>Alamat :</strong> JL. Sultan Iskandar Muda No 8, Jakarta, DKI JAKARTA</p>
+        <p><strong>NPWP :</strong> 01.070.808.9-058.000</p>
+        <p><strong>Alamat NPWP :</strong> GEDUNG GANDARIA 8 OFFICE TOWER LT.32, JL SULTAN ISKANDAR MUDA KEBAYORAN LAMA
+            UTARA, KEBAYORAN LAMA JAKARTA SELATAN DKI JAKARTA 12240</p>
+        <p>Untuk selanjutnya disebut "<strong>PIHAK I</strong>".</p>
 
-      <div class="row">
-        <div class="section col">
-          <h3>Detail Pekerjaan</h3>
-          <dl class="kv">
-            <dt>Tanggal Pelaksanaan</dt><dd>23 September 2025 s/d 02 Desember 2025</dd>
-            <dt>Jenis Pekerjaan</dt><dd>Pekerjaan general check up diesel fire pump di ruang pompa Lt. B2</dd>
-            <dt>Total Biaya</dt><dd>13,875,000.00</dd>
-            <dt>Terbilang</dt><dd>Tiga belas juta delapan ratus tujuh puluh lima ribu rupiah</dd>
-            <dt>Menyelesaikan Dalam</dt><dd>28 Hari Kerja (Tidak Termasuk Sabtu/Minggu/Hari Libur Nasional)</dd>
-            <dt>Waktu Pelaksanaan</dt><dd>Senin s/d Jumat, 09.00 – 18.00 WIB</dd>
-            <dt>Total Man Power</dt><dd>5 Orang</dd>
-            <dt>PIC</dt><dd>Bapak Jhon — HP 0813-12000866</dd>
-            <dt>Cara Pembayaran</dt><dd>Transfer</dd>
-          </dl>
-        </div>
-        <div class="section col">
-          <h3>Lingkup Pekerjaan</h3>
-          <table>
-            <thead>
-              <tr>
-                <th style="width:28px">No.</th>
-                <th>Deskripsi</th>
-                <th class="ar" style="width:120px">Amount</th>
-              </tr>
+        <br>
+
+        <p><strong>Nama :</strong> RODA NURMALA, PT</p>
+        <p><strong>Jabatan :</strong></p>
+        <p><strong>Perusahaan :</strong> RODA NURMALA, PT</p>
+        <p><strong>Alamat :</strong> Komplek Perkantoran Royal Sunter Jalan Danau Sunter Selatan Blok F No. 16-17 Kel.
+            Sunter Jaya Kec. Tanjung Priok</p>
+        <p>Untuk selanjutnya disebut "<strong>PIHAK II</strong>".</p>
+        <br>
+        <p>Dengan ini PIHAK I memberikan tugas kepada PIHAK II untuk</p>
+
+        <p><strong>Tanggal :</strong> 23 September 2025 s/d 02 Desember 2025 (Pelaksanaan Pekerjaan).</p>
+        <p><strong>Jenis Pekerjaan :</strong> Pekerjaan general check up diesel fire pump di ruang pompa Lt. B2</p>
+        <br>
+        <p><strong>Total Biaya :</strong> 13,875,000.00</p>
+        <p><strong>Terbilang :</strong> Tiga belas juta delapan ratus tujuh puluh lima ribu rupiah</p>
+        <br>
+        <p><strong>Menyelesaikan Pekerjaan Dalam Waktu :</strong> 28 Hari Kerja (Tidak Termasuk Hari Sabtu / Minggu /
+            Hari Libur Nasional).</p>
+        <p><strong>Waktu Pelaksanaan Pekerjaan :</strong> Hari Senin s/d Jumat Pukul 09.00 s/d 18.00 WIB.</p>
+        <p><strong>Total Man Power :</strong> 5 Orang.</p>
+        <p><strong>PIC / Person In Charge :</strong> Bapak Jhon || HP 0813-12000866.</p>
+        <p><strong>Cara Pembayaran :</strong> Transfer.</p>
+
+        <br>
+
+        <table border="1">
+            <thead style="background-color:#f2f2f2;">
+                <tr>
+                    <th>Lingkup Pekerjaan</th>
+                    <th style="width:120px;">Amount</th>
+                </tr>
             </thead>
             <tbody>
-              <tr>
-                <td>1</td>
-                <td>JASA PEKERJAAN GENERAL CHECK UP FIRE PUMP (ELECTRIC, DIESEL, JOCKEY PUMP)</td>
-                <td class="ar">12,500,000.00</td>
-              </tr>
+                <tr>
+                    <td>JASA PEKERJAAN<br>JASA PEKERJAAN GENERAL CHECK UP FIRE PUMP (ELECTRIC, DIESEL, JOCKEY PUMP)</td>
+                    <td style="text-align:right;">12,500,000.00</td>
+                </tr>
+                <tr>
+                    <td style="text-align:right;"><strong>PPN :</strong></td>
+                    <td style="text-align:right;">1,375,000.00</td>
+                </tr>
+                <tr>
+                    <td style="text-align:right;"><strong>TOTAL :</strong></td>
+                    <td style="text-align:right;">13,875,000.00</td>
+                </tr>
             </tbody>
-          </table>
-          <div class="row totals" style="justify-content:flex-end; margin-top:8px">
-            <table style="width:260px">
-              <tr><td>PPN</td><td class="ar">1,375,000.00</td></tr>
-              <tr><td><strong>TOTAL</strong></td><td class="ar"><strong>13,875,000.00</strong></td></tr>
+        </table>
+
+        <p><strong>TOP :</strong> 14DAYS</p>
+        <p>Pembayaran 14 Hari setelah Bast dan Invoice, include PPN dan PPH</p>
+
+        {{-- Footer (company + paraf) --}}
+        <div class="footer">
+            <table>
+                <tr>
+                    <td>
+                        <p>
+                            <strong>AW - Artisan Wahyu, PT</strong><br>
+                            JL. Sultan Iskandar Muda No 8, Jakarta, DKI JAKARTA
+                            Telp: (622) 129-0080 00 Fax: (622) 129-0531 91
+                        </p>
+                    </td>
+                    <td>
+                        <div class="sign">Paraf PIHAK KEDUA</div>
+                    </td>
+                </tr>
             </table>
-          </div>
-          <div class="notes" style="margin-top:6px">
-            <strong>TOP</strong>: 14 DAYS — Pembayaran 14 hari setelah BAST dan Invoice (termasuk PPN &amp; PPh)
-          </div>
         </div>
-      </div>
 
-      <div class="signatures">
-        <div class="sigbox"><strong>Paraf PIHAK KEDUA</strong></div>
-        <div class="sigbox"><strong>Disetujui PIHAK I</strong><br/>PT. Artisan Wahyu</div>
-      </div>
-
-      <div class="footer">
-        <div class="line"></div>
-        <div class="row">
-          <div>Created: Wahyu Dwi Harnowo &nbsp; | &nbsp; Sent by: Wahyu Dwi Harnowo &nbsp; | &nbsp; On: 23/09/2025 09:36:55</div>
-          <div>Page 1 of 3</div>
+        {{-- Fixed bottom line --}}
+        <div class="fixed-footer">
+            <div>Created: Wahyu Dwi Harnowo, Sent by: Wahyu Dwi Harnowo, On: 9/23/2025 9:36:55 AM</div>
+            <div>Page 1 of 3</div>
         </div>
-      </div>
     </div>
-  </div>
 
-  <!-- PAGE 2: Tugas & Kewajiban, Garansi, Pembayaran -->
-  <div class="page page-break">
-    <div class="content">
-      <h2 style="font-size:14px; margin-bottom:8px">TUGAS DAN KEWAJIBAN PIHAK KEDUA</h2>
-      <div class="notes">
+    {{-- PAGE 2 --}}
+    <div class="page">
+        <style>
+            /* Hierarchical numbering (1.1, 1.2, etc.) */
+            ol {
+                counter-reset: item;
+                padding-left: 18px;
+                margin: 0;
+            }
+
+            ol>li {
+                display: block;
+                position: relative;
+                text-align: justify;
+                margin-bottom: 3px;
+            }
+
+            ol>li:before {
+                content: counters(item, ".") ". ";
+                counter-increment: item;
+                position: absolute;
+                left: -2em;
+                width: 2em;
+                text-align: right;
+            }
+        </style>
+
+        <h4 style="text-transform:uppercase;">TUGAS DAN KEWAJIBAN PIHAK KEDUA</h4>
         <ol>
-          <li><strong>Tugas Pekerjaan</strong>
-            <ol>
-              <li>PIHAK PERTAMA memberikan Pekerjaan sebagaimana lingkup/metode/schedule yang disepakati dan menjadi satu kesatuan dengan SPK ini. PIHAK KEDUA wajib menyelesaikan sesuai jangka waktu.</li>
-              <li>PIHAK KEDUA wajib memenuhi peraturan/perizinan yang berlaku dan memberikan salinan perizinan saat diminta.</li>
-              <li>Pelanggaran/ketidakpatuhan perizinan menjadi tanggung jawab PIHAK KEDUA sepenuhnya.</li>
-              <li>Seluruh material wajib mendapatkan persetujuan PIHAK PERTAMA.</li>
-              <li>Form Checklist &amp; BAST dicetak/dikirim User (PIC) untuk ditandatangani PIHAK KEDUA. BAST asli 2 rangkap dikembalikan maksimal 2 hari kerja.</li>
-            </ol>
-          </li>
-          <li><strong>Jangka Waktu Pelaksanaan</strong>
-            <ol>
-              <li>PIHAK KEDUA wajib menyelesaikan sesuai jadwal dalam SPK.</li>
-              <li>Jika terjadi hal tidak terduga dan perlu penundaan, PIHAK KEDUA wajib melapor tertulis untuk persetujuan PIHAK PERTAMA; penundaan tidak wajar dapat ditolak.</li>
-              <li>Revisi jadwal/metode dilakukan berkoordinasi dan disetujui PARA PIHAK, dituangkan dalam berita acara.</li>
-              <li>PIHAK KEDUA wajib mengikuti jadwal/metode terakhir yang disepakati.</li>
-            </ol>
-          </li>
-          <li><strong>Syarat-syarat Pelaksanaan Garansi</strong>
-            <ol>
-              <li>Garansi pekerjaan: 3 bulan sejak BAST ditandatangani, meliputi penggantian/perbaikan tanpa biaya.</li>
-              <li>Klaim dari PIHAK PERTAMA wajib ditindaklanjuti paling lambat 2×24 jam atau sesuai jadwal yang disepakati.</li>
-              <li>Garansi tidak berlaku pada kejadian force majeure; wajib pemberitahuan tertulis dalam 7 hari.</li>
-            </ol>
-          </li>
-          <li><strong>Cara Pembayaran &amp; Pajak</strong>
-            <ol>
-              <li>Pembayaran dilakukan setelah dokumen lengkap: Invoice bermaterai, E-Faktur, SPK, BAST + checklist &amp; foto sebelum/sesudah yang ditandatangani PIC.</li>
-              <li>Dokumen tidak lengkap akan dikembalikan untuk dilengkapi.</li>
-              <li>PPN atas Faktur Pajak harus sah &amp; disetor sesuai ketentuan; ketidaksesuaian menjadi tanggung jawab PIHAK KEDUA.</li>
-              <li>Pembayaran via transfer; cantumkan nama, nomor rekening, dan nama bank pada invoice.</li>
-            </ol>
-          </li>
-        </ol>
-      </div>
-
-      <div class="footer">
-        <div class="line"></div>
-        <div class="row">
-          <div>Created: Wahyu Dwi Harnowo &nbsp; | &nbsp; Sent by: Wahyu Dwi Harnowo &nbsp; | &nbsp; On: 23/09/2025 09:36:55</div>
-          <div>Page 2 of 3</div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- PAGE 3: Penalty, Pengakhiran, Lain-lain -->
-  <div class="page page-break">
-    <div class="content">
-      <h2 style="font-size:14px; margin-bottom:8px">KETENTUAN LAIN</h2>
-      <div class="notes">
-        <ol start="5">
-          <li><strong>Penalty</strong>
-            <ol>
-              <li>Penalty atas keterlambatan:
-                <ol type="1">
-                  <li>Rp100.000/hari (Nilai SPK ≤ Rp50.000.000)</li>
-                  <li>Rp250.000/hari (Rp50.000.001 – Rp149.999.999)</li>
-                  <li>Rp500.000/hari (Nilai SPK ≥ Rp150.000.000)</li>
+            <li><strong>Tugas Pekerjaan</strong>
+                <ol>
+                    <li>PIHAK PERTAMA memberikan pekerjaan kepada PIHAK KEDUA sebagaimana Lingkup Pekerjaan, metode
+                        kerja dan Schedule kerja yang telah disepakati
+                        PARA PIHAK (PIHAK PERTAMA dan PIHAK KEDUA) tersebut yang merupakan satu kesatuan tidak
+                        terpisahkan dengan Surat Perintah Kerja (SPK) dan
+                        PIHAK KEDUA menerima untuk melakukan Pekerjaan sebagaimana yang telah diatur dalam SPK beserta
+                        PIHAK KEDUA wajib mentaati dan
+                        menyelesaikan Pekerjaan berdasarkan kesepakatan jangka waktu pelaksanaan pekerjaan sebagaimana
+                        tersebut dalam SPK ini.</li>
+                    <li>PIHAK KEDUA memiliki kemampuan dalam melaksanakan Pekerjaan sesuai dengan peraturan dan
+                        perundang -undangan yang berlaku termasuk tidak
+                        terbatas perijinan ketenaga kerjaan dan perijinan -perijinan terkait lainnya. PIHAK KEDUA
+                        berkewajiban memberikan salinan perijinan yang berlaku jika
+                        diminta oleh PIHAK PERTAMA.</li>
+                    <li>Jika PIHAK KEDUA melanggar ketentuan dan/atau tidak memenuhi perijinan-perijinan yang berlaku
+                        terkait dengan pelaksanaan Pekerjaan dan kegiatan
+                        usahanya maka PIHAK PERTAMA dibebaskan dari segala tuntutan dan ganti rugi dari pihak lainnya
+                        termasuk pemerintah akibat PIHAK KEDUA melakukan
+                        kelalaian dalam memenuhi perijinan-perijinan yang berlaku.</li>
+                    <li>Seluruh Material Wajib Mendapatkan Persetujuan PIHAK PERTAMA.</li>
+                    <li>Form Checklist &amp; BAST (Berita Acara Serah Terima) Akan di print / email oleh PIHAK PERTAMA
+                        (PIC) untuk ditanda tangani oleh PIHAK KEDUA (Supplier).
+                        Setelah ditanda tanganinya BAST tersebut maka pekerjaan PIHAK KEDUA telah diserah terimakan
+                        dengan baik &amp; sudah disetujui oleh PIHAK PERTAMA.</li>
+                    <li>BAST yang telah di PRINT/EMAIL oleh User, wajib ditandatangani &amp; stempel perusahaan vendor
+                        (dibuat 2 rangkap, ASLI) , dan dikembalikan dalam
+                        waktu 2 (dua) hari kerja maksimal.</li>
                 </ol>
-                Tanpa persetujuan PIHAK PERTAMA, penundaan tetap dikenakan penalty.
-              </li>
-              <li>Jika penalty mencapai 20% DPP dan Pekerjaan belum selesai, PIHAK PERTAMA dapat menunjuk pihak lain; biaya dibebankan ke PIHAK KEDUA.</li>
-              <li>Pembayaran hanya untuk pekerjaan yang benar-benar terselesaikan dengan berita acara.</li>
-            </ol>
-          </li>
-          <li><strong>Pengakhiran SPK</strong>
-            <ol>
-              <li>Jika PIHAK KEDUA tidak memenuhi persyaratan, setelah 3 kali teguran, PIHAK PERTAMA dapat mengakhiri SPK tanpa kompensasi.</li>
-              <li>Pembayaran hanya untuk pekerjaan yang telah terpasang/terselesaikan dengan baik sesuai berita acara.</li>
-            </ol>
-          </li>
-          <li><strong>Lain-lain</strong>
-            <ol>
-              <li>PIHAK KEDUA wajib mematuhi peraturan &amp; SOP lokasi kerja; risiko/kerugian karena kelalaian PIHAK KEDUA menjadi tanggung jawabnya.</li>
-              <li>Sengketa diselesaikan musyawarah; jika tidak, domisili pada Pengadilan Negeri setempat.</li>
-              <li>Ketentuan-ketentuan dan Syarat-syarat ini berlaku dengan ditandatanganinya SPK.</li>
-              <li>Kecelakaan kerja/kematian pekerja PIHAK KEDUA di lokasi menjadi tanggung jawab PIHAK KEDUA; PIHAK PERTAMA dibebaskan dari tuntutan.</li>
-            </ol>
-          </li>
+            </li>
+
+            <li><strong>Jangka Waktu Pelaksanaan</strong>
+                <ol>
+                    <li>PIHAK KEDUA wajib mentaati dan menyelesaikan Pekerjaan berdasarkan kesepakatan jangka waktu
+                        pelaksanaan pekerjaan sebagaimana tersebut dalam
+                        SPK ini.</li>
+                    <li>Jika dalam pelaksanaan pekerjaan terjadi sesuatu hal tidak terduga ditempat /lokasi pekerjaan
+                        sehingga PIHAK KEDUA terpaksa melakukan penundaan
+                        atas pekerjaan tersebut, maka PIHAK KEDUA berkewajiban memberikan laporan tertulis disertai
+                        dengan berita acara penundaan kepada PIHAK PERTAMA
+                        untuk mendapatkan persetujuan dari PIHAK PERTAMA. Jika dalam pemeriksaan PIHAK KEDUA ternyata
+                        penundaan yang dilakukan PIHAK KEDUA adalah
+                        tidak wajar maka untuk penundaan Pekerjaan oleh PIHAK KEDUA tidak dapat dikabulkan.</li>
+                    <li>PIHAK KEDUA berkewajiban berkoordinasi dengan PIHAK PERTAMA untuk dilakukan revisi/perubahan
+                        jadwal pekerjaan dan atau revisi/perubahan metode
+                        kerja apabila terjadi kendala pada saat pelaksanaan pekerjaan atas metode kerja sebelumnya,
+                        revisi /penundaan tersebut disetujui oleh PARA PIHAK.
+                        Revisi/perubahan jadwal pekerjaan dan revisi/penundaan tersebut dituangkan dalam Berita Acara
+                        Keterlambatan.</li>
+                    <li>PIHAK KEDUA wajib menyelesaikan pekerjaan yang dimaksud sesuai dengan jadwal perubahan dan atau
+                        metode kerja terakhir yang telah disepakati PARA
+                        PIHAK.</li>
+                </ol>
+            </li>
+
+            <li><strong>Syarat-syarat Pelaksanaan Garansi</strong>
+                <ol>
+                    <li>Garansi Pekerjaan : 3 Bulan.</li>
+                    <li>Garansi Pekerjaan yang dimaksud dalam SPK ini adalah termasuk tapi tidak terbatas penggantian
+                        material yang rusak dengan material baru (termasuk tapi
+                        tidak terabatas pada supply dan install atau untuk maintenance) untuk perbaikan pekerjaan yang
+                        dianggap tidak sempurna oleh.</li>
+                    <li>Garansi dari PIHAK KEDUA kepada PIHAK PERTAMA berlaku setelah ditanda tangani Berita Acara Serah
+                        Terima (BAST) dimana Pekerjaan telah diterima
+                        dengan baik, tepat dan benar sesuai permintaan dari PIHAK PERTAMA. Masa berlaku Garansi tertulis
+                        dalam SPK ini.</li>
+                    <li>Pelaksanaan Garansi tidak dipungut biaya apapun dari PIHAK KEDUA kepada PIHAK PERTAMA. PIHAK
+                        KEDUA akan menyerahkan surat /kartu garansi
+                        kepada PIHAK PERTAMA atas Pekerjaan yang dimaksud.</li>
+                    <li>Jika ada klaim atas Pekerjaan PIHAK KEDUA maka PIHAK PERTAMA melakukan korespondensi kepada
+                        PIHAK KEDUA baik melalui email dan/atau surat
+                        yang ditunjukkan kepada PIHAK KEDUA, sejak dari tanggal terkirimnya klaim tersebut, selanjutnya
+                        PIHAK KEDUA berkewajiban melakukan, perbaikan
+                        selambat-lambatnya 2x24 (dua kali dua puluh empat) jam dan/atau sesuai dengan jadwal yang
+                        disepakati PARA PIHAK.</li>
+                    <li>Garansi tidak berlaku apabila adanya kejadian yang bersifat force majeure / bencana alam /
+                        keadaan kahar (termasuk antara lain bencana alam, kebakaran,
+                        banjir, peperangan, kerusakan massa, huru hara, tindakan -tindakan yang dilakukan oleh
+                        Pemerintah). Bahwa diwajibkan PIHAK KEDUA memberitahukan
+                        secara tertulis dalam kurun waktu 7 (tujuh) hari setelah terjadinya kejadian sebagaimana
+                        tersebut dalam Angka 3.6 ini.</li>
+                </ol>
+            </li>
+
+            <li><strong>Cara Pembayaran &amp; Pajak</strong>
+                <ol>
+                    <li>Pembayaran akan dilakukan kepada PIHAK KEDUA setelah diterimanya dokumen dari PIHAK KEDUA secara
+                        lengkap dan benar sebagai berikut:
+                        <ol>
+                            <li>Invoice ASLI dan bermaterai;</li>
+                            <li>E-Faktur Pajak ASLI;</li>
+                            <li>SPK ASLI/ Copy yang telah ditandatangani lengkap oleh PARA PIHAK;</li>
+                            <li>Berita Acara Serah Terima (BAST) Pekerjaan, dilampirkan juga ceklist termasuk dan tidak
+                                terbatas foto sebelum dan sesudah pekerjaan dilakukan
+                                oleh PIHAK KEDUA dan telah ditandatangani juga oleh PIHAK PERTAMA. Penandatanganan PIHAK
+                                PERTAMA cukup dengan nama Person In
+                                Charge (PIC) yang telah dituliskan kedalam Surat Perintah Kerja (SPK) ini; (selanjutnya
+                                disebut "Dokumen Penagihan")</li>
+                        </ol>
+                    </li>
+                    <li>Apabila Dokumen Penagihan tidak benar atau tidak lengkap maka PIHAK PERTAMA selanjutnya akan
+                        mengembalikan dokumen untuk dilengkapi kembali
+                        oleh PIHAK KEDUA.</li>
+                    <li>PIHAK KEDUA menjamin dan menyatakan sah dan benar seluruh PPN atas Faktur Pajak yang diterbitkan
+                        oleh PIHAK KEDUA atas pembelian pembelian
+                        Barang Kena Pajak (BKP) /Jasa Kena Pajak (JKP) oleh PIHAK PERTAMA dan PIHAK KEDUA bertanggung
+                        jawab atas keabsahannya.</li>
+                    <li>Bahwa seluruh PPN atas Faktur Pajak sebagaimana tersebut diatas, wajib disetorkan dan dilaporkan
+                        oleh PIHAK KEDUA sesuai dengan ketentuan
+                        perpajakan yang berlaku.</li>
+                    <li>Apabila di kemudian hari seluruh PPN atas Faktur Pajak yang diterbitkan oleh PIHAK KEDUA
+                        sebagaimana tersebut di atas tidak sesuai dengan ketentuan
+                        perpajakan yang berlaku maka PIHAK KEDUA wajib bertanggung jawab sepenuhnya dan memberikan ganti
+                        rugi atas seluruh kerugian yang diderita oleh
+                        PIHAK PERTAMA, membebaskan dan melepaskan PIHAK PERTAMA dari sanksi pajak yang disebabkan
+                        pelanggaran oleh PIHAK PERTAMA sebagaimana
+                        dimaksud dalam Ayat ini.</li>
+                    <li>Untuk pembayaran menggunakan transfer. Supplier wajib mencantumkan nama, nomor rekening &amp;
+                        nama bank pada setiap invoice penagihan.</li>
+                    <li>Nama yang tercantum di giro adalah orang yang bisa melakukan setor giro ke bank, apabila nama
+                        berbeda / diwakilkan maka wajib menggunakan surat kuasa.</li>
+                    <li>Tanggal giro dibuat sampai tanggal dicairkan (efektif) maksimal 70 hari. Apabila lewat dari
+                        tanggal / ketentuan tersebut maka giro dianggap hangus / tidak
+                        dapat dicairkan. Untuk pembuatan giro ulang (revisi) akan dikenakan denda Rp 100.000 (Seratus
+                        ribu rupiah) per giro.</li>
+                    <li>Batas waktu penagihan SPK adalah maksimal 2 bulan dari tanggal BAST digital yang telah
+                        ditandatangani oleh PARA PIHAK, melewati batas waktu tersebut
+                        penagihan SPK tidak dapat di proses/Hangus.</li>
+                    <li>Masing-masing lembar BAST &amp; Checklist (ASLI) diperuntukkan USER dan Vendor, untuk proses
+                        penagihan selanjutnya.</li>
+                </ol>
+            </li>
+
+            <li><strong>Penalty</strong>
+                <ol>
+                    <li>Penalty akan dikenakan kepada PIHAK KEDUA sebesar perhitungan yang tercantum pada SPK apabila
+                        terjadi keterlambatan dalam penyelesaian atau
+                        penyerahan Pekerjaan yang tidak sesuai dengan jangka waktu yang disepakati sebagaimana diatur
+                        dalam SPK. Adapun nilai penalty sebagai berikut:
+                        <ol>
+                            <li>Penalty Rp. 100.000/hari keterlambatan (Nilai SPK ≤ Rp. 50.000.000)</li>
+                            <li>Penalty Rp. 250.000/hari keterlambatan (Nilai SPK Rp. 50.000.001-149.999.999)</li>
+                            <li>Penalty Rp. 500.000/hari keterlambatan (Nilai SPK ≥ Rp.150.000.000)</li>
+                        </ol>
+                        Namun apabila pekerjaan tidak dapat diselesaikan oleh PIHAK KEDUA, maka PIHAK KEDUA memberikan
+                        surat konfirmasi kepada PIHAK PERTAMA terkait
+                        alasan keterlambatan tersebut.
+                    </li>
+                    <li>Penalty sebagaimana dimaksud Angka 5.1 diatas tetap berlaku apabila penundaan penyelesaian atau
+                        penyerahan Pekerjaan dilakukan PIHAK KEDUA tanpa
+                        persetujuan PIHAK PERTAMA.</li>
+                    <li>Jika setelah dikenakan penalty maksimal 20 % dari total nilai DPP SPK dan PIHAK KEDUA masih
+                        belum mampu menyelesaikan atau menyerahkan
+                        Pekerjaan tersebut kepada PIHAK PERTAMA maka selanjutnya PIHAK PERTAMA akan menunjuk pihak lain
+                        untuk menggantikan PIHAK KEDUA untuk
+                        menyelesaikan Pekerjaan tersebut. Biaya penggantian akan dibebankan kepada PIHAK KEDUA.</li>
+                    <li>Atas pemutusan Pekerjaan sebagaimana diatur ayat 5.3 diatas, PIHAK PERTAMA hanya melakukan
+                        pembayaran kepada PIHAK KEDUA sebatas pekerjaan
+                        yang telah diselesaikan dengan baik berdasarkan berita acara pekerjaan yang telah ditandatangani
+                        PARA PIHAK.</li>
+                    <li>Keterlambatan complete BAST, penalty dan pemotongan atas tagihan vendor (Bila ada), maka vendor
+                        wajib koordinasi langsung dengan USER terkait.</li>
+                </ol>
+            </li>
+
+            <li><strong>Pengakhiran Surat Perintah Kerja dan Akibatnya</strong>
+                <ol>
+                    <li>Apabila PIHAK KEDUA dalam melaksanakan Pekerjaan tidak memenuhi persyaratan sebagaimana yang
+                        disetujui PARA PIHAK atau tidak mampu
+                        menyelesaikan Pekerjaan maka PIHAK PERTAMA akan membuat surat teguran kepada PIHAK KEDUA dan
+                        apabila sampai dengan batas maksimal yaitu 3
+                        (tiga) kali diterbitkannya surat teguran kepada PIHAK KEDUA selanjutnya akan dilakukan
+                        pengakhiran hubungan kerjasama SPK ini secara sepihak tanpa
+                        adanya kewajiban lebih lanjut dan/atau kompensasi apapun yang harus dipenuhi oleh PIHAK PERTAMA
+                        kepada PIHAK KEDUA. Atas pengakhiran ini PIHAK
+                        PERTAMA berhak melakukan penunjukan dan /atau penggantian supplier lain.</li>
+                    <li>Terhadap pengakhiran tersebut maka PIHAK PERTAMA hanya melakukan pembayaran kepada PIHAK KEDUA
+                        sebatas untuk pekerjaan yang telah
+                        terpasang/terselesaikan dengan baik dan benar oleh PIHAK KEDUA sesuai berita acara yang telah
+                        ditandatangani PARA PIHAK. PIHAK PERTAMA
+                        dibebaskan dari PIHAK KEDUA dari segala tuntutan dan gugatan dari pihak-pihak lain baik pidana
+                        dan/atau perdata yang akibat pengakhiran ini.</li>
+                </ol>
+            </li>
+
+            <li><strong>Lain-lain</strong>
+                <ol>
+                    <li>Bahwa dalam pelaksanaan Pekerjaan di Lokasi Pekerjaan yang ditetapkan PIHAK PERTAMA maka PIHAK
+                        KEDUA wajib mematuhi segala peraturan dan
+                        SOP yang berlaku di Lokasi Pekerjaan dari PIHAK PERTAMA. Segala bentuk tindakan kriminal,
+                        kelalaian yang mengakibatkan kerugian, kehilangan,
+                        kecelakaan, kematian ataupun luka-luka dikarenakan kelalaian dari PIHAK KEDUA maka PIHAK KEDUA
+                        wajib bertanggung jawab serta membebaskan
+                        PIHAK PERTAMA atas tuntutan, gugatan dan ganti kerugian dari pihak lainnya.</li>
+                    <li>Dalam hal terjadi perselisihan dalam melaksanakan Perjanjian ini, maka akan diselesaikan oleh
+                        PARA PIHAK secara musyawarah untuk mufakat, apabila
+                        tidak dapat diselesaikan secara musyawarah maka Para Pihak dengan ini sepakat untuk memilih
+                        domisili hukum yang tetap dan tidak berubah yaitu pada
+                        Kantor Panitera Pengadilan Negeri Setempat.</li>
+                    <li>Bahwa dengan ditandatangani SPK ini maka Ketentuan-ketentuan dan Syarat-syarat ini berlaku dan
+                        wajib dipenuhi PARA PIHAK.</li>
+                    <li>Apabila terjadi kecelakaan kerja dan / kematian pekerja PIHAK KEDUA dilokasi pekerjaan merupakan
+                        tanggung jawab PIHAK KEDUA sepenuhnya, dan
+                        PIHAK KEDUA membebaskan PIHAK PERTAMA dari segala tuntutan gugatan pidana atau perdata dan / hal
+                        - hal lainya akibat kecelakaan kerja yang
+                        mengakibatkan cacat dan / kematian pekerja tersebut.</li>
+                </ol>
+            </li>
         </ol>
-      </div>
 
-      <div class="section" style="margin-top:16px">
-        <div class="row">
-          <div class="col">
-            <div class="kv">
-              <dt>Mengetahui</dt><dd>Jakarta, 23 September 2025</dd>
-              <dt>Untuk</dt><dd>PJ25090002</dd>
-            </div>
-          </div>
-        </div>
-        <div class="signatures" style="margin-top:12px">
-          <div class="sigbox"><strong>Tanda Tangan &amp; Stempel</strong><br/>PIHAK II — RODA NURMALA, PT</div>
-          <div class="sigbox"><strong>Paraf PIHAK KEDUA</strong></div>
-        </div>
-      </div>
+        <p><strong>Demikian Surat Perintah Kerja ini dibuat sesuai dengan PJ25090002 agar dapat dipergunakan sebagaimana
+                mestinya.</strong></p>
 
-      <div class="footer">
-        <div class="line"></div>
-        <div class="row">
-          <div>Created: Wahyu Dwi Harnowo &nbsp; | &nbsp; Sent by: Wahyu Dwi Harnowo &nbsp; | &nbsp; On: 23/09/2025 09:36:55</div>
-          <div>Page 3 of 3</div>
+        {{-- Footer (company + paraf) --}}
+        <div class="footer">
+            <table>
+                <tr>
+                    <td>
+                        <p>
+                            <strong>AW - Artisan Wahyu, PT</strong><br>
+                            JL. Sultan Iskandar Muda No 8, Jakarta, DKI JAKARTA
+                            Telp: (622) 129-0080 00 Fax: (622) 129-0531 91
+                        </p>
+                    </td>
+                    <td>
+                        <div class="sign">Paraf PIHAK KEDUA</div>
+                    </td>
+                </tr>
+            </table>
         </div>
-      </div>
+
+        {{-- Fixed bottom line --}}
+        <div class="fixed-footer">
+            <div>Created: Wahyu Dwi Harnowo, Sent by: Wahyu Dwi Harnowo, On: 9/23/2025 9:36:55 AM</div>
+            <div>Page 1 of 3</div>
+        </div>
+
     </div>
-  </div>
 
-  <!-- Optional print button for preview (hidden when printing) -->
-  <div class="no-print" style="position:fixed; right:16px; bottom:16px">
-    <button onclick="window.print()" style="padding:10px 14px; border:1px solid var(--line); background:#fff; border-radius:8px; cursor:pointer">🖨️ Print</button>
-  </div>
 </body>
+
 </html>
