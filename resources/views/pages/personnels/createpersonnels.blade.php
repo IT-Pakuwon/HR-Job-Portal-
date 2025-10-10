@@ -107,6 +107,14 @@
                                         </select>
                                     </div>
                                     <div class="flex flex-col gap-2">
+                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Reason
+                                            for
+                                            Vacancy</label>
+                                        <textarea name="reason_vacancy" id="reason_vacancy"
+                                            class="h-11.5 w-full overflow-hidden rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                            required></textarea>
+                                    </div>
+                                    <div class="flex h-10 flex-col gap-2">
                                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Job
                                             Title</label>
                                         {{-- <select name="job_title" id="job_title"
@@ -128,6 +136,8 @@
                                         <select
                                             class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                             name="subgrade_id" id="subgrade_id" required>
+                                            <option value="" selected disabled class="text-gray-400">Select
+                                            </option>
                                             @foreach ($subgradings as $sg)
                                                 <option value="{{ $sg->subgrade_id }}">
                                                     {{ $sg->subgrade_id }}-{{ $sg->subgrade_name }}</option>
@@ -144,17 +154,21 @@
                                     <div class="flex flex-col gap-2">
                                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">State
                                             Position</label>
-                                        <input type="text" name="state_position" id="state_position"
-                                            class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
-                                    </div>
-                                    <div class="flex flex-col gap-2">
-                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Reason
-                                            for
-                                            Vacancy</label>
-                                        <textarea name="reason_vacancy" id="reason_vacancy"
+                                        {{-- <input type="text"
+                                            class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"> --}}
+                                        <select
                                             class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
-                                            required></textarea>
+                                            name="state_position" id="state_position" required>
+                                            <option value="" selected disabled class="text-gray-400">Select
+                                            </option>
+                                            @foreach ($subgradings as $sg)
+                                                <option value="{{ $sg->subgrade_id }}">
+                                                    {{ $sg->subgrade_id }} - {{ $sg->subgrade_name }}
+                                                </option>
+                                            @endforeach
+                                        </select>
                                     </div>
+
                                 </div>
 
                                 <div

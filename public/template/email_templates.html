@@ -1,83 +1,492 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="id">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>${POTYPE} ${PONBR}</title>
-</head>
-<body style="margin:0;padding:0;background:#f5f7fb">
-  <!-- OUTER TABLE (email-safe) -->
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f5f7fb">
-    <tr>
-      <td align="left" style="padding:0;margin:0">
-        <!-- INNER FIXED-WIDTH WRAPPER -->
-        <table role="presentation" width="720" cellpadding="0" cellspacing="0" style="background:#ffffff;color:#111827;font-family:Arial,Helvetica,sans-serif;line-height:1.6">
-          <tr>
-            <td style="padding:16px 20px">
-              <p style="margin:0 0 6px 0">Yth. <strong>${CONTACTNAME}</strong>, <strong>${VENDORNAME}</strong></p>
-              <p style="margin:0;color:#6b7280">Berikut informasi terkait ${POTYPE} kami.</p>
-            </td>
-          </tr>
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width,initial-scale=1" />
+        <title>${POTYPE} ${PONBR}</title>
+    </head>
+    <body style="margin: 0; padding: 0; background: #ffffff">
+        <!-- OUTER TABLE (email-safe) -->
+        <table
+            role="presentation"
+            width="100%"
+            cellpadding="0"
+            cellspacing="0"
+            style="background: #ffffff"
+        >
+            <tr>
+                <td align="center" style="margin: 0; padding: 0">
+                    <!-- INNER WRAPPER -->
+                    <table
+                        role="presentation"
+                        width="720"
+                        cellpadding="0"
+                        cellspacing="0"
+                        style="
+                            background: #ffffff;
+                            color: #111827;
+                            font-family: Arial, Helvetica, sans-serif;
+                            line-height: 1.6;
+                            border-collapse: collapse;
+                        "
+                    >
+                        <!-- HEADER -->
+                        <tr>
+                            <td style="padding: 24px 32px 12px">
+                                <p
+                                    style="
+                                        margin: 0 0 6px 0;
+                                        font-size: 14px;
+                                        text-transform: capitalize;
+                                    "
+                                >
+                                    Yth. <strong>${CONTACTNAME}</strong>,
+                                    <strong>${VENDORNAME}</strong>
+                                </p>
 
-          <tr>
-            <td style="padding:0 20px 0 20px">
-              <div style="border:1px solid #e5e7eb;border-radius:10px;margin:14px 0;padding:16px 16px">
-                <h3 style="font-size:16px;font-weight:700;margin:0 0 6px 0">Informasi</h3>
-                <p style="margin:0 0 8px 0">Per 8 Agustus 2022, pengecekan tagihan dan persetujuan pengiriman dokumen tagihan dapat dilakukan melalui portal <strong>vms.pakuwon.com</strong>.</p>
-                <p style="margin:0">Jika ada kendala, silakan hubungi <a href="mailto:csvp@pakuwon.com">csvp@pakuwon.com</a> atau masing-masing <em>purchaser</em>.</p>
-              </div>
+                                <p
+                                    style="
+                                        margin: 0;
+                                        color: #6b7280;
+                                        font-size: 13px;
+                                    "
+                                >
+                                    Berikut informasi terkait ${POTYPE} kami.
+                                </p>
+                            </td>
+                        </tr>
 
-              <div style="border:1px solid #e5e7eb;border-radius:10px;margin:14px 0;padding:16px 16px">
-                <h3 style="font-size:16px;font-weight:700;margin:0 0 6px 0">Terlampir</h3>
-                <ul style="padding-left:18px;margin:6px 0">
-                  <li>${POTYPE} Nomor <strong>${PONBR}</strong> a/n <strong>${VENDORNAME}</strong></li>
-                  <li>Pembelian Barang: <strong>${CSKEPERLUAN}</strong></li>
-                  <li>Delivery Date: sesuai dokumen ${POTYPE} terlampir (harap cek lampiran)</li>
-                </ul>
-              </div>
+                        <!-- INFORMASI -->
+                        <tr>
+                            <td style="padding: 0 32px">
+                                <div
+                                    style="
+                                        border: 1px solid #e5e7eb;
+                                        border-radius: 8px;
+                                        margin: 18px 0;
+                                        padding: 18px;
+                                    "
+                                >
+                                    <h3
+                                        style="
+                                            font-size: 15px;
+                                            font-weight: 700;
+                                            margin: 0 0 8px 0;
+                                        "
+                                    >
+                                        Informasi
+                                    </h3>
+                                    <p
+                                        style="
+                                            margin: 0 0 8px 0;
+                                            font-size: 13px;
+                                        "
+                                    >
+                                        Per tanggal 8 Agustus 2022, pengecekan
+                                        tagihan dan persetujuan pengiriman
+                                        dokumen tagihan bisa dilakukan melalui
+                                        <strong>vms.pakuwon.com </strong>.Bila
+                                        ada kendala bisa menghubungi :
+                                        <strong>csvp@pakuwon.com</strong> atau
+                                        masing-masing purchaser.
+                                    </p>
+                                </div>
+                            </td>
+                        </tr>
 
-              <div style="border:1px solid #e5e7eb;border-radius:10px;margin:14px 0;padding:16px 16px">
-                <h3 style="font-size:16px;font-weight:700;margin:0 0 6px 0">Syarat Pembayaran</h3>
-                <p style="margin:0 0 6px 0"><strong>A. Uang Muka (DP)</strong> — diserahkan ke <em>Purchasing Department</em>:</p>
-                <ul style="padding-left:18px;margin:6px 0">
-                  <li>${POTYPE} asli bertanda tangan &amp; stempel perusahaan vendor</li>
-                  <li>Kuitansi asli bermaterai Rp10.000 (untuk nominal &gt; Rp5.000.000) — nilai DP sudah termasuk PPN (bila PKP)</li>
-                  <li>Invoice asli</li>
-                  <li><em>E-Faktur</em> (wajib untuk PKP)</li>
-                </ul>
+                        <!-- TERLAMPIR -->
+                        <tr>
+                            <td style="padding: 0 32px">
+                                <div
+                                    style="
+                                        border: 1px solid #e5e7eb;
+                                        border-radius: 8px;
+                                        margin: 18px 0;
+                                        padding: 18px;
+                                    "
+                                >
+                                    <h3
+                                        style="
+                                            font-size: 15px;
+                                            font-weight: 700;
+                                            margin: 0 0 8px 0;
+                                        "
+                                    >
+                                        Terlampir sebagai berikut:
+                                    </h3>
 
-                <p style="margin:10px 0 6px 0"><strong>B. Pelunasan</strong> — diserahkan ke <em>Finance Department</em>:</p>
-                <ul style="padding-left:18px;margin:6px 0">
-                  <li>${POTYPE} asli bertanda tangan &amp; stempel perusahaan vendor</li>
-                  <li>Kuitansi asli bermaterai Rp10.000 (untuk nominal &gt; Rp5.000.000) — nilai sesuai pelunasan &amp; termasuk PPN (bila PKP)</li>
-                  <li>Invoice asli</li>
-                  <li><em>E-Faktur</em> (wajib untuk PKP)</li>
-                  <li>STTB (Surat Tanda Terima Barang) dari gudang — asli</li>
-                  <li>Surat jalan vendor — asli</li>
-                </ul>
-              </div>
+                                    <ol
+                                        style="
+                                            padding-left: 20px;
+                                            margin: 6px 0;
+                                            font-size: 13px;
+                                            color: #374151;
+                                        "
+                                    >
+                                        <li>
+                                            ${POTYPE} Nomor
+                                            <strong>${PONBR}</strong> a/n
+                                            <strong>${VENDORNAME}</strong>
+                                        </li>
+                                        <li>
+                                            Pembelian Barang:
+                                            <strong>${CSKEPERLUAN}</strong>
+                                        </li>
+                                        <li>
+                                            Delivery Date: sesuai dengan dokumen
+                                            ${POTYPE} terlampir (harap cek
+                                            lampiran)
+                                        </li>
+                                        <li>
+                                            Syarat Pembayaran yang berlaku
+                                            adalah sebagai berikut:
+                                            <ol
+                                                type="I"
+                                                style="
+                                                    margin-top: 6px;
+                                                    margin-bottom: 6px;
+                                                    padding-left: 18px;
+                                                "
+                                            >
+                                                <li>
+                                                    Jika diperlukan proses DP
+                                                    (Down Payment), maka vendor
+                                                    wajib menyerahkan kepada
+                                                    <em
+                                                        >Purchasing
+                                                        Department</em
+                                                    >
+                                                    sebagai berikut:
+                                                    <ul
+                                                        style="
+                                                            margin: 6px 0;
+                                                            padding-left: 18px;
+                                                        "
+                                                    >
+                                                        <li>
+                                                            ${POTYPE} asli yang
+                                                            sudah ditandatangani
+                                                            &amp; stempel
+                                                            perusahaan vendor
+                                                            asli
+                                                        </li>
+                                                        <li>
+                                                            Kuitansi asli
+                                                            bermaterai Rp10.000
+                                                            untuk nominal di
+                                                            atas Rp5.000.000
+                                                            (nilai DP sudah
+                                                            termasuk PPN bila
+                                                            PKP)
+                                                        </li>
+                                                        <li>Invoice asli</li>
+                                                        <li>
+                                                            <em>E-Faktur</em>
+                                                            (wajib untuk PKP)
+                                                        </li>
+                                                    </ul>
+                                                </li>
+                                                <li>
+                                                    Pembayaran pelunasan, maka
+                                                    vendor wajib menyerahkan ke
+                                                    <em>Finance Department</em>
+                                                    sebagai berikut:
+                                                    <ul
+                                                        style="
+                                                            margin: 6px 0;
+                                                            padding-left: 18px;
+                                                        "
+                                                    >
+                                                        <li>
+                                                            ${POTYPE} asli yang
+                                                            sudah ditandatangani
+                                                            &amp; stempel
+                                                            perusahaan vendor
+                                                            asli
+                                                        </li>
+                                                        <li>
+                                                            Kuitansi asli
+                                                            bermaterai Rp10.000
+                                                            untuk nominal di
+                                                            atas Rp5.000.000
+                                                            (nilai sesuai
+                                                            pelunasan &amp;
+                                                            termasuk PPN bila
+                                                            PKP)
+                                                        </li>
+                                                        <li>Invoice asli</li>
+                                                        <li>
+                                                            <em>E-Faktur</em>
+                                                            (wajib untuk PKP)
+                                                        </li>
+                                                        <li>
+                                                            Surat Tanda Terima
+                                                            Barang (STTB) dari
+                                                            gudang (asli)
+                                                        </li>
+                                                        <li>
+                                                            Surat jalan vendor
+                                                            (asli)
+                                                        </li>
+                                                    </ul>
+                                                </li>
+                                            </ol>
+                                        </li>
+                                        <li>
+                                            <strong
+                                                >PT. Artisan Wahyu (Office &amp;
+                                                Mall), PT. Elite Prima Hutama
+                                                (Office B &amp; Mall), PT. Grama
+                                                Pramesi Siddhi &amp; PT. Pakuwon
+                                                Sentosa Abadi (Mall)</strong
+                                            ><br />
+                                            Office Gandaria 8 lantai 32.<br />
+                                            Jl. Sultan Iskandar Muda, Kebayoran
+                                            Lama, Jakarta Selatan.<br />
+                                            No. Telp. 021-29008000
+                                        </li>
+                                        <li>
+                                            <strong
+                                                >PT. Elite Prima Hutama (Office
+                                                A)</strong
+                                            ><br />
+                                            Building Management Office Tower A
+                                            Kota Kasablanka lantai LG.<br />
+                                            Jl. Casablanca Raya kav. 88, Menteng
+                                            Dalam, Tebet, Jakarta Selatan.<br />
+                                            No. Telp. 021-29488788
+                                        </li>
+                                        <li>
+                                            <strong
+                                                >PPPRS Gandaria Heights</strong
+                                            ><br />
+                                            Building Management Gandaria Heights
+                                            lantai P2.<br />
+                                            Jl. KH. M. Syafi’i Hadzami no. 8,
+                                            Kebayoran Lama, Jakarta Selatan.<br />
+                                            No. Telp. 021-29307088
+                                        </li>
+                                        <li>
+                                            <strong
+                                                >PPRSH Casagrande
+                                                Residence</strong
+                                            ><br />
+                                            Building Management Casagrande
+                                            Residence, Tower Mirage lantai 1.<br />
+                                            Jl. Casablanca Raya kav. 88, Menteng
+                                            Dalam, Tebet, Jakarta Selatan.<br />
+                                            No. Telp. 021-29380788
+                                        </li>
+                                    </ol>
+                                </div>
+                            </td>
+                        </tr>
 
-              <!-- …(bagian lain tetap seperti punyamu, cukup copy-paste) … -->
+                        <!-- PENAGIHAN DAN LAIN-LAIN -->
+                        <tr>
+                            <td style="padding: 0 32px">
+                                <div
+                                    style="
+                                        border: 1px solid #e5e7eb;
+                                        border-radius: 8px;
+                                        margin: 18px 0;
+                                        padding: 18px;
+                                    "
+                                >
+                                    <h3
+                                        style="
+                                            font-size: 15px;
+                                            font-weight: 700;
+                                            margin: 0 0 8px 0;
+                                        "
+                                    >
+                                        Alamat Pemasukan Penagihan &amp;
+                                        Informasi Tambahan
+                                    </h3>
 
-              <div style="padding:16px 0;color:#6b7280;font-size:12px">
-                Hormat kami,<br>
-                <strong>Purchasing Department</strong><br>
-                Pakuwon Group
-              </div>
-            </td>
-          </tr>
+                                    <ul
+                                        style="
+                                            padding-left: 20px;
+                                            margin: 6px 0;
+                                            font-size: 13px;
+                                            color: #374151;
+                                            list-style-type: disc;
+                                        "
+                                    >
+                                        <li>
+                                            <strong
+                                                >Alamat Pemasukan
+                                                Penagihan:</strong
+                                            ><br />
+                                            Kantor Pakuwon Group, East Coast
+                                            Center Lt. 5<br />
+                                            Jl. Kejawan Putih Mutiara No.17,
+                                            Pakuwon City, Surabaya, Jawa
+                                            Timur.<br />
+                                            Telp. 031-58208788
+                                        </li>
 
-          <!-- FOOTER IMAGE -->
-          <tr>
-            <td style="padding:0 20px 16px">
-              <img src="${FOOTER_URL}" alt="Footer"
-                   style="max-width:100%;height:auto;display:block;margin:0;border:0;outline:none;text-decoration:none">
-            </td>
-          </tr>
+                                        <li style="margin-top: 10px">
+                                            <strong
+                                                >Jadwal menyerahkan tagihan ke
+                                                Finance Department:</strong
+                                            ><br />
+                                            <em>Jakarta:</em><br />
+                                            • PT. Artisan Wahyu, PT. Grama
+                                            Pramesi Siddhi &amp; PT. Elite Prima
+                                            Hutama — setiap hari
+                                            <strong>Selasa</strong> pukul
+                                            <strong>10.00–16.00 WIB</strong
+                                            ><br />
+                                            • PT. Pakuwon Sentosa Abadi — setiap
+                                            hari <strong>Senin</strong> pukul
+                                            <strong>10.00–16.00 WIB</strong>
+                                        </li>
 
+                                        <li style="margin-top: 10px">
+                                            <strong
+                                                >Jadwal pembayaran
+                                                giro/transfer:</strong
+                                            ><br />
+                                            Setiap hari
+                                            <strong>Selasa</strong> dan
+                                            <strong>Kamis</strong> pukul
+                                            <strong>13.00–16.00 WIB</strong>.
+                                        </li>
+
+                                        <li style="margin-top: 10px">
+                                            <strong>Konfirmasi:</strong><br />
+                                            Mohon untuk mengirimkan kembali
+                                            (Reply All email ini) PO yang sudah
+                                            diparaf, ditandatangani, dan
+                                            distempel sebagai konfirmasi dari
+                                            vendor.
+                                        </li>
+
+                                        <li style="margin-top: 10px">
+                                            <strong>Lain-lain:</strong>
+                                            <ol
+                                                type="I"
+                                                style="
+                                                    margin-top: 6px;
+                                                    margin-bottom: 6px;
+                                                    padding-left: 18px;
+                                                "
+                                            >
+                                                <li>
+                                                    <strong
+                                                        >Khusus Vendor
+                                                        Baru</strong
+                                                    >
+                                                    wajib melampirkan dokumen
+                                                    berikut:
+                                                    <ul
+                                                        style="
+                                                            margin: 6px 0;
+                                                            padding-left: 18px;
+                                                            list-style-type: circle;
+                                                        "
+                                                    >
+                                                        <li>
+                                                            Akta pendirian
+                                                            termasuk perubahan
+                                                            terbaru
+                                                        </li>
+                                                        <li>
+                                                            SK (Surat Keputusan)
+                                                            Menkumham
+                                                        </li>
+                                                        <li>
+                                                            NPWP (Nomor Pokok
+                                                            Wajib Pajak)
+                                                        </li>
+                                                        <li>
+                                                            SPPPKP (Surat
+                                                            Pengukuhan Pengusaha
+                                                            Kena Pajak)
+                                                        </li>
+                                                        <li>
+                                                            SIUP (Surat Izin
+                                                            Usaha Perdagangan)
+                                                        </li>
+                                                        <li>
+                                                            TDP (Tanda Daftar
+                                                            Perusahaan)
+                                                        </li>
+                                                        <li>
+                                                            SKT (Surat
+                                                            Keterangan
+                                                            Terdaftar)
+                                                        </li>
+                                                        <li>
+                                                            SIUJK / SBUJK (bila
+                                                            ada)
+                                                        </li>
+                                                        <li>
+                                                            Perizinan dari Dinas
+                                                            Pemerintah terkait
+                                                            pekerjaan
+                                                        </li>
+                                                    </ul>
+                                                </li>
+                                                <li>
+                                                    <strong
+                                                        >Alamat
+                                                        E-Faktur:</strong
+                                                    ><br />
+                                                    Mohon dibuat sesuai NPWP dan
+                                                    di bawah barcode, serta
+                                                    tulis nomor PO/SPK sesuai
+                                                    contoh yang berlaku.
+                                                    <div
+                                                        style="
+                                                            margin-top: 10px;
+                                                            text-align: center;
+                                                        "
+                                                    >
+                                                        <img
+                                                            src="${FOOTER_URL}"
+                                                            alt="                                                            Contoh tampilan
+                                                            E-Faktur dengan
+                                                            nomor PO/SPK di
+                                                            bawah barcode"
+                                                            style="
+                                                                max-width: 100%;
+                                                                height: auto;
+                                                                display: block;
+                                                                border: 0;
+                                                                outline: none;
+                                                                text-decoration: none;
+                                                            "
+                                                        />
+                                                    </div>
+                                                </li>
+                                            </ol>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </td>
+                        </tr>
+
+                        <!-- FOOTER -->
+                        <tr>
+                            <td
+                                style="
+                                    padding: 24px 32px;
+                                    font-size: 12px;
+                                    color: #6b7280;
+                                "
+                            >
+                                Hormat kami,<br />
+                                <strong style="color: #111827"
+                                    >Purchasing Department</strong
+                                ><br />
+                                Pakuwon Group
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
         </table>
-      </td>
-    </tr>
-  </table>
-</body>
+    </body>
 </html>
