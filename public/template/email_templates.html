@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>${POTYPE} ${PONBR}</title>
+</head>
+<body style="margin:0;padding:0;background:#f5f7fb">
+  <!-- OUTER TABLE (email-safe) -->
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f5f7fb">
+    <tr>
+      <td align="left" style="padding:0;margin:0">
+        <!-- INNER FIXED-WIDTH WRAPPER -->
+        <table role="presentation" width="720" cellpadding="0" cellspacing="0" style="background:#ffffff;color:#111827;font-family:Arial,Helvetica,sans-serif;line-height:1.6">
+          <tr>
+            <td style="padding:16px 20px">
+              <p style="margin:0 0 6px 0">Yth. <strong>${CONTACTNAME}</strong>, <strong>${VENDORNAME}</strong></p>
+              <p style="margin:0;color:#6b7280">Berikut informasi terkait ${POTYPE} kami.</p>
+            </td>
+          </tr>
+
+          <tr>
+            <td style="padding:0 20px 0 20px">
+              <div style="border:1px solid #e5e7eb;border-radius:10px;margin:14px 0;padding:16px 16px">
+                <h3 style="font-size:16px;font-weight:700;margin:0 0 6px 0">Informasi</h3>
+                <p style="margin:0 0 8px 0">Per 8 Agustus 2022, pengecekan tagihan dan persetujuan pengiriman dokumen tagihan dapat dilakukan melalui portal <strong>vms.pakuwon.com</strong>.</p>
+                <p style="margin:0">Jika ada kendala, silakan hubungi <a href="mailto:csvp@pakuwon.com">csvp@pakuwon.com</a> atau masing-masing <em>purchaser</em>.</p>
+              </div>
+
+              <div style="border:1px solid #e5e7eb;border-radius:10px;margin:14px 0;padding:16px 16px">
+                <h3 style="font-size:16px;font-weight:700;margin:0 0 6px 0">Terlampir</h3>
+                <ul style="padding-left:18px;margin:6px 0">
+                  <li>${POTYPE} Nomor <strong>${PONBR}</strong> a/n <strong>${VENDORNAME}</strong></li>
+                  <li>Pembelian Barang: <strong>${CSKEPERLUAN}</strong></li>
+                  <li>Delivery Date: sesuai dokumen ${POTYPE} terlampir (harap cek lampiran)</li>
+                </ul>
+              </div>
+
+              <div style="border:1px solid #e5e7eb;border-radius:10px;margin:14px 0;padding:16px 16px">
+                <h3 style="font-size:16px;font-weight:700;margin:0 0 6px 0">Syarat Pembayaran</h3>
+                <p style="margin:0 0 6px 0"><strong>A. Uang Muka (DP)</strong> — diserahkan ke <em>Purchasing Department</em>:</p>
+                <ul style="padding-left:18px;margin:6px 0">
+                  <li>${POTYPE} asli bertanda tangan &amp; stempel perusahaan vendor</li>
+                  <li>Kuitansi asli bermaterai Rp10.000 (untuk nominal &gt; Rp5.000.000) — nilai DP sudah termasuk PPN (bila PKP)</li>
+                  <li>Invoice asli</li>
+                  <li><em>E-Faktur</em> (wajib untuk PKP)</li>
+                </ul>
+
+                <p style="margin:10px 0 6px 0"><strong>B. Pelunasan</strong> — diserahkan ke <em>Finance Department</em>:</p>
+                <ul style="padding-left:18px;margin:6px 0">
+                  <li>${POTYPE} asli bertanda tangan &amp; stempel perusahaan vendor</li>
+                  <li>Kuitansi asli bermaterai Rp10.000 (untuk nominal &gt; Rp5.000.000) — nilai sesuai pelunasan &amp; termasuk PPN (bila PKP)</li>
+                  <li>Invoice asli</li>
+                  <li><em>E-Faktur</em> (wajib untuk PKP)</li>
+                  <li>STTB (Surat Tanda Terima Barang) dari gudang — asli</li>
+                  <li>Surat jalan vendor — asli</li>
+                </ul>
+              </div>
+
+              <!-- …(bagian lain tetap seperti punyamu, cukup copy-paste) … -->
+
+              <div style="padding:16px 0;color:#6b7280;font-size:12px">
+                Hormat kami,<br>
+                <strong>Purchasing Department</strong><br>
+                Pakuwon Group
+              </div>
+            </td>
+          </tr>
+
+          <!-- FOOTER IMAGE -->
+          <tr>
+            <td style="padding:0 20px 16px">
+              <img src="${FOOTER_URL}" alt="Footer"
+                   style="max-width:100%;height:auto;display:block;margin:0;border:0;outline:none;text-decoration:none">
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>

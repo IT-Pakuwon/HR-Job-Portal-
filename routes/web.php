@@ -306,8 +306,7 @@ Route::post('/logout', function () {
     Route::get('/signconfirm/{id}', [CareerController::class, 'editSign'])->name('signconfirm.edit');
     Route::delete('/signconfirm/{id}', [CareerController::class, 'destroySign'])->name('signconfirm.destroy');
    
-    Route::post('/onboarding/schedule/update', [CareerController::class, 'updateSchedule'])
-     ->name('onboarding.schedule.update');
+    Route::post('/onboarding/schedule/update', [CareerController::class, 'updateSchedule'])->name('onboarding.schedule.update');
 
     Route::post('/payrollconfirm/reveal', [CareerController::class, 'revealSalary'])->name('payrollconfirm.reveal');
     Route::get('/payrollconfirm/{id}', [CareerController::class, 'getPayroll'])->name('payrollconfirm.get');
@@ -578,6 +577,9 @@ Route::post('/logout', function () {
     Route::post('/po/{poid}/cancel-reuse', [PoController::class, 'cancelReuse'])->name('po.cancel_reuse');
     Route::post('/po/{poid}/cancel',       [PoController::class, 'cancel'])->name('po.cancel');
     Route::get('/pdf_po/{hash}', [PoController::class, 'printPO']);
+    Route::get('/po/{ponbr}/view-email', [POController::class, 'viewEmailPO'])->name('po.viewemail');
+    Route::post('/po/{ponbr}/email/send', [POController::class, 'sendNowPO'])->name('po.email.send');
+
 
     Route::get('/inventory/list', [MasterController::class, 'InventoryList'])->name('inventory.list');
     Route::get('/request-types/by-doctype', [MasterController::class, 'RequestType'])->name('requesttypes.byDoctype');

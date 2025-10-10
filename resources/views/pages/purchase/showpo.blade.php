@@ -135,7 +135,7 @@
                         <path stroke-linecap="round" stroke-linejoin="round"
                             d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
                     </svg>
-                    Cancel Reuse
+                    Reuse
                 </button>
                 <button id="cancelBtn"
                     class="inline-flex items-center gap-1 rounded-md bg-red-100 px-3 py-2 text-sm font-medium text-red-700 transition-colors hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:bg-red-700/30 dark:text-red-300 dark:hover:bg-red-600/50">
@@ -145,6 +145,15 @@
                             d="M7.498 15.25H4.372c-1.026 0-1.945-.694-2.054-1.715a12.137 12.137 0 0 1-.068-1.285c0-2.848.992-5.464 2.649-7.521C5.287 4.247 5.886 4 6.504 4h4.016a4.5 4.5 0 0 1 1.423.23l3.114 1.04a4.5 4.5 0 0 0 1.423.23h1.294M7.498 15.25c.618 0 .991.724.725 1.282A7.471 7.471 0 0 0 7.5 19.75 2.25 2.25 0 0 0 9.75 22a.75.75 0 0 0 .75-.75v-.633c0-.573.11-1.14.322-1.672.304-.76.93-1.33 1.653-1.715a9.04 9.04 0 0 0 2.86-2.4c.498-.634 1.226-1.08 2.032-1.08h.384m-10.253 1.5H9.7m8.075-9.75c.01.05.027.1.05.148.593 1.2.925 2.55.925 3.977 0 1.487-.36 2.89-.999 4.125m.023-8.25c-.076-.365.183-.75.575-.75h.908c.889 0 1.713-.518 1.972-1.368.339 1.11.521 2.287.521 3.507 0 1.553-.295 3.036-.831 4.398-.306.774-1.086 1.227-1.918 1.227h-1.053c-.472 0-.745-.556-.5-.96a8.95 8.95 0 0 0 .303-.54" />
                     </svg>
                     Cancel
+                </button>
+                <button id="sendEmailBtn"
+                    class="inline-flex items-center gap-1 rounded-md bg-indigo-600 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                        stroke="currentColor" class="h-4 w-4">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15A2.25 2.25 0 0 1 2.25 17.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.02 1.9l-6.75 4.5a2.25 2.25 0 0 1-2.46 0l-6.75-4.5a2.25 2.25 0 0 1-1.02-1.9V6.75" />
+                    </svg>
+                    Send Email
                 </button>
             </div>
         </div>
@@ -339,10 +348,10 @@
                                 <form id="infoPoForm">
                                     @csrf
                                     @php
-                                        $isPB = strtoupper($po->potype ?? '') === 'PO';
+                                        $isPO = strtoupper($po->potype ?? '') === 'PO';
                                         $readOnlyDelivery = ($po->status === 'P'); // <- read-only kalau status P
                                     @endphp
-                                    @if ($isPB)
+                                    @if ($isPO)
                                         {{-- ====== PO TYPE = PO : hanya tanggal delivery ====== --}}
                                         <div
                                             class="rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800">                                           
@@ -560,7 +569,7 @@
 
                                             </div>
                                         @else
-                                            {{-- ====== PO TYPE ≠ PB : form pekerjaan lengkap ====== --}}
+                                            {{-- ====== PO TYPE ≠ PO : form pekerjaan lengkap ====== --}}
                                             <div class="space-y-4">
 
                                                 {{-- Baris 1: Tanggal Pelaksanaan (range) --}}
@@ -877,7 +886,7 @@
     {{-- Modal: Cancel Reuse --}}
     <div id="modalCancelReuse" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50">
         <div class="w-full max-w-md rounded-lg bg-white p-6 dark:bg-gray-700">
-            <h2 class="mb-4 text-xl font-semibold text-gray-800 dark:text-white">Cancel Reuse</h2>
+            <h2 class="mb-4 text-xl font-semibold text-gray-800 dark:text-white">Reuse</h2>
             <textarea id="reasonCancelReuse"
                 class="mt-2 w-full rounded-lg p-3 focus:outline-none dark:bg-gray-800 dark:text-white"
                 placeholder="Enter reason for cancel reuse..."></textarea>
@@ -1043,7 +1052,7 @@
         $(function() {
             const ponbr = "{{ $po->ponbr ?? $po->ponbr }}";
             const statusNow = "{{ $po->status }}";
-            const isPB = "{{ strtoupper($po->potype ?? '') }}" === "PB";
+            const isPO = "{{ strtoupper($po->potype ?? '') }}" === "PO";
 
             function markInvalid($el) {
                 $el.addClass('ring-2 ring-red-400 border-red-400');
@@ -1062,7 +1071,7 @@
                 // helper to read & trim
                 const val = (id) => ($(`#${id}`).val() ?? '').toString().trim();
 
-                if (isPB) {
+                if (isPO) {
                     const d = val('podeliverydate');
                     if (!d) {
                         errors.push({
@@ -1418,6 +1427,17 @@
     </script>
 
 
+    <script>
+        $(function () {      
+
+            // Open composer di tab baru, kirim PONBR di URL
+            $('#sendEmailBtn').on('click', function () {
+            const ponbr = @json($po->ponbr);
+            const url = "{{ route('po.viewemail', ['ponbr' => '__PONBR__']) }}".replace('__PONBR__', encodeURIComponent(ponbr));
+            window.open(url, '_blank');
+            });
+        });
+    </script>
 
 
 

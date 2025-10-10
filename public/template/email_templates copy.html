@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>${POTYPE} ${PONBR}</title>
+  <!-- <style>
+    /* ==== Email-safe base (inline di bawah juga ada) ==== */
+    .email-wrap{max-width:720px;margin:0 auto;background:#ffffff;color:#111827;font-family:Arial,Helvetica,sans-serif;line-height:1.6}
+    .section{padding:16px 20px}
+    .card{border:1px solid #e5e7eb;border-radius:10px;margin:14px 0}
+    .title{font-size:16px;font-weight:700;margin:0 0 6px}
+    .muted{color:#6b7280}
+    .list{padding-left:18px;margin:6px 0}
+    .list li{margin:4px 0}
+    .badge{display:inline-block;background:#eef2ff;border:1px solid #c7d2fe;color:#3730a3;border-radius:999px;padding:2px 8px;font-size:12px;margin-right:6px}
+    .hr{height:1px;background:#e5e7eb;margin:14px 0}
+    .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace}
+    .grid{display:flex;gap:16px;flex-wrap:wrap}
+    .col{flex:1 1 280px;border:1px solid #e5e7eb;border-radius:10px;padding:12px}
+    .small{font-size:12px}
+  </style> -->
+   <style>
+    .email-wrap{
+      max-width:720px;
+      margin:0;                  /* <- WAS: 0 auto */
+      background:#ffffff;
+      color:#111827;
+      font-family:Arial,Helvetica,sans-serif;
+      line-height:1.6
+    }
+    .section{padding:16px 20px}
+    .card{border:1px solid #e5e7eb;border-radius:10px;margin:14px 0}
+    .title{font-size:16px;font-weight:700;margin:0 0 6px}
+    .muted{color:#6b7280}
+    .list{padding-left:18px;margin:6px 0}
+    .list li{margin:4px 0}
+    .badge{display:inline-block;background:#eef2ff;border:1px solid #c7d2fe;color:#3730a3;border-radius:999px;padding:2px 8px;font-size:12px;margin-right:6px}
+    .hr{height:1px;background:#e5e7eb;margin:14px 0}
+    .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace}
+    .grid{display:flex;gap:16px;flex-wrap:wrap}
+    .col{flex:1 1 280px;border:1px solid #e5e7eb;border-radius:10px;padding:12px}
+    .small{font-size:12px}
+  </style>
+</head>
+<body style="margin:0;padding:0;background:#f5f7fb">
+  <div class="email-wrap" style="max-width:720px;margin:0 auto;background:#fff;color:#111827;font-family:Arial,Helvetica,sans-serif;line-height:1.6">
+
+    <!-- Header ringkas -->
+    <!-- <div class="section" style="padding:16px 20px">
+      <div class="badge" style="display:inline-block;background:#eef2ff;border:1px solid #c7d2fe;color:#3730a3;border-radius:999px;padding:2px 8px;font-size:12px;margin-right:6px">
+        ${POTYPE}
+      </div>
+      <span class="mono" style="font-family:Consolas,Menlo,monospace">${PONBR}</span>
+      <div class="muted small" style="color:#6b7280;font-size:12px;margin-top:4px">
+        a/n: <strong>${VENDORNAME}</strong>
+      </div>
+    </div> -->
+
+    <!-- <div class="hr" style="height:1px;background:#e5e7eb;margin:14px 0"></div> -->
+
+    <!-- Salam -->
+    <div class="section" style="padding:16px 20px">
+      <p>Yth. <strong>${CONTACTNAME}</strong>, <strong>${VENDORNAME}</strong></p>
+      <p class="muted" style="color:#6b7280">Berikut informasi terkait ${POTYPE} kami.</p>
+    </div>
+
+    <!-- Informasi umum -->
+    <div class="section card" style="padding:16px 20px;border:1px solid #e5e7eb;border-radius:10px;margin:14px 0">
+      <h3 class="title" style="font-size:16px;font-weight:700;margin:0 0 6px">Informasi</h3>
+      <p>Per 8 Agustus 2022, pengecekan tagihan dan persetujuan pengiriman dokumen tagihan dapat dilakukan melalui portal <strong>vms.pakuwon.com</strong>.</p>
+      <p>Jika ada kendala, silakan hubungi <a href="mailto:csvp@pakuwon.com">csvp@pakuwon.com</a> atau masing-masing <em>purchaser</em>.</p>
+    </div>
+
+    <!-- Lampiran / Ringkasan PO -->
+    <div class="section card" style="padding:16px 20px;border:1px solid #e5e7eb;border-radius:10px;margin:14px 0">
+      <h3 class="title" style="font-size:16px;font-weight:700;margin:0 0 6px">Terlampir</h3>
+      <ul class="list" style="padding-left:18px;margin:6px 0">
+        <li>${POTYPE} Nomor <strong>${PONBR}</strong> a/n <strong>${VENDORNAME}</strong></li>
+        <li>Pembelian Barang: <strong>${CSKEPERLUAN}</strong></li>
+        <li>Delivery Date: sesuai dokumen ${POTYPE} terlampir (harap cek lampiran)</li>
+      </ul>
+    </div>
+
+    <!-- Syarat pembayaran -->
+    <div class="section card" style="padding:16px 20px;border:1px solid #e5e7eb;border-radius:10px;margin:14px 0">
+      <h3 class="title" style="font-size:16px;font-weight:700;margin:0 0 6px">Syarat Pembayaran</h3>
+
+      <p><strong>A. Uang Muka (DP)</strong> — diserahkan ke <em>Purchasing Department</em>:</p>
+      <ul class="list" style="padding-left:18px;margin:6px 0">
+        <li>${POTYPE} asli bertanda tangan & stempel perusahaan vendor</li>
+        <li>Kuitansi asli bermaterai Rp10.000 (untuk nominal &gt; Rp5.000.000) — nilai DP sudah termasuk PPN (bila PKP)</li>
+        <li>Invoice asli</li>
+        <li><em>E-Faktur</em> (wajib untuk PKP)</li>
+      </ul>
+
+      <p style="margin-top:10px"><strong>B. Pelunasan</strong> — diserahkan ke <em>Finance Department</em>:</p>
+      <ul class="list" style="padding-left:18px;margin:6px 0">
+        <li>${POTYPE} asli bertanda tangan & stempel perusahaan vendor</li>
+        <li>Kuitansi asli bermaterai Rp10.000 (untuk nominal &gt; Rp5.000.000) — nilai sesuai pelunasan & termasuk PPN (bila PKP)</li>
+        <li>Invoice asli</li>
+        <li><em>E-Faktur</em> (wajib untuk PKP)</li>
+        <li>STTB (Surat Tanda Terima Barang) dari gudang — asli</li>
+        <li>Surat jalan vendor — asli</li>
+      </ul>
+    </div>
+
+    <!-- Lokasi kantor / alamat -->
+    <div class="section" style="padding:16px 20px">
+      <h3 class="title" style="font-size:16px;font-weight:700;margin:0 0 6px">Lokasi & Kontak</h3>
+
+      <div class="grid" style="display:flex;gap:16px;flex-wrap:wrap">
+        <div class="col" style="flex:1 1 280px;border:1px solid #e5e7eb;border-radius:10px;padding:12px">
+          <strong>PT. Artisan Wahyu (office & mall), PT. Elite Prima Hutama (Office B & Mall),
+          PT. Grama Pramesi Siddhi, PT. Pakuwon Sentosa Abadi (mall)</strong>
+          <div>Office Gandaria 8 Lt. 32, Jl. Sultan Iskandar Muda, Kebayoran Lama, Jakarta Selatan</div>
+          <div>Telp. 021-29008000</div>
+        </div>
+
+        <div class="col" style="flex:1 1 280px;border:1px solid #e5e7eb;border-radius:10px;padding:12px">
+          <strong>PT. Elite Prima Hutama (Office A)</strong>
+          <div>Building Management Office Tower A, Kota Kasablanka, Lt. LG</div>
+          <div>Jl. Casablanca Raya Kav.88, Tebet, Jakarta Selatan</div>
+          <div>Telp. 021-29488788</div>
+        </div>
+
+        <div class="col" style="flex:1 1 280px;border:1px solid #e5e7eb;border-radius:10px;padding:12px">
+          <strong>PPPRS Gandaria Heights</strong>
+          <div>Building Management Gandaria Heights Lt. P2</div>
+          <div>Jl. KH. M. Syafi’i Hadzami No.8, Kebayoran Lama, Jakarta Selatan</div>
+          <div>Telp. 021-29307088</div>
+        </div>
+
+        <div class="col" style="flex:1 1 280px;border:1px solid #e5e7eb;border-radius:10px;padding:12px">
+          <strong>PPRSH Casagrande Residence</strong>
+          <div>Building Management Casagrande Residence, Tower Mirage Lt. 1</div>
+          <div>Jl. Casablanca Raya Kav.88, Tebet, Jakarta Selatan</div>
+          <div>Telp. 021-29380788</div>
+        </div>
+      </div>
+
+      <div class="card" style="border:1px solid #e5e7eb;border-radius:10px;margin:14px 0;padding:12px">
+        <strong>Alamat Pemasukan Penagihan</strong>
+        <div>Kantor Pakuwon Group, East Coast Center Lt.5</div>
+        <div>Jl. Kejawan Putih Mutiara No.17, Pakuwon City, Surabaya, Jawa Timur</div>
+        <div>Telp. 031-58208788</div>
+      </div>
+
+      <div class="grid" style="display:flex;gap:16px;flex-wrap:wrap">
+        <div class="col" style="flex:1 1 280px;border:1px solid #e5e7eb;border-radius:10px;padding:12px">
+          <strong>Jadwal Penyerahan Tagihan (Jakarta)</strong>
+          <ul class="list" style="padding-left:18px;margin:6px 0">
+            <li>PT. Artisan Wahyu, PT. Grama Pramesi Siddhi, PT. Elite Prima Hutama: <em>Selasa</em> 10.00–16.00 WIB</li>
+            <li>PT. Pakuwon Sentosa Abadi: <em>Senin</em> 10.00–16.00 WIB</li>
+          </ul>
+        </div>
+        <div class="col" style="flex:1 1 280px;border:1px solid #e5e7eb;border-radius:10px;padding:12px">
+          <strong>Jadwal Pembayaran</strong>
+          <div>Giro/Transfer: <em>Selasa & Kamis</em> 13.00–16.00 WIB</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Konfirmasi & Vendor baru -->
+    <div class="section card" style="padding:16px 20px;border:1px solid #e5e7eb;border-radius:10px;margin:14px 0">
+      <h3 class="title" style="font-size:16px;font-weight:700;margin:0 0 6px">Konfirmasi</h3>
+      <p>Mohon <em>reply all</em> email ini dengan melampirkan ${POTYPE} yang sudah diparaf, ditandatangani, dan distempel sebagai konfirmasi dari vendor.</p>
+
+      <div class="hr" style="height:1px;background:#e5e7eb;margin:14px 0"></div>
+
+      <h4 class="title" style="font-size:14px;font-weight:700;margin:0 0 6px">Khusus Vendor Baru (lampirkan):</h4>
+      <ul class="list" style="padding-left:18px;margin:6px 0">
+        <li>Akta pendirian (+ perubahan terakhir), SK Menkumham</li>
+        <li>NPWP, SPPPKP</li>
+        <li>SIUP, TDP, SKT</li>
+        <li>SIUJK/SBUJK (bila ada), perizinan dinas terkait</li>
+      </ul>
+
+      <p class="small" style="font-size:12px;margin-top:8px">
+        Catatan: alamat <em>E-Faktur</em> mohon sesuai NPWP, dan di bawah barcode tuliskan nomor PO/SPK sesuai contoh (cantumkan nomor: <span class="mono" style="font-family:Consolas,Menlo,monospace">${PONBR}</span>).
+      </p>
+    </div>
+
+    <!-- Footer singkat -->
+    <div class="section muted small" style="padding:16px 20px;color:#6b7280;font-size:12px">
+      Hormat kami,<br>
+      <strong>Purchasing Department</strong><br>
+      Pakuwon Group
+    </div>
+  </div>
+  <div class="section" style="padding:0 20px 16px">
+  <img src="${FOOTER_URL}"
+       alt="Footer"
+       style="max-width:100%;height:auto;display:block;margin:0 auto;border:0;outline:none;text-decoration:none">
+</div>
+</body>
+</html>

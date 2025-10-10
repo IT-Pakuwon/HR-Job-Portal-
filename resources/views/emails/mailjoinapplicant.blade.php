@@ -9,8 +9,7 @@
 
   <p>We are pleased to share your employment schedule details:</p>
 
-  <ul>
-    <li><strong>Availability Date:</strong> {{ $availability_date }}</li>
+  <ul>    
     <li><strong>Official Start Date:</strong> {{ $work_start_date }}</li>
   </ul>
 

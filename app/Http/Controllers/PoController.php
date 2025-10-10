@@ -6,12 +6,18 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+use App\Models\User;
 use App\Models\TrPO;
 use App\Models\TrPOdetail;
 use App\Models\T_approval;
 use App\Models\Attachment;
 use App\Models\T_Message;
+use App\Models\MsVendor;
 use Vinkla\Hashids\Facades\Hashids;
+// use PhpOffice\PhpWord\TemplateProcessor;
+// use PhpOffice\PhpWord\IOFactory;
+use TijsVerkoyen\CssToInlineStyles\CssToInlineStyles;
+use Mail;
 
 class PoController extends Controller
 {
@@ -401,6 +407,178 @@ class PoController extends Controller
         $basename = $po->potype === 'PO' ? 'PO' : 'SPK';
         return $pdf->stream("{$basename}_{$po->ponbr}.pdf");
     }
+
+  
+
+    private function extractBodyHtml(string $fullHtml): string
+    {
+        try {
+            $dom = new \DOMDocument();
+            // suppress warning HTML tidak sempurna
+            @$dom->loadHTML($fullHtml, LIBXML_NOERROR | LIBXML_NOWARNING | LIBXML_NONET);
+            $body = $dom->getElementsByTagName('body')->item(0);
+            if (!$body) return $fullHtml;
+
+            $innerHTML = '';
+            foreach ($body->childNodes as $child) {
+                $innerHTML .= $dom->saveHTML($child);
+            }
+            return $innerHTML;
+        } catch (\Throwable $e) {
+            return $fullHtml;
+        }
+    }
+
+    public function viewEmailPO(string $ponbr)
+    {
+        $po = TrPO::where('ponbr', $ponbr)->firstOrFail();
+
+        $emailfrom = User::where('username', $po->created_by)->value('test_email');
+        // $emailto   = MsVendor::where('vendor_id', $po->vendorid)->value('email');
+        $emailto ='bedriamaail@pakuwon.com ; rikiparahat@pakuwon.com';
+
+        $subject_email = $po->potype == 'PO'
+            ? 'Purchase Order Nomor '.$ponbr.' untuk '.trim($po->vendorname).' - '.$po->keperluan
+            : 'Surat Perintah Kerja Nomor '.$ponbr.' untuk '.trim($po->vendorname).' - '.$po->keperluan;
+
+        $html = file_get_contents(public_path('template/email_templates.html'));
+
+        // URL absolut ke gambar di public/template/po_footer.jpg
+        $footerUrl = asset('template/po_footer.jpg');
+
+        $map = [
+            '${POTYPE}'      => $po->potype,
+            '${PONBR}'       => $po->ponbr,
+            '${VENDORNAME}'  => $po->vendorname,
+            '${CSKEPERLUAN}' => $po->keperluan,
+            '${CONTACTNAME}' => $po->vendorcp,
+            '${FOOTER_URL}'  => $footerUrl, // <- ini penting
+        ];
+
+        $initial_html = strtr($html, $map);
+
+        return view('emails.sendemailpo', [
+            'ponbr'         => $ponbr,
+            'po'            => $po,
+            'vendor'        => $po->vendorname,
+            'template'      => strtoupper($po->potype ?? 'PO'),
+            'subject_email' => $subject_email,
+            'from_email'    => $emailfrom,
+            'to_email'      => $emailto,
+            'initial_html'  => $initial_html,
+        ]);
+    }
+
+    public function sendNowPO(Request $req, string $ponbr)
+    {
+        // 1) Validasi payload dari form compose (To/Cc/Bcc bisa array atau string dipisah koma)
+        $data = $req->validate([
+            'from'    => ['required','email'],
+            'to'      => ['required'],              // array email atau string “a@b.com, c@d.com”
+            'cc'      => ['nullable'],
+            'bcc'     => ['nullable'],
+            'subject' => ['required','string','max:200'],
+            'html'    => ['required','string'],     // body HTML dari Summernote
+        ]);
+
+        // Tentukan display name pengirim
+        $senderName = User::where('test_email', $data['from'])->value('name'); // ganti 'name' bila kolommu 'fullname'
+        if (!$senderName) {
+            // fallback: nama pembuat PO
+            $senderName = User::where('username', $po->created_by)->value('name'); // sesuaikan kolom
+        }
+        if (!$senderName && Auth::check()) {
+            // fallback: nama user yang login
+            $senderName = Auth::user()->name ?? Auth::user()->fullname ?? null;
+        }
+        $senderName = $senderName ?: 'Pakuwon System';
+
+
+        // Normalisasi daftar email
+        // $norm = function ($v) {
+        //     if (!$v) return [];
+        //     if (is_array($v)) return array_values(array_unique(array_filter(array_map('trim',$v))));
+        //     return array_values(array_unique(array_filter(array_map('trim', explode(',', $v)))));
+        // };
+        $norm = function ($v) {
+            if (!$v) return [];
+            if (is_array($v)) return array_values(array_unique(array_filter(array_map('trim',$v))));
+            return array_values(array_unique(array_filter(array_map('trim', preg_split('/[,;]+/', $v)))));
+        };
+
+
+        $to  = $norm($data['to']);
+        $cc  = $norm($data['cc'] ?? []);
+        $bcc = $norm($data['bcc'] ?? []);
+
+        if (empty($to)) {
+            return response()->json(['success'=>false,'message'=>'Field "To" wajib diisi.'], 422);
+        }
+
+        // 2) Ambil header + detail PO
+        $po = TrPO::where('ponbr', $ponbr)->firstOrFail();
+        $podetail = TrPOdetail::where('ponbr', $po->ponbr)->orderBy('cs_no')->get();
+
+        // Totals (opsional, kalau dipakai di PDF)
+        $dpp   = (float) $podetail->sum('totalcost');
+        $ppn   = (float) $podetail->sum('taxamt');
+        $grand = $dpp + $ppn;
+
+        $viewData = [
+            'po'       => $po,
+            'podetail' => $podetail,
+            'totals'   => ['dpp'=>$dpp, 'ppn'=>$ppn, 'grand'=>$grand],
+            'now'      => Carbon::now(),
+            'user'     => Auth::user(),
+        ];
+
+        // 3) Siapkan lampiran dari tabel Attachment (public/attachments/{YEAR}/{$attach->attachfile})
+        $attachments = Attachment::where('docid', $po->ponbr)
+            ->where('status', 'A')
+            ->get();
+
+        $filePaths = [];
+        foreach ($attachments as $row) {
+            // ambil tahun dari created_at jika ada, fallback ke tahun sekarang
+            $year = $row->created_at ? Carbon::parse($row->created_at)->year : Carbon::now()->year;
+            $path = public_path("attachments/{$year}/{$row->attachfile}");
+            if (is_file($path)) {
+                $filePaths[] = $path;
+            }
+        }
+
+        // 4) Generate PDF PO/SPK (tanpa stream), lalu attach
+        $view = $po->potype === 'PO' ? 'pages.purchase.pdf_po' : 'pages.purchase.pdf_spk';
+        $pdf  = \PDF::loadView($view, $viewData)->setPaper('A4', 'portrait');
+        $pdfBinary = $pdf->output(); // <- ambil binary untuk attachData
+        $pdfName = ($po->potype === 'PO' ? 'PO' : 'SPK') . "_{$po->ponbr}.pdf";
+
+        // 5) Kirim email (pakai body HTML langsung dari Summernote)
+        //    Laravel 9+: bisa pakai Mail::html(). Jika kamu di versi lebih lama, gunakan Mail::send dengan view sederhana.
+        Mail::html($data['html'], function ($message) use ($data, $to, $cc, $bcc, $pdfBinary, $pdfName, $filePaths, $po, $senderName) {
+            $message->from($data['from'], $senderName);
+            $message->to($to);
+            if (!empty($cc))  $message->cc($cc);
+            if (!empty($bcc)) $message->bcc($bcc);
+            $message->subject($data['subject']);
+
+            // attach PDF hasil render
+            $message->attachData($pdfBinary, $pdfName, ['mime' => 'application/pdf']);
+
+            // attach file-file existing
+            foreach ($filePaths as $path) {
+                $message->attach($path);
+            }
+        });
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Email sudah dikirim beserta lampiran.'
+        ]);
+    }
+
+
+    
 
 
 }
