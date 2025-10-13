@@ -8,7 +8,8 @@
             {{-- My CS --}}
             <button>
                 <a href="#" class="scope-filter" data-scope="my">
-                    <div class="flex items-center gap-4 rounded-lg border border-orange-700 bg-orange-200/20 p-3 text-orange-600">
+                    <div
+                        class="flex items-center gap-4 rounded-lg border border-orange-700 bg-orange-200/20 p-3 text-orange-600">
                         <span class="text-xl">📄</span>
                         <div class="flex flex-grow items-center justify-between">
                             <p class="text-lg font-medium">My CS</p>
@@ -21,7 +22,8 @@
             {{-- On Progress --}}
             <button>
                 <a href="#" class="scope-filter" data-scope="onprogress">
-                    <div class="flex items-center gap-4 rounded-lg border border-blue-700 bg-blue-200/20 p-3 text-blue-600">
+                    <div
+                        class="flex items-center gap-4 rounded-lg border border-blue-700 bg-blue-200/20 p-3 text-blue-600">
                         <span class="text-xl">⏳</span>
                         <div class="flex flex-grow items-center justify-between">
                             <p class="text-lg font-medium">On Progress</p>
@@ -34,7 +36,8 @@
             {{-- Rejected --}}
             <button>
                 <a href="#" class="scope-filter" data-scope="rejected">
-                    <div class="flex items-center gap-4 rounded-lg border border-red-700 bg-red-200/20 p-3 text-red-600">
+                    <div
+                        class="flex items-center gap-4 rounded-lg border border-red-700 bg-red-200/20 p-3 text-red-600">
                         <span class="text-xl">⛔️</span>
                         <div class="flex flex-grow items-center justify-between">
                             <p class="text-lg font-medium">Reject</p>
@@ -44,10 +47,11 @@
                 </a>
             </button>
 
-             {{-- Completed --}}
+            {{-- Completed --}}
             <button>
                 <a href="#" class="scope-filter" data-scope="completed">
-                    <div class="flex items-center gap-4 rounded-lg border border-green-700 bg-green-200/20 p-3 text-green-600">
+                    <div
+                        class="flex items-center gap-4 rounded-lg border border-green-700 bg-green-200/20 p-3 text-green-600">
                         <span class="text-xl">✅</span>
                         <div class="flex flex-grow items-center justify-between">
                             <p class="text-lg font-medium">Completed</p>
@@ -60,7 +64,8 @@
             {{-- All CS --}}
             <button>
                 <a href="#" class="scope-filter" data-scope="all">
-                    <div class="flex items-center gap-4 rounded-lg border border-gray-700 bg-gray-200/20 p-3 text-gray-600 dark:border-white dark:text-white">
+                    <div
+                        class="flex items-center gap-4 rounded-lg border border-gray-700 bg-gray-200/20 p-3 text-gray-600 dark:border-white dark:text-white">
                         <span class="text-xl">🧾</span>
                         <div class="flex flex-grow items-center justify-between">
                             <p class="text-lg font-medium">All CS</p>
@@ -69,45 +74,129 @@
                     </div>
                 </a>
             </button>
-           
+
         </div>
 
         <div class="grid">
             <style>
-                .no-border { border: none !important; }
-                .grid { width: 100%; }
-                select, textarea, input { width: 100%; }
-                table.dataTable { width: 100% !important; }
-                .dataTables_wrapper { width: 100%; }
-                @media (max-width: 600px){ .dataTables_wrapper { padding: 0 10px; } }
+                .no-border {
+                    border: none !important;
+                }
+
+                .grid {
+                    width: 100%;
+                }
+
+                select,
+                textarea,
+                input {
+                    width: 100%;
+                }
+
+                table.dataTable {
+                    width: 100% !important;
+                }
+
+                .dataTables_wrapper {
+                    width: 100%;
+                }
+
+                @media (max-width: 600px) {
+                    .dataTables_wrapper {
+                        padding: 0 10px;
+                    }
+                }
 
                 /* CS table styles */
                 #csTable_filter {
-                    margin-bottom: 20px; display: flex; justify-content: flex-start; align-items: center;
+                    margin-bottom: 20px;
+                    display: flex;
+                    justify-content: flex-start;
+                    align-items: center;
                 }
-                #csTable_filter label { margin-right: 2px; }
+
+                #csTable_filter label {
+                    margin-right: 2px;
+                }
+
                 #csTable_filter input {
-                    width: auto; padding: 0.25rem 0.5rem; min-width: 80px;
-                    border-radius: 0.5rem; border: 1px solid #d1d5db; background-color: #f9fafb;
+                    width: auto;
+                    padding: 0.25rem 0.5rem;
+                    min-width: 80px;
+                    border-radius: 0.5rem;
+                    border: 1px solid #d1d5db;
+                    background-color: #f9fafb;
                 }
-                #csTable td { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-                #csTable th, #csTable td { padding: 10px; max-width: 240px; }
-                #csTable_length { width: auto; display: flex; justify-content: flex-start; }
+
+                #csTable td {
+                    white-space: nowrap;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                }
+
+                #csTable th,
+                #csTable td {
+                    padding: 10px;
+                    max-width: 240px;
+                }
+
+                #csTable_length {
+                    width: auto;
+                    display: flex;
+                    justify-content: flex-start;
+                }
+
                 #csTable_length select {
-                    width: auto; padding: 0.25rem 0.5rem; min-width: 80px;
-                    border-radius: 0.5rem; border: 1px solid #d1d5db; background-color: #f9fafb;
+                    width: auto;
+                    padding: 0.25rem 0.5rem;
+                    min-width: 80px;
+                    border-radius: 0.5rem;
+                    border: 1px solid #d1d5db;
+                    background-color: #f9fafb;
                 }
-                #csTable_info { margin-top: 10px; margin-bottom: 10px; }
-                .dataTables_paginate { margin-top: 10px; margin-bottom: 10px; }
-                #csTable tbody tr { transition: background-color 0.3s ease, color 0.3s ease; }
-                #csTable tbody tr:hover { background-color: #8f8f8f11; opacity: 100%; cursor: pointer; }
-                #csTable th:nth-child(1), #csTable td:nth-child(1) { width: 140px; text-align: left; }
-                #csTable th:nth-child(3), #csTable td:nth-child(3) { width: 150px; text-align: center; }
-                #csTable th:nth-child(4), #csTable td:nth-child(4) { width: 150px; text-align: center; }
+
+                #csTable_info {
+                    margin-top: 10px;
+                    margin-bottom: 10px;
+                }
+
+                .dataTables_paginate {
+                    margin-top: 10px;
+                    margin-bottom: 10px;
+                }
+
+                #csTable tbody tr {
+                    transition: background-color 0.3s ease, color 0.3s ease;
+                }
+
+                #csTable tbody tr:hover {
+                    background-color: #8f8f8f11;
+                    opacity: 100%;
+                    cursor: pointer;
+                }
+
+                #csTable th:nth-child(1),
+                #csTable td:nth-child(1) {
+                    width: 140px;
+                    text-align: left;
+                }
+
+                #csTable th:nth-child(3),
+                #csTable td:nth-child(3) {
+                    width: 150px;
+                    text-align: center;
+                }
+
+                #csTable th:nth-child(4),
+                #csTable td:nth-child(4) {
+                    width: 150px;
+                    text-align: center;
+                }
             </style>
 
             <div class="mt-6 rounded-2xl bg-white dark:bg-gray-800">
-                <div class="flex flex-col items-start justify-between gap-4 border-b border-gray-200 p-4 sm:flex-row sm:items-center dark:border-gray-700">
+                <div
+                    class="flex flex-col items-start justify-between gap-4 border-b border-gray-200 p-4 sm:flex-row sm:items-center dark:border-gray-700">
                     <h1 class="text-xl font-extrabold text-gray-700 dark:text-white">Canvass Sheet (CS)</h1>
                 </div>
 
@@ -115,16 +204,36 @@
                     <table id="csTable" class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                         <thead class="bg-gray-50 dark:bg-gray-700">
                             <tr>
-                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">CS ID</th>
-                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">SPPB/J/K/T</th>
-                                <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">CS Date</th>
-                                <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">Company</th>
-                                <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">Department</th>
-                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">Created By</th>
-                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">Note</th>
-                                <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">Assign Date</th>
-                                <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">Submit Date</th>
-                                <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">Days</th>
+                                <th
+                                    class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                                    CS ID</th>
+                                <th
+                                    class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                                    SPPB/J/K/T</th>
+                                <th
+                                    class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                                    CS Date</th>
+                                <th
+                                    class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                                    Company</th>
+                                <th
+                                    class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                                    Department</th>
+                                <th
+                                    class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                                    Created By</th>
+                                <th
+                                    class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                                    Note</th>
+                                <th
+                                    class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                                    Assign Date</th>
+                                <th
+                                    class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                                    Submit Date</th>
+                                <th
+                                    class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                                    Days</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-800"></tbody>
@@ -133,101 +242,152 @@
             </div>
 
             <script>
-                $(document).ready(function () {
-                let scope = 'onprogress';
+                $(document).ready(function() {
+                    let scope = 'onprogress';
 
-                // 1) Peta scope → judul yang ditampilkan
-                const titleMap = {
-                    my:        'Canvass Sheet - My CS',
-                    onprogress:'Canvass Sheet - On Progress',
-                    rejected:  'Canvass Sheet - Rejected',
-                    completed: 'Canvass Sheet - Completed',
-                    all:       'Canvass Sheet - All CS',
-                };
+                    // 1) Peta scope → judul yang ditampilkan
+                    const titleMap = {
+                        my: 'Canvass Sheet - My CS',
+                        onprogress: 'Canvass Sheet - On Progress',
+                        rejected: 'Canvass Sheet - Rejected',
+                        completed: 'Canvass Sheet - Completed',
+                        all: 'Canvass Sheet - All CS',
+                    };
 
-                // 2) Helper untuk set judul
-                const $title = $('h1.text-xl.font-extrabold'); // selector h1 kamu
-                function updateTitle(sc) {
-                    const label = titleMap[sc] ?? 'Canvass Sheet' ;
-                    $title.text(label);
-                }
+                    // 2) Helper untuk set judul
+                    const $title = $('h1.text-xl.font-extrabold'); // selector h1 kamu
+                    function updateTitle(sc) {
+                        const label = titleMap[sc] ?? 'Canvass Sheet';
+                        $title.text(label);
+                    }
 
-                // 3) (Opsional) highlight kartu aktif
-                function highlightActive(sc){
-                    $('.scope-filter')
-                    .removeClass('ring-2 ring-offset-2 ring-indigo-500')
-                    .each(function(){
-                        if ($(this).data('scope') === sc) {
-                        $(this).addClass('ring-2 ring-offset-2 ring-indigo-500');
-                        }
-                    });
-                }
+                    // 3) (Opsional) highlight kartu aktif
+                    function highlightActive(sc) {
+                        $('.scope-filter')
+                            .removeClass('#')
+                            .each(function() {
+                                if ($(this).data('scope') === sc) {
+                                    $(this).addClass('#');
+                                }
+                            });
+                    }
 
-                // panggil sekali di awal
-                updateTitle(scope);
-                highlightActive(scope);
-
-                // === DataTable kamu tetap sama ===
-                const table = $('#csTable').DataTable({
-                    processing: true,
-                    serverSide: true,
-                    deferRender: true,
-                    pageLength: 25,
-                    lengthMenu: [10, 25, 50, 100, 250],
-                    order: [[2, 'desc'], [0, 'desc']],
-                    ajax: {
-                    url: "{{ route('cslist.json') }}",
-                    type: "GET",
-                    data: function(d){ d.scope = scope; }
-                    },
-                    columns: [
-                    { data: 'csid', className: 'text-left', render: (_v,t,row)=>renderCSBtn(_v,row) },
-                    { data: 'sppbjktid', className: 'text-left', render: (v,t,row)=>renderSPPBtn(v,row) },
-                    { data: 'csdate', className: 'text-center', render: (v)=>fmtDate(v) },
-                    { data: 'cpny_id', className: 'text-center' },
-                    { data: 'department_id', className: 'text-center' },
-                    { data: 'created_by', className: 'text-left' },
-                    { data: 'csnote', className: 'text-left', defaultContent: '-' },
-                    { data: 'assigndate', className: 'text-center', render: (v)=>fmtDate(v) },
-                    { data: 'submitdate', className: 'text-center', render: (v)=>fmtDate(v) },
-                    { data: 'days', className: 'text-center', render: (v)=>renderDays(v) },
-                    ],
-                    searchDelay: 400,
-                    stateSave: true,
-                    responsive: true
-                });
-
-                // Klik kartu → ubah scope, judul, highlight, lalu reload tabel
-                $('.scope-filter').on('click', function(e){
-                    e.preventDefault();
-                    scope = $(this).data('scope') || 'my';
+                    // panggil sekali di awal
                     updateTitle(scope);
                     highlightActive(scope);
-                    table.ajax.reload(null, true);
-                });
 
-                // --- helper yg sudah ada di script-mu ---
-                function fmtDate(v){
-                    if(!v) return '';
-                    const d = new Date(v);
-                    return Number.isNaN(d.getTime()) ? v : d.toLocaleDateString('id-ID');
-                }
-                function renderCSBtn(_v, row){
-                    const url = `/showcs/${row.eid}`;
-                    const text = row.csid || row.eid;
-                    return `<a href="${url}" class="shrink-0 px-6 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 text-sm font-semibold">${text}</a>`;
-                }
-                const showMap = { PB: 'showsppbs', PJ: 'showsppjs', PK: 'showsppks', PT: 'showsppts' };
-                function renderSPPBtn(_v, row){
-                    const prefix = (row.sppbjkt_prefix || '').toUpperCase();
-                    const base = showMap[prefix];
-                    const docNo = row.sppbjktid || '';
-                    const src_eid = row.sppbjkid_eid;
-                    if(!prefix || !base || !src_eid) return docNo;
-                    const url = `/${base}/${src_eid}`;
-                    return `<a href="${url}" class="rounded px-6 py-2 bg-gray-500 text-white rounded hover:bg-gray-700 w-32">${docNo}</a>`;
-                }
-                function renderDays(v){ return (v==null) ? '' : String(v); }
+                    // === DataTable kamu tetap sama ===
+                    const table = $('#csTable').DataTable({
+                        processing: true,
+                        serverSide: true,
+                        deferRender: true,
+                        pageLength: 25,
+                        lengthMenu: [10, 25, 50, 100, 250],
+                        order: [
+                            [2, 'desc'],
+                            [0, 'desc']
+                        ],
+                        ajax: {
+                            url: "{{ route('cslist.json') }}",
+                            type: "GET",
+                            data: function(d) {
+                                d.scope = scope;
+                            }
+                        },
+                        columns: [{
+                                data: 'csid',
+                                className: 'text-left',
+                                render: (_v, t, row) => renderCSBtn(_v, row)
+                            },
+                            {
+                                data: 'sppbjktid',
+                                className: 'text-left',
+                                render: (v, t, row) => renderSPPBtn(v, row)
+                            },
+                            {
+                                data: 'csdate',
+                                className: 'text-center',
+                                render: (v) => fmtDate(v)
+                            },
+                            {
+                                data: 'cpny_id',
+                                className: 'text-center'
+                            },
+                            {
+                                data: 'department_id',
+                                className: 'text-center'
+                            },
+                            {
+                                data: 'created_by',
+                                className: 'text-left'
+                            },
+                            {
+                                data: 'csnote',
+                                className: 'text-left',
+                                defaultContent: '-'
+                            },
+                            {
+                                data: 'assigndate',
+                                className: 'text-center',
+                                render: (v) => fmtDate(v)
+                            },
+                            {
+                                data: 'submitdate',
+                                className: 'text-center',
+                                render: (v) => fmtDate(v)
+                            },
+                            {
+                                data: 'days',
+                                className: 'text-center',
+                                render: (v) => renderDays(v)
+                            },
+                        ],
+                        searchDelay: 400,
+                        stateSave: true,
+                        responsive: true
+                    });
+
+                    // Klik kartu → ubah scope, judul, highlight, lalu reload tabel
+                    $('.scope-filter').on('click', function(e) {
+                        e.preventDefault();
+                        scope = $(this).data('scope') || 'my';
+                        updateTitle(scope);
+                        highlightActive(scope);
+                        table.ajax.reload(null, true);
+                    });
+
+                    // --- helper yg sudah ada di script-mu ---
+                    function fmtDate(v) {
+                        if (!v) return '';
+                        const d = new Date(v);
+                        return Number.isNaN(d.getTime()) ? v : d.toLocaleDateString('id-ID');
+                    }
+
+                    function renderCSBtn(_v, row) {
+                        const url = `/showcs/${row.eid}`;
+                        const text = row.csid || row.eid;
+                        return `<a href="${url}" class="shrink-0 px-6 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 text-sm font-semibold">${text}</a>`;
+                    }
+                    const showMap = {
+                        PB: 'showsppbs',
+                        PJ: 'showsppjs',
+                        PK: 'showsppks',
+                        PT: 'showsppts'
+                    };
+
+                    function renderSPPBtn(_v, row) {
+                        const prefix = (row.sppbjkt_prefix || '').toUpperCase();
+                        const base = showMap[prefix];
+                        const docNo = row.sppbjktid || '';
+                        const src_eid = row.sppbjkid_eid;
+                        if (!prefix || !base || !src_eid) return docNo;
+                        const url = `/${base}/${src_eid}`;
+                        return `<a href="${url}" class="rounded px-6 py-2 bg-gray-500 text-white rounded hover:bg-gray-700 w-32">${docNo}</a>`;
+                    }
+
+                    function renderDays(v) {
+                        return (v == null) ? '' : String(v);
+                    }
                 });
             </script>
 

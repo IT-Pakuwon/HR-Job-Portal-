@@ -230,22 +230,22 @@
                             <div class="flex items-center gap-2 p-2">
                                 <x-heroicon-o-building-office class="h-5 w-5 text-gray-400" />
                                 <span class="min-w-32 max-w-32 text-gray-500">Company</span>
-                                <span class="break-words font-medium text-gray-900">{{ $sppj->cpny_id }}</span>
+                                class="break-words font-medium text-gray-900 dark:text-gray-300">{{ $sppj->cpny_id }}</span>
                             </div>
 
                             {{-- Department --}}
                             <div class="flex items-center gap-2 p-2">
                                 <x-heroicon-o-squares-2x2 class="h-5 w-5 text-gray-400" />
                                 <span class="min-w-32 max-w-32 text-gray-500">Department</span>
-                                <span class="break-words font-medium text-gray-900">{{ $sppj->department_id }}</span>
+                                class="break-words font-medium text-gray-900 dark:text-gray-300">{{ $sppj->department_id }}</span>
                             </div>
 
                             {{-- Date --}}
                             <div class="flex items-center gap-2 p-2">
                                 <x-heroicon-o-calendar class="h-5 w-5 text-gray-400" />
                                 <span class="min-w-32 max-w-32 text-gray-500">Date</span>
-                                <span class="break-words font-medium text-gray-900">
-                                    {{ date('j F Y', strtotime($sppj->sppjdate)) }}
+                                class="break-words font-medium text-gray-900 dark:text-gray-300">
+                                {{ date('j F Y', strtotime($sppj->sppjdate)) }}
                                 </span>
                             </div>
 
@@ -253,8 +253,8 @@
                             <div class="flex items-center gap-2 p-2">
                                 <x-heroicon-o-user class="h-5 w-5 text-gray-400" />
                                 <span class="min-w-32 max-w-32 text-gray-500">Created User</span>
-                                <span class="break-words font-medium text-gray-900">
-                                    {{ ucwords(strtolower(optional($sppj->creator)->name)) }}
+                                class="break-words font-medium text-gray-900 dark:text-gray-300">
+                                {{ ucwords(strtolower(optional($sppj->creator)->name)) }}
                                 </span>
                             </div>
 
@@ -265,8 +265,8 @@
                                     <x-heroicon-o-clipboard-document-list class="h-5 w-5 text-gray-400" />
                                     <div class="flex flex-col">
                                         <span class="text-gray-500">Request Type</span>
-                                        <span class="break-words font-medium text-gray-900">
-                                            {{ optional($sppj->requestType)->requesttype_name }}
+                                        class="break-words font-medium text-gray-900 dark:text-gray-300">
+                                        {{ optional($sppj->requestType)->requesttype_name }}
                                         </span>
                                     </div>
                                 </div>
@@ -277,7 +277,7 @@
                                     <div class="flex flex-col">
                                         <span class="text-gray-500">Purpose</span>
                                         <span
-                                            class="break-words font-medium text-gray-900">{{ $sppj->keperluan }}</span>
+                                            class="break-words font-medium text-gray-900 dark:text-gray-300">{{ $sppj->keperluan }}</span>
                                     </div>
                                 </div>
 

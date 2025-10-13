@@ -187,14 +187,14 @@
                             <div class="flex items-center gap-2 p-2">
                                 <x-heroicon-o-building-office class="h-5 w-5 text-gray-400" />
                                 <span class="min-w-32 max-w-32 text-gray-500">Company</span>
-                                <span class="break-words font-medium text-gray-900">{{ $bq->cpny_id }}</span>
+                                class="break-words font-medium text-gray-900 dark:text-gray-300">{{ $bq->cpny_id }}</span>
                             </div>
                             {{-- Date --}}
                             <div class="flex items-center gap-2 p-2">
                                 <x-heroicon-o-calendar class="h-5 w-5 text-gray-400" />
                                 <span class="min-w-32 max-w-32 text-gray-500">Date</span>
-                                <span class="break-words font-medium text-gray-900">
-                                    {{ date('j F Y', strtotime($bq->created_at)) }}
+                                class="break-words font-medium text-gray-900 dark:text-gray-300">
+                                {{ date('j F Y', strtotime($bq->created_at)) }}
                                 </span>
                             </div>
 
@@ -202,8 +202,8 @@
                             <div class="flex items-center gap-2 p-2">
                                 <x-heroicon-o-user class="h-5 w-5 text-gray-400" />
                                 <span class="min-w-32 max-w-32 text-gray-500">Created User</span>
-                                <span class="break-words font-medium text-gray-900">
-                                    {{ ucwords(strtolower(optional($bq->creator)->name)) }}
+                                class="break-words font-medium text-gray-900 dark:text-gray-300">
+                                {{ ucwords(strtolower(optional($bq->creator)->name)) }}
                                 </span>
                             </div>
 

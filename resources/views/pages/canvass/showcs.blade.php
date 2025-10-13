@@ -195,9 +195,9 @@
                         </div>
                     </header>
 
-                    <div class="flex flex-1 flex-col gap-6 overflow-y-auto p-4">
+                    <div class="flex flex-1 flex-col overflow-y-auto p-4">
                         @php
-
+                            // Build the SPPB/J/K/T link
                             $routeMap = [
                                 'PB' => 'showsppbs',
                                 'PJ' => 'showsppjs',
@@ -207,92 +207,94 @@
                             $routeBase = $routeMap[$prefix] ?? null;
                             $docUrl = $routeBase ? url("/{$routeBase}/{$eid_sppbjkt}") : null;
 
-                            // tombol/link untuk SPPB/J/K/T ID
                             $docBtn = $docUrl
                                 ? '<a href="' .
-                                    $docUrl .
-                                    '" target="_blank" rel="noopener"
-                                        class="inline-flex items-center gap-1 text-sm font-semibold text-indigo-600 hover:underline dark:text-indigo-400">
-                                        ' .
-                                    $docid .
-                                    '
-                                    </a>'
+                                    e($docUrl) .
+                                    '" target="_blank" rel="noopener" class="inline-flex items-center gap-1 text-sm font-semibold text-indigo-600 hover:underline dark:text-indigo-400">' .
+                                    e($docid) .
+                                    '</a>'
                                 : e($docid);
-
-                            $row1 = [
-                                ['label' => 'SPPB/J/K/T ID', 'value' => $docBtn, 'is_html' => true],
-                                ['label' => 'Company', 'value' => e($srcHeader->cpny_id)],
-                                ['label' => 'Department', 'value' => e($srcHeader->department_id)],
-                            ];
-
-                            $row2 = [
-                                [
-                                    'label' => 'User',
-                                    'value' => ucwords(strtolower(optional($srcHeader->creator)->name)),
-                                ],
-                                [
-                                    'label' => 'Purchaser',
-                                    'value' => ucwords(strtolower(optional($srcHeader->purchaser)->name)),
-                                ],
-                            ];
-
-                            if ($cs->bqid) {
-                                $row2[] = ['label' => 'BQ ID', 'value' => $srcHeader->bqid];
-                            }
                         @endphp
 
-                        {{-- Row 1 (3 cols) --}}
-                        <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
-                            @foreach ($row1 as $detail)
-                                <div
-                                    class="rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-800">
-                                    <p class="text-xs text-gray-500 dark:text-gray-400">{{ $detail['label'] }}</p>
-                                    <p class="text-sm font-medium text-gray-900 dark:text-gray-100">
-                                        @if (!empty($detail['is_html']))
-                                            {!! $detail['value'] !!} {{-- value berupa HTML (tombol link) --}}
-                                        @else
-                                            {{ $detail['value'] }} {{-- value biasa --}}
-                                        @endif
-                                    </p>
+                        <div class="grid grid-cols-1 gap-x-8 gap-y-3 text-sm sm:grid-cols-2">
+
+                            {{-- SPPB/J/K/T ID --}}
+                            <div class="flex items-center gap-2 p-2">
+                                <x-heroicon-o-document-text class="h-5 w-5 text-gray-400" />
+                                <span class="min-w-32 max-w-32 text-gray-500">SPPB/J/K/T ID</span>
+                                class="break-words font-medium text-gray-900 dark:text-gray-300">{!! $docBtn !!}</span>
+                            </div>
+
+                            {{-- Company --}}
+                            <div class="flex items-center gap-2 p-2">
+                                <x-heroicon-o-building-office class="h-5 w-5 text-gray-400" />
+                                <span class="min-w-32 max-w-32 text-gray-500">Company</span>
+                                class="break-words font-medium text-gray-900 dark:text-gray-300">{{ $srcHeader->cpny_id }}</span>
+                            </div>
+
+                            {{-- Department --}}
+                            <div class="flex items-center gap-2 p-2">
+                                <x-heroicon-o-squares-2x2 class="h-5 w-5 text-gray-400" />
+                                <span class="min-w-32 max-w-32 text-gray-500">Department</span>
+                                <span
+                                    class="break-words font-medium text-gray-900 dark:text-gray-300">{{ $srcHeader->department_id }}</span>
+                            </div>
+
+                            {{-- User --}}
+                            <div class="flex items-center gap-2 p-2">
+                                <x-heroicon-o-user class="h-5 w-5 text-gray-400" />
+                                <span class="min-w-32 max-w-32 text-gray-500">User</span>
+                                class="break-words font-medium text-gray-900 dark:text-gray-300">
+                                {{ ucwords(strtolower(optional($srcHeader->creator)->name)) }}
+                                </span>
+                            </div>
+
+                            {{-- Purchaser --}}
+                            <div class="flex items-center gap-2 p-2">
+                                <x-heroicon-o-briefcase class="h-5 w-5 text-gray-400" />
+                                <span class="min-w-32 max-w-32 text-gray-500">Purchaser</span>
+                                class="break-words font-medium text-gray-900 dark:text-gray-300">
+                                {{ ucwords(strtolower(optional($srcHeader->purchaser)->name)) }}
+                                </span>
+                            </div>
+
+                            {{-- BQ ID (optional) --}}
+                            @if ($cs->bqid)
+                                <div class="flex items-center gap-2 p-2">
+                                    <x-heroicon-o-hashtag class="h-5 w-5 text-gray-400" />
+                                    <span class="min-w-32 max-w-32 text-gray-500">BQ ID</span>
+                                    class="break-words font-medium text-gray-900 dark:text-gray-300">{{ $srcHeader->bqid }}</span>
                                 </div>
-                            @endforeach
-                        </div>
+                            @endif
 
-                        {{-- Row 2 (2-3 cols depending on BQ ID) --}}
-                        <div class="md:grid-cols-{{ count($row2) }} grid grid-cols-1 gap-4">
-                            @foreach ($row2 as $detail)
-                                <div
-                                    class="rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-800">
-                                    <p class="text-xs text-gray-500 dark:text-gray-400">{{ $detail['label'] }}</p>
-                                    <p class="text-sm font-medium text-gray-900 dark:text-gray-100">
-                                        {{ $detail['value'] }}
-                                    </p>
+                            {{-- Purpose & Note CS --}}
+                            <div class="col-span-2 mt-2 flex flex-col gap-3 sm:flex-row">
+                                <div class="flex flex-1 items-start gap-3 rounded-md bg-gray-50 p-3 dark:bg-gray-700">
+                                    <x-heroicon-o-clipboard-document-list class="h-5 w-5 text-gray-400" />
+                                    <div>
+                                        <p class="text-xs text-gray-500 dark:text-gray-400">Purpose</p>
+                                        <p class="text-sm font-medium text-gray-900 dark:text-gray-100">
+                                            {{ $srcHeader->keperluan }}
+                                        </p>
+                                    </div>
                                 </div>
-                            @endforeach
-                        </div>
 
-                        {{-- Row 3 (Keperluan) --}}
-                        <div
-                            class="rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-800">
-                            <p class="text-xs text-gray-500 dark:text-gray-400">Purpose</p>
-                            <p class="text-sm font-medium text-gray-900 dark:text-gray-100">
-                                {{ $srcHeader->keperluan }}
-                            </p>
-                        </div>
-
-                        {{-- Row 4 (Note CS) --}}
-                        <div
-                            class="rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-800">
-                            <p class="mb-1 text-xs text-gray-500 dark:text-gray-400">Note CS</p>
-                            <p class="text-sm font-medium text-gray-900 dark:text-gray-100">
-                                {{ $cs->csnote }}
-                            </p>
+                                <div class="flex flex-1 items-start gap-3 rounded-md bg-gray-50 p-3 dark:bg-gray-700">
+                                    <x-heroicon-o-clipboard-document-check class="h-5 w-5 text-gray-400" />
+                                    <div>
+                                        <p class="text-xs text-gray-500 dark:text-gray-400">Note CS</p>
+                                        <p class="text-sm font-medium text-gray-900 dark:text-gray-100">
+                                            {{ $cs->csnote }}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
                     </div>
                 </div>
 
-                 <div class="flex flex-1 flex-col rounded-xl bg-white dark:bg-gray-800">
+                <div class="flex flex-1 flex-col rounded-xl bg-white dark:bg-gray-800">
                     <div x-data="{ activeTab: 'attachment' }" class="flex flex-1 flex-col">
                         <header
                             class="sticky top-0 z-10 flex items-center rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">

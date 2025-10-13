@@ -151,7 +151,7 @@
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                         stroke="currentColor" class="h-4 w-4">
                         <path stroke-linecap="round" stroke-linejoin="round"
-                        d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15A2.25 2.25 0 0 1 2.25 17.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.02 1.9l-6.75 4.5a2.25 2.25 0 0 1-2.46 0l-6.75-4.5a2.25 2.25 0 0 1-1.02-1.9V6.75" />
+                            d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15A2.25 2.25 0 0 1 2.25 17.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.02 1.9l-6.75 4.5a2.25 2.25 0 0 1-2.46 0l-6.75-4.5a2.25 2.25 0 0 1-1.02-1.9V6.75" />
                     </svg>
                     Send Email
                 </button>
@@ -213,127 +213,128 @@
                             </a>
                         </div>
                     </header>
-
-
-                    <div class="flex flex-1 flex-col gap-6 overflow-y-auto p-4">
-                        {{-- ROW 1: Empat kolom utama --}}
-                        <div class="grid grid-cols-1 gap-4 md:grid-cols-4">
-
-                            <div
-                                class="rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-800">
-                                <p class="text-xs text-gray-500 dark:text-gray-400">PO Date</p>
-                                <p class="text-sm font-medium text-gray-900 dark:text-gray-100">
-                                    {{ \Carbon\Carbon::parse($po->podate)->format('d M Y') }}</p>
+                    <div class="flex flex-1 flex-col overflow-y-auto p-4">
+                        <div class="grid grid-cols-1 gap-x-8 gap-y-3 text-sm sm:grid-cols-2">
+                            {{-- PO Date --}}
+                            <div class="flex items-center gap-2 p-2">
+                                <x-heroicon-o-calendar-days class="h-5 w-5 text-gray-400" />
+                                <span class="min-w-32 max-w-32 text-gray-500">PO Date</span>
+                                <span class="break-words font-medium text-gray-900 dark:text-gray-300">
+                                    {{ \Carbon\Carbon::parse($po->podate)->format('d M Y') }}
+                                </span>
                             </div>
 
-                            <div
-                                class="rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-800">
-                                <p class="text-xs text-gray-500 dark:text-gray-400">Company</p>
-                                <p class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ $po->cpny_id }}</p>
+                            {{-- Company --}}
+                            <div class="flex items-center gap-2 p-2">
+                                <x-heroicon-o-building-office class="h-5 w-5 text-gray-400" />
+                                <span class="min-w-32 max-w-32 text-gray-500">Company</span>
+                                <span
+                                    class="break-words font-medium text-gray-900 dark:text-gray-300">{{ $po->cpny_id }}</span>
                             </div>
 
-                            <div
-                                class="rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-800">
-                                <p class="text-xs text-gray-500 dark:text-gray-400">Department</p>
-                                <p class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ $po->department_id }}
-                                </p>
+                            {{-- Department --}}
+                            <div class="flex items-center gap-2 p-2">
+                                <x-heroicon-o-squares-2x2 class="h-5 w-5 text-gray-400" />
+                                <span class="min-w-32 max-w-32 text-gray-500">Department</span>
+                                <span
+                                    class="break-words font-medium text-gray-900 dark:text-gray-300">{{ $po->department_id }}</span>
                             </div>
-                            <div
-                                class="rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-800">
-                                <p class="text-xs text-gray-500 dark:text-gray-400">Requester</p>
-                                <p class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ $po->user_peminta }}
-                                </p>
+
+                            {{-- Requester --}}
+                            <div class="flex items-center gap-2 p-2">
+                                <x-heroicon-o-user class="h-5 w-5 text-gray-400" />
+                                <span class="min-w-32 max-w-32 text-gray-500">Requester</span>
+                                <span class="break-words font-medium text-gray-900 dark:text-gray-300">
+                                    {{ ucwords(strtolower($po->user_peminta)) }}
+                                </span>
                             </div>
-                        </div>
 
-                            {{-- ROW 2: Empat kolom berikutnya --}}
-                            <div class="grid grid-cols-1 gap-4 md:grid-cols-4">
-
-                                <div class="rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-800">
-                                <p class="text-xs text-gray-500 dark:text-gray-400">SPPB/J/K/T ID</p>
-                                @if(!empty($sppbUrl))
-                                    <a href="{{ $sppbUrl }}" target="_blank"
-                                    class="inline-flex items-center gap-1 text-sm font-semibold text-indigo-600 hover:underline dark:text-indigo-400">
+                            {{-- SPPB/J/K/T ID --}}
+                            <div class="flex items-center gap-2 p-2">
+                                <x-heroicon-o-document-text class="h-5 w-5 text-gray-400" />
+                                <span class="min-w-32 max-w-32 text-gray-500">SPPB/J/K/T ID</span>
+                                <span class="break-words font-medium text-gray-900 dark:text-gray-300">
+                                    @if (!empty($sppbUrl))
+                                        <a href="{{ $sppbUrl }}" target="_blank"
+                                            class="inline-flex items-center gap-1 text-indigo-600 hover:underline dark:text-indigo-400">
+                                            {{ $po->sppbjktid }}
+                                            <x-heroicon-o-arrow-up-right class="h-4 w-4" />
+                                        </a>
+                                    @else
                                         {{ $po->sppbjktid }}
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"
-                                            viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                            <path stroke-linecap="round" stroke-linejoin="round"
-                                                d="M13 7h6m0 0v6m0-6L10 16"/>
-                                        </svg>
-                                    </a>
-                                @else
-                                    <p class="text-sm font-medium text-gray-900 dark:text-gray-100">
-                                        {{ $po->sppbjktid }}
-                                    </p>
-                                @endif
+                                    @endif
+                                </span>
                             </div>
-                            
-                            <div class="rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-800">
-                                <p class="text-xs text-gray-500 dark:text-gray-400">CS ID</p>
-                                @if(!empty($csUrl))
-                                    <a href="{{ $csUrl }}" target="_blank"
-                                    class="inline-flex items-center gap-1 text-sm font-semibold text-emerald-600 hover:underline dark:text-emerald-400">
+
+                            {{-- CS ID --}}
+                            <div class="flex items-center gap-2 p-2">
+                                <x-heroicon-o-document-duplicate class="h-5 w-5 text-gray-400" />
+                                <span class="min-w-32 max-w-32 text-gray-500">CS ID</span>
+                                <span class="break-words font-medium text-gray-900 dark:text-gray-300">
+                                    @if (!empty($csUrl))
+                                        <a href="{{ $csUrl }}" target="_blank"
+                                            class="inline-flex items-center gap-1 text-indigo-600 hover:underline dark:text-indigo-400">
+                                            {{ $po->csid }}
+                                            <x-heroicon-o-arrow-up-right class="h-4 w-4" />
+                                        </a>
+                                    @else
                                         {{ $po->csid }}
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"
-                                            viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                            <path stroke-linecap="round" stroke-linejoin="round"
-                                                d="M13 7h6m0 0v6m0-6L10 16"/>
-                                        </svg>
-                                    </a>
-                                @else
-                                    <p class="text-sm font-medium text-gray-900 dark:text-gray-100">
-                                        {{ $po->csid }}
-                                    </p>
-                                @endif
+                                    @endif
+                                </span>
                             </div>
 
-                            <div
-                                class="rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-800">
-                                <p class="text-xs text-gray-500 dark:text-gray-400">Vendor ID</p>
-                                <p class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ $po->vendorid }}</p>
+                            {{-- Vendor ID --}}
+                            <div class="flex items-center gap-2 p-2">
+                                <x-heroicon-o-identification class="h-5 w-5 text-gray-400" />
+                                <span class="min-w-32 max-w-32 text-gray-500">Vendor ID</span>
+                                <span
+                                    class="break-words font-medium text-gray-900 dark:text-gray-300">{{ $po->vendorid }}</span>
                             </div>
-                            <div
-                                class="rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-800">
-                                <p class="text-xs text-gray-500 dark:text-gray-400">Vendor</p>
-                                <p class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ $po->vendorname }}
-                                </p>
+
+                            {{-- Vendor Name --}}
+                            <div class="flex items-center gap-2 p-2">
+                                <x-heroicon-o-building-storefront class="h-5 w-5 text-gray-400" />
+                                <span class="min-w-32 max-w-32 text-gray-500">Vendor</span>
+                                <span
+                                    class="break-words font-medium text-gray-900 dark:text-gray-300">{{ $po->vendorname }}</span>
                             </div>
+
+                            {{-- Total Amount --}}
+                            <div class="flex items-center gap-2 p-2">
+                                <x-heroicon-o-banknotes class="h-5 w-5 text-gray-400" />
+                                <span class="min-w-32 max-w-32 text-gray-500">Total Amount</span>
+                                <span
+                                    class="break-words font-medium text-gray-900 dark:text-gray-300">{{ number_format($po->totalamt, 0, ',', '.') }}</span>
+                            </div>
+
+                            {{-- Tax --}}
+                            <div class="flex items-center gap-2 p-2">
+                                <x-heroicon-o-receipt-percent class="h-5 w-5 text-gray-400" />
+                                <span class="min-w-32 max-w-32 text-gray-500">Tax Amount</span>
+                                <span
+                                    class="break-words font-medium text-gray-900 dark:text-gray-300">{{ number_format($po->taxamt, 0, ',', '.') }}</span>
+                            </div>
+
+                            {{-- Grand Total --}}
+                            <div class="flex items-center gap-2 p-2">
+                                <x-heroicon-o-currency-dollar class="h-5 w-5 text-gray-400" />
+                                <span class="min-w-32 max-w-32 text-gray-500">Grand Total</span>
+                                <span
+                                    class="break-words font-medium text-gray-900 dark:text-gray-300">{{ number_format($po->grandtotalamt, 0, ',', '.') }}</span>
+                            </div>
+
+                            {{-- Purpose --}}
+                            @if (!empty($po->keperluan))
+                                <div class="flex items-center gap-2 p-2">
+                                    <x-heroicon-o-clipboard-document-list class="h-5 w-5 text-gray-400" />
+                                    <span class="min-w-32 max-w-32 text-gray-500">Purpose</span>
+                                    <span
+                                        class="break-words font-medium text-gray-900 dark:text-gray-300">{{ $po->keperluan }}</span>
+                                </div>
+                            @endif
+
                         </div>
-
-                        {{-- ROW 3: Amounts --}}
-                        <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
-                            <div
-                                class="rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-800">
-                                <p class="text-xs text-gray-500 dark:text-gray-400">Total Amount</p>
-                                <p class="text-sm font-semibold text-gray-900 dark:text-gray-100">
-                                    {{ $nf0($po->totalamt) }}</p>
-                            </div>
-                            <div
-                                class="rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-800">
-                                <p class="text-xs text-gray-500 dark:text-gray-400">Tax Amount</p>
-                                <p class="text-sm font-semibold text-gray-900 dark:text-gray-100">
-                                    {{ $nf0($po->taxamt) }}</p>
-                            </div>
-
-                            <div
-                                class="rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-800">
-                                <p class="text-xs text-gray-500 dark:text-gray-400">Grand Total</p>
-                                <p class="text-sm font-semibold text-gray-900 dark:text-gray-100">
-                                    {{ $nf0($po->grandtotalamt) }}</p>
-                            </div>
-                        </div>
-
-                        {{-- Optional: Purpose/Note jika masih mau ditampilkan --}}
-                        @if (!empty($po->keperluan))
-                            <div
-                                class="rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-800">
-                                <p class="text-xs text-gray-500 dark:text-gray-400">Purpose</p>
-                                <p class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ $po->keperluan }}
-                                </p>
-                            </div>
-                        @endif
                     </div>
-
                 </div>
 
                 {{-- Right card (Tabs) --}}
@@ -371,117 +372,135 @@
 
                         {{-- Tabs Content --}}
                         <div class="flex flex-1 flex-col rounded-b-xl bg-white dark:bg-gray-800">
-                            {{-- Approval tab --}}
+                            {{-- Information PO Tab --}}
                             <div x-show="activeTab === 'information_po'" class="flex-1 p-4 transition-all">
-                                <form id="infoPoForm">
+                                <form id="infoPoForm" class="space-y-5">
                                     @csrf
                                     @php
                                         $isPO = strtoupper($po->potype ?? '') === 'PO';
-                                        $readOnlyDelivery = ($po->status === 'P'); // <- read-only kalau status P
+                                        $readOnlyDelivery = $po->status === 'P';
+                                        $isHold = $po->status === 'H';
                                     @endphp
+
+                                    {{-- ====== TYPE: PO (Only Delivery Date) ====== --}}
                                     @if ($isPO)
-                                        {{-- ====== PO TYPE = PO : hanya tanggal delivery ====== --}}
                                         <div
-                                            class="rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800">                                           
-                                            <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
+                                            class="rounded-lg border border-gray-200 bg-gray-100 p-4 dark:border-gray-700 dark:bg-gray-800">
+                                            <div class="flex items-center justify-between">
+                                                <label for="podeliverydate"
+                                                    class="whitespace-nowrap text-sm font-medium text-gray-700 dark:text-gray-300">
+                                                    Delivery Date
+                                                </label>
+
                                                 @if ($readOnlyDelivery)
-                                                    {{-- TAMPILKAN SEBAGAI TEKS --}}
-                                                    <div>
-                                                    <label class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-300">Delivery Date</label>
-                                                    <p class="w-full rounded-lg border border-gray-300 bg-white p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
-                                                        {{-- {{ \Carbon\Carbon::parse($po->podeliverydate)->format('d M Y') }} --}}
+                                                    <p
+                                                        class="flex-1 border-b border-gray-200 pb-1 text-right text-sm text-gray-900 dark:border-gray-700 dark:text-gray-100">
                                                         {{ optional($po->podeliverydate)->format('d M Y') ?? '-' }}
                                                     </p>
-                                                    </div>
                                                 @else
-                                                    {{-- MODE INPUT --}}
-                                                    <div>
-                                                    <label class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-300">Delivery Date</label>
                                                     <input type="date" name="podeliverydate" id="podeliverydate"
-                                                            value="{{ old('podeliverydate', optional($po->podeliverydate)->format('Y-m-d')) }}"
-                                                            class="w-full rounded-lg border border-gray-300 bg-white p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" />
-                                                    </div>
+                                                        value="{{ old('podeliverydate', optional($po->podeliverydate)->format('Y-m-d')) }}"
+                                                        class="max-w-xs flex-1 rounded-md border border-gray-300 bg-white px-2 py-1 text-sm text-gray-900 focus:border-indigo-500 focus:ring-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:focus:border-indigo-400" />
                                                 @endif
                                             </div>
                                         </div>
                                     @else
-                                            @php
-                                                $isHold = ($po->status === 'H');
-                                            @endphp
-                                        @if ($isHold)
-                                            {{-- ====== PO TYPE ≠ SPK : form pekerjaan lengkap ====== --}}
-                                            <div class="space-y-4">
-
-                                                {{-- Baris 1: Tanggal Pelaksanaan (range) --}}
-                                                <div
-                                                    class="rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800">
-                                                    <h3
-                                                        class="mb-3 text-base font-semibold text-gray-800 dark:text-gray-100">
-                                                        Tanggal Pelaksanaan Pekerjaan
-                                                    </h3>
-                                                    <div class="grid grid-cols-1 gap-4 md:grid-cols-4">
-                                                        <div>
-                                                            <label
-                                                                class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-300">Dari
-                                                                Tanggal</label>
+                                        {{-- ====== TYPE: SPK or Other ====== --}}
+                                        <div class="space-y-5">
+                                            {{-- Section: Tanggal Pelaksanaan --}}
+                                            <section
+                                                class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+                                                <h3
+                                                    class="mb-3 text-base font-semibold text-gray-800 dark:text-gray-100">
+                                                    Tanggal Pelaksanaan Pekerjaan
+                                                </h3>
+                                                <div class="grid grid-cols-1 gap-4 md:grid-cols-4">
+                                                    <div>
+                                                        <label
+                                                            class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-300">Dari
+                                                            Tanggal</label>
+                                                        @if ($isHold)
                                                             <input type="date" name="work_date_from"
-                                                                id="work_date_from" value="{{ old('work_date_from') }}"
-                                                                class="w-full rounded-lg border border-gray-300 bg-white p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
-                                                        </div>
-                                                        <div>
-                                                            <label
-                                                                class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-300">Sampai
-                                                                Tanggal</label>
-                                                            <input type="date" name="work_date_to" id="work_date_to"
-                                                                value="{{ old('work_date_to') }}"
-                                                                class="w-full rounded-lg border border-gray-300 bg-white p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
-                                                        </div>
-                                                        <div
-                                                            class="flex items-end text-sm text-gray-600 md:col-span-2 dark:text-gray-300">
-                                                            (Pelaksanaan Pekerjaan)
-                                                        </div>
+                                                                id="work_date_from"
+                                                                value="{{ old('work_date_from') }}"
+                                                                class="w-full rounded-md border border-gray-300 bg-gray-50 p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" />
+                                                        @else
+                                                            <p
+                                                                class="w-full rounded-md border border-gray-200 bg-gray-50 p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
+                                                                {{ optional($po->spkstartworkingdate)->format('d M Y') ?? '-' }}
+                                                            </p>
+                                                        @endif
+                                                    </div>
+                                                    <div>
+                                                        <label
+                                                            class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-300">Sampai
+                                                            Tanggal</label>
+                                                        @if ($isHold)
+                                                            <input type="date" name="work_date_to"
+                                                                id="work_date_to" value="{{ old('work_date_to') }}"
+                                                                class="w-full rounded-md border border-gray-300 bg-gray-50 p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" />
+                                                        @else
+                                                            <p
+                                                                class="w-full rounded-md border border-gray-200 bg-gray-50 p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
+                                                                {{ optional($po->spkendtworkingdate)->format('d M Y') ?? '-' }}
+                                                            </p>
+                                                        @endif
+                                                    </div>
+                                                    <div
+                                                        class="flex items-end text-sm text-gray-600 md:col-span-2 dark:text-gray-300">
+                                                        (Pelaksanaan Pekerjaan)
                                                     </div>
                                                 </div>
+                                            </section>
 
-                                                {{-- Baris 2: Lama Pekerjaan (hari kerja) --}}
-                                                <div
-                                                    class="rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800">
-                                                    <h3
-                                                        class="mb-3 text-base font-semibold text-gray-800 dark:text-gray-100">
-                                                        Lama Pekerjaan
-                                                    </h3>
-                                                    <div class="grid grid-cols-1 gap-4 md:grid-cols-4">
-                                                        <div>
-                                                            <label
-                                                                class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-300">Jumlah
-                                                                Hari Kerja</label>
-                                                            <input type="number" min="0" step="1"
-                                                                name="work_days" id="work_days"
+                                            {{-- Section: Lama Pekerjaan --}}
+                                            <section
+                                                class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+                                                <h3
+                                                    class="mb-3 text-base font-semibold text-gray-800 dark:text-gray-100">
+                                                    Lama Pekerjaan
+                                                </h3>
+                                                <div class="grid grid-cols-1 gap-4 md:grid-cols-4">
+                                                    <div>
+                                                        <label
+                                                            class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-300">Jumlah
+                                                            Hari Kerja</label>
+                                                        @if ($isHold)
+                                                            <input type="number" name="work_days" id="work_days"
+                                                                min="0" step="1"
                                                                 value="{{ old('work_days') }}" placeholder="05"
-                                                                class="w-full rounded-lg border border-gray-300 bg-white p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
-                                                        </div>
-                                                        <div
-                                                            class="flex items-end text-sm text-gray-600 md:col-span-3 dark:text-gray-300">
-                                                            (Tidak Termasuk Hari Sabtu / Minggu / Hari Libur Nasional)
-                                                        </div>
+                                                                class="w-full rounded-md border border-gray-300 bg-gray-50 p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" />
+                                                        @else
+                                                            <p
+                                                                class="w-full rounded-md border border-gray-200 bg-gray-50 p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
+                                                                {{ $po->spktotalday }}
+                                                            </p>
+                                                        @endif
+                                                    </div>
+                                                    <div
+                                                        class="flex items-end text-sm text-gray-600 md:col-span-3 dark:text-gray-300">
+                                                        (Tidak Termasuk Hari Sabtu / Minggu / Hari Libur Nasional)
                                                     </div>
                                                 </div>
+                                            </section>
 
-                                                {{-- Baris 3: Waktu Pelaksanaan (hari & jam) --}}
-                                                <div
-                                                    class="rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800">
-                                                    <h3
-                                                        class="mb-3 text-base font-semibold text-gray-800 dark:text-gray-100">
-                                                        Waktu Pelaksanaan Pekerjaan
-                                                    </h3>
-                                                    <div class="grid grid-cols-1 gap-4 md:grid-cols-6">
+                                            {{-- Section: Waktu Pelaksanaan --}}
+                                            <section
+                                                class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+                                                <h3
+                                                    class="mb-3 text-base font-semibold text-gray-800 dark:text-gray-100">
+                                                    Waktu Pelaksanaan Pekerjaan
+                                                </h3>
+                                                <div class="grid grid-cols-1 gap-4 md:grid-cols-6">
+                                                    @if ($isHold)
                                                         <div class="md:col-span-2">
                                                             <label
                                                                 class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-300">Hari
                                                                 (Dari)</label>
-                                                            <input type="text" name="work_day_from" id="work_day_from"
-                                                                value="{{ old('work_day_from') }}" placeholder="Senin"
-                                                                class="w-full rounded-lg border border-gray-300 bg-white p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
+                                                            <input type="text" name="work_day_from"
+                                                                id="work_day_from" value="{{ old('work_day_from') }}"
+                                                                placeholder="Senin"
+                                                                class="w-full rounded-md border border-gray-300 bg-gray-50 p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" />
                                                         </div>
                                                         <div class="md:col-span-2">
                                                             <label
@@ -489,354 +508,233 @@
                                                                 (Sampai)</label>
                                                             <input type="text" name="work_day_to" id="work_day_to"
                                                                 value="{{ old('work_day_to') }}" placeholder="Jumat"
-                                                                class="w-full rounded-lg border border-gray-300 bg-white p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
+                                                                class="w-full rounded-md border border-gray-300 bg-gray-50 p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" />
                                                         </div>
                                                         <div>
                                                             <label
                                                                 class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-300">Pukul
                                                                 (Dari)</label>
                                                             <input type="time" name="work_time_from"
-                                                                id="work_time_from" value="{{ old('work_time_from') }}"
-                                                                class="w-full rounded-lg border border-gray-300 bg-white p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
+                                                                id="work_time_from"
+                                                                value="{{ old('work_time_from') }}"
+                                                                class="w-full rounded-md border border-gray-300 bg-gray-50 p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" />
                                                         </div>
                                                         <div>
                                                             <label
                                                                 class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-300">Pukul
                                                                 (Sampai)</label>
-                                                            <input type="time" name="work_time_to" id="work_time_to"
-                                                                value="{{ old('work_time_to') }}"
-                                                                class="w-full rounded-lg border border-gray-300 bg-white p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
+                                                            <input type="time" name="work_time_to"
+                                                                id="work_time_to" value="{{ old('work_time_to') }}"
+                                                                class="w-full rounded-md border border-gray-300 bg-gray-50 p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" />
                                                         </div>
-                                                    </div>
-                                                    <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">WIB</p>
-                                                </div>
-
-                                                {{-- Baris 4: Man Power --}}
-                                                <div
-                                                    class="rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800">
-                                                    <h3
-                                                        class="mb-3 text-base font-semibold text-gray-800 dark:text-gray-100">
-                                                        Total Man Power
-                                                    </h3>
-                                                    <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
-                                                        <div>
-                                                            <label
-                                                                class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-300">Jumlah
-                                                                Orang</label>
-                                                            <input type="number" min="0" step="1"
-                                                                name="manpower_total" id="manpower_total"
-                                                                value="{{ old('manpower_total') }}" placeholder="0"
-                                                                class="w-full rounded-lg border border-gray-300 bg-white p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
+                                                    @else
+                                                        <div class="md:col-span-2">
+                                                            <p
+                                                                class="w-full rounded-md border border-gray-200 bg-gray-50 p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
+                                                                {{ $po->spkworkschedule }}
+                                                            </p>
                                                         </div>
-                                                    </div>
+                                                    @endif
                                                 </div>
+                                                <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">WIB</p>
+                                            </section>
 
-                                                {{-- Baris 5: PIC --}}
-                                                <div
-                                                    class="rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800">
-                                                    <h3
-                                                        class="mb-3 text-base font-semibold text-gray-800 dark:text-gray-100">
-                                                        PIC / Person In Charge
-                                                    </h3>
-                                                    <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-                                                        <div>
-                                                            <label
-                                                                class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-300">Nama
-                                                                PIC</label>
+                                            {{-- Section: Man Power --}}
+                                            <section
+                                                class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+                                                <h3
+                                                    class="mb-3 text-base font-semibold text-gray-800 dark:text-gray-100">
+                                                    Total Man Power
+                                                </h3>
+                                                <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
+                                                    @if ($isHold)
+                                                        <input type="number" name="manpower_total"
+                                                            id="manpower_total" min="0" step="1"
+                                                            value="{{ old('manpower_total') }}" placeholder="0"
+                                                            class="w-full rounded-md border border-gray-300 bg-gray-50 p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" />
+                                                    @else
+                                                        <p
+                                                            class="w-full rounded-md border border-gray-200 bg-gray-50 p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
+                                                            {{ $po->spkmanpower }} Orang
+                                                        </p>
+                                                    @endif
+                                                </div>
+                                            </section>
+
+                                            {{-- Section: PIC --}}
+                                            <section
+                                                class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+                                                <h3
+                                                    class="mb-3 text-base font-semibold text-gray-800 dark:text-gray-100">
+                                                    PIC / Person In Charge
+                                                </h3>
+                                                <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                                                    <div>
+                                                        @if ($isHold)
                                                             <input type="text" name="pic_name" id="pic_name"
                                                                 value="{{ old('pic_name', 'Bapak X') }}"
-                                                                class="w-full rounded-lg border border-gray-300 bg-white p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
-                                                        </div>
-                                                        <div>
-                                                            <label
-                                                                class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-300">Nomor
-                                                                HP</label>
+                                                                class="w-full rounded-md border border-gray-300 bg-gray-50 p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" />
+                                                        @else
+                                                            <p
+                                                                class="w-full rounded-md border border-gray-200 bg-gray-50 p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
+                                                                {{ $po->spkpic }}
+                                                            </p>
+                                                        @endif
+                                                    </div>
+                                                    <div>
+                                                        @if ($isHold)
                                                             <input type="text" name="pic_phone" id="pic_phone"
                                                                 value="{{ old('pic_phone', '0859 4612 0121') }}"
-                                                                class="w-full rounded-lg border border-gray-300 bg-white p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
-                                                        </div>
+                                                                class="w-full rounded-md border border-gray-300 bg-gray-50 p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" />
+                                                        @endif
                                                     </div>
                                                 </div>
+                                            </section>
 
-                                                {{-- Baris 6: Cara Pembayaran --}}
-                                                <div
-                                                    class="rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800">
-                                                    <h3
-                                                        class="mb-3 text-base font-semibold text-gray-800 dark:text-gray-100">
-                                                        Cara Pembayaran
-                                                    </h3>
-                                                    <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
-                                                        <div>
-                                                            <label
-                                                                class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-300">Metode</label>
-                                                            <input type="text" name="payment_method"
-                                                                id="payment_method"
-                                                                value="{{ old('payment_method', 'Giro') }}"
-                                                                class="w-full rounded-lg border border-gray-300 bg-white p-2 text-sm uppercase dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" readonly>
-                                                        </div>
-                                                    </div>
-                                                </div>
+                                            {{-- Section: Cara Pembayaran --}}
+                                            <section
+                                                class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+                                                <h3
+                                                    class="mb-3 text-base font-semibold text-gray-800 dark:text-gray-100">
+                                                    Cara Pembayaran
+                                                </h3>
+                                                <input type="text" name="payment_method" id="payment_method"
+                                                    value="{{ old('payment_method', 'Giro') }}"
+                                                    class="w-full max-w-sm rounded-md border border-gray-300 bg-gray-50 p-2 text-sm uppercase dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
+                                                    readonly>
+                                            </section>
 
-                                                {{-- Baris 7: Garansi --}}
-                                                <div
-                                                    class="rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800">
-                                                    <h3
-                                                        class="mb-3 text-base font-semibold text-gray-800 dark:text-gray-100">
-                                                        Garansi Pekerjaan
-                                                    </h3>
-                                                    <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
-                                                        <div>
-                                                            <label
-                                                                class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-300">Garansi</label>
-                                                            <input type="text" name="warranty" id="warranty"
-                                                                value="{{ old('warranty', '1 WEEK') }}"
-                                                                class="w-full rounded-lg border border-gray-300 bg-white p-2 text-sm uppercase dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-                                            </div>
-                                        @else
-                                            {{-- ====== PO TYPE ≠ PO : form pekerjaan lengkap ====== --}}
-                                            <div class="space-y-4">
-
-                                                {{-- Baris 1: Tanggal Pelaksanaan (range) --}}
-                                                <div
-                                                    class="rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800">
-                                                    <h3
-                                                        class="mb-3 text-base font-semibold text-gray-800 dark:text-gray-100">
-                                                        Tanggal Pelaksanaan Pekerjaan
-                                                    </h3>
-                                                    <div class="grid grid-cols-1 gap-4 md:grid-cols-4">
-                                                        <div>
-                                                            <label
-                                                                class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-300">Dari
-                                                                Tanggal</label>
-                                                                 <p class="w-full rounded-lg border border-gray-300 bg-white p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
-                                                                    {{ optional($po->spkstartworkingdate)->format('d M Y') ?? '-' }}
-                                                                </p>                                                           
-                                                        </div>
-                                                        <div>
-                                                            <label
-                                                                class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-300">Sampai
-                                                                Tanggal</label>
-                                                                <p class="w-full rounded-lg border border-gray-300 bg-white p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
-                                                                    {{ optional($po->spkendtworkingdate)->format('d M Y') ?? '-' }}
-                                                                </p>                                                            
-                                                        </div>
-                                                        <div
-                                                            class="flex items-end text-sm text-gray-600 md:col-span-2 dark:text-gray-300">
-                                                            (Pelaksanaan Pekerjaan)
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-                                                {{-- Baris 2: Lama Pekerjaan (hari kerja) --}}
-                                                <div
-                                                    class="rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800">
-                                                    <h3
-                                                        class="mb-3 text-base font-semibold text-gray-800 dark:text-gray-100">
-                                                        Lama Pekerjaan
-                                                    </h3>
-                                                    <div class="grid grid-cols-1 gap-4 md:grid-cols-4">
-                                                        <div>
-                                                            <label
-                                                                class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-300">Jumlah
-                                                                Hari Kerja</label>                                                            
-                                                                <p class="w-full rounded-lg border border-gray-300 bg-white p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
-                                                                    {{ $po->spktotalday }}
-                                                                </p> 
-                                                        </div>
-                                                        <div
-                                                            class="flex items-end text-sm text-gray-600 md:col-span-3 dark:text-gray-300">
-                                                            (Tidak Termasuk Hari Sabtu / Minggu / Hari Libur Nasional)
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-                                                {{-- Baris 3: Waktu Pelaksanaan (hari & jam) --}}
-                                                <div
-                                                    class="rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800">
-                                                    <h3
-                                                        class="mb-3 text-base font-semibold text-gray-800 dark:text-gray-100">
-                                                        Waktu Pelaksanaan Pekerjaan
-                                                    </h3>
-                                                    <div class="grid grid-cols-1 gap-4 md:grid-cols-6">
-                                                        <div class="md:col-span-2">                                                            
-                                                            <p class="w-full rounded-lg border border-gray-300 bg-white p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
-                                                                {{ $po->spkworkschedule }}                                                               
-                                                            </p>                                                            
-                                                        </div>
-                                                       
-                                                    </div>
-                                                   
-                                                </div>
-
-                                                {{-- Baris 4: Man Power --}}
-                                                <div
-                                                    class="rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800">
-                                                    <h3
-                                                        class="mb-3 text-base font-semibold text-gray-800 dark:text-gray-100">
-                                                        Total Man Power
-                                                    </h3>
-                                                    <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
-                                                        <div>
-                                                            <p class="w-full rounded-lg border border-gray-300 bg-white p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
-                                                                {{ $po->spkmanpower }} Orang                                                              
-                                                            </p> 
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-                                                {{-- Baris 5: PIC --}}
-                                                <div
-                                                    class="rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800">
-                                                    <h3
-                                                        class="mb-3 text-base font-semibold text-gray-800 dark:text-gray-100">
-                                                        PIC / Person In Charge
-                                                    </h3>
-                                                    <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-                                                        <div>
-                                                            <p class="w-full rounded-lg border border-gray-300 bg-white p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
-                                                                {{ $po->spkpic }}                                                               
-                                                            </p>
-                                                        </div>                                                        
-                                                    </div>
-                                                </div>
-
-                                                {{-- Baris 6: Cara Pembayaran --}}
-                                                <div
-                                                    class="rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800">
-                                                    <h3
-                                                        class="mb-3 text-base font-semibold text-gray-800 dark:text-gray-100">
-                                                        Cara Pembayaran
-                                                    </h3>
-                                                    <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
-                                                        <div>
-                                                            <label
-                                                                class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-300">Metode</label>
-                                                            <input type="text" name="payment_method"
-                                                                id="payment_method"
-                                                                value="{{ old('payment_method', 'Giro') }}"
-                                                                class="w-full rounded-lg border border-gray-300 bg-white p-2 text-sm uppercase dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" readonly>
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-                                                {{-- Baris 7: Garansi --}}
-                                                <div
-                                                    class="rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800">
-                                                    <h3
-                                                        class="mb-3 text-base font-semibold text-gray-800 dark:text-gray-100">
-                                                        Garansi Pekerjaan
-                                                    </h3>
-                                                    <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
-                                                        <div>
-                                                           <p class="w-full rounded-lg border border-gray-300 bg-white p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
-                                                                {{ $po->spkwarranty }}                                                               
-                                                            </p>
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-                                            </div>
-                                        @endif
-
+                                            {{-- Section: Garansi --}}
+                                            <section
+                                                class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+                                                <h3
+                                                    class="mb-3 text-base font-semibold text-gray-800 dark:text-gray-100">
+                                                    Garansi Pekerjaan
+                                                </h3>
+                                                @if ($isHold)
+                                                    <input type="text" name="warranty" id="warranty"
+                                                        value="{{ old('warranty', '1 WEEK') }}"
+                                                        class="w-full max-w-sm rounded-md border border-gray-300 bg-gray-50 p-2 text-sm uppercase dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" />
+                                                @else
+                                                    <p
+                                                        class="w-full max-w-sm rounded-md border border-gray-200 bg-gray-50 p-2 text-sm uppercase dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
+                                                        {{ $po->spkwarranty }}
+                                                    </p>
+                                                @endif
+                                            </section>
+                                        </div>
                                     @endif
                                 </form>
                             </div>
 
 
                             {{-- Attachment tab --}}
-                            <div x-show="activeTab === 'attachment'" class="flex-1 transition-all">
-                                @if ($po->status === 'H')
-                                    <form id="attachmentUploadForm" class="mb-4 rounded-lg border border-dashed border-gray-300 p-4 dark:border-gray-600"
-                                        enctype="multipart/form-data">
-                                        @csrf
-                                        <input type="hidden" name="ponbr" value="{{ $po->ponbr }}">
-                                        <div class="flex flex-col gap-3 md:flex-row md:items-center">
-                                            <div class="flex-1">
-                                                <label class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-300">
-                                                    Upload Attachment — multiple allowed
-                                                </label>
-                                                <input type="file" id="attachFiles" name="attachments[]" multiple
-                                                    class="w-full rounded-lg border border-gray-300 bg-white p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" />
-                                                <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                                                    Maks 10 file
-                                                </p>
-                                            </div>
-                                            <div class="flex gap-2">
-                                                <button type="button" id="btnUploadAttachment"
-                                                        class="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                                                    Upload
-                                                </button>
-                                                <button type="button" id="btnResetAttachment"
-                                                        class="rounded-lg bg-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400">
-                                                    Reset
-                                                </button>
-                                            </div>
-                                        </div>
-
-                                        <div id="uploadProgress" class="mt-3 hidden">
-                                            <div class="h-2 w-full rounded bg-gray-200 dark:bg-gray-700">
-                                                <div id="uploadBar" class="h-2 w-0 rounded bg-indigo-600 transition-all"></div>
-                                            </div>
-                                            <p id="uploadPct" class="mt-1 text-xs text-gray-600 dark:text-gray-300">0%</p>
-                                        </div>
-                                    </form>
-                                @endif
-
-                                {{-- TABEL attachment existing --}}
-                                <table class="w-full text-sm">
-                                    <thead class="text-gray-600 dark:text-gray-300">
-                                        <tr class="border-b border-gray-200 dark:border-gray-700">
-                                            <th class="p-3 text-left font-semibold">Filename</th>
-                                            <th class="p-3 text-left font-semibold">Created By</th>
-                                            <th class="p-3 text-left font-semibold">Date</th>
-                                            @if ($po->status === 'H')
-                                                <th class="p-3 text-center font-semibold">Action</th>
-                                            @endif
-                                        </tr>
-                                    </thead>
-                                    <tbody id="attachmentTbody">
-                                        @forelse ($attachment as $at)
-                                            @php
-                                                $year = $at->created_at->year;
-                                                $fileUrl = url('/attachments/' . $year . '/' . $at->attachfile);
-                                            @endphp
-                                            <tr class="border-b border-gray-100 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700">
-                                                <td class="p-3">
-                                                    <a href="{{ $fileUrl }}" target="_blank"
-                                                    class="flex items-center gap-2 font-medium text-indigo-600 hover:underline dark:text-indigo-400">
-                                                    📎 {{ $at->name }}.{{ $at->extention }}
-                                                    </a>
-                                                </td>
-                                                <td class="p-3">{{ $at->created_user }}</td>
-                                                <td class="p-3">{{ \Carbon\Carbon::parse($at->created_at)->format('d M Y') }}</td>
+                            <div x-show="activeTab === 'attachment'"
+                                class="flex h-full flex-1 flex-col transition-all">
+                                <div class="flex-1 overflow-auto rounded-lg">
+                                    <table class="w-full text-sm">
+                                        <thead class="text-gray-600 dark:text-gray-300">
+                                            <tr class="border-b border-gray-200 dark:border-gray-700">
+                                                <th class="p-3 text-left font-semibold">Filename</th>
+                                                <th class="p-3 text-left font-semibold">Created By</th>
+                                                <th class="p-3 text-left font-semibold">Date</th>
                                                 @if ($po->status === 'H')
-                                                <td class="p-3 text-center">
-                                                    {{-- <button type="button" class="btn-del-attachment rounded bg-red-600/90 px-3 py-1 text-white text-xs"
+                                                    <th class="p-3 text-center font-semibold">Action</th>
+                                                @endif
+                                            </tr>
+                                        </thead>
+                                        <tbody id="attachmentTbody">
+                                            @forelse ($attachment as $at)
+                                                @php
+                                                    $year = $at->created_at->year;
+                                                    $fileUrl = url('/attachments/' . $year . '/' . $at->attachfile);
+                                                @endphp
+                                                <tr
+                                                    class="border-b border-gray-100 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700">
+                                                    <td class="p-3">
+                                                        <a href="{{ $fileUrl }}" target="_blank"
+                                                            class="flex items-center gap-2 font-medium text-indigo-600 hover:underline dark:text-indigo-400">
+                                                            📎 {{ $at->name }}.{{ $at->extention }}
+                                                        </a>
+                                                    </td>
+                                                    <td class="p-3">{{ $at->created_user }}</td>
+                                                    <td class="p-3">
+                                                        {{ \Carbon\Carbon::parse($at->created_at)->format('d M Y') }}
+                                                    </td>
+                                                    @if ($po->status === 'H')
+                                                        <td class="p-3 text-center">
+                                                            {{-- <button type="button" class="btn-del-attachment rounded bg-red-600/90 px-3 py-1 text-white text-xs"
                                                             data-id="{{ $at->id }}">
                                                         Delete
                                                     </button> --}}
-                                                    <button type="button"
-                                                        class="btn-del-attachment mt-4 rounded border border-red-700 bg-red-200/10 px-3 py-3 text-white hover:border-red-700 hover:bg-red-400/30 dark:bg-red-700/30"
-                                                        data-id="{{ $at->id }}">🗑️
-                                                    </button>
-                                                </td>
-                                                @endif
-                                            </tr>
-                                        @empty
-                                            <tr>
-                                                <td colspan="{{ $po->status === 'H' ? 4 : 3 }}"
-                                                    class="p-4 text-center italic text-gray-500 dark:text-gray-400">
-                                                    No attachments found.
-                                                </td>
-                                            </tr>
-                                        @endforelse
-                                    </tbody>
+                                                            <button type="button"
+                                                                class="btn-del-attachment mt-4 rounded border border-red-700 bg-red-200/10 px-3 py-3 text-white hover:border-red-700 hover:bg-red-400/30 dark:bg-red-700/30"
+                                                                data-id="{{ $at->id }}">🗑️
+                                                            </button>
+                                                        </td>
+                                                    @endif
+                                                </tr>
+                                            @empty
+                                                <tr>
+                                                    <td colspan="{{ $po->status === 'H' ? 4 : 3 }}"
+                                                        class="p-4 text-center italic text-gray-500 dark:text-gray-400">
+                                                        No attachments found.
+                                                    </td>
+                                                </tr>
+                                            @endforelse
+                                        </tbody>
+                                    </table>
+                                </div>
+                                @if ($po->status === 'H')
+                                    <form id="attachmentUploadForm" enctype="multipart/form-data"
+                                        class="sticky bottom-0 z-10 mt-6 rounded-b-lg border-t border-gray-200 bg-gray-100 p-4 shadow-sm backdrop-blur-sm dark:border-gray-700 dark:bg-gray-700">
 
-                                </table>
+                                        @csrf
+                                        <input type="hidden" name="ponbr" value="{{ $po->ponbr }}">
+
+                                        <div class="flex flex-col gap-3 md:flex-row md:items-center md:gap-4">
+                                            {{-- File Input --}}
+                                            <div class="flex-1">
+                                                <label for="attachFiles"
+                                                    class="mb-2 block text-sm font-semibold text-gray-800 dark:text-gray-200">
+                                                    Upload Attachment
+                                                </label>
+
+                                                <div class="flex items-center gap-3">
+                                                    <input type="file" id="attachFiles" name="attachments[]"
+                                                        multiple
+                                                        class="block w-full cursor-pointer rounded-md border border-gray-300 bg-white px-2 py-[7px] text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" />
+
+                                                    {{-- Buttons --}}
+                                                    <button type="button" id="btnUploadAttachment"
+                                                        class="inline-flex h-[36px] items-center justify-center rounded-md bg-indigo-600 px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                                        Upload
+                                                    </button>
+                                                    <button type="button" id="btnResetAttachment"
+                                                        class="inline-flex h-[36px] items-center justify-center rounded-md border border-gray-300 bg-white px-4 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-400 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">
+                                                        Reset
+                                                    </button>
+                                                </div>
+
+                                                <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                                                    Max 10 files, PDF / Image preferred.
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        {{-- Progress Bar --}}
+                                        <div id="uploadProgress" class="mt-4 hidden">
+                                            <div
+                                                class="h-2 w-full overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700">
+                                                <div id="uploadBar"
+                                                    class="h-2 w-0 rounded-full bg-indigo-600 transition-all duration-300 ease-out dark:bg-indigo-500">
+                                                </div>
+                                            </div>
+                                            <p id="uploadPct" class="mt-1 text-xs text-gray-600 dark:text-gray-300">0%
+                                            </p>
+                                        </div>
+                                    </form>
+                                @endif
                             </div>
 
 
@@ -1244,60 +1142,86 @@
     </script>
 
     <script>
-        $(function () {
+        $(function() {
             const ponbr = "{{ $po->ponbr ?? $po->ponbr }}"; // sudah ada di bawah, biar konsisten
 
             // ===== Modal helpers =====
-            const $modalCancel       = $('#modalCancel');
-            const $modalCancelReuse  = $('#modalCancelReuse');
-            const open  = ($m) => $m.removeClass('hidden').addClass('flex');
+            const $modalCancel = $('#modalCancel');
+            const $modalCancelReuse = $('#modalCancelReuse');
+            const open = ($m) => $m.removeClass('hidden').addClass('flex');
             const close = ($m) => $m.addClass('hidden').removeClass('flex');
 
             // Open modals
-            $('#cancelBtn').on('click',       () => open($modalCancel));
-            $('#cancelReuseBtn').on('click',  () => open($modalCancelReuse));
+            $('#cancelBtn').on('click', () => open($modalCancel));
+            $('#cancelReuseBtn').on('click', () => open($modalCancelReuse));
 
             // Close buttons
-            $('#btnCloseCancel').on('click',        () => close($modalCancel));
-            $('#btnCloseCancelReuse').on('click',   () => close($modalCancelReuse));
+            $('#btnCloseCancel').on('click', () => close($modalCancel));
+            $('#btnCloseCancelReuse').on('click', () => close($modalCancelReuse));
 
             // Klik backdrop untuk menutup
-            $modalCancel.on('click', function (e) { if (e.target === this) close($modalCancel); });
-            $modalCancelReuse.on('click', function (e) { if (e.target === this) close($modalCancelReuse); });
+            $modalCancel.on('click', function(e) {
+                if (e.target === this) close($modalCancel);
+            });
+            $modalCancelReuse.on('click', function(e) {
+                if (e.target === this) close($modalCancelReuse);
+            });
 
             // ESC untuk menutup
-            $(document).on('keydown', function (e) {
-            if (e.key === 'Escape') {
-                close($modalCancel);
-                close($modalCancelReuse);
-            }
+            $(document).on('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    close($modalCancel);
+                    close($modalCancelReuse);
+                }
             });
 
             // (Opsional) aksi Confirm — silakan sesuaikan endpoint-nya
-            $('#btnConfirmCancel').on('click', function () {
-            const reason = $('#reasonCancel').val().trim();
-            if (!reason) { toastr.warning('Alasan wajib diisi.'); return; }
-            $("#loadingSpinnerContainer").fadeIn();
-            $.post(`/po/${ponbr}/cancel`, { reason, _token: '{{ csrf_token() }}' })
-                .done(res => { toastr.success(res.message || 'PO berhasil dicancel.'); location.reload(); })
-                .fail(xhr => { toastr.error(xhr.responseJSON?.message || 'Gagal cancel.'); })
-                .always(() => $("#loadingSpinnerContainer").fadeOut());
+            $('#btnConfirmCancel').on('click', function() {
+                const reason = $('#reasonCancel').val().trim();
+                if (!reason) {
+                    toastr.warning('Alasan wajib diisi.');
+                    return;
+                }
+                $("#loadingSpinnerContainer").fadeIn();
+                $.post(`/po/${ponbr}/cancel`, {
+                        reason,
+                        _token: '{{ csrf_token() }}'
+                    })
+                    .done(res => {
+                        toastr.success(res.message || 'PO berhasil dicancel.');
+                        location.reload();
+                    })
+                    .fail(xhr => {
+                        toastr.error(xhr.responseJSON?.message || 'Gagal cancel.');
+                    })
+                    .always(() => $("#loadingSpinnerContainer").fadeOut());
             });
 
-            $('#btnConfirmCancelReuse').on('click', function () {
-            const reason = $('#reasonCancelReuse').val().trim();
-            if (!reason) { toastr.warning('Alasan wajib diisi.'); return; }
-            $("#loadingSpinnerContainer").fadeIn();
-            $.post(`/po/${ponbr}/cancel-reuse`, { reason, _token: '{{ csrf_token() }}' })
-                .done(res => { toastr.success(res.message || 'Cancel reuse berhasil.'); location.reload(); })
-                .fail(xhr => { toastr.error(xhr.responseJSON?.message || 'Gagal cancel reuse.'); })
-                .always(() => $("#loadingSpinnerContainer").fadeOut());
+            $('#btnConfirmCancelReuse').on('click', function() {
+                const reason = $('#reasonCancelReuse').val().trim();
+                if (!reason) {
+                    toastr.warning('Alasan wajib diisi.');
+                    return;
+                }
+                $("#loadingSpinnerContainer").fadeIn();
+                $.post(`/po/${ponbr}/cancel-reuse`, {
+                        reason,
+                        _token: '{{ csrf_token() }}'
+                    })
+                    .done(res => {
+                        toastr.success(res.message || 'Cancel reuse berhasil.');
+                        location.reload();
+                    })
+                    .fail(xhr => {
+                        toastr.error(xhr.responseJSON?.message || 'Gagal cancel reuse.');
+                    })
+                    .always(() => $("#loadingSpinnerContainer").fadeOut());
             });
         });
     </script>
 
     <script>
-        $(function () {
+        $(function() {
             const ponbr = "{{ $po->ponbr }}";
             const isHold = "{{ $po->status }}" === 'H';
 
@@ -1317,14 +1241,14 @@
 
                 rows.forEach(at => {
                     const dateStr = at.created_at ? dayjs(at.created_at).format('DD MMM YYYY') : '-';
-                    const actionTd = isHold
-                    ? `<td class="p-3 text-center">                            
+                    const actionTd = isHold ?
+                        `<td class="p-3 text-center">                            
                             <button type="button"
                                 class="btn-del-attachment mt-4 rounded border border-red-700 bg-red-200/10 px-3 py-3 text-white hover:border-red-700 hover:bg-red-400/30 dark:bg-red-700/30"
                                 data-id="${at.id}">🗑️
                             </button>
-                        </td>`
-                    : '';
+                        </td>` :
+                        '';
 
                     const tr = $(`
                         <tr class="border-b border-gray-100 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700">
@@ -1346,15 +1270,15 @@
             // Ambil ulang daftar attachment (untuk refresh tabel)
             function refreshAttachments() {
                 $.get("{{ route('po.attachments.list', $po->ponbr) }}")
-                .done(res => {
-                    if (res.success) renderAttachmentRows(res.attachments);
-                    else toastr.error(res.message || 'Gagal memuat attachments.');
-                })
-                .fail(() => toastr.error('Gagal memuat attachments.'));
+                    .done(res => {
+                        if (res.success) renderAttachmentRows(res.attachments);
+                        else toastr.error(res.message || 'Gagal memuat attachments.');
+                    })
+                    .fail(() => toastr.error('Gagal memuat attachments.'));
             }
 
             // === Hook ke tombol Upload yang sudah kamu punya ===
-            $('#btnUploadAttachment').off('click').on('click', function () {
+            $('#btnUploadAttachment').off('click').on('click', function() {
                 const fd = new FormData($('#attachmentUploadForm')[0]);
                 const files = $('#attachFiles')[0].files;
                 if (!files || !files.length) {
@@ -1369,17 +1293,17 @@
                     data: fd,
                     processData: false,
                     contentType: false,
-                    success: function (res) {
+                    success: function(res) {
                         if (typeof hideOverlay === 'function') hideOverlay();
                         if (!res || !res.success) {
                             toastr.error(res?.message || 'Upload gagal.');
                             return;
                         }
                         toastr.success('Upload success.');
-                        $('#attachFiles').val('');     // reset input
-                        refreshAttachments();           // 🔁 langsung refresh tabel
+                        $('#attachFiles').val(''); // reset input
+                        refreshAttachments(); // 🔁 langsung refresh tabel
                     },
-                    error: function (xhr) {
+                    error: function(xhr) {
                         if (typeof hideOverlay === 'function') hideOverlay();
                         toastr.error(xhr.responseJSON?.message || 'Upload gagal.');
                     }
@@ -1387,7 +1311,7 @@
             });
 
             // === Delete attachment (hanya status H) ===
-            $(document).on('click', '.btn-del-attachment', function () {
+            $(document).on('click', '.btn-del-attachment', function() {
                 if (!isHold) return; // guard
                 const id = $(this).data('id');
                 if (!confirm('Hapus attachment ini?')) return;
@@ -1395,8 +1319,11 @@
                 $.ajax({
                     url: "{{ route('po.attachments.delete', ':id') }}".replace(':id', id),
                     method: 'POST',
-                    data: {_method: 'DELETE', _token: '{{ csrf_token() }}'},
-                    success: function (res) {
+                    data: {
+                        _method: 'DELETE',
+                        _token: '{{ csrf_token() }}'
+                    },
+                    success: function(res) {
                         if (!res || !res.success) {
                             toastr.error(res?.message || 'Gagal menghapus attachment.');
                             return;
@@ -1404,8 +1331,9 @@
                         toastr.success('Attachment dihapus.');
                         refreshAttachments(); // 🔁 refresh tabel setelah hapus
                     },
-                    error: function (xhr) {
-                        toastr.error(xhr.responseJSON?.message || 'Gagal menghapus attachment.');
+                    error: function(xhr) {
+                        toastr.error(xhr.responseJSON?.message ||
+                            'Gagal menghapus attachment.');
                     }
                 });
             });
@@ -1415,76 +1343,80 @@
         });
     </script>
     <script>
-        $(function () {
-        // Reset file input & progress UI
-        $('#btnResetAttachment').on('click', function () {
-            // reset SEMUA input file bernama attachments[]
-            $('input[type="file"][name="attachments[]"]').each(function () {
-            try {
-                // cara umum
-                this.value = '';
-            } catch (e) {
-                /* abaikan */
-            }
-            // fallback paling bersih (untuk Safari/Edge cases):
-            const $fresh = $(this).clone({ withDataAndEvents: false });
-            $(this).replaceWith($fresh);
+        $(function() {
+            // Reset file input & progress UI
+            $('#btnResetAttachment').on('click', function() {
+                // reset SEMUA input file bernama attachments[]
+                $('input[type="file"][name="attachments[]"]').each(function() {
+                    try {
+                        // cara umum
+                        this.value = '';
+                    } catch (e) {
+                        /* abaikan */
+                    }
+                    // fallback paling bersih (untuk Safari/Edge cases):
+                    const $fresh = $(this).clone({
+                        withDataAndEvents: false
+                    });
+                    $(this).replaceWith($fresh);
+                });
+
+                // sembunyikan + reset progress bar bila ada
+                $('#uploadBar').css('width', '0%');
+                $('#uploadPct').text('0%');
+                $('#uploadProgress').addClass('hidden');
+
+                // opsional: reset form (jika perlu)
+                // document.getElementById('attachmentUploadForm').reset();
+
+                toastr.info('Attachment input telah direset.');
             });
 
-            // sembunyikan + reset progress bar bila ada
-            $('#uploadBar').css('width', '0%');
-            $('#uploadPct').text('0%');
-            $('#uploadProgress').addClass('hidden');
-
-            // opsional: reset form (jika perlu)
-            // document.getElementById('attachmentUploadForm').reset();
-
-            toastr.info('Attachment input telah direset.');
-        });
-
-        // (opsional) munculkan progress saat mulai upload
-        $('#btnUploadAttachment').on('click', function () {
-            const $files = $('input[type="file"][name="attachments[]"]').get(0);
-            if ($files && $files.files && $files.files.length) {
-            $('#uploadProgress').removeClass('hidden');
-            $('#uploadBar').css('width', '0%');
-            $('#uploadPct').text('0%');
-            }
-        });
+            // (opsional) munculkan progress saat mulai upload
+            $('#btnUploadAttachment').on('click', function() {
+                const $files = $('input[type="file"][name="attachments[]"]').get(0);
+                if ($files && $files.files && $files.files.length) {
+                    $('#uploadProgress').removeClass('hidden');
+                    $('#uploadBar').css('width', '0%');
+                    $('#uploadPct').text('0%');
+                }
+            });
         });
     </script>
 
 
     <script>
-        $(function () {      
+        $(function() {
 
             // Open composer di tab baru, kirim PONBR di URL
-            $('#sendEmailBtn').on('click', function () {
-            const ponbr = @json($po->ponbr);
-            const eid_ponbr = @json($eid_ponbr);
-            const statusNow    = @json($po->status);                 // "H","P","O","C","X","R"
-            const alreadySent  = @json((bool)($po->send_email ?? false));  // true/false
+            $('#sendEmailBtn').on('click', function() {
+                const ponbr = @json($po->ponbr);
+                const eid_ponbr = @json($eid_ponbr);
+                const statusNow = @json($po->status); // "H","P","O","C","X","R"
+                const alreadySent = @json((bool) ($po->send_email ?? false)); // true/false
 
-           const statusMsg = {
-                H: 'Dokumen belum di-Submit (status HOLD).',
-                X: 'Dokumen di-Cancel.',
-                R: 'Dokumen di-Reuse.',
-            };
+                const statusMsg = {
+                    H: 'Dokumen belum di-Submit (status HOLD).',
+                    X: 'Dokumen di-Cancel.',
+                    R: 'Dokumen di-Reuse.',
+                };
 
-            if (['H','X','R'].includes(statusNow)) {
-                const msg = statusMsg[statusNow] || 'Dokumen tidak dapat dikirim.';
-                if (window.toastr) toastr.warning(msg); else alert(msg);
-                return;
-            }
-            // blokir jika sudah pernah dikirim
-            if (alreadySent) {
-                toastr.info('Email untuk dokumen ini sudah pernah dikirim.');
-                return;
-            }
+                if (['H', 'X', 'R'].includes(statusNow)) {
+                    const msg = statusMsg[statusNow] || 'Dokumen tidak dapat dikirim.';
+                    if (window.toastr) toastr.warning(msg);
+                    else alert(msg);
+                    return;
+                }
+                // blokir jika sudah pernah dikirim
+                if (alreadySent) {
+                    toastr.info('Email untuk dokumen ini sudah pernah dikirim.');
+                    return;
+                }
 
-           
-            const url = "{{ route('po.viewemail', ['hash' => '__HASH__']) }}".replace('__HASH__', encodeURIComponent(eid_ponbr))
-            window.open(url, '_blank');
+
+                const url = "{{ route('po.viewemail', ['hash' => '__HASH__']) }}".replace('__HASH__',
+                    encodeURIComponent(eid_ponbr))
+                window.open(url, '_blank');
             });
         });
     </script>
