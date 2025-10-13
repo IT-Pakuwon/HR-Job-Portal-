@@ -219,7 +219,7 @@
                             <div class="flex items-center gap-2 p-2">
                                 <x-heroicon-o-calendar-days class="h-5 w-5 text-gray-400" />
                                 <span class="min-w-32 max-w-32 text-gray-500">PO Date</span>
-                                <span class="break-words font-medium text-gray-900 dark:text-gray-300">
+                                <span <span class="break-words font-medium text-gray-900 dark:text-gray-300">
                                     {{ \Carbon\Carbon::parse($po->podate)->format('d M Y') }}
                                 </span>
                             </div>
@@ -228,7 +228,7 @@
                             <div class="flex items-center gap-2 p-2">
                                 <x-heroicon-o-building-office class="h-5 w-5 text-gray-400" />
                                 <span class="min-w-32 max-w-32 text-gray-500">Company</span>
-                                <span
+                                <span <span
                                     class="break-words font-medium text-gray-900 dark:text-gray-300">{{ $po->cpny_id }}</span>
                             </div>
 
@@ -236,7 +236,7 @@
                             <div class="flex items-center gap-2 p-2">
                                 <x-heroicon-o-squares-2x2 class="h-5 w-5 text-gray-400" />
                                 <span class="min-w-32 max-w-32 text-gray-500">Department</span>
-                                <span
+                                <span <span
                                     class="break-words font-medium text-gray-900 dark:text-gray-300">{{ $po->department_id }}</span>
                             </div>
 
@@ -244,7 +244,7 @@
                             <div class="flex items-center gap-2 p-2">
                                 <x-heroicon-o-user class="h-5 w-5 text-gray-400" />
                                 <span class="min-w-32 max-w-32 text-gray-500">Requester</span>
-                                <span class="break-words font-medium text-gray-900 dark:text-gray-300">
+                                <span <span class="break-words font-medium text-gray-900 dark:text-gray-300">
                                     {{ ucwords(strtolower($po->user_peminta)) }}
                                 </span>
                             </div>
@@ -253,7 +253,7 @@
                             <div class="flex items-center gap-2 p-2">
                                 <x-heroicon-o-document-text class="h-5 w-5 text-gray-400" />
                                 <span class="min-w-32 max-w-32 text-gray-500">SPPB/J/K/T ID</span>
-                                <span class="break-words font-medium text-gray-900 dark:text-gray-300">
+                                <span <span class="break-words font-medium text-gray-900 dark:text-gray-300">
                                     @if (!empty($sppbUrl))
                                         <a href="{{ $sppbUrl }}" target="_blank"
                                             class="inline-flex items-center gap-1 text-indigo-600 hover:underline dark:text-indigo-400">
@@ -270,7 +270,7 @@
                             <div class="flex items-center gap-2 p-2">
                                 <x-heroicon-o-document-duplicate class="h-5 w-5 text-gray-400" />
                                 <span class="min-w-32 max-w-32 text-gray-500">CS ID</span>
-                                <span class="break-words font-medium text-gray-900 dark:text-gray-300">
+                                <span <span class="break-words font-medium text-gray-900 dark:text-gray-300">
                                     @if (!empty($csUrl))
                                         <a href="{{ $csUrl }}" target="_blank"
                                             class="inline-flex items-center gap-1 text-indigo-600 hover:underline dark:text-indigo-400">
@@ -287,7 +287,7 @@
                             <div class="flex items-center gap-2 p-2">
                                 <x-heroicon-o-identification class="h-5 w-5 text-gray-400" />
                                 <span class="min-w-32 max-w-32 text-gray-500">Vendor ID</span>
-                                <span
+                                <span <span
                                     class="break-words font-medium text-gray-900 dark:text-gray-300">{{ $po->vendorid }}</span>
                             </div>
 
@@ -295,7 +295,7 @@
                             <div class="flex items-center gap-2 p-2">
                                 <x-heroicon-o-building-storefront class="h-5 w-5 text-gray-400" />
                                 <span class="min-w-32 max-w-32 text-gray-500">Vendor</span>
-                                <span
+                                <span <span
                                     class="break-words font-medium text-gray-900 dark:text-gray-300">{{ $po->vendorname }}</span>
                             </div>
 
@@ -303,7 +303,7 @@
                             <div class="flex items-center gap-2 p-2">
                                 <x-heroicon-o-banknotes class="h-5 w-5 text-gray-400" />
                                 <span class="min-w-32 max-w-32 text-gray-500">Total Amount</span>
-                                <span
+                                <span <span
                                     class="break-words font-medium text-gray-900 dark:text-gray-300">{{ number_format($po->totalamt, 0, ',', '.') }}</span>
                             </div>
 
@@ -311,7 +311,7 @@
                             <div class="flex items-center gap-2 p-2">
                                 <x-heroicon-o-receipt-percent class="h-5 w-5 text-gray-400" />
                                 <span class="min-w-32 max-w-32 text-gray-500">Tax Amount</span>
-                                <span
+                                <span <span
                                     class="break-words font-medium text-gray-900 dark:text-gray-300">{{ number_format($po->taxamt, 0, ',', '.') }}</span>
                             </div>
 
@@ -319,7 +319,7 @@
                             <div class="flex items-center gap-2 p-2">
                                 <x-heroicon-o-currency-dollar class="h-5 w-5 text-gray-400" />
                                 <span class="min-w-32 max-w-32 text-gray-500">Grand Total</span>
-                                <span
+                                <span <span
                                     class="break-words font-medium text-gray-900 dark:text-gray-300">{{ number_format($po->grandtotalamt, 0, ',', '.') }}</span>
                             </div>
 
@@ -328,7 +328,7 @@
                                 <div class="flex items-center gap-2 p-2">
                                     <x-heroicon-o-clipboard-document-list class="h-5 w-5 text-gray-400" />
                                     <span class="min-w-32 max-w-32 text-gray-500">Purpose</span>
-                                    <span
+                                    <span <span
                                         class="break-words font-medium text-gray-900 dark:text-gray-300">{{ $po->keperluan }}</span>
                                 </div>
                             @endif

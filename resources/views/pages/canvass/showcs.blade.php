@@ -222,21 +222,23 @@
                             <div class="flex items-center gap-2 p-2">
                                 <x-heroicon-o-document-text class="h-5 w-5 text-gray-400" />
                                 <span class="min-w-32 max-w-32 text-gray-500">SPPB/J/K/T ID</span>
-                                class="break-words font-medium text-gray-900 dark:text-gray-300">{!! $docBtn !!}</span>
+                                <span
+                                    class="break-words font-medium text-gray-900 dark:text-gray-300">{!! $docBtn !!}</span>
                             </div>
 
                             {{-- Company --}}
                             <div class="flex items-center gap-2 p-2">
                                 <x-heroicon-o-building-office class="h-5 w-5 text-gray-400" />
                                 <span class="min-w-32 max-w-32 text-gray-500">Company</span>
-                                class="break-words font-medium text-gray-900 dark:text-gray-300">{{ $srcHeader->cpny_id }}</span>
+                                <span
+                                    class="break-words font-medium text-gray-900 dark:text-gray-300">{{ $srcHeader->cpny_id }}</span>
                             </div>
 
                             {{-- Department --}}
                             <div class="flex items-center gap-2 p-2">
                                 <x-heroicon-o-squares-2x2 class="h-5 w-5 text-gray-400" />
                                 <span class="min-w-32 max-w-32 text-gray-500">Department</span>
-                                <span
+                                <span <span
                                     class="break-words font-medium text-gray-900 dark:text-gray-300">{{ $srcHeader->department_id }}</span>
                             </div>
 
@@ -244,8 +246,8 @@
                             <div class="flex items-center gap-2 p-2">
                                 <x-heroicon-o-user class="h-5 w-5 text-gray-400" />
                                 <span class="min-w-32 max-w-32 text-gray-500">User</span>
-                                class="break-words font-medium text-gray-900 dark:text-gray-300">
-                                {{ ucwords(strtolower(optional($srcHeader->creator)->name)) }}
+                                <span class="break-words font-medium text-gray-900 dark:text-gray-300">
+                                    {{ ucwords(strtolower(optional($srcHeader->creator)->name)) }}
                                 </span>
                             </div>
 
@@ -253,8 +255,8 @@
                             <div class="flex items-center gap-2 p-2">
                                 <x-heroicon-o-briefcase class="h-5 w-5 text-gray-400" />
                                 <span class="min-w-32 max-w-32 text-gray-500">Purchaser</span>
-                                class="break-words font-medium text-gray-900 dark:text-gray-300">
-                                {{ ucwords(strtolower(optional($srcHeader->purchaser)->name)) }}
+                                <span class="break-words font-medium text-gray-900 dark:text-gray-300">
+                                    {{ ucwords(strtolower(optional($srcHeader->purchaser)->name)) }}
                                 </span>
                             </div>
 
@@ -263,7 +265,8 @@
                                 <div class="flex items-center gap-2 p-2">
                                     <x-heroicon-o-hashtag class="h-5 w-5 text-gray-400" />
                                     <span class="min-w-32 max-w-32 text-gray-500">BQ ID</span>
-                                    class="break-words font-medium text-gray-900 dark:text-gray-300">{{ $srcHeader->bqid }}</span>
+                                    <span
+                                        class="break-words font-medium text-gray-900 dark:text-gray-300">{{ $srcHeader->bqid }}</span>
                                 </div>
                             @endif
 

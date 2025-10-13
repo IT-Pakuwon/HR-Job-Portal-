@@ -203,22 +203,24 @@
                             <div class="flex items-center gap-2 p-2">
                                 <x-heroicon-o-building-office class="h-5 w-5 text-gray-400" />
                                 <span class="min-w-32 max-w-32 text-gray-500">Company</span>
-                                class="break-words font-medium text-gray-900 dark:text-gray-300">{{ $sppk->cpny_id }}</span>
+                                <span
+                                    class="break-words font-medium text-gray-900 dark:text-gray-300">{{ $sppk->cpny_id }}</span>
                             </div>
 
                             {{-- Department --}}
                             <div class="flex items-center gap-2 p-2">
                                 <x-heroicon-o-squares-2x2 class="h-5 w-5 text-gray-400" />
                                 <span class="min-w-32 max-w-32 text-gray-500">Department</span>
-                                class="break-words font-medium text-gray-900 dark:text-gray-300">{{ $sppk->department_id }}</span>
+                                <span
+                                    class="break-words font-medium text-gray-900 dark:text-gray-300">{{ $sppk->department_id }}</span>
                             </div>
 
                             {{-- Date --}}
                             <div class="flex items-center gap-2 p-2">
                                 <x-heroicon-o-calendar class="h-5 w-5 text-gray-400" />
                                 <span class="min-w-32 max-w-32 text-gray-500">Date</span>
-                                class="break-words font-medium text-gray-900 dark:text-gray-300">
-                                {{ date('j F Y', strtotime($sppk->sppkdate)) }}
+                                <span class="break-words font-medium text-gray-900 dark:text-gray-300">
+                                    {{ date('j F Y', strtotime($sppk->sppkdate)) }}
                                 </span>
                             </div>
 
@@ -226,8 +228,8 @@
                             <div class="flex items-center gap-2 p-2">
                                 <x-heroicon-o-user class="h-5 w-5 text-gray-400" />
                                 <span class="min-w-32 max-w-32 text-gray-500">Created User</span>
-                                class="break-words font-medium text-gray-900 dark:text-gray-300">
-                                {{ ucwords(strtolower(optional($sppk->creator)->name)) }}
+                                <span class="break-words font-medium text-gray-900 dark:text-gray-300">
+                                    {{ ucwords(strtolower(optional($sppk->creator)->name)) }}
                                 </span>
                             </div>
 
@@ -235,8 +237,8 @@
                             <div class="flex items-center gap-2 p-2">
                                 <x-heroicon-o-user class="h-5 w-5 text-gray-400" />
                                 <span class="min-w-32 max-w-32 text-gray-500">Vehicle Name</span>
-                                class="break-words font-medium text-gray-900 dark:text-gray-300">
-                                {{ ucwords(strtolower($sppk->namakendaraan)) }}
+                                <span class="break-words font-medium text-gray-900 dark:text-gray-300">
+                                    {{ ucwords(strtolower($sppk->namakendaraan)) }}
                                 </span>
                             </div>
 
@@ -245,8 +247,8 @@
                             <div class="flex items-center gap-2 p-2">
                                 <x-heroicon-o-user class="h-5 w-5 text-gray-400" />
                                 <span class="min-w-32 max-w-32 text-gray-500">Vehicle Owner</span>
-                                class="break-words font-medium text-gray-900 dark:text-gray-300">
-                                {{ ucwords(strtolower($sppk->pemilikkendaraan)) }}
+                                <span class="break-words font-medium text-gray-900 dark:text-gray-300">
+                                    {{ ucwords(strtolower($sppk->pemilikkendaraan)) }}
                                 </span>
                             </div>
 
@@ -254,16 +256,16 @@
                             <div class="flex items-center gap-2 p-2">
                                 <x-heroicon-o-rectangle-stack class="h-5 w-5 text-gray-400" />
                                 <span class="min-w-32 max-w-32 text-gray-500">License Plate</span>
-                                class="break-words font-medium text-gray-900 dark:text-gray-300">
-                                {{ $sppk->no_polisi }}
+                                <span class="break-words font-medium text-gray-900 dark:text-gray-300">
+                                    {{ $sppk->no_polisi }}
                             </div>
 
                             {{-- KM --}}
                             <div class="flex items-center gap-2 p-2">
                                 <x-heroicon-o-chart-bar class="h-5 w-5 text-gray-400" />
                                 <span class="min-w-32 max-w-32 text-gray-500">KM</span>
-                                class="break-words font-medium text-gray-900 dark:text-gray-300">
-                                {{ number_format($sppk->km_kendaraan, 0, ',', '.') }}
+                                <span class="break-words font-medium text-gray-900 dark:text-gray-300">
+                                    {{ number_format($sppk->km_kendaraan, 0, ',', '.') }}
                                 </span>
                             </div>
 
@@ -273,8 +275,8 @@
                                     <x-heroicon-o-clipboard-document-list class="h-5 w-5 text-gray-400" />
                                     <div class="flex flex-col">
                                         <span class="text-gray-500">Request Type</span>
-                                        class="break-words font-medium text-gray-900 dark:text-gray-300">
-                                        {{ optional($sppk->requestType)->requesttype_name }}
+                                        <span class="break-words font-medium text-gray-900 dark:text-gray-300">
+                                            {{ optional($sppk->requestType)->requesttype_name }}
                                         </span>
                                     </div>
                                 </div>
@@ -284,7 +286,7 @@
                                     <x-heroicon-o-clipboard-document-check class="h-5 w-5 text-gray-400" />
                                     <div class="flex flex-col">
                                         <span class="text-gray-500">Purpose</span>
-                                        <span
+                                        <span <span
                                             class="break-words font-medium text-gray-900 dark:text-gray-300">{{ $sppk->keperluan }}</span>
                                     </div>
                                 </div>

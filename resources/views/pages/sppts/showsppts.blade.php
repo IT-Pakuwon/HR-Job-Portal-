@@ -232,22 +232,24 @@
                             <div class="flex items-center gap-2 p-2">
                                 <x-heroicon-o-building-office class="h-5 w-5 text-gray-400" />
                                 <span class="min-w-32 max-w-32 text-gray-500">Company</span>
-                                class="break-words font-medium text-gray-900 dark:text-gray-300">{{ $sppt->cpny_id }}</span>
+                                <span
+                                    class="break-words font-medium text-gray-900 dark:text-gray-300">{{ $sppt->cpny_id }}</span>
                             </div>
 
                             {{-- Department --}}
                             <div class="flex items-center gap-2 p-2">
                                 <x-heroicon-o-squares-2x2 class="h-5 w-5 text-gray-400" />
                                 <span class="min-w-32 max-w-32 text-gray-500">Department</span>
-                                class="break-words font-medium text-gray-900 dark:text-gray-300">{{ $sppt->department_id }}</span>
+                                <span
+                                    class="break-words font-medium text-gray-900 dark:text-gray-300">{{ $sppt->department_id }}</span>
                             </div>
 
                             {{-- Date --}}
                             <div class="flex items-center gap-2 p-2">
                                 <x-heroicon-o-calendar class="h-5 w-5 text-gray-400" />
                                 <span class="min-w-32 max-w-32 text-gray-500">Date</span>
-                                class="break-words font-medium text-gray-900 dark:text-gray-300">
-                                {{ date('j F Y', strtotime($sppt->spptdate)) }}
+                                <span class="break-words font-medium text-gray-900 dark:text-gray-300">
+                                    {{ date('j F Y', strtotime($sppt->spptdate)) }}
                                 </span>
                             </div>
 
@@ -255,8 +257,8 @@
                             <div class="flex items-center gap-2 p-2">
                                 <x-heroicon-o-user class="h-5 w-5 text-gray-400" />
                                 <span class="min-w-32 max-w-32 text-gray-500">Created User</span>
-                                class="break-words font-medium text-gray-900 dark:text-gray-300">
-                                {{ ucwords(strtolower(optional($sppt->creator)->name)) }}
+                                <span class="break-words font-medium text-gray-900 dark:text-gray-300">
+                                    {{ ucwords(strtolower(optional($sppt->creator)->name)) }}
                                 </span>
                             </div>
 
@@ -265,16 +267,16 @@
                                 <div class="flex flex-1 items-center gap-2">
                                     <x-heroicon-o-calendar class="h-5 w-5 text-gray-400" />
                                     <span class="min-w-32 max-w-32 text-gray-500">Tenant</span>
-                                    class="break-words font-medium text-gray-900 dark:text-gray-300">
-                                    {{ ucwords(strtolower(optional($sppt->tenantname)->store_name)) }}
+                                    <span class="break-words font-medium text-gray-900 dark:text-gray-300">
+                                        {{ ucwords(strtolower(optional($sppt->tenantname)->store_name)) }}
                                     </span>
                                 </div>
 
                                 <div class="flex flex-1 items-center gap-2">
                                     <x-heroicon-o-user class="h-5 w-5 text-gray-400" />
                                     <span class="min-w-32 max-w-32 text-gray-500">Floor-Unit</span>
-                                    class="break-words font-medium text-gray-900 dark:text-gray-300">
-                                    {{ $sppt->no_unit_tenant }}
+                                    <span class="break-words font-medium text-gray-900 dark:text-gray-300">
+                                        {{ $sppt->no_unit_tenant }}
                                     </span>
                                 </div>
 
@@ -285,8 +287,8 @@
                             <div class="flex items-center gap-2 p-2">
                                 <x-heroicon-o-user class="h-5 w-5 text-gray-400" />
                                 <span class="min-w-32 max-w-32 text-gray-500">PIC - Person In Charge</span>
-                                class="break-words font-medium text-gray-900 dark:text-gray-300">
-                                {{ ucwords(strtolower(optional($sppt->pic)->name)) }}
+                                <span class="break-words font-medium text-gray-900 dark:text-gray-300">
+                                    {{ ucwords(strtolower(optional($sppt->pic)->name)) }}
                                 </span>
                             </div>
 
@@ -294,8 +296,8 @@
                             <div class="flex items-center gap-2 p-2">
                                 <x-heroicon-o-user class="h-5 w-5 text-gray-400" />
                                 <span class="min-w-32 max-w-32 text-gray-500">Unit Condition</span>
-                                class="break-words font-medium text-gray-900 dark:text-gray-300">
-                                {{ $sppt->condition_unit }}
+                                <span class="break-words font-medium text-gray-900 dark:text-gray-300">
+                                    {{ $sppt->condition_unit }}
                                 </span>
                             </div>
 
@@ -303,8 +305,8 @@
                             <div class="flex items-center gap-2 p-2">
                                 <x-heroicon-o-user class="h-5 w-5 text-gray-400" />
                                 <span class="min-w-32 max-w-32 text-gray-500">Beban</span>
-                                class="break-words font-medium text-gray-900 dark:text-gray-300">
-                                {{ $sppt->beban }}
+                                <span class="break-words font-medium text-gray-900 dark:text-gray-300">
+                                    {{ $sppt->beban }}
                                 </span>
                             </div>
 
@@ -314,8 +316,8 @@
                                     <x-heroicon-o-clipboard-document-list class="h-5 w-5 text-gray-400" />
                                     <div class="flex flex-col">
                                         <span class="text-gray-500">Request Type</span>
-                                        class="break-words font-medium text-gray-900 dark:text-gray-300">
-                                        {{ optional($sppt->requestType)->requesttype_name }}
+                                        <span class="break-words font-medium text-gray-900 dark:text-gray-300">
+                                            {{ optional($sppt->requestType)->requesttype_name }}
                                         </span>
                                     </div>
                                 </div>
@@ -325,7 +327,7 @@
                                     <x-heroicon-o-clipboard-document-check class="h-5 w-5 text-gray-400" />
                                     <div class="flex flex-col">
                                         <span class="text-gray-500">Purpose</span>
-                                        <span
+                                        <span <span
                                             class="break-words font-medium text-gray-900 dark:text-gray-300">{{ $sppt->keperluan }}</span>
                                     </div>
                                 </div>

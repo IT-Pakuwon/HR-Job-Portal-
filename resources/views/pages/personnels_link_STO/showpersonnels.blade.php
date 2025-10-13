@@ -94,14 +94,15 @@
                             <div class="flex items-center gap-2 p-2">
                                 <x-heroicon-o-building-office class="h-5 w-5 text-gray-400" />
                                 <span class="min-w-32 max-w-32 text-gray-500">Company</span>
-                                class="break-words font-medium text-gray-900 dark:text-gray-300">{{ $personnel->cpnyid }}</span>
+                                <span
+                                    class="break-words font-medium text-gray-900 dark:text-gray-300">{{ $personnel->cpnyid }}</span>
                             </div>
 
                             {{-- Department --}}
                             <div class="flex items-center gap-2 p-2">
                                 <x-heroicon-o-squares-2x2 class="h-5 w-5 text-gray-400" />
                                 <span class="min-w-32 max-w-32 text-gray-500">Department</span>
-                                <span
+                                <span <span
                                     class="break-words font-medium text-gray-900 dark:text-gray-300">{{ $personnel->departementid }}</span>
                             </div>
 
@@ -109,8 +110,8 @@
                             <div class="flex items-center gap-2 p-2">
                                 <x-heroicon-o-calendar class="h-5 w-5 text-gray-400" />
                                 <span class="min-w-32 max-w-32 text-gray-500">Date</span>
-                                class="break-words font-medium text-gray-900 dark:text-gray-300">
-                                {{ date('j F Y', strtotime($personnel->spptdate)) }}
+                                <span class="break-words font-medium text-gray-900 dark:text-gray-300">
+                                    {{ date('j F Y', strtotime($personnel->spptdate)) }}
                                 </span>
                             </div>
 
@@ -118,8 +119,8 @@
                             <div class="flex items-center gap-2 p-2">
                                 <x-heroicon-o-user class="h-5 w-5 text-gray-400" />
                                 <span class="min-w-32 max-w-32 text-gray-500">Job Title</span>
-                                class="break-words font-medium text-gray-900 dark:text-gray-300">
-                                {{ ucwords(strtolower(optional($personnel)->job_title)) }}
+                                <span class="break-words font-medium text-gray-900 dark:text-gray-300">
+                                    {{ ucwords(strtolower(optional($personnel)->job_title)) }}
                                 </span>
                             </div>
 
@@ -127,8 +128,8 @@
                             <div class="flex items-center gap-2 p-2">
                                 <x-heroicon-o-user class="h-5 w-5 text-gray-400" />
                                 <span class="min-w-32 max-w-32 text-gray-500">Job Type</span>
-                                class="break-words font-medium text-gray-900 dark:text-gray-300">
-                                {{ ucwords(strtolower(optional($personnel)->job_type)) }}
+                                <span class="break-words font-medium text-gray-900 dark:text-gray-300">
+                                    {{ ucwords(strtolower(optional($personnel)->job_type)) }}
                                 </span>
                             </div>
 
@@ -136,8 +137,8 @@
                             <div class="flex items-center gap-2 p-2">
                                 <x-heroicon-o-user class="h-5 w-5 text-gray-400" />
                                 <span class="min-w-32 max-w-32 text-gray-500">Immediate Superior</span>
-                                class="break-words font-medium text-gray-900 dark:text-gray-300">
-                                {{ ucwords(strtolower(optional($personnel)->immediate_superior)) }}
+                                <span class="break-words font-medium text-gray-900 dark:text-gray-300">
+                                    {{ ucwords(strtolower(optional($personnel)->immediate_superior)) }}
                                 </span>
                             </div>
 
@@ -145,8 +146,8 @@
                             <div class="flex items-center gap-2 p-2">
                                 <x-heroicon-o-user class="h-5 w-5 text-gray-400" />
                                 <span class="min-w-32 max-w-32 text-gray-500">Job Level</span>
-                                class="break-words font-medium text-gray-900 dark:text-gray-300">
-                                {{ ucwords(strtolower(optional($personnel)->job_level)) }}
+                                <span class="break-words font-medium text-gray-900 dark:text-gray-300">
+                                    {{ ucwords(strtolower(optional($personnel)->job_level)) }}
                                 </span>
                             </div>
 
@@ -154,8 +155,8 @@
                             <div class="flex items-center gap-2 p-2">
                                 <x-heroicon-o-user class="h-5 w-5 text-gray-400" />
                                 <span class="min-w-32 max-w-32 text-gray-500">State Position</span>
-                                class="break-words font-medium text-gray-900 dark:text-gray-300">
-                                {{ ucwords(strtolower(optional($personnel)->state_position)) }}
+                                <span class="break-words font-medium text-gray-900 dark:text-gray-300">
+                                    {{ ucwords(strtolower(optional($personnel)->state_position)) }}
 
                                 </span>
                             </div>
@@ -166,8 +167,8 @@
                                 <x-heroicon-o-question-mark-circle class="h-5 w-5 text-pink-400" />
                                 <div class="flex flex-col">
                                     <span class="text-gray-500">Reason for Vacancy</span>
-                                    class="break-words font-medium text-gray-900 dark:text-gray-300">
-                                    {{ $personnel->reason_vacancy ?: '-' }}
+                                    <span class="break-words font-medium text-gray-900 dark:text-gray-300">
+                                        {{ $personnel->reason_vacancy ?: '-' }}
                                     </span>
                                 </div>
                             </div>
