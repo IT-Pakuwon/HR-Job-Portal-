@@ -577,7 +577,7 @@ Route::post('/logout', function () {
     Route::post('/po/{poid}/cancel-reuse', [PoController::class, 'cancelReuse'])->name('po.cancel_reuse');
     Route::post('/po/{poid}/cancel',       [PoController::class, 'cancel'])->name('po.cancel');
     Route::get('/pdf_po/{hash}', [PoController::class, 'printPO']);
-    Route::get('/po/{ponbr}/view-email', [POController::class, 'viewEmailPO'])->name('po.viewemail');
+    Route::get('/po/{hash}/view-email', [POController::class, 'viewEmailPO'])->name('po.viewemail');
     Route::post('/po/{ponbr}/email/send', [POController::class, 'sendNowPO'])->name('po.email.send');
 
 

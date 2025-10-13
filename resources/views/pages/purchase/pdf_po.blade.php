@@ -4,11 +4,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Purchase Order — PT. Artisan Wahyu</title>
+    <title>Purchase Order — {{ $company->cpny_name }}</title>
     <style>
         @page {
             size: A4;
-            margin: 12mm;
+            margin: 12mm;           
         }
 
         body {
@@ -16,7 +16,7 @@
             padding: 0;
             font-family: Arial, Helvetica, sans-serif;
             font-size: 11px;
-            color: #000;
+            color: #000;           
         }
 
         .page {
@@ -145,7 +145,7 @@
             padding-top: 5px;
         }
 
-        .fixed-footer {
+        /* .fixed-footer {
             position: absolute;
             bottom: 0;
             left: 0;
@@ -157,7 +157,9 @@
             border-top: 1px solid #000;
             padding: 6px 20px;
             background: #fff;
-        }
+        } */
+
+       
     </style>
 </head>
 
@@ -167,35 +169,33 @@
         <table class="header-table">
             <tr>
                 <td class="company-name" style="width:40%;">
-                    <h2><strong>PT. Artisan Wahyu</strong></h2>
+                    <h2><strong>{{ $company->cpny_name }}</strong></h2>
                 </td>
                 <td class="purchase-name" style="width:20%;">
                     <h2 style="margin=0;"><strong>Order Pembelian</strong></h2>
                     <h3><strong>(Purchase Order)</strong></h3>
                 </td>
                 <td style=" width: 40%; vertical-align: bottom; text-align: left;font-size: 12px;">
-                    <p><strong>PO No: 8000006117</strong></p>
+                    <p><strong>PO No: {{ $po->ponbr }}</strong></p>
                 </td>
                 <hr>
             </tr>
             <tr>
                 <td colspan="2">
-                    <p style="font-size: 11px; padding-left:5px">JL. Sultan Iskandar Muda No 8 Jakarta, DKI JAKARTA
-                        60123</p>
-                    <p style="font-size: 11px;padding-left:5px">Telp: (622) 129-0080 00 &nbsp;&nbsp; Fax: (622) 129-0531
+                    <p style="font-size: 11px; padding-left:5px">{{ $company->address_line1 }}</p>
+                    <p style="font-size: 11px;padding-left:5px">Telp: {{ $company->phone }} &nbsp;&nbsp; Fax: {{ $company->fax }}
                         91</p>
                     <table style="font-size:11px; border-collapse:collapse; margin-left:0; padding-left:0;">
                         <tr>
                             <td style="width:90px;">NPWP</td>
                             <td style="width:8px;">:</td>
-                            <td>01.070.808.9-058.000</td>
+                            <td>{{ $company->tax_registration }}</td>
                         </tr>
                         <tr>
                             <td style="vertical-align:top;">Alamat NPWP</td>
                             <td>:</td>
                             <td>
-                                GEDUNG GANDARIA 8 OFFICE TOWER LT.32, JL SULTAN ISKANDAR MUDA KEBAYORAN LAMA UTARA,
-                                KEBAYORAN LAMA, JAKARTA SELATAN, DKI JAKARTA 12240
+                                {{ $company->tax_address_line}}
                             </td>
                         </tr>
                     </table>
@@ -206,17 +206,17 @@
                             <tr>
                                 <td style="width:95px;">Supplier Name</td>
                                 <td style="width:6px;">:</td>
-                                <td>INDO INTI SARANA, PT</td>
+                                <td>{{ $po->vendorname }}</td>
                             </tr>
                             <tr>
                                 <td>Address</td>
                                 <td>:</td>
-                                <td>JL. Sultan Iskandar Muda No 8 Jakarta, DKI JAKARTA 60123</td>
+                                <td>{{ $po->vendoralamat }}</td>
                             </tr>
                             <tr>
                                 <td>Tel/Fax</td>
                                 <td>:</td>
-                                <td>01.070.808.9-058.000</td>
+                                <td>{{ $po->vendortelp }}</td>
                             </tr>
                         </table>
 
@@ -225,20 +225,20 @@
                 <td>
 
                     <h2 style="font-size:12px;"><strong>SPPB No:
-                            PB25090008</strong></h2>
-                    <h2 style="font-size:12px;"><strong>(Ref: AW/PM/25-09/0061)</strong></h2>
-                    <p style="font-size: 12px;">Tgl. PO / Date : 23 September 2025</p>
+                            {{ $po->sppbjktid }}</strong></h2>
+                    <h2 style="font-size:12px;"><strong></strong></h2>
+                    <p style="font-size: 12px;">Tgl. PO / Date : {{ \Carbon\Carbon::parse($po->podate)->translatedFormat('d F Y') }}</p>
 
                     <hr style="border:none; border-top:2px solid #000; margin:4px 0; margin-top:4px">
                     <div style="margin-top:4px">
                         <p style="vertical-align: top; text-align: left; font-size:12px;  ">
-                            Jangka Waktu Pembayaran (Payment Terms) : <br> <strong>21 Days</strong> </p>
+                            Jangka Waktu Pembayaran (Payment Terms) : <br> <strong>{{ $po->vendortop }}</strong> </p>
                         <h2 style="font-size:12px;"><strong></strong></h2>
                         <hr style="border:none; border-top:2px solid #000; margin:4px 0; margin-top:4px">
                     </div>
                     <div style="margin-top:4px">
                         <p style="vertical-align: top; text-align: left; font-size:12px;  ">
-                            Jadwal Pengiriman (Delivery Schedule) : <br> <strong>2 October 2025</strong> </p>
+                            Jadwal Pengiriman (Delivery Schedule) : <br> <strong>{{ \Carbon\Carbon::parse($po->podeliverydate)->translatedFormat('d F Y') }}</strong> </p>
                         <h2 style="font-size:12px;"><strong></strong></h2>
                         <hr style="border:none; border-top:2px solid #000; margin:4px 0; margin-top:4px">
                     </div>
@@ -289,82 +289,44 @@
                 </tr>
             </thead>
             <tbody>
-                <tr>
-                    <td style="text-align:center;">1</td>
-                    <td>BESI HOLLOW UK. 40 X 40 X 0.35MM 4MTR GALVANIS</td>
-                    <td style="text-align:center;">PCS</td>
-                    <td style="text-align:right;">30.00</td>
-                    <td style="text-align:right;">65,000.00</td>
-                    <td style="text-align:right;">1,950,000.00</td>
-                </tr>
-                <tr>
-                    <td style="text-align:center;">2</td>
-                    <td>KUAS CAT 3" — ETERNA</td>
-                    <td style="text-align:center;">PCS</td>
-                    <td style="text-align:right;">6.00</td>
-                    <td style="text-align:right;">15,000.00</td>
-                    <td style="text-align:right;">90,000.00</td>
-                </tr>
-                <tr>
-                    <td style="text-align:center;">3</td>
-                    <td>MATA GERINDA POLES 4" — WD</td>
-                    <td style="text-align:center;">PCS</td>
-                    <td style="text-align:right;">5.00</td>
-                    <td style="text-align:right;">11,000.00</td>
-                    <td style="text-align:right;">55,000.00</td>
-                </tr>
-                <tr>
-                    <td style="text-align:center;">4</td>
-                    <td>PAKU RIVET 4,8 MM</td>
-                    <td style="text-align:center;">PCS</td>
-                    <td style="text-align:right;">100.00</td>
-                    <td style="text-align:right;">200.00</td>
-                    <td style="text-align:right;">20,000.00</td>
-                </tr>
-                <tr>
-                    <td style="text-align:center;">5</td>
-                    <td>SEALANT STRUKTUR/DODOL 688 SILICONE DOW CORNING
-                        600ML</td>
-                    <td style="text-align:center;">PCS</td>
-                    <td style="text-align:right;">7.00</td>
-                    <td style="text-align:right;">116,000.00</td>
-                    <td style="text-align:right;">812,000.00</td>
-                </tr>
+                @php
+                    $nf0 = fn($n) => number_format((float) $n, 0, ',', '.');
+                    $nf2 = fn($n) => number_format((float) $n, 2, ',', '.');
+                @endphp
+                @foreach ($podetail as $i => $item)                
+                    <tr>
+                        <td style="text-align:center;">{{ $i + 1 }}</td>
+                        <td>{{ $item->inventory_descr }}</td>
+                        <td style="text-align:center;">{{ $item->uom }}</td>
+                        <td style="text-align:right;">{{ $nf2($item->qty) }}</td>
+                        <td style="text-align:right;">{{ $nf2($item->unitcost) }}</td>
+                        <td style="text-align:right;">{{ $nf2($item->totalcost) }}</td>
+                    </tr>      
+                @endforeach           
                 <tr>
                     <td colspan="4" rowspan="2">
-                        <p><strong>Purpose/Project:</strong> Pengadaan Stock Material Civil
-                            Bulan
-                            Oktober 2025.</p>
+                        <p><strong>Purpose/Project:</strong> {{ $po->keperluan}}</p>
                         <p style="margin-top:10px;">
-                            Alamat pengirim barang ditujukan ke gudang PT. Artisan Wahyu, Mall Gandaria City
-                            Lantai
-                            Basement 1 (Kolom B11).<br>
-                            Up: Bpk Arie Wibisono — Telp. 021-29052888 — HP. 081319571478.<br>
-                            Hari / Jam: Senin - Jumat / 09.00 - 17.00.<br>
-                            <strong>HARAP DITULIS NO. PO PADA SURAT JALAN.</strong>
+                           {{ $company->warehouse_note}}
                         </p>
                     </td>
                     <td style="text-align:right;">
                         <strong>Subtotal</strong>
                     </td>
-                    <td style="text-align:right;">2,927,000.00</td>
+                    <td style="text-align:right;">{{ $nf2($dpp) }}</td>
                 </tr>
                 <tr>
                     <td style="text-align:right;">
                         <strong>PPN</strong>
                     </td>
-                    <td style="text-align:right;">0.00</td>
+                    <td style="text-align:right;">{{ $nf2($ppn) }}</td>
                 </tr>
                 <tr>
-                    <td colspan="4"> Say: <em>Dua juta
-                            sembilan ratus
-                            dua puluh tujuh
-                            ribu
-                            rupiah</em></td>
+                    <td colspan="4"> Say: <em>{{ $terbilang }}</em></td>
                     <td style="text-align:right;">
                         <strong>Total/Netto</strong>
                     </td>
-                    <td style="text-align:right;">IDR 2,927,000.00</td>
+                    <td style="text-align:right;">IDR {{ $nf2($grand) }}</td>
                 </tr>
             </tbody>
         </table>
@@ -377,10 +339,10 @@
         </div>
 
 
-        <div class="fixed-footer">
-            <div>Created by: Wahyudi Wahid, Sent by: Wahyudi Wahid, On: 9/23/2025 9:37:11 AM</div>
+        {{-- <div class="fixed-footer">
+            <div>Created by: {{ $purchaser }}, Sent by: {{ $purchaser }}, On: {{ $now->format('d/m/Y H:i') }}</div>
             <div>Page: 1 of 2</div>
-        </div>
+        </div> --}}
     </div>
 
     <div class="page">
@@ -492,18 +454,7 @@
             </ol>
         </div>
 
-        {{-- <div style="text-align:right;">
-            <div class="signature-box">
-                <div style="text-align:center; font-weight:bold; text-transform:uppercase;">
-                    Disetujui oleh Supplier
-                </div>
-                <div style="border-top:1px solid #000; margin-top:60px; padding-top:5px; text-align:center;">
-                    <strong></strong><br><br><br>
-
-                </div>
-            </div>
-        </div> --}}
-
+      
         <div style="text-align:right; margin-top:40px;">
             <div class="signature-box">
                 <div class="title">Disetujui oleh Supplier</div>
@@ -513,11 +464,16 @@
         </div>
 
 
-        <div class="fixed-footer">
+        {{-- <div class="fixed-footer">
             <div>Created by: Wahyudi Wahid, Sent by: Wahyudi Wahid, On: 9/23/2025 9:37:11 AM</div>
             <div>Page: 2 of 2</div>
-        </div>
+        </div> --}}
     </div>
+
+
+
+
+
 </body>
 
 </html>

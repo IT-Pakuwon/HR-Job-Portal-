@@ -246,19 +246,47 @@
                             </div>
                         </div>
 
-                        {{-- ROW 2: Empat kolom berikutnya --}}
-                        <div class="grid grid-cols-1 gap-4 md:grid-cols-4">
+                            {{-- ROW 2: Empat kolom berikutnya --}}
+                            <div class="grid grid-cols-1 gap-4 md:grid-cols-4">
 
-                            <div
-                                class="rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-800">
+                                <div class="rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-800">
                                 <p class="text-xs text-gray-500 dark:text-gray-400">SPPB/J/K/T ID</p>
-                                <p class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ $po->sppbjktid }}</p>
+                                @if(!empty($sppbUrl))
+                                    <a href="{{ $sppbUrl }}" target="_blank"
+                                    class="inline-flex items-center gap-1 text-sm font-semibold text-indigo-600 hover:underline dark:text-indigo-400">
+                                        {{ $po->sppbjktid }}
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"
+                                            viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                d="M13 7h6m0 0v6m0-6L10 16"/>
+                                        </svg>
+                                    </a>
+                                @else
+                                    <p class="text-sm font-medium text-gray-900 dark:text-gray-100">
+                                        {{ $po->sppbjktid }}
+                                    </p>
+                                @endif
                             </div>
-                            <div
-                                class="rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-800">
+                            
+                            <div class="rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-800">
                                 <p class="text-xs text-gray-500 dark:text-gray-400">CS ID</p>
-                                <p class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ $po->csid }}</p>
+                                @if(!empty($csUrl))
+                                    <a href="{{ $csUrl }}" target="_blank"
+                                    class="inline-flex items-center gap-1 text-sm font-semibold text-emerald-600 hover:underline dark:text-emerald-400">
+                                        {{ $po->csid }}
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"
+                                            viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                d="M13 7h6m0 0v6m0-6L10 16"/>
+                                        </svg>
+                                    </a>
+                                @else
+                                    <p class="text-sm font-medium text-gray-900 dark:text-gray-100">
+                                        {{ $po->csid }}
+                                    </p>
+                                @endif
                             </div>
+
                             <div
                                 class="rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-800">
                                 <p class="text-xs text-gray-500 dark:text-gray-400">Vendor ID</p>
@@ -1433,7 +1461,29 @@
             // Open composer di tab baru, kirim PONBR di URL
             $('#sendEmailBtn').on('click', function () {
             const ponbr = @json($po->ponbr);
-            const url = "{{ route('po.viewemail', ['ponbr' => '__PONBR__']) }}".replace('__PONBR__', encodeURIComponent(ponbr));
+            const eid_ponbr = @json($eid_ponbr);
+            const statusNow    = @json($po->status);                 // "H","P","O","C","X","R"
+            const alreadySent  = @json((bool)($po->send_email ?? false));  // true/false
+
+           const statusMsg = {
+                H: 'Dokumen belum di-Submit (status HOLD).',
+                X: 'Dokumen di-Cancel.',
+                R: 'Dokumen di-Reuse.',
+            };
+
+            if (['H','X','R'].includes(statusNow)) {
+                const msg = statusMsg[statusNow] || 'Dokumen tidak dapat dikirim.';
+                if (window.toastr) toastr.warning(msg); else alert(msg);
+                return;
+            }
+            // blokir jika sudah pernah dikirim
+            if (alreadySent) {
+                toastr.info('Email untuk dokumen ini sudah pernah dikirim.');
+                return;
+            }
+
+           
+            const url = "{{ route('po.viewemail', ['hash' => '__HASH__']) }}".replace('__HASH__', encodeURIComponent(eid_ponbr))
             window.open(url, '_blank');
             });
         });

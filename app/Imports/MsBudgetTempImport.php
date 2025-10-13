@@ -31,14 +31,17 @@ class MsBudgetTempImport implements ToModel, WithHeadingRow
         }
 
         return new MsBudgetTemp([
-            'temp_id'            => $this->temp_id,
+            'temp_budget_id'     => $this->temp_id,
             'cpny_id'            => $this->cpny_id,
             'business_unit_id'  => $this->business_unit_id, 
             'department_fin_id'  => $this->department_fin_id,                       
             'perpost'            => $row['perpost'] ?? null,
             'account_id'         => $row['account_id'] ?? null,
             'activity_id'        => $row['activity_id'] ?? null,
+            'activity_descr'     => $row['activity_descr'] ?? null,
             'activity_detail'    => $row['activity_detail'] ?? null,
+            'qty_budget'         => $row['qty_budget'] ?? null,
+            'unit_price_budget'  => $row['unit_price_budget'] ?? null,
             'totalbudget'        => $total,
             'period01_budget'    => $row['period01_budget'] ?? null,
             'period02_budget'    => $row['period02_budget'] ?? null,

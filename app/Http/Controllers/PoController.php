@@ -13,11 +13,17 @@ use App\Models\T_approval;
 use App\Models\Attachment;
 use App\Models\T_Message;
 use App\Models\MsVendor;
+use App\Models\CompanyPG;
+use App\Models\TrSPPB;
+use App\Models\TrSPPJ;
+use App\Models\TrSPPK;
+use App\Models\TrSPPT;
+use App\Models\TrCS;
 use Vinkla\Hashids\Facades\Hashids;
-// use PhpOffice\PhpWord\TemplateProcessor;
-// use PhpOffice\PhpWord\IOFactory;
 use TijsVerkoyen\CssToInlineStyles\CssToInlineStyles;
 use Mail;
+use Barryvdh\DomPDF\Facade\Pdf; 
+
 
 class PoController extends Controller
 {
@@ -48,6 +54,43 @@ class PoController extends Controller
             ->where('status', 'A')
             ->get();
 
+        $eid_ponbr = Hashids::encode($po->ponbr);
+
+        $prefix = strtoupper(substr((string) $po->sppbjktid, 0, 2));
+       if ($prefix === 'PB') {
+            $id = TrSPPB::where('sppbid', $po->sppbjktid)->value('id');
+        } elseif ($prefix === 'PJ') {
+            $id = TrSPPJ::where('sppjid', $po->sppbjktid)->value('id');
+        } elseif ($prefix === 'PK') {
+            $id = TrSPPK::where('sppkid', $po->sppbjktid)->value('id');
+        } elseif ($prefix === 'PT') {
+            $id = TrSPPT::where('spptid', $po->sppbjktid)->value('id');
+        } else {
+            abort(422, 'Invalid doc type');
+        }
+        $routeMap = [
+            'PB' => 'showsppbs',
+            'PJ' => 'showsppjs',
+            'PK' => 'showsppks',
+            'PT' => 'showsppts',
+        ];
+
+        // SPPB/J/K/T URL (opsional)
+        $sppbUrl = null;
+        if (!empty($po->sppbjktid) && isset($routeMap[$prefix])) {
+            $sppbHash = Hashids::encode($id);
+            $sppbUrl  = url("/{$routeMap[$prefix]}/{$sppbHash}");
+        }
+
+        $id = TrCS::where('csid', $po->csid)->value('id');
+
+        // CS URL (opsional)
+        $csUrl = null;
+        if (!empty($po->csid)) {
+            $csHash = Hashids::encode($id);
+            $csUrl  = url("/showcs/{$csHash}");
+        }
+
         // Kembalikan ke view
         // - kirim variabel baru: $po, $podetail
         // - plus alias lama ($sppb, $sppbdetail) untuk kompatibilitas view lama
@@ -56,9 +99,10 @@ class PoController extends Controller
             'podetail'   => $podetail,
             'approval'   => $approval,
             'attachment' => $attachment,
-            'hash'       => $hash,           
-            'sppb'       => $po,
-            'sppbdetail' => $podetail,
+            'hash'       => $hash, 
+            'eid_ponbr' => $eid_ponbr,
+            'sppbUrl'    => $sppbUrl,   
+            'csUrl'      => $csUrl,     
         ]);
     }
 
@@ -358,7 +402,7 @@ class PoController extends Controller
         return response()->json(['success'=>true]);
     }
 
-    public function printPO(string $hash)
+    public function printPO_xxx(string $hash)
     {
         $decoded = Hashids::decode($hash);
         abort_if(empty($decoded), 404, 'Dokumen tidak ditemukan.');
@@ -377,22 +421,28 @@ class PoController extends Controller
             ->orderBy('cs_no') // ganti jika nama kolom baris berbeda
             ->get();
 
-        // --- Totals (anggap totalcost = DPP/Net line, taxamt = PPN line) ---
-        $dpp  = (float) $podetail->sum('totalcost');
-        $ppn  = (float) $podetail->sum('taxamt');
-        $grand = $dpp + $ppn;
+        //po header amt
+        $dpp  = $po->totalamt;
+        $ppn  = $po->taxamt;
+        $grand = $po->grandtotalamt;
+        $terbilang = ucfirst($this->terbilang($grand)) . ' rupiah';
+
+        $company = CompanyPG::where('cpny_id', $po->cpny_id)
+            ->first();
+
+        $purchaser = ucwords(strtolower($authUser->name));
 
         // Data tambahan utk view
         $data = [
             'po'       => $po,
-            'podetail' => $podetail,
-            'totals'   => [
-                'dpp'   => $dpp,
-                'ppn'   => $ppn,
-                'grand' => $grand,
-            ],
+            'podetail' => $podetail,           
+            'dpp'   => $dpp,
+            'ppn'   => $ppn,
+            'grand' => $grand,          
+            'terbilang' => $terbilang,
+            'company'  => $company,
             'now'      => Carbon::now(),
-            'user'     => $authUser,
+            'purchaser'     => $purchaser,
         ];
 
         // Pilih view
@@ -406,6 +456,119 @@ class PoController extends Controller
         // Nama file stream yang informatif
         $basename = $po->potype === 'PO' ? 'PO' : 'SPK';
         return $pdf->stream("{$basename}_{$po->ponbr}.pdf");
+    }
+    
+
+
+    public function printPO(string $hash)
+    {
+        $decoded = Hashids::decode($hash);
+        abort_if(empty($decoded), 404, 'Dokumen tidak ditemukan.');
+        $id = $decoded[0];
+
+        $authUser = Auth::user();
+        if (!$authUser) {
+            return redirect()->route('login');
+        }
+
+        // Header PO
+        $po = TrPO::findOrFail($id);
+
+        // Detail pakai ponbr
+        $podetail = TrPOdetail::where('ponbr', $po->ponbr)
+            ->orderBy('cs_no')
+            ->get();
+
+        // Header amount
+        $dpp    = $po->totalamt;
+        $ppn    = $po->taxamt;
+        $grand  = $po->grandtotalamt;
+        $terbilang = ucfirst($this->terbilang($grand)) . ' rupiah';
+
+        $company = CompanyPG::where('cpny_id', $po->cpny_id)->first();
+
+        // tampilkan nama pembuat / pengirim
+        $purchaser = ucwords(strtolower($authUser->name));
+
+        $data = [
+            'po'        => $po,
+            'podetail'  => $podetail,
+            'dpp'       => $dpp,
+            'ppn'       => $ppn,
+            'grand'     => $grand,
+            'terbilang' => $terbilang,
+            'company'   => $company,
+            'now'       => Carbon::now(),
+            'purchaser' => $purchaser,
+        ];
+
+        $view = $po->potype === 'PO' ? 'pages.purchase.pdf_po' : 'pages.purchase.pdf_spk';
+
+        // 1) render view -> Dompdf
+        $pdf = Pdf::loadView($view, $data)->setPaper('A4', 'portrait');
+
+        // 2) Ambil Dompdf & RENDER lebih dulu (supaya PAGE_COUNT terisi)
+        /** @var \Dompdf\Dompdf $dompdf */
+        $dompdf = $pdf->getDomPDF();
+        $dompdf->render();
+
+        // 3) Tulis footer via canvas
+        $canvas  = $dompdf->get_canvas();
+        $w       = $canvas->get_width();
+        $h       = $canvas->get_height();
+
+        // pakai font aman unicode
+        $metrics = $dompdf->getFontMetrics();
+        $font    = $metrics->get_font('sans-serif', 'normal'); // bundled Dompdf
+        $size    = 9;
+
+        $now     = $data['now'];
+        $leftTxt = "Created by: {$purchaser}, Sent by: {$purchaser}, On: " . $now->format('d/m/Y H:i');
+        $rightTpl = "Page {PAGE_NUM} of {PAGE_COUNT}";
+
+        $rightWidth = $metrics->getTextWidth($rightTpl, $font, $size);
+        $y = $h - 28; // ~10mm dari bawah
+
+        $x = $canvas->get_width() - $w - 75;
+
+        // kiri & kanan
+        $canvas->page_text(20, $y, $leftTxt,  $font, $size, [0,0,0]);
+        $canvas->page_text($w - $x - $rightWidth, $y, $rightTpl, $font, $size, [0,0,0]);
+
+        // 4) Stream seperti biasa
+        $basename = $po->potype === 'PO' ? 'PO' : 'SPK';
+        // return $dompdf->stream("{$basename}_{$po->ponbr}.pdf");
+        return $dompdf->stream("{$basename}_{$po->ponbr}.pdf", ['Attachment' => false]);
+    }
+
+
+    private function terbilang($angka): string
+    {
+        if (is_string($angka)) {
+            $angka = str_replace([',', ' '], '', $angka);
+        }
+        if (!is_numeric($angka)) return '';
+
+        $isMinus = $angka < 0;
+        $angka = (int) abs((float) $angka);
+
+        $bil = ['', 'satu', 'dua', 'tiga', 'empat', 'lima', 'enam', 'tujuh', 'delapan', 'sembilan', 'sepuluh', 'sebelas'];
+
+        $fn = function ($n) use (&$fn, $bil): string {
+            if ($n < 12)                  return ' '.$bil[$n];
+            if ($n < 20)                  return $fn($n - 10).' belas';
+            if ($n < 100)                 return $fn(intval($n / 10)).' puluh'.$fn($n % 10);
+            if ($n < 200)                 return ' seratus'.$fn($n - 100);
+            if ($n < 1000)                return $fn(intval($n / 100)).' ratus'.$fn($n % 100);
+            if ($n < 2000)                return ' seribu'.$fn($n - 1000);
+            if ($n < 1_000_000)           return $fn(intval($n / 1000)).' ribu'.$fn($n % 1000);
+            if ($n < 1_000_000_000)       return $fn(intval($n / 1_000_000)).' juta'.$fn($n % 1_000_000);
+            if ($n < 1_000_000_000_000)   return $fn(intval($n / 1_000_000_000)).' miliar'.$fn($n % 1_000_000_000);
+            return $fn(intval($n / 1_000_000_000_000)).' triliun'.$fn($n % 1_000_000_000_000);
+        };
+
+        $hasil = trim(preg_replace('/\s+/', ' ', $fn($angka)));
+        return ($isMinus ? 'minus ' : '').$hasil;
     }
 
   
@@ -429,11 +592,21 @@ class PoController extends Controller
         }
     }
 
-    public function viewEmailPO(string $ponbr)
+    public function viewEmailPO(string $hash)
     {
+        $ponbr = Hashids::decode($hash)[0] ?? null;
+        abort_if(!$ponbr, 404);
+
         $po = TrPO::where('ponbr', $ponbr)->firstOrFail();
 
-        $emailfrom = User::where('username', $po->created_by)->value('test_email');
+       
+        // $emailfrom = User::where('username', $po->created_by)->value('test_email');
+        $user = User::where('username', $po->created_by)
+            ->first(['name', 'test_email']);
+
+        $fromEmail = $user->test_email;
+        $purchaser = ucwords(strtolower($user->name));
+
         // $emailto   = MsVendor::where('vendor_id', $po->vendorid)->value('email');
         $emailto ='bedriamaail@pakuwon.com ; rikiparahat@pakuwon.com';
 
@@ -452,6 +625,7 @@ class PoController extends Controller
             '${VENDORNAME}'  => $po->vendorname,
             '${CSKEPERLUAN}' => $po->keperluan,
             '${CONTACTNAME}' => $po->vendorcp,
+            '${PURCHASER}'   => $purchaser,
             '${FOOTER_URL}'  => $footerUrl, // <- ini penting
         ];
 
@@ -463,14 +637,17 @@ class PoController extends Controller
             'vendor'        => $po->vendorname,
             'template'      => strtoupper($po->potype ?? 'PO'),
             'subject_email' => $subject_email,
-            'from_email'    => $emailfrom,
+            'from_email'    => $fromEmail,
+            'purchaser'    => $purchaser,
             'to_email'      => $emailto,
             'initial_html'  => $initial_html,
         ]);
     }
 
-    public function sendNowPO(Request $req, string $ponbr)
+    public function sendNowPO_xxx(Request $req, string $ponbr)
     {
+        $authUser = Auth::user();
+
         // 1) Validasi payload dari form compose (To/Cc/Bcc bisa array atau string dipisah koma)
         $data = $req->validate([
             'from'    => ['required','email'],
@@ -481,6 +658,7 @@ class PoController extends Controller
             'html'    => ['required','string'],     // body HTML dari Summernote
         ]);
 
+        
         // Tentukan display name pengirim
         $senderName = User::where('test_email', $data['from'])->value('name'); // ganti 'name' bila kolommu 'fullname'
         if (!$senderName) {
@@ -518,18 +696,27 @@ class PoController extends Controller
         // 2) Ambil header + detail PO
         $po = TrPO::where('ponbr', $ponbr)->firstOrFail();
         $podetail = TrPOdetail::where('ponbr', $po->ponbr)->orderBy('cs_no')->get();
+        // Header amount
+        $dpp    = $po->totalamt;
+        $ppn    = $po->taxamt;
+        $grand  = $po->grandtotalamt;
+        $terbilang = ucfirst($this->terbilang($grand)) . ' rupiah';
 
-        // Totals (opsional, kalau dipakai di PDF)
-        $dpp   = (float) $podetail->sum('totalcost');
-        $ppn   = (float) $podetail->sum('taxamt');
-        $grand = $dpp + $ppn;
+        $company = CompanyPG::where('cpny_id', $po->cpny_id)->first();
+
+        // tampilkan nama pembuat / pengirim
+        $purchaser = ucwords(strtolower($authUser->name));
 
         $viewData = [
-            'po'       => $po,
-            'podetail' => $podetail,
-            'totals'   => ['dpp'=>$dpp, 'ppn'=>$ppn, 'grand'=>$grand],
-            'now'      => Carbon::now(),
-            'user'     => Auth::user(),
+            'po'        => $po,
+            'podetail'  => $podetail,
+            'dpp'       => $dpp,
+            'ppn'       => $ppn,
+            'grand'     => $grand,
+            'terbilang' => $terbilang,
+            'company'   => $company,
+            'now'       => Carbon::now(),
+            'purchaser' => $purchaser,
         ];
 
         // 3) Siapkan lampiran dari tabel Attachment (public/attachments/{YEAR}/{$attach->attachfile})
@@ -576,6 +763,132 @@ class PoController extends Controller
             'message' => 'Email sudah dikirim beserta lampiran.'
         ]);
     }
+
+   
+    public function sendNowPO(Request $req, string $ponbr)
+    {
+        $authUser = Auth::user();
+
+        // 1) Validasi payload
+        $data = $req->validate([
+            'from'    => ['required','email'],
+            'to'      => ['required'],
+            'cc'      => ['nullable'],
+            'bcc'     => ['nullable'],
+            'subject' => ['required','string','max:200'],
+            'html'    => ['required','string'],
+        ]);
+
+        // 2) Ambil PO + detail + data untuk view
+        $po = TrPO::where('ponbr', $ponbr)->firstOrFail();
+        $podetail = TrPOdetail::where('ponbr', $po->ponbr)->orderBy('cs_no')->get();
+
+        $dpp   = $po->totalamt;
+        $ppn   = $po->taxamt;
+        $grand = $po->grandtotalamt;
+        $terbilang = ucfirst($this->terbilang($grand)) . ' rupiah';
+        $company = CompanyPG::where('cpny_id', $po->cpny_id)->first();
+
+        // tampilkan nama pembuat/pengirim
+        $purchaser = ucwords(strtolower($authUser->name));
+
+        $viewData = [
+            'po'        => $po,
+            'podetail'  => $podetail,
+            'dpp'       => $dpp,
+            'ppn'       => $ppn,
+            'grand'     => $grand,
+            'terbilang' => $terbilang,
+            'company'   => $company,
+            'now'       => Carbon::now(),
+            'purchaser' => $purchaser,
+        ];
+
+        // 3) Tentukan display name pengirim (sesudah $po ada)
+        $senderName = User::where('test_email', $data['from'])->value('name');
+        if (!$senderName) {
+            $senderName = User::where('username', $po->created_by)->value('name');
+        }
+        if (!$senderName && Auth::check()) {
+            $senderName = Auth::user()->name ?? Auth::user()->fullname ?? null;
+        }
+        $senderName = $senderName ?: 'Pakuwon System';
+
+        // 4) Normalisasi daftar email
+        $norm = function ($v) {
+            if (!$v) return [];
+            if (is_array($v)) return array_values(array_unique(array_filter(array_map('trim',$v))));
+            return array_values(array_unique(array_filter(array_map('trim', preg_split('/[,;]+/', $v)))));
+        };
+        $to  = $norm($data['to']);
+        $cc  = $norm($data['cc'] ?? []);
+        $bcc = $norm($data['bcc'] ?? []);
+        if (empty($to)) {
+            return response()->json(['success'=>false,'message'=>'Field "To" wajib diisi.'], 422);
+        }
+
+        // 5) Kumpulkan attachment dari tabel Attachment
+        $attachments = Attachment::where('docid', $po->ponbr)->where('status','A')->get();
+        $filePaths = [];
+        foreach ($attachments as $row) {
+            $year = $row->created_at ? Carbon::parse($row->created_at)->year : Carbon::now()->year;
+            $path = public_path("attachments/{$year}/{$row->attachfile}");
+            if (is_file($path)) $filePaths[] = $path;
+        }
+
+        // 6) Generate PDF + tambahkan footer "Created by..." dan "Page X of Y"
+        $view = $po->potype === 'PO' ? 'pages.purchase.pdf_po' : 'pages.purchase.pdf_spk';
+        $pdf  = Pdf::loadView($view, $viewData)->setPaper('A4', 'portrait');
+
+        /** @var \Dompdf\Dompdf $dompdf */
+        $dompdf = $pdf->getDomPDF();
+        $dompdf->render(); // wajib supaya {PAGE_COUNT} tersedia
+
+        $canvas  = $dompdf->get_canvas();
+        $w       = $canvas->get_width();
+        $h       = $canvas->get_height();
+
+        $metrics = $dompdf->getFontMetrics();
+        $font    = $metrics->get_font('sans-serif', 'normal');
+        $size    = 9;
+
+        $now       = $viewData['now'];
+        $leftTxt   = "Created by: {$purchaser}, Sent by: {$purchaser}, On: " . $now->format('d/m/Y H:i');
+        $rightTpl  = "Page {PAGE_NUM} of {PAGE_COUNT}";
+        $rightW    = $metrics->getTextWidth($rightTpl, $font, $size);
+
+        $y = $h - 28;                 // ~10mm dari bawah
+        // $pad = 20;                    // margin horizontal
+        $pad = $canvas->get_width() - $w - 75;
+        $canvas->page_text(20, $y, $leftTxt,  $font, $size, [0,0,0]);                 // kiri
+        $canvas->page_text($w - $pad - $rightW, $y, $rightTpl, $font, $size, [0,0,0]);  // kanan
+
+        $pdfBinary = $dompdf->output(); // ambil binary SETELAH footer ditulis
+        $pdfName   = ($po->potype === 'PO' ? 'PO' : 'SPK') . "_{$po->ponbr}.pdf";
+
+        // 7) Kirim email
+        Mail::html($data['html'], function ($message) use ($data, $to, $cc, $bcc, $pdfBinary, $pdfName, $filePaths, $senderName) {
+            $message->from($data['from'], $senderName);
+            $message->to($to);
+            if (!empty($cc))  $message->cc($cc);
+            if (!empty($bcc)) $message->bcc($bcc);
+            $message->subject($data['subject']);
+
+            // attach PDF hasil render + footer
+            $message->attachData($pdfBinary, $pdfName, ['mime' => 'application/pdf']);
+
+            // attach file-file existing
+            foreach ($filePaths as $path) {
+                $message->attach($path);
+            }
+        });
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Email sudah dikirim beserta lampiran.'
+        ]);
+    }
+
 
 
     

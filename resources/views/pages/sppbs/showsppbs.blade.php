@@ -352,7 +352,6 @@
                                     </tbody>
                                 </table>
                             </div>
-
                             {{-- Attachment tab --}}
                             <div x-show="activeTab === 'attachment'" class="flex-1 transition-all">
                                 <table class="w-full text-sm">
@@ -392,7 +391,6 @@
                                     </tbody>
                                 </table>
                             </div>
-
                             {{-- Comments tab --}}
                             <div x-show="activeTab === 'comments'" class="flex-1 transition-all">
                                 <div x-data="{ comments: [], newComment: '', currentUser: 'User1' }" class="flex h-full flex-col">

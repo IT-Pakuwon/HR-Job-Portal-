@@ -415,8 +415,11 @@
                         <thead class="sticky top-0 z-10 bg-gray-50 dark:bg-gray-700">
                             <tr>
                                 <th class="px-4 py-2">Account</th>
-                                <th class="px-4 py-2">Activity</th>
+                                <th class="px-4 py-2">Activity ID</th>
+                                <th class="px-4 py-2">Description</th>
                                 <th class="px-4 py-2">Detail</th>
+                                <th class="px-4 py-2">Qty</th>
+                                <th class="px-4 py-2">Unit Price</th>
                                 <th class="px-4 py-2 text-right">Total Budget</th>
                                 @for ($i = 1; $i <= 12; $i++)
                                     <th class="px-4 py-2 text-right">
@@ -431,7 +434,10 @@
                                     class="-t dark: -gray-600 bg-white hover:bg-gray-50 dark:bg-gray-600 dark:text-gray-300 dark:hover:bg-gray-700">
                                     <td class="px-4 py-2">{{ $item->account_id }}</td>
                                     <td class="px-4 py-2">{{ $item->activity_id }}</td>
+                                    <td class="px-4 py-2">{{ $item->activity_descr }}</td>
                                     <td class="px-4 py-2">{{ $item->activity_detail }}</td>
+                                    <td class="px-4 py-2">{{ $item->qty_budget }}</td>
+                                    <td class="px-4 py-2">{{ $item->unit_price_budget }}</td>
                                     <td class="px-4 py-2 text-right">
                                         {{ number_format($item->totalbudget) }}
                                     </td>

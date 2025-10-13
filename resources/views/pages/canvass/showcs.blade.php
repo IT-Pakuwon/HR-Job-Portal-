@@ -212,7 +212,7 @@
                                 ? '<a href="' .
                                     $docUrl .
                                     '" target="_blank" rel="noopener"
-                                        class="inline-flex items-center gap-2 rounded-full bg-emerald-600 px-3 py-1 text-xs font-semibold text-white hover:bg-emerald-700">
+                                        class="inline-flex items-center gap-1 text-sm font-semibold text-indigo-600 hover:underline dark:text-indigo-400">
                                         ' .
                                     $docid .
                                     '
@@ -292,7 +292,7 @@
                     </div>
                 </div>
 
-                <div class="flex flex-1 flex-col rounded-xl bg-white dark:bg-gray-800">
+                 <div class="flex flex-1 flex-col rounded-xl bg-white dark:bg-gray-800">
                     <div x-data="{ activeTab: 'attachment' }" class="flex flex-1 flex-col">
                         <header
                             class="sticky top-0 z-10 flex items-center rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
@@ -327,7 +327,7 @@
                         {{-- Tabs Content --}}
                         <div class="flex flex-1 flex-col rounded-b-xl bg-white dark:bg-gray-800">
                             {{-- Approval tab --}}
-                            <div x-show="activeTab === 'approval'" class="flex-1 p-2 transition-all">
+                            <div x-show="activeTab === 'approval'" class="flex-1 p-4 transition-all">
                                 <table class="w-full text-sm">
                                     <thead>
                                         <tr
@@ -383,7 +383,6 @@
                                     </tbody>
                                 </table>
                             </div>
-
                             {{-- Attachment tab --}}
                             <div x-show="activeTab === 'attachment'" class="flex-1 p-2 transition-all">
                                 <table class="w-full text-sm">
@@ -441,27 +440,23 @@
                                     </tbody>
                                 </table>
                             </div>
-
-                        </div>
-
-
-
-
-                        {{-- Comments tab --}}
-                        <div x-show="activeTab === 'comments'" class="flex-1 p-2 transition-all">
-                            <div x-data="{ comments: [], newComment: '', currentUser: 'User1' }" class="flex h-full flex-col">
-                                <div id="commentList"
-                                    class="custom-scrollbar flex-1 flex-col space-y-4 overflow-y-auto p-4">
-                                    <p class="py-4 text-center italic text-gray-500">Loading comments...</p>
-                                </div>
-                                <div class="flex items-center gap-3 border-t border-gray-200 p-4 dark:border-gray-700">
-                                    <input id="commentInput" x-model="newComment" type="text"
-                                        placeholder="Write a comment..."
-                                        class="flex-1 rounded-lg bg-gray-100 p-3 text-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white dark:focus:ring-indigo-400">
-                                    <button id="postCommentBtn" type="button"
-                                        class="rounded-lg bg-indigo-600 px-5 py-3 text-sm font-semibold text-white transition-all duration-200 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 active:scale-95 dark:focus:ring-offset-gray-800">
-                                        Post 🚀
-                                    </button>
+                            {{-- Comments tab --}}
+                            <div x-show="activeTab === 'comments'" class="flex-1 transition-all">
+                                <div x-data="{ comments: [], newComment: '', currentUser: 'User1' }" class="flex h-full flex-col">
+                                    <div id="commentList"
+                                        class="custom-scrollbar flex-1 flex-col space-y-4 overflow-y-auto p-4">
+                                        <p class="py-4 text-center italic text-gray-500">Loading comments...</p>
+                                    </div>
+                                    <div
+                                        class="flex items-center gap-3 border-t border-gray-200 p-4 dark:border-gray-700">
+                                        <input id="commentInput" x-model="newComment" type="text"
+                                            placeholder="Write a comment..."
+                                            class="flex-1 rounded-lg bg-gray-100 p-3 text-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white dark:focus:ring-indigo-400">
+                                        <button id="postCommentBtn" type="button"
+                                            class="rounded-lg bg-indigo-600 px-5 py-3 text-sm font-semibold text-white transition-all duration-200 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 active:scale-95 dark:focus:ring-offset-gray-800">
+                                            Post 🚀
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -589,13 +584,10 @@
                                     @endforeach
                                 </tr>
                             </tfoot>
-
                         </table>
                     </div>
                 </div>
             </div>
-
-
         </div>
     </div>
 

@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Surat Perintah Kerja — PT. Artisan Wahyu</title>
+    <title>Surat Perintah Kerja — {{ $company->cpny_name }}</title>
 
     <style>
         @page {
@@ -125,7 +125,7 @@
         }
 
         /* Fixed footer (Created by + Page) */
-        .fixed-footer {
+        /* .fixed-footer {
             position: absolute;
             bottom: 0;
             left: 0;
@@ -138,7 +138,7 @@
             padding: 6px 20px;
             background: #fff;
             box-sizing: border-box;
-        }
+        } */
 
         ol {
             counter-reset: item;
@@ -167,41 +167,43 @@
     <div class="page">
         <div class="header">
             <h2><strong>SURAT PERINTAH KERJA</strong></h2>
-            <p>8000006114</p>
-            <p>(Ref: AW/PS/25-09/0011)</p>
+            <p>{{ $po->ponbr }}</p>
+            <p></p>
         </div>
 
         <p><strong>Yang bertanda tangan di bawah ini:</strong></p>
-        <p><strong>Perusahaan :</strong> Artisan Wahyu, PT</p>
-        <p><strong>Alamat :</strong> JL. Sultan Iskandar Muda No 8, Jakarta, DKI JAKARTA</p>
-        <p><strong>NPWP :</strong> 01.070.808.9-058.000</p>
-        <p><strong>Alamat NPWP :</strong> GEDUNG GANDARIA 8 OFFICE TOWER LT.32, JL SULTAN ISKANDAR MUDA KEBAYORAN LAMA
-            UTARA, KEBAYORAN LAMA JAKARTA SELATAN DKI JAKARTA 12240</p>
+        <p><strong>Perusahaan :</strong> {{ $company->cpny_name }}</p>
+        <p><strong>Alamat :</strong> {{ $company->address_line1 }}</p>
+        <p><strong>NPWP :</strong> {{ $company->tax_registration }}</p>
+        <p><strong>Alamat NPWP :</strong> {{ $company->tax_address_line}}</p>
         <p>Untuk selanjutnya disebut "<strong>PIHAK I</strong>".</p>
 
         <br>
 
-        <p><strong>Nama :</strong> RODA NURMALA, PT</p>
+        <p><strong>Nama :</strong>{{ $po->vendorname }}</p>
         <p><strong>Jabatan :</strong></p>
-        <p><strong>Perusahaan :</strong> RODA NURMALA, PT</p>
-        <p><strong>Alamat :</strong> Komplek Perkantoran Royal Sunter Jalan Danau Sunter Selatan Blok F No. 16-17 Kel.
-            Sunter Jaya Kec. Tanjung Priok</p>
+        <p><strong>Perusahaan :</strong>{{ $po->vendorname }}</p>
+        <p><strong>Alamat :</strong> {{ $po->vendoralamat }}</p>
         <p>Untuk selanjutnya disebut "<strong>PIHAK II</strong>".</p>
         <br>
         <p>Dengan ini PIHAK I memberikan tugas kepada PIHAK II untuk</p>
 
-        <p><strong>Tanggal :</strong> 23 September 2025 s/d 02 Desember 2025 (Pelaksanaan Pekerjaan).</p>
+        <p><strong>Tanggal :</strong> {{ \Carbon\Carbon::parse($po->spkstartworkingdate)->translatedFormat('d F Y') }} s/d {{ \Carbon\Carbon::parse($po->spkendworkingdate)->translatedFormat('d F Y') }} (Pelaksanaan Pekerjaan).</p>
         <p><strong>Jenis Pekerjaan :</strong> Pekerjaan general check up diesel fire pump di ruang pompa Lt. B2</p>
         <br>
-        <p><strong>Total Biaya :</strong> 13,875,000.00</p>
-        <p><strong>Terbilang :</strong> Tiga belas juta delapan ratus tujuh puluh lima ribu rupiah</p>
+        @php
+            $nf0 = fn($n) => number_format((float) $n, 0, ',', '.');
+            $nf2 = fn($n) => number_format((float) $n, 2, ',', '.');
+        @endphp
+        <p><strong>Total Biaya :</strong> {{ $nf2($grand) }}</p>
+        <p><strong>Terbilang :</strong> {{ $terbilang }}</p>
         <br>
-        <p><strong>Menyelesaikan Pekerjaan Dalam Waktu :</strong> 28 Hari Kerja (Tidak Termasuk Hari Sabtu / Minggu /
+        <p><strong>Menyelesaikan Pekerjaan Dalam Waktu :</strong> {{ $po->spktotalday }} Hari Kerja (Tidak Termasuk Hari Sabtu / Minggu /
             Hari Libur Nasional).</p>
-        <p><strong>Waktu Pelaksanaan Pekerjaan :</strong> Hari Senin s/d Jumat Pukul 09.00 s/d 18.00 WIB.</p>
-        <p><strong>Total Man Power :</strong> 5 Orang.</p>
-        <p><strong>PIC / Person In Charge :</strong> Bapak Jhon || HP 0813-12000866.</p>
-        <p><strong>Cara Pembayaran :</strong> Transfer.</p>
+        <p><strong>Waktu Pelaksanaan Pekerjaan :</strong> {{ $po->spkworkschedule }}.</p>
+        <p><strong>Total Man Power :</strong> {{ $po->spkmanpower }} Orang.</p>
+        <p><strong>PIC / Person In Charge :</strong> {{ $po->spkpic }}.</p>
+        <p><strong>Cara Pembayaran :</strong> {{ $po->spkcarabayar }}.</p>
 
         <br>
 
@@ -213,22 +215,24 @@
                 </tr>
             </thead>
             <tbody>
-                <tr>
-                    <td>JASA PEKERJAAN<br>JASA PEKERJAAN GENERAL CHECK UP FIRE PUMP (ELECTRIC, DIESEL, JOCKEY PUMP)</td>
-                    <td style="text-align:right;">12,500,000.00</td>
-                </tr>
+                @foreach ($podetail as $i => $item)                
+                    <tr>
+                        <td>{{ $item->inventory_descr }}</td>
+                        <td style="text-align:right;">{{ $nf2($item->totalcost) }}</td>
+                    </tr>      
+                @endforeach   
                 <tr>
                     <td style="text-align:right;"><strong>PPN :</strong></td>
-                    <td style="text-align:right;">1,375,000.00</td>
+                    <td style="text-align:right;">{{ $nf2($ppn) }}</td>
                 </tr>
                 <tr>
                     <td style="text-align:right;"><strong>TOTAL :</strong></td>
-                    <td style="text-align:right;">13,875,000.00</td>
+                    <td style="text-align:right;">{{ $nf2($grand) }}</td>
                 </tr>
             </tbody>
         </table>
 
-        <p><strong>TOP :</strong> 14DAYS</p>
+        <p><strong>TOP :</strong> {{ $po->vendortop }}</p>
         <p>Pembayaran 14 Hari setelah Bast dan Invoice, include PPN dan PPH</p>
 
         {{-- Footer (company + paraf) --}}
@@ -237,9 +241,9 @@
                 <tr>
                     <td>
                         <p>
-                            <strong>AW - Artisan Wahyu, PT</strong><br>
-                            JL. Sultan Iskandar Muda No 8, Jakarta, DKI JAKARTA
-                            Telp: (622) 129-0080 00 Fax: (622) 129-0531 91
+                            <strong>{{ $po->cpny_id }} - {{ $company->cpny_name }}</strong><br>
+                            {{ $company->address_line1 }}
+                            Telp: {{ $company->phone }} Fax: {{ $company->fax }}
                         </p>
                     </td>
                     <td>
@@ -250,10 +254,10 @@
         </div>
 
         {{-- Fixed bottom line --}}
-        <div class="fixed-footer">
+        {{-- <div class="fixed-footer">
             <div>Created: Wahyu Dwi Harnowo, Sent by: Wahyu Dwi Harnowo, On: 9/23/2025 9:36:55 AM</div>
             <div>Page 1 of 3</div>
-        </div>
+        </div> --}}
     </div>
 
     {{-- PAGE 2 --}}
@@ -495,7 +499,7 @@
             </li>
         </ol>
 
-        <p><strong>Demikian Surat Perintah Kerja ini dibuat sesuai dengan PJ25090002 agar dapat dipergunakan sebagaimana
+        <p><strong>Demikian Surat Perintah Kerja ini dibuat sesuai dengan {{ $po->sppbjktid }} agar dapat dipergunakan sebagaimana
                 mestinya.</strong></p>
 
         {{-- Footer (company + paraf) --}}
@@ -504,9 +508,9 @@
                 <tr>
                     <td>
                         <p>
-                            <strong>AW - Artisan Wahyu, PT</strong><br>
-                            JL. Sultan Iskandar Muda No 8, Jakarta, DKI JAKARTA
-                            Telp: (622) 129-0080 00 Fax: (622) 129-0531 91
+                            <strong>{{ $po->cpny_id }} - {{ $company->cpny_name }}</strong><br>
+                             {{ $company->address_line1 }}
+                            Telp: {{ $company->phone }} Fax: {{ $company->fax }}
                         </p>
                     </td>
                     <td>
@@ -517,10 +521,10 @@
         </div>
 
         {{-- Fixed bottom line --}}
-        <div class="fixed-footer">
+        {{-- <div class="fixed-footer">
             <div>Created: Wahyu Dwi Harnowo, Sent by: Wahyu Dwi Harnowo, On: 9/23/2025 9:36:55 AM</div>
             <div>Page 1 of 3</div>
-        </div>
+        </div> --}}
 
     </div>
 

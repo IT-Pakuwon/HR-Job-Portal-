@@ -13,14 +13,17 @@ class MsBudgetTemp extends Model
     protected $connection = 'pgsql';
     protected $table = 'ms_budget_temp';   
     protected $fillable = [     
-        'temp_id',
+        'temp_budget_id',
         'perpost',
         'cpny_id',
         'business_unit_id',
         'department_fin_id',
         'account_id',
         'activity_id',
+        'activity_descr',
         'activity_detail',
+        'qty_budget',
+        'unit_price_budget',
         'totalbudget',
         'period01_budget',
         'period02_budget',

@@ -94,7 +94,7 @@ class BudgetController extends Controller
 
         $tempData = [];
         if ($temp_id) {
-            $tempData = MsBudgetTemp::where('temp_id', $temp_id)->get();
+            $tempData = MsBudgetTemp::where('temp_budget_id', $temp_id)->get();
         }
 
        
@@ -109,6 +109,8 @@ class BudgetController extends Controller
             'business_unit_id'  => 'required',
             'department_fin_id' => 'required',
         ]);
+       
+        $eid = Hashids::encode($budget->id);
 
         try {
             $username = Auth::user()->username;
@@ -132,7 +134,7 @@ class BudgetController extends Controller
 
             /* ───────── Redirect ───────── */
             return $budget
-                ? redirect()->route('budget.edit', $budget->id)
+                ? redirect()->route('budget.edit', $eid)
                             ->with('success', 'Data berhasil di‑import (edit mode).')
                 : redirect()->route('budget.create')
                             ->with('success', 'Data berhasil di‑import.');
@@ -154,7 +156,7 @@ class BudgetController extends Controller
         // dd($request->all());               
         $temp_id = $request->input('temp_id'); 
         $doctype = 'BUD';
-        $tempData = MsBudgetTemp::where('temp_id', $temp_id)->get();
+        $tempData = MsBudgetTemp::where('temp_budget_id', $temp_id)->get();
         $tempHead = $tempData->first(); // ambil 1 record untuk akses data header
         $business_unit = BusinessUnitPG::where('business_unit_id', $tempHead->business_unit_id)->first();
 
@@ -208,7 +210,7 @@ class BudgetController extends Controller
             }
 
             $tglbln = substr($year, 2) . $month;
-            $docid = $doctype . $tglbln . sprintf("%03d", $urutan);
+            $docid = $doctype . $tglbln . sprintf("%04d", $urutan);
          
             $budget = Budget::create([
                 'budget_id' => $docid,
@@ -231,7 +233,10 @@ class BudgetController extends Controller
                     'department_fin_id'  => $row->department_fin_id,
                     'account_id'         => $row->account_id,
                     'activity_id'        => $row->activity_id,
+                    'activity_descr'     => $row->activity_descr,
                     'activity_detail'    => $row->activity_detail,
+                    'qty_budget'         => $row->qty_budget,
+                    'unit_price_budget'  => $row->unit_price_budget,
                     'totalbudget'        => $row->totalbudget,
 
                     'period01_budget'    => $row->period01_budget,
@@ -246,6 +251,20 @@ class BudgetController extends Controller
                     'period10_budget'    => $row->period10_budget,
                     'period11_budget'    => $row->period11_budget,
                     'period12_budget'    => $row->period12_budget,
+
+                    // ===== NEW: add (default 0)
+                    'period01_budget_add'   => 0,
+                    'period02_budget_add'   => 0,
+                    'period03_budget_add'   => 0,
+                    'period04_budget_add'   => 0,
+                    'period05_budget_add'   => 0,
+                    'period06_budget_add'   => 0,
+                    'period07_budget_add'   => 0,
+                    'period08_budget_add'   => 0,
+                    'period09_budget_add'   => 0,
+                    'period10_budget_add'   => 0,
+                    'period11_budget_add'   => 0,
+                    'period12_budget_add'   => 0,
 
                     // ===== NEW: reserve (default 0)
                     'period01_reserve'   => 0,
@@ -281,7 +300,7 @@ class BudgetController extends Controller
             }
 
 
-            MsBudgetTemp::where('temp_id', $temp_id)->delete();
+            MsBudgetTemp::where('temp_budget_id', $temp_id)->delete();
            
             //read ms_approval
             $m_approval = M_approval::where('aprvdoctype', $doctype)
@@ -414,7 +433,7 @@ class BudgetController extends Controller
         $budget_detail = BudgetDetail::where('budget_id', $budget->budget_id) 
             ->get();
         $temp_id  = session('import_temp_id');
-        $tempData = $temp_id ? MsBudgetTemp::where('temp_id', $temp_id)->get() : [];
+        $tempData = $temp_id ? MsBudgetTemp::where('temp_budget_id', $temp_id)->get() : [];
         $attachment = Attachment::where('docid', $budget->budget_id)  
             ->where('status','A')         
             ->get();
@@ -437,7 +456,7 @@ class BudgetController extends Controller
         // dd($request->all());      
         $temp_id = $request->input('temp_id'); 
         $doctype = 'BUD';
-        $tempData = MsBudgetTemp::where('temp_id', $temp_id)->get();
+        $tempData = MsBudgetTemp::where('temp_budget_id', $temp_id)->get();
         $tempHead = $tempData->first(); // ambil 1 record untuk akses data header
         $business_unit = BusinessUnitPG::where('business_unit_id', $tempHead->business_unit_id)->first();
 
@@ -490,7 +509,10 @@ class BudgetController extends Controller
                     'department_fin_id' => $row->department_fin_id,
                     'account_id' => $row->account_id,
                     'activity_id' => $row->activity_id,
+                    'activity_descr' => $row->activity_descr,
                     'activity_detail' => $row->activity_detail,
+                    'qty_budget'      => $row->qty_budget,
+                    'unit_price_budget' => $row->unit_price_budget,
                     'totalbudget' => $row->totalbudget,
                     'period01_budget' => $row->period01_budget,
                     'period02_budget' => $row->period02_budget,
@@ -509,7 +531,7 @@ class BudgetController extends Controller
                 ]);
             }
 
-            MsBudgetTemp::where('temp_id', $temp_id)->delete();
+            MsBudgetTemp::where('temp_budget_id', $temp_id)->delete();
 
             //read ms_approval
              $m_approval = M_approval::where('aprvdoctype', $doctype)

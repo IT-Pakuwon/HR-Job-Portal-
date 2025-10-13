@@ -34,8 +34,7 @@
     {{-- Meta Info --}}
     <div class="meta-grid">
       <div class="label">Order Nbr</div>
-      <div><input id="orderNbr" type="text" class="form-control" value="{{ $ponbr }}" readonly></div>
-
+      <div><input id="orderNbr" type="text" class="form-control" value="{{ $ponbr }}" readonly></div>      
       <div class="label">Template</div>
       <div><input id="templateType" type="text" class="form-control" value="{{ $template }}" readonly></div>
 

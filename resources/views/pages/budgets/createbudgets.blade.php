@@ -256,8 +256,11 @@
                                             <th class="px-4 py-2">Business Unit</th>
                                             <th class="px-4 py-2">Department</th>
                                             <th class="px-4 py-2">Account</th>
-                                            <th class="px-4 py-2">Activity</th>
-                                            <th class="px-4 py-2">Detail</th>
+                                            <th class="px-4 py-2">Activity ID</th>
+                                            <th class="px-4 py-2">Activity Description</th>
+                                            <th class="px-4 py-2">Activity Detail</th>
+                                            <th class="px-4 py-2">Qty</th>
+                                            <th class="px-4 py-2">Unit Price</th>
                                             <th class="px-4 py-2 text-right">Total Budget</th>
                                             @for ($i = 1; $i <= 12; $i++)
                                                 <th class="px-4 py-2 text-right">
@@ -274,7 +277,10 @@
                                                 <td class="px-4 py-2">{{ $item->department_fin_id }}</td>
                                                 <td class="px-4 py-2">{{ $item->account_id }}</td>
                                                 <td class="px-4 py-2">{{ $item->activity_id }}</td>
+                                                <td class="px-4 py-2">{{ $item->activity_descr }}</td>
                                                 <td class="px-4 py-2">{{ $item->activity_detail }}</td>
+                                                <td class="px-4 py-2">{{ $item->qty_budget }}</td>
+                                                <td class="px-4 py-2">{{ $item->unit_price_budget }}</td>
                                                 <td class="px-4 py-2 text-right">
                                                     {{ number_format($item->totalbudget) }}</td>
                                                 @for ($i = 1; $i <= 12; $i++)
