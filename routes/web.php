@@ -45,14 +45,15 @@ use App\Http\Controllers\SppbController;
 use App\Http\Controllers\SppjController; 
 use App\Http\Controllers\SpptController; 
 use App\Http\Controllers\SppkController; 
-use App\Http\Controllers\ReceivedListController;
+use App\Http\Controllers\AssignListController;
 use App\Http\Controllers\CsJobController;
 use App\Http\Controllers\CsListController;
 use App\Http\Controllers\CanvassController;
 use App\Http\Controllers\BqCSController;
 use App\Http\Controllers\PoListController;
 use App\Http\Controllers\PoController;
-
+use App\Http\Controllers\ReceiptListController;
+use App\Http\Controllers\ReceiptController;
 
 use App\Http\Controllers\CanvassxController;
 
@@ -506,10 +507,10 @@ Route::post('/logout', function () {
     Route::get('/sppks/{id}/tracking', [SppkController::class, 'tracking'])->name('sppks.tracking');
     Route::get('/pdf_sppks/{hash}', [SppkController::class, 'printSppk']);
 
-    Route::get('/receivedlist', [ReceivedListController::class, 'ReceivedList'])->name('receivedlist');
-    Route::get('/receivedlist/json', [ReceivedListController::class, 'ReceivedListJson'])->name('receivedlist.json');
-    Route::get('/receivedlist/users', [ReceivedListController::class, 'ReceivedListUsers'])->name('receivedlist.users');
-    Route::post('/receivedlist/assign', [ReceivedListController::class, 'AssignPurchasing'])->name('receivedlist.assign');
+    Route::get('/assignlist', [AssignListController::class, 'AssignList'])->name('assignlist');
+    Route::get('/assignlist/json', [AssignListController::class, 'AssignListJson'])->name('assignlist.json');
+    Route::get('/assignlist/users', [AssignListController::class, 'AssignListUsers'])->name('assignlist.users');
+    Route::post('/assignlist/assign', [AssignListController::class, 'AssignPurchasing'])->name('assignlist.assign');
 
     Route::get('/csjobs', [CsJobController::class, 'CsJobs'])->name('csjobs');   
     Route::get('/csjobs/mine/json', [CsJobController::class, 'CsJobsMineJson'])->name('csjobs.mine.json');                 
@@ -521,6 +522,8 @@ Route::post('/logout', function () {
     Route::get('/editcs/{eid}', [CsJobController::class, 'editCS'])->name('csjobs.edit');      
     Route::put('/csjobs/{csid}', [CsJobController::class, 'updateCS'])->name('csjobs.update');
     Route::put('/csjobs/remove-attachment/{id}', [CsJobController::class, 'removeAttachment']);
+    Route::get('/csjobs/dataset-counts', [CsJobController::class,'CsJobsDatasetCounts'])->name('csjobs.dataset.counts');
+
 
     
     // Route::get('/cslist', [CsListController::class, 'index'])->name('cslist');
@@ -579,6 +582,11 @@ Route::post('/logout', function () {
     Route::get('/pdf_po/{hash}', [PoController::class, 'printPO']);
     Route::get('/po/{hash}/view-email', [POController::class, 'viewEmailPO'])->name('po.viewemail');
     Route::post('/po/{ponbr}/email/send', [POController::class, 'sendNowPO'])->name('po.email.send');
+
+    Route::get('/receiptlist', [ReceiptListController::class, 'index'])->name('receiptlist');
+    Route::get('/receiptlist/json', [ReceiptListController::class, 'json'])->name('receiptlist.json');
+    Route::get('/receipt/create', [ReceiptController::class, 'createReceipt'])->name('receipt.create');    
+    Route::post('/receipts', [ReceiptController::class, 'storeReceipt'])->name('receipt.store'); 
 
 
     Route::get('/inventory/list', [MasterController::class, 'InventoryList'])->name('inventory.list');

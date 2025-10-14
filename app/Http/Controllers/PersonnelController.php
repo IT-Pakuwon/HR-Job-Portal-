@@ -35,6 +35,7 @@ use App\Models\StoJobSpec;
 use App\Models\Division;
 use App\Models\CompanyAddress;
 use App\Models\StoSubGrading;
+use Vinkla\Hashids\Facades\Hashids;
 
 
 use Mail;

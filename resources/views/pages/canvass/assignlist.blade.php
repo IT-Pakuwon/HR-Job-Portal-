@@ -299,7 +299,7 @@
                 <div
                     class="flex flex-col items-start justify-between gap-4 border-b border-gray-200 p-4 sm:flex-row sm:items-center dark:border-gray-700">
                     {{-- Changed text-3xl to text-xl --}}
-                    <h1 class="text-xl font-extrabold text-gray-700 dark:text-white">Received List</h1>
+                    <h1 class="text-xl font-extrabold text-gray-700 dark:text-white">Assign List</h1>
                     <button id="btnAssignPurchasing"
                         class="inline-flex items-center rounded-xl bg-blue-600 px-6 py-2 text-base font-semibold text-white transition-colors duration-200 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
                         <i class="fas fa-check pr-2"></i>Assign Purchasing
@@ -358,7 +358,7 @@
                         pageLength: 25,
                         lengthMenu: [10, 25, 50, 100, 250],
                         ajax: {
-                            url: "{{ route('receivedlist.json') }}",
+                            url: "{{ route('assignlist.json') }}",
                             type: "GET",
                             data: function(d) {
                                 d.doc = docTypeFilter;
@@ -452,7 +452,7 @@
                                         width: 'resolve',
                                         minimumInputLength: 0,
                                         ajax: {
-                                            url: "{{ route('receivedlist.users') }}",
+                                            url: "{{ route('assignlist.users') }}",
                                             dataType: 'json',
                                             delay: 250,
                                             data: params => ({
@@ -511,7 +511,7 @@
                         }
 
                         const $btn = $('#btnAssignPurchasing').prop('disabled', true).text('Assigning...');
-                        $.post("{{ route('receivedlist.assign') }}", {
+                        $.post("{{ route('assignlist.assign') }}", {
                                 items
                             })
                             .done(res => {

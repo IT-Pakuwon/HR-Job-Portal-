@@ -28,7 +28,7 @@ use App\Models\TrSPPT;
 use App\Models\TrSPPTdetail;
 use App\Models\MsLocationPG;
 use App\Models\MsSubLocationPG;
-use App\Models\vReceivedList;
+use App\Models\vAssignList;
 use App\Models\vSppbjktOnProgress;
 use App\Models\TrCS;
 use App\Models\TrCSdetail;
@@ -48,7 +48,7 @@ use App\Models\TrBQCSDetail;
 class CsJobController extends Controller
 {
 
-    public function CsJobs()
+    public function CsJobsxxx()
     {
         $user = Auth::user();
         if (!$user) return redirect()->route('login');
@@ -62,6 +62,32 @@ class CsJobController extends Controller
 
         return view('pages.canvass.csjobs', compact('all', 'sppb', 'sppj', 'sppk', 'sppt'));
     }
+
+    public function CsJobs()
+    {
+        $user = Auth::user();
+        if (!$user) return redirect()->route('login');
+
+        $mine     = vCsJobs::where('assignpurchasing', $user->username)->count();
+        $revision = vCsRevision::count();              // kalau mau “my” banget → where('created_by', $user->username)
+        $all      = vCsJobs::count();
+        $sppbjkt  = vSppbjktOnProgress::count();
+
+        return view('pages.canvass.csjobs', compact('mine','revision','all','sppbjkt'));
+    }
+
+    public function CsJobsDatasetCounts(Request $request)
+    {
+        $username = Auth::user()->username ?? '';
+
+        return response()->json([
+            'mine'     => vCsJobs::where('assignpurchasing', $username)->count(),
+            'revision' => vCsRevision::count(),
+            'all'      => vCsJobs::count(),
+            'sppbjkt'  => vSppbjktOnProgress::count(),
+        ]);
+    }
+
 
     private function buildJobsJson($base, Request $request)
     {

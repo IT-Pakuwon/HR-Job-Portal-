@@ -22,7 +22,7 @@ use App\Models\TrSPPB;
 use App\Models\TrSPPBdetail;
 use App\Models\MsLocationPG;
 use App\Models\MsSubLocationPG;
-use App\Models\vReceivedList;
+use App\Models\vAssignList;
 use App\Models\vSppbjktOnProgress;
 use App\Models\TrCS;
 use App\Models\vCsJobs;

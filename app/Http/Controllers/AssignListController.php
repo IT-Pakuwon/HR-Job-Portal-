@@ -22,7 +22,7 @@ use App\Models\TrSPPB;
 use App\Models\TrSPPBdetail;
 use App\Models\MsLocationPG;
 use App\Models\MsSubLocationPG;
-use App\Models\vReceivedList;
+use App\Models\vAssignList;
 use App\Models\vSppbjktOnProgress;
 use App\Models\vCsJobs;
 use App\Models\vCsRevision;
@@ -32,12 +32,12 @@ use Illuminate\Validation\Rule;
 use Vinkla\Hashids\Facades\Hashids;
 
 
-class ReceivedListController extends Controller
+class AssignListController extends Controller
 {
-    public function ReceivedList()
+    public function AssignList()
     {
-        // Base query: sama seperti ReceivedListJson (belum di-filter doc type)
-        $base = vReceivedList::query()
+        // Base query: sama seperti AssignListJson (belum di-filter doc type)
+        $base = vAssignList::query()
             ->where(function ($q) {
                 $q->whereNull('assignpurchasing')
                 ->orWhere('assignpurchasing', '')
@@ -51,10 +51,10 @@ class ReceivedListController extends Controller
         $sppk = (clone $base)->where('doc_type', 'SPPK')->count();
         $sppt = (clone $base)->where('doc_type', 'SPPT')->count();
 
-        return view('pages.canvass.receivedlist', compact('all', 'sppb', 'sppj', 'sppk', 'sppt'));
+        return view('pages.canvass.assignlist', compact('all', 'sppb', 'sppj', 'sppk', 'sppt'));
     }
 
-    public function ReceivedListJson(Request $request)
+    public function AssignListJson(Request $request)
     {
         $draw   = (int) $request->input('draw', 1);
         $start  = (int) $request->input('start', 0);
@@ -76,7 +76,7 @@ class ReceivedListController extends Controller
         $orderCol = $columns[$orderIdx] ?? 'doc_date';
 
         // Base query dari VIEW
-         $base = vReceivedList::query()
+         $base = vAssignList::query()
             ->with('creator:username,name') // eager load nama user
             ->where(function ($q) {
                 $q->whereNull('assignpurchasing')
@@ -140,7 +140,7 @@ class ReceivedListController extends Controller
         ]);
     }
 
-    public function ReceivedListUsers(Request $request)
+    public function AssignListUsers(Request $request)
     {
         $q = trim((string) $request->query('q', ''));
         $qLower = mb_strtolower($q);

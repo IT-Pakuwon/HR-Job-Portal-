@@ -4,10 +4,10 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class vReceivedList extends Model
+class vAssignList extends Model
 {
     protected $connection  = 'pgsql';
-    protected $table       = 'v_received_list';
+    protected $table       = 'v_assign_list';
     protected $primaryKey  = 'row_id';
     public $incrementing   = false;
     protected $keyType     = 'string';

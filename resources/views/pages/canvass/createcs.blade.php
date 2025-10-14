@@ -205,7 +205,8 @@
                     <input type="hidden" name="cpny_id" value="{{ $header->cpny_id }}">
                     <input type="hidden" name="department_id" value="{{ $header->department_id }}">
                     <input type="hidden" name="bqid" value="{{ $header->bqid ?? '' }}">
-                    <input type="hidden" name="user_peminta" value="{{ optional($header->creator)->name }}">
+                    {{-- <input type="hidden" name="user_peminta" value="{{ optional($header->creator)->name }}"> --}}
+                    <input type="hidden" name="user_peminta" value="{{ $header->created_by }}">
                     <input type="hidden" name="assigndate" value="{{ $header->assigndate ?? '' }}">
 
                     <!-- Create CS Header -->

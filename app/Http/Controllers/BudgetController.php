@@ -110,7 +110,7 @@ class BudgetController extends Controller
             'department_fin_id' => 'required',
         ]);
        
-        $eid = Hashids::encode($budget->id);
+        $eid = $budget ? Hashids::encode($budget->id) : null;
 
         try {
             $username = Auth::user()->username;

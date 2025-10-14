@@ -5,10 +5,10 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Autonbr extends Model
+class MsAutonbr extends Model
 {
-    protected $connection = 'mysql2';
-    // protected $connection = 'pgsql2';
+    // protected $connection = 'mysql2';
+    protected $connection = 'pgsql2';
     protected $table = "ms_autonbr";
     protected $primaryKey = 'id';
     protected $fillable = [

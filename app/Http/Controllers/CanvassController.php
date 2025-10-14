@@ -28,7 +28,7 @@ use App\Models\TrSPPT;
 use App\Models\TrSPPTdetail;
 use App\Models\MsLocationPG;
 use App\Models\MsSubLocationPG;
-use App\Models\vReceivedList;
+use App\Models\vAssignList;
 use App\Models\vSppbjktOnProgress;
 use App\Models\vCsJobs;
 use App\Models\vCsRevision;
@@ -371,7 +371,7 @@ class CanvassController extends Controller
                 $det->sppbjktid = $sppbjktid;
                 $det->cs_no               = $lineNo;
                 $det->sppbjkt_no             = $srcRefNo; // isi dengan nomor baris sumber apapun namanya
-
+                $det->inventory_type         = $d['inventory_type']        ?? ($src->inventory_type ?? null);
                 $det->inventoryid         = $d['inventoryid']        ?? ($src->inventoryid ?? null);
                 $det->inventory_descr     = $d['inventory_descr']    ?? ($src->inventory_descr ?? null);
                 $det->qty                 = $round2($d['qty']        ?? ($src->qty ?? 0));
@@ -859,8 +859,8 @@ class CanvassController extends Controller
                 $det->csid                = $csid;
                 $det->sppbjktid = $sppbjktid;
                 $det->cs_no               = $lineNo;
-                $det->sppbjkt_no             = $srcRefNo; // isi dengan nomor baris sumber apapun namanya
-
+                $det->sppbjkt_no          = $srcRefNo; // isi dengan nomor baris sumber apapun namanya
+                $det->inventory_type      = $d['inventory_type']        ?? ($src->inventory_type ?? null);
                 $det->inventoryid         = $d['inventoryid']        ?? ($src->inventoryid ?? null);
                 $det->inventory_descr     = $d['inventory_descr']    ?? ($src->inventory_descr ?? null);
                 $det->qty                 = $round2($d['qty']        ?? ($src->qty ?? 0));
@@ -1925,7 +1925,7 @@ class CanvassController extends Controller
                 $po->submitdate      = $now;
                 // field tanggal pengiriman/kontrak bisa diisi belakangan
                 $po->status          = 'H'; // draft/hold; sesuaikan workflow-mu
-                $po->created_by      = $user->username ?? 'system';
+                $po->created_by      = $cs->created_by ?? 'system';
 
                 $po->save();
                 
