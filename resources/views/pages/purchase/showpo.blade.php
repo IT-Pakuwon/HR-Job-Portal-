@@ -373,8 +373,9 @@
                         {{-- Tabs Content --}}
                         <div class="flex flex-1 flex-col rounded-b-xl bg-white dark:bg-gray-800">
                             {{-- Information PO Tab --}}
-                            <div x-show="activeTab === 'information_po'" class="flex-1 p-4 transition-all">
-                                <form id="infoPoForm" class="space-y-5">
+                            <div x-show="activeTab === 'information_po'" class="flex-1 p-4 transition-all"
+                                wire:ignore>
+                                <form id="infoPoForm" class="space-y-5" @submit.prevent>
                                     @csrf
                                     @php
                                         $isPO = strtoupper($po->potype ?? '') === 'PO';
@@ -407,225 +408,302 @@
                                     @else
                                         {{-- ====== TYPE: SPK or Other ====== --}}
                                         <div class="space-y-5">
-                                            {{-- Section: Tanggal Pelaksanaan --}}
+                                            {{-- SECTION: Work & Contract Summary --}}
                                             <section
-                                                class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+                                                class="rounded-lg border border-gray-200 bg-gray-50 p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800/60">
                                                 <h3
-                                                    class="mb-3 text-base font-semibold text-gray-800 dark:text-gray-100">
-                                                    Tanggal Pelaksanaan Pekerjaan
+                                                    class="mb-6 text-base font-semibold text-gray-800 dark:text-gray-100">
+                                                    Work & Contract Summary
                                                 </h3>
-                                                <div class="grid grid-cols-1 gap-4 md:grid-cols-4">
-                                                    <div>
-                                                        <label
-                                                            class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-300">Dari
-                                                            Tanggal</label>
-                                                        @if ($isHold)
-                                                            <input type="date" name="work_date_from"
-                                                                id="work_date_from"
-                                                                value="{{ old('work_date_from') }}"
-                                                                class="w-full rounded-md border border-gray-300 bg-gray-50 p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" />
-                                                        @else
-                                                            <p
-                                                                class="w-full rounded-md border border-gray-200 bg-gray-50 p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
-                                                                {{ optional($po->spkstartworkingdate)->format('d M Y') ?? '-' }}
-                                                            </p>
-                                                        @endif
-                                                    </div>
-                                                    <div>
-                                                        <label
-                                                            class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-300">Sampai
-                                                            Tanggal</label>
-                                                        @if ($isHold)
-                                                            <input type="date" name="work_date_to"
-                                                                id="work_date_to" value="{{ old('work_date_to') }}"
-                                                                class="w-full rounded-md border border-gray-300 bg-gray-50 p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" />
-                                                        @else
-                                                            <p
-                                                                class="w-full rounded-md border border-gray-200 bg-gray-50 p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
-                                                                {{ optional($po->spkendtworkingdate)->format('d M Y') ?? '-' }}
-                                                            </p>
-                                                        @endif
-                                                    </div>
-                                                    <div
-                                                        class="flex items-end text-sm text-gray-600 md:col-span-2 dark:text-gray-300">
-                                                        (Pelaksanaan Pekerjaan)
-                                                    </div>
-                                                </div>
-                                            </section>
 
-                                            {{-- Section: Lama Pekerjaan --}}
-                                            <section
-                                                class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
-                                                <h3
-                                                    class="mb-3 text-base font-semibold text-gray-800 dark:text-gray-100">
-                                                    Lama Pekerjaan
-                                                </h3>
-                                                <div class="grid grid-cols-1 gap-4 md:grid-cols-4">
-                                                    <div>
-                                                        <label
-                                                            class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-300">Jumlah
-                                                            Hari Kerja</label>
-                                                        @if ($isHold)
-                                                            <input type="number" name="work_days" id="work_days"
-                                                                min="0" step="1"
-                                                                value="{{ old('work_days') }}" placeholder="05"
-                                                                class="w-full rounded-md border border-gray-300 bg-gray-50 p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" />
-                                                        @else
-                                                            <p
-                                                                class="w-full rounded-md border border-gray-200 bg-gray-50 p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
-                                                                {{ $po->spktotalday }}
-                                                            </p>
-                                                        @endif
-                                                    </div>
-                                                    <div
-                                                        class="flex items-end text-sm text-gray-600 md:col-span-3 dark:text-gray-300">
-                                                        (Tidak Termasuk Hari Sabtu / Minggu / Hari Libur Nasional)
-                                                    </div>
-                                                </div>
-                                            </section>
-
-                                            {{-- Section: Waktu Pelaksanaan --}}
-                                            <section
-                                                class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
-                                                <h3
-                                                    class="mb-3 text-base font-semibold text-gray-800 dark:text-gray-100">
-                                                    Waktu Pelaksanaan Pekerjaan
-                                                </h3>
-                                                <div class="grid grid-cols-1 gap-4 md:grid-cols-6">
-                                                    @if ($isHold)
-                                                        <div class="md:col-span-2">
-                                                            <label
-                                                                class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-300">Hari
-                                                                (Dari)</label>
-                                                            <input type="text" name="work_day_from"
-                                                                id="work_day_from" value="{{ old('work_day_from') }}"
-                                                                placeholder="Senin"
-                                                                class="w-full rounded-md border border-gray-300 bg-gray-50 p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" />
-                                                        </div>
-                                                        <div class="md:col-span-2">
-                                                            <label
-                                                                class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-300">Hari
-                                                                (Sampai)</label>
-                                                            <input type="text" name="work_day_to" id="work_day_to"
-                                                                value="{{ old('work_day_to') }}" placeholder="Jumat"
-                                                                class="w-full rounded-md border border-gray-300 bg-gray-50 p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" />
-                                                        </div>
-                                                        <div>
-                                                            <label
-                                                                class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-300">Pukul
-                                                                (Dari)</label>
-                                                            <input type="time" name="work_time_from"
-                                                                id="work_time_from"
-                                                                value="{{ old('work_time_from') }}"
-                                                                class="w-full rounded-md border border-gray-300 bg-gray-50 p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" />
-                                                        </div>
-                                                        <div>
-                                                            <label
-                                                                class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-300">Pukul
-                                                                (Sampai)</label>
-                                                            <input type="time" name="work_time_to"
-                                                                id="work_time_to" value="{{ old('work_time_to') }}"
-                                                                class="w-full rounded-md border border-gray-300 bg-gray-50 p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" />
-                                                        </div>
-                                                    @else
-                                                        <div class="md:col-span-2">
-                                                            <p
-                                                                class="w-full rounded-md border border-gray-200 bg-gray-50 p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
-                                                                {{ $po->spkworkschedule }}
-                                                            </p>
-                                                        </div>
-                                                    @endif
-                                                </div>
-                                                <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">WIB</p>
-                                            </section>
-
-                                            {{-- Section: Man Power --}}
-                                            <section
-                                                class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
-                                                <h3
-                                                    class="mb-3 text-base font-semibold text-gray-800 dark:text-gray-100">
-                                                    Total Man Power
-                                                </h3>
-                                                <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
-                                                    @if ($isHold)
-                                                        <input type="number" name="manpower_total"
-                                                            id="manpower_total" min="0" step="1"
-                                                            value="{{ old('manpower_total') }}" placeholder="0"
-                                                            class="w-full rounded-md border border-gray-300 bg-gray-50 p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" />
-                                                    @else
-                                                        <p
-                                                            class="w-full rounded-md border border-gray-200 bg-gray-50 p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
-                                                            {{ $po->spkmanpower }} Orang
-                                                        </p>
-                                                    @endif
-                                                </div>
-                                            </section>
-
-                                            {{-- Section: PIC --}}
-                                            <section
-                                                class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
-                                                <h3
-                                                    class="mb-3 text-base font-semibold text-gray-800 dark:text-gray-100">
-                                                    PIC / Person In Charge
-                                                </h3>
-                                                <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-                                                    <div>
-                                                        @if ($isHold)
-                                                            <input type="text" name="pic_name" id="pic_name"
-                                                                value="{{ old('pic_name', 'Bapak X') }}"
-                                                                class="w-full rounded-md border border-gray-300 bg-gray-50 p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" />
-                                                        @else
-                                                            <p
-                                                                class="w-full rounded-md border border-gray-200 bg-gray-50 p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
-                                                                {{ $po->spkpic }}
-                                                            </p>
-                                                        @endif
-                                                    </div>
-                                                    <div>
-                                                        @if ($isHold)
-                                                            <input type="text" name="pic_phone" id="pic_phone"
-                                                                value="{{ old('pic_phone', '0859 4612 0121') }}"
-                                                                class="w-full rounded-md border border-gray-300 bg-gray-50 p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" />
-                                                        @endif
-                                                    </div>
-                                                </div>
-                                            </section>
-
-                                            {{-- Section: Cara Pembayaran --}}
-                                            <section
-                                                class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
-                                                <h3
-                                                    class="mb-3 text-base font-semibold text-gray-800 dark:text-gray-100">
-                                                    Cara Pembayaran
-                                                </h3>
-                                                <input type="text" name="payment_method" id="payment_method"
-                                                    value="{{ old('payment_method', 'Giro') }}"
-                                                    class="w-full max-w-sm rounded-md border border-gray-300 bg-gray-50 p-2 text-sm uppercase dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
-                                                    readonly>
-                                            </section>
-
-                                            {{-- Section: Garansi --}}
-                                            <section
-                                                class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
-                                                <h3
-                                                    class="mb-3 text-base font-semibold text-gray-800 dark:text-gray-100">
-                                                    Garansi Pekerjaan
-                                                </h3>
                                                 @if ($isHold)
-                                                    <input type="text" name="warranty" id="warranty"
-                                                        value="{{ old('warranty', '1 WEEK') }}"
-                                                        class="w-full max-w-sm rounded-md border border-gray-300 bg-gray-50 p-2 text-sm uppercase dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" />
+                                                    {{-- ==================== EDITABLE MODE ==================== --}}
+                                                    <div class="space-y-6">
+
+                                                        {{-- Row 1: Work Execution Schedule --}}
+                                                        <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+                                                            {{-- Work Execution Date --}}
+                                                            <div>
+                                                                <label
+                                                                    class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                                                    Work Execution Date
+                                                                </label>
+                                                                <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                                                                    <div>
+                                                                        <label
+                                                                            class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-400">
+                                                                            Start Date
+                                                                        </label>
+                                                                        <input type="date" name="work_date_from"
+                                                                            id="work_date_from"
+                                                                            value="{{ old('work_date_from') }}"
+                                                                            class="w-full rounded-md border border-gray-300 bg-white p-2 text-sm shadow-sm focus:border-indigo-500 focus:ring-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:focus:border-indigo-400" />
+                                                                    </div>
+                                                                    <div>
+                                                                        <label
+                                                                            class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-400">
+                                                                            End Date
+                                                                        </label>
+                                                                        <input type="date" name="work_date_to"
+                                                                            id="work_date_to"
+                                                                            value="{{ old('work_date_to') }}"
+                                                                            class="w-full rounded-md border border-gray-300 bg-white p-2 text-sm shadow-sm focus:border-indigo-500 focus:ring-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:focus:border-indigo-400" />
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+
+                                                            {{-- Work Duration --}}
+                                                            <div>
+                                                                <label
+                                                                    class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                                                    Work Duration
+                                                                </label>
+                                                                <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                                                                    <div>
+                                                                        <label
+                                                                            class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-400">
+                                                                            Working Days
+                                                                        </label>
+                                                                        <input type="number" name="work_days"
+                                                                            id="work_days" min="0"
+                                                                            step="1"
+                                                                            value="{{ old('work_days') }}"
+                                                                            placeholder="05"
+                                                                            class="w-full rounded-md border border-gray-300 bg-white p-2 text-sm shadow-sm focus:border-indigo-500 focus:ring-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:focus:border-indigo-400" />
+                                                                    </div>
+                                                                    <div
+                                                                        class="flex items-end text-sm text-gray-600 dark:text-gray-400">
+                                                                        (Excludes weekends & public holidays)
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        {{-- Row 2: Work Execution Time + Man Power --}}
+                                                        <div>
+                                                            <label
+                                                                class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                                                Work Execution Time
+                                                            </label>
+
+                                                            <div class="grid grid-cols-1 gap-4 md:grid-cols-6">
+                                                                {{-- Day From --}}
+                                                                <div class="flex flex-col md:col-span-2">
+                                                                    <label
+                                                                        class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-400">
+                                                                        Day (From)
+                                                                    </label>
+                                                                    <input type="text" name="work_day_from"
+                                                                        id="work_day_from"
+                                                                        value="{{ old('work_day_from') }}"
+                                                                        placeholder="Monday"
+                                                                        class="w-full rounded-md border border-gray-300 bg-white p-2 text-sm shadow-sm focus:border-indigo-500 focus:ring-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" />
+                                                                </div>
+
+                                                                {{-- Day To --}}
+                                                                <div class="flex flex-col md:col-span-2">
+                                                                    <label
+                                                                        class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-400">
+                                                                        Day (To)
+                                                                    </label>
+                                                                    <input type="text" name="work_day_to"
+                                                                        id="work_day_to"
+                                                                        value="{{ old('work_day_to') }}"
+                                                                        placeholder="Friday"
+                                                                        class="w-full rounded-md border border-gray-300 bg-white p-2 text-sm shadow-sm focus:border-indigo-500 focus:ring-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" />
+                                                                </div>
+
+                                                                {{-- Time From --}}
+                                                                <div class="flex flex-col">
+                                                                    <label
+                                                                        class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-400">
+                                                                        Time (From)
+                                                                    </label>
+                                                                    <input type="time" name="work_time_from"
+                                                                        id="work_time_from"
+                                                                        value="{{ old('work_time_from') }}"
+                                                                        class="w-full rounded-md border border-gray-300 bg-white p-2 text-sm shadow-sm focus:border-indigo-500 focus:ring-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" />
+                                                                </div>
+
+                                                                {{-- Time To --}}
+                                                                <div class="flex flex-col">
+                                                                    <label
+                                                                        class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-400">
+                                                                        Time (To)
+                                                                    </label>
+                                                                    <input type="time" name="work_time_to"
+                                                                        id="work_time_to"
+                                                                        value="{{ old('work_time_to') }}"
+                                                                        class="w-full rounded-md border border-gray-300 bg-white p-2 text-sm shadow-sm focus:border-indigo-500 focus:ring-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" />
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+
+                                                        {{-- Payment, Warranty & Man Power (Three Columns Responsive) --}}
+                                                        <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
+                                                            {{-- Total Man Power --}}
+                                                            <div>
+                                                                <label
+                                                                    class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                                                    Total Man Power
+                                                                </label>
+                                                                <input type="number" name="manpower_total"
+                                                                    id="manpower_total" min="0" step="1"
+                                                                    value="{{ old('manpower_total') }}"
+                                                                    placeholder="0"
+                                                                    class="w-full rounded-md border border-gray-300 bg-white p-2 text-sm shadow-sm focus:border-indigo-500 focus:ring-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:focus:border-indigo-400" />
+                                                            </div>
+                                                            {{-- Payment Method --}}
+                                                            <div>
+                                                                <label
+                                                                    class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                                                    Payment Method
+                                                                </label>
+                                                                <input type="text" name="payment_method"
+                                                                    id="payment_method"
+                                                                    value="{{ old('payment_method', 'GIRO') }}"
+                                                                    class="w-full rounded-md border border-gray-300 bg-white p-2 text-sm uppercase shadow-sm focus:border-indigo-500 focus:ring-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:focus:border-indigo-400" />
+                                                            </div>
+
+                                                            {{-- Work Warranty --}}
+                                                            <div>
+                                                                <label
+                                                                    class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                                                    Work Warranty
+                                                                </label>
+                                                                <input type="text" name="warranty" id="warranty"
+                                                                    value="{{ old('warranty', '1 WEEK') }}"
+                                                                    class="w-full rounded-md border border-gray-300 bg-white p-2 text-sm uppercase shadow-sm focus:border-indigo-500 focus:ring-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:focus:border-indigo-400" />
+                                                            </div>
+
+                                                        </div>
+
+                                                        {{-- Row 3: PIC / Person In Charge (2 Columns) --}}
+                                                        <div>
+                                                            <label
+                                                                class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                                                PIC / Person In Charge
+                                                            </label>
+
+                                                            <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                                                                {{-- PIC Name --}}
+                                                                <div>
+                                                                    <label for="pic_name"
+                                                                        class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-400">
+                                                                        Name
+                                                                    </label>
+                                                                    <input type="text" name="pic_name"
+                                                                        id="pic_name"
+                                                                        value="{{ old('pic_name', 'Bapak X') }}"
+                                                                        placeholder="Enter PIC Name"
+                                                                        class="w-full rounded-md border border-gray-300 bg-white p-2 text-sm shadow-sm focus:border-indigo-500 focus:ring-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:focus:border-indigo-400" />
+                                                                </div>
+
+                                                                {{-- PIC Phone --}}
+                                                                <div>
+                                                                    <label for="pic_phone"
+                                                                        class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-400">
+                                                                        Contact Number
+                                                                    </label>
+                                                                    <input type="text" name="pic_phone"
+                                                                        id="pic_phone"
+                                                                        value="{{ old('pic_phone', '0859 4612 0121') }}"
+                                                                        placeholder="Enter Contact Number"
+                                                                        class="w-full rounded-md border border-gray-300 bg-white p-2 text-sm shadow-sm focus:border-indigo-500 focus:ring-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:focus:border-indigo-400" />
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
                                                 @else
-                                                    <p
-                                                        class="w-full max-w-sm rounded-md border border-gray-200 bg-gray-50 p-2 text-sm uppercase dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
-                                                        {{ $po->spkwarranty }}
-                                                    </p>
+                                                    {{-- ==================== READ-ONLY MODE ==================== --}}
+                                                    <div class="space-y-6">
+                                                        {{-- Row 1: Work Execution Schedule --}}
+                                                        <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+                                                            <div>
+                                                                <h4
+                                                                    class="mb-1 text-sm font-semibold text-gray-700 dark:text-gray-300">
+                                                                    Work Execution Date</h4>
+                                                                <p
+                                                                    class="rounded-md border border-gray-200 bg-white p-2 text-sm text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
+                                                                    {{ optional($po->spkstartworkingdate)->format('d M Y') ?? '-' }}
+                                                                    —
+                                                                    {{ optional($po->spkendtworkingdate)->format('d M Y') ?? '-' }}
+                                                                </p>
+                                                            </div>
+                                                            <div>
+                                                                <h4
+                                                                    class="mb-1 text-sm font-semibold text-gray-700 dark:text-gray-300">
+                                                                    Work Duration</h4>
+                                                                <p
+                                                                    class="rounded-md border border-gray-200 bg-white p-2 text-sm text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
+                                                                    {{ $po->spktotalday }} working days (excl. weekends
+                                                                    & holidays)
+                                                                </p>
+                                                            </div>
+                                                        </div>
+
+                                                        {{-- Row 2: Schedule & Man Power --}}
+                                                        <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+                                                            <div>
+                                                                <h4
+                                                                    class="mb-1 text-sm font-semibold text-gray-700 dark:text-gray-300">
+                                                                    Work Schedule</h4>
+                                                                <p
+                                                                    class="rounded-md border border-gray-200 bg-white p-2 text-sm text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
+                                                                    {{ $po->spkworkschedule }}
+                                                                </p>
+                                                            </div>
+                                                            <div>
+                                                                <h4
+                                                                    class="mb-1 text-sm font-semibold text-gray-700 dark:text-gray-300">
+                                                                    Total Man Power</h4>
+                                                                <p
+                                                                    class="rounded-md border border-gray-200 bg-white p-2 text-sm text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
+                                                                    {{ $po->spkmanpower }} People
+                                                                </p>
+                                                            </div>
+                                                        </div>
+
+                                                        {{-- Row 3: PIC + Payment + Warranty --}}
+                                                        <div class="grid grid-cols-1 gap-6 md:grid-cols-3">
+                                                            <div>
+                                                                <h4
+                                                                    class="mb-1 text-sm font-semibold text-gray-700 dark:text-gray-300">
+                                                                    PIC</h4>
+                                                                <p
+                                                                    class="rounded-md border border-gray-200 bg-white p-2 text-sm text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
+                                                                    {{ $po->spkpic }}
+                                                                </p>
+                                                            </div>
+                                                            <div>
+                                                                <h4
+                                                                    class="mb-1 text-sm font-semibold text-gray-700 dark:text-gray-300">
+                                                                    Payment Method</h4>
+                                                                <p
+                                                                    class="rounded-md border border-gray-200 bg-white p-2 text-sm uppercase text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
+                                                                    {{ $po->spkpaymentmethod ?? 'GIRO' }}
+                                                                </p>
+                                                            </div>
+                                                            <div>
+                                                                <h4
+                                                                    class="mb-1 text-sm font-semibold text-gray-700 dark:text-gray-300">
+                                                                    Warranty</h4>
+                                                                <p
+                                                                    class="rounded-md border border-gray-200 bg-white p-2 text-sm uppercase text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
+                                                                    {{ $po->spkwarranty }}
+                                                                </p>
+                                                            </div>
+                                                        </div>
+
+                                                    </div>
                                                 @endif
                                             </section>
                                         </div>
                                     @endif
                                 </form>
                             </div>
+
 
 
                             {{-- Attachment tab --}}
