@@ -1,11 +1,251 @@
 <x-app-layout>
-    <div class="max-w-9xl mx-auto w-full px-4 py-4 sm:px-6 lg:px-8">
+    <style>
+        /* Active / Selected state */
+        .scope-filter.active .scope-card {
+            transform: scale(1.02);
+        }
 
+        /* Receipt Jobs */
+        .scope-filter[data-scope="receiptjobs"].active .scope-card {
+            background-color: rgb(254 215 170);
+            /* orange-200 */
+            border-color: rgb(194 65 12);
+            /* orange-700 */
+            color: rgb(194 65 12);
+        }
+
+        /* On Progress */
+        .scope-filter[data-scope="onprogress"].active .scope-card {
+            background-color: rgb(191 219 254);
+            /* blue-200 */
+            border-color: rgb(29 78 216);
+            /* blue-700 */
+            color: rgb(29 78 216);
+        }
+
+        /* Completed */
+        .scope-filter[data-scope="completed"].active .scope-card {
+            background-color: rgb(187 247 208);
+            /* green-200 */
+            border-color: rgb(21 128 61);
+            /* green-700 */
+            color: rgb(21 128 61);
+        }
+
+        /* All */
+        .scope-filter[data-scope="all"].active .scope-card {
+            background-color: rgb(229 231 235);
+            /* gray-200 */
+            border-color: rgb(31 41 55);
+            /* gray-700 */
+            color: rgb(31 41 55);
+        }
+
+        .no-border {
+            border: none !important;
+        }
+
+        .grid {
+            width: 100%;
+        }
+
+        select,
+        textarea,
+        input {
+            width: 100%;
+        }
+
+        table.dataTable {
+            width: 100% !important;
+        }
+
+        .dataTables_wrapper {
+            width: 100%;
+        }
+
+        @media (max-width: 600px) {
+            .dataTables_wrapper {
+                padding: 0 10px;
+            }
+        }
+
+        /* === Filter Section === */
+        #receiptTable_filter {
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: flex-start;
+            align-items: center;
+        }
+
+        #receiptTable_filter label {
+            margin-right: 2px;
+        }
+
+        #receiptTable_filter input {
+            width: auto;
+            padding: 0.25rem 0.5rem;
+            min-width: 80px;
+            border-radius: 0.5rem;
+            border: 1px solid #d1d5db;
+            background-color: #f9fafb;
+        }
+
+        /* === Wrapper Width === */
+        #receiptTable_wrapper {
+            width: 100%;
+        }
+
+        /* === Cell Formatting === */
+        #receiptTable td {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            padding: 10px;
+            max-width: 200px;
+        }
+
+        #receiptTable th {
+            padding: 10px;
+            max-width: 200px;
+        }
+
+        /* === Length Section === */
+        #receiptTable_length {
+            width: auto;
+            display: flex;
+            justify-content: flex-start;
+        }
+
+        #receiptTable_length select {
+            width: auto;
+            padding: 0.25rem 0.5rem;
+            min-width: 80px;
+            border-radius: 0.5rem;
+            border: 1px solid #d1d5db;
+            background-color: #f9fafb;
+        }
+
+        /* === Info + Pagination === */
+        #receiptTable_info {
+            margin: 10px 0;
+        }
+
+        .dataTables_paginate {
+            margin: 10px 0;
+        }
+
+        /* === Hover Effects === */
+        #receiptTable tbody tr {
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        #receiptTable tbody tr:hover {
+            background-color: #8f8f8f11;
+            cursor: pointer;
+        }
+
+        #receiptTable tbody tr td {
+            padding: 8px;
+            line-height: 2;
+        }
+
+        /* === Column Width Alignment === */
+        #receiptTable th:nth-child(1),
+        #receiptTable td:nth-child(1),
+        #receiptTable th:nth-child(4),
+        #receiptTable td:nth-child(4) {
+            width: 120px;
+            text-align: center;
+        }
+
+        /* === Group Row & Collapse === */
+        #receiptTable tbody tr.collapsed-group-row {
+            display: none;
+        }
+
+        #receiptTable tr.group-row {
+            background-color: #e6e6e6;
+            font-weight: bold;
+            cursor: pointer;
+            user-select: none;
+            color: #333;
+        }
+
+        #receiptTable tr.group-row:hover {
+            background-color: #d4d4d4;
+        }
+
+        #receiptTable tr.group-row .fas {
+            margin-right: 8px;
+            width: 16px;
+            text-align: center;
+        }
+
+        #receiptTable tr.group-row td {
+            padding: 10px !important;
+            border-bottom: 1px solid #ddd;
+        }
+
+        #receiptTable tr.group-row td:first-child {
+            border-left: none;
+        }
+
+        /* === Custom Switch === */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 40px;
+            height: 22px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked+.slider {
+            background-color: #4CAF50;
+        }
+
+        input:checked+.slider:before {
+            transform: translateX(18px);
+        }
+    </style>
+
+
+    <div class="max-w-9xl mx-auto w-full px-4 py-4 sm:px-6 lg:px-8">
         <div class="grid-col-1 grid gap-6 xl:grid-cols-4 xl:grid-rows-1">
+            {{-- Receipt Jobs --}}
             <button>
-                <a href="#" class="scope-filter" data-scope="receiptjobs">
-                    <div class="flex items-center gap-4 rounded-lg border border-orange-700 bg-orange-200/20 p-3 text-orange-600">
-                        <span class="text-xl">📦</span>
+                <a href="#" class="scope-filter group block" data-scope="receiptjobs">
+                    <div
+                        class="scope-card flex items-center gap-4 rounded-lg border border-orange-700 bg-orange-200/20 p-3 text-orange-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-orange-100 hover:shadow-lg active:scale-95">
+                        <span class="text-xl group-hover:animate-pulse">📦</span>
                         <div class="flex flex-grow items-center justify-between">
                             <p class="text-lg font-medium">Receipt Jobs</p>
                             <p class="text-right text-xl font-extrabold">{{ $receiptjobs }}</p>
@@ -14,10 +254,12 @@
                 </a>
             </button>
 
+            {{-- On Progress --}}
             <button>
-                <a href="#" class="scope-filter" data-scope="onprogress">
-                    <div class="flex items-center gap-4 rounded-lg border border-blue-700 bg-blue-200/20 p-3 text-blue-600">
-                        <span class="text-xl">⏳</span>
+                <a href="#" class="scope-filter group block" data-scope="onprogress">
+                    <div
+                        class="scope-card flex items-center gap-4 rounded-lg border border-blue-700 bg-blue-200/20 p-3 text-blue-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-blue-100 hover:shadow-lg active:scale-95">
+                        <span class="text-xl group-hover:animate-pulse">⏳</span>
                         <div class="flex flex-grow items-center justify-between">
                             <p class="text-lg font-medium">On Progress</p>
                             <p class="text-right text-xl font-extrabold">{{ $onProgress }}</p>
@@ -26,10 +268,12 @@
                 </a>
             </button>
 
+            {{-- Completed --}}
             <button>
-                <a href="#" class="scope-filter" data-scope="completed">
-                    <div class="flex items-center gap-4 rounded-lg border border-green-700 bg-green-200/20 p-3 text-green-600">
-                        <span class="text-xl">✅</span>
+                <a href="#" class="scope-filter group block" data-scope="completed">
+                    <div
+                        class="scope-card flex items-center gap-4 rounded-lg border border-green-700 bg-green-200/20 p-3 text-green-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-green-100 hover:shadow-lg active:scale-95">
+                        <span class="text-xl group-hover:animate-pulse">✅</span>
                         <div class="flex flex-grow items-center justify-between">
                             <p class="text-lg font-medium">Completed</p>
                             <p class="text-right text-xl font-extrabold">{{ $completed }}</p>
@@ -38,10 +282,12 @@
                 </a>
             </button>
 
+            {{-- All --}}
             <button>
-                <a href="#" class="scope-filter" data-scope="all">
-                    <div class="flex items-center gap-4 rounded-lg border border-gray-700 bg-gray-200/20 p-3 text-gray-600 dark:border-white dark:text-white">
-                        <span class="text-xl">🧾</span>
+                <a href="#" class="scope-filter group block" data-scope="all">
+                    <div
+                        class="scope-card flex items-center gap-4 rounded-lg border border-gray-700 bg-gray-200/20 p-3 text-gray-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-gray-100 hover:shadow-lg active:scale-95 dark:border-white dark:text-white dark:hover:bg-gray-700">
+                        <span class="text-xl group-hover:animate-pulse">🧾</span>
                         <div class="flex flex-grow items-center justify-between">
                             <p class="text-lg font-medium">All</p>
                             <p class="text-right text-xl font-extrabold">{{ $all }}</p>
@@ -53,7 +299,8 @@
 
         <div class="grid">
             <div class="mt-6 rounded-2xl bg-white dark:bg-gray-800">
-                <div class="flex flex-col items-start justify-between gap-4 border-b border-gray-200 p-4 sm:flex-row sm:items-center dark:border-gray-700">
+                <div
+                    class="flex flex-col items-start justify-between gap-4 border-b border-gray-200 p-4 sm:flex-row sm:items-center dark:border-gray-700">
                     <h1 class="text-xl font-extrabold text-gray-700 dark:text-white">Receipt</h1>
                 </div>
 
@@ -68,7 +315,7 @@
             </div>
 
             <script>
-                $(function () {
+                $(function() {
                     let scope = 'receiptjobs';
                     const $title = $('h1.text-xl.font-extrabold');
                     const $thead = $('#receiptTable thead');
@@ -77,13 +324,13 @@
 
                     const titleMap = {
                         receiptjobs: 'Receipt - Jobs',
-                        onprogress:  'Receipt - On Progress',
-                        completed:   'Receipt - Completed',
-                        all:         'Receipt - All',
+                        onprogress: 'Receipt - On Progress',
+                        completed: 'Receipt - Completed',
+                        all: 'Receipt - All',
                     };
 
-                    function headerFor(sc){
-                        if(sc === 'receiptjobs'){
+                    function headerFor(sc) {
+                        if (sc === 'receiptjobs') {
                             return `
                                 <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Action</th>
                                 <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">PO Nbr</th>
@@ -105,51 +352,100 @@
                         `;
                     }
 
-                    function columnsFor(sc){
-                        if(sc === 'receiptjobs'){
-                            return [
-                                { data: null, orderable:false, searchable:false,
-                                render: (_v,t,row)=>renderPlusCreate(row) },
-                                { data: 'ponbr', render: (_v,_t,row)=> renderPoLink(row) },
-                                { data: 'podate', render: (_v,_t,row)=> row.podate_fmt ?? '' , className:'text-center'},
-                                { data: 'cpny_id', className:'text-center' },
-                                { data: 'vendorname' },
-                                { data: 'podeliverydate', render: (_v,_t,row)=> row.podelivery_fmt ?? '', className:'text-center' },
-                                { data: 'created_by' },
+                    function columnsFor(sc) {
+                        let buttonClass = 'px-6 py-2 bg-gray-500 text-white rounded hover:bg-gray-700';
+                        if (sc === 'receiptjobs') {
+                            return [{
+                                    data: null,
+                                    orderable: false,
+                                    searchable: false,
+                                    render: (_v, t, row) => renderPlusCreate(row)
+                                },
+                                {
+                                    data: 'ponbr',
+                                    render: (_v, _t, row) => renderPoLink(row)
+                                },
+                                {
+                                    data: 'podate',
+                                    render: (_v, _t, row) => row.podate_fmt ?? '',
+                                    className: 'text-center'
+                                },
+                                {
+                                    data: 'cpny_id',
+                                    className: 'text-center'
+                                },
+                                {
+                                    data: 'vendorname'
+                                },
+                                {
+                                    data: 'podeliverydate',
+                                    render: (_v, _t, row) => row.podelivery_fmt ?? '',
+                                    className: 'text-center'
+                                },
+                                {
+                                    data: 'created_by'
+                                },
                             ];
                         }
                         // TrReceipt scopes: tanpa kolom "+"
-                        return [
-                            { data: 'receiptnbr', render: (_v,_t,row)=> renderReceiptLink(row) },
-                            { data: 'receiptdate', render: (_v,_t,row)=> row.receiptdate_fmt ?? '', className:'text-center' },
-                            { data: 'ponbr', render: (_v,_t,row)=> renderPoLink(row) },                 
-                            { data: 'sppbjktid', render: (_v,_t,row)=> renderSppbLink(row) },   
-                            { data: 'cpny_id', className:'text-center' },
-                            { data: 'created_by' },
+                        return [{
+                                data: 'receiptnbr',
+                                render: (_v, _t, row) => renderReceiptLink(row)
+                            },
+                            {
+                                data: 'receiptdate',
+                                render: (_v, _t, row) => row.receiptdate_fmt ?? '',
+                                className: 'text-center'
+                            },
+                            {
+                                data: 'ponbr',
+                                render: (_v, _t, row) => renderPoLink(row)
+                            },
+                            {
+                                data: 'sppbjktid',
+                                render: (_v, _t, row) => renderSppbLink(row)
+                            },
+                            {
+                                data: 'cpny_id',
+                                className: 'text-center'
+                            },
+                            {
+                                data: 'created_by'
+                            },
                         ];
                     }
 
-                    function orderFor(sc){
+                    function orderFor(sc) {
                         // receiptjobs: tanggal di idx 2
-                        if(sc === 'receiptjobs') return [[2,'desc'], [1,'desc']];
+                        if (sc === 'receiptjobs') return [
+                            [2, 'desc'],
+                            [1, 'desc']
+                        ];
                         // TrReceipt: tanggal di idx 1
-                        return [[1,'desc'], [0,'desc']];
+                        return [
+                            [1, 'desc'],
+                            [0, 'desc']
+                        ];
                     }
 
-                    function updateTitle(sc){ $title.text(titleMap[sc] ?? 'Receipt'); }
-                    function highlightActive(sc){
-                        $('.scope-filter').removeClass('ring-2 ring-offset-2 ring-indigo-500')
-                            .each(function(){
-                                if($(this).data('scope')===sc) $(this).addClass('ring-2 ring-offset-2 ring-indigo-500');
+                    function updateTitle(sc) {
+                        $title.text(titleMap[sc] ?? 'Receipt');
+                    }
+
+                    function highlightActive(sc) {
+                        $('.scope-filter').removeClass('#')
+                            .each(function() {
+                                if ($(this).data('scope') === sc) $(this).addClass(
+                                    '#');
                             });
                     }
 
-                    function resetThead(sc){
+                    function resetThead(sc) {
                         $thead.empty().append('<tr id="thead-row"></tr>');
                         $('#thead-row').html(headerFor(sc));
                     }
 
-                    function rebuild(sc){
+                    function rebuild(sc) {
                         if ($.fn.DataTable.isDataTable('#receiptTable')) {
                             $('#receiptTable').DataTable().clear().destroy();
                         }
@@ -160,12 +456,14 @@
                             serverSide: true,
                             deferRender: true,
                             pageLength: 25,
-                            lengthMenu: [10,25,50,100,250],
+                            lengthMenu: [10, 25, 50, 100, 250],
                             order: orderFor(sc),
                             ajax: {
                                 url: "{{ route('receiptlist.json') }}",
                                 type: "GET",
-                                data: function(d){ d.scope = sc; }
+                                data: function(d) {
+                                    d.scope = sc;
+                                }
                             },
                             columns: columnsFor(sc),
                             searchDelay: 400,
@@ -174,22 +472,22 @@
                         });
                     }
 
-                    function renderPlusCreate(row){
+                    function renderPlusCreate(row) {
                         const url = `{{ route('receipt.create') }}` + `?ponbr=${encodeURIComponent(row.ponbr_eid ?? '')}`;
                         return `<a href="${url}" class="inline-flex items-center justify-center rounded bg-indigo-600 px-2 py-1 text-white text-sm font-bold hover:bg-indigo-700">+</a>`;
                     }
 
-                    function renderPoLink(row){
+                    function renderPoLink(row) {
                         const text = row.ponbr ?? '';
                         // gunakan hash id jika tersedia
                         if (row.ponbr_eid) {
                             const url = `/showpo/${encodeURIComponent(row.ponbr_eid)}`;
-                            return `<a href="${url}" class="font-bold text-indigo-700 hover:underline">${text}</a>`;
+                            return `<a href="${url}" class="px-6 py-2 bg-gray-500 text-white rounded hover:bg-gray-700">${text}</a>`;
                         }
                         return text;
                     }
 
-                    function renderSppbLink(row){
+                    function renderSppbLink(row) {
                         const text = row.sppbjktid ?? '';
                         if (row.sppb_route && row.sppb_eid) {
                             const url = `/${row.sppb_route}/${encodeURIComponent(row.sppb_eid)}`;
@@ -198,7 +496,7 @@
                         return text;
                     }
 
-                    function renderReceiptLink(row){
+                    function renderReceiptLink(row) {
                         const url = `/showreceipt/${encodeURIComponent(row.receiptnbr_eid ?? '')}`;
                         const text = row.receiptnbr ?? '';
                         return `<a href="${url}" class="font-bold text-indigo-700 hover:underline">${text}</a>`;
@@ -210,12 +508,30 @@
                     rebuild(scope);
 
                     // ganti scope
-                    $('.scope-filter').on('click', function(e){
+                    $('.scope-filter').on('click', function(e) {
                         e.preventDefault();
                         scope = $(this).data('scope') || 'receiptjobs';
                         updateTitle(scope);
                         highlightActive(scope);
                         rebuild(scope);
+                    });
+
+                    // Toggle .active class and remember selected scope
+                    const receiptScopes = document.querySelectorAll('.scope-filter');
+                    const savedReceiptScope = localStorage.getItem('activeReceiptScope');
+
+                    if (savedReceiptScope) {
+                        const activeScope = document.querySelector(`.scope-filter[data-scope="${savedReceiptScope}"]`);
+                        if (activeScope) activeScope.classList.add('active');
+                    }
+
+                    receiptScopes.forEach(btn => {
+                        btn.addEventListener('click', e => {
+                            e.preventDefault();
+                            receiptScopes.forEach(s => s.classList.remove('active'));
+                            btn.classList.add('active');
+                            localStorage.setItem('activeReceiptScope', btn.dataset.scope);
+                        });
                     });
                 });
             </script>

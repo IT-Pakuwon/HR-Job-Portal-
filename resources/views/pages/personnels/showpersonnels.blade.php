@@ -100,7 +100,7 @@
                             <div class="flex items-center gap-2 p-2">
                                 <x-heroicon-o-squares-2x2 class="h-5 w-5 text-gray-400" />
                                 <span class="min-w-32 max-w-32 text-gray-500">Department</span>
-                                <span <span
+                                <span
                                     class="break-words font-medium text-gray-900 dark:text-gray-300">{{ $personnel->departementid }}</span>
                             </div>
 

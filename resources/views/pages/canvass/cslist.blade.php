@@ -2,15 +2,258 @@
     @php
         $currentPage = Route::currentRouteName() == 'cslist.index' ? 'CS' : '';
     @endphp
+    <style>
+        /* Active / Selected state */
+        .scope-filter.active .scope-card {
+            transform: scale(1.02);
+            transition: all 0.3s ease-in-out;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
+        }
+
+        /* My CS */
+        .scope-filter[data-scope="my"].active .scope-card {
+            background-color: rgb(254 215 170);
+            /* orange-200 */
+            border-color: rgb(194 65 12);
+            /* orange-700 */
+        }
+
+        /* On Progress */
+        .scope-filter[data-scope="onprogress"].active .scope-card {
+            background-color: rgb(191 219 254);
+            /* blue-200 */
+            border-color: rgb(29 78 216);
+            /* blue-700 */
+        }
+
+        /* Rejected */
+        .scope-filter[data-scope="rejected"].active .scope-card {
+            background-color: rgb(254 202 202);
+            /* red-200 */
+            border-color: rgb(185 28 28);
+            /* red-700 */
+        }
+
+        /* Completed */
+        .scope-filter[data-scope="completed"].active .scope-card {
+            background-color: rgb(187 247 208);
+            /* green-200 */
+            border-color: rgb(21 128 61);
+            /* green-700 */
+        }
+
+        /* All CS */
+        .scope-filter[data-scope="all"].active .scope-card {
+            background-color: rgb(229 231 235);
+            /* gray-200 */
+            border-color: rgb(31 41 55);
+            /* gray-700 */
+        }
+
+        .no-border {
+            border: none !important;
+        }
+
+        .grid {
+            width: 100%;
+        }
+
+        select,
+        textarea,
+        input {
+            width: 100%;
+        }
+
+        table.dataTable {
+            width: 100% !important;
+        }
+
+        .dataTables_wrapper {
+            width: 100%;
+        }
+
+        @media (max-width: 600px) {
+            .dataTables_wrapper {
+                padding: 0 10px;
+            }
+        }
+
+        /* === Filter Section === */
+        #csTable_filter {
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: flex-start;
+            align-items: center;
+        }
+
+        #csTable_filter label {
+            margin-right: 2px;
+        }
+
+        #csTable_filter input {
+            width: auto;
+            padding: 0.25rem 0.5rem;
+            min-width: 80px;
+            border-radius: 0.5rem;
+            border: 1px solid #d1d5db;
+            background-color: #f9fafb;
+        }
+
+        /* === Wrapper Width === */
+        #csTable_wrapper {
+            width: 100%;
+        }
+
+        /* === Cell Formatting === */
+        #csTable td {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            padding: 10px;
+            max-width: 200px;
+        }
+
+        #csTable th {
+            padding: 10px;
+            max-width: 200px;
+        }
+
+        /* === Length Section === */
+        #csTable_length {
+            width: auto;
+            display: flex;
+            justify-content: flex-start;
+        }
+
+        #csTable_length select {
+            width: auto;
+            padding: 0.25rem 0.5rem;
+            min-width: 80px;
+            border-radius: 0.5rem;
+            border: 1px solid #d1d5db;
+            background-color: #f9fafb;
+        }
+
+        /* === Info + Pagination === */
+        #csTable_info {
+            margin: 10px 0;
+        }
+
+        .dataTables_paginate {
+            margin: 10px 0;
+        }
+
+        /* === Hover Effects === */
+        #csTable tbody tr {
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        #csTable tbody tr:hover {
+            background-color: #8f8f8f11;
+            cursor: pointer;
+        }
+
+        #csTable tbody tr td {
+            padding: 8px;
+            line-height: 2;
+        }
+
+        /* === Column Width Alignment === */
+        #csTable th:nth-child(1),
+        #csTable td:nth-child(1),
+        #csTable th:nth-child(4),
+        #csTable td:nth-child(4) {
+            width: 120px;
+            text-align: center;
+        }
+
+        /* === Group Row & Collapse === */
+        #csTable tbody tr.collapsed-group-row {
+            display: none;
+        }
+
+        #csTable tr.group-row {
+            background-color: #e6e6e6;
+            font-weight: bold;
+            cursor: pointer;
+            user-select: none;
+            color: #333;
+        }
+
+        #csTable tr.group-row:hover {
+            background-color: #d4d4d4;
+        }
+
+        #csTable tr.group-row .fas {
+            margin-right: 8px;
+            width: 16px;
+            text-align: center;
+        }
+
+        #csTable tr.group-row td {
+            padding: 10px !important;
+            border-bottom: 1px solid #ddd;
+        }
+
+        #csTable tr.group-row td:first-child {
+            border-left: none;
+        }
+
+        /* === Custom Switch === */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 40px;
+            height: 22px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked+.slider {
+            background-color: #4CAF50;
+        }
+
+        input:checked+.slider:before {
+            transform: translateX(18px);
+        }
+    </style>
 
     <div class="max-w-9xl mx-auto w-full px-4 py-4 sm:px-6 lg:px-8">
         <div class="grid-col-1 grid gap-6 xl:grid-cols-5 xl:grid-rows-1">
             {{-- My CS --}}
             <button>
-                <a href="#" class="scope-filter" data-scope="my">
+                <a href="#" class="scope-filter group block" data-scope="my">
                     <div
-                        class="flex items-center gap-4 rounded-lg border border-orange-700 bg-orange-200/20 p-3 text-orange-600">
-                        <span class="text-xl">📄</span>
+                        class="scope-card flex items-center gap-4 rounded-lg border border-orange-700 bg-orange-200/20 p-3 text-orange-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-orange-100 hover:shadow-lg active:scale-95">
+                        <span class="text-xl group-hover:animate-pulse">📄</span>
                         <div class="flex flex-grow items-center justify-between">
                             <p class="text-lg font-medium">My CS</p>
                             <p class="text-right text-xl font-extrabold">{{ $my }}</p>
@@ -21,10 +264,10 @@
 
             {{-- On Progress --}}
             <button>
-                <a href="#" class="scope-filter" data-scope="onprogress">
+                <a href="#" class="scope-filter group block" data-scope="onprogress">
                     <div
-                        class="flex items-center gap-4 rounded-lg border border-blue-700 bg-blue-200/20 p-3 text-blue-600">
-                        <span class="text-xl">⏳</span>
+                        class="scope-card flex items-center gap-4 rounded-lg border border-blue-700 bg-blue-200/20 p-3 text-blue-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-blue-100 hover:shadow-lg active:scale-95">
+                        <span class="text-xl group-hover:animate-pulse">⏳</span>
                         <div class="flex flex-grow items-center justify-between">
                             <p class="text-lg font-medium">On Progress</p>
                             <p class="text-right text-xl font-extrabold">{{ $onProgress }}</p>
@@ -35,12 +278,12 @@
 
             {{-- Rejected --}}
             <button>
-                <a href="#" class="scope-filter" data-scope="rejected">
+                <a href="#" class="scope-filter group block" data-scope="rejected">
                     <div
-                        class="flex items-center gap-4 rounded-lg border border-red-700 bg-red-200/20 p-3 text-red-600">
-                        <span class="text-xl">⛔️</span>
+                        class="scope-card flex items-center gap-4 rounded-lg border border-red-700 bg-red-200/20 p-3 text-red-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-red-100 hover:shadow-lg active:scale-95">
+                        <span class="text-xl group-hover:animate-pulse">⛔️</span>
                         <div class="flex flex-grow items-center justify-between">
-                            <p class="text-lg font-medium">Reject</p>
+                            <p class="text-lg font-medium">Rejected</p>
                             <p class="text-right text-xl font-extrabold">{{ $reject }}</p>
                         </div>
                     </div>
@@ -49,10 +292,10 @@
 
             {{-- Completed --}}
             <button>
-                <a href="#" class="scope-filter" data-scope="completed">
+                <a href="#" class="scope-filter group block" data-scope="completed">
                     <div
-                        class="flex items-center gap-4 rounded-lg border border-green-700 bg-green-200/20 p-3 text-green-600">
-                        <span class="text-xl">✅</span>
+                        class="scope-card flex items-center gap-4 rounded-lg border border-green-700 bg-green-200/20 p-3 text-green-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-green-100 hover:shadow-lg active:scale-95">
+                        <span class="text-xl group-hover:animate-pulse">✅</span>
                         <div class="flex flex-grow items-center justify-between">
                             <p class="text-lg font-medium">Completed</p>
                             <p class="text-right text-xl font-extrabold">{{ $completed }}</p>
@@ -63,10 +306,10 @@
 
             {{-- All CS --}}
             <button>
-                <a href="#" class="scope-filter" data-scope="all">
+                <a href="#" class="scope-filter group block" data-scope="all">
                     <div
-                        class="flex items-center gap-4 rounded-lg border border-gray-700 bg-gray-200/20 p-3 text-gray-600 dark:border-white dark:text-white">
-                        <span class="text-xl">🧾</span>
+                        class="scope-card flex items-center gap-4 rounded-lg border border-gray-700 bg-gray-200/20 p-3 text-gray-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-gray-100 hover:shadow-lg active:scale-95 dark:border-white dark:text-white dark:hover:bg-gray-700">
+                        <span class="text-xl group-hover:animate-pulse">🧾</span>
                         <div class="flex flex-grow items-center justify-between">
                             <p class="text-lg font-medium">All CS</p>
                             <p class="text-right text-xl font-extrabold">{{ $all }}</p>
@@ -74,8 +317,8 @@
                     </div>
                 </a>
             </button>
-
         </div>
+
 
         <div class="grid">
             <style>
@@ -197,7 +440,8 @@
             <div class="mt-6 rounded-2xl bg-white dark:bg-gray-800">
                 <div
                     class="flex flex-col items-start justify-between gap-4 border-b border-gray-200 p-4 sm:flex-row sm:items-center dark:border-gray-700">
-                    <h1 class="text-xl font-extrabold text-gray-700 dark:text-white">Canvass Sheet (CS)</h1>
+                    {{-- <h1 class="text-xl font-extrabold text-gray-700 dark:text-white">Canvass Sheet (CS)</h1> --}}
+                    <h1 class="text-xl font-extrabold text-gray-700 dark:text-white">Canvass Sheet</h1>
                 </div>
 
                 <div class="overflow-x-auto p-6">
@@ -388,6 +632,24 @@
                     function renderDays(v) {
                         return (v == null) ? '' : String(v);
                     }
+                });
+
+                // Toggle .active class and remember selected scope
+                const scopes = document.querySelectorAll('.scope-filter');
+                const savedScope = localStorage.getItem('activeScope');
+
+                if (savedScope) {
+                    const activeScope = document.querySelector(`.scope-filter[data-scope="${savedScope}"]`);
+                    if (activeScope) activeScope.classList.add('active');
+                }
+
+                scopes.forEach(btn => {
+                    btn.addEventListener('click', e => {
+                        e.preventDefault();
+                        scopes.forEach(s => s.classList.remove('active'));
+                        btn.classList.add('active');
+                        localStorage.setItem('activeScope', btn.dataset.scope);
+                    });
                 });
             </script>
 
