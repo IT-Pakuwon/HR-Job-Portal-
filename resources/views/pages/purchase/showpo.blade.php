@@ -214,126 +214,155 @@
                         </div>
                     </header>
                     <div class="flex flex-1 flex-col overflow-y-auto p-4">
-                        <div class="grid grid-cols-1 gap-x-8 gap-y-3 text-sm sm:grid-cols-2">
-                            {{-- PO Date --}}
-                            <div class="flex items-center gap-2 p-2">
-                                <x-heroicon-o-calendar-days class="h-5 w-5 text-gray-400" />
-                                <span class="min-w-32 max-w-32 text-gray-500">PO Date</span>
-                                <span <span class="break-words font-medium text-gray-900 dark:text-gray-300">
-                                    {{ \Carbon\Carbon::parse($po->podate)->format('d M Y') }}
-                                </span>
-                            </div>
+                        <div>
 
-                            {{-- Company --}}
-                            <div class="flex items-center gap-2 p-2">
-                                <x-heroicon-o-building-office class="h-5 w-5 text-gray-400" />
-                                <span class="min-w-32 max-w-32 text-gray-500">Company</span>
-                                <span <span
-                                    class="break-words font-medium text-gray-900 dark:text-gray-300">{{ $po->cpny_id }}</span>
-                            </div>
+                            {{-- Info Grid --}}
+                            <div class="grid grid-cols-1 gap-x-8 gap-y-3 text-sm sm:grid-cols-2">
 
-                            {{-- Department --}}
-                            <div class="flex items-center gap-2 p-2">
-                                <x-heroicon-o-squares-2x2 class="h-5 w-5 text-gray-400" />
-                                <span class="min-w-32 max-w-32 text-gray-500">Department</span>
-                                <span <span
-                                    class="break-words font-medium text-gray-900 dark:text-gray-300">{{ $po->department_id }}</span>
-                            </div>
-
-                            {{-- Requester --}}
-                            <div class="flex items-center gap-2 p-2">
-                                <x-heroicon-o-user class="h-5 w-5 text-gray-400" />
-                                <span class="min-w-32 max-w-32 text-gray-500">Requester</span>
-                                <span <span class="break-words font-medium text-gray-900 dark:text-gray-300">
-                                    {{ ucwords(strtolower($po->user_peminta)) }}
-                                </span>
-                            </div>
-
-                            {{-- SPPB/J/K/T ID --}}
-                            <div class="flex items-center gap-2 p-2">
-                                <x-heroicon-o-document-text class="h-5 w-5 text-gray-400" />
-                                <span class="min-w-32 max-w-32 text-gray-500">SPPB/J/K/T ID</span>
-                                <span <span class="break-words font-medium text-gray-900 dark:text-gray-300">
-                                    @if (!empty($sppbUrl))
-                                        <a href="{{ $sppbUrl }}" target="_blank"
-                                            class="inline-flex items-center gap-1 text-indigo-600 hover:underline dark:text-indigo-400">
-                                            {{ $po->sppbjktid }}
-                                            <x-heroicon-o-arrow-up-right class="h-4 w-4" />
-                                        </a>
-                                    @else
-                                        {{ $po->sppbjktid }}
-                                    @endif
-                                </span>
-                            </div>
-
-                            {{-- CS ID --}}
-                            <div class="flex items-center gap-2 p-2">
-                                <x-heroicon-o-document-duplicate class="h-5 w-5 text-gray-400" />
-                                <span class="min-w-32 max-w-32 text-gray-500">CS ID</span>
-                                <span <span class="break-words font-medium text-gray-900 dark:text-gray-300">
-                                    @if (!empty($csUrl))
-                                        <a href="{{ $csUrl }}" target="_blank"
-                                            class="inline-flex items-center gap-1 text-indigo-600 hover:underline dark:text-indigo-400">
-                                            {{ $po->csid }}
-                                            <x-heroicon-o-arrow-up-right class="h-4 w-4" />
-                                        </a>
-                                    @else
-                                        {{ $po->csid }}
-                                    @endif
-                                </span>
-                            </div>
-
-                            {{-- Vendor ID --}}
-                            <div class="flex items-center gap-2 p-2">
-                                <x-heroicon-o-identification class="h-5 w-5 text-gray-400" />
-                                <span class="min-w-32 max-w-32 text-gray-500">Vendor ID</span>
-                                <span <span
-                                    class="break-words font-medium text-gray-900 dark:text-gray-300">{{ $po->vendorid }}</span>
-                            </div>
-
-                            {{-- Vendor Name --}}
-                            <div class="flex items-center gap-2 p-2">
-                                <x-heroicon-o-building-storefront class="h-5 w-5 text-gray-400" />
-                                <span class="min-w-32 max-w-32 text-gray-500">Vendor</span>
-                                <span <span
-                                    class="break-words font-medium text-gray-900 dark:text-gray-300">{{ $po->vendorname }}</span>
-                            </div>
-
-                            {{-- Total Amount --}}
-                            <div class="flex items-center gap-2 p-2">
-                                <x-heroicon-o-banknotes class="h-5 w-5 text-gray-400" />
-                                <span class="min-w-32 max-w-32 text-gray-500">Total Amount</span>
-                                <span <span
-                                    class="break-words font-medium text-gray-900 dark:text-gray-300">{{ number_format($po->totalamt, 0, ',', '.') }}</span>
-                            </div>
-
-                            {{-- Tax --}}
-                            <div class="flex items-center gap-2 p-2">
-                                <x-heroicon-o-receipt-percent class="h-5 w-5 text-gray-400" />
-                                <span class="min-w-32 max-w-32 text-gray-500">Tax Amount</span>
-                                <span <span
-                                    class="break-words font-medium text-gray-900 dark:text-gray-300">{{ number_format($po->taxamt, 0, ',', '.') }}</span>
-                            </div>
-
-                            {{-- Grand Total --}}
-                            <div class="flex items-center gap-2 p-2">
-                                <x-heroicon-o-currency-dollar class="h-5 w-5 text-gray-400" />
-                                <span class="min-w-32 max-w-32 text-gray-500">Grand Total</span>
-                                <span <span
-                                    class="break-words font-medium text-gray-900 dark:text-gray-300">{{ number_format($po->grandtotalamt, 0, ',', '.') }}</span>
-                            </div>
-
-                            {{-- Purpose --}}
-                            @if (!empty($po->keperluan))
+                                {{-- PO Date --}}
                                 <div class="flex items-center gap-2 p-2">
+                                    <x-heroicon-o-calendar-days class="h-5 w-5 text-gray-400" />
+                                    <span class="min-w-32 max-w-32 text-gray-500">PO Date</span>
+                                    <span class="font-medium text-gray-900 dark:text-gray-100">
+                                        {{ \Carbon\Carbon::parse($po->podate)->format('d M Y') }}
+                                    </span>
+                                </div>
+
+                                {{-- Company --}}
+                                <div class="flex items-center gap-2 p-2">
+                                    <x-heroicon-o-building-office class="h-5 w-5 text-gray-400" />
+                                    <span class="min-w-32 max-w-32 text-gray-500">Company</span>
+                                    <span
+                                        class="font-medium text-gray-900 dark:text-gray-100">{{ $po->cpny_id }}</span>
+                                </div>
+
+                                {{-- Department --}}
+                                <div class="flex items-center gap-2 p-2">
+                                    <x-heroicon-o-squares-2x2 class="h-5 w-5 text-gray-400" />
+                                    <span class="min-w-32 max-w-32 text-gray-500">Department</span>
+                                    <span
+                                        class="font-medium text-gray-900 dark:text-gray-100">{{ $po->department_id }}</span>
+                                </div>
+
+                                {{-- Requester --}}
+                                <div class="flex items-center gap-2 p-2">
+                                    <x-heroicon-o-user class="h-5 w-5 text-gray-400" />
+                                    <span class="min-w-32 max-w-32 text-gray-500">Requester</span>
+                                    <span class="font-medium text-gray-900 dark:text-gray-100">
+                                        {{ ucwords(strtolower($po->user_peminta)) }}
+                                    </span>
+                                </div>
+
+                                {{-- SPPB/J/K/T ID --}}
+                                <div class="flex items-center gap-2 p-2">
+                                    <x-heroicon-o-document-text class="h-5 w-5 text-gray-400" />
+                                    <span class="min-w-32 max-w-32 text-gray-500">SPPB/J/K/T ID</span>
+                                    <span class="font-medium text-gray-900 dark:text-gray-100">
+                                        @if (!empty($sppbUrl))
+                                            <a href="{{ $sppbUrl }}" target="_blank"
+                                                class="inline-flex items-center gap-1 text-indigo-600 hover:underline dark:text-indigo-400">
+                                                {{ $po->sppbjktid }}
+                                                <x-heroicon-o-arrow-up-right class="h-4 w-4" />
+                                            </a>
+                                        @else
+                                            {{ $po->sppbjktid }}
+                                        @endif
+                                    </span>
+                                </div>
+
+                                {{-- CS ID --}}
+                                <div class="flex items-center gap-2 p-2">
+                                    <x-heroicon-o-document-duplicate class="h-5 w-5 text-gray-400" />
+                                    <span class="min-w-32 max-w-32 text-gray-500">CS ID</span>
+                                    <span class="font-medium text-gray-900 dark:text-gray-100">
+                                        @if (!empty($csUrl))
+                                            <a href="{{ $csUrl }}" target="_blank"
+                                                class="inline-flex items-center gap-1 text-indigo-600 hover:underline dark:text-indigo-400">
+                                                {{ $po->csid }}
+                                                <x-heroicon-o-arrow-up-right class="h-4 w-4" />
+                                            </a>
+                                        @else
+                                            {{ $po->csid }}
+                                        @endif
+                                    </span>
+                                </div>
+
+                                {{-- Vendor ID --}}
+                                <div class="flex items-center gap-2 p-2">
+                                    <x-heroicon-o-identification class="h-5 w-5 text-gray-400" />
+                                    <span class="min-w-32 max-w-32 text-gray-500">Vendor ID</span>
+                                    <span
+                                        class="font-medium text-gray-900 dark:text-gray-100">{{ $po->vendorid }}</span>
+                                </div>
+
+                                {{-- Vendor Name --}}
+                                <div class="flex items-center gap-2 p-2">
+                                    <x-heroicon-o-building-storefront class="h-5 w-5 text-gray-400" />
+                                    <span class="min-w-32 max-w-32 text-gray-500">Vendor</span>
+                                    <span
+                                        class="font-medium text-gray-900 dark:text-gray-100">{{ $po->vendorname }}</span>
+                                </div>
+                            </div>
+
+                            {{-- Financial Summary --}}
+                            <div class="mt-4 grid grid-cols-1 gap-4 md:grid-cols-3">
+
+                                {{-- Total Amount --}}
+                                <div
+                                    class="flex items-center gap-3 rounded-md border border-gray-200 bg-white px-4 py-3 dark:border-gray-700 dark:bg-gray-800">
+                                    <x-heroicon-o-banknotes class="h-5 w-5 text-gray-400" />
+                                    <div>
+                                        <p class="text-xs text-gray-500 dark:text-gray-400">Total Amount</p>
+                                        <p class="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                                            Rp {{ number_format($po->totalamt, 0, ',', '.') }}
+                                        </p>
+                                    </div>
+                                </div>
+
+                                {{-- Tax Amount --}}
+                                <div
+                                    class="flex items-center gap-3 rounded-md border border-gray-200 bg-white px-4 py-3 dark:border-gray-700 dark:bg-gray-800">
+                                    <x-heroicon-o-receipt-percent class="h-5 w-5 text-gray-400" />
+                                    <div>
+                                        <p class="text-xs text-gray-500 dark:text-gray-400">Tax Amount</p>
+                                        <p class="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                                            Rp {{ number_format($po->taxamt, 0, ',', '.') }}
+                                        </p>
+                                    </div>
+                                </div>
+
+                                {{-- Grand Total --}}
+                                <div
+                                    class="flex items-center gap-3 rounded-md border border-gray-200 bg-white px-4 py-3 dark:border-gray-700 dark:bg-gray-800">
+                                    <x-heroicon-o-currency-dollar class="h-5 w-5 text-gray-400" />
+                                    <div>
+                                        <p class="text-xs text-gray-500 dark:text-gray-400">Grand Total
+                                        </p>
+                                        <p class="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                                            Rp {{ number_format($po->grandtotalamt, 0, ',', '.') }}
+                                        </p>
+                                    </div>
+                                </div>
+
+                            </div>
+
+                            {{-- Purpose (moved below financial summary) --}}
+                            @if (!empty($po->keperluan))
+                                <div
+                                    class="mt-4 flex items-start gap-3 rounded-md border bg-gray-50 p-3 dark:bg-gray-700">
                                     <x-heroicon-o-clipboard-document-list class="h-5 w-5 text-gray-400" />
-                                    <span class="min-w-32 max-w-32 text-gray-500">Purpose</span>
-                                    <span <span
-                                        class="break-words font-medium text-gray-900 dark:text-gray-300">{{ $po->keperluan }}</span>
+                                    <div>
+                                        <p class="text-xs text-gray-500 dark:text-gray-400">Purpose</p>
+                                        <p class="text-sm font-medium text-gray-900 dark:text-gray-100">
+                                            {{ $po->keperluan }}</p>
+                                    </div>
                                 </div>
                             @endif
 
                         </div>
+
+
+
                     </div>
                 </div>
 
