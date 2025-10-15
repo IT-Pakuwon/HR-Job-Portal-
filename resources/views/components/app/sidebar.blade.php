@@ -215,7 +215,8 @@
                     </li>
                     @auth
                         @if (auth()->user()->username === 'rikiparahat' ||
-                                auth()->user()->username === 'bedriamaail' || auth()->user()->username === 'ariwibowo' ||
+                                auth()->user()->username === 'bedriamaail' ||
+                                auth()->user()->username === 'ariwibowo' ||
                                 auth()->user()->username === 'williemhalim')
                             <li class="py-2 pl-4 pr-3 text-xs font-semibold uppercase tracking-wider text-gray-500 last:mb-0"
                                 :class="{ 'lg:block': sidebarExpanded, 'lg:hidden': !sidebarExpanded }">
@@ -231,7 +232,7 @@
                                             stroke-width="1.5" stroke="currentColor" width="16" height="16">
                                             <path stroke-linecap="round" stroke-linejoin="round"
                                                 d=" M2.25 18.75a60.07 60.07 0 0 1 15.797 2.101c.727.198 1.453-.342
-                                                                                                                                        1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 0 1 3 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 0 0-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 0 1-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 0 0 3 15h-.75M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm3 0h.008v.008H18V10.5Zm-12 0h.008v.008H6V10.5Z" />
+                                                                                                                                                                                                    1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 0 1 3 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 0 0-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 0 1-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 0 0 3 15h-.75M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm3 0h.008v.008H18V10.5Zm-12 0h.008v.008H6V10.5Z" />
                                         </svg>
                                         <span
                                             class="lg:sidebar-expanded:opacity-100 text-m ml-4 font-medium duration-200 lg:opacity-0 2xl:opacity-100">Budget</span>
@@ -464,24 +465,27 @@
                                     </ul>
                                 </div>
                             </li>
-                            <li class="bg-linear-to-r @if (in_array(Request::segment(1), ['polist'])) {{ 'from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]' }} @endif mb-0.5 rounded-lg py-2 pl-4 pr-3 last:mb-0"
-                                x-data="{ open: {{ in_array(Request::segment(1), ['polist']) ? 1 : 0 }} }">
-                                <a class="@if (!in_array(Request::segment(1), ['polist'])) {{ 'hover:text-gray-900 dark:hover:text-white' }} @endif block truncate text-gray-800 transition dark:text-gray-100"
+                            <li class="bg-linear-to-r @if (in_array(Request::segment(1), ['polist', 'receiptlist'])) {{ 'from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]' }} @endif mb-0.5 rounded-lg py-2 pl-4 pr-3 last:mb-0"
+                                x-data="{ open: {{ in_array(Request::segment(1), ['polist', 'receiptlist']) ? 1 : 0 }} }">
+                                <a class="@if (!in_array(Request::segment(1), ['polist', 'receiptlist'])) {{ 'hover:text-gray-900 dark:hover:text-white' }} @endif block truncate text-gray-800 transition dark:text-gray-100"
                                     href="#0" @click.prevent="open = !open; sidebarExpanded = true">
                                     <div class="flex items-center justify-between">
                                         <div class="flex items-center">
-                                            <svg class="@if (in_array(Request::segment(1), ['polist'])) {{ 'text-violet-500' }}@else{{ 'text-gray-400 dark:text-gray-500' }} @endif shrink-0 fill-current"
+                                            <svg class="@if (in_array(Request::segment(1), ['polist', 'receiptlist'])) text-violet-500 @else text-gray-400 dark:text-gray-500 @endif shrink-0"
                                                 xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                                 stroke-width="1.5" stroke="currentColor" width="16" height="16">
                                                 <path stroke-linecap="round" stroke-linejoin="round"
-                                                    d="M3.375 19.5h17.25m-17.25 0a1.125 1.125 0 0 1-1.125-1.125M3.375 19.5h7.5c.621 0 1.125-.504 1.125-1.125m-9.75 0V5.625m0 12.75v-1.5c0-.621.504-1.125 1.125-1.125m18.375 2.625V5.625m0 12.75c0 .621-.504 1.125-1.125 1.125m1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125m0 3.75h-7.5A1.125 1.125 0 0 1 12 18.375m9.75-12.75c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125m19.5 0v1.5c0 .621-.504 1.125-1.125 1.125M2.25 5.625v1.5c0 .621.504 1.125 1.125 1.125m0 0h17.25m-17.25 0h7.5c.621 0 1.125.504 1.125 1.125M3.375 8.25c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125m17.25-3.75h-7.5c-.621 0-1.125.504-1.125 1.125m8.625-1.125c.621 0 1.125.504 1.125 1.125v1.5c0 .621-.504 1.125-1.125 1.125m-17.25 0h7.5m-7.5 0c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125M12 10.875v-1.5m0 1.5c0 .621-.504 1.125-1.125 1.125M12 10.875c0 .621.504 1.125 1.125 1.125m-2.25 0c.621 0 1.125.504 1.125 1.125M13.125 12h7.5m-7.5 0c-.621 0-1.125.504-1.125 1.125M20.625 12c.621 0 1.125.504 1.125 1.125v1.5c0 .621-.504 1.125-1.125 1.125m-17.25 0h7.5M12 14.625v-1.5m0 1.5c0 .621-.504 1.125-1.125 1.125M12 14.625c0 .621.504 1.125 1.125 1.125m-2.25 0c.621 0 1.125.504 1.125 1.125m0 1.5v-1.5m0 0c0-.621.504-1.125 1.125-1.125m0 0h7.5" />
+                                                    d="M2.25 3h1.386c.51 0 .955.343 1.09.835l.383 1.432M7.5 14.25h9.75m0 0a2.25 2.25 0 1 0 0 4.5 2.25 2.25 0 0 0 0-4.5Zm-9.75 0a2.25 2.25 0 1 0 0 4.5 2.25 2.25 0 0 0 0-4.5Zm9.75 0L18.75 6.75H6.6M6.6 6.75 5.25 3M6.6 6.75h12.15a1.125 1.125 0 0 1 1.107 1.347l-1.005 4.5a1.125 1.125 0 0 1-1.107.903H7.5" />
                                             </svg>
+
                                             <span
-                                                class="lg:sidebar-expanded:opacity-100 text-m ml-4 font-medium duration-200 lg:opacity-0 2xl:opacity-100">Purchase Orders</span>
+                                                class="lg:sidebar-expanded:opacity-100 text-m ml-4 font-medium duration-200 lg:opacity-0 2xl:opacity-100">
+                                                Purchase
+                                            </span>
                                         </div>
                                         <div
                                             class="lg:sidebar-expanded:opacity-100 ml-2 flex shrink-0 duration-200 lg:opacity-0 2xl:opacity-100">
-                                            <svg class="@if (in_array(Request::segment(1), ['polist'])) {{ 'rotate-180' }} @endif ml-1 h-3 w-3 shrink-0 fill-current text-gray-400 dark:text-gray-500"
+                                            <svg class="@if (in_array(Request::segment(1), ['polist', 'receiptlist'])) {{ 'rotate-180' }} @endif ml-1 h-3 w-3 shrink-0 fill-current text-gray-400 dark:text-gray-500"
                                                 :class="open ? 'rotate-180' : 'rotate-0'" viewBox="0 0 12 12">
                                                 <path d="M5.9 11.4L.5 6l1.4-1.4 4 4 4-4L11.3 6z" />
                                             </svg>
@@ -489,52 +493,24 @@
                                     </div>
                                 </a>
                                 <div class="lg:sidebar-expanded:block lg:hidden 2xl:block">
-                                    <ul class="@if (!in_array(Request::segment(1), ['polist'])) {{ 'hidden' }} @endif mt-1 pl-8"
+                                    <ul class="@if (!in_array(Request::segment(1), ['polist', 'receiptlist'])) {{ 'hidden' }} @endif mt-1 pl-8"
                                         :class="open ? 'block!' : 'hidden'">
                                         <li class="mb-1 last:mb-0">
                                             <a class="@if (Route::is('polist')) {{ 'text-violet-500!' }} @endif block truncate text-gray-500/90 transition hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
                                                 href="{{ route('polist') }}">
                                                 <span
-                                                    class="lg:sidebar-expanded:opacity-100 text-m font-medium duration-200 lg:opacity-0 2xl:opacity-100">PO List</span>
+                                                    class="lg:sidebar-expanded:opacity-100 text-m font-medium duration-200 lg:opacity-0 2xl:opacity-100">PO
+                                                    List</span>
                                             </a>
-                                        </li>                                        
-                                    </ul>
-                                </div>
-                            </li>
-                            <li class="bg-linear-to-r @if (in_array(Request::segment(1), ['receiptlist'])) {{ 'from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]' }} @endif mb-0.5 rounded-lg py-2 pl-4 pr-3 last:mb-0"
-                                x-data="{ open: {{ in_array(Request::segment(1), ['receiptlist']) ? 1 : 0 }} }">
-                                <a class="@if (!in_array(Request::segment(1), ['receiptlist'])) {{ 'hover:text-gray-900 dark:hover:text-white' }} @endif block truncate text-gray-800 transition dark:text-gray-100"
-                                    href="#0" @click.prevent="open = !open; sidebarExpanded = true">
-                                    <div class="flex items-center justify-between">
-                                        <div class="flex items-center">
-                                            <svg class="@if (in_array(Request::segment(1), ['receiptlist'])) {{ 'text-violet-500' }}@else{{ 'text-gray-400 dark:text-gray-500' }} @endif shrink-0 fill-current"
-                                                xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                                stroke-width="1.5" stroke="currentColor" width="16" height="16">
-                                                <path stroke-linecap="round" stroke-linejoin="round"
-                                                    d="M3.375 19.5h17.25m-17.25 0a1.125 1.125 0 0 1-1.125-1.125M3.375 19.5h7.5c.621 0 1.125-.504 1.125-1.125m-9.75 0V5.625m0 12.75v-1.5c0-.621.504-1.125 1.125-1.125m18.375 2.625V5.625m0 12.75c0 .621-.504 1.125-1.125 1.125m1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125m0 3.75h-7.5A1.125 1.125 0 0 1 12 18.375m9.75-12.75c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125m19.5 0v1.5c0 .621-.504 1.125-1.125 1.125M2.25 5.625v1.5c0 .621.504 1.125 1.125 1.125m0 0h17.25m-17.25 0h7.5c.621 0 1.125.504 1.125 1.125M3.375 8.25c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125m17.25-3.75h-7.5c-.621 0-1.125.504-1.125 1.125m8.625-1.125c.621 0 1.125.504 1.125 1.125v1.5c0 .621-.504 1.125-1.125 1.125m-17.25 0h7.5m-7.5 0c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125M12 10.875v-1.5m0 1.5c0 .621-.504 1.125-1.125 1.125M12 10.875c0 .621.504 1.125 1.125 1.125m-2.25 0c.621 0 1.125.504 1.125 1.125M13.125 12h7.5m-7.5 0c-.621 0-1.125.504-1.125 1.125M20.625 12c.621 0 1.125.504 1.125 1.125v1.5c0 .621-.504 1.125-1.125 1.125m-17.25 0h7.5M12 14.625v-1.5m0 1.5c0 .621-.504 1.125-1.125 1.125M12 14.625c0 .621.504 1.125 1.125 1.125m-2.25 0c.621 0 1.125.504 1.125 1.125m0 1.5v-1.5m0 0c0-.621.504-1.125 1.125-1.125m0 0h7.5" />
-                                            </svg>
-                                            <span
-                                                class="lg:sidebar-expanded:opacity-100 text-m ml-4 font-medium duration-200 lg:opacity-0 2xl:opacity-100">Purchase Receipts</span>
-                                        </div>
-                                        <div
-                                            class="lg:sidebar-expanded:opacity-100 ml-2 flex shrink-0 duration-200 lg:opacity-0 2xl:opacity-100">
-                                            <svg class="@if (in_array(Request::segment(1), ['receiptlist'])) {{ 'rotate-180' }} @endif ml-1 h-3 w-3 shrink-0 fill-current text-gray-400 dark:text-gray-500"
-                                                :class="open ? 'rotate-180' : 'rotate-0'" viewBox="0 0 12 12">
-                                                <path d="M5.9 11.4L.5 6l1.4-1.4 4 4 4-4L11.3 6z" />
-                                            </svg>
-                                        </div>
-                                    </div>
-                                </a>
-                                <div class="lg:sidebar-expanded:block lg:hidden 2xl:block">
-                                    <ul class="@if (!in_array(Request::segment(1), ['receiptlist'])) {{ 'hidden' }} @endif mt-1 pl-8"
-                                        :class="open ? 'block!' : 'hidden'">
+                                        </li>
                                         <li class="mb-1 last:mb-0">
                                             <a class="@if (Route::is('receiptlist')) {{ 'text-violet-500!' }} @endif block truncate text-gray-500/90 transition hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
                                                 href="{{ route('receiptlist') }}">
                                                 <span
-                                                    class="lg:sidebar-expanded:opacity-100 text-m font-medium duration-200 lg:opacity-0 2xl:opacity-100">Receipt List</span>
+                                                    class="lg:sidebar-expanded:opacity-100 text-m font-medium duration-200 lg:opacity-0 2xl:opacity-100">Receipt
+                                                    List</span>
                                             </a>
-                                        </li>                                        
+                                        </li>
                                     </ul>
                                 </div>
                             </li>

@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Surat Tanda Terima Barang</title>
+    <title>Bukti Pengeluaran Gudang</title>
 </head>
 
 <body style="margin:0;padding:0;font-family:Arial,Helvetica,sans-serif;font-size:12px;line-height:1.3;color:#000;">
@@ -16,15 +16,18 @@
                     {{ optional($company)->cpny_name ?? 'PT. ARTISAN WAHYU' }}
                 </td>
                 <td
-                    style="width:50%;padding-left:50px;text-align:center;vertical-align:middle;font-size:18px;font-weight:700;">
-                    Surat Tanda Terima Barang
+                    style="width:50%;padding-left:50px;text-align:center;vertical-align:middle;font-size:18px;font-weight:700;text-decoration:underline;">
+                    Bukti Pengeluaran Gudang
                 </td>
                 <td style="width:25%;text-align:right;vertical-align:middle;">
-                    <div
-                        style="display:inline-block;border:1px solid #000;padding:3px 10px;font-weight:700;font-size:12px;">
-                        {{ $rcp->copy_mark ?? 'ASLI' }}
-                    </div>
                 </td>
+            </tr>
+            <tr>
+                <td></td>
+                <td style="padding-left:50px;text-align:center;vertical-align:middle;font-size:18px;font-weight:700;">
+                    Non Stock
+                </td>
+                <td></td>
             </tr>
 
             <!-- Meta Section -->
@@ -140,13 +143,6 @@
                     <div style="border-top:1px solid #000;width:60%;margin:6px auto 0;"></div>
                     <div style="font-size:11px;margin-top:2mm;">Head of Warehouse Div.</div>
                 </td>
-            </tr>
-        </table>
-
-        <!-- Footer -->
-        <table style="width:100%;border-collapse:collapse;font-size:11px;margin-top:4px;">
-            <tr>
-                <td style="text-align:left;padding-top:4px;">Asli: Supplier, Copy: Gudang</td>
             </tr>
         </table>
     </div>

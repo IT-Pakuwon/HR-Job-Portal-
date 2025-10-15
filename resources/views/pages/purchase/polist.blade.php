@@ -2,15 +2,277 @@
     @php
         $currentPage = Route::currentRouteName() == 'polist.index' ? 'PO' : '';
     @endphp
+    <style>
+        .no-border {
+            border: none !important;
+        }
+
+        .grid {
+            width: 100%;
+        }
+
+        select,
+        textarea,
+        input {
+            width: 100%;
+        }
+
+        table.dataTable {
+            width: 100% !important;
+        }
+
+        .dataTables_wrapper {
+            width: 100%;
+        }
+
+        @media (max-width: 600px) {
+            .dataTables_wrapper {
+                padding: 0 10px;
+            }
+        }
+
+        /* === Filter Section === */
+        #poTable_filter {
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: flex-start;
+            align-items: center;
+        }
+
+        #poTable_filter label {
+            margin-right: 2px;
+        }
+
+        #poTable_filter input {
+            width: auto;
+            padding: 0.25rem 0.5rem;
+            min-width: 80px;
+            border-radius: 0.5rem;
+            border: 1px solid #d1d5db;
+            background-color: #f9fafb;
+        }
+
+        /* === Wrapper Width === */
+        #poTable_wrapper {
+            width: 100%;
+        }
+
+        /* === Cell Formatting === */
+        #poTable td {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            padding: 10px;
+            max-width: 200px;
+        }
+
+        #poTable th {
+            padding: 10px;
+            max-width: 200px;
+        }
+
+        /* === Length Section === */
+        #poTable_length {
+            width: auto;
+            display: flex;
+            justify-content: flex-start;
+        }
+
+        #poTable_length select {
+            width: auto;
+            padding: 0.25rem 0.5rem;
+            min-width: 80px;
+            border-radius: 0.5rem;
+            border: 1px solid #d1d5db;
+            background-color: #f9fafb;
+        }
+
+        /* === Info + Pagination === */
+        #poTable_info {
+            margin: 10px 0;
+        }
+
+        .dataTables_paginate {
+            margin: 10px 0;
+        }
+
+        /* === Hover Effects === */
+        #poTable tbody tr {
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        #poTable tbody tr:hover {
+            background-color: #8f8f8f11;
+            cursor: pointer;
+        }
+
+        #poTable tbody tr td {
+            padding: 8px;
+            line-height: 2;
+        }
+
+        /* === Column Width Alignment === */
+        #poTable th:nth-child(1),
+        #poTable td:nth-child(1),
+        #poTable th:nth-child(4),
+        #poTable td:nth-child(4) {
+            width: 120px;
+            text-align: center;
+        }
+
+        /* === Group Row & Collapse === */
+        #poTable tbody tr.collapsed-group-row {
+            display: none;
+        }
+
+        #poTable tr.group-row {
+            background-color: #e6e6e6;
+            font-weight: bold;
+            cursor: pointer;
+            user-select: none;
+            color: #333;
+        }
+
+        #poTable tr.group-row:hover {
+            background-color: #d4d4d4;
+        }
+
+        #poTable tr.group-row .fas {
+            margin-right: 8px;
+            width: 16px;
+            text-align: center;
+        }
+
+        #poTable tr.group-row td {
+            padding: 10px !important;
+            border-bottom: 1px solid #ddd;
+        }
+
+        #poTable tr.group-row td:first-child {
+            border-left: none;
+        }
+
+        /* === Custom Switch === */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 40px;
+            height: 22px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked+.slider {
+            background-color: #4CAF50;
+        }
+
+        input:checked+.slider:before {
+            transform: translateX(18px);
+        }
+
+        /* Active / Selected state */
+        .scope-filter.active .scope-card {
+            transform: scale(1.02);
+        }
+
+        /* Hold */
+        .scope-filter[data-scope="hold"].active .scope-card {
+            background-color: rgb(219 234 254);
+            /* blue-100 */
+            border-color: rgb(29 78 216);
+            /* blue-700 */
+            color: rgb(29 78 216);
+        }
+
+        /* Purchase */
+        .scope-filter[data-scope="purchase"].active .scope-card {
+            background-color: rgb(224 231 255);
+            /* indigo-100 */
+            border-color: rgb(67 56 202);
+            /* indigo-700 */
+            color: rgb(67 56 202);
+        }
+
+        /* Partial */
+        .scope-filter[data-scope="partial"].active .scope-card {
+            background-color: rgb(254 243 199);
+            /* amber-100 */
+            border-color: rgb(180 83 9);
+            /* amber-700 */
+            color: rgb(180 83 9);
+        }
+
+        /* Completed */
+        .scope-filter[data-scope="completed"].active .scope-card {
+            background-color: rgb(220 252 231);
+            /* green-100 */
+            border-color: rgb(21 128 61);
+            /* green-700 */
+            color: rgb(21 128 61);
+        }
+
+        /* Cancel */
+        .scope-filter[data-scope="cancel"].active .scope-card {
+            background-color: rgb(254 226 226);
+            /* red-100 */
+            border-color: rgb(185 28 28);
+            /* red-700 */
+            color: rgb(185 28 28);
+        }
+
+        /* Reuse */
+        .scope-filter[data-scope="reuse"].active .scope-card {
+            background-color: rgb(243 244 246);
+            /* gray-100 */
+            border-color: rgb(31 41 55);
+            /* gray-700 */
+            color: rgb(31 41 55);
+        }
+
+        /* All PO */
+        .scope-filter[data-scope="all"].active .scope-card {
+            background-color: rgb(241 245 249);
+            /* slate-100 */
+            border-color: rgb(30 41 59);
+            /* slate-700 */
+            color: rgb(30 41 59);
+        }
+    </style>
 
     <div class="max-w-9xl mx-auto w-full px-4 py-4 sm:px-6 lg:px-8">
-
-        {{-- Mini cards 7 status --}}
         <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-7">
             <a href="#" class="scope-filter group" data-scope="hold">
                 <div
-                    class="flex items-center gap-2 rounded-md border border-blue-700/60 bg-blue-50/40 p-2 text-blue-700 hover:bg-blue-50">
-                    <span class="text-base">🧊</span>
+                    class="scope-card flex items-center gap-2 rounded-md border border-blue-700/60 bg-blue-50/40 p-2 text-blue-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-blue-50 hover:shadow-md active:scale-95">
+                    <span class="text-base group-hover:animate-pulse">🧊</span>
                     <div class="flex w-full items-center justify-between">
                         <p class="text-sm font-medium">Hold</p>
                         <p class="text-right text-lg font-extrabold">{{ $hold }}</p>
@@ -20,8 +282,8 @@
 
             <a href="#" class="scope-filter group" data-scope="purchase">
                 <div
-                    class="flex items-center gap-2 rounded-md border border-indigo-700/60 bg-indigo-50/40 p-2 text-indigo-700 hover:bg-indigo-50">
-                    <span class="text-base">🛒</span>
+                    class="scope-card flex items-center gap-2 rounded-md border border-indigo-700/60 bg-indigo-50/40 p-2 text-indigo-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-indigo-50 hover:shadow-md active:scale-95">
+                    <span class="text-base group-hover:animate-pulse">🛒</span>
                     <div class="flex w-full items-center justify-between">
                         <p class="text-sm font-medium">Purchase</p>
                         <p class="text-right text-lg font-extrabold">{{ $purchase }}</p>
@@ -31,8 +293,8 @@
 
             <a href="#" class="scope-filter group" data-scope="partial">
                 <div
-                    class="flex items-center gap-2 rounded-md border border-amber-700/60 bg-amber-50/40 p-2 text-amber-700 hover:bg-amber-50">
-                    <span class="text-base">📦</span>
+                    class="scope-card flex items-center gap-2 rounded-md border border-amber-700/60 bg-amber-50/40 p-2 text-amber-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-amber-50 hover:shadow-md active:scale-95">
+                    <span class="text-base group-hover:animate-pulse">📦</span>
                     <div class="flex w-full items-center justify-between">
                         <p class="text-sm font-medium">Partial</p>
                         <p class="text-right text-lg font-extrabold">{{ $partial }}</p>
@@ -42,8 +304,8 @@
 
             <a href="#" class="scope-filter group" data-scope="completed">
                 <div
-                    class="flex items-center gap-2 rounded-md border border-green-700/60 bg-green-50/40 p-2 text-green-700 hover:bg-green-50">
-                    <span class="text-base">✅</span>
+                    class="scope-card flex items-center gap-2 rounded-md border border-green-700/60 bg-green-50/40 p-2 text-green-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-green-50 hover:shadow-md active:scale-95">
+                    <span class="text-base group-hover:animate-pulse">✅</span>
                     <div class="flex w-full items-center justify-between">
                         <p class="text-sm font-medium">Completed</p>
                         <p class="text-right text-lg font-extrabold">{{ $completed }}</p>
@@ -53,8 +315,8 @@
 
             <a href="#" class="scope-filter group" data-scope="cancel">
                 <div
-                    class="flex items-center gap-2 rounded-md border border-red-700/60 bg-red-50/40 p-2 text-red-700 hover:bg-red-50">
-                    <span class="text-base">✖️</span>
+                    class="scope-card flex items-center gap-2 rounded-md border border-red-700/60 bg-red-50/40 p-2 text-red-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-red-50 hover:shadow-md active:scale-95">
+                    <span class="text-base group-hover:animate-pulse">✖️</span>
                     <div class="flex w-full items-center justify-between">
                         <p class="text-sm font-medium">Cancel</p>
                         <p class="text-right text-lg font-extrabold">{{ $cancel }}</p>
@@ -64,8 +326,8 @@
 
             <a href="#" class="scope-filter group" data-scope="reuse">
                 <div
-                    class="flex items-center gap-2 rounded-md border border-gray-700/60 bg-gray-50/40 p-2 text-gray-700 hover:bg-gray-50 dark:border-gray-400 dark:bg-gray-700/30 dark:text-gray-200">
-                    <span class="text-base">♻️</span>
+                    class="scope-card flex items-center gap-2 rounded-md border border-gray-700/60 bg-gray-50/40 p-2 text-gray-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-gray-50 hover:shadow-md active:scale-95 dark:border-gray-400 dark:bg-gray-700/30 dark:text-gray-200 dark:hover:bg-gray-700/40">
+                    <span class="text-base group-hover:animate-pulse">♻️</span>
                     <div class="flex w-full items-center justify-between">
                         <p class="text-sm font-medium">Reuse</p>
                         <p class="text-right text-lg font-extrabold">{{ $reuse }}</p>
@@ -75,8 +337,8 @@
 
             <a href="#" class="scope-filter group" data-scope="all">
                 <div
-                    class="flex items-center gap-2 rounded-md border border-slate-700/60 bg-slate-50/40 p-2 text-slate-700 hover:bg-slate-50 dark:border-white/50 dark:text-white">
-                    <span class="text-base">🧾</span>
+                    class="scope-card flex items-center gap-2 rounded-md border border-slate-700/60 bg-slate-50/40 p-2 text-slate-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-slate-50 hover:shadow-md active:scale-95 dark:border-white/50 dark:text-white dark:hover:bg-gray-700/40">
+                    <span class="text-base group-hover:animate-pulse">🧾</span>
                     <div class="flex w-full items-center justify-between">
                         <p class="text-sm font-medium">All PO</p>
                         <p class="text-right text-lg font-extrabold">{{ $all }}</p>
@@ -304,6 +566,24 @@
                         updateTitle(scope);
                         highlightActive(scope);
                         table.ajax.reload(null, true);
+                    });
+
+                    // Toggle .active class and remember selected scope
+                    const poScopes = document.querySelectorAll('.scope-filter');
+                    const savedPoScope = localStorage.getItem('activePoScope');
+
+                    if (savedPoScope) {
+                        const activeScope = document.querySelector(`.scope-filter[data-scope="${savedPoScope}"]`);
+                        if (activeScope) activeScope.classList.add('active');
+                    }
+
+                    poScopes.forEach(btn => {
+                        btn.addEventListener('click', e => {
+                            e.preventDefault();
+                            poScopes.forEach(s => s.classList.remove('active'));
+                            btn.classList.add('active');
+                            localStorage.setItem('activePoScope', btn.dataset.scope);
+                        });
                     });
                 });
             </script>

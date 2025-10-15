@@ -2,14 +2,65 @@
     @php
         $currentPage = Route::currentRouteName() == 'jobpostings' ? 'HR' : '';
     @endphp
+    <style>
+        /* Active / Selected state */
+        .status-filter.active .status-card {
+            transform: scale(1.02);
+            transition: all 0.3s ease-in-out;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
+        }
+
+        /* All */
+        .status-filter[data-status=""].active .status-card {
+            background-color: rgb(254 215 170);
+            /* orange-200 */
+            border-color: rgb(194 65 12)
+        }
+
+        /* Unchecked (Blue) */
+        .status-filter[data-status="is_read_N"].active .status-card {
+            background-color: rgb(191 219 254);
+            /* blue-200 */
+            border-color: rgb(29 78 216);
+            /* blue-700 */
+            color: rgb(29 78 216);
+        }
+
+        /* Checked (Gray) */
+        .status-filter[data-status="is_read_Y"].active .status-card {
+            background-color: rgb(229 231 235);
+            /* gray-200 */
+            border-color: rgb(31 41 55);
+            /* gray-700 */
+            color: rgb(31 41 55);
+        }
+
+        /* Reject (Red) */
+        .status-filter[data-status="R"].active .status-card {
+            background-color: rgb(254 202 202);
+            /* red-200 */
+            border-color: rgb(185 28 28);
+            /* red-700 */
+            color: rgb(185 28 28);
+        }
+
+        /* Approved (Green) */
+        .status-filter[data-status="C"].active .status-card {
+            background-color: rgb(187 247 208);
+            /* green-200 */
+            border-color: rgb(21 128 61);
+            /* green-700 */
+            color: rgb(21 128 61);
+        }
+    </style>
     <div class="max-w-9xl mx-auto px-4 py-4 sm:px-6 lg:px-8">
         <div class="grid-col-1 grid gap-6 xl:grid-cols-5 xl:grid-rows-1">
-            {{-- All Status --}}
+            {{-- All --}}
             <button>
-                <a href="#" class="status-filter" data-status="">
+                <a href="#" class="status-filter group block" data-status="">
                     <div
-                        class="flex items-center gap-4 rounded-lg border border-orange-700 bg-orange-200/20 p-3 text-orange-600">
-                        <span class="text-xl">📄</span>
+                        class="status-card flex items-center gap-4 rounded-lg border border-orange-700 bg-orange-200/20 p-3 text-orange-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-orange-100 hover:shadow-lg active:scale-95">
+                        <span class="text-xl group-hover:animate-pulse">📄</span>
                         <div class="flex flex-grow items-center justify-between">
                             <p class="text-lg font-medium">All</p>
                             <p class="text-right text-xl font-extrabold">{{ $all }}</p>
@@ -18,12 +69,12 @@
                 </a>
             </button>
 
-            {{-- Unchecked Status --}}
+            {{-- Unchecked --}}
             <button>
-                <a href="#" class="status-filter" data-status="is_read_N">
+                <a href="#" class="status-filter group block" data-status="is_read_N">
                     <div
-                        class="flex items-center gap-4 rounded-lg border border-blue-700 bg-blue-200/20 p-3 text-blue-600">
-                        <span class="text-xl">⏳</span>
+                        class="status-card flex items-center gap-4 rounded-lg border border-blue-700 bg-blue-200/20 p-3 text-blue-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-blue-100 hover:shadow-lg active:scale-95">
+                        <span class="text-xl group-hover:animate-pulse">⏳</span>
                         <div class="flex flex-grow items-center justify-between">
                             <p class="text-lg font-medium">Unchecked</p>
                             <p class="text-right text-xl font-extrabold">{{ $unchecked }}</p>
@@ -32,12 +83,12 @@
                 </a>
             </button>
 
-            {{-- Checked Status --}}
+            {{-- Checked --}}
             <button>
-                <a href="#" class="status-filter" data-status="is_read_Y">
+                <a href="#" class="status-filter group block" data-status="is_read_Y">
                     <div
-                        class="flex items-center gap-4 rounded-lg border border-gray-700 bg-gray-200/20 p-3 text-gray-600 dark:border-white dark:text-white">
-                        <span class="text-xl">✏️</span>
+                        class="status-card flex items-center gap-4 rounded-lg border border-gray-700 bg-gray-200/20 p-3 text-gray-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-gray-100 hover:shadow-lg active:scale-95 dark:border-white dark:text-white dark:hover:bg-gray-700">
+                        <span class="text-xl group-hover:animate-pulse">✏️</span>
                         <div class="flex flex-grow items-center justify-between">
                             <p class="text-lg font-medium">Checked</p>
                             <p class="text-right text-xl font-extrabold">{{ $checked }}</p>
@@ -46,12 +97,12 @@
                 </a>
             </button>
 
-            {{-- Reject Status --}}
+            {{-- Reject --}}
             <button>
-                <a href="#" class="status-filter" data-status="R">
+                <a href="#" class="status-filter group block" data-status="R">
                     <div
-                        class="flex items-center gap-4 rounded-lg border border-red-700 bg-red-200/20 p-3 text-red-600">
-                        <span class="text-xl">⛔️</span>
+                        class="status-card flex items-center gap-4 rounded-lg border border-red-700 bg-red-200/20 p-3 text-red-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-red-100 hover:shadow-lg active:scale-95">
+                        <span class="text-xl group-hover:animate-pulse">⛔️</span>
                         <div class="flex flex-grow items-center justify-between">
                             <p class="text-lg font-medium">Reject</p>
                             <p class="text-right text-xl font-extrabold">{{ $reject }}</p>
@@ -60,12 +111,12 @@
                 </a>
             </button>
 
-            {{-- Approved Status --}}
+            {{-- Approved --}}
             <button>
-                <a href="#" class="status-filter" data-status="C">
+                <a href="#" class="status-filter group block" data-status="C">
                     <div
-                        class="flex items-center gap-4 rounded-lg border border-green-700 bg-green-200/20 p-3 text-green-600">
-                        <span class="text-xl">✅</span>
+                        class="status-card flex items-center gap-4 rounded-lg border border-green-700 bg-green-200/20 p-3 text-green-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-green-100 hover:shadow-lg active:scale-95">
+                        <span class="text-xl group-hover:animate-pulse">✅</span>
                         <div class="flex flex-grow items-center justify-between">
                             <p class="text-lg font-medium">Approved</p>
                             <p class="text-right text-xl font-extrabold">{{ $approved }}</p>
@@ -759,6 +810,14 @@
                         $(this).addClass('active');
                         currentStatus = $(this).data('status') || '';
                         applicantTable.ajax.reload();
+                    });
+                });
+                document.querySelectorAll('.status-filter').forEach(btn => {
+                    btn.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        document.querySelectorAll('.status-filter').forEach(b => b.classList.remove(
+                            'active'));
+                        this.classList.add('active');
                     });
                 });
             </script>

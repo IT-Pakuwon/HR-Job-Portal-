@@ -7,12 +7,14 @@
         /* Active / Selected state */
         .status-filter.active .status-card {
             transform: scale(1.02);
+
         }
 
         .status-filter[data-status=""].active .status-card {
-            background-color: rgba(255, 166, 0, 0.69);
-            border-color: rgb(255, 85, 0);
-            text-decoration-color: white;
+            background-color: rgb(254 215 170);
+            /* orange-200 */
+            border-color: rgb(194 65 12)
+                /* orange-700 */
         }
 
         .status-filter[data-status="P"].active .status-card {

@@ -8,7 +8,7 @@
     <style>
         @page {
             size: A4;
-            margin: 12mm;           
+            margin: 12mm;
         }
 
         body {
@@ -16,7 +16,7 @@
             padding: 0;
             font-family: Arial, Helvetica, sans-serif;
             font-size: 11px;
-            color: #000;           
+            color: #000;
         }
 
         .page {
@@ -158,8 +158,6 @@
             padding: 6px 20px;
             background: #fff;
         } */
-
-       
     </style>
 </head>
 
@@ -183,7 +181,8 @@
             <tr>
                 <td colspan="2">
                     <p style="font-size: 11px; padding-left:5px">{{ $company->address_line1 }}</p>
-                    <p style="font-size: 11px;padding-left:5px">Telp: {{ $company->phone }} &nbsp;&nbsp; Fax: {{ $company->fax }}
+                    <p style="font-size: 11px;padding-left:5px">Telp: {{ $company->phone }} &nbsp;&nbsp; Fax:
+                        {{ $company->fax }}
                         91</p>
                     <table style="font-size:11px; border-collapse:collapse; margin-left:0; padding-left:0;">
                         <tr>
@@ -195,7 +194,7 @@
                             <td style="vertical-align:top;">Alamat NPWP</td>
                             <td>:</td>
                             <td>
-                                {{ $company->tax_address_line}}
+                                {{ $company->tax_address_line }}
                             </td>
                         </tr>
                     </table>
@@ -227,7 +226,8 @@
                     <h2 style="font-size:12px;"><strong>SPPB No:
                             {{ $po->sppbjktid }}</strong></h2>
                     <h2 style="font-size:12px;"><strong></strong></h2>
-                    <p style="font-size: 12px;">Tgl. PO / Date : {{ \Carbon\Carbon::parse($po->podate)->translatedFormat('d F Y') }}</p>
+                    <p style="font-size: 12px;">Tgl. PO / Date :
+                        {{ \Carbon\Carbon::parse($po->podate)->translatedFormat('d F Y') }}</p>
 
                     <hr style="border:none; border-top:2px solid #000; margin:4px 0; margin-top:4px">
                     <div style="margin-top:4px">
@@ -239,7 +239,8 @@
                     <div style="margin-top:4px">
                         <p style="vertical-align: top; text-align: left; font-size:12px;  ">
                             {{-- Jadwal Pengiriman (Delivery Schedule) : <br> <strong>{{ \Carbon\Carbon::parse($po->podeliverydate)->translatedFormat('d F Y') }}</strong> </p> --}}
-                            Jadwal Pengiriman (Delivery Schedule) : <br><strong>{{ optional($po->podeliverydate)->translatedFormat('d F Y') }}</strong>
+                            Jadwal Pengiriman (Delivery Schedule) :
+                            <br><strong>{{ optional($po->podeliverydate)->translatedFormat('d F Y') }}</strong>
                         <h2 style="font-size:12px;"><strong></strong></h2>
                         <hr style="border:none; border-top:2px solid #000; margin:4px 0; margin-top:4px">
                     </div>
@@ -294,7 +295,7 @@
                     $nf0 = fn($n) => number_format((float) $n, 0, ',', '.');
                     $nf2 = fn($n) => number_format((float) $n, 2, ',', '.');
                 @endphp
-                @foreach ($podetail as $i => $item)                
+                @foreach ($podetail as $i => $item)
                     <tr>
                         <td style="text-align:center;">{{ $i + 1 }}</td>
                         <td>{{ $item->inventory_descr }}</td>
@@ -302,13 +303,13 @@
                         <td style="text-align:right;">{{ $nf2($item->qty) }}</td>
                         <td style="text-align:right;">{{ $nf2($item->unitcost) }}</td>
                         <td style="text-align:right;">{{ $nf2($item->totalcost) }}</td>
-                    </tr>      
-                @endforeach           
+                    </tr>
+                @endforeach
                 <tr>
                     <td colspan="4" rowspan="2">
-                        <p><strong>Purpose/Project:</strong> {{ $po->keperluan}}</p>
+                        <p><strong>Purpose/Project:</strong> {{ $po->keperluan }}</p>
                         <p style="margin-top:10px;">
-                           {{ $company->warehouse_note}}
+                            {{ $company->warehouse_note }}
                         </p>
                     </td>
                     <td style="text-align:right;">
@@ -455,7 +456,7 @@
             </ol>
         </div>
 
-      
+
         <div style="text-align:right; margin-top:40px;">
             <div class="signature-box">
                 <div class="title">Disetujui oleh Supplier</div>
