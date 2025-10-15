@@ -94,6 +94,7 @@
                                                 <th class="px-4 py-2 text-right font-semibold text-gray-600 dark:text-gray-300">Qty (PO)</th>
                                                 <th class="px-4 py-2 text-center font-semibold text-gray-600 dark:text-gray-300">UoM</th>
                                                 <th class="px-4 py-2 text-right font-semibold text-gray-600 dark:text-gray-300">Qty Receipt</th>
+                                                <th class="px-4 py-2 text-right font-semibold text-gray-600 dark:text-gray-300">Site</th>
                                             </tr>
                                         </thead>
                                         <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
@@ -110,6 +111,23 @@
                                                             name="qty_receipt[{{ $d->id }}]"
                                                             class="qtyReceipt w-28 rounded border border-gray-300 p-1 text-right dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
                                                             inputmode="decimal" autocomplete="off" placeholder="0,00" />
+                                                    </td>
+                                                    {{-- <td class="px-4 py-2">{{ $d->siteid }}</td> --}}
+                                                    <td class="px-4 py-2">
+                                                        <select
+                                                            name="siteid[{{ $d->id }}]"
+                                                            class="siteSelect w-40 rounded border border-gray-300 p-1 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
+                                                            data-cpny-id="{{ $po->cpny_id }}"
+                                                            data-current-site="{{ $d->siteid }}"
+                                                            data-loaded="0"
+                                                            aria-label="Select site for {{ $d->inventoryid }}"
+                                                        >
+                                                            @if($d->siteid)
+                                                                <option value="{{ $d->siteid }}" selected>{{ $d->siteid }}</option>
+                                                            @else
+                                                                <option value="" selected disabled>Select site…</option>
+                                                            @endif
+                                                        </select>
                                                     </td>
                                                 </tr>
                                             @empty
@@ -297,6 +315,75 @@
         $(document).on('click', '.removeAttachment', function(){ $(this).closest('.attachment-row').remove(); });
     });
     </script>
+
+    <script>
+        $(function(){
+            // Cache hasil fetch per cpny_id agar efisien (sekali fetch)
+            const siteCacheByCpny = {};
+
+            async function fetchSites(cpnyId){
+                if (siteCacheByCpny[cpnyId]) return siteCacheByCpny[cpnyId];
+
+                try {
+                    const url = @json(route('sites.index'));
+                    const res = await $.ajax({
+                        url: url,
+                        method: 'GET',
+                        data: { cpny_id: cpnyId },
+                        dataType: 'json'
+                    });
+
+                    if (!res.ok) throw new Error(res.message || 'Failed to load sites.');
+                    siteCacheByCpny[cpnyId] = res.data || [];
+                    return siteCacheByCpny[cpnyId];
+                } catch (err) {
+                    if (window.toastr) toastr.error(err.message || 'Gagal mengambil data site.');
+                    return [];
+                }
+            }
+
+            // Populate select options untuk elemen select tertentu
+            function populateSelectOptions($sel, sites, currentValue){
+                const hasCurrent = currentValue && sites.some(s => s.siteid === currentValue);
+                const options = [];
+
+                if (!hasCurrent) {
+                    options.push(new Option('Select site…', '', true, true));
+                }
+
+                sites.forEach(s => {
+                    const opt = new Option(s.siteid, s.siteid, false, s.siteid === currentValue);
+                    options.push(opt);
+                });
+
+                $sel.empty();
+                options.forEach(opt => $sel.append(opt));
+            }
+
+            // Event: saat select di-FOCUS atau di-KLIK → load data jika belum loaded
+            $(document).on('focus click', '.siteSelect', async function(){
+                const $sel = $(this);
+                if ($sel.data('loaded') === 1) return;
+
+                const cpnyId = $sel.data('cpny-id');
+                const current = $sel.data('current-site') || $sel.val() || '';
+
+                // Optional UX: tampilkan placeholder loading
+                const prevHtml = $sel.html();
+                $sel.html('<option disabled selected>Loading…</option>');
+
+                const sites = await fetchSites(cpnyId);
+                populateSelectOptions($sel, sites, current);
+
+                $sel.data('loaded', 1);
+            });
+
+            // Kalau mau pre-load semua select di awal halaman (opsional):
+            // const cpnyIdInit = $('.siteSelect:first').data('cpny-id');
+            // if (cpnyIdInit) fetchSites(cpnyIdInit);
+        });
+        </script>
+
 
     {{-- Toastr CDN (butuh jQuery di layout) --}}
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">

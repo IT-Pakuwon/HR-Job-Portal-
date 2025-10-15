@@ -1,19 +1,20 @@
 <x-app-layout>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     {{-- === Styles (fixed CSS typos) === --}}
-<style>
-  #loadingSpinnerContainer{
-    position:fixed; inset:0;
-    display:none;                 /* ⬅️ tetap none */
-    place-items: center;
-    background: rgba(17,24,39,.55);
-    backdrop-filter: blur(2px);
-    z-index:2000;
-  }
-  .loading-card{display:flex;flex-direction:column;align-items:center;gap:10px;padding:18px 22px;border-radius:16px;background:linear-gradient(180deg,rgba(31,41,55,.9),rgba(17,24,39,.9));border:1px solid rgba(255,255,255,.08)}
-  .loading-spinner{width:54px;height:54px;border-radius:50%;border:4px solid transparent;border-top-color:#6366f1;animation:spin 1s linear infinite;position:relative}
-  .loading-spinner::after{content:"";position:absolute;inset:6px;border-radius:50%;border:4px solid transparent;border-left-color:#a5b4fc;animation:spinReverse .75s linear infinite}
-  @keyframes spin{to{transform:rotate(360deg)}} @keyframes spinReverse{to{transform:rotate(-360deg)}}
-</style>
+    <style>
+    #loadingSpinnerContainer{
+        position:fixed; inset:0;
+        display:none;                 /* ⬅️ tetap none */
+        place-items: center;
+        background: rgba(17,24,39,.55);
+        backdrop-filter: blur(2px);
+        z-index:2000;
+    }
+    .loading-card{display:flex;flex-direction:column;align-items:center;gap:10px;padding:18px 22px;border-radius:16px;background:linear-gradient(180deg,rgba(31,41,55,.9),rgba(17,24,39,.9));border:1px solid rgba(255,255,255,.08)}
+    .loading-spinner{width:54px;height:54px;border-radius:50%;border:4px solid transparent;border-top-color:#6366f1;animation:spin 1s linear infinite;position:relative}
+    .loading-spinner::after{content:"";position:absolute;inset:6px;border-radius:50%;border:4px solid transparent;border-left-color:#a5b4fc;animation:spinReverse .75s linear infinite}
+    @keyframes spin{to{transform:rotate(360deg)}} @keyframes spinReverse{to{transform:rotate(-360deg)}}
+    </style>
 
 
     @php
@@ -357,4 +358,71 @@
             });
         });
     </script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const btn = document.getElementById('submitBtn');
+            if (!btn) return;
+
+            btn.addEventListener('click', function () {
+
+                Swal.fire({
+                    title: 'Approve Receipt?',
+                    text: "Data qty_received PO akan diperbarui.",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#16a34a', // hijau
+                    cancelButtonColor: '#d33',     // merah
+                    confirmButtonText: 'Ya, Approve',
+                    cancelButtonText: 'Batal'
+                }).then((result) => {
+                    if (!result.isConfirmed) return;
+
+                    btn.disabled = true;
+                    const originalText = btn.innerHTML;
+                    btn.innerHTML = 'Processing...';
+
+                    fetch("{{ route('receipts.approve', ['id' => $rcp->id]) }}", {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                            'Accept': 'application/json',
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({})
+                    })
+                    .then(async (res) => {
+                        const data = await res.json().catch(() => ({}));
+                        if (!res.ok) {
+                            throw new Error(data?.message || 'Gagal memproses.');
+                        }
+
+                        // ✅ Swal success
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Berhasil!',
+                            text: data.message || 'Receipt berhasil di-approve.',
+                            timer: 1800,
+                            showConfirmButton: false
+                        }).then(() => {
+                            window.location.reload();
+                        });
+                    })
+                    .catch((err) => {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Terjadi Kesalahan',
+                            text: err.message || 'Gagal memproses.',
+                        });
+
+                        btn.disabled = false;
+                        btn.innerHTML = originalText;
+                    });
+                });
+            });
+        });
+    </script>
+
+
 </x-app-layout>

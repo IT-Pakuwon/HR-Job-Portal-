@@ -48,7 +48,7 @@ class ReceiptController extends Controller
         // --- ambil detail PO ---
         $details = TrPOdetail::select([
                 'id','ponbr',
-                'inventoryid','inventory_descr',
+                'inventoryid','inventory_descr','siteid',
                 DB::raw("COALESCE(qty) as qty"),
                 DB::raw("COALESCE(uom) as uom")
             ])
@@ -97,6 +97,8 @@ class ReceiptController extends Controller
         if (!$hasAnyQty) {
             return back()->withErrors(['Qty receipt minimal satu baris harus > 0.'])->withInput();
         }
+
+        $siteInput = (array) $request->input('siteid', []);
 
         // === Approval line check (doctype GR) ===
         $doctype   = 'GR';
@@ -165,6 +167,12 @@ class ReceiptController extends Controller
                 $qtyRecRaw = $qtyReceiptInput[$srcId] ?? 0;
                 $qtyRec    = (float) str_replace(',', '.', (string) $qtyRecRaw);
 
+                if ($qtyRec <= 0) {
+                    continue;
+                }
+
+                $siteFromForm = isset($siteInput[$srcId]) ? trim((string)$siteInput[$srcId]) : null;
+
                 $lineNo++;
 
                 $det = new TrReceiptdetail();
@@ -201,6 +209,7 @@ class ReceiptController extends Controller
                 $det->totalcost               = $src->totalcost;
 
                 $det->receipttype             = $doctype;
+                $det->siteid                  = $siteFromForm !== '' ? $siteFromForm : ($src->siteid ?? null);
 
                 // Open ordered (jika belum dihitung sisa, biarkan null)
                 $det->qty_open_ordered        = $qtyRec;
@@ -244,80 +253,40 @@ class ReceiptController extends Controller
             $header->save();
 
 
-           
-
-            // === Attachments (optional) ===
-            if ($request->hasFile('attachments')) {
+            if ($request->hasfile('attachments')) {
                 foreach ($request->file('attachments') as $file) {
-                    if (!$file) continue;
-
                     $randomNumber = random_int(10000000, 99999999);
-                    $ext          = $file->getClientOriginalExtension();
-                    $filename     = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
-                    $attachfile   = md5($randomNumber) . '.' . $ext;
+                    $filename = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+                   
+                    $originalName = str_replace('%', '', $file->getClientOriginalName());
+                    $ext        = $file->getClientOriginalExtension();
+                    $attachfile = md5($randomNumber) . '.' . $ext;
 
-                    $folder = public_path().'/attachments/'.$year;
-                    if (!is_dir($folder)) { @mkdir($folder, 0777, true); }
+                    //attach to folder
+                    $folder_attach = public_path() . '/attachments/'.$year;
+                    $config['upload_path'] = $folder_attach;                   
+                    if(!is_dir($folder_attach))
+                    {
+                        mkdir($folder_attach, 0777);
+                    }
+                    
+                    $folder_upload = $folder_attach;
+                    // $folder_upload = public_path() . '/attachments';
+                    $file->move($folder_upload, $attachfile);
 
-                    $file->move($folder, $attachfile);
-
-                    Attachment::create([
-                        'docid'      => $receiptnbr,
-                        'name'       => $filename,
-                        'attachfile' => $attachfile,
-                        'status'     => 'A',
-                        'extention'  => $ext,
-                        'created_user' => $username,
-                    ]);
+                    //insert to table attachments
+                    $attach = new Attachment();
+                    $attach->docid = $receiptnbr;
+                    $attach->name = $filename;
+                    $attach->attachfile = $attachfile;
+                    $attach->status = 'A';
+                    $attach->extention = $file->getClientOriginalExtension();
+                    $attach->created_user = $user->username;
+                    $attach->save();
                 }
-            }
+            }            
 
-            // === Kirim email ke approver pertama ===
-            // $firstApproval = T_approval::where('docid', $receiptnbr)
-            //     ->where('status', 'P')
-            //     ->orderBy('aprvid')->first();
-
-            // if ($firstApproval) {
-            //     $status = $header->status; // 'P' default
-
-            //     $subjectMap = [
-            //         'P' => 'Waiting Approval',
-            //         'R' => 'Rejected',
-            //         'D' => 'Revise',
-            //         'A' => 'Approved',
-            //         'C' => 'Completed',
-            //     ];
-            //     $subjectSuffix = $subjectMap[$status] ?? 'Notification';
-
-            //     $eid = Hashids::encode($header->id);
-
-            //     $data = [
-            //         'docid'     => $receiptnbr,
-            //         'cpnyid'    => $cpnyid,
-            //         'deptname'  => $deptid,
-            //         'date'      => $now->toDateTimeString(),
-            //         'name'      => $firstApproval->name,
-            //         'createdby' => $header->created_by,
-            //         'info'      => $header->receiptnote,
-            //         'status'    => $status,
-            //         'docname'   => 'GR',
-            //         'url'       => url('/showreceipts/'.$eid), // ⬅️ sesuaikan dgn rute show receipt kamu
-            //     ];
-
-            //     $approvers = array_filter(array_map('trim', explode(',', (string)$firstApproval->aprvusername)));
-            //     $emails = User::whereIn('username', $approvers)
-            //         ->where('status', 'A')
-            //         ->pluck('test_email');
-
-            //     foreach ($emails as $email) {
-            //         \Mail::send('emails.mailapprovenew', $data, function ($message) use ($email, $data, $subjectSuffix) {
-            //             $message->to($email)
-            //                 ->subject($data['docid'].' - '.$subjectSuffix.' GR')
-            //                 ->from('digitalserver@pakuwon.com', 'Pakuwon System');
-            //         });
-            //     }
-            // }
-
+                       
             DB::commit();
 
             return redirect()
@@ -626,6 +595,141 @@ class ReceiptController extends Controller
         // 4) Stream
         $basename = 'RCP';
         return $dompdf->stream("{$basename}_{$rcp->rcpnbr}.pdf", ['Attachment' => false]);
+    }
+
+    public function approveReceipt(Request $request, $id)
+    {
+        return DB::connection('pgsql')->transaction(function () use ($id) {
+            
+            $rcp = TrReceipt::where('id', $id)->lockForUpdate()->firstOrFail();
+
+            if ($rcp->status !== 'P') {
+                return response()->json([
+                    'ok' => false,
+                    'message' => 'Receipt tidak dalam status PENDING.'
+                ], 422);
+            }
+
+            // Ambil detail receipt terkait
+            $rcpdetails = TrReceiptdetail::where('receiptnbr', $rcp->receiptnbr)
+                ->orderBy('receipt_no')
+                ->get();
+
+            if ($rcpdetails->isEmpty()) {
+                return response()->json([
+                    'ok' => false,
+                    'message' => 'Tidak ada detail receipt untuk diproses.'
+                ], 422);
+            }
+          
+            $po = TrPO::where('ponbr', $rcp->ponbr)->lockForUpdate()->first();
+
+            if (!$po) {
+                return response()->json([
+                    'ok' => false,
+                    'message' => 'PO terkait tidak ditemukan.'
+                ], 422);
+            }
+
+            // Map agar minimize query berulang
+            $poDetails = TrPOdetail::where('ponbr', $rcp->ponbr)
+                ->get()
+                ->groupBy(function ($row) {
+                    // key utama: inventoryid + '|' + uom
+                    return ($row->inventoryid ?? '').'|'.($row->uom ?? '');
+                });
+
+            // Fallback map berdasarkan inventoryid saja
+            $poDetailsByInv = TrPOdetail::where('ponbr', $rcp->ponbr)
+                ->get()
+                ->groupBy('inventoryid');
+
+            // Akumulasi total receipt qty (opsional untuk set ke TrReceipt.totalqty_received)
+            $totalQtyReceivedThisReceipt = 0;
+
+            foreach ($rcpdetails as $rd) {
+                $key = ($rd->inventoryid ?? '').'|'.($rd->uom ?? '');
+               
+                $poDet = optional($poDetails->get($key))->first();
+
+                if (!$poDet) {
+                    // fallback: cari berdasarkan inventoryid saja
+                    $poDet = optional($poDetailsByInv->get($rd->inventoryid))->first();
+                }
+
+                if (!$poDet) {
+                    // jika masih tidak ketemu, lanjut item ini tapi catat
+                    // (bisa juga choose to fail; di sini kita skip dan lanjut)
+                    continue;
+                }
+
+                // Increment qty_received (gunakan 0 jika null)
+                $qtyRec   = (float) ($rd->qty_received ?? 0);
+                $baseQtyRec = (float) ($rd->base_qty_received ?? 0);
+
+                $poDet->qty_received       = (float) ($poDet->qty_received ?? 0) + $qtyRec;
+                $poDet->base_qty_received  = (float) ($poDet->base_qty_received ?? 0) + $baseQtyRec;
+
+                // Set flag received/completed bila mencapai qty
+                if ($poDet->qty_received >= (float) ($poDet->qty ?? 0)) {
+                    $poDet->received  = true;
+                    $poDet->completed = true;
+                    $poDet->status    = 'C';
+                } else {
+                    $poDet->received  = true; // sudah pernah diterima sebagian
+                    $poDet->status    = 'P';  // partial
+                }
+
+                $poDet->updated_by = Auth::id();
+                $poDet->save();
+
+                $totalQtyReceivedThisReceipt += $qtyRec;
+            }
+
+            // Recalculate totalqtyreceived di PO (sum qty_received dari seluruh detail)
+            $totalQtyReceived = TrPOdetail::where('ponbr', $rcp->ponbr)->sum('qty_received');
+
+            $po->totalqtyreceived = $totalQtyReceived;
+            // Opsional: jika semua detail completed → set PO statusnya
+            $allCompleted = TrPOdetail::where('ponbr', $rcp->ponbr)
+                ->where(function($q){
+                    $q->whereNull('qty')
+                      ->orWhereColumn('qty_received', '<', 'qty');
+                })
+                ->doesntExist();
+
+            if ($allCompleted) {
+                $po->status = 'C';
+                $po->completed_by = Auth::username();
+                $po->completed_at = Carbon::now();
+            } else {
+                // kalau masih ada sisa, status tetap berjalan
+                if ($po->status === 'P') {
+                    $po->status = 'P';
+                }
+            }
+
+            $po->updated_by = Auth::username();
+            $po->save();
+
+            // Update Receipt → Completed
+            $rcp->status = 'C';
+            $rcp->totalqty_received = $totalQtyReceivedThisReceipt; // opsional, simpan total di receipt
+            $rcp->completed_by = Auth::username();
+            $rcp->completed_at = Carbon::now();
+            $rcp->updated_by = Auth::username();
+            $rcp->save();
+
+            return response()->json([
+                'ok' => true,
+                'message' => 'Receipt berhasil di-approve dan data PO diperbarui.',
+                'data' => [
+                    'receiptnbr' => $rcp->receiptnbr,
+                    'ponbr'      => $rcp->ponbr,
+                    'po_totalqtyreceived' => (float) $po->totalqtyreceived,
+                ],
+            ]);
+        });
     }
 
 

@@ -189,13 +189,13 @@ Route::post('/logout', function () {
     Route::get('/personnels/json', [PersonnelController::class, 'json'])->name('personnels.json');
     Route::get('/createpersonnels', [PersonnelController::class, 'createPersonnel']);
     Route::post('/personnels', [PersonnelController::class, 'storePersonnel'])->name('personnels.store');
-    Route::get('/showpersonnels/{id}', [PersonnelController::class, 'showPersonnel']);
+    Route::get('/showpersonnels/{hash}', [PersonnelController::class, 'showPersonnel']);
     Route::get('/personnel/{id}/comments', [PersonnelController::class, 'fetchComments']);
     Route::post('/personnel/{id}/comments', [PersonnelController::class, 'storeComment']);
     Route::post('/personnel/{id}/approve', [PersonnelController::class, 'approvePersonnel']);
     Route::post('/personnel/{id}/reject', [PersonnelController::class, 'rejectPersonnel']);
     Route::post('/personnel/{id}/revise', [PersonnelController::class, 'revisePersonnel']);
-    Route::get('/editpersonnels/{id}', [PersonnelController::class, 'editPersonnel']);
+    Route::get('/editpersonnels/{hash}', [PersonnelController::class, 'editPersonnel']);
     Route::put('/personnels/{id}', [PersonnelController::class, 'updatePersonnel'])->name('personnels.update');
     Route::put('/personnels/remove-attachment/{id}', [PersonnelController::class, 'removeAttachment']);    
     Route::get('/personnel/{id}/check-approval/{action}', [PersonnelController::class, 'checkApproval']);   
@@ -273,13 +273,13 @@ Route::post('/logout', function () {
     Route::get('/careers/json', [CareerController::class, 'json'])->name('careers.json');
     Route::get('/createcareers', [CareerController::class, 'createCareer']);
     Route::post('/careers', [CareerController::class, 'storeCareer'])->name('careers.store');
-    Route::get('/showcareers/{id}', [CareerController::class, 'showCareer']);
+    Route::get('/showcareers/{hash}', [CareerController::class, 'showCareer']);
     Route::get('/career/{id}/comments', [CareerController::class, 'fetchComments']);
     Route::post('/career/{id}/comments', [CareerController::class, 'storeComment']);
     Route::post('/career/{id}/approve', [CareerController::class, 'approveCareer']);
     Route::post('/career/{id}/reject', [CareerController::class, 'rejectCareer']);
     Route::post('/career/{id}/revise', [CareerController::class, 'reviseCareer']);
-    Route::get('/editcareers/{id}', [CareerController::class, 'editCareer']);
+    Route::get('/editcareers/{hash}', [CareerController::class, 'editCareer']);
     Route::put('/careers/{id}', [CareerController::class, 'updateCareer'])->name('careers.update');
     Route::put('/careers/remove-attachment/{id}', [CareerController::class, 'removeAttachment']);    
     Route::get('/career/{id}/check-approval/{action}', [CareerController::class, 'checkApproval']);
@@ -353,13 +353,13 @@ Route::post('/logout', function () {
     Route::get('/stos/json', [StrukturOrgController::class, 'json'])->name('stos.json');
     Route::get('/createstos', [StrukturOrgController::class, 'createSto']);
     Route::post('/stos', [StrukturOrgController::class, 'storeSto'])->name('stos.store');
-    Route::get('/showstos/{id}', [StrukturOrgController::class, 'showSto']);
+    Route::get('/showstos/{hash}', [StrukturOrgController::class, 'showSto']);
     Route::get('/sto/{id}/comments', [StrukturOrgController::class, 'fetchComments']);
     Route::post('/sto/{id}/comments', [StrukturOrgController::class, 'storeComment']);
     Route::post('/sto/{id}/approve', [StrukturOrgController::class, 'approveSto']);
     Route::post('/sto/{id}/reject', [StrukturOrgController::class, 'rejectSto']);
     Route::post('/sto/{id}/revise', [StrukturOrgController::class, 'reviseSto']);
-    Route::get('/editstos/{id}', [StrukturOrgController::class, 'editSto']);
+    Route::get('/editstos/{hash}', [StrukturOrgController::class, 'editSto']);
     Route::put('/stos/{id}', [StrukturOrgController::class, 'updateSto'])->name('stos.update');
     Route::put('/stos/remove-attachment/{id}', [StrukturOrgController::class, 'removeAttachment']);    
     Route::get('/sto/{id}/check-approval/{action}', [StrukturOrgController::class, 'checkApproval']);
@@ -385,13 +385,13 @@ Route::post('/logout', function () {
     Route::get('/changestos/json', [ChangeStoController::class, 'json'])->name('changestos.json');
     Route::get('/createchangestos', [ChangeStoController::class, 'createChangesto']);
     Route::post('/changestos', [ChangeStoController::class, 'storeChangesto'])->name('changestos.store');
-    Route::get('/showchangestos/{id}', [ChangeStoController::class, 'showChangesto']);
+    Route::get('/showchangestos/{hash}', [ChangeStoController::class, 'showChangesto']);
     Route::get('/changesto/{id}/comments', [ChangeStoController::class, 'fetchComments']);
     Route::post('/changesto/{id}/comments', [ChangeStoController::class, 'storeComment']);
     Route::post('/changesto/{id}/approve', [ChangeStoController::class, 'approveChangesto']);
     Route::post('/changesto/{id}/reject', [ChangeStoController::class, 'rejectChangesto']);
     Route::post('/changesto/{id}/revise', [ChangeStoController::class, 'reviseChangesto']);
-    Route::get('/editchangestos/{id}', [ChangeStoController::class, 'editChangesto']);
+    Route::get('/editchangestos/{hash}', [ChangeStoController::class, 'editChangesto']);
     Route::put('/changestos/{id}', [ChangeStoController::class, 'updateChangesto'])->name('changestos.update');
     Route::put('/changestos/remove-attachment/{id}', [ChangeStoController::class, 'removeAttachment']);    
     Route::get('/changesto/{id}/check-approval/{action}', [ChangeStoController::class, 'checkApproval']);   
@@ -463,6 +463,7 @@ Route::post('/logout', function () {
     Route::get('/lookup/users',   [MasterController::class, 'users'])->name('users.search');
     Route::get('/vendorscs', [MasterController::class, 'vendors']); 
     Route::get('/taxes', [MasterController::class, 'taxes'])->name('taxes.index');
+    Route::get('/sites', [MasterController::class, 'sitesWarehouse'])->name('sites.index');
 
     Route::get('/sppts', [SpptController::class, 'index'])->name('sppts');
     Route::get('/sppts/json', [SpptController::class, 'json'])->name('sppts.json');
@@ -577,8 +578,8 @@ Route::post('/logout', function () {
 
  
     Route::post('/po/{poid}/submit',       [PoController::class, 'submitPO'])->name('po.submit');
-    Route::post('/po/{poid}/cancel-reuse', [PoController::class, 'cancelReuse'])->name('po.cancel_reuse');
-    Route::post('/po/{poid}/cancel',       [PoController::class, 'cancel'])->name('po.cancel');
+    Route::post('/po/{poid}/cancel-reuse', [PoController::class, 'ReusePO'])->name('po.cancel_reuse');
+    Route::post('/po/{poid}/cancel',       [PoController::class, 'cancelPO'])->name('po.cancel');
     Route::get('/pdf_po/{hash}', [PoController::class, 'printPO']);
     Route::get('/po/{hash}/view-email', [POController::class, 'viewEmailPO'])->name('po.viewemail');
     Route::post('/po/{ponbr}/email/send', [POController::class, 'sendNowPO'])->name('po.email.send');
@@ -591,6 +592,7 @@ Route::post('/logout', function () {
     Route::get('/receipt/{id}/comments', [ReceiptController::class, 'fetchComments']);
     Route::post('/receipt/{id}/comments', [ReceiptController::class, 'storeComment']);
      Route::get('/pdf_receipt/{hash}', [ReceiptController::class, 'printReceipt']);
+     Route::post('/receipts/{id}/approve', [ReceiptController::class, 'approveReceipt'])->name('receipts.approve');
 
 
     Route::get('/inventory/list', [MasterController::class, 'InventoryList'])->name('inventory.list');

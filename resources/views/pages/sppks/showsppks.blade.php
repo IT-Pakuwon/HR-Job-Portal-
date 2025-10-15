@@ -473,6 +473,7 @@
                                 <th class="px-4 py-2">Coa</th>
                                 <th class="px-4 py-2">Location</th>
                                 <th class="px-4 py-2">SubLocation</th>
+                                <th class="px-4 py-2">Ordered</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -487,8 +488,8 @@
                                     <td class="px-4 py-2">{{ $item->note }}</td>
                                     <td class="px-4 py-2">{{ $item->budget_account_id }}</td>
                                     <td class="px-4 py-2">{{ optional($item->location)->location_name }}</td>
-                                    <td class="px-4 py-2">{{ optional($item->subLocation)->sub_location_name }}
-                                    </td>
+                                    <td class="px-4 py-2">{{ optional($item->subLocation)->sub_location_name }}</td>
+                                    <td class="px-4 py-2">{{ $item->ordered }}</td>
                                 </tr>
                             @endforeach
                         </tbody>

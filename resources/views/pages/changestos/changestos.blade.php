@@ -384,9 +384,9 @@
                             }
                         },
                         columns: [{
-                                data: 'id',
+                                data: 'hid',
                                 render: function(data, type, row) {
-                                    let url = `/showchangestos/${row.id}`;
+                                    let url = `/showchangestos/${row.hid}`;
                                     let buttonClass =
                                         'px-6 py-2 bg-gray-500 text-white rounded hover:bg-gray-700';
                                     let buttonText = row
@@ -394,7 +394,7 @@
 
                                     // Cek apakah user yang login sama dengan created_user dan status = D (Revise/Draft)
                                     if (row.status === 'D' && row.created_user === currentUser) {
-                                        url = `/editchangestos/${row.id}`;
+                                        url = `/editchangestos/${row.hid}`;
                                         buttonClass =
                                             'px-4 py-2 bg-amber-500 text-white rounded hover:bg-amber-700';
                                     }

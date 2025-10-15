@@ -631,7 +631,7 @@
                                 data: 'docid',
                                 name: 'docid',
                                 render: function(data, type, row) {
-                                    return `<a href="/showcareers/${row.id}" target="_blank" class="px-4 py-2.5 bg-indigo-500 text-white rounded hover:bg-indigo-700">${data}</a>`;
+                                    return `<a href="/showcareers/${row.hid}" target="_blank" class="px-4 py-2.5 bg-indigo-500 text-white rounded hover:bg-indigo-700">${data}</a>`;
                                 }
                             },
                             {

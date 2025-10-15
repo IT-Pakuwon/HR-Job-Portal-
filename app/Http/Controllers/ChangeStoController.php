@@ -35,6 +35,7 @@ use App\Models\StoJobSpec;
 use App\Models\Division;
 use App\Models\StoSubGrading;
 use Mail;
+use Vinkla\Hashids\Facades\Hashids;
 
 
 class ChangestoController extends Controller
@@ -61,9 +62,25 @@ class ChangestoController extends Controller
             $query->where('status', $status);
         }
 
-        $changesto = $query->orderBy('id', 'desc')->get();
+        // $changesto = $query->orderBy('id', 'desc')->get();
+    $rows = $query->orderBy('id', 'desc')->get();
 
-        return response()->json(['data' => $changesto]);
+    $data = $rows->map(function ($r) {
+        return [
+            'hid'                => $r->hid ?? Hashids::encode($r->id),
+            'changerequest_id'   => $r->changerequest_id,
+            'changerequest_date' => optional($r->changerequest_date)->format('Y-m-d') ?? $r->changerequest_date,
+            'cpnyid'             => $r->cpnyid,
+            'departementid'      => $r->departementid,
+            'departement_name'   => $r->departement_name,
+            'subgrade_name'      => $r->subgrade_name,
+            'changerequest_note' => $r->changerequest_note,
+            'created_user'       => $r->created_user,
+            'status'             => $r->status,
+        ];
+    });
+
+        return response()->json(['data' => $data]);
     }
 
 
@@ -220,6 +237,8 @@ class ChangestoController extends Controller
                 ->orderBy('aprvid')
                 ->first();
 
+            $eid = Hashids::encode($changesto->id);
+
             if ($firstApproval) {
                 $data = [
                     'docid' => $firstApproval->docid,
@@ -228,7 +247,7 @@ class ChangestoController extends Controller
                     'date' => $firstApproval->aprvdatebefore,
                     'name' => $user->username,
                     'info' => $request->changerequest_note,
-                    'url' => url('/showchangestos/' . $changesto->id)
+                    'url' => url('/showchangestos/' . $eid)
                 ];
 
                 $approvers = explode(',', $firstApproval->aprvusername);
@@ -259,8 +278,11 @@ class ChangestoController extends Controller
 
 
 
-    public function editChangesto($id)
+    public function editChangesto($hash)
     {
+        $id = Hashids::decode($hash)[0] ?? null;
+        abort_if(!$id, 404);
+
         $changesto = Changesto::findOrFail($id);
         $user = request()->user();
         $usercpny = Usercpny::where('username', '=', $user->username)
@@ -427,8 +449,11 @@ class ChangestoController extends Controller
     }
  
 
-    public function showChangesto($id)
+    public function showChangesto($hash)
     {        
+        $id = Hashids::decode($hash)[0] ?? null;
+        abort_if(!$id, 404);
+
         $changesto = Changesto::findOrFail($id);
         // $changesto = Changesto::with('departement.subgrading')->findOrFail($id);
         $approval = T_approval::where('docid', $changesto->changerequest_id)

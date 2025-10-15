@@ -65,7 +65,23 @@ class PersonnelController extends Controller
             $query->where('status', $status);
         }
 
-        $personnel = $query->orderBy('id', 'desc')->get();
+        // $personnel = $query->orderBy('id', 'desc')->get();
+        $rows = $query->orderBy('id', 'desc')->get();
+
+        // Map ke bentuk aman: gunakan hid, sembunyikan id
+        $personnel = $rows->map(function ($row) {
+            return [
+                'hid'            => $row->hid ?? Hashids::encode($row->id), // kalau pakai accessor, ini otomatis
+                'docid'          => $row->docid,
+                'date'           => optional($row->date)->format('Y-m-d') ?? $row->date,
+                'cpnyid'         => $row->cpnyid,
+                'departementid'  => $row->departementid,
+                'job_title'      => $row->job_title,
+                'job_level'      => $row->job_level,
+                'created_user'   => $row->created_user,
+                'status'         => $row->status,
+            ];
+        });
 
         return response()->json(['data' => $personnel]);
     }
@@ -341,7 +357,9 @@ class PersonnelController extends Controller
                 ->where('status', 'P')
                 ->orderby('aprvid','ASC')
                 ->first();
-            $id = $task->id;
+            // $id = $task->id;
+            $eid = Hashids::encode($task->id);
+
             $data = array(
                 'docid' => $t_approval_next->docid,
                 'cpnyid' => $t_approval_next->aprvcpnyid,
@@ -349,7 +367,7 @@ class PersonnelController extends Controller
                 'date' => $t_approval_next->aprvdatebefore,
                 'name' => $t_approval_next->created_user,                          
                 'info' => $request->job_title,           
-                'url' => url('/showpersonnels/') . $id
+                'url' => url('/showpersonnels/') . $eid
     
             );
     
@@ -375,8 +393,11 @@ class PersonnelController extends Controller
     }
 
 
-    public function editPersonnel($id)
+    public function editPersonnel($hash)
     {
+        $id = Hashids::decode($hash)[0] ?? null;
+        abort_if(!$id, 404);
+
         $personnel = Personnel::findOrFail($id);
         $user = request()->user();
         $usercpny = Usercpny::where('username', '=', $user->username)
@@ -568,6 +589,8 @@ class PersonnelController extends Controller
                 ->where('status', 'P')
                 ->orderby('aprvid','ASC')
                 ->first();
+
+            $eid = Hashids::encode($personnel->id);
            
             $data = array(
                 'docid' => $t_approval_next->docid,
@@ -576,7 +599,7 @@ class PersonnelController extends Controller
                 'date' => $t_approval_next->aprvdatebefore,
                 'name' => $t_approval_next->created_user,                          
                 'info' => $request->job_title,           
-                'url' => url('/showpersonnels/') . $personnel->id
+                'url' => url('/showpersonnels/') . $eid
     
             );
     
@@ -614,8 +637,11 @@ class PersonnelController extends Controller
     }
  
 
-    public function showPersonnel($id)
+    public function showPersonnel($hash)
     {        
+        $id = Hashids::decode($hash)[0] ?? null;
+        abort_if(!$id, 404);
+
         $user = Auth::user();       
 
         if (!$user) {
@@ -640,7 +666,7 @@ class PersonnelController extends Controller
         $jobtag = TrJobtag::where('docid', $personnel->docid)           
             ->get();
        
-        return view('pages.personnels.showpersonnels', compact('personnel','jobres','jobqua','approval','attachment','jobtag'));
+        return view('pages.personnels.showpersonnels', compact('personnel','jobres','jobqua','approval','attachment','jobtag','hash'));
     }
 
     
@@ -724,6 +750,8 @@ class PersonnelController extends Controller
             ->orderby('aprvid','ASC')
             ->first();
 
+        $eid = Hashids::encode($personnel->id);
+
         if ($count_approval <> 1) {
             //update datebefore
             $t_approval_next->aprvdatebefore = $datestamp;
@@ -737,7 +765,7 @@ class PersonnelController extends Controller
                 'date' => $t_approval_next->aprvdatebefore,
                 'name' => $t_approval_next->created_user,
                 'info' => $personnel->job_title,               
-                'url' => url('/showvpersonels/') . $personnel->id
+                'url' => url('/showvpersonels/') . $eid
 
             );
 
@@ -799,6 +827,8 @@ class PersonnelController extends Controller
             $t_aprv->save();
         }
 
+        $eid = Hashids::encode($personnel->id);
+
         //send email 
         $data = array(
             'docid' => $t_approval->docid,
@@ -808,7 +838,7 @@ class PersonnelController extends Controller
             'date' => $t_approval->aprvdatebefore,
             'name' => $t_approval->created_user,
             'info' => $personnel->job_title,               
-            'url' => url('/showvpersonels/') . $personnel->id
+            'url' => url('/showvpersonels/') . $eid
 
         );
 
@@ -872,6 +902,8 @@ class PersonnelController extends Controller
             $t_aprv->save();
         }
 
+        $eid = Hashids::encode($personnel->id);
+
         //send email 
         $data = array(
             'docid' => $t_approval->docid,
@@ -881,7 +913,7 @@ class PersonnelController extends Controller
             'date' => $t_approval->aprvdatebefore,
             'name' => $t_approval->created_user,
             'info' => $personnel->job_title,               
-            'url' => url('/showvpersonels/') . $personnel->id
+            'url' => url('/showvpersonels/') . $eid
 
         );
 

@@ -343,21 +343,21 @@
                             [0, 'desc']
                         ],
                         columns: [{
-                                data: 'id',
+                                data: 'hid',
                                 render: function(data, type, row) {
-                                    let url = `/showstos/${row.id}`;
+                                    let url = `/showstos/${row.hid}`;
                                     let buttonClass =
                                         'px-6 py-2 bg-gray-500 text-white rounded hover:bg-gray-700';
                                     let buttonText = row.sto_id;
 
                                     if (row.status === 'D' && row.created_user === currentUser) {
-                                        url = `/editstos/${row.id}`;
+                                        url = `/editstos/${row.hid}`;
                                         buttonClass =
                                             'px-4 py-2 bg-amber-500 text-white rounded hover:bg-amber-700';
                                     }
                                     // Jika status H, arahkan ke /createstos?id=...
                                     if (row.status === 'H' && row.created_user === currentUser) {
-                                        url = `/createstos?id=${row.id}`;
+                                        url = `/createstos?id=${row.hid}`;
                                         buttonClass =
                                             'px-4 py-2 bg-green-500 text-white rounded hover:bg-green-700';
                                     }

@@ -195,7 +195,7 @@ class PoController extends Controller
     }
 
     /** POST /po/{ponbr}/cancel-reuse */
-    public function cancelReuse(Request $req, $ponbr)
+    public function ReusePO(Request $req, $ponbr)
     {
         $po = TrPO::where('ponbr', $ponbr)->firstOrFail();
 
@@ -227,7 +227,7 @@ class PoController extends Controller
     }
 
     /** POST /po/{ponbr}/cancel */
-    public function cancel(Request $req, $ponbr)
+    public function cancelPO(Request $req, $ponbr)
     {
         $po = TrPO::where('ponbr', $ponbr)->firstOrFail();
 

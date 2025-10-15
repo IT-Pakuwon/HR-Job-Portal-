@@ -549,5 +549,29 @@ class MasterController extends Controller
         return response()->json($data);
     }
 
+    public function sitesWarehouse(Request $request)
+    {
+        $cpnyId = $request->query('cpny_id');
+       
+        if (!$cpnyId) {
+            return response()->json([
+                'ok' => false,
+                'message' => 'cpny_id is required'
+            ], 422);
+        }
+
+        // Query ke ms_site (pgsql)
+        $rows = DB::connection('pgsql')
+            ->table('ms_site')
+            ->select('cpny_id', 'siteid')
+            ->where('cpny_id', $cpnyId)
+            ->orderBy('siteid')
+            ->get();
+
+        return response()->json([
+            'ok' => true,
+            'data' => $rows
+        ]);
+    }
 
 }

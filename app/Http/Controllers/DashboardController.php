@@ -18,6 +18,7 @@ use App\Models\ViewJobApply;
 use App\Models\ViewtrPurch;
 use App\Models\ViewDasAll;
 use Illuminate\Support\Facades\Log;
+use Vinkla\Hashids\Facades\Hashids;
 
 class DashboardController extends Controller
 {
@@ -356,19 +357,19 @@ class DashboardController extends Controller
         if (!$user) return response()->json(['data' => []], 401);
 
         $trxM   = new ViewTrxAll();
-        $dasM   = new ViewDasAll();  // <-- TAMBAHAN
+        // $dasM   = new ViewDasAll();  // <-- TAMBAHAN
         $appM   = new ViewJobApply();
         $aprM   = new T_approval();
         $purchM = new ViewtrPurch();
 
         $trxConn   = $trxM->getConnectionName()   ?: config('database.default');
-        $dasConn   = $dasM->getConnectionName()   ?: config('database.default'); // <-- TAMBAHAN
+        // $dasConn   = $dasM->getConnectionName()   ?: config('database.default'); // <-- TAMBAHAN
         $appConn   = $appM->getConnectionName()   ?: config('database.default');
         $aprConn   = $aprM->getConnectionName()   ?: config('database.default');
         $purchConn = $purchM->getConnectionName() ?: config('database.default');
 
         $tblTrx   = $trxM->getTable();
-        $tblDas   = $dasM->getTable();  // <-- TAMBAHAN
+        // $tblDas   = $dasM->getTable();  // <-- TAMBAHAN
         $tblApp   = $appM->getTable();
         $tblApr   = $aprM->getTable();
         $tblPurch = $purchM->getTable();
@@ -397,11 +398,23 @@ class DashboardController extends Controller
 
         $data = collect();
         $data = $data->concat($fetch($trxConn, $tblTrx));
-        $data = $data->concat($fetch($dasConn, $tblDas)); // <-- TAMBAHAN
+        // $data = $data->concat($fetch($dasConn, $tblDas)); // <-- TAMBAHAN
         $data = $data->concat($fetch($appConn, $tblApp));
 
         try { $data = $data->concat($fetch($purchConn, $tblPurch)); }
         catch (\Throwable $e) { Log::warning('Waitingjson: purchasing fetch failed', ['err'=>$e->getMessage()]); }
+
+        $data = $data->map(function ($r) {
+            return [
+                'hid'          => Hashids::encode($r->id),
+                'docid'        => $r->docid,
+                'docdate'      => $r->docdate,
+                'cpnyid'       => $r->cpnyid,
+                'departementid'=> $r->departementid,
+                'infohd'       => $r->infohd,
+                'url'          => $r->url,
+            ];
+        });
 
         return response()->json(['data' => $data->values()]);
     }
@@ -413,19 +426,19 @@ class DashboardController extends Controller
         if (!$user) return response()->json(['data' => []], 401);
 
         $trxM   = new ViewTrxAll();
-        $dasM   = new ViewDasAll();  // <-- TAMBAHAN
+        // $dasM   = new ViewDasAll();  // <-- TAMBAHAN
         $appM   = new ViewJobApply();
         $aprM   = new T_approval();
         $purchM = new ViewtrPurch();
 
         $trxConn   = $trxM->getConnectionName()   ?: config('database.default');
-        $dasConn   = $dasM->getConnectionName()   ?: config('database.default'); // <-- TAMBAHAN
+        // $dasConn   = $dasM->getConnectionName()   ?: config('database.default'); // <-- TAMBAHAN
         $appConn   = $appM->getConnectionName()   ?: config('database.default');
         $aprConn   = $aprM->getConnectionName()   ?: config('database.default');
         $purchConn = $purchM->getConnectionName() ?: config('database.default');
 
         $tblTrx   = $trxM->getTable();
-        $tblDas   = $dasM->getTable();  // <-- TAMBAHAN
+        // $tblDas   = $dasM->getTable();  // <-- TAMBAHAN
         $tblApp   = $appM->getTable();
         $tblApr   = $aprM->getTable();
         $tblPurch = $purchM->getTable();
@@ -454,11 +467,23 @@ class DashboardController extends Controller
 
         $data = collect();
         $data = $data->concat($fetch($trxConn, $tblTrx));
-        $data = $data->concat($fetch($dasConn, $tblDas)); // <-- TAMBAHAN
+        // $data = $data->concat($fetch($dasConn, $tblDas)); // <-- TAMBAHAN
         $data = $data->concat($fetch($appConn, $tblApp));
 
         try { $data = $data->concat($fetch($purchConn, $tblPurch)); }
         catch (\Throwable $e) { Log::warning('Approvejson: purchasing fetch failed', ['err'=>$e->getMessage()]); }
+
+        $data = $data->map(function ($r) {
+            return [
+                'hid'          => Hashids::encode($r->id),
+                'docid'        => $r->docid,
+                'docdate'      => $r->docdate,
+                'cpnyid'       => $r->cpnyid,
+                'departementid'=> $r->departementid,
+                'infohd'       => $r->infohd,
+                'url'          => $r->url,
+            ];
+        });
 
         return response()->json(['data' => $data->values()]);
     }
