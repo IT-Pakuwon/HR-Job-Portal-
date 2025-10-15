@@ -5,7 +5,11 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth; 
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+<<<<<<< Updated upstream
 use App\Models\ChangeSto;
+=======
+use App\Models\Changesto;
+>>>>>>> Stashed changes
 use App\Models\Autonbr;
 use App\Models\T_Message;
 use App\Models\Attachment;
@@ -35,7 +39,10 @@ use App\Models\StoJobSpec;
 use App\Models\Division;
 use App\Models\StoSubGrading;
 use Mail;
+<<<<<<< Updated upstream
 use Vinkla\Hashids\Facades\Hashids;
+=======
+>>>>>>> Stashed changes
 
 
 class ChangestoController extends Controller
@@ -62,6 +69,7 @@ class ChangestoController extends Controller
             $query->where('status', $status);
         }
 
+<<<<<<< Updated upstream
         // $changesto = $query->orderBy('id', 'desc')->get();
     $rows = $query->orderBy('id', 'desc')->get();
 
@@ -81,6 +89,11 @@ class ChangestoController extends Controller
     });
 
         return response()->json(['data' => $data]);
+=======
+        $changesto = $query->orderBy('id', 'desc')->get();
+
+        return response()->json(['data' => $changesto]);
+>>>>>>> Stashed changes
     }
 
 
@@ -237,8 +250,11 @@ class ChangestoController extends Controller
                 ->orderBy('aprvid')
                 ->first();
 
+<<<<<<< Updated upstream
             $eid = Hashids::encode($changesto->id);
 
+=======
+>>>>>>> Stashed changes
             if ($firstApproval) {
                 $data = [
                     'docid' => $firstApproval->docid,
@@ -247,7 +263,11 @@ class ChangestoController extends Controller
                     'date' => $firstApproval->aprvdatebefore,
                     'name' => $user->username,
                     'info' => $request->changerequest_note,
+<<<<<<< Updated upstream
                     'url' => url('/showchangestos/' . $eid)
+=======
+                    'url' => url('/showchangestos/' . $changesto->id)
+>>>>>>> Stashed changes
                 ];
 
                 $approvers = explode(',', $firstApproval->aprvusername);
@@ -278,11 +298,16 @@ class ChangestoController extends Controller
 
 
 
+<<<<<<< Updated upstream
     public function editChangesto($hash)
     {
         $id = Hashids::decode($hash)[0] ?? null;
         abort_if(!$id, 404);
 
+=======
+    public function editChangesto($id)
+    {
+>>>>>>> Stashed changes
         $changesto = Changesto::findOrFail($id);
         $user = request()->user();
         $usercpny = Usercpny::where('username', '=', $user->username)
@@ -449,11 +474,16 @@ class ChangestoController extends Controller
     }
  
 
+<<<<<<< Updated upstream
     public function showChangesto($hash)
     {        
         $id = Hashids::decode($hash)[0] ?? null;
         abort_if(!$id, 404);
 
+=======
+    public function showChangesto($id)
+    {        
+>>>>>>> Stashed changes
         $changesto = Changesto::findOrFail($id);
         // $changesto = Changesto::with('departement.subgrading')->findOrFail($id);
         $approval = T_approval::where('docid', $changesto->changerequest_id)

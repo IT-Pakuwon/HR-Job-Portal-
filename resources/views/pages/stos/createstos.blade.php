@@ -34,7 +34,11 @@
                                     <label for="selectCompany"
                                         class="block text-sm font-medium text-gray-700 dark:text-gray-300">Company</label>
                                     <select id="selectCompany"
+<<<<<<< Updated upstream
                                         class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-700"
+=======
+                                        class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+>>>>>>> Stashed changes
                                         name="cpnyid" required>
                                         <option value="" disabled selected>Select</option>
                                         @foreach ($companies as $p)
@@ -46,14 +50,20 @@
                                     <label for="selectdeptname"
                                         class="block text-sm font-medium text-gray-700 dark:text-gray-300">Department</label>
                                     <select id="selectdeptname"
+<<<<<<< Updated upstream
                                         class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-700"
                                         name="departementid" required>
                                         <option value="" disabled selected>Select</option>
+=======
+                                        class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                        name="departementid" required>
+                                         <option value="" disabled selected>Select</option>
+>>>>>>> Stashed changes
                                         @foreach ($departements as $p)
                                             <option value="{{ $p->deptname }}">{{ $p->deptname }}</option>
                                         @endforeach
                                     </select>
-                                </div>
+                                </div>                               
                             </div>
                         </div>
                     </form>
@@ -201,7 +211,11 @@
                 </div>
 
                 <div class="max-h-[80vh] overflow-y-auto p-6">
+<<<<<<< Updated upstream
                     <div id="tab-view" class="tab-content hidden">
+=======
+                    <div id="tab-view" class="tab-content hidden">                        
+>>>>>>> Stashed changes
                         <div class="flex justify-between">
                             {{-- <h3 class="text-lg font-semibold">Employee List</h3> --}}
                             <div class="mb-4 flex items-center justify-between">
@@ -295,6 +309,7 @@
                             <input type="hidden" name="full_name" id="hiddenFullName" value="VACANT">
 
                             <div id="fullNameGroup">
+<<<<<<< Updated upstream
                                 <label for="selectFullName"
                                     class="block text-sm font-medium text-gray-700 dark:text-gray-300">Name</label>
                                 <select id="selectFullName" name="name"
@@ -303,6 +318,14 @@
                                     @foreach ($users as $p)
                                         <option value="{{ $p->name }}" data-npk="{{ $p->npk }}">
                                             {{ $p->name }}</option>
+=======
+                                <label for="selectFullName" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Name</label>
+                                <select id="selectFullName" name="name"
+                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
+                                    <option value="" disabled selected>Pilih nama karyawan...</option>
+                                    @foreach ($users as $p)
+                                        <option value="{{ $p->name }}" data-npk="{{ $p->npk }}">{{ $p->name }}</option>
+>>>>>>> Stashed changes
                                     @endforeach
                                 </select>
                                 <input type="hidden" name="npk" id="hiddenNpk">
@@ -507,8 +530,12 @@
                                     class="mt-1 block w-full rounded-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
                                     <option value="" disabled selected>-- Select Employee --</option>
                                     @foreach ($users as $p)
+<<<<<<< Updated upstream
                                         <option value="{{ $p->name }}" data-npk="{{ $p->npk }}">
                                             {{ $p->name }}</option>
+=======
+                                        <option value="{{ $p->name }}" data-npk="{{ $p->npk }}">{{ $p->name }}</option>
+>>>>>>> Stashed changes
                                     @endforeach
                                 </select>
                                 <input type="hidden" name="npk" id="hiddenNpkedit">
@@ -682,6 +709,67 @@
         });
     </script>
 
+     
+    <script>
+        $(document).ready(function() {
+            $('#stoForm').submit(function(e) {
+                e.preventDefault();
+
+                let formData = new FormData(this);
+
+                $('input[name="attachments[]"]').each(function() {
+                    const files = this.files;
+                    for (let i = 0; i < files.length; i++) {
+                        // Gunakan array notation agar bisa multiple
+                        formData.append('attachments[]', files[i]);
+                    }
+                });
+
+                // Tampilkan Loading, Disable Button
+                $('#submitBtn').attr('disabled', true); // Disable tombol
+                $('#btnText').text('Processing...'); // Ubah teks tombol
+                $('#loadingSpinner').removeClass('hidden'); // Tampilkan spinner
+
+                $.ajax({
+                    url: "{{ route('stos.store') }}",
+                    type: "POST",
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function(response) {
+                        $('#successMessage').removeClass('hidden'); // Tampilkan pesan sukses
+                        $('#stoForm')[0].reset(); // Reset form setelah submit
+
+                        // Tambahkan reset untuk Add Employee
+                        $('#formAddEmployee')[0].reset();
+                        // $('#vacantCheckbox').prop('checked', true);
+                        $('#selectFullName').val('').trigger('change');
+                        // $('#hiddenFullName').val('VACANT');
+                        // toggleVacantUI(true);
+
+                        // Reset Tombol ke Semula
+                        $('#submitBtn').attr('disabled', false);
+                        $('#btnText').text('Submit Approval');
+                        $('#loadingSpinner').addClass('hidden'); // Sembunyikan spinner
+                        toastr.success("Sto Submit Successfully!");
+                        window.location.href = "/stos";
+                    },
+                    error: function(xhr) {
+                        if (xhr.status === 422 && xhr.responseJSON.message) {
+                            toastr.error(xhr.responseJSON.message);
+                        } else {
+                            // alert('Error! Please check the input.');
+                        }
+
+                        // Reset Tombol ke Semula
+                        $('#submitBtn').attr('disabled', false);
+                        $('#btnText').text('Submit Approval');
+                        $('#loadingSpinner').addClass('hidden');
+                    }
+                });
+            });
+        });
+    </script>
 
     <script>
         $(document).ready(function() {
@@ -776,7 +864,11 @@
                         .childrenMargin((d) => 40)
                         .compactMarginBetween((d) => 35)
                         .compactMarginPair((d) => 30)
+<<<<<<< Updated upstream
                         .neighbourMargin((a, b) => 20)
+=======
+                        .neighbourMargin((a, b) => 20)                            
+>>>>>>> Stashed changes
                         .nodeContent(function(d) {
                             const members = d.data.members || [];
                             const level = d.depth;
@@ -794,12 +886,17 @@
                                         overflow:visible;
                                     ">
                                         ${d.data.position
+<<<<<<< Updated upstream
                                             ? `<div style="font-size:18px;color:#08011E;margin-bottom:5px;"><strong>${d.data.name} ${d.data.position}</strong></div>`
+=======
+                                            ? `<div style="font-size:18px;color:#08011E;margin-bottom:5px">${d.data.name} ${d.data.position}</div>`
+>>>>>>> Stashed changes
                                             : `<div style="font-size:18px;color:#08011E;text-align:center;margin-top:10px;">${d.data.name}</div>`
                                         }                           
                                         <div style="font-size:12px;color:#333">                                    
                                             <div style="margin-top:10px;">
                                                 ${members.map(m => `
+<<<<<<< Updated upstream
                                                                                                                                                                                                                             <div style="display:flex;align-items:center;margin-bottom:6px;">
                                                                                                                                                                                                                                 <img src="${m.image}" style="width:30px;height:30px;border-radius:50%;margin-right:8px;" />
                                                                                                                                                                                                                                 <span style="font-size:12px; color:${m.name.toUpperCase() === 'VACANT' ? 'red' : '#000'};">
@@ -807,6 +904,15 @@
                                                                                                                                                                                                                                 </span>
                                                                                                                                                                                                                             </div>
                                                                                                                                                                                                                         `).join('')}
+=======
+                                                    <div style="display:flex;align-items:center;margin-bottom:6px;">
+                                                        <img src="${m.image}" style="width:30px;height:30px;border-radius:50%;margin-right:8px;" />
+                                                        <span style="font-size:12px; color:${m.name.toUpperCase() === 'VACANT' ? 'red' : '#000'};">
+                                                            ${m.name} (${m.company})
+                                                        </span>
+                                                    </div>
+                                                `).join('')}
+>>>>>>> Stashed changes
                                             </div>
                                         </div>
                                     </div>
@@ -818,6 +924,7 @@
                         .data(nodes)
                         .expandAll()
                         .connections(connections)
+<<<<<<< Updated upstream
                         .linkUpdate((d, i, arr) => {
                             d3.select(arr[i])
                                 .attr('stroke-width', 2) // tebal garis parent-child
@@ -826,6 +933,11 @@
                     // .render()
                     chart.compact(false).render().fit();
 
+=======
+                        // .render()
+                        chart.compact(false).render().fit();                 
+                    
+>>>>>>> Stashed changes
                 },
 
                 error: function(xhr) {
@@ -883,11 +995,19 @@
                     employees.forEach((emp, index) => {
                         html += `
                         <tr>
+<<<<<<< Updated upstream
                             <td class="border   px-2 py-1">${index + 1}</td>
                             <td class="border   px-2 py-1">${emp.employee_name}</td>
                             <td class="border   px-2 py-1">${emp.employee_company}</td>
                             <td class="border   px-2 py-1">${emp.employee_level}</td>
                             <td class="border   px-2 py-1 text-center">
+=======
+                            <td class="border border-black px-2 py-1">${index + 1}</td>
+                            <td class="border border-black px-2 py-1">${emp.employee_name}</td>
+                            <td class="border border-black px-2 py-1">${emp.employee_company}</td>
+                            <td class="border border-black px-2 py-1">${emp.employee_level}</td>
+                            <td class="border border-black px-2 py-1 text-center">
+>>>>>>> Stashed changes
                                 <img src="${emp.image || 'https://cdn-icons-png.flaticon.com/512/149/149071.png'}" class="w-25 h-25 rounded-full mx-auto">
                             </td>
                             <td class="border   px-2 py-1 text-center">
@@ -1103,6 +1223,7 @@
                                         <div style="font-size:12px;color:#333">                                    
                                             <div style="margin-top:10px;">
                                                 ${members.map(m => `
+<<<<<<< Updated upstream
                                                                                                                                                                                                                             <div style="display:flex;align-items:center;margin-bottom:6px;">
                                                                                                                                                                                                                                 <img src="${m.image}" style="width:30px;height:30px;border-radius:50%;margin-right:8px;" />
                                                                                                                                                                                                                                 <span style="font-size:12px; color:${m.name.toUpperCase() === 'VACANT' ? 'red' : '#000'};">
@@ -1110,6 +1231,15 @@
                                                                                                                                                                                                                                 </span>
                                                                                                                                                                                                                             </div>
                                                                                                                                                                                                                         `).join('')}
+=======
+                                                    <div style="display:flex;align-items:center;margin-bottom:6px;">
+                                                        <img src="${m.image}" style="width:30px;height:30px;border-radius:50%;margin-right:8px;" />
+                                                        <span style="font-size:12px; color:${m.name.toUpperCase() === 'VACANT' ? 'red' : '#000'};">
+                                                            ${m.name} (${m.company})
+                                                        </span>
+                                                    </div>
+                                                `).join('')}
+>>>>>>> Stashed changes
                                             </div>
                                         </div>
                                     </div>
@@ -1121,11 +1251,14 @@
                         .data(nodes)
                         .expandAll()
                         .connections(connections)
+<<<<<<< Updated upstream
                         .linkUpdate((d, i, arr) => {
                             d3.select(arr[i])
                                 .attr('stroke-width', 2) // tebal garis parent-child
                                 .attr('stroke', '#374151'); // opsional: warna
                         })
+=======
+>>>>>>> Stashed changes
                         .compact(false)
                         .render()
                         .fit();
@@ -1144,10 +1277,18 @@
                 }
             });
         }
+<<<<<<< Updated upstream
     </script>
 
 
 
+=======
+
+    </script>
+>>>>>>> Stashed changes
+
+
+    
 
     <script>
         $(document).ready(function() {
@@ -1155,8 +1296,13 @@
             $('#addAttachment').click(function() {
                 $('#attachmentsContainer').append(`
             <div class="attachment-row flex items-center gap-2">
+<<<<<<< Updated upstream
                 <input type="file" name="attachments[]" form="stoForm" class="flex-grow rounded-md border border-gray-200 bg-white px-4 py-2 text-sm text-gray-700 file:mr-4 file:rounded-full file:border-0 file:bg-indigo-100 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-indigo-700 hover:file:bg-indigo-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:file:bg-indigo-700 dark:file:text-white dark:hover:file:bg-indigo-600">
                     <button type="button" class="removeAttachment rounded border border-red-600 bg-red-200/30 p-3 text-red-600 transition hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">🗑️</button>
+=======
+                <input type="file" name="attachments[]" class="flex-grow rounded-md border border-gray-200 bg-white px-4 py-2 text-sm text-gray-700 file:mr-4 file:rounded-full file:border-0 file:bg-indigo-100 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-indigo-700 hover:file:bg-indigo-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:file:bg-indigo-700 dark:file:text-white dark:hover:file:bg-indigo-600">
+                    <button type="button" class="removeAttachment bg-red-200/30 mt-4 text-red-600 p-3 rounded hidden border border-red-600 hover:text-white hover:bg-red-600 transition">🗑️</button>
+>>>>>>> Stashed changes
             </div>
         `);
                 toggleDeleteButton();
@@ -1186,7 +1332,11 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 
     <script>
+<<<<<<< Updated upstream
         $(document).ready(function() {
+=======
+        $(document).ready(function () {
+>>>>>>> Stashed changes
             toggleVacantUI($('#vacantCheckbox').is(':checked'));
 
             $('#vacantCheckbox').change(function() {
@@ -1217,6 +1367,7 @@
         });
     </script>
     <script>
+<<<<<<< Updated upstream
         //    $(function() {
         //         $('#selectFullName').on('change', function() {
         //             var npk = $(this).find(':selected').data('npk') || '';
@@ -1224,6 +1375,15 @@
         //             $('#hiddenNpk').val(npk);
         //         });
         //     });
+=======
+    //    $(function() {
+    //         $('#selectFullName').on('change', function() {
+    //             var npk = $(this).find(':selected').data('npk') || '';
+    //             console.log("Selected NPK:", npk);
+    //             $('#hiddenNpk').val(npk);
+    //         });
+    //     });
+>>>>>>> Stashed changes
         $(function() {
             $('#selectFullName, #edit_name').on('change', function() {
                 // Ini untuk select yang berubah
@@ -1242,6 +1402,10 @@
                 }
             });
         });
+<<<<<<< Updated upstream
+=======
+
+>>>>>>> Stashed changes
     </script>
 
 
@@ -1563,6 +1727,7 @@
         });
     </script>
     <script>
+<<<<<<< Updated upstream
         $(document).ready(function() {
             $('#selectdeptname').select2({
                 placeholder: "Select",
@@ -1586,5 +1751,30 @@
             }, 0);
         });
     </script>
+=======
+            $(document).ready(function() {
+                $('#selectdeptname').select2({
+                    placeholder: "Pilih Departement Name...",
+                    allowClear: true,
+                    width: 'resolve',
+                    dropdownAutoWidth: true
+                });
+                setTimeout(function() {
+                    $("#selectdeptname").next('.select2-container').css('min-width', '200px');
+                }, 0);
+
+                // Aktifkan select2 untuk Company
+                $('#selectCompany').select2({
+                    placeholder: "Pilih Company...",
+                    allowClear: true,
+                    width: 'resolve',
+                    dropdownAutoWidth: true
+                });
+                setTimeout(function() {
+                    $("#selectCompany").next('.select2-container').css('min-width', '150px');
+                }, 0);
+            });
+        </script>
+>>>>>>> Stashed changes
 
 </x-app-layout>

@@ -204,11 +204,15 @@ class PersonnelController extends Controller
             $tglbln = substr($year, 2) . $month;
             $docid = $doctype . $tglbln . sprintf("%03d", $urutan);
            
+<<<<<<< Updated upstream
             // $site = Site::where('id', $request->siteid)              
             //     ->where('status', 'A')
             //     ->first();
 
             $title = StoDepartement::where('departement_id', $request->job_title)              
+=======
+            $site = Site::where('id', $request->siteid)              
+>>>>>>> Stashed changes
                 ->where('status', 'A')
                 ->first();
 

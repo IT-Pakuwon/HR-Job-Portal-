@@ -45,7 +45,11 @@
                                     </option>
                                 @endforeach
                             </select>
+<<<<<<< Updated upstream
                         </div>
+=======
+                        </div>                   
+>>>>>>> Stashed changes
                     </div>
                 </div>
 
@@ -53,6 +57,7 @@
                 <div class="flex w-full flex-col rounded-b-xl bg-white p-6 dark:bg-gray-800"> {{-- Removed 'shadow' from here --}}
                     <div class="mb-6 flex justify-end"> {{-- Aligns button to the right --}}
                         <button type="button"
+<<<<<<< Updated upstream
                             class="hover: inline-flex items-center rounded-xl bg-indigo-600 px-6 py-2 text-base font-semibold text-white transition-colors duration-200 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800"
                             onclick="chart.exportImg({full:true})">Export Image Full</button>
                     </div>
@@ -107,6 +112,53 @@
                         </div> --}}
                         {{-- <div id="chartLegend"
                             style="
+=======
+                            class="inline-flex items-center rounded-xl bg-indigo-600 px-6 py-2 text-base font-semibold text-white shadow-md transition-colors duration-200 hover:bg-indigo-700 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800"
+                            onclick="exportChartWithLegend()">Export Image Full</button>                     
+                    </div>            
+               
+                    {{-- <div id="chartExportArea" style="position:relative;"> --}}
+                    <div id="chartExportArea" style="position:relative; background: #fff; min-height:1100px; padding-bottom:200px;">
+                        {{-- <div class="chart-container w-full" style="width:100%; min-height:420px;"></div> --}}
+                        <div class="chart-container w-full" style="width: 100%;"></div>    
+                        <!-- Legend di pojok kanan bawah -->
+                        <div id="chartLegend2" style="position:absolute; left:32px; bottom:32px;">
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <span style="display: inline-block; width: 28px; height: 18px; background: #cefefe; border-radius: 4px; border:1px solid #ccc"></span>
+                                <span>Crew</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <span style="display: inline-block; width: 28px; height: 18px; background: #c6d4df; border-radius: 4px; border:1px solid #ccc"></span>
+                                <span>Staff</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <span style="display: inline-block; width: 28px; height: 18px; background: #bdb9c9; border-radius: 4px; border:1px solid #ccc"></span>
+                                <span>Senior Staff</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <span style="display: inline-block; width: 28px; height: 18px; background: #e6d0dd; border-radius: 4px; border:1px solid #ccc"></span>
+                                <span>Supervisor</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <span style="display: inline-block; width: 28px; height: 18px; background: #97d077; border-radius: 4px; border:1px solid #ccc"></span>
+                                <span>Assistant Manager / Chief</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <span style="display: inline-block; width: 28px; height: 18px; background: #effbfe; border-radius: 4px; border:1px solid #ccc"></span>
+                                <span>Head of Dept</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <span style="display: inline-block; width: 28px; height: 18px; background: #c7ffbb; border-radius: 4px; border:1px solid #ccc"></span>
+                                <span>Head of Division</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <span style="display: inline-block; width: 28px; height: 18px; background: #ddebf6; border-radius: 4px; border:1px solid #ccc"></span>
+                                <span>Executive</span>
+                            </div>
+                        </div>
+                        <div id="chartLegend"
+                        style="
+>>>>>>> Stashed changes
                             position: absolute;
                             right: 16px;
                             bottom: 16px;
@@ -121,8 +173,13 @@
                             width: 260px;
                             border: 1px solid #eee;
                         ">
+<<<<<<< Updated upstream
                         </div> --}}
                     </div>
+=======
+                    </div>
+                </div>
+>>>>>>> Stashed changes
 
 
                 </div>
@@ -415,6 +472,7 @@
                         // let legendList = Object.values(legendMap);
 
                         // let legendHTML = `
+<<<<<<< Updated upstream
                 // <div class="p-2 rounded border bg-white shadow" style="display:inline-block; min-width:260px">
                 //     <div class="font-bold mb-1">Legend:</div>
                 //     <table class="text-xs">
@@ -427,16 +485,37 @@
                 //     </thead>
                 //     <tbody>
                 //         ${legendList.map(item => `
+=======
+                        // <div class="p-2 rounded border bg-white shadow" style="display:inline-block; min-width:260px">
+                        //     <div class="font-bold mb-1">Legend:</div>
+                        //     <table class="text-xs">
+                        //     <thead>
+                        //         <tr>
+                        //         <th class="pr-4">Department</th>
+                        //         <th class="pr-4">Company</th>
+                        //         <th>Jumlah</th>
+                        //         </tr>
+                        //     </thead>
+                        //     <tbody>
+                        //         ${legendList.map(item => `
+>>>>>>> Stashed changes
                         //         <tr>
                         //             <td class="pr-4">${item.department}</td>
                         //             <td class="pr-4">${item.company}</td>
                         //             <td>${item.count}</td>
                         //         </tr>
                         //         `).join('')}
+<<<<<<< Updated upstream
                 //     </tbody>
                 //     </table>
                 // </div>
                 // `;
+=======
+                        //     </tbody>
+                        //     </table>
+                        // </div>
+                        // `;
+>>>>>>> Stashed changes
 
                         // $('#chartLegend').html(legendHTML);
                         // // ==== END LEGEND ====
@@ -451,10 +530,14 @@
                             });
                         });
 
+<<<<<<< Updated upstream
                         let legendCompany = Object.entries(companyMap).map(([company, count]) => ({
                             company,
                             count
                         }));
+=======
+                        let legendCompany = Object.entries(companyMap).map(([company, count]) => ({ company, count }));
+>>>>>>> Stashed changes
 
                         let legendHTML = `
                         <div class="p-2 rounded border bg-white shadow" style="display:inline-block; min-width:160px">
@@ -468,11 +551,19 @@
                             </thead>
                             <tbody>
                                 ${legendCompany.map(item => `
+<<<<<<< Updated upstream
                                                                                                                                                                                                                                                                                                                 <tr>
                                                                                                                                                                                                                                                                                                                     <td class="pr-4">${item.company}</td>
                                                                                                                                                                                                                                                                                                                     <td>${item.count}</td>
                                                                                                                                                                                                                                                                                                                 </tr>
                                                                                                                                                                                                                                                                                                                 `).join('')}
+=======
+                                <tr>
+                                    <td class="pr-4">${item.company}</td>
+                                    <td>${item.count}</td>
+                                </tr>
+                                `).join('')}
+>>>>>>> Stashed changes
                             </tbody>
                             </table>
                         </div>
@@ -501,10 +592,16 @@
                                 const members = d.data.members || [];
                                 const level = d.depth;
                                 const bgColor = d.data.bgColor || '#f5f5f5';
+<<<<<<< Updated upstream
 
                                 console.log('Level:', level); // Debugging line
                                 console.log('Node Width:', d.width, 'Height:', d
                                     .height); // Debugging line
+=======
+                            
+                                console.log('Level:', level); // Debugging line
+                                console.log('Node Width:', d.width, 'Height:', d.height); // Debugging line
+>>>>>>> Stashed changes
                                 console.log('Node Data:', d.data); // Debugging line
                                 return `
                                     <div style='width:${d.width}px;height:${d.height}px;padding-top:25px;padding-left:25px;padding-right:10px'>
@@ -524,6 +621,7 @@
                                             <div style="font-size:12px;color:#333">                                    
                                                 <div style="margin-top:10px;">
                                                     ${members.map(m => `
+<<<<<<< Updated upstream
                                                                                                                                                                                                                                                                                                                                         <div style="display:flex;align-items:center;margin-bottom:2px;">
                                                                                                                                                                                                                                                                                                                                             <img src="${m.image}" style="width:30px;height:30px;border-radius:50%;margin-right:8px;" />
                                                                                                                                                                                                                                                                                                                                             <span style="font-size:12px; color:${m.name.toUpperCase() === 'VACANT' ? 'red' : '#000'};">
@@ -531,6 +629,15 @@
                                                                                                                                                                                                                                                                                                                                             </span>
                                                                                                                                                                                                                                                                                                                                         </div>
                                                                                                                                                                                                                                                                                                                                     `).join('')}
+=======
+                                                        <div style="display:flex;align-items:center;margin-bottom:2px;">
+                                                            <img src="${m.image}" style="width:30px;height:30px;border-radius:50%;margin-right:8px;" />
+                                                            <span style="font-size:12px; color:${m.name.toUpperCase() === 'VACANT' ? 'red' : '#000'};">
+                                                                ${m.name} (${m.company})
+                                                            </span>
+                                                        </div>
+                                                    `).join('')}
+>>>>>>> Stashed changes
                                                 </div>
                                             </div>
                                         </div>
@@ -542,6 +649,7 @@
                             .data(nodes)
                             .expandAll()
                             .connections(connections)
+<<<<<<< Updated upstream
                             .linkUpdate((d, i, arr) => {
                                 d3.select(arr[i])
                                     .attr('stroke-width', 2) // tebal garis parent-child
@@ -550,6 +658,44 @@
                         // .render()
                         chart.compact(false).render().fit();
 
+=======
+                            // .render()
+                            chart.compact(false).render().fit();
+                        // Tambahkan garis horizontal untuk setiap level
+                        // setTimeout(() => {
+                        //     const svg = d3.select('.chart-container').select('svg');
+                        //     if (!svg.node()) return;
+
+                        //     const svgWidth = svg.node().getBoundingClientRect().width || 102000;
+                        //     const levelY = {};
+
+                        //     svg.selectAll('.node').each(function() {
+                        //         const d = d3.select(this).datum();
+                        //         const y = d.y;
+
+                        //         if (!levelY[d.depth]) {
+                        //             levelY[d.depth] = [];
+                        //         }
+                        //         levelY[d.depth].push(y);
+                        //     });
+
+                        //     Object.keys(levelY).forEach(depth => {
+                        //         const yVals = levelY[depth];
+                        //         if (yVals.length) {
+                        //             // Garis tepat di tengah node level tsb:
+                        //             const avgY = yVals.reduce((a, b) => a + b, 0) / yVals.length;
+                        //             svg.append('line')
+                        //                 .attr('x1', 0)
+                        //                 .attr('x2', svgWidth)
+                        //                 .attr('y1', avgY)
+                        //                 .attr('y2', avgY)
+                        //                 .attr('stroke', '#999')
+                        //                 .attr('stroke-width', 1)
+                        //                 .attr('stroke-dasharray', '4,2');
+                        //         }
+                        //     });
+                        // }, 400);
+>>>>>>> Stashed changes
                     },
 
                     error: function(xhr) {
@@ -668,6 +814,7 @@
 
 
         <script>
+<<<<<<< Updated upstream
             function exportChartWithLegend() {
                 const exportArea = document.getElementById('chartExportArea');
                 const images = exportArea.querySelectorAll('img');
@@ -706,5 +853,40 @@
                 }
             }
         </script>
+=======
+           function exportChartWithLegend() {
+            const exportArea = document.getElementById('chartExportArea');
+            const images = exportArea.querySelectorAll('img');
+            let loaded = 0;
+            if (images.length === 0) {
+                doExport();
+                return;
+            }
+            images.forEach(img => {
+                if (img.complete) {
+                    loaded++;
+                    if (loaded === images.length) doExport();
+                } else {
+                    img.onload = () => {
+                        loaded++;
+                        if (loaded === images.length) doExport();
+                    }
+                    img.onerror = () => {
+                        loaded++;
+                        if (loaded === images.length) doExport();
+                    }
+                }
+            });
+            function doExport() {
+                html2canvas(exportArea, { backgroundColor: '#fff', scale: 2, useCORS: true }).then(function(canvas) {
+                    const link = document.createElement('a');
+                    link.href = canvas.toDataURL('image/png');
+                    link.download = 'orgchart-export.png';
+                    link.click();
+                });
+            }
+        }
+    </script>
+>>>>>>> Stashed changes
 
 </x-app-layout>

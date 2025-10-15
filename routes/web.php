@@ -49,6 +49,7 @@ use App\Http\Controllers\AssignListController;
 use App\Http\Controllers\CsJobController;
 use App\Http\Controllers\CsListController;
 use App\Http\Controllers\CanvassController;
+<<<<<<< Updated upstream
 use App\Http\Controllers\BqCSController;
 use App\Http\Controllers\PoListController;
 use App\Http\Controllers\PoController;
@@ -87,6 +88,9 @@ Route::get('/avatar/{filename}', function($filename){
 });
 
 
+=======
+use App\Http\Controllers\ChangeStoController;
+>>>>>>> Stashed changes
 
 
 Route::redirect('/', 'login');
@@ -315,7 +319,6 @@ Route::post('/logout', function () {
 
 
 
-
     Route::get('/jobpostings', [JobpostingController::class, 'index'])->name('jobpostings');
     Route::get('/jobpostings/json', [JobpostingController::class, 'json'])->name('jobpostings.json'); 
     Route::get('/showjobpostings/{id}', [JobpostingController::class, 'showJobposting']);
@@ -539,6 +542,20 @@ Route::post('/logout', function () {
     Route::get('/cslist/json', [CsListController::class, 'json'])->name('cslist.json');
 
 
+    Route::get('/changestos', [ChangeStoController::class, 'index'])->name('changestos');
+    Route::get('/changestos/json', [ChangeStoController::class, 'json'])->name('changestos.json');
+    Route::get('/createchangestos', [ChangeStoController::class, 'createChangesto']);
+    Route::post('/changestos', [ChangeStoController::class, 'storeChangesto'])->name('changestos.store');
+    Route::get('/showchangestos/{id}', [ChangeStoController::class, 'showChangesto']);
+    Route::get('/changesto/{id}/comments', [ChangeStoController::class, 'fetchComments']);
+    Route::post('/changesto/{id}/comments', [ChangeStoController::class, 'storeComment']);
+    Route::post('/changesto/{id}/approve', [ChangeStoController::class, 'approveChangesto']);
+    Route::post('/changesto/{id}/reject', [ChangeStoController::class, 'rejectChangesto']);
+    Route::post('/changesto/{id}/revise', [ChangeStoController::class, 'reviseChangesto']);
+    Route::get('/editchangestos/{id}', [ChangeStoController::class, 'editChangesto']);
+    Route::put('/changestos/{id}', [ChangeStoController::class, 'updateChangesto'])->name('changestos.update');
+    Route::put('/changestos/remove-attachment/{id}', [ChangeStoController::class, 'removeAttachment']);    
+    Route::get('/changesto/{id}/check-approval/{action}', [ChangeStoController::class, 'checkApproval']);   
 
     Route::get('/createcs/{doc}/{hash}', [CanvassController::class, 'createCS'])
         ->where(['doc' => 'SPPB|SPPJ|SPPK|SPPT', 'src' => '[0-9]+'])
@@ -623,6 +640,26 @@ Route::post('/logout', function () {
     Route::post('/eng/workscategory/update', [WorksCategoryController::class, 'update'])->name('workscategory.update');
     Route::post('/eng/workscategory/delete/{id}', [WorksCategoryController::class, 'delete']);
 
+<<<<<<< Updated upstream
+=======
+    Route::get('/budgets', [BudgetController::class, 'index'])->name('budgets');
+    Route::get('/budgets/json', [BudgetController::class, 'json'])->name('budgets.json');
+    Route::get('/createbudgets', [BudgetController::class, 'createBudget'])->name('budget.create');
+    Route::post('/budgets', [BudgetController::class, 'storeBudget'])->name('budgets.store');
+    // Route::get('/showbudgets/{id}', [BudgetController::class, 'showBudget']);
+    // Route::get('/budget/{id}/comments', [BudgetController::class, 'fetchComments']);
+    // Route::post('/budget/{id}/comments', [BudgetController::class, 'storeComment']);
+    // Route::post('/budget/{id}/approve', [BudgetController::class, 'approveBudget']);
+    // Route::post('/budget/{id}/reject', [BudgetController::class, 'rejectBudget']);
+    // Route::post('/budget/{id}/revise', [BudgetController::class, 'reviseBudget']);
+    // Route::get('/editbudgets/{id}', [BudgetController::class, 'editBudget'])->name('budget.edit');
+    // Route::put('/budgets/{id}', [BudgetController::class, 'updateBudget'])->name('budgets.update');
+    // Route::put('/budgets/remove-attachment/{id}', [BudgetController::class, 'removeAttachment']);    
+    // Route::get('/budget/{id}/check-approval/{action}', [BudgetController::class, 'checkApproval']);   
+    // Route::get('/api/sites/{cpnyid}', [BudgetController::class, 'getSitesByCompany']);
+    // Route::get('/api/job-parent-info/{parentId}/{departementId}/{deptId}', [BudgetController::class, 'getParentJobInfo']);
+    // Route::get('/api/vacant-employees/{deptId}', [BudgetController::class, 'getVacantByTopParent']);  
+>>>>>>> Stashed changes
     
 
 

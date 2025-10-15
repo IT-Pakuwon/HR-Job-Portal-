@@ -72,6 +72,7 @@ class StrukturOrgController extends Controller
         // ---- Status filter ----
         $status = $request->has('status') ? $request->query('status') : 'P';
 
+<<<<<<< Updated upstream
         // Kolom yang akan dikirim ke front-end (tanpa 'id' mentah)
         $select = [
             'id',                // dipakai internal saja untuk di-encode -> hid
@@ -83,6 +84,20 @@ class StrukturOrgController extends Controller
             'created_user',
             'status',
         ];
+=======
+        // Filter by cpnyid and departementid if present     
+        $user = request()->user();
+        // if (!isset($user->role) || $user->role !== 'admin') {
+        //     $cpnyids = is_array($user->companyid) ? $user->companyid : explode(',', $user->companyid);
+        //     $departementids = is_array($user->departmentid) ? $user->departmentid : explode(',', $user->departmentid);
+        //     if ($cpnyids && $cpnyids[0] !== '') {
+        //         $query->whereIn('cpnyid', (array)$cpnyids);
+        //     }
+        //     if ($departementids && $departementids[0] !== '') {
+        //         $query->whereIn('departementid', (array)$departementids);
+        //     }
+        // }
+>>>>>>> Stashed changes
 
         $base = TrSto::query()->select($select);
 
@@ -367,7 +382,11 @@ class StrukturOrgController extends Controller
     }
 
     
+<<<<<<< Updated upstream
     public function editSto(Request $request,$hash)
+=======
+    public function editSto(Request $request,$id)
+>>>>>>> Stashed changes
     {
         $id = Hashids::decode($hash)[0] ?? null;
         abort_if(!$id, 404);
@@ -1233,8 +1252,12 @@ class StrukturOrgController extends Controller
                     'employee_name' => $emp->employee_name,
                     'employee_company' => $emp->employee_company,
                     'employee_level' => $subgradeName, // Gantikan dengan subgrade_name                   
+<<<<<<< Updated upstream
                     // 'image' => $emp->image ? asset('avatar/' . ltrim($emp->image, '/')) : 'https://cdn-icons-png.flaticon.com/512/149/149071.png',
                     'image' => $emp->image ? asset($emp->image) : 'https://cdn-icons-png.flaticon.com/512/149/149071.png',
+=======
+                    'image' => $emp->image ? asset('avatar/' . ltrim($emp->image, '/')) : 'https://cdn-icons-png.flaticon.com/512/149/149071.png',
+>>>>>>> Stashed changes
                 ];
             });
 
@@ -1483,8 +1506,12 @@ class StrukturOrgController extends Controller
                     'name' => $m->employee_name,
                     'company' => $m->employee_company,
                     // 'position' => $m->employee_level,
+<<<<<<< Updated upstream
                     // 'image' => $m->image ? asset('avatar/' . ltrim($m->image, '/')) : 'https://cdn-icons-png.flaticon.com/512/149/149071.png',
                     'image' => $m->image ? asset($m->image) : 'https://cdn-icons-png.flaticon.com/512/149/149071.png',
+=======
+                    'image' => $m->image ? asset('avatar/' . ltrim($m->image, '/')) : 'https://cdn-icons-png.flaticon.com/512/149/149071.png',
+>>>>>>> Stashed changes
                 ];
             });
 
@@ -1568,8 +1595,12 @@ class StrukturOrgController extends Controller
                     'name' => $m->employee_name,
                     'company' => $m->employee_company,
                     // 'position' => $m->employee_level,                   
+<<<<<<< Updated upstream
                     // 'image' => $m->image ? asset('avatar/' . ltrim($m->image, '/')) : 'https://cdn-icons-png.flaticon.com/512/149/149071.png',
                     'image' => $m->image ? asset($m->image) : 'https://cdn-icons-png.flaticon.com/512/149/149071.png',
+=======
+                    'image' => $m->image ? asset('avatar/' . ltrim($m->image, '/')) : 'https://cdn-icons-png.flaticon.com/512/149/149071.png',
+>>>>>>> Stashed changes
 
                 ];
             });

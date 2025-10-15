@@ -5,7 +5,11 @@
                 <div class="flex flex-col gap-8">
                     <form id="stoForm" class="flex flex-col gap-8" enctype="multipart/form-data">
                         @csrf
+<<<<<<< Updated upstream
                         <div class="flex w-full flex-col gap-8 rounded-xl bg-white p-6   dark:bg-gray-800">
+=======
+                        <div class="flex w-full flex-col gap-8 rounded-xl bg-white p-6 shadow-lg dark:bg-gray-800">
+>>>>>>> Stashed changes
                             <div class="mb-6 border-b border-gray-200 pb-4 dark:border-gray-700">
                                 <h2 class="text-xl font-extrabold text-gray-800 dark:text-white">Create ORG Structure</h2>
                             </div>
@@ -85,7 +89,11 @@
                 </div>
 
                 <div class="flex flex-col gap-8">
+<<<<<<< Updated upstream
                     <div class="flex w-full flex-col gap-8 rounded-xl bg-white p-6   dark:bg-gray-800">
+=======
+                    <div class="flex w-full flex-col gap-8 rounded-xl bg-white p-6 shadow-lg dark:bg-gray-800">
+>>>>>>> Stashed changes
                         <details class="group" open>
                             <summary
                                 class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-xl font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
@@ -119,7 +127,11 @@
                         </details>
                         <div class="flex w-full justify-end gap-4 pt-4">
                             <button type="button" id="cancelBtn"
+<<<<<<< Updated upstream
                                 class="inline-flex items-center justify-center rounded-lg bg-red-600 px-6 py-3 text-base font-semibold text-white   transition-colors hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">
+=======
+                                class="inline-flex items-center justify-center rounded-lg bg-red-600 px-6 py-3 text-base font-semibold text-white shadow-md transition-colors hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">
+>>>>>>> Stashed changes
                                 <span id="cancelBtnText">Cancel</span>
                                 <svg id="cancelSpinner" class="ml-2 hidden h-5 w-5 animate-spin text-white"
                                     xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -129,7 +141,11 @@
                                 </svg>
                             </button>
                             <button type="submit" id="submitBtn" form="stoForm"
+<<<<<<< Updated upstream
                                 class="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-6 py-3 text-base font-semibold text-white   transition-colors hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+=======
+                                class="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-6 py-3 text-base font-semibold text-white shadow-md transition-colors hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+>>>>>>> Stashed changes
                                 <span id="submitBtnText">Submit Approval</span>
                                 <svg id="loadingSpinner" class="ml-2 hidden h-5 w-5 animate-spin text-white"
                                     xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -144,7 +160,11 @@
             </div>
 
             <div class="flex flex-col gap-8 lg:col-span-2 lg:row-start-2">
+<<<<<<< Updated upstream
                 <details class="group w-full rounded-xl bg-white p-6   dark:bg-gray-800" open>
+=======
+                <details class="group w-full rounded-xl bg-white p-6 shadow-lg dark:bg-gray-800" open>
+>>>>>>> Stashed changes
                     <summary
                         class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-xl font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
                         <span>ORG Chart Visualization</span>
@@ -163,7 +183,11 @@
         </div>
         <div id="modalForm"
             class="fixed inset-0 z-50 flex hidden items-center justify-center bg-gray-900/40 backdrop-blur-sm">
+<<<<<<< Updated upstream
             <div class="relative w-full max-w-5xl rounded-lg bg-white    dark:bg-gray-800">
+=======
+            <div class="relative w-full max-w-5xl rounded-lg bg-white shadow-xl dark:bg-gray-800">
+>>>>>>> Stashed changes
                 <div class="flex items-center justify-between border-b border-gray-200 p-4 dark:border-gray-700">
                     <ul class="-mb-px flex flex-wrap text-center text-sm font-medium" id="tabs">
                         <li class="mr-2">
@@ -511,7 +535,11 @@
 
                 <div id="editModal"
                     class="fixed inset-0 z-50 flex hidden items-center justify-center bg-gray-900/40 backdrop-blur-sm">
+<<<<<<< Updated upstream
                     <div class="relative w-full max-w-lg rounded-lg bg-white p-6    dark:bg-gray-800">
+=======
+                    <div class="relative w-full max-w-lg rounded-lg bg-white p-6 shadow-xl dark:bg-gray-800">
+>>>>>>> Stashed changes
                         <button onclick="closeEditModal()"
                             class="absolute right-3 top-3 text-2xl leading-none text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
                             &times;
@@ -567,7 +595,11 @@
 
                 <div id="modalChangeDept"
                     class="fixed inset-0 z-50 flex hidden items-center justify-center bg-gray-900/40 backdrop-blur-sm">
+<<<<<<< Updated upstream
                     <div class="relative w-full max-w-md rounded-lg bg-white p-6    dark:bg-gray-800">
+=======
+                    <div class="relative w-full max-w-md rounded-lg bg-white p-6 shadow-xl dark:bg-gray-800">
+>>>>>>> Stashed changes
                         <h3 class="mb-6 text-xl font-bold text-gray-800 dark:text-white">Change Department</h3>
 
                         <div class="mb-4">
@@ -599,7 +631,11 @@
 
                 <div id="modalChangeParent"
                     class="fixed inset-0 z-50 flex hidden items-center justify-center bg-gray-900/40 backdrop-blur-sm">
+<<<<<<< Updated upstream
                     <div class="relative w-full max-w-md rounded-lg bg-white p-6    dark:bg-gray-800">
+=======
+                    <div class="relative w-full max-w-md rounded-lg bg-white p-6 shadow-xl dark:bg-gray-800">
+>>>>>>> Stashed changes
                         <h3 class="mb-6 text-xl font-bold text-gray-800 dark:text-white">Change Parent
                             Department
                         </h3>
@@ -634,7 +670,11 @@
                 <div id="modalJobProfile"
                     class="fixed inset-0 z-50 flex hidden items-center justify-center bg-gray-900/40 backdrop-blur-sm">
                     <div
+<<<<<<< Updated upstream
                         class="relative max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-lg bg-white p-6    dark:bg-gray-800">
+=======
+                        class="relative max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-lg bg-white p-6 shadow-xl dark:bg-gray-800">
+>>>>>>> Stashed changes
                         <div
                             class="mb-4 flex items-center justify-between border-b border-gray-200 pb-4 dark:border-gray-700">
                             <h3 class="text-xl font-semibold text-gray-800 dark:text-white">
@@ -817,6 +857,7 @@
                     employees.forEach((emp, index) => {
                         html += `
                         <tr>
+<<<<<<< Updated upstream
                             <td class="border   px-2 py-1">${index + 1}</td>
                             <td class="border   px-2 py-1">${emp.employee_name}</td>
                             <td class="border   px-2 py-1">${emp.employee_company}</td>
@@ -825,6 +866,16 @@
                                 <img src="${emp.image || 'https://cdn-icons-png.flaticon.com/512/149/149071.png'}" class="w-15 h-15 rounded-full mx-auto">
                             </td>
                             <td class="border   px-2 py-1 text-center">
+=======
+                            <td class="border border-black px-2 py-1">${index + 1}</td>
+                            <td class="border border-black px-2 py-1">${emp.employee_name}</td>
+                            <td class="border border-black px-2 py-1">${emp.employee_company}</td>
+                            <td class="border border-black px-2 py-1">${emp.employee_level}</td>
+                            <td class="border border-black px-2 py-1 text-center">
+                                <img src="${emp.image || 'https://cdn-icons-png.flaticon.com/512/149/149071.png'}" class="w-15 h-15 rounded-full mx-auto">
+                            </td>
+                            <td class="border border-black px-2 py-1 text-center">
+>>>>>>> Stashed changes
                                 <div class="inline-flex gap-2">
                                     <!-- Job Profile Button -->
                                     <button
@@ -1110,7 +1161,11 @@
                 $('#attachmentsContainer').append(`
             <div class="attachment-row flex items-center gap-2">
                 <input type="file" name="attachments[]" class="w-full mt-4 p-3 text-lg border rounded mt-4">
+<<<<<<< Updated upstream
                     <button type="button" class="removeAttachment rounded border border-red-600 bg-red-200/30 p-3 text-red-600 transition hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">🗑️</button>
+=======
+                    <button type="button" class="removeAttachment bg-red-200/30 mt-4 text-red-600 p-3 rounded hidden border border-red-600 hover:text-white hover:bg-red-600 transition">🗑️</button>
+>>>>>>> Stashed changes
             </div>
         `);
                 toggleDeleteButton();
@@ -1385,9 +1440,15 @@
                     profiles.forEach((p, i) => {
                         rows += `
                             <tr>
+<<<<<<< Updated upstream
                                 <td class="border   px-2 py-1">${i + 1}</td>                                
                                 <td class="border   px-2 py-1">${p.job_purpose || ''}</td>  
                                 <td class="border   px-2 py-1 text-center">
+=======
+                                <td class="border border-black px-2 py-1">${i + 1}</td>                                
+                                <td class="border border-black px-2 py-1">${p.job_purpose || ''}</td>  
+                                <td class="border border-black px-2 py-1 text-center">
+>>>>>>> Stashed changes
                                     <button class="btn-delete-jobpurpose bg-red-500 text-white px-2 py-1 rounded text-xs hover:bg-red-700"
                                         data-id="${p.id}">
                                         🗑️ Delete

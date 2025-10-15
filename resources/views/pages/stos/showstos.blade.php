@@ -115,6 +115,7 @@
                                                 <thead class="bg-gray-50 dark:bg-gray-700">
                                                     <tr>
                                                         <th
+<<<<<<< Updated upstream
                                                             class="table-header-cell border border-gray-200 dark:border-gray-600 dark:text-gray-200">
                                                             No</th>
                                                         <th
@@ -138,6 +139,27 @@
                                                 </thead>
                                                 <tbody id="employeeTableBody"
                                                     class="divide-y divide-gray-200 border-gray-200 dark:divide-gray-600 dark:border-gray-600 dark:text-gray-300">
+=======
+                                                            class="table-header-cell border border-gray-200 dark:border-gray-600">
+                                                            No</th>
+                                                        <th
+                                                            class="table-header-cell border border-gray-200 dark:border-gray-600">
+                                                            Name</th>
+                                                        <th
+                                                            class="table-header-cell border border-gray-200 dark:border-gray-600">
+                                                            Company</th>
+                                                        <th
+                                                            class="table-header-cell border border-gray-200 dark:border-gray-600">
+                                                            Jabatan
+                                                        </th>
+                                                        <th
+                                                            class="table-header-cell border border-gray-200 dark:border-gray-600">
+                                                            Foto</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="employeeTableBody"
+                                                    class="divide-y divide-gray-200 border-gray-200 dark:divide-gray-600">
+>>>>>>> Stashed changes
                                                 </tbody>
                                             </table>
                                         </div>
@@ -906,6 +928,7 @@
                                 <div style="font-size:12px;color:#333">
                                     <div style="margin-top:10px;">
                                         ${members.map(m => `
+<<<<<<< Updated upstream
                                                                                                                                                     <div style="display:flex;align-items:center;margin-bottom:6px;">
                                                                                                                                                         <img src="${m.image}" style="width:30px;height:30px;border-radius:50%;margin-right:8px;" />
                                                                                                                                                         <span style="font-size:12px; color:${m.name.toUpperCase() === 'VACANT' ? 'red' : '#000'};">
@@ -913,6 +936,15 @@
                                                                                                                                                         </span>
                                                                                                                                                     </div>
                                                                                                                                                 `).join('')}
+=======
+                                            <div style="display:flex;align-items:center;margin-bottom:6px;">
+                                                <img src="${m.image}" style="width:30px;height:30px;border-radius:50%;margin-right:8px;" />
+                                                <span style="font-size:12px; color:${m.name.toUpperCase() === 'VACANT' ? 'red' : '#000'};">
+                                                    ${m.name} (${m.company})
+                                                </span>
+                                            </div>
+                                        `).join('')}
+>>>>>>> Stashed changes
                                     </div>
                                 </div>
                             </div>
@@ -972,6 +1004,7 @@
                     let html = '';
                     employees.forEach((emp, index) => {
                         html += `
+<<<<<<< Updated upstream
                         <tr>
                             <td class="border dark:border-gray-700  px-2 py-1">${index + 1}</td>
                             <td class="border dark:border-gray-700  px-2 py-1">${emp.employee_name}</td>
@@ -998,6 +1031,18 @@
 
                         </tr>
                     `;
+=======
+                                    <tr>
+                                        <td class="border border-gray-200 px-2 py-1">${index + 1}</td>
+                                        <td class="border border-gray-200 px-2 py-1">${emp.employee_name}</td>
+                                        <td class="border border-gray-200 px-2 py-1">${emp.employee_company}</td>
+                                        <td class="border border-gray-200 px-2 py-1">${emp.employee_level}</td>
+                                        <td class="border border-gray-200 px-2 py-1 text-center">
+                                            ${emp.image ? `<img src="${emp.image}" class="w-25 h-25 rounded-full mx-auto">` : '-'}
+                                        </td>                                       
+                                    </tr>
+                                `;
+>>>>>>> Stashed changes
                     });
 
 
