@@ -255,7 +255,7 @@
                     .then(res => {
                         if (res.ok) {
                             alert('BQ saved: ' + res.bqid);
-                            window.location.href = "{{ url('/cslist') }}";
+                            window.location.href = "{{ url('/csjobs') }}";
                         } else {
                             alert('Save failed: ' + (res.msg || ''));
                         }

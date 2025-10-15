@@ -17,6 +17,10 @@ use App\Models\MsVendor;
 use App\Models\CompanyPG;
 use App\Models\TrReceipt;
 use App\Models\TrReceiptdetail;
+use App\Models\TrSPPB;
+use App\Models\TrSPPJ;
+use App\Models\TrSPPK;
+use App\Models\TrSPPT;
 use App\Models\TrCS;
 use Vinkla\Hashids\Facades\Hashids;
 use Mail;
@@ -30,14 +34,14 @@ class ReceiptController extends Controller
         $ponbr_eid = (string) $req->query('ponbr', '');
         abort_if($ponbr_eid === '', 404, 'PO number required');
 
-        $ponbr = Hashids::decode($ponbr_eid)[0] ?? null;
-        abort_if(!$ponbr, 404);
+        $id = Hashids::decode($ponbr_eid)[0] ?? null;
+        abort_if(!$id, 404);
         
         // --- ambil header PO ---
         $po = TrPO::select([
                 'ponbr','podate','sppbjktid','vendorname','cpny_id',
                 'department_id','user_peminta'
-            ])->where('ponbr', $ponbr)->first();
+            ])->where('id', $id)->first();
             
         abort_if(!$po, 404, 'PO not found');
 
@@ -48,7 +52,7 @@ class ReceiptController extends Controller
                 DB::raw("COALESCE(qty) as qty"),
                 DB::raw("COALESCE(uom) as uom")
             ])
-            ->where('ponbr', $ponbr)
+            ->where('ponbr', $po->ponbr)
             ->orderBy('id')
             ->get();
 
@@ -61,7 +65,7 @@ class ReceiptController extends Controller
             'attachments' => $attachments,
         ]);
     }
-
+    
     public function storeReceipt(Request $request)
     {
         // dd($request->all());
@@ -81,10 +85,8 @@ class ReceiptController extends Controller
 
         // ambil detail PO
         $poDetails = TrPodetail::where('ponbr', $ponbr)
-            ->select([
-                'id','ponbr','inventoryid','inventory_descr','qty','uom','inventory_type'
-            ])->get()->keyBy('id');
-
+            ->get()->keyBy('id');
+              
         // qty receipt dari form: qty_receipt[detail_id] => float
         $qtyReceiptInput = (array) $request->input('qty_receipt', []);
         $hasAnyQty = false;
@@ -154,85 +156,94 @@ class ReceiptController extends Controller
             $header->save();
 
             // === Detail TrReceiptdetail ===
-            $lineNo            = 0;
-            $totalQtyReceived  = 0.0;
+            $lineNo           = 0;
+            $totalQtyReceived = 0.0;
 
-            foreach ($qtyReceiptInput as $detailId => $qtyRecRaw) {
-                $qtyRec = (float) str_replace(',', '.', (string)$qtyRecRaw);
-                if ($qtyRec <= 0) continue;
-
-                $src = $poDetails->get((int)$detailId);
-                if (!$src) continue; // skip bila id tidak cocok dgn PO detail
+            // $poDetails sudah: TrPOdetail::where('ponbr', $ponbr)->get()->keyBy('id');
+            foreach ($poDetails as $srcId => $src) {
+                // Ambil qty dari input: qty_receipt[<id_detail>], default 0
+                $qtyRecRaw = $qtyReceiptInput[$srcId] ?? 0;
+                $qtyRec    = (float) str_replace(',', '.', (string) $qtyRecRaw);
 
                 $lineNo++;
 
                 $det = new TrReceiptdetail();
-                $det->receiptnbr                = $receiptnbr;
-                $det->receipt_no                = $lineNo;
-                $det->ponbr                     = $ponbr;
-                $det->po_no                     = $src->ponbr; // jika memang ingin simpan lagi
-                $det->csid                      = $po->csid ?? null;
-                $det->cs_no                     = $po->cs_no ?? null;
-                $det->sppbjktid                 = $po->sppbjktid ?? null;
-                $det->sppbjktid_no              = $po->sppbjktid ?? null;
+                $det->receiptnbr              = $receiptnbr;
+                $det->receipt_no              = $lineNo;
 
-                $det->inventory_type            = $src->inventory_type ?? null;
-                $det->inventoryid               = $src->inventoryid;
-                $det->inventory_descr           = $src->inventory_descr;
-                $det->qtyordered                = $src->qty;
-                $det->uom                       = $src->uom;
+                // Relasi ke PO
+                $det->ponbr                   = $ponbr;
+                $det->po_no                   = $src->po_no;
 
-                // base default = sama dgn qty/uom jika tak ada konversi
-                $det->type_multiplier           = null;
-                $det->base_multiplier           = 1;
-                $det->base_qty                  = $qtyRec;
-                $det->base_uom                  = $src->uom;
+                // Turunan header (kalau punya)
+                $det->csid                    = $po->csid ?? null;
+                $det->cs_no                   = $src->cs_no ?? null;
+                $det->sppbjktid               = $po->sppbjktid ?? null;
+                $det->sppbjktid_no            = $src->sppbjktid_no ?? null; 
 
-                $det->unitcost                  = null;
-                $det->taxcodeid                 = null;
-                $det->taxamt                    = null;
-                $det->totalcost                 = null;
+                // Kolom inventory dari PO detail
+                $det->inventory_type          = $src->inventory_type ?? null;
+                $det->inventoryid             = $src->inventoryid;
+                $det->inventory_descr         = $src->inventory_descr;
+                $det->qtyordered              = $src->qty;
+                $det->uom                     = $src->uom;
 
-                $det->receipttype               = $doctype;
+                // Base/default (tanpa konversi)
+                $det->type_multiplier         = null;
+                $det->base_multiplier         = 1;
+                $det->base_qty                = $qtyRec;
+                $det->base_uom                = $src->uom;
 
-                // open ordered (sisa) bisa diisi jika kamu punya perhitungan; untuk sekarang isi null
-                $det->qty_open_ordered          = null;
-                $det->base_qty_open_ordered     = null;
+                // Harga/pajak (tidak diisi di receipt)
+                $det->unitcost                = $src->unitcost;
+                $det->taxcodeid               = $src->uom;
+                $det->taxamt                  = $src->taxamt;
+                $det->totalcost               = $src->totalcost;
 
-                $det->qty_received              = $qtyRec;
-                $det->base_qty_received         = $qtyRec;
+                $det->receipttype             = $doctype;
 
-                $det->qty_return                = 0;
-                $det->base_qty_return           = 0;
+                // Open ordered (jika belum dihitung sisa, biarkan null)
+                $det->qty_open_ordered        = $qtyRec;
+                $det->base_qty_open_ordered   = $qtyRec;
 
-                $det->ref_receiptnbr            = null;
+                // YANG DIMINTA: qty_received dari form
+                $det->qty_received            = $qtyRec;
+                $det->base_qty_received       = $qtyRec;
 
-                // budget fields (tak ada di form create receipt → kosongkan)
-                $det->budget_perpost            = null;
-                $det->budget_cpny_id            = null;
-                $det->budget_business_unit_id   = null;
-                $det->budget_department_fin_id  = null;
-                $det->budget_account_id         = null;
-                $det->budget_activity_id        = null;
-                $det->budget_activity_descr     = null;
+                $det->qty_return              = 0;
+                $det->base_qty_return         = 0;
 
-                $det->status                    = 'P';
-                $det->created_by                = $username;
-                $det->created_at                = $now;
+                $det->ref_receiptnbr          = null;
+
+                // Budget fields (kosong)
+                $det->budget_perpost          = $src->budget_perpost;
+                $det->budget_cpny_id          = $src->budget_cpny_id;
+                $det->budget_business_unit_id = $src->budget_business_unit_id;
+                $det->budget_department_fin_id= $src->budget_department_fin_id;
+                $det->budget_account_id       = $src->budget_account_id;
+                $det->budget_activity_id      = $src->budget_activity_id;
+                $det->budget_activity_descr   = $src->budget_activity_descr;
+
+                $det->status                  = 'P';
+                $det->created_by              = $username;
+                $det->created_at              = $now;
+
                 $det->save();
 
                 $totalQtyReceived += $qtyRec;
             }
 
-            if ($lineNo === 0) {
-                // tidak ada detail valid (semua 0)
+            // Validasi minimal ada qty > 0 (setelah fakta tersimpan)
+            if ($totalQtyReceived <= 0) {
                 DB::rollBack();
-                return back()->withErrors(['Tidak ada Qty Receipt > 0 yang tersimpan.'])->withInput();
+                return back()->withErrors(['Qty receipt minimal satu baris harus > 0.'])->withInput();
             }
 
-            // update total qty header
+            // update total qty di header
             $header->totalqty_received = $totalQtyReceived;
             $header->save();
+
+
            
 
             // === Attachments (optional) ===
@@ -318,6 +329,94 @@ class ReceiptController extends Controller
             report($e);
             return back()->withErrors([config('app.debug') ? $e->getMessage() : 'Failed to create Receipt'])->withInput();
         }
+    }
+
+    public function showReceipt($hash)
+    {
+        $id = Hashids::decode($hash)[0] ?? null;
+        abort_if(!$id, 404);
+
+        $user = Auth::user();
+        if (!$user) return redirect()->route('login');
+
+        // ===== Header Receipt
+        $rcp = TrReceipt::findOrFail($id);
+
+        // ===== Detail Receipt
+        $rcpdetail = TrReceiptdetail::where('receiptnbr', $rcp->receiptnbr)
+            ->orderBy('receipt_no')
+            ->get();
+
+        // ===== Attachment by receiptnbr
+        $attachment = Attachment::where('docid', $rcp->receiptnbr)
+            ->where('status', 'A')
+            ->get();
+
+        // ===== Link ke PO (opsional)
+        $poUrl = null;
+        if (!empty($rcp->ponbr)) {
+            $poId = TrPO::where('ponbr', $rcp->ponbr)->value('id');
+            if ($poId) {
+                $poHash = Hashids::encode($poId);
+                $poUrl  = url("/showpo/{$poHash}");
+            }
+        }
+
+       
+        // ===== Link ke SPPB/J/K/T (opsional)
+        $sppbUrl = null;
+        $sppbjktid = (string)($rcp->sppbjktid ?? '');
+        $prefix = strtoupper(substr($sppbjktid, 0, 2));
+
+        $routeMap = [
+            'PB' => 'showsppbs',
+            'PJ' => 'showsppjs',
+            'PK' => 'showsppks',
+            'PT' => 'showsppts',
+        ];
+
+        if ($sppbjktid !== '' && isset($routeMap[$prefix])) {
+            $docId = null;
+
+            if ($prefix === 'PB') {                
+                $docId = TrSPPB::where('sppbid', $sppbjktid)->value('id');
+            } elseif ($prefix === 'PJ') {
+                $docId = TrSPPJ::where('sppjid', $sppbjktid)->value('id');
+            } elseif ($prefix === 'PK') {
+                $docId = TrSPPK::where('sppkid', $sppbjktid)->value('id');
+            } elseif ($prefix === 'PT') {
+                $docId = TrSPPT::where('spptid', $sppbjktid)->value('id');
+            }
+
+            if (!empty($docId)) {
+                $sppbHash = Hashids::encode($docId);
+                $sppbUrl  = url('/' . $routeMap[$prefix] . '/' . $sppbHash);
+            }
+        }
+
+        // ===== Link ke CS (opsional)
+        $csUrl = null;
+        if (!empty($rcp->csid)) {
+            $csId = TrCS::where('csid', $rcp->csid)->value('id');
+            if ($csId) {
+                $csHash = Hashids::encode($csId);
+                $csUrl  = url("/showcs/{$csHash}");
+            }
+        }
+
+        // Untuk convenience (mis. kirim email dsb)
+        $eid_receiptnbr = Hashids::encode($rcp->receiptnbr);
+
+        return view('pages.receipt.showreceipt', [
+            'rcp'            => $rcp,
+            'rcpdetail'      => $rcpdetail,
+            'attachment'     => $attachment,
+            'hash'           => $hash,
+            'eid_receiptnbr' => $eid_receiptnbr,
+            'poUrl'          => $poUrl,
+            'sppbUrl'        => $sppbUrl,
+            'csUrl'          => $csUrl,
+        ]);
     }
 
     public function fetchComments($id)
@@ -457,6 +556,77 @@ class ReceiptController extends Controller
         return response()->json(['success'=>true]);
     }
 
+    public function printReceipt(string $hash)
+    {
+        $decoded = Hashids::decode($hash);
+        abort_if(empty($decoded), 404, 'Dokumen tidak ditemukan.');
+        $id = $decoded[0];
+
+        $authUser = Auth::user();
+        if (!$authUser) {
+            return redirect()->route('login');
+        }
+
+        // ===== HEADER
+        /** @var TrReceipt $rcp */
+        $rcp = TrReceipt::findOrFail($id);
+
+        // ===== DETAIL
+        $details = TrReceiptdetail::where('receiptnbr', $rcp->receiptnbr)
+            ->orderBy('receipt_no')
+            ->get();
+
+        $po = TrPO::where('ponbr', $rcp->ponbr)           
+            ->first();
+
+        // ===== COMPANY (untuk brand/footnote)
+        $company = CompanyPG::where('cpny_id', $rcp->cpny_id)->first();
+
+        $createdName = ucwords(strtolower($authUser->name));
+        $now = Carbon::now();
+
+        $data = [
+            'rcp'       => $rcp,
+            'details'   => $details,
+            'po'       => $po,
+            'company'   => $company,
+            'now'       => $now,
+            'created'   => $createdName,
+        ];
+
+        // Gunakan satu view khusus receipt
+        $view = 'pages.receipt.pdf_receipt';
+
+        // 1) render view -> Dompdf
+        $pdf = Pdf::loadView($view, $data)->setPaper('A4', 'portrait');
+
+        // 2) Render dulu supaya PAGE_COUNT siap
+        $dompdf = $pdf->getDomPDF();
+        $dompdf->render();
+
+        // 3) Footer via canvas
+        $canvas  = $dompdf->get_canvas();
+        $w       = $canvas->get_width();
+        $h       = $canvas->get_height();
+
+        $metrics = $dompdf->getFontMetrics();
+        $font    = $metrics->get_font('sans-serif', 'normal');
+        $size    = 9;
+
+        $leftTxt  = "Created by: {$createdName}, Sent by: {$createdName}, On: ".$now->format('d/m/Y H:i');
+        $rightTpl = "Page {PAGE_NUM} of {PAGE_COUNT}";
+
+        $rightWidth = $metrics->getTextWidth($rightTpl, $font, $size);
+        $y = $h - 28;               // ~10mm dari bawah (tergantung margin @page)
+
+        // kiri 20px, kanan (w - 20px - textwidth)
+        $canvas->page_text(20, $y, $leftTxt, $font, $size, [0,0,0]);
+        $canvas->page_text($w - 20 - $rightWidth, $y, $rightTpl, $font, $size, [0,0,0]);
+
+        // 4) Stream
+        $basename = 'RCP';
+        return $dompdf->stream("{$basename}_{$rcp->rcpnbr}.pdf", ['Attachment' => false]);
+    }
 
 
 

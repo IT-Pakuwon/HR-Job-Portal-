@@ -1793,7 +1793,7 @@ class CanvassController extends Controller
 
    
 
-    private function generatePOFromCS(TrCS $cs, $user, $potype): void
+    private function generatePOFromCS_xxx(TrCS $cs, $user, $potype): void
     {
         // dd('hai');
         // Idempotent: kalau sudah ada PO untuk CS ini, jangan bikin lagi
@@ -2008,6 +2008,205 @@ class CanvassController extends Controller
             ]);
         }
     }
+
+    private function generatePOFromCS(TrCS $cs, $user, $potype): void
+    {
+        // Idempotent: kalau sudah ada PO untuk CS ini, jangan bikin lagi
+        $already = TrPO::where('csid', $cs->csid)->exists();
+        if ($already) return;
+
+        $details = TrCSdetail::where('csid', $cs->csid)->get();
+        if ($details->isEmpty()) return;
+
+        // Kelompokkan baris per vendor terpilih
+        $pickedByVendorIdx = collect([1,2,3,4,5,6])->mapWithKeys(fn($i) => [$i => collect()]);
+        foreach ($details as $row) {
+            for ($i = 1; $i <= 6; $i++) {
+                $sel = (bool) ($row->{"vendor{$i}selected"} ?? false);
+                $vid = $row->{"vendorid{$i}"} ?? null;
+                if ($sel && $vid) {
+                    $pickedByVendorIdx[$i] = $pickedByVendorIdx[$i]->push($row);
+                    break; // satu baris hanya 1 vendor terpilih
+                }
+            }
+        }
+        $nonEmptyGroups = $pickedByVendorIdx->filter(fn($g) => $g->isNotEmpty());
+        if ($nonEmptyGroups->isEmpty()) return;
+
+        $now = Carbon::now();
+
+        // Generator nomor 10 digit per company (tanpa prefix)
+        $mkPonbr = function() use ($cs) {
+            $company = strtoupper((string)$cs->cpny_id);
+            $digits  = 10;
+            $base    = ($company === 'GPS') ? 0 : 8000000000;
+
+            $autonbr = Autonbr::lockForUpdate()
+                ->where('doctype', $company)
+                ->first();
+
+            $current = $autonbr ? (int)$autonbr->number : (int)$base;
+            $next    = $current + 1;
+
+            if (!$autonbr) {
+                $autonbr = Autonbr::create([
+                    'doctype' => $company,
+                    'status'  => 'A',
+                    'number'  => $next,
+                ]);
+            } else {
+                $autonbr->update(['number' => $next]);
+            }
+
+            $ponbr = str_pad((string)$next, $digits, '0', STR_PAD_LEFT);
+            return [$ponbr, $next];
+        };
+
+        DB::connection('pgsql')->beginTransaction();
+        try {
+            foreach ($nonEmptyGroups as $i => $rows) {
+                // Info vendor dari header CS
+                $vendorId   = $cs->{"vendorid{$i}"}     ?? null;
+                $vendorName = $cs->{"vendorname{$i}"}   ?? null;
+                $vendorAddr = $cs->{"vendoralamat{$i}"} ?? null;
+                $vendorTelp = $cs->{"vendortelp{$i}"}   ?? null;
+                $vendorCP   = $cs->{"vendorcp{$i}"}     ?? null;
+                $vendorTOP  = $cs->{"vendortop{$i}"}    ?? null;
+
+                if (!$vendorId) continue;
+
+                // Pajak & tax code (dipakai untuk kalkulasi tiap detail)
+                $ppnPct    = (float) ($cs->{"ppnvendor{$i}"} ?? 0);
+                $pphPct    = (float) ($cs->{"pphvendor{$i}"} ?? 0);
+                $taxCodeId = $cs->{"taxcodevendor{$i}"} ?? null;
+
+                // Nomor PO
+                [$ponbr, $poautonbr] = $mkPonbr();
+
+                // ===== PO HEADER (sementara total=0, akan di-update setelah loop detail) =====
+                $po = new TrPO();
+                $po->setConnection('pgsql');
+
+                $po->ponbr             = $ponbr;
+                $po->poautonbr         = $poautonbr;
+                $po->podate            = $now->toDateString();
+                $po->potype            = $potype;
+                $po->cpny_id           = $cs->cpny_id;
+                $po->csid              = $cs->csid;
+                $po->sppbjktid         = $cs->sppbjktid;
+                $po->department_id     = $cs->department_id;
+                $po->user_peminta      = $cs->user_peminta;
+                $po->keperluan         = $cs->csnote ?? $cs->keperluan;
+                $po->ponote            = null;
+
+                $po->vendorid          = $vendorId;
+                $po->vendorname        = $vendorName;
+                $po->vendoralamat      = $vendorAddr;
+                $po->vendortelp        = $vendorTelp;
+                $po->vendorcp          = $vendorCP;
+                $po->vendortop         = $vendorTOP;
+
+                // total akan dihitung dari detail:
+                $po->totalamt          = 0;
+                $po->taxcodeid         = $taxCodeId;
+                $po->taxamt            = 0;
+                $po->grandtotalamt     = 0;
+                $po->totalqty          = 0;
+                $po->totalqtyreceived  = 0;
+
+                $po->submitdate        = $now;
+                $po->status            = 'H';
+                $po->created_by        = $cs->created_by ?? 'system';
+                $po->save();
+
+                // ===== PO DETAIL =====
+                $totalQty  = 0.0;
+                $sumTotal  = 0.0; // jumlah totalcost detail
+                $sumTax    = 0.0; // jumlah tax detail
+                $lineNo    = 0;   // penomoran po_no per vendor
+
+                foreach ($rows as $row) {
+                    $lineNo++;
+
+                    $unitCost  = (float) ($row->{"vendorprice{$i}"}      ?? 0);
+                    $totalCost = (float) ($row->{"vendortotalprice{$i}"} ?? 0);
+
+                    // jika model pajak: tax = total * (PPN+PPH)
+                    $lineTax   = $totalCost * (($ppnPct + $pphPct) / 100);
+
+                    $pd = new TrPOdetail();
+                    $pd->ponbr                 = $ponbr;
+                    $pd->po_no                 = $lineNo; // ← nomor urut 1,2,3,...
+
+                    $pd->csid                  = $cs->csid;
+                    $pd->cs_no                 = $row->cs_no ?? null;
+                    $pd->sppbjktid             = $row->sppbjktid ?? $cs->sppbjktid;
+                    $pd->sppbjktid_no          = $row->sppbjkt_no ?? null;
+
+                    $pd->inventory_type        = $row->inventory_type ?? null;
+                    $pd->inventoryid           = $row->inventoryid;
+                    $pd->inventory_descr       = $row->inventory_descr;
+                    $pd->ponote_detail         = $row->csnote_detail ?? null;
+
+                    $pd->qty                   = (float) $row->qty;
+                    $pd->uom                   = $row->uom;
+
+                    $pd->type_multiplier       = $row->type_multiplier ?? null;
+                    $pd->base_multiplier       = $row->base_multiplier ?? null;
+                    $pd->base_qty              = $row->base_qty ?? null;
+                    $pd->base_uom              = $row->base_uom ?? null;
+
+                    $pd->unitcost              = $unitCost;
+                    $pd->taxcodeid             = $taxCodeId;
+                    $pd->taxamt                = $lineTax;
+                    $pd->totalcost             = $totalCost;
+
+                    $pd->qty_received          = 0;
+                    $pd->base_qty_received     = 0;
+                    $pd->qty_return            = 0;
+                    $pd->base_qty_return       = 0;
+                    $pd->qty_completed         = 0;
+                    $pd->base_qty_completed    = 0;
+
+                    $pd->received              = false;
+                    $pd->completed             = false;
+                    $pd->canceled              = false;
+
+                    $pd->budget_cpny_id           = $row->budget_cpny_id           ?? null;
+                    $pd->budget_business_unit_id  = $row->budget_business_unit_id  ?? null;
+                    $pd->budget_department_fin_id = $row->budget_department_fin_id ?? null;
+                    $pd->budget_account_id        = $row->budget_account_id        ?? null;
+                    $pd->budget_activity_id       = $row->budget_activity_id       ?? null;
+                    $pd->budget_activity_descr    = $row->budget_activity_descr    ?? null;
+                    $pd->budget_perpost           = $row->budget_perpost           ?? null;
+
+                    $pd->status                = 'H';
+                    $pd->created_by            = $user->username ?? 'system';
+                    $pd->save();
+
+                    $totalQty += (float) $row->qty;
+                    $sumTotal += $totalCost;
+                    $sumTax   += $lineTax;
+                }
+
+                // ===== Update totals header dari akumulasi detail =====
+                $po->totalqty        = $totalQty;
+                $po->totalamt        = $sumTotal;
+                $po->taxamt          = $sumTax;
+                $po->grandtotalamt   = $sumTotal + $sumTax;
+                $po->save();
+            }
+
+            DB::connection('pgsql')->commit();
+        } catch (\Throwable $e) {
+            DB::connection('pgsql')->rollBack();
+            Log::error('Generate PO from CS failed', [
+                'csid' => $cs->csid,
+                'error'=> $e->getMessage()
+            ]);
+        }
+    }
+
 
 
     

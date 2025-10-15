@@ -43,13 +43,7 @@ class PoController extends Controller
             ->orderBy('cs_no') // ganti sesuai nama kolom line kalau berbeda
             ->get();
 
-        // Approval & Attachment pakai docid = ponbr
-        $approval = T_approval::where('docid', $po->ponbr)
-            ->where('status', '<>', 'X')
-            ->orderBy('created_at')
-            ->orderBy('aprvid')
-            ->get();
-
+       
         $attachment = Attachment::where('docid', $po->ponbr)
             ->where('status', 'A')
             ->get();
@@ -96,8 +90,7 @@ class PoController extends Controller
         // - plus alias lama ($sppb, $sppbdetail) untuk kompatibilitas view lama
         return view('pages.purchase.showpo', [
             'po'         => $po,
-            'podetail'   => $podetail,
-            'approval'   => $approval,
+            'podetail'   => $podetail,          
             'attachment' => $attachment,
             'hash'       => $hash, 
             'eid_ponbr' => $eid_ponbr,
@@ -122,7 +115,7 @@ class PoController extends Controller
         $deliveryDate = $req->input('podeliverydate') ?? $req->input('po_deliverydate');
 
         // Validasi dinamis sesuai po type
-        if (strtoupper($po->potype ?? '') === 'PB') {
+        if (strtoupper($po->potype ?? '') === 'PO') {
             $validated = $req->validate([
                 'podeliverydate'   => ['nullable','date'],   // supaya lolos kalau pakai podeliverydate               
             ]);
@@ -156,7 +149,7 @@ class PoController extends Controller
             $po->submitdate = $now;
             $po->updated_by = Auth::user()->username ?? 'system';
 
-            if (strtoupper($po->potype ?? '') === 'PB') {
+            if (strtoupper($po->potype ?? '') === 'PO') {
                 // hanya simpan tanggal delivery
                 $po->podeliverydate = $deliveryDate ? Carbon::parse($deliveryDate) : null;
 
@@ -185,7 +178,7 @@ class PoController extends Controller
                 $po->spkwarranty = $req->input('warranty');
 
                 // simpan "cara pembayaran" ke ponote (kolom yang ada)
-                // $pm = strtoupper($req->input('payment_method'));
+                $po = strtoupper($req->input('payment_method'));
                 // $po->ponote = trim(($po->ponote ? $po->ponote."\n" : '') .
                 //     "Cara Pembayaran: {$pm}");
             }
@@ -197,7 +190,7 @@ class PoController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Submit berhasil. Status berubah menjadi Purchase Order (P).'
+            'message' => 'Submit berhasil. Status berubah menjadi Purchase Order.'
         ]);
     }
 

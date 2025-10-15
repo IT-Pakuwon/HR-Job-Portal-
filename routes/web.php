@@ -587,6 +587,10 @@ Route::post('/logout', function () {
     Route::get('/receiptlist/json', [ReceiptListController::class, 'json'])->name('receiptlist.json');
     Route::get('/receipt/create', [ReceiptController::class, 'createReceipt'])->name('receipt.create');    
     Route::post('/receipts', [ReceiptController::class, 'storeReceipt'])->name('receipt.store'); 
+    Route::get('/showreceipt/{hash}', [ReceiptController::class, 'showReceipt']);
+    Route::get('/receipt/{id}/comments', [ReceiptController::class, 'fetchComments']);
+    Route::post('/receipt/{id}/comments', [ReceiptController::class, 'storeComment']);
+     Route::get('/pdf_receipt/{hash}', [ReceiptController::class, 'printReceipt']);
 
 
     Route::get('/inventory/list', [MasterController::class, 'InventoryList'])->name('inventory.list');

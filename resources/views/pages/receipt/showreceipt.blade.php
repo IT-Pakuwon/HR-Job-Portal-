@@ -1,0 +1,360 @@
+<x-app-layout>
+    {{-- === Styles (fixed CSS typos) === --}}
+<style>
+  #loadingSpinnerContainer{
+    position:fixed; inset:0;
+    display:none;                 /* ⬅️ tetap none */
+    place-items: center;
+    background: rgba(17,24,39,.55);
+    backdrop-filter: blur(2px);
+    z-index:2000;
+  }
+  .loading-card{display:flex;flex-direction:column;align-items:center;gap:10px;padding:18px 22px;border-radius:16px;background:linear-gradient(180deg,rgba(31,41,55,.9),rgba(17,24,39,.9));border:1px solid rgba(255,255,255,.08)}
+  .loading-spinner{width:54px;height:54px;border-radius:50%;border:4px solid transparent;border-top-color:#6366f1;animation:spin 1s linear infinite;position:relative}
+  .loading-spinner::after{content:"";position:absolute;inset:6px;border-radius:50%;border:4px solid transparent;border-left-color:#a5b4fc;animation:spinReverse .75s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}} @keyframes spinReverse{to{transform:rotate(-360deg)}}
+</style>
+
+
+    @php
+        $statusText = match ($rcp->status) {
+            'P' => 'Pending',
+            'A' => 'Approved',
+            'R' => 'Rejected',
+            'C' => 'Completed',
+            'X' => 'Canceled',
+            default => 'Unknown',
+        };
+        $statusClasses = match ($rcp->status) {
+            'P' => 'bg-yellow-100 text-yellow-700 dark:bg-yellow-800/30 dark:text-yellow-300',
+            'A' => 'bg-green-100 text-green-700 dark:bg-green-800/30 dark:text-green-300',
+            'R' => 'bg-red-100 text-red-700 dark:bg-red-800/30 dark:text-red-300',
+            'C' => 'bg-emerald-100 text-emerald-700 dark:bg-emerald-800/30 dark:text-emerald-300',
+            'X' => 'bg-red-100 text-red-700 dark:bg-red-800/30 dark:text-red-300',
+            default => 'bg-gray-100 text-gray-700 dark:bg-gray-800/30 dark:text-gray-300',
+        };
+        $nf0 = fn($n) => number_format((float)$n, 0, ',', '.');
+        $nf2 = fn($n) => number_format((float)$n, 2, ',', '.');
+    @endphp
+
+    <div class="max-w-9xl mx-auto px-4 py-4 sm:px-6 lg:px-8">
+        <div class="mb-4 flex items-center justify-between">
+            <button onclick="history.back()"
+                class="inline-flex items-center gap-1 rounded-md bg-gray-100 px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:bg-gray-700/30 dark:text-gray-300 dark:hover:bg-gray-600/50">
+                ← Back
+            </button>        
+            <div class="flex gap-3">
+                @if ($rcp->status === 'P')
+                <button id="submitBtn"
+                    class="inline-flex items-center gap-1 rounded-md bg-green-100 px-3 py-2 text-sm font-medium text-green-700 transition-colors hover:bg-green-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 dark:bg-green-700/30 dark:text-green-300 dark:hover:bg-green-600/50">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                        stroke="currentColor" class="h-4 w-4">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M6.633 10.25c.806 0 1.533-.446 2.031-1.08a9.041 9.041 0 0 1 2.861-2.4c.723-.384 1.35-.956 1.653-1.715a4.498 4.498 0 0 0 .322-1.672V2.75a.75.75 0 0 1 .75-.75 2.25 2.25 0 0 1 2.25 2.25c0 1.152-.26 2.243-.723 3.218-.266.558.107 1.282.725 1.282m0 0h3.126c1.026 0 1.945.694 2.054 1.715.045.422.068.85.068 1.285a11.95 11.95 0 0 1-2.649 7.521c-.388.482-.987.729-1.605.729H13.48c-.483 0-.964-.078-1.423-.23l-3.114-1.04a4.501 4.501 0 0 0-1.423-.23H5.904m10.598-9.75H14.25M5.904 18.5c.083.205.173.405.27.602.197.4-.078.898-.523.898h-.908c-.889 0-1.713-.518-1.972-1.368a12 12 0 0 1-.521-3.507c0-1.553.295-3.036.831-4.398C3.387 9.953 4.167 9.5 5 9.5h1.053c.472 0 .745.556.5.96a8.958 8.958 0 0 0-1.302 4.665c0 1.194.232 2.333.654 3.375Z" />
+                    </svg>
+                    Approve
+                </button>
+                @endif               
+            </div>    
+        </div>
+        
+
+        <div class="flex w-full flex-col gap-6 xl:flex-col">
+            <div class="flex w-full items-stretch gap-6 xl:flex-row">
+                {{-- Left card (Receipt Info) --}}
+                <div class="flex flex-1 flex-col rounded-xl bg-white dark:bg-gray-800">
+                    <header class="sticky top-0 z-10 flex items-center justify-between rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
+                        <h1 class="flex items-center gap-2 text-lg font-bold text-gray-800 dark:text-gray-100">
+                            <span class="inline-flex items-center rounded-md bg-purple-100 px-2 py-1 text-sm font-semibold text-purple-700">ID</span>
+                            {{ $rcp->receiptnbr }}
+                        </h1>
+                        <div class="flex items-center gap-3">
+                            <span class="{{ $statusClasses }} inline-flex items-center rounded-full px-4 py-1 text-sm font-semibold transition-colors duration-200">
+                                {{ $statusText }}
+                            </span>
+                            <a href="{{ url('/pdf_receipt') }}/{{ $hash }}" target="_blank">
+                                <button
+                                    class="inline-flex cursor-pointer items-center gap-2 rounded-full bg-indigo-600 px-4 py-1 text-sm font-semibold text-white transition-colors duration-200 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                                    title="Open PO PDF">
+                                    Print PDF
+                                </button>
+                            </a>
+                        </div>
+                    </header>
+
+                    <div class="flex flex-1 flex-col overflow-y-auto p-4">
+                        <div class="grid grid-cols-1 gap-x-8 gap-y-3 text-sm sm:grid-cols-2">
+                            <div class="flex items-center gap-2 p-2">
+                                <x-heroicon-o-calendar-days class="h-5 w-5 text-gray-400" />
+                                <span class="min-w-32 max-w-32 text-gray-500">Receipt Date</span>
+                                <span class="break-words font-medium text-gray-900 dark:text-gray-300">
+                                    {{ \Carbon\Carbon::parse($rcp->receiptdate)->format('d M Y') }}
+                                </span>
+                            </div>
+
+                            <div class="flex items-center gap-2 p-2">
+                                <x-heroicon-o-document-text class="h-5 w-5 text-gray-400" />
+                                <span class="min-w-32 max-w-32 text-gray-500">Type</span>
+                                <span class="break-words font-medium text-gray-900 dark:text-gray-300">{{ $rcp->receipttype }}</span>
+                            </div>
+
+                            <div class="flex items-center gap-2 p-2">
+                                <x-heroicon-o-hashtag class="h-5 w-5 text-gray-400" />
+                                <span class="min-w-32 max-w-32 text-gray-500">PO Nbr</span>
+                                <span class="break-words font-medium text-gray-900 dark:text-gray-300">
+                                    @if ($poUrl)
+                                        <a class="text-indigo-600 hover:underline dark:text-indigo-400" target="_blank" href="{{ $poUrl }}">{{ $rcp->ponbr }}</a>
+                                    @else
+                                        {{ $rcp->ponbr }}
+                                    @endif
+                                </span>
+                            </div>
+
+                            <div class="flex items-center gap-2 p-2">
+                                <x-heroicon-o-building-office class="h-5 w-5 text-gray-400" />
+                                <span class="min-w-32 max-w-32 text-gray-500">Company</span>
+                                <span class="break-words font-medium text-gray-900 dark:text-gray-300">{{ $rcp->cpny_id }}</span>
+                            </div>
+
+                            <div class="flex items-center gap-2 p-2">
+                                <x-heroicon-o-squares-2x2 class="h-5 w-5 text-gray-400" />
+                                <span class="min-w-32 max-w-32 text-gray-500">Department</span>
+                                <span class="break-words font-medium text-gray-900 dark:text-gray-300">{{ $rcp->department_id }}</span>
+                            </div>
+
+                            <div class="flex items-center gap-2 p-2">
+                                <x-heroicon-o-user class="h-5 w-5 text-gray-400" />
+                                <span class="min-w-32 max-w-32 text-gray-500">Requester</span>
+                                <span class="break-words font-medium text-gray-900 dark:text-gray-300">{{ $rcp->user_peminta }}</span>
+                            </div>
+
+                            <div class="flex items-center gap-2 p-2">
+                                <x-heroicon-o-building-storefront class="h-5 w-5 text-gray-400" />
+                                <span class="min-w-32 max-w-32 text-gray-500">Vendor</span>
+                                <span class="break-words font-medium text-gray-900 dark:text-gray-300">{{ $rcp->vendorname }}</span>
+                            </div>
+
+                            <div class="flex items-center gap-2 p-2">
+                                <x-heroicon-o-document-duplicate class="h-5 w-5 text-gray-400" />
+                                <span class="min-w-32 max-w-32 text-gray-500">CS ID</span>
+                                <span class="break-words font-medium text-gray-900 dark:text-gray-300">
+                                    @if (!empty($csUrl))
+                                        <a href="{{ $csUrl }}" target="_blank" class="inline-flex items-center gap-1 text-indigo-600 hover:underline dark:text-indigo-400">
+                                            {{ $rcp->csid }} <x-heroicon-o-arrow-up-right class="h-4 w-4" />
+                                        </a>
+                                    @else
+                                        {{ $rcp->csid }}
+                                    @endif
+                                </span>
+                            </div>
+
+                            <div class="flex items-center gap-2 p-2">
+                                <x-heroicon-o-document-text class="h-5 w-5 text-gray-400" />
+                                <span class="min-w-32 max-w-32 text-gray-500">SPPB/J/K/T</span>
+                                <span class="break-words font-medium text-gray-900 dark:text-gray-300">
+                                    @if (!empty($sppbUrl))
+                                        <a href="{{ $sppbUrl }}" target="_blank" class="inline-flex items-center gap-1 text-indigo-600 hover:underline dark:text-indigo-400">
+                                            {{ $rcp->sppbjktid }} <x-heroicon-o-arrow-up-right class="h-4 w-4" />
+                                        </a>
+                                    @else
+                                        {{ $rcp->sppbjktid }}
+                                    @endif
+                                </span>
+                            </div>
+
+                            @if (!empty($rcp->receiptnote))
+                                <div class="flex items-center gap-2 p-2 sm:col-span-2">
+                                    <x-heroicon-o-clipboard-document-list class="h-5 w-5 text-gray-400" />
+                                    <span class="min-w-32 max-w-32 text-gray-500">Note</span>
+                                    <span class="break-words font-medium text-gray-900 dark:text-gray-300">{{ $rcp->receiptnote }}</span>
+                                </div>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Right card (Tabs) --}}
+                <div class="flex flex-1 flex-col rounded-xl bg-white dark:bg-gray-800">
+                    <div x-data="{ activeTab: 'attachment' }" class="flex flex-1 flex-col">
+                        <header class="sticky top-0 z-10 flex items-center rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
+                            <nav class="flex flex-grow">
+                                <button @click="activeTab = 'attachment'"
+                                  :class="activeTab === 'attachment' ? 'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400' : 'border-b-2 border-transparent text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-gray-100'"
+                                  class="flex-1 px-4 py-2 text-center text-sm font-medium">Attachment</button>
+
+                                <button @click="activeTab = 'comments'"
+                                  :class="activeTab === 'comments' ? 'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400' : 'border-b-2 border-transparent text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-gray-100'"
+                                  class="flex-1 px-4 py-2 text-center text-sm font-medium">Comments</button>
+                            </nav>
+                        </header>
+
+                        {{-- Attachment Tab --}}
+                        <div x-show="activeTab === 'attachment'" class="flex h-full flex-1 flex-col transition-all">
+                            <div class="flex-1 overflow-auto rounded-lg">
+                                <table class="w-full text-sm">
+                                    <thead class="text-gray-600 dark:text-gray-300">
+                                        <tr class="border-b border-gray-200 dark:border-gray-700">
+                                            <th class="p-3 text-left font-semibold">Filename</th>
+                                            <th class="p-3 text-left font-semibold">Created By</th>
+                                            <th class="p-3 text-left font-semibold">Date</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="attachmentTbody">
+                                        @forelse ($attachment as $at)
+                                            @php
+                                                $year = \Carbon\Carbon::parse($at->created_at)->year;
+                                                $fileUrl = url('/attachments/' . $year . '/' . $at->attachfile);
+                                            @endphp
+                                            <tr class="border-b border-gray-100 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700">
+                                                <td class="p-3">
+                                                    <a href="{{ $fileUrl }}" target="_blank"
+                                                       class="flex items-center gap-2 font-medium text-indigo-600 hover:underline dark:text-indigo-400">
+                                                        📎 {{ $at->name }}.{{ $at->extention }}
+                                                    </a>
+                                                </td>
+                                                <td class="p-3">{{ $at->created_user }}</td>
+                                                <td class="p-3">{{ \Carbon\Carbon::parse($at->created_at)->format('d M Y') }}</td>
+                                            </tr>
+                                        @empty
+                                            <tr>
+                                                <td colspan="3" class="p-4 text-center italic text-gray-500 dark:text-gray-400">
+                                                    No attachments found.
+                                                </td>
+                                            </tr>
+                                        @endforelse
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        {{-- Comments Tab --}}
+                        <div x-show="activeTab === 'comments'" class="flex-1 transition-all">
+                            <div class="flex h-full flex-col">
+                                <div id="commentList" class="custom-scrollbar flex-1 flex-col space-y-4 overflow-y-auto p-4">
+                                    <p class="py-4 text-center italic text-gray-500">Loading comments...</p>
+                                </div>
+                                <div class="flex items-center gap-3 border-t border-gray-200 p-4 dark:border-gray-700">
+                                    <input id="commentInput" type="text" placeholder="Write a comment..."
+                                           class="flex-1 rounded-lg bg-gray-100 p-3 text-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white dark:focus:ring-indigo-400">
+                                    <button id="postCommentBtn" type="button"
+                                        class="rounded-lg bg-indigo-600 px-5 py-3 text-sm font-semibold text-white transition-all duration-200 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                                        Post 🚀
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Receipt Detail table --}}
+            <div class="flex w-full flex-col rounded-2xl bg-white dark:bg-gray-800">
+                <header class="flex items-center justify-between rounded-t-2xl border-b border-gray-200 bg-white px-6 py-4 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
+                    <h2 class="text-xl font-semibold">📦 Receipt Detail</h2>
+                </header>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm text-gray-700 dark:text-gray-200">
+                        <thead class="bg-gray-100 dark:bg-gray-700 dark:text-gray-100">
+                            <tr>
+                                <th class="px-4 py-2">No</th>
+                                <th class="px-4 py-2">Inventory ID</th>
+                                <th class="px-4 py-2">Description</th>
+                                <th class="px-4 py-2 text-right">Qty Ordered</th>
+                                <th class="px-4 py-2">UoM</th>
+                                <th class="px-4 py-2 text-right">Qty Received</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach ($rcpdetail as $i => $item)
+                                <tr class="border-t border-gray-200 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800">
+                                    <td class="px-4 py-2">{{ $i + 1 }}</td>
+                                    <td class="px-4 py-2">{{ $item->inventoryid }}</td>
+                                    <td class="px-4 py-2">{{ $item->inventory_descr }}</td>
+                                    <td class="px-4 py-2 text-right">{{ $nf2($item->qtyordered) }}</td>
+                                    <td class="px-4 py-2">{{ $item->uom }}</td>
+                                    <td class="px-4 py-2 text-right">{{ $nf2($item->qty_received) }}</td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- Overlay --}}
+    <div id="loadingSpinnerContainer" role="status" aria-live="polite" aria-label="Loading">
+        <div class="loading-card">
+            <div class="loading-spinner"></div>
+            <div class="loading-text">Processing<span class="loading-ellipsis"><span>.</span><span>.</span><span>.</span></span></div>
+        </div>
+    </div>
+
+    {{-- dayjs & toastr --}}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dayjs/1.11.10/dayjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dayjs/1.11.10/plugin/relativeTime.min.js"></script>
+    <script>dayjs.extend(dayjs_plugin_relativeTime);</script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+
+    {{-- Comments --}}
+    <script>
+        $(function () {
+            const receiptnbr = @json($rcp->receiptnbr);
+
+            function loadComments(docid) {
+                const $list = $('#commentList').html('<p class="text-gray-500 italic">Loading comments...</p>');
+                $.get(`/receipt/${docid}/comments`)
+                .done(res => {
+                    $list.empty();
+                    if (!res.comments || !res.comments.length) {
+                        $list.append('<p class="text-gray-500 italic">No comments yet.</p>');
+                        return;
+                    }
+                    res.comments.forEach(c => {
+                        const timeAgo = dayjs(c.created_at).fromNow();
+                        $list.append(`
+                            <div class="p-3 bg-gray-100 dark:bg-gray-800 rounded-lg mb-2 border border-gray-200 dark:border-gray-700">
+                                <p class="text-sm font-semibold">${c.username} <span class="text-xs text-gray-500">(${timeAgo})</span></p>
+                                <p class="text-gray-800 dark:text-gray-200">${c.message}</p>
+                            </div>`);
+                    });
+                })
+                .fail(() => {
+                    $list.html('<p class="text-red-500 italic">Failed to load comments.</p>');
+                });
+            }
+
+            function addComment(docid, message) {
+                return $.post(`/receipt/${docid}/comments`, {
+                    receiptnbr: docid,
+                    comment: message,
+                    _token: '{{ csrf_token() }}'
+                });
+            }
+
+            loadComments(receiptnbr);
+
+            $('#postCommentBtn').on('click', function() {
+                const msg = ($('#commentInput').val() || '').trim();
+                if (!msg) { toastr.warning('Please enter a comment.'); return; }
+                $(this).prop('disabled', true).text('Posting... 🚀');
+                addComment(receiptnbr, msg)
+                    .done(res => {
+                        if (res.status === 'success') {
+                            $('#commentInput').val('');
+                            loadComments(receiptnbr);
+                        } else {
+                            toastr.error(res.message || 'Failed to post comment.');
+                        }
+                    })
+                    .fail(xhr => toastr.error(xhr.responseJSON?.message || 'Failed to post comment.'))
+                    .always(() => $('#postCommentBtn').prop('disabled', false).text('Post 🚀'));
+            });
+
+            $('#commentInput').on('keypress', function(e){
+                if (e.which === 13 && !e.shiftKey) { e.preventDefault(); $('#postCommentBtn').click(); }
+            });
+        });
+    </script>
+</x-app-layout>

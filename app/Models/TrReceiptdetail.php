@@ -8,14 +8,10 @@ class TrReceiptdetail extends Model
 {
    
     protected $connection = 'pgsql';
-    protected $table = 'tr_receiptdetail';
+    protected $table = 'tr_receipt_detail';
 
     // Primary Key
     protected $primaryKey = 'id';
-
-    // Jika ada kemungkinan ID bukan auto-increment integer, bisa diatur:
-    // public $incrementing = false;
-    // protected $keyType = 'string';
 
     // Kolom yang bisa diisi (mass assignment)
     protected $fillable = [
@@ -69,12 +65,5 @@ class TrReceiptdetail extends Model
         'deleted_at',
     ];
 
-    /* 
-     * (Opsional) Jika nanti ingin relasi:
-     * Detail belongsTo Header
-     */
-    public function header()
-    {
-        return $this->belongsTo(TrReceipt::class, 'receiptnbr', 'receiptnbr');
-    }
+   
 }
