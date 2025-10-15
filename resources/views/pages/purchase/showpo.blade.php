@@ -119,6 +119,7 @@
             </div>
 
             <div class="flex gap-3">
+                @if ($po->status === 'H')
                 <button id="submitBtn"
                     class="inline-flex items-center gap-1 rounded-md bg-green-100 px-3 py-2 text-sm font-medium text-green-700 transition-colors hover:bg-green-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 dark:bg-green-700/30 dark:text-green-300 dark:hover:bg-green-600/50">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
@@ -128,7 +129,8 @@
                     </svg>
                     Submit
                 </button>
-                <button id="cancelReuseBtn"
+                @endif
+                <button id="cancelReuseBtn" 
                     class="inline-flex items-center gap-1 rounded-md bg-gray-500 px-3 py-2 text-sm font-medium text-gray-100 transition-colors hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:bg-gray-100 dark:bg-gray-700/30 dark:text-gray-300 dark:hover:bg-gray-600/50">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                         stroke="currentColor" class="size-4">
@@ -146,6 +148,7 @@
                     </svg>
                     Cancel
                 </button>
+                @if ($po->status !== 'H')
                 <button id="sendEmailBtn"
                     class="inline-flex items-center gap-1 rounded-md bg-indigo-600 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
@@ -155,6 +158,7 @@
                     </svg>
                     Send Email
                 </button>
+                @endif
             </div>
         </div>
         <div class="flex w-full flex-col gap-6 xl:flex-col">
@@ -377,6 +381,7 @@
                                 wire:ignore>
                                 <form id="infoPoForm" class="space-y-5" @submit.prevent>
                                     @csrf
+                                    <input type="hidden" name="potype" value="{{ strtoupper($po->potype ?? '') }}">
                                     @php
                                         $isPO = strtoupper($po->potype ?? '') === 'PO';
                                         $readOnlyDelivery = $po->status === 'P';
@@ -1071,118 +1076,51 @@
             function validateInfoForm() {
                 clearMarks();
                 const errors = [];
-
-                // helper to read & trim
-                const val = (id) => ($(`#${id}`).val() ?? '').toString().trim();
+                const val = (id) => ($("#" + id).val() ?? '').toString().trim();
 
                 if (isPO) {
-                    const d = val('podeliverydate');
-                    if (!d) {
-                        errors.push({
-                            id: 'podeliverydate',
-                            msg: 'Delivery Date wajib diisi.'
-                        });
-                    }
+                    // Hanya wajib untuk PO
+                    if (!val('podeliverydate')) errors.push({ id: 'podeliverydate', msg: 'Delivery Date wajib diisi.' });
                 } else {
-                    // 1) tanggal pelaksanaan
-                    if (!val('work_date_from')) errors.push({
-                        id: 'work_date_from',
-                        msg: 'Dari Tanggal wajib diisi.'
-                    });
-                    if (!val('work_date_to')) errors.push({
-                        id: 'work_date_to',
-                        msg: 'Sampai Tanggal wajib diisi.'
-                    });
+                    // Hanya wajib untuk SPK/Other
+                    if (!val('work_date_from')) errors.push({ id: 'work_date_from', msg: 'Dari Tanggal wajib diisi.' });
+                    if (!val('work_date_to'))   errors.push({ id: 'work_date_to',   msg: 'Sampai Tanggal wajib diisi.' });
 
-                    // 2) lama pekerjaan
                     const wd = val('work_days');
-                    if (!wd) errors.push({
-                        id: 'work_days',
-                        msg: 'Jumlah Hari Kerja wajib diisi.'
-                    });
-                    else if (isNaN(Number(wd)) || Number(wd) < 0)
-                        errors.push({
-                            id: 'work_days',
-                            msg: 'Jumlah Hari Kerja harus angka ≥ 0.'
-                        });
+                    if (!wd) errors.push({ id: 'work_days', msg: 'Jumlah Hari Kerja wajib diisi.' });
+                    else if (isNaN(Number(wd)) || Number(wd) < 0) errors.push({ id: 'work_days', msg: 'Jumlah Hari Kerja harus angka ≥ 0.' });
 
-                    // 3) waktu pelaksanaan
-                    if (!val('work_day_from')) errors.push({
-                        id: 'work_day_from',
-                        msg: 'Hari (Dari) wajib diisi.'
-                    });
-                    if (!val('work_day_to')) errors.push({
-                        id: 'work_day_to',
-                        msg: 'Hari (Sampai) wajib diisi.'
-                    });
-                    if (!val('work_time_from')) errors.push({
-                        id: 'work_time_from',
-                        msg: 'Pukul (Dari) wajib diisi.'
-                    });
-                    if (!val('work_time_to')) errors.push({
-                        id: 'work_time_to',
-                        msg: 'Pukul (Sampai) wajib diisi.'
-                    });
+                    if (!val('work_day_from'))  errors.push({ id: 'work_day_from',  msg: 'Hari (Dari) wajib diisi.' });
+                    if (!val('work_day_to'))    errors.push({ id: 'work_day_to',    msg: 'Hari (Sampai) wajib diisi.' });
+                    if (!val('work_time_from')) errors.push({ id: 'work_time_from', msg: 'Pukul (Dari) wajib diisi.' });
+                    if (!val('work_time_to'))   errors.push({ id: 'work_time_to',   msg: 'Pukul (Sampai) wajib diisi.' });
 
-                    // 4) manpower
                     const mp = val('manpower_total');
-                    if (!mp) errors.push({
-                        id: 'manpower_total',
-                        msg: 'Total Man Power wajib diisi.'
-                    });
-                    else if (isNaN(Number(mp)) || Number(mp) < 0)
-                        errors.push({
-                            id: 'manpower_total',
-                            msg: 'Total Man Power harus angka ≥ 0.'
-                        });
+                    if (!mp) errors.push({ id: 'manpower_total', msg: 'Total Man Power wajib diisi.' });
+                    else if (isNaN(Number(mp)) || Number(mp) < 0) errors.push({ id: 'manpower_total', msg: 'Total Man Power harus angka ≥ 0.' });
 
-                    // 5) PIC
-                    if (!val('pic_name')) errors.push({
-                        id: 'pic_name',
-                        msg: 'Nama PIC wajib diisi.'
-                    });
-                    if (!val('pic_phone')) errors.push({
-                        id: 'pic_phone',
-                        msg: 'Nomor HP PIC wajib diisi.'
-                    });
-
-                    // 6) pembayaran
-                    if (!val('payment_method')) errors.push({
-                        id: 'payment_method',
-                        msg: 'Cara Pembayaran wajib diisi.'
-                    });
-
-                    // 7) garansi
-                    if (!val('warranty')) errors.push({
-                        id: 'warranty',
-                        msg: 'Garansi Pekerjaan wajib diisi.'
-                    });
+                    if (!val('pic_name'))       errors.push({ id: 'pic_name',       msg: 'Nama PIC wajib diisi.' });
+                    if (!val('pic_phone'))      errors.push({ id: 'pic_phone',      msg: 'Nomor HP PIC wajib diisi.' });
+                    if (!val('payment_method')) errors.push({ id: 'payment_method', msg: 'Cara Pembayaran wajib diisi.' });
+                    if (!val('warranty'))       errors.push({ id: 'warranty',       msg: 'Garansi Pekerjaan wajib diisi.' });
                 }
 
                 if (errors.length) {
-                    // highlight yg invalid dan fokus ke pertama
-                    errors.forEach(e => markInvalid($(`#${e.id}`)));
+                    errors.forEach(e => markInvalid($('#' + e.id)));
                     const first = errors[0];
-                    const $first = $(`#${first.id}`);
-                    $first.focus()[0]?.scrollIntoView({
-                        behavior: 'smooth',
-                        block: 'center'
-                    });
+                    const $first = $('#' + first.id);
+                    $first.focus()[0]?.scrollIntoView({ behavior: 'smooth', block: 'center' });
                     toastr.error(first.msg);
-                    return {
-                        ok: false,
-                        errors
-                    };
+                    return { ok: false, errors };
                 }
-                return {
-                    ok: true
-                };
+                return { ok: true };
             }
 
             // ===== SUBMIT PO with validation =====
             $('#submitBtn').on('click', function(e) {
                 e.preventDefault();
-
+                
+                const statusNow = "{{ $po->status }}";
                 if (statusNow !== 'H') {
                     toastr.warning('Dokumen hanya bisa di-Submit jika status = HOLD (H).');
                     return;
