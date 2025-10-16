@@ -2,7 +2,6 @@
     @php
         $currentPage = Route::currentRouteName() == 'changestos' ? 'HR' : '';
     @endphp
-<<<<<<< Updated upstream
 
     <style>
         /* Active / Selected state */
@@ -44,23 +43,14 @@
             /* green-700 */
         }
     </style>
-=======
->>>>>>> Stashed changes
     <div class="max-w-9xl mx-auto w-full px-4 py-4 sm:px-6 lg:px-8">
         <div class="grid-col-1 grid gap-6 xl:grid-cols-5 xl:grid-rows-1">
             {{-- All Status --}}
             <button>
-<<<<<<< Updated upstream
                 <a href="#" class="status-filter group block" data-status="">
                     <div
                         class="status-card flex items-center gap-4 rounded-lg border border-orange-700 bg-orange-200/20 p-3 text-orange-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-orange-100 hover:shadow-lg active:scale-95">
                         <span class="text-xl group-hover:animate-pulse">📄</span>
-=======
-                <a href="#" class="status-filter" data-status="">
-                    <div
-                        class="flex items-center gap-4 rounded-lg border border-orange-700 bg-orange-200/20 p-3 text-orange-600">
-                        <span class="text-xl">📄</span>
->>>>>>> Stashed changes
                         <div class="flex flex-grow items-center justify-between">
                             <p class="text-lg font-medium">All</p>
                             <p class="text-right text-xl font-extrabold">{{ $all }}</p>
@@ -71,17 +61,10 @@
 
             {{-- On Progress Status --}}
             <button>
-<<<<<<< Updated upstream
                 <a href="#" class="status-filter group block" data-status="P">
                     <div
                         class="status-card flex items-center gap-4 rounded-lg border border-blue-700 bg-blue-200/20 p-3 text-blue-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-blue-100 hover:shadow-lg active:scale-95">
                         <span class="text-xl group-hover:animate-pulse">⏳</span>
-=======
-                <a href="#" class="status-filter" data-status="P">
-                    <div
-                        class="flex items-center gap-4 rounded-lg border border-blue-700 bg-blue-200/20 p-3 text-blue-600">
-                        <span class="text-xl">⏳</span>
->>>>>>> Stashed changes
                         <div class="flex flex-grow items-center justify-between">
                             <p class="text-lg font-medium">On Progress</p>
                             <p class="text-right text-xl font-extrabold">{{ $onProgress }}</p>
@@ -92,17 +75,10 @@
 
             {{-- Reject Status --}}
             <button>
-<<<<<<< Updated upstream
                 <a href="#" class="status-filter group block" data-status="R">
                     <div
                         class="status-card flex items-center gap-4 rounded-lg border border-red-700 bg-red-200/20 p-3 text-red-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-red-100 hover:shadow-lg active:scale-95">
                         <span class="text-xl group-hover:animate-pulse">⛔️</span>
-=======
-                <a href="#" class="status-filter" data-status="R">
-                    <div
-                        class="flex items-center gap-4 rounded-lg border border-red-700 bg-red-200/20 p-3 text-red-600">
-                        <span class="text-xl">⛔️</span>
->>>>>>> Stashed changes
                         <div class="flex flex-grow items-center justify-between">
                             <p class="text-lg font-medium">Reject</p>
                             <p class="text-right text-xl font-extrabold">{{ $reject }}</p>
@@ -113,21 +89,12 @@
 
             {{-- Revise / Draft Status --}}
             <button>
-<<<<<<< Updated upstream
                 <a href="#" class="status-filter group block" data-status="D">
                     <div
                         class="status-card flex items-center gap-4 rounded-lg border border-gray-700 bg-gray-200/20 p-3 text-gray-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-gray-100 hover:shadow-lg active:scale-95 dark:border-white dark:text-white dark:hover:bg-gray-700">
                         <span class="text-xl group-hover:animate-pulse">✏️</span>
                         <div class="flex flex-grow items-center justify-between">
                             <p class="text-lg font-medium">Revise / Draft</p>
-=======
-                <a href="#" class="status-filter" data-status="D">
-                    <div
-                        class="flex items-center gap-4 rounded-lg border border-gray-700 bg-gray-200/20 p-3 text-gray-600 dark:border-white dark:text-white">
-                        <span class="text-xl">✏️</span>
-                        <div class="flex flex-grow items-center justify-between">
-                            <p class="text-lg font-medium">Revise</p>
->>>>>>> Stashed changes
                             <p class="text-right text-xl font-extrabold">{{ $revise }}</p>
                         </div>
                     </div>
@@ -136,17 +103,10 @@
 
             {{-- Completed Status --}}
             <button>
-<<<<<<< Updated upstream
                 <a href="#" class="status-filter group block" data-status="C">
                     <div
                         class="status-card flex items-center gap-4 rounded-lg border border-green-700 bg-green-200/20 p-3 text-green-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-green-100 hover:shadow-lg active:scale-95">
                         <span class="text-xl group-hover:animate-pulse">✅</span>
-=======
-                <a href="#" class="status-filter" data-status="C">
-                    <div
-                        class="flex items-center gap-4 rounded-lg border border-green-700 bg-green-200/20 p-3 text-green-600">
-                        <span class="text-xl">✅</span>
->>>>>>> Stashed changes
                         <div class="flex flex-grow items-center justify-between">
                             <p class="text-lg font-medium">Completed</p>
                             <p class="text-right text-xl font-extrabold">{{ $completed }}</p>
@@ -199,7 +159,6 @@
                 }
 
                 #changestosTable_filter input {
-<<<<<<< Updated upstream
                     width: auto;
                     padding: 5px;
                     min-width: 80px;
@@ -207,9 +166,6 @@
                     border-radius: 0.5rem;
                     border: 1px solid #d1d5db;
                     background-color: #f9fafb;
-=======
-                    width: 200px;
->>>>>>> Stashed changes
                 }
 
                 #changestosTable_wrapper {
@@ -238,13 +194,10 @@
                     width: auto;
                     padding: 5px;
                     min-width: 80px;
-<<<<<<< Updated upstream
                     padding: 0.25rem 0.5rem;
                     border-radius: 0.5rem;
                     border: 1px solid #d1d5db;
                     background-color: #f9fafb;
-=======
->>>>>>> Stashed changes
                 }
 
                 #changestosTable_length select option {
@@ -278,11 +231,7 @@
                 }
 
                 #changestosTable tbody tr:hover td {
-<<<<<<< Updated upstream
                     /* color: black; */
-=======
-                    color: black;
->>>>>>> Stashed changes
                 }
 
                 #changestosTable th:nth-child(1),
@@ -392,11 +341,7 @@
                     {{-- Changed text-3xl to text-xl --}}
                     <h1 class="text-xl font-extrabold text-gray-700 dark:text-white">Request Additional</h1>
                     <a href="{{ url('/createchangestos') }}"
-<<<<<<< Updated upstream
                         class="inline-flex items-center rounded-xl bg-blue-600 px-6 py-2 text-base font-semibold text-white transition-colors duration-200 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
-=======
-                        class="inline-flex items-center rounded-xl bg-indigo-600 px-6 py-2 text-base font-semibold text-white transition-colors duration-200 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
->>>>>>> Stashed changes
                         <i class="fas fa-plus pr-2"></i>Create
                     </a>
                 </div>
@@ -429,11 +374,7 @@
                                     class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
                                     Sub Gradename
                                 </th>
-<<<<<<< Updated upstream
                                 <th scope="col"
-=======
-                                 <th scope="col"
->>>>>>> Stashed changes
                                     class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
                                     Note
                                 </th>
@@ -484,12 +425,11 @@
                             }
                         },
                         columns: [{
-<<<<<<< Updated upstream
                                 data: 'hid',
                                 render: function(data, type, row) {
                                     let url = `/showchangestos/${row.hid}`;
                                     let buttonClass =
-                                        'px-6 py-2 bg-gray-500 text-white rounded hover:bg-gray-700';
+                                        'inline-flex items-center justify-center w-[100px] rounded bg-gray-500 py-1.5 text-white hover:bg-gray-700'
                                     let buttonText = row
                                         .changerequest_id; // Menggunakan row.changerequest_id untuk teks tombol
 
@@ -498,25 +438,6 @@
                                         url = `/editchangestos/${row.hid}`;
                                         buttonClass =
                                             'px-4 py-2 bg-amber-500 text-white rounded hover:bg-amber-700';
-=======
-                                data: 'id',
-                                render: function(data, type, row) {
-                                    let url = `/showchangestos/${row.id}`;
-                                    let buttonClass =
-                                        'px-4 py-2.5 bg-indigo-500 text-white rounded hover:bg-indigo-700';
-                                    let buttonText = row.changerequest_id; // Menggunakan row.changerequest_id untuk teks tombol
-
-                                    // Cek apakah user yang login sama dengan created_user dan status = D (Revise/Draft)
-                                    if (row.status === 'D' && row.created_user === currentUser) {
-                                        url = `/editchangestos/${row.id}`;
-                                        buttonClass =
-                                            'px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-700';
->>>>>>> Stashed changes
-                                    }
-
-                                    return `<a href="${url}" class="px-3 py-1 ${buttonClass} text-white rounded">${buttonText}</a>`;
-                                }
-                            },
                             {
                                 data: 'changerequest_date',
                                 className: 'no-pointer'
@@ -609,8 +530,6 @@
                         console.log("Loading changestosTable with URL:", newUrl);
                         changestosTable.ajax.url(newUrl).load();
                     });
-<<<<<<< Updated upstream
-
                     document.querySelectorAll('.status-filter').forEach(btn => {
                         btn.addEventListener('click', function(e) {
                             e.preventDefault();
@@ -619,8 +538,6 @@
                             this.classList.add('active');
                         });
                     });
-=======
->>>>>>> Stashed changes
                 });
             </script>
         </div>

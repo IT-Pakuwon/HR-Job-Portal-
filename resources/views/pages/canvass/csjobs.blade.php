@@ -449,6 +449,80 @@
                     </div>
                 </div>
 
+                {{-- === PANE: CS Jobs (with internal tab for Entry CS) === --}}
+                <div id="pane-mine">
+                    <!-- Internal Tab Buttons -->
+                    <div class="mb-4 flex gap-3">
+                        <button id="subtab-mine"
+                            class="subtab-btn active rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700">
+                            CS Jobs
+                        </button>
+                        <button id="subtab-entrycs"
+                            class="subtab-btn rounded-md bg-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-300">
+                            Entry CS (My CS)
+                        </button>
+                    </div>
+
+                    <!-- === Sub-pane: CS Jobs === -->
+                    <div id="subpane-mine">
+                        <h2 class="mb-2 text-xl font-semibold">CS Jobs</h2>
+                        <table id="tblMine" class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                            <thead class="bg-gray-50 dark:bg-gray-700">
+                                <tr>
+                                    <th class="w-32 px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">
+                                        Action</th>
+                                    <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">DocID
+                                    </th>
+                                    <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">
+                                        Assign Date</th>
+                                    <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">
+                                        Date</th>
+                                    <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">
+                                        Company</th>
+                                    <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">
+                                        Name</th>
+                                    <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">
+                                        Assign Purchasing</th>
+                                    <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">
+                                        Assign By</th>
+                                    <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">
+                                        Department</th>
+                                    <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">
+                                        Description</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-800">
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- === Sub-pane: Entry CS === -->
+                    <div id="subpane-entrycs" class="hidden">
+                        <h2 class="mb-2 text-xl font-semibold">Entry CS (My CS)</h2>
+                        <table id="tblEntryCS" class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                            <thead class="bg-gray-50 dark:bg-gray-700">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">CSID
+                                    </th>
+                                    <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">
+                                        Date</th>
+                                    <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">
+                                        Company</th>
+                                    <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">
+                                        Department</th>
+                                    <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">User
+                                        Peminta</th>
+                                    <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Note
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-800">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+
                 {{-- === PANE: My Revision === --}}
                 <div id="pane-revision" class="hidden">
                     <h2 class="mb-2 text-xl font-semibold">My Revision</h2>
@@ -463,7 +537,8 @@
                                     Date</th>
                                 <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">Date
                                 </th>
-                                <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">Company
+                                <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">
+                                    Company
                                 </th>
                                 <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">Name
                                 </th>
@@ -493,7 +568,8 @@
                                     Date</th>
                                 <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">Date
                                 </th>
-                                <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">Company
+                                <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">
+                                    Company
                                 </th>
                                 <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">Name
                                 </th>
@@ -616,7 +692,7 @@
                     orderable: false,
                     searchable: false,
                     className: 'text-left',
-                    render: (_d, _t, row) => `<a href="${buildCreateUrl(row)}" class="inline-flex items-center rounded bg-indigo-600 px-6 py-2 text-base font-semibold text-white hover:bg-indigo-700">
+                    render: (_d, _t, row) => `<a href="${buildCreateUrl(row)}" class="inline-flex items-center rounded bg-blue-600 px-6 py-2 text-base font-semibold text-white hover:bg-blue-700">
                     <i class="fas fa-plus"></i></a>`
                 };
                 return [createCol, ...colSetWithoutCreate()];

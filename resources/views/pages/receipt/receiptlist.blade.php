@@ -353,7 +353,8 @@
                     }
 
                     function columnsFor(sc) {
-                        let buttonClass = 'px-6 py-2 bg-gray-500 text-white rounded hover:bg-gray-700';
+                        let buttonClass =
+                            'inline-flex items-center justify-center w-[100px] rounded bg-gray-500 py-1.5 text-white hover:bg-gray-700';
                         if (sc === 'receiptjobs') {
                             return [{
                                     data: null,
@@ -474,7 +475,7 @@
 
                     function renderPlusCreate(row) {
                         const url = `{{ route('receipt.create') }}` + `?ponbr=${encodeURIComponent(row.ponbr_eid ?? '')}`;
-                        return `<a href="${url}" class="inline-flex items-center justify-center rounded bg-indigo-600 px-2 py-1 text-white text-sm font-bold hover:bg-indigo-700">+</a>`;
+                        return `<a href="${url}" class="inline-flex items-center justify-center rounded bg-blue-600 px-2 py-1 text-white text-sm font-bold hover:bg-blue-700">+</a>`;
                     }
 
                     function renderPoLink(row) {
