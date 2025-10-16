@@ -46,22 +46,11 @@
             <div class="flex flex-col gap-6 sm:w-1/2 md:w-full">
                 <div class="rounded-xl bg-white duration-300 dark:bg-gray-800">
                     <header
-<<<<<<< Updated upstream
-                        class="sticky top-0 z-10 flex items-center justify-between rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
-                        {{-- Rounded-t-xl, stronger border, and darker background for header --}}
-                        <h1 class="flex items-center gap-2 text-lg font-bold text-gray-800 dark:text-gray-100">
-                            {{-- Larger, bolder title --}}
-                            <span
-                                class="inline-flex items-center rounded-md bg-purple-100 px-2 py-1 text-sm font-semibold text-purple-700">
-                                ID
-                            </span> {{-- Iconic color for the ID icon --}}
-=======
                         class="flex items-center justify-between rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
                         {{-- Rounded-t-xl, stronger border, and darker background for header --}}
                         <h1 class="flex items-center gap-2 text-2xl font-bold text-gray-800 dark:text-gray-100">
                             {{-- Larger, bolder title --}}
                             <span class="text-indigo-500">🆔</span> {{-- Iconic color for the ID icon --}}
->>>>>>> Stashed changes
                             {{ $changesto->changerequest_id }}
                         </h1>
                         @php
@@ -119,19 +108,11 @@
                                     [
                                         'label' => 'Subgrade Name',
                                         'value' => $changesto->subgrade_name,
-<<<<<<< Updated upstream
                                     ],
-=======
-                                    ],                                                                 
->>>>>>> Stashed changes
                                     [
                                         'label' => 'Created By',
                                         'value' => $changesto->user,
                                     ],
-<<<<<<< Updated upstream
-=======
-                                                                
->>>>>>> Stashed changes
                                 ];
                             @endphp
                             @foreach ($jobDetails as $detail)
@@ -146,11 +127,7 @@
                                     </div>
                                 </div>
                             @endforeach
-<<<<<<< Updated upstream
                         </div>
-=======
-                        </div>  
->>>>>>> Stashed changes
 
                         <div
                             class="rounded-xl border border-gray-200 bg-gray-50 p-6 dark:border-gray-700 dark:bg-gray-800">
@@ -165,11 +142,7 @@
                     </div>
                 </div>
             </div>
-<<<<<<< Updated upstream
             <div class="flex flex-col gap-4 sm:w-1/2 md:w-full">
-=======
-            <div class="flex flex-col gap-4 sm:w-1/2 md:w-full">                
->>>>>>> Stashed changes
                 <div x-data="{ activeTab: 'approval' }" class="rounded-xl bg-white duration-300 dark:bg-gray-800">
                     <header
                         class="flex items-center rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
@@ -326,11 +299,7 @@
                                         class="flex-1 rounded-lg border border-transparent bg-gray-100 p-3 text-gray-800 transition-all duration-200 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white dark:focus:ring-indigo-400">
                                     <button id="postCommentBtn"
                                         @click="if(newComment.trim()) { comments.push({ text: newComment, user: currentUser }); newComment = ''; }"
-<<<<<<< Updated upstream
-                                        class="hover: rounded-lg bg-indigo-600 px-5 py-3 text-sm font-semibold text-white transition-all duration-200 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 active:scale-95 dark:focus:ring-offset-gray-800">
-=======
-                                        class="rounded-lg bg-indigo-600 px-5 py-3 text-sm font-semibold text-white shadow-md transition-all duration-200 hover:bg-indigo-700 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 active:scale-95 dark:focus:ring-offset-gray-800">
->>>>>>> Stashed changes
+                                        class="hover: rounded-lg bg-indigo-600 px-5 py-3 text-sm font-semibold text-white shadow-md transition-all duration-200 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 active:scale-95 dark:focus:ring-offset-gray-800">
                                         Post 🚀
                                     </button>
                                 </div>

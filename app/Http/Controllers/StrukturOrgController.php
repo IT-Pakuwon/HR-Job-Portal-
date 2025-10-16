@@ -37,7 +37,6 @@ use App\Models\StoSubGrading;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
-use Vinkla\Hashids\Facades\Hashids;
 
 
 class StrukturOrgController extends Controller
@@ -69,22 +68,10 @@ class StrukturOrgController extends Controller
     
     public function json(Request $request)
     {
-        // ---- Status filter ----
+        // DataTables server-side protocol
         $status = $request->has('status') ? $request->query('status') : 'P';
+        $query = TrSto::query();
 
-<<<<<<< Updated upstream
-        // Kolom yang akan dikirim ke front-end (tanpa 'id' mentah)
-        $select = [
-            'id',                // dipakai internal saja untuk di-encode -> hid
-            'sto_id',
-            'sto_date',
-            'cpnyid',
-            'departementid',
-            'user',
-            'created_user',
-            'status',
-        ];
-=======
         // Filter by cpnyid and departementid if present     
         $user = request()->user();
         // if (!isset($user->role) || $user->role !== 'admin') {
@@ -97,74 +84,50 @@ class StrukturOrgController extends Controller
         //         $query->whereIn('departementid', (array)$departementids);
         //     }
         // }
->>>>>>> Stashed changes
 
-        $base = TrSto::query()->select($select);
-
-        // Status 'D' = gabungan D/H (Revise/Draft)
+        // If status is 'D' (Revise) or 'H' (Draft), treat both as the same filter
         if (!empty($status)) {
             if ($status === 'D') {
-                $base->whereIn('status', ['D', 'H']);
+                $query->whereIn('status', ['D', 'H']);
             } else {
-                $base->where('status', $status);
+                $query->where('status', $status);
             }
         }
 
-        // recordsTotal = jumlah setelah constraint dasar (mis. status), sebelum search
-        $recordsTotal = (clone $base)->count();
-
-        // ---- Search ----
+        // Search
         $search = $request->input('search.value');
         if ($search) {
-            $base->where(function ($q) use ($search) {
-                $q->where('sto_id', 'like', "%{$search}%")
-                ->orWhere('cpnyid', 'like', "%{$search}%")
-                ->orWhere('departementid', 'like', "%{$search}%")
-                ->orWhere('user', 'like', "%{$search}%")
-                ->orWhere('created_user', 'like', "%{$search}%")
-                ->orWhere('status', 'like', "%{$search}%")
-                ->orWhere('sto_date', 'like', "%{$search}%");
-                // ⚠️ JANGAN cari pakai 'id' mentah, karena kita sembunyikan
+            $query->where(function($q) use ($search) {
+                $q->where('sto_id', 'like', "%$search%")
+                  ->orWhere('cpnyid', 'like', "%$search%")
+                  ->orWhere('departementid', 'like', "%$search%")
+                  ->orWhere('user', 'like', "%$search%")
+                  ->orWhere('status', 'like', "%$search%")
+                  ->orWhere('created_user', 'like', "%$search%")
+                  ->orWhere('sto_date', 'like', "%$search%")
+                  ->orWhere('id', 'like', "%$search%")
+                ;
             });
         }
 
-        // recordsFiltered = jumlah SETELAH search
-        $recordsFiltered = (clone $base)->count();
-
-        // ---- Sorting ----
-        // Sesuaikan urutan ini dengan kolom yang kamu render di DataTables front-end.
-        // Contoh: [0]=DocID(button) -> sort by sto_id, [1]=sto_date, [2]=cpnyid, dst.
-        $columns = ['sto_id', 'sto_date', 'cpnyid', 'departementid', 'user', 'status'];
-        $orderColumnIndex = (int) $request->input('order.0.column', 0);
+        // Sorting
+        $orderColumnIndex = $request->input('order.0.column');
         $orderDir = $request->input('order.0.dir', 'desc');
-        $orderColumn = $columns[$orderColumnIndex] ?? 'sto_id';
-        $base->orderBy($orderColumn, $orderDir);
+        $columns = ['id', 'sto_date', 'cpnyid', 'departementid', 'user', 'status'];
+        $orderColumn = $columns[$orderColumnIndex ?? 0] ?? 'id';
+        $query->orderBy($orderColumn, $orderDir);
 
-        // ---- Pagination ----
-        $start = (int) $request->input('start', 0);
-        $length = (int) $request->input('length', 10);
-
-        $rows = $base->skip($start)->take($length)->get();
-
-        // ---- Mapping: tambah 'hid', sembunyikan 'id' ----
-        $data = $rows->map(function ($r) {
-            return [
-                'hid'           => Hashids::encode($r->id),
-                'sto_id'        => $r->sto_id,
-                'sto_date'      => optional($r->sto_date)->format('Y-m-d') ?? $r->sto_date,
-                'cpnyid'        => $r->cpnyid,
-                'departementid' => $r->departementid,
-                'user'          => $r->user,
-                'created_user'  => $r->created_user,
-                'status'        => $r->status,
-            ];
-        });
+        // Pagination
+        $start = intval($request->input('start', 0));
+        $length = intval($request->input('length', 10));
+        $total = $query->count();
+        $data = $query->skip($start)->take($length)->get();
 
         return response()->json([
-            'draw'            => (int) $request->input('draw', 1),
-            'recordsTotal'    => $recordsTotal,
-            'recordsFiltered' => $recordsFiltered,
-            'data'            => $data,
+            'draw' => intval($request->input('draw', 1)),
+            'recordsTotal' => $total,
+            'recordsFiltered' => $total,
+            'data' => $data,
         ]);
     }
 
@@ -382,15 +345,8 @@ class StrukturOrgController extends Controller
     }
 
     
-<<<<<<< Updated upstream
-    public function editSto(Request $request,$hash)
-=======
     public function editSto(Request $request,$id)
->>>>>>> Stashed changes
     {
-        $id = Hashids::decode($hash)[0] ?? null;
-        abort_if(!$id, 404);
-
         $user = request()->user();
         $usercpny = Usercpny::where('username', '=', $user->username)
             ->get();
@@ -598,11 +554,8 @@ class StrukturOrgController extends Controller
     }
  
 
-    public function showSto($hash)
+    public function showSto($id)
     {        
-        $id = Hashids::decode($hash)[0] ?? null;
-        abort_if(!$id, 404);
-
         $user = Auth::user();       
 
         if (!$user) {
@@ -1252,12 +1205,8 @@ class StrukturOrgController extends Controller
                     'employee_name' => $emp->employee_name,
                     'employee_company' => $emp->employee_company,
                     'employee_level' => $subgradeName, // Gantikan dengan subgrade_name                   
-<<<<<<< Updated upstream
                     // 'image' => $emp->image ? asset('avatar/' . ltrim($emp->image, '/')) : 'https://cdn-icons-png.flaticon.com/512/149/149071.png',
                     'image' => $emp->image ? asset($emp->image) : 'https://cdn-icons-png.flaticon.com/512/149/149071.png',
-=======
-                    'image' => $emp->image ? asset('avatar/' . ltrim($emp->image, '/')) : 'https://cdn-icons-png.flaticon.com/512/149/149071.png',
->>>>>>> Stashed changes
                 ];
             });
 
@@ -1506,12 +1455,8 @@ class StrukturOrgController extends Controller
                     'name' => $m->employee_name,
                     'company' => $m->employee_company,
                     // 'position' => $m->employee_level,
-<<<<<<< Updated upstream
                     // 'image' => $m->image ? asset('avatar/' . ltrim($m->image, '/')) : 'https://cdn-icons-png.flaticon.com/512/149/149071.png',
                     'image' => $m->image ? asset($m->image) : 'https://cdn-icons-png.flaticon.com/512/149/149071.png',
-=======
-                    'image' => $m->image ? asset('avatar/' . ltrim($m->image, '/')) : 'https://cdn-icons-png.flaticon.com/512/149/149071.png',
->>>>>>> Stashed changes
                 ];
             });
 
@@ -1595,12 +1540,8 @@ class StrukturOrgController extends Controller
                     'name' => $m->employee_name,
                     'company' => $m->employee_company,
                     // 'position' => $m->employee_level,                   
-<<<<<<< Updated upstream
                     // 'image' => $m->image ? asset('avatar/' . ltrim($m->image, '/')) : 'https://cdn-icons-png.flaticon.com/512/149/149071.png',
                     'image' => $m->image ? asset($m->image) : 'https://cdn-icons-png.flaticon.com/512/149/149071.png',
-=======
-                    'image' => $m->image ? asset('avatar/' . ltrim($m->image, '/')) : 'https://cdn-icons-png.flaticon.com/512/149/149071.png',
->>>>>>> Stashed changes
 
                 ];
             });

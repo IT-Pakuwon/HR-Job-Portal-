@@ -99,8 +99,6 @@
                                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Job
                                             Type</label>
                                         <select name="job_type" id="job_type"
-<<<<<<< Updated upstream
-=======
                                             class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                             required>
                                             <option value="" disabled>Select Job Type</option>
@@ -109,26 +107,6 @@
                                         </select>
                                     </div>
                                     <div class="flex flex-col gap-2">
-                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Job
-                                            Title</label>
-                                        <select name="job_title" id="job_title"
->>>>>>> Stashed changes
-                                            class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
-                                            required>
-                                            <option value="" disabled>Select Job Type</option>
-                                            <option value="New">New</option>
-                                            <option value="Replacement">Replacement</option>
-                                        </select>
-                                    </div>
-                                    <div class="flex flex-col gap-2">
-                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Reason
-                                            for
-                                            Vacancy</label>
-                                        <textarea name="reason_vacancy" id="reason_vacancy"
-                                            class="h-11.5 w-full overflow-hidden rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
-                                            required></textarea>
-                                    </div>
-                                    <div class="flex h-10 flex-col gap-2">
                                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Job
                                             Title</label>
                                         {{-- <select name="job_title" id="job_title"
@@ -150,8 +128,6 @@
                                         <select
                                             class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                             name="subgrade_id" id="subgrade_id" required>
-                                            <option value="" selected disabled class="text-gray-400">Select
-                                            </option>
                                             @foreach ($subgradings as $sg)
                                                 <option value="{{ $sg->subgrade_id }}">
                                                     {{ $sg->subgrade_id }}-{{ $sg->subgrade_name }}</option>
@@ -168,26 +144,9 @@
                                     <div class="flex flex-col gap-2">
                                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">State
                                             Position</label>
-<<<<<<< Updated upstream
-                                        {{-- <input type="text"
-                                            class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"> --}}
-                                        <select
-                                            class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
-                                            name="state_position" id="state_position" required>
-                                            <option value="" selected disabled class="text-gray-400">Select
-                                            </option>
-                                            @foreach ($subgradings as $sg)
-                                                <option value="{{ $sg->subgrade_id }}">
-                                                    {{ $sg->subgrade_id }} - {{ $sg->subgrade_name }}
-                                                </option>
-                                            @endforeach
-                                        </select>
-                                    </div>
-
-=======
                                         <input type="text" name="state_position" id="state_position"
                                             class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
-                                    </div>                                   
+                                    </div>
                                     <div class="flex flex-col gap-2">
                                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Reason
                                             for
@@ -196,7 +155,6 @@
                                             class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                             required></textarea>
                                     </div>
->>>>>>> Stashed changes
                                 </div>
 
                                 <div
@@ -607,13 +565,8 @@
             $('#addAttachment').click(function() {
                 $('#attachmentsContainer').append(`
             <div class="attachment-row flex items-center gap-2">
-<<<<<<< Updated upstream
                 <input type="file" name="attachments[]" class="mt-2 flex-grow rounded-md border border-gray-200 bg-white px-4 py-2 text-sm text-gray-700 file:mr-4 file:rounded-full file:border-0 file:bg-indigo-100 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-indigo-700 hover:file:bg-indigo-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:file:bg-indigo-700 dark:file:text-white dark:hover:file:bg-indigo-600">
                     <button type="button" class="removeAttachment rounded border border-red-600 bg-red-200/30 p-3 text-red-600 transition hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">🗑️</button>
-=======
-                <input type="file" name="attachments[]" class="flex-grow rounded-md border border-gray-200 bg-white px-4 py-2 text-sm text-gray-700 file:mr-4 file:rounded-full file:border-0 file:bg-indigo-100 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-indigo-700 hover:file:bg-indigo-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:file:bg-indigo-700 dark:file:text-white dark:hover:file:bg-indigo-600">
-                    <button type="button" class="removeAttachment bg-red-200/30 mt-4 text-red-600 p-3 rounded hidden border border-red-600 hover:text-white hover:bg-red-600 transition">🗑️</button>
->>>>>>> Stashed changes
             </div>
         `);
                 toggleDeleteButton();
@@ -752,11 +705,7 @@
             });
         });
     </script>
-<<<<<<< Updated upstream
 
-=======
-   
->>>>>>> Stashed changes
 
     <script>
         $(document).ready(function() {
@@ -829,42 +778,7 @@
     </script>
     <script>
         $(document).ready(function() {
-<<<<<<< Updated upstream
 
-=======
-            // $('select[name="departementid"]').on('change', function() {
-            //     let deptId = $(this).val();
-            //     let $jobTitle = $('#job_title');
-            //     $jobTitle.empty().append('<option value="">Loading...</option>');
-
-            //     if (deptId) {
-            //         $.ajax({
-            //             url: `/api/vacant-employees/${deptId}`,
-            //             type: 'GET',
-            //             dataType: 'json',
-            //             success: function(data) {
-            //                 $jobTitle.empty().append(
-            //                     '<option value="">-- Select Vacant Position --</option>');
-            //                 if (data.length > 0) {
-            //                     $.each(data, function(key, emp) {
-            //                         $jobTitle.append(
-            //                             `<option value="${emp.departement_id}" data-title-level="${emp.subgrade_name}" data-parent-id="${emp.parent_id}">${emp.departement_name}-${emp.subgrade_name}</option>`
-            //                         );
-            //                     });
-            //                 } else {
-            //                     $jobTitle.append('<option value="">No vacant found</option>');
-            //                 }
-            //             },
-            //             error: function() {
-            //                 $jobTitle.empty().append(
-            //                     '<option value="">Error loading data</option>');
-            //             }
-            //         });
-            //     } else {
-            //         $jobTitle.empty().append('<option value="">-- Select Vacant Position --</option>');
-            //     }
-            // });
->>>>>>> Stashed changes
 
             function loadJobTitles() {
                 let deptId = $('select[name="departementid"]').val();
@@ -874,32 +788,21 @@
                 $jobTitle.empty().append('<option value="">Loading...</option>');
 
                 if (!deptId || !jobType) {
-<<<<<<< Updated upstream
                     $jobTitle.html('<option value="">Select</option>');
-=======
-                    $jobTitle.html('<option value="">-- Select Vacant Position --</option>');
->>>>>>> Stashed changes
                     return;
                 }
 
                 let url =
-<<<<<<< Updated upstream
                     jobType === 'New' ?
                     `/api/vacant-employees/${deptId}` // Untuk VACANT (default)
                     :
                     `/api/replacement-employees/${deptId}`; // Untuk pengganti (non-VACANT)
-=======
-                    jobType === 'New'
-                        ? `/api/vacant-employees/${deptId}`         // Untuk VACANT (default)
-                        : `/api/replacement-employees/${deptId}`;   // Untuk pengganti (non-VACANT)
->>>>>>> Stashed changes
 
                 $.ajax({
                     url: url,
                     type: 'GET',
                     dataType: 'json',
                     success: function(data) {
-<<<<<<< Updated upstream
                         $jobTitle.empty().append(
                             '<option value="">Select</option>');
 
@@ -912,16 +815,6 @@
                                             data-title-level="${emp.subgrade_name}" 
                                             data-parent-id="${emp.parent_id}"        
                                             data-subgrade-id="${subgradeId}">                                    
-=======
-                        $jobTitle.empty().append('<option value="">-- Select Vacant Position --</option>');
-
-                        if (data.length > 0) {
-                            $.each(data, function(key, emp) {
-                                $jobTitle.append(`
-                                    <option value="${emp.departement_id}" 
-                                            data-title-level="${emp.subgrade_name}" 
-                                            data-parent-id="${emp.parent_id}">
->>>>>>> Stashed changes
                                         ${emp.departement_name}-${emp.subgrade_name}
                                     </option>`);
                             });
@@ -958,11 +851,7 @@
                         url: `/api/job-parent-info/${parentId}/${selected.val()}/${deptId}`,
                         type: 'GET',
                         dataType: 'json',
-<<<<<<< Updated upstream
                         success: function(data) {
-=======
-                        success: function(data) {                       
->>>>>>> Stashed changes
                             // Isi experience dan education
                             $('#experience_start').val(data.experience_min || '').prop(
                                 'readonly', true);

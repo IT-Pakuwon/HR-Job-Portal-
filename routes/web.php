@@ -49,7 +49,6 @@ use App\Http\Controllers\AssignListController;
 use App\Http\Controllers\CsJobController;
 use App\Http\Controllers\CsListController;
 use App\Http\Controllers\CanvassController;
-<<<<<<< Updated upstream
 use App\Http\Controllers\BqCSController;
 use App\Http\Controllers\PoListController;
 use App\Http\Controllers\PoController;
@@ -87,10 +86,6 @@ Route::get('/avatar/{filename}', function($filename){
     ]);
 });
 
-
-=======
-use App\Http\Controllers\ChangeStoController;
->>>>>>> Stashed changes
 
 
 Route::redirect('/', 'login');
@@ -640,8 +635,6 @@ Route::post('/logout', function () {
     Route::post('/eng/workscategory/update', [WorksCategoryController::class, 'update'])->name('workscategory.update');
     Route::post('/eng/workscategory/delete/{id}', [WorksCategoryController::class, 'delete']);
 
-<<<<<<< Updated upstream
-=======
     Route::get('/budgets', [BudgetController::class, 'index'])->name('budgets');
     Route::get('/budgets/json', [BudgetController::class, 'json'])->name('budgets.json');
     Route::get('/createbudgets', [BudgetController::class, 'createBudget'])->name('budget.create');
@@ -659,7 +652,6 @@ Route::post('/logout', function () {
     // Route::get('/api/sites/{cpnyid}', [BudgetController::class, 'getSitesByCompany']);
     // Route::get('/api/job-parent-info/{parentId}/{departementId}/{deptId}', [BudgetController::class, 'getParentJobInfo']);
     // Route::get('/api/vacant-employees/{deptId}', [BudgetController::class, 'getVacantByTopParent']);  
->>>>>>> Stashed changes
     
 
 

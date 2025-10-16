@@ -2,65 +2,14 @@
     @php
         $currentPage = Route::currentRouteName() == 'jobpostings' ? 'HR' : '';
     @endphp
-    <style>
-        /* Active / Selected state */
-        .status-filter.active .status-card {
-            transform: scale(1.02);
-            transition: all 0.3s ease-in-out;
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
-        }
-
-        /* All */
-        .status-filter[data-status=""].active .status-card {
-            background-color: rgb(254 215 170);
-            /* orange-200 */
-            border-color: rgb(194 65 12)
-        }
-
-        /* Unchecked (Blue) */
-        .status-filter[data-status="is_read_N"].active .status-card {
-            background-color: rgb(191 219 254);
-            /* blue-200 */
-            border-color: rgb(29 78 216);
-            /* blue-700 */
-            color: rgb(29 78 216);
-        }
-
-        /* Checked (Gray) */
-        .status-filter[data-status="is_read_Y"].active .status-card {
-            background-color: rgb(229 231 235);
-            /* gray-200 */
-            border-color: rgb(31 41 55);
-            /* gray-700 */
-            color: rgb(31 41 55);
-        }
-
-        /* Reject (Red) */
-        .status-filter[data-status="R"].active .status-card {
-            background-color: rgb(254 202 202);
-            /* red-200 */
-            border-color: rgb(185 28 28);
-            /* red-700 */
-            color: rgb(185 28 28);
-        }
-
-        /* Approved (Green) */
-        .status-filter[data-status="C"].active .status-card {
-            background-color: rgb(187 247 208);
-            /* green-200 */
-            border-color: rgb(21 128 61);
-            /* green-700 */
-            color: rgb(21 128 61);
-        }
-    </style>
     <div class="max-w-9xl mx-auto px-4 py-4 sm:px-6 lg:px-8">
         <div class="grid-col-1 grid gap-6 xl:grid-cols-5 xl:grid-rows-1">
-            {{-- All --}}
+            {{-- All Status --}}
             <button>
-                <a href="#" class="status-filter group block" data-status="">
+                <a href="#" class="status-filter" data-status="">
                     <div
-                        class="status-card flex items-center gap-4 rounded-lg border border-orange-700 bg-orange-200/20 p-3 text-orange-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-orange-100 hover:shadow-lg active:scale-95">
-                        <span class="text-xl group-hover:animate-pulse">📄</span>
+                        class="flex items-center gap-4 rounded-lg border border-orange-700 bg-orange-200/20 p-3 text-orange-600">
+                        <span class="text-xl">📄</span>
                         <div class="flex flex-grow items-center justify-between">
                             <p class="text-lg font-medium">All</p>
                             <p class="text-right text-xl font-extrabold">{{ $all }}</p>
@@ -69,12 +18,12 @@
                 </a>
             </button>
 
-            {{-- Unchecked --}}
+            {{-- Unchecked Status --}}
             <button>
-                <a href="#" class="status-filter group block" data-status="is_read_N">
+                <a href="#" class="status-filter" data-status="is_read_N">
                     <div
-                        class="status-card flex items-center gap-4 rounded-lg border border-blue-700 bg-blue-200/20 p-3 text-blue-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-blue-100 hover:shadow-lg active:scale-95">
-                        <span class="text-xl group-hover:animate-pulse">⏳</span>
+                        class="flex items-center gap-4 rounded-lg border border-blue-700 bg-blue-200/20 p-3 text-blue-600">
+                        <span class="text-xl">⏳</span>
                         <div class="flex flex-grow items-center justify-between">
                             <p class="text-lg font-medium">Unchecked</p>
                             <p class="text-right text-xl font-extrabold">{{ $unchecked }}</p>
@@ -83,12 +32,12 @@
                 </a>
             </button>
 
-            {{-- Checked --}}
+            {{-- Checked Status --}}
             <button>
-                <a href="#" class="status-filter group block" data-status="is_read_Y">
+                <a href="#" class="status-filter" data-status="is_read_Y">
                     <div
-                        class="status-card flex items-center gap-4 rounded-lg border border-gray-700 bg-gray-200/20 p-3 text-gray-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-gray-100 hover:shadow-lg active:scale-95 dark:border-white dark:text-white dark:hover:bg-gray-700">
-                        <span class="text-xl group-hover:animate-pulse">✏️</span>
+                        class="flex items-center gap-4 rounded-lg border border-gray-700 bg-gray-200/20 p-3 text-gray-600 dark:border-white dark:text-white">
+                        <span class="text-xl">✏️</span>
                         <div class="flex flex-grow items-center justify-between">
                             <p class="text-lg font-medium">Checked</p>
                             <p class="text-right text-xl font-extrabold">{{ $checked }}</p>
@@ -97,12 +46,12 @@
                 </a>
             </button>
 
-            {{-- Reject --}}
+            {{-- Reject Status --}}
             <button>
-                <a href="#" class="status-filter group block" data-status="R">
+                <a href="#" class="status-filter" data-status="R">
                     <div
-                        class="status-card flex items-center gap-4 rounded-lg border border-red-700 bg-red-200/20 p-3 text-red-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-red-100 hover:shadow-lg active:scale-95">
-                        <span class="text-xl group-hover:animate-pulse">⛔️</span>
+                        class="flex items-center gap-4 rounded-lg border border-red-700 bg-red-200/20 p-3 text-red-600">
+                        <span class="text-xl">⛔️</span>
                         <div class="flex flex-grow items-center justify-between">
                             <p class="text-lg font-medium">Reject</p>
                             <p class="text-right text-xl font-extrabold">{{ $reject }}</p>
@@ -111,12 +60,12 @@
                 </a>
             </button>
 
-            {{-- Approved --}}
+            {{-- Approved Status --}}
             <button>
-                <a href="#" class="status-filter group block" data-status="C">
+                <a href="#" class="status-filter" data-status="C">
                     <div
-                        class="status-card flex items-center gap-4 rounded-lg border border-green-700 bg-green-200/20 p-3 text-green-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-green-100 hover:shadow-lg active:scale-95">
-                        <span class="text-xl group-hover:animate-pulse">✅</span>
+                        class="flex items-center gap-4 rounded-lg border border-green-700 bg-green-200/20 p-3 text-green-600">
+                        <span class="text-xl">✅</span>
                         <div class="flex flex-grow items-center justify-between">
                             <p class="text-lg font-medium">Approved</p>
                             <p class="text-right text-xl font-extrabold">{{ $approved }}</p>
@@ -195,13 +144,8 @@
                 }
 
                 #applicantsTable_filter input {
-                    width: auto;
-                    padding: 5px;
-                    min-width: 80px;
-                    padding: 0.25rem 0.5rem;
-                    border-radius: 0.5rem;
-                    border: 1px solid #d1d5db;
-                    background-color: #f9fafb;
+                    width: 200px;
+                    /* Adjust the width of the input box */
                 }
 
 
@@ -239,10 +183,6 @@
                     width: auto;
                     padding: 5px;
                     min-width: 80px;
-                    padding: 0.25rem 0.5rem;
-                    border-radius: 0.5rem;
-                    border: 1px solid #d1d5db;
-                    background-color: #f9fafb;
                 }
 
                 #applicantsTable_length select option {
@@ -388,7 +328,7 @@
                     {{-- Changed text-3xl to text-xl --}}
                     <h1 class="text-xl font-extrabold text-gray-700 dark:text-white">Applicant List</h1>
                     {{-- <a"
-                        class="inline-flex items-center rounded-xl bg-blue-600 px-6 py-2 text-base font-semibold text-white transition-colors duration-200 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                        class="inline-flex items-center rounded-xl bg-indigo-600 px-6 py-2 text-base font-semibold text-white transition-colors duration-200 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
                         List Job Posting
                         </a> --}}
                 </div>
@@ -682,7 +622,7 @@
                                 data: 'docid',
                                 name: 'docid',
                                 render: function(data, type, row) {
-                                    return `<a href="/showcareers/${row.hid}" target="_blank" class="px-4 py-2.5 bg-indigo-500 text-white rounded hover:bg-indigo-700">${data}</a>`;
+                                    return `<a href="/showcareers/${row.id}" target="_blank" class="px-4 py-2.5 bg-indigo-500 text-white rounded hover:bg-indigo-700">${data}</a>`;
                                 }
                             },
                             {
@@ -729,7 +669,7 @@
                                 }
                             }
                         ],
-                        rowCallback: function(row, data) {
+                        rowCallback: function (row, data) {
                             // reset dulu
                             $(row).css('color', '');
 
@@ -810,14 +750,6 @@
                         $(this).addClass('active');
                         currentStatus = $(this).data('status') || '';
                         applicantTable.ajax.reload();
-                    });
-                });
-                document.querySelectorAll('.status-filter').forEach(btn => {
-                    btn.addEventListener('click', function(e) {
-                        e.preventDefault();
-                        document.querySelectorAll('.status-filter').forEach(b => b.classList.remove(
-                            'active'));
-                        this.classList.add('active');
                     });
                 });
             </script>

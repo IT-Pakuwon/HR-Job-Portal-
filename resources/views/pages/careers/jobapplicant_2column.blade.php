@@ -142,13 +142,8 @@
                 }
 
                 #jobpostingsTable_filter input {
-                    width: auto;
-                    padding: 5px;
-                    min-width: 80px;
-                    padding: 0.25rem 0.5rem;
-                    border-radius: 0.5rem;
-                    border: 1px solid #d1d5db;
-                    background-color: #f9fafb;
+                    width: 200px;
+                    /* Adjust the width of the input box */
                 }
 
 
@@ -193,10 +188,6 @@
                     width: auto;
                     padding: 5px;
                     min-width: 80px;
-                    padding: 0.25rem 0.5rem;
-                    border-radius: 0.5rem;
-                    border: 1px solid #d1d5db;
-                    background-color: #f9fafb;
                 }
 
                 #jobpostingsTable_length select option {
@@ -291,10 +282,6 @@
                     width: auto;
                     padding: 5px;
                     min-width: 80px;
-                    padding: 0.25rem 0.5rem;
-                    border-radius: 0.5rem;
-                    border: 1px solid #d1d5db;
-                    background-color: #f9fafb;
                 }
 
                 #applicantsTable_length select option {
@@ -489,7 +476,7 @@
                                 render: function(data, type, row) {
                                     let url = `/showjobpostings/${row.id}`;
                                     let buttonClass =
-                                        'inline-flex items-center justify-center w-[100px] rounded bg-gray-500 py-1.5 text-white hover:bg-gray-700'
+                                        'px-4 py-2.5 bg-indigo-500 text-white rounded hover:bg-indigo-700';
                                     let buttonText = row.docid;
 
                                     return `<a href="${url}" class="px-3 py-1 ${buttonClass} text-white rounded">${buttonText}</a>`;

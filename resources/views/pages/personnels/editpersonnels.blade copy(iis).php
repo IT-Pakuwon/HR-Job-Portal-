@@ -9,7 +9,7 @@
                     <form id="personnelForm" class="flex flex-col gap-4" enctype="multipart/form-data">
                          @csrf
                         <div class="flex flex-col gap-4">
-                            {{-- <div class="flex flex-col w-full rounded-2xl   border-b bg-white dark:bg-gray-800 w-full p-6"> --}}
+                            {{-- <div class="flex flex-col w-full rounded-2xl shadow-md border-b bg-white dark:bg-gray-800 w-full p-6"> --}}
                             <div class="flex flex-col w-full  rounded-2xl shadow-sm border-b bg-white dark:bg-gray-800 w-full p-6">
                                 <div class="flex justify-between border-b dark:border-gray-600 mb-2">
                                     <h2 class="text-xl font-bold mb-4">Edit Personnel Requisition</h2>

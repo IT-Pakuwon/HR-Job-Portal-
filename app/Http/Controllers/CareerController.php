@@ -59,7 +59,6 @@ use App\Models\GroupAccspecific;
 use App\Models\CompanyAddress;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Hash;
-use Vinkla\Hashids\Facades\Hashids;
 
 
 class CareerController extends Controller
@@ -114,8 +113,7 @@ class CareerController extends Controller
             $query->where('cpnyid', $cpnyid);
         }
 
-        $career = $query->orderBy('id', 'desc')->get();   
-
+        $career = $query->orderBy('id', 'desc')->get();
         return response()->json(['data' => $career]);
     }
 
@@ -143,10 +141,8 @@ class CareerController extends Controller
     }
 
 
-    public function showCareer($hash)
+    public function showCareer($id)
     {        
-        $id = Hashids::decode($hash)[0] ?? null;
-        abort_if(!$id, 404);
         $user = Auth::user();       
 
         if (!$user) {

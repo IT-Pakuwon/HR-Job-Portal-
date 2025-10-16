@@ -2,58 +2,14 @@
     @php
         $currentPage = Route::currentRouteName() == 'personnels' ? 'HR' : '';
     @endphp
-
-    <style>
-        /* Active / Selected state */
-        .status-filter.active .status-card {
-            transform: scale(1.02);
-
-        }
-
-        .status-filter[data-status=""].active .status-card {
-            background-color: rgb(254 215 170);
-            /* orange-200 */
-            border-color: rgb(194 65 12)
-                /* orange-700 */
-        }
-
-        .status-filter[data-status="P"].active .status-card {
-            background-color: rgb(191 219 254);
-            /* blue-200 */
-            border-color: rgb(29 78 216);
-            /* blue-700 */
-        }
-
-        .status-filter[data-status="R"].active .status-card {
-            background-color: rgb(254 202 202);
-            /* red-200 */
-            border-color: rgb(185 28 28);
-            /* red-700 */
-        }
-
-        .status-filter[data-status="D"].active .status-card {
-            background-color: rgb(229 231 235);
-            /* gray-200 */
-            border-color: rgb(31 41 55);
-            /* gray-700 */
-        }
-
-        .status-filter[data-status="C"].active .status-card {
-            background-color: rgb(187 247 208);
-            /* green-200 */
-            border-color: rgb(21 128 61);
-            /* green-700 */
-        }
-    </style>
-
     <div class="max-w-9xl mx-auto w-full px-4 py-4 sm:px-6 lg:px-8">
         <div class="grid-col-1 grid gap-6 xl:grid-cols-5 xl:grid-rows-1">
             {{-- All Status --}}
             <button>
-                <a href="#" class="status-filter group block" data-status="">
+                <a href="#" class="status-filter" data-status="">
                     <div
-                        class="status-card flex items-center gap-4 rounded-lg border border-orange-700 bg-orange-200/20 p-3 text-orange-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-orange-100 hover:shadow-lg active:scale-95">
-                        <span class="text-xl group-hover:animate-pulse">📄</span>
+                        class="flex items-center gap-4 rounded-lg border border-orange-700 bg-orange-200/20 p-3 text-orange-600">
+                        <span class="text-xl">📄</span>
                         <div class="flex flex-grow items-center justify-between">
                             <p class="text-lg font-medium">All</p>
                             <p class="text-right text-xl font-extrabold">{{ $all }}</p>
@@ -64,10 +20,10 @@
 
             {{-- On Progress Status --}}
             <button>
-                <a href="#" class="status-filter group block" data-status="P">
+                <a href="#" class="status-filter" data-status="P">
                     <div
-                        class="status-card flex items-center gap-4 rounded-lg border border-blue-700 bg-blue-200/20 p-3 text-blue-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-blue-100 hover:shadow-lg active:scale-95">
-                        <span class="text-xl group-hover:animate-pulse">⏳</span>
+                        class="flex items-center gap-4 rounded-lg border border-blue-700 bg-blue-200/20 p-3 text-blue-600">
+                        <span class="text-xl">⏳</span>
                         <div class="flex flex-grow items-center justify-between">
                             <p class="text-lg font-medium">On Progress</p>
                             <p class="text-right text-xl font-extrabold">{{ $onProgress }}</p>
@@ -78,10 +34,10 @@
 
             {{-- Reject Status --}}
             <button>
-                <a href="#" class="status-filter group block" data-status="R">
+                <a href="#" class="status-filter" data-status="R">
                     <div
-                        class="status-card flex items-center gap-4 rounded-lg border border-red-700 bg-red-200/20 p-3 text-red-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-red-100 hover:shadow-lg active:scale-95">
-                        <span class="text-xl group-hover:animate-pulse">⛔️</span>
+                        class="flex items-center gap-4 rounded-lg border border-red-700 bg-red-200/20 p-3 text-red-600">
+                        <span class="text-xl">⛔️</span>
                         <div class="flex flex-grow items-center justify-between">
                             <p class="text-lg font-medium">Reject</p>
                             <p class="text-right text-xl font-extrabold">{{ $reject }}</p>
@@ -92,10 +48,10 @@
 
             {{-- Revise / Draft Status --}}
             <button>
-                <a href="#" class="status-filter group block" data-status="D">
+                <a href="#" class="status-filter" data-status="D">
                     <div
-                        class="status-card flex items-center gap-4 rounded-lg border border-gray-700 bg-gray-200/20 p-3 text-gray-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-gray-100 hover:shadow-lg active:scale-95 dark:border-white dark:text-white dark:hover:bg-gray-700">
-                        <span class="text-xl group-hover:animate-pulse">✏️</span>
+                        class="flex items-center gap-4 rounded-lg border border-gray-700 bg-gray-200/20 p-3 text-gray-600 dark:border-white dark:text-white">
+                        <span class="text-xl">✏️</span>
                         <div class="flex flex-grow items-center justify-between">
                             <p class="text-lg font-medium">Revise / Draft</p>
                             <p class="text-right text-xl font-extrabold">{{ $revise }}</p>
@@ -106,10 +62,10 @@
 
             {{-- Completed Status --}}
             <button>
-                <a href="#" class="status-filter group block" data-status="C">
+                <a href="#" class="status-filter" data-status="C">
                     <div
-                        class="status-card flex items-center gap-4 rounded-lg border border-green-700 bg-green-200/20 p-3 text-green-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-green-100 hover:shadow-lg active:scale-95">
-                        <span class="text-xl group-hover:animate-pulse">✅</span>
+                        class="flex items-center gap-4 rounded-lg border border-green-700 bg-green-200/20 p-3 text-green-600">
+                        <span class="text-xl">✅</span>
                         <div class="flex flex-grow items-center justify-between">
                             <p class="text-lg font-medium">Completed</p>
                             <p class="text-right text-xl font-extrabold">{{ $completed }}</p>
@@ -118,7 +74,6 @@
                 </a>
             </button>
         </div>
-
         <div class="grid">
             <style>
                 .no-border {
@@ -163,13 +118,7 @@
                 }
 
                 #personnelsTable_filter input {
-                    width: auto;
-                    padding: 5px;
-                    min-width: 80px;
-                    padding: 0.25rem 0.5rem;
-                    border-radius: 0.5rem;
-                    border: 1px solid #d1d5db;
-                    background-color: #f9fafb;
+                    width: 200px;
                 }
 
                 #personnelsTable_wrapper {
@@ -198,10 +147,6 @@
                     width: auto;
                     padding: 5px;
                     min-width: 80px;
-                    padding: 0.25rem 0.5rem;
-                    border-radius: 0.5rem;
-                    border: 1px solid #d1d5db;
-                    background-color: #f9fafb;
                 }
 
                 #personnelsTable_length select option {
@@ -345,7 +290,7 @@
                     {{-- Changed text-3xl to text-xl --}}
                     <h1 class="text-xl font-extrabold text-gray-700 dark:text-white">Personnel Requisition Form</h1>
                     <a href="{{ url('/createpersonnels') }}"
-                        class="inline-flex items-center rounded-xl bg-blue-600 px-6 py-2 text-base font-semibold text-white transition-colors duration-200 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                        class="inline-flex items-center rounded-xl bg-indigo-600 px-6 py-2 text-base font-semibold text-white transition-colors duration-200 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
                         <i class="fas fa-plus pr-2"></i>Create
                     </a>
                 </div>
@@ -429,24 +374,23 @@
                             }
                         },
                         columns: [{
-                                data: 'hid',
+                                data: 'id',
                                 render: function(data, type, row) {
-                                    let url = `/showpersonnels/${row.hid}`;
+                                    let url = `/showpersonnels/${row.id}`;
                                     let buttonClass =
-                                        'inline-flex items-center justify-center w-[100px] rounded bg-gray-500 py-1.5 text-white hover:bg-gray-700';
+                                        'px-4 py-2.5 bg-indigo-500 text-white rounded hover:bg-indigo-700';
                                     let buttonText = row.docid; // Menggunakan row.docid untuk teks tombol
 
                                     // Cek apakah user yang login sama dengan created_user dan status = D (Revise/Draft)
                                     if (row.status === 'D' && row.created_user === currentUser) {
-                                        url = `/editpersonnels/${row.hid}`;
+                                        url = `/editpersonnels/${row.id}`;
                                         buttonClass =
-                                            'inline-flex items-center justify-center w-[100px] rounded bg-amber-500 py-1.5 text-white hover:bg-amber-700';
+                                            'px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-700';
                                     }
 
                                     return `<a href="${url}" class="px-3 py-1 ${buttonClass} text-white rounded">${buttonText}</a>`;
                                 }
                             },
-
                             {
                                 data: 'date',
                                 className: 'no-pointer'
@@ -538,15 +482,6 @@
                         newUrl += "?status=" + encodeURIComponent(selectedStatus ?? '');
                         console.log("Loading personnelsTable with URL:", newUrl);
                         personnelsTable.ajax.url(newUrl).load();
-                    });
-
-                    document.querySelectorAll('.status-filter').forEach(btn => {
-                        btn.addEventListener('click', function(e) {
-                            e.preventDefault();
-                            document.querySelectorAll('.status-filter').forEach(b => b.classList.remove(
-                                'active'));
-                            this.classList.add('active');
-                        });
                     });
                 });
             </script>
