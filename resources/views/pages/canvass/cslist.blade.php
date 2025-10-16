@@ -2,12 +2,11 @@
     @php
         $currentPage = Route::currentRouteName() == 'cslist.index' ? 'CS' : '';
     @endphp
+
     <style>
         /* Active / Selected state */
         .scope-filter.active .scope-card {
             transform: scale(1.02);
-            transition: all 0.3s ease-in-out;
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
         }
 
         /* My CS */
@@ -16,6 +15,7 @@
             /* orange-200 */
             border-color: rgb(194 65 12);
             /* orange-700 */
+            color: rgb(194 65 12);
         }
 
         /* On Progress */
@@ -24,6 +24,7 @@
             /* blue-200 */
             border-color: rgb(29 78 216);
             /* blue-700 */
+            color: rgb(29 78 216);
         }
 
         /* Rejected */
@@ -32,6 +33,7 @@
             /* red-200 */
             border-color: rgb(185 28 28);
             /* red-700 */
+            color: rgb(185 28 28);
         }
 
         /* Completed */
@@ -40,6 +42,7 @@
             /* green-200 */
             border-color: rgb(21 128 61);
             /* green-700 */
+            color: rgb(21 128 61);
         }
 
         /* All CS */
@@ -48,203 +51,10 @@
             /* gray-200 */
             border-color: rgb(31 41 55);
             /* gray-700 */
-        }
-
-        .no-border {
-            border: none !important;
-        }
-
-        .grid {
-            width: 100%;
-        }
-
-        select,
-        textarea,
-        input {
-            width: 100%;
-        }
-
-        table.dataTable {
-            width: 100% !important;
-        }
-
-        .dataTables_wrapper {
-            width: 100%;
-        }
-
-        @media (max-width: 600px) {
-            .dataTables_wrapper {
-                padding: 0 10px;
-            }
-        }
-
-        /* === Filter Section === */
-        #csTable_filter {
-            margin-bottom: 20px;
-            display: flex;
-            justify-content: flex-start;
-            align-items: center;
-        }
-
-        #csTable_filter label {
-            margin-right: 2px;
-        }
-
-        #csTable_filter input {
-            width: auto;
-            padding: 0.25rem 0.5rem;
-            min-width: 80px;
-            border-radius: 0.5rem;
-            border: 1px solid #d1d5db;
-            background-color: #f9fafb;
-        }
-
-        /* === Wrapper Width === */
-        #csTable_wrapper {
-            width: 100%;
-        }
-
-        /* === Cell Formatting === */
-        #csTable td {
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            padding: 10px;
-            max-width: 200px;
-        }
-
-        #csTable th {
-            padding: 10px;
-            max-width: 200px;
-        }
-
-        /* === Length Section === */
-        #csTable_length {
-            width: auto;
-            display: flex;
-            justify-content: flex-start;
-        }
-
-        #csTable_length select {
-            width: auto;
-            padding: 0.25rem 0.5rem;
-            min-width: 80px;
-            border-radius: 0.5rem;
-            border: 1px solid #d1d5db;
-            background-color: #f9fafb;
-        }
-
-        /* === Info + Pagination === */
-        #csTable_info {
-            margin: 10px 0;
-        }
-
-        .dataTables_paginate {
-            margin: 10px 0;
-        }
-
-        /* === Hover Effects === */
-        #csTable tbody tr {
-            transition: background-color 0.3s ease, color 0.3s ease;
-        }
-
-        #csTable tbody tr:hover {
-            background-color: #8f8f8f11;
-            cursor: pointer;
-        }
-
-        #csTable tbody tr td {
-            padding: 8px;
-            line-height: 2;
-        }
-
-        /* === Column Width Alignment === */
-        #csTable th:nth-child(1),
-        #csTable td:nth-child(1),
-        #csTable th:nth-child(4),
-        #csTable td:nth-child(4) {
-            width: 120px;
-            text-align: center;
-        }
-
-        /* === Group Row & Collapse === */
-        #csTable tbody tr.collapsed-group-row {
-            display: none;
-        }
-
-        #csTable tr.group-row {
-            background-color: #e6e6e6;
-            font-weight: bold;
-            cursor: pointer;
-            user-select: none;
-            color: #333;
-        }
-
-        #csTable tr.group-row:hover {
-            background-color: #d4d4d4;
-        }
-
-        #csTable tr.group-row .fas {
-            margin-right: 8px;
-            width: 16px;
-            text-align: center;
-        }
-
-        #csTable tr.group-row td {
-            padding: 10px !important;
-            border-bottom: 1px solid #ddd;
-        }
-
-        #csTable tr.group-row td:first-child {
-            border-left: none;
-        }
-
-        /* === Custom Switch === */
-        .switch {
-            position: relative;
-            display: inline-block;
-            width: 40px;
-            height: 22px;
-        }
-
-        .switch input {
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
-
-        .slider {
-            position: absolute;
-            cursor: pointer;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: #ccc;
-            transition: .4s;
-            border-radius: 34px;
-        }
-
-        .slider:before {
-            position: absolute;
-            content: "";
-            height: 16px;
-            width: 16px;
-            left: 3px;
-            bottom: 3px;
-            background-color: white;
-            transition: .4s;
-            border-radius: 50%;
-        }
-
-        input:checked+.slider {
-            background-color: #4CAF50;
-        }
-
-        input:checked+.slider:before {
-            transform: translateX(18px);
+            color: rgb(31 41 55);
         }
     </style>
+
 
     <div class="max-w-9xl mx-auto w-full px-4 py-4 sm:px-6 lg:px-8">
         <div class="grid-col-1 grid gap-6 xl:grid-cols-5 xl:grid-rows-1">
@@ -283,7 +93,7 @@
                         class="scope-card flex items-center gap-4 rounded-lg border border-red-700 bg-red-200/20 p-3 text-red-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-red-100 hover:shadow-lg active:scale-95">
                         <span class="text-xl group-hover:animate-pulse">⛔️</span>
                         <div class="flex flex-grow items-center justify-between">
-                            <p class="text-lg font-medium">Rejected</p>
+                            <p class="text-lg font-medium">Reject</p>
                             <p class="text-right text-xl font-extrabold">{{ $reject }}</p>
                         </div>
                     </div>
@@ -318,7 +128,6 @@
                 </a>
             </button>
         </div>
-
 
         <div class="grid">
             <style>
@@ -440,8 +249,7 @@
             <div class="mt-6 rounded-2xl bg-white dark:bg-gray-800">
                 <div
                     class="flex flex-col items-start justify-between gap-4 border-b border-gray-200 p-4 sm:flex-row sm:items-center dark:border-gray-700">
-                    {{-- <h1 class="text-xl font-extrabold text-gray-700 dark:text-white">Canvass Sheet (CS)</h1> --}}
-                    <h1 class="text-xl font-extrabold text-gray-700 dark:text-white">Canvass Sheet</h1>
+                    <h1 class="text-xl font-extrabold text-gray-700 dark:text-white">Canvass Sheet (CS)</h1>
                 </div>
 
                 <div class="overflow-x-auto p-6">
@@ -610,7 +418,7 @@
                     function renderCSBtn(_v, row) {
                         const url = `/showcs/${row.eid}`;
                         const text = row.csid || row.eid;
-                        return `<a href="${url}" class="shrink-0 px-6 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 text-sm font-semibold">${text}</a>`;
+                        return `<a href="${url}" class="inline-flex items-center justify-center w-[100px] rounded bg-indigo-500 py-1.5 text-white hover:bg-gray-700">${text}</a>`;
                     }
                     const showMap = {
                         PB: 'showsppbs',
@@ -626,33 +434,31 @@
                         const src_eid = row.sppbjkid_eid;
                         if (!prefix || !base || !src_eid) return docNo;
                         const url = `/${base}/${src_eid}`;
-                        return `<a href="${url}" class="rounded px-6 py-2 bg-gray-500 text-white rounded hover:bg-gray-700 w-32">${docNo}</a>`;
+                        return `<a href="${url}"  class="inline-flex items-center justify-center w-[100px] rounded bg-gray-500 py-1.5 text-white hover:bg-gray-700">${docNo}</a>`;
                     }
 
                     function renderDays(v) {
                         return (v == null) ? '' : String(v);
                     }
                 });
+                // Toggle .active class and remember selected CS scope
+                const csScopes = document.querySelectorAll('.scope-filter');
+                const savedCsScope = localStorage.getItem('activeCsScope');
 
-                // Toggle .active class and remember selected scope
-                const scopes = document.querySelectorAll('.scope-filter');
-                const savedScope = localStorage.getItem('activeScope');
-
-                if (savedScope) {
-                    const activeScope = document.querySelector(`.scope-filter[data-scope="${savedScope}"]`);
+                if (savedCsScope) {
+                    const activeScope = document.querySelector(`.scope-filter[data-scope="${savedCsScope}"]`);
                     if (activeScope) activeScope.classList.add('active');
                 }
 
-                scopes.forEach(btn => {
+                csScopes.forEach(btn => {
                     btn.addEventListener('click', e => {
                         e.preventDefault();
-                        scopes.forEach(s => s.classList.remove('active'));
+                        csScopes.forEach(s => s.classList.remove('active'));
                         btn.classList.add('active');
-                        localStorage.setItem('activeScope', btn.dataset.scope);
+                        localStorage.setItem('activeCsScope', btn.dataset.scope);
                     });
                 });
             </script>
-
         </div>
     </div>
 </x-app-layout>

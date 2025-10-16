@@ -358,44 +358,47 @@
                 $(document).ready(function() {
                     // Hanya inisialisasi tabel personnelsTable
                     let personnelsTable = $('#personnelsTable').DataTable({
-                        ajax: "{{ route('personnels.json') }}?status=P",
-                        processing: true,
-                        serverSide: false,
-                        responsive: true,
-                        order: [
-                            [2, 'asc'], // Urutkan berdasarkan 'Company' (index 2) untuk pengelompokan
-                            [0, 'desc'] // Kemudian berdasarkan DocID (index 0)
-                        ],
-                        rowGroup: {
-                            dataSrc: 'cpnyid', // Kelompokkan berdasarkan kolom 'cpnyid'
-                            startRender: function(rows, group) {
-                                // Cek apakah semua baris dalam grup saat ini tersembunyi (collapsed)
-                                let isCollapsed = rows.nodes().to$().filter('.collapsed-group-row').length ===
-                                    rows.count();
-                                let icon = isCollapsed ? '<i class="fas fa-plus-circle"></i>' :
-                                    '<i class="fas fa-minus-circle"></i>';
+                            ajax: "{{ route('personnels.json') }}?status=P",
+                            processing: true,
+                            serverSide: false,
+                            responsive: true,
+                            order: [
+                                [2, 'asc'], // Urutkan berdasarkan 'Company' (index 2) untuk pengelompokan
+                                [0, 'desc'] // Kemudian berdasarkan DocID (index 0)
+                            ],
+                            rowGroup: {
+                                dataSrc: 'cpnyid', // Kelompokkan berdasarkan kolom 'cpnyid'
+                                startRender: function(rows, group) {
+                                    // Cek apakah semua baris dalam grup saat ini tersembunyi (collapsed)
+                                    let isCollapsed = rows.nodes().to$().filter('.collapsed-group-row').length ===
+                                        rows.count();
+                                    let icon = isCollapsed ? '<i class="fas fa-plus-circle"></i>' :
+                                        '<i class="fas fa-minus-circle"></i>';
 
-                                // Mengembalikan baris grup dengan ikon dan jumlah catatan
-                                return $('<tr/>')
-                                    .append('<td colspan="' + rows.columns().count() + '">' + icon + ' ' +
-                                        group + ' (' + rows.count() + ' records)</td>')
-                                    .attr('data-group', group)
-                                    .addClass('group-row');
-                            }
-                        },
-                        columns: [{
-                                data: 'id',
-                                render: function(data, type, row) {
-                                    let url = `/showpersonnels/${row.id}`;
-                                    let buttonClass =
-                                        'px-6 py-2 bg-gray-500 text-white rounded hover:bg-gray-700';
-                                    let buttonText = row.docid; // Menggunakan row.docid untuk teks tombol
+                                    // Mengembalikan baris grup dengan ikon dan jumlah catatan
+                                    return $('<tr/>')
+                                        .append('<td colspan="' + rows.columns().count() + '">' + icon + ' ' +
+                                            group + ' (' + rows.count() + ' records)</td>')
+                                        .attr('data-group', group)
+                                        .addClass('group-row');
+                                }
+                            },
+                            columns: [{
+                                    data: 'id',
+                                    render: function(data, type, row) {
+                                        let url = `/showpersonnels/${row.id}`;
+                                        let buttonClass =
+                                            'inline-flex items-center justify-center w-[100px] rounded bg-gray-500 py-1.5 text-white hover:bg-gray-700'
+                                        let buttonText = row.docid; // Menggunakan row.docid untuk teks tombol
 
-                                    // Cek apakah user yang login sama dengan created_user dan status = D (Revise/Draft)
-                                    if (row.status === 'D' && row.created_user === currentUser) {
-                                        url = `/editpersonnels/${row.id}`;
-                                        buttonClass =
-                                            'px-6 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-700';
+                                        // Cek apakah user yang login sama dengan created_user dan status = D (Revise/Draft)
+                                        if (row.status === 'D' && row.created_user === currentUser) {
+                                            url = `/editpersonnels/${row.id}`;
+                                            buttonClass =
+                                                'inline - flex items - center justify - center w - [
+                                            100 px
+                                        ] rounded bg - yellow - 500 py - 1.5 text - white hover:
+                                            bg - yellow - 700 ';
                                     }
 
                                     return `<a href="${url}" class="px-3 py-1 ${buttonClass} text-white rounded">${buttonText}</a>`;
@@ -462,37 +465,37 @@
                         ]
                     });
 
-                    // Event listener untuk klik pada baris grup (collapse/expand) untuk personnelsTable
-                    $('#personnelsTable tbody').on('click', 'tr.group-row', function() {
-                        let groupName = $(this).data('group');
-                        let iconElement = $(this).find('i');
+                // Event listener untuk klik pada baris grup (collapse/expand) untuk personnelsTable
+                $('#personnelsTable tbody').on('click', 'tr.group-row', function() {
+                    let groupName = $(this).data('group');
+                    let iconElement = $(this).find('i');
 
-                        personnelsTable.rows().every(function() {
-                            if (this.data().cpnyid ===
-                                groupName
-                            ) { // Sesuaikan dengan nama properti data yang digunakan untuk grouping
-                                $(this.node()).toggleClass('collapsed-group-row');
-                            }
-                        });
-
-                        // Mengganti ikon plus/minus
-                        if (iconElement.hasClass('fa-plus-circle')) {
-                            iconElement.removeClass('fa-plus-circle').addClass('fa-minus-circle');
-                        } else {
-                            iconElement.removeClass('fa-minus-circle').addClass('fa-plus-circle');
+                    personnelsTable.rows().every(function() {
+                        if (this.data().cpnyid ===
+                            groupName
+                        ) { // Sesuaikan dengan nama properti data yang digunakan untuk grouping
+                            $(this.node()).toggleClass('collapsed-group-row');
                         }
                     });
 
+                    // Mengganti ikon plus/minus
+                    if (iconElement.hasClass('fa-plus-circle')) {
+                        iconElement.removeClass('fa-plus-circle').addClass('fa-minus-circle');
+                    } else {
+                        iconElement.removeClass('fa-minus-circle').addClass('fa-plus-circle');
+                    }
+                });
 
-                    // Filter status akan memfilter data di personnelsTable
-                    $('.status-filter').on('click', function(e) {
-                        e.preventDefault();
-                        let selectedStatus = $(this).data('status');
-                        let newUrl = "{{ route('personnels.json') }}";
-                        newUrl += "?status=" + encodeURIComponent(selectedStatus ?? '');
-                        console.log("Loading personnelsTable with URL:", newUrl);
-                        personnelsTable.ajax.url(newUrl).load();
-                    });
+
+                // Filter status akan memfilter data di personnelsTable
+                $('.status-filter').on('click', function(e) {
+                    e.preventDefault();
+                    let selectedStatus = $(this).data('status');
+                    let newUrl = "{{ route('personnels.json') }}";
+                    newUrl += "?status=" + encodeURIComponent(selectedStatus ?? '');
+                    console.log("Loading personnelsTable with URL:", newUrl);
+                    personnelsTable.ajax.url(newUrl).load();
+                });
                 });
             </script>
         </div>

@@ -255,7 +255,7 @@
                                 render: function(data, type, row) {
                                     let url = `${window.location.origin}${row.url}/${row.id}`;
                                     let buttonClass =
-                                        'px-6 py-2 bg-gray-500 text-white rounded hover:bg-gray-700';
+                                        'inline-flex items-center justify-center w-[100px] rounded bg-gray-500 py-1.5 text-white hover:bg-gray-700'
                                     let buttonText = row.docid;
 
 
