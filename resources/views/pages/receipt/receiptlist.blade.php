@@ -475,7 +475,8 @@
 
                     function renderPlusCreate(row) {
                         const url = `{{ route('receipt.create') }}` + `?ponbr=${encodeURIComponent(row.ponbr_eid ?? '')}`;
-                        return `<a href="${url}" class="inline-flex items-center justify-center rounded bg-blue-600 px-2 py-1 text-white text-sm font-bold hover:bg-blue-700">+</a>`;
+                        return `<a href="${url}" class="inline-flex justify-center items-center px-4 py-2 text-sm leading-tight font-medium text-white rounded text-center transition-colors duration-200 bg-blue-500 hover:bg-blue-700">
+                    <i class="fas fa-plus"></i></a>`;
                     }
 
                     function renderPoLink(row) {
@@ -483,7 +484,7 @@
                         // gunakan hash id jika tersedia
                         if (row.ponbr_eid) {
                             const url = `/showpo/${encodeURIComponent(row.ponbr_eid)}`;
-                            return `<a href="${url}" class="px-6 py-2 bg-gray-500 text-white rounded hover:bg-gray-700">${text}</a>`;
+                            return `<a href="${url}" class="inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-sm leading-tight font-medium text-white rounded text-center transition-colors duration-200 bg-gray-500 hover:bg-gray-700">${text}</a>`;
                         }
                         return text;
                     }

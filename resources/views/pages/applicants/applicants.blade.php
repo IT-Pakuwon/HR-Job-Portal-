@@ -298,13 +298,13 @@
                                 render: function(data, type, row) {
                                     let url = `/showapplicants/${row.id}`;
                                     let buttonClass =
-                                        'px-4 py-2.5 bg-indigo-500 text-white rounded hover:bg-indigo-700';
+                                        'inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-sm leading-tight font-medium text-white rounded text-center transition-colors duration-200 bg-gray-500 hover:bg-gray-700';
                                     let buttonText = row.applicant_id;
 
                                     // // **Cek apakah user yang login sama dengan created_user dan status = D**
                                     // if (row.status === 'D' && row.created_user === currentUser) {
                                     //     url = `/editapplicants/${row.id}`;
-                                    //     buttonClass = 'px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-700';
+                                    //     buttonClass = 'inline-flex justify-center items-center w-[120px] p-2 bg-yellow-500 text-white rounded hover:bg-yellow-700 text-center';
                                     // }
 
                                     return `<a href="${url}" class="px-3 py-1 ${buttonClass} text-white rounded">${buttonText}</a>`;

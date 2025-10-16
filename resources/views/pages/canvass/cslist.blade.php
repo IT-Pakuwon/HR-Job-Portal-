@@ -418,7 +418,7 @@
                     function renderCSBtn(_v, row) {
                         const url = `/showcs/${row.eid}`;
                         const text = row.csid || row.eid;
-                        return `<a href="${url}" class="inline-flex items-center justify-center w-[100px] rounded bg-indigo-500 py-1.5 text-white hover:bg-gray-700">${text}</a>`;
+                        return `<a href="${url}" class="inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-sm leading-tight font-medium text-white rounded text-center transition-colors duration-200 bg-gray-500 hover:bg-gray-700">${text}</a>`;
                     }
                     const showMap = {
                         PB: 'showsppbs',
@@ -434,7 +434,7 @@
                         const src_eid = row.sppbjkid_eid;
                         if (!prefix || !base || !src_eid) return docNo;
                         const url = `/${base}/${src_eid}`;
-                        return `<a href="${url}"  class="inline-flex items-center justify-center w-[100px] rounded bg-gray-500 py-1.5 text-white hover:bg-gray-700">${docNo}</a>`;
+                        return `<a href="${url}"  class="inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-sm leading-tight font-medium text-white rounded text-center transition-colors duration-200 bg-indigo-500 hover:bg-indigo-700">${docNo}</a>`;
                     }
 
                     function renderDays(v) {

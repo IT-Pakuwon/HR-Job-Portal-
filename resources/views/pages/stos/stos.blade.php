@@ -347,13 +347,13 @@
                                 render: function(data, type, row) {
                                     let url = `/showstos/${row.hid}`;
                                     let buttonClass =
-                                        'inline-flex items-center justify-center w-[100px] rounded bg-gray-500 py-1.5 text-white hover:bg-gray-700'
+                                        'inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-sm leading-tight font-medium text-white rounded text-center transition-colors duration-200 bg-gray-500 hover:bg-gray-700';
                                     let buttonText = row.sto_id;
 
                                     if (row.status === 'D' && row.created_user === currentUser) {
                                         url = `/editstos/${row.hid}`;
                                         buttonClass =
-                                            'inline-flex items-center justify-center w-[100px] rounded bg-amber-500 py-1.5 text-white hover:bg-amber-700';
+                                            'inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-sm leading-tight font-medium text-white rounded text-center transition-colors duration-200 bg-yellow-500 hover:bg-yellow-700';
                                     }
                                     // Jika status H, arahkan ke /createstos?id=...
                                     if (row.status === 'H' && row.created_user === currentUser) {

@@ -637,7 +637,7 @@
 
             function renderDocBtn(row) {
                 const base = mapShowUrl[row.doc_type] || '#';
-                return `<a href="/${base}/${row.eid}" class="rounded px-6 py-2 bg-gray-500 text-white hover:bg-gray-700 w-32">${row.doc_no}</a>`;
+                return `<a href="/${base}/${row.eid}" class=                                     'inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-sm leading-tight font-medium text-white rounded text-center transition-colors duration-200 bg-gray-500 hover:bg-gray-700'>${row.doc_no}</a>`;
             }
 
             function colSetWithoutCreate() {
@@ -692,7 +692,7 @@
                     orderable: false,
                     searchable: false,
                     className: 'text-left',
-                    render: (_d, _t, row) => `<a href="${buildCreateUrl(row)}" class="inline-flex items-center rounded bg-blue-600 px-6 py-2 text-base font-semibold text-white hover:bg-blue-700">
+                    render: (_d, _t, row) => `<a href="${buildCreateUrl(row)}" class="inline-flex justify-center items-center px-4 py-2 text-sm leading-tight font-medium text-white rounded text-center transition-colors duration-200 bg-blue-500 hover:bg-blue-700">
                     <i class="fas fa-plus"></i></a>`
                 };
                 return [createCol, ...colSetWithoutCreate()];
@@ -737,7 +737,7 @@
                         data: 'csid',
                         className: 'text-left',
                         render: (v, _t, row) =>
-                            `<a href="/editcs/${row.eid}" class="rounded px-6 py-2 bg-amber-500 text-white hover:bg-amber-600 text-sm font-semibold">${v}</a>`
+                            `<a href="/editcs/${row.eid}" class="inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-sm leading-tight font-medium text-white rounded text-center transition-colors duration-200 bg-yellow-500 hover:bg-yellow-700">${v}</a>`
                     },
                     {
                         data: 'csdate',
