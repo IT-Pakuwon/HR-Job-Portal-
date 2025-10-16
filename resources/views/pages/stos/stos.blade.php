@@ -2,77 +2,114 @@
     @php
         $currentPage = Route::currentRouteName() == 'stos' ? 'HR' : '';
     @endphp
+    <style>
+        /* Shared behavior */
+        .status-filter.active .status-card {
+            transform: scale(1.02);
+        }
+
+        /* Color mapping for active states */
+        .status-filter[data-status=""].active .status-card {
+            background-color: rgb(254 215 170);
+            /* orange-200 */
+            border-color: rgb(194 65 12);
+            /* orange-700 */
+            color: rgb(194 65 12);
+        }
+
+        .status-filter[data-status="P"].active .status-card {
+            background-color: rgb(191 219 254);
+            /* blue-200 */
+            border-color: rgb(29 78 216);
+            /* blue-700 */
+            color: rgb(29 78 216);
+        }
+
+        .status-filter[data-status="R"].active .status-card {
+            background-color: rgb(254 202 202);
+            /* red-200 */
+            border-color: rgb(185 28 28);
+            /* red-700 */
+            color: rgb(185 28 28);
+        }
+
+        .status-filter[data-status="D"].active .status-card {
+            background-color: rgb(229 231 235);
+            /* gray-200 */
+            border-color: rgb(31 41 55);
+            /* gray-700 */
+            color: rgb(31 41 55);
+        }
+
+        .status-filter[data-status="C"].active .status-card {
+            background-color: rgb(187 247 208);
+            /* green-200 */
+            border-color: rgb(21 128 61);
+            /* green-700 */
+            color: rgb(21 128 61);
+        }
+    </style>
     <div class="max-w-9xl mx-auto w-full px-4 py-4 sm:px-6 lg:px-8">
         <div class="grid-col-1 grid gap-6 xl:grid-cols-5 xl:grid-rows-1">
             {{-- All Status --}}
-            <button>
-                <a href="#" class="status-filter" data-status="">
-                    <div
-                        class="flex items-center gap-4 rounded-lg border border-orange-700 bg-orange-200/20 p-3 text-orange-600">
-                        <span class="text-xl">📄</span>
-                        <div class="flex flex-grow items-center justify-between">
-                            <p class="text-lg font-medium">All</p>
-                            <p class="text-right text-xl font-extrabold">{{ $all }}</p>
-                        </div>
+            <a href="#" class="status-filter group block" data-status="">
+                <div
+                    class="status-card flex items-center gap-4 rounded-lg border border-orange-700 bg-orange-200/20 p-3 text-orange-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-orange-100 hover:shadow-lg active:scale-95">
+                    <span class="text-xl group-hover:animate-pulse">📄</span>
+                    <div class="flex flex-grow items-center justify-between">
+                        <p class="text-lg font-medium">All</p>
+                        <p class="text-right text-xl font-extrabold">{{ $all }}</p>
                     </div>
-                </a>
-            </button>
+                </div>
+            </a>
 
-            {{-- On Progress Status --}}
-            <button>
-                <a href="#" class="status-filter" data-status="P">
-                    <div
-                        class="flex items-center gap-4 rounded-lg border border-blue-700 bg-blue-200/20 p-3 text-blue-600">
-                        <span class="text-xl">⏳</span>
-                        <div class="flex flex-grow items-center justify-between">
-                            <p class="text-lg font-medium">On Progress</p>
-                            <p class="text-right text-xl font-extrabold">{{ $onProgress }}</p>
-                        </div>
+            {{-- On Progress --}}
+            <a href="#" class="status-filter group block" data-status="P">
+                <div
+                    class="status-card flex items-center gap-4 rounded-lg border border-blue-700 bg-blue-200/20 p-3 text-blue-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-blue-100 hover:shadow-lg active:scale-95">
+                    <span class="text-xl group-hover:animate-pulse">⏳</span>
+                    <div class="flex flex-grow items-center justify-between">
+                        <p class="text-lg font-medium">On Progress</p>
+                        <p class="text-right text-xl font-extrabold">{{ $onProgress }}</p>
                     </div>
-                </a>
-            </button>
+                </div>
+            </a>
 
-            {{-- Reject Status --}}
-            <button>
-                <a href="#" class="status-filter" data-status="R">
-                    <div
-                        class="flex items-center gap-4 rounded-lg border border-red-700 bg-red-200/20 p-3 text-red-600">
-                        <span class="text-xl">⛔️</span>
-                        <div class="flex flex-grow items-center justify-between">
-                            <p class="text-lg font-medium">Reject</p>
-                            <p class="text-right text-xl font-extrabold">{{ $reject }}</p>
-                        </div>
+            {{-- Reject --}}
+            <a href="#" class="status-filter group block" data-status="R">
+                <div
+                    class="status-card flex items-center gap-4 rounded-lg border border-red-700 bg-red-200/20 p-3 text-red-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-red-100 hover:shadow-lg active:scale-95">
+                    <span class="text-xl group-hover:animate-pulse">⛔️</span>
+                    <div class="flex flex-grow items-center justify-between">
+                        <p class="text-lg font-medium">Reject</p>
+                        <p class="text-right text-xl font-extrabold">{{ $reject }}</p>
                     </div>
-                </a>
-            </button>
+                </div>
+            </a>
 
-            {{-- Revise / Draft Status --}}
-            <button>
-                <a href="#" class="status-filter" data-status="D">
-                    <div
-                        class="flex items-center gap-4 rounded-lg border border-gray-700 bg-gray-200/20 p-3 text-gray-600 dark:border-white dark:text-white">
-                        <span class="text-xl">✏️</span>
-                        <div class="flex flex-grow items-center justify-between">
-                            <p class="text-lg font-medium">Revise / Draft</p>
-                            <p class="text-right text-xl font-extrabold">{{ $revise }}</p>
-                        </div>
+            {{-- Revise / Draft --}}
+            <a href="#" class="status-filter group block" data-status="D">
+                <div
+                    class="status-card flex items-center gap-4 rounded-lg border border-gray-700 bg-gray-200/20 p-3 text-gray-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-gray-100 hover:shadow-lg active:scale-95 dark:border-white dark:text-white dark:hover:bg-gray-700">
+                    <span class="text-xl group-hover:animate-pulse">✏️</span>
+                    <div class="flex flex-grow items-center justify-between">
+                        <p class="text-lg font-medium">Revise / Draft</p>
+                        <p class="text-right text-xl font-extrabold">{{ $revise }}</p>
                     </div>
-                </a>
-            </button>
+                </div>
+            </a>
 
-            {{-- Completed Status --}}
-            <button>
-                <a href="#" class="status-filter" data-status="C">
-                    <div
-                        class="flex items-center gap-4 rounded-lg border border-green-700 bg-green-200/20 p-3 text-green-600">
-                        <span class="text-xl">✅</span>
-                        <div class="flex flex-grow items-center justify-between">
-                            <p class="text-lg font-medium">Completed</p>
-                            <p class="text-right text-xl font-extrabold">{{ $completed }}</p>
-                        </div>
+            {{-- Completed --}}
+            <a href="#" class="status-filter group block" data-status="C">
+                <div
+                    class="status-card flex items-center gap-4 rounded-lg border border-green-700 bg-green-200/20 p-3 text-green-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-green-100 hover:shadow-lg active:scale-95">
+                    <span class="text-xl group-hover:animate-pulse">✅</span>
+                    <div class="flex flex-grow items-center justify-between">
+                        <p class="text-lg font-medium">Completed</p>
+                        <p class="text-right text-xl font-extrabold">{{ $completed }}</p>
                     </div>
-                </a>
-            </button>
+                </div>
+            </a>
         </div>
         <div class="grid">
             <style>
@@ -428,6 +465,18 @@
                         $('.status-filter').removeClass('active');
                         $(this).addClass('active');
                         table.ajax.reload();
+                    });
+                });
+
+                // Make each .grid-col-1 set independent
+                document.querySelectorAll('.grid-col-1').forEach(grid => {
+                    const filters = grid.querySelectorAll('.status-filter');
+                    filters.forEach(btn => {
+                        btn.addEventListener('click', e => {
+                            e.preventDefault();
+                            filters.forEach(s => s.classList.remove('active'));
+                            btn.classList.add('active');
+                        });
                     });
                 });
             </script>
