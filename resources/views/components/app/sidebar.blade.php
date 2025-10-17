@@ -513,6 +513,46 @@
                                     </ul>
                                 </div>
                             </li>
+                            <li class="bg-linear-to-r @if (in_array(Request::segment(1), ['wos'])) {{ 'from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]' }} @endif mb-0.5 rounded-lg py-2 pl-4 pr-3 last:mb-0"
+                                x-data="{ open: {{ in_array(Request::segment(1), ['wos']) ? 1 : 0 }} }">
+                                <a class="@if (!in_array(Request::segment(1), ['wos'])) {{ 'hover:text-gray-900 dark:hover:text-white' }} @endif block truncate text-gray-800 transition dark:text-gray-100"
+                                    href="#0" @click.prevent="open = !open; sidebarExpanded = true">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center">
+                                            <svg class="@if (in_array(Request::segment(1), ['wos'])) text-violet-500 @else text-gray-400 dark:text-gray-500 @endif shrink-0"
+                                                xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                                stroke-width="1.5" stroke="currentColor" width="16" height="16">
+                                                <path stroke-linecap="round" stroke-linejoin="round"
+                                                    d="M2.25 3h1.386c.51 0 .955.343 1.09.835l.383 1.432M7.5 14.25h9.75m0 0a2.25 2.25 0 1 0 0 4.5 2.25 2.25 0 0 0 0-4.5Zm-9.75 0a2.25 2.25 0 1 0 0 4.5 2.25 2.25 0 0 0 0-4.5Zm9.75 0L18.75 6.75H6.6M6.6 6.75 5.25 3M6.6 6.75h12.15a1.125 1.125 0 0 1 1.107 1.347l-1.005 4.5a1.125 1.125 0 0 1-1.107.903H7.5" />
+                                            </svg>
+
+                                            <span
+                                                class="lg:sidebar-expanded:opacity-100 text-m ml-4 font-medium duration-200 lg:opacity-0 2xl:opacity-100">
+                                                Work Order
+                                            </span>
+                                        </div>
+                                        <div
+                                            class="lg:sidebar-expanded:opacity-100 ml-2 flex shrink-0 duration-200 lg:opacity-0 2xl:opacity-100">
+                                            <svg class="@if (in_array(Request::segment(1), ['wos'])) {{ 'rotate-180' }} @endif ml-1 h-3 w-3 shrink-0 fill-current text-gray-400 dark:text-gray-500"
+                                                :class="open ? 'rotate-180' : 'rotate-0'" viewBox="0 0 12 12">
+                                                <path d="M5.9 11.4L.5 6l1.4-1.4 4 4 4-4L11.3 6z" />
+                                            </svg>
+                                        </div>
+                                    </div>
+                                </a>
+                                <div class="lg:sidebar-expanded:block lg:hidden 2xl:block">
+                                    <ul class="@if (!in_array(Request::segment(1), ['wos'])) {{ 'hidden' }} @endif mt-1 pl-8"
+                                        :class="open ? 'block!' : 'hidden'">
+                                        <li class="mb-1 last:mb-0">
+                                            <a class="@if (Route::is('wos')) {{ 'text-violet-500!' }} @endif block truncate text-gray-500/90 transition hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                                                href="{{ route('wos') }}">
+                                                <span
+                                                    class="lg:sidebar-expanded:opacity-100 text-m font-medium duration-200 lg:opacity-0 2xl:opacity-100">WO List</span>
+                                            </a>
+                                        </li>                                       
+                                    </ul>
+                                </div>
+                            </li>
                         @endif
                     @endauth
                 </ul>

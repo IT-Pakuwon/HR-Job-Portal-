@@ -54,6 +54,7 @@ use App\Http\Controllers\PoListController;
 use App\Http\Controllers\PoController;
 use App\Http\Controllers\ReceiptListController;
 use App\Http\Controllers\ReceiptController;
+use App\Http\Controllers\WoController;
 
 use App\Http\Controllers\CanvassxController;
 
@@ -376,8 +377,6 @@ Route::post('/logout', function () {
     Route::post('/orgchart/change-parent', [StrukturOrgController::class, 'changeParent'])->name('orgchart.change-parent');
     Route::get('/departement/detail/{id}', [StrukturOrgController::class, 'getDepartmentDetail']);
     Route::get('/orgchart/fullscreen/{sto}', [StrukturOrgController::class, 'fullscreen'])->name('orgchart.fullscreen'); 
-
-
     
     Route::get('/changestos', [ChangeStoController::class, 'index'])->name('changestos');
     Route::get('/changestos/json', [ChangeStoController::class, 'json'])->name('changestos.json');
@@ -523,16 +522,6 @@ Route::post('/logout', function () {
     Route::put('/csjobs/remove-attachment/{id}', [CsJobController::class, 'removeAttachment']);
     Route::get('/csjobs/dataset-counts', [CsJobController::class,'CsJobsDatasetCounts'])->name('csjobs.dataset.counts');
 
-
-    
-    // Route::get('/cslist', [CsListController::class, 'index'])->name('cslist');
-    // Route::get('/cslist/my.json',         [CsListController::class, 'jsonMy'])->name('cslist.my.json');
-    // Route::get('/cslist/onprogress.json', [CsListController::class, 'jsonOnprogress'])->name('cslist.onprogress.json');
-    // Route::get('/cslist/rejected.json',   [CsListController::class, 'jsonRejected'])->name('cslist.rejected.json');
-    // Route::get('/cslist/completed.json',  [CsListController::class, 'jsonCompleted'])->name('cslist.completed.json');
-    // Route::get('/cslist/all.json',        [CsListController::class, 'jsonAll'])->name('cslist.all.json');
-    // Route::get('/cslist/counts',          [CsListController::class, 'counts'])->name('cslist.counts');
-
     Route::get('/cslist', [CsListController::class, 'index'])->name('cslist');
     Route::get('/cslist/json', [CsListController::class, 'json'])->name('cslist.json');
 
@@ -603,8 +592,25 @@ Route::post('/logout', function () {
     Route::get('/showreceipt/{hash}', [ReceiptController::class, 'showReceipt']);
     Route::get('/receipt/{id}/comments', [ReceiptController::class, 'fetchComments']);
     Route::post('/receipt/{id}/comments', [ReceiptController::class, 'storeComment']);
-     Route::get('/pdf_receipt/{hash}', [ReceiptController::class, 'printReceipt']);
-     Route::post('/receipts/{id}/approve', [ReceiptController::class, 'approveReceipt'])->name('receipts.approve');
+    Route::get('/pdf_receipt/{hash}', [ReceiptController::class, 'printReceipt']);
+    Route::post('/receipts/{id}/approve', [ReceiptController::class, 'approveReceipt'])->name('receipts.approve');
+
+    Route::get('/wos', [WoController::class, 'index'])->name('wos');
+    Route::get('/wos/json', [WoController::class, 'json'])->name('wos.json');
+    Route::get('/createwos', [WoController::class, 'createWo']);
+    Route::post('/wos', [WoController::class, 'storeWo'])->name('wos.store');
+    Route::get('/showwos/{hash}', [WoController::class, 'showWo']);
+    Route::get('/wo/{id}/comments', [WoController::class, 'fetchComments']);
+    Route::post('/wo/{id}/comments', [WoController::class, 'storeComment']);
+    Route::post('/wo/{id}/approve', [WoController::class, 'approveWo']);
+    Route::post('/wo/{id}/reject', [WoController::class, 'rejectWo']);
+    Route::post('/wo/{id}/revise', [WoController::class, 'reviseWo']);
+    Route::get('/editwos/{hash}', [WoController::class, 'editWo']);
+    Route::put('/wos/{id}', [WoController::class, 'updateWo'])->name('wos.update');
+    Route::put('/wos/remove-attachment/{id}', [WoController::class, 'removeAttachment']);    
+    Route::get('/wo/{id}/check-approval/{action}', [WoController::class, 'checkApproval']);     
+    Route::get('/wos/{id}/tracking', [WoController::class, 'tracking'])->name('wos.tracking');
+    Route::get('/pdf_wos/{hash}', [WOController::class, 'printWo'])->name('wos.print');
 
 
     Route::get('/inventory/list', [MasterController::class, 'InventoryList'])->name('inventory.list');
@@ -614,6 +620,12 @@ Route::post('/logout', function () {
     Route::get('/departments/{cpny_id}', [MasterController::class, 'DepartmentFin'])->name('finance.departments.byCompany');
     Route::get('/coa/by-dept', [MasterController::class, 'CoaBudget'])->name('coa.byDept');   
     Route::get('/uom/by-inventory', [MasterController::class, 'UomInventory'])->name('uom.byInventory');
+    Route::get('/wos/ajax/categories/{categoryid}', [MasterController::class, 'getCategories']);             
+    Route::get('/wos/ajax/worktypes',               [MasterController::class, 'getWorktypes']);              
+    Route::get('/wos/ajax/subworktypes/{worktypeid}', [MasterController::class, 'getSubWorktypes']);         
+    Route::get('/wos/ajax/locations/{cpny_id}',     [MasterController::class, 'getLocations']);              
+    Route::get('/wos/ajax/sublocations/{cpny_id}/{location_id}', [MasterController::class, 'getSubLocations']); 
+
 
     Route::get('/eng/users', [UsersEngController::class, 'index'])->name('userseng');
     Route::get('/eng/users/json', [UsersEngController::class, 'json'])->name('userseng.json');
@@ -635,33 +647,10 @@ Route::post('/logout', function () {
     Route::post('/eng/workscategory/update', [WorksCategoryController::class, 'update'])->name('workscategory.update');
     Route::post('/eng/workscategory/delete/{id}', [WorksCategoryController::class, 'delete']);
 
-    Route::get('/budgets', [BudgetController::class, 'index'])->name('budgets');
-    Route::get('/budgets/json', [BudgetController::class, 'json'])->name('budgets.json');
-    Route::get('/createbudgets', [BudgetController::class, 'createBudget'])->name('budget.create');
-    Route::post('/budgets', [BudgetController::class, 'storeBudget'])->name('budgets.store');
-    // Route::get('/showbudgets/{id}', [BudgetController::class, 'showBudget']);
-    // Route::get('/budget/{id}/comments', [BudgetController::class, 'fetchComments']);
-    // Route::post('/budget/{id}/comments', [BudgetController::class, 'storeComment']);
-    // Route::post('/budget/{id}/approve', [BudgetController::class, 'approveBudget']);
-    // Route::post('/budget/{id}/reject', [BudgetController::class, 'rejectBudget']);
-    // Route::post('/budget/{id}/revise', [BudgetController::class, 'reviseBudget']);
-    // Route::get('/editbudgets/{id}', [BudgetController::class, 'editBudget'])->name('budget.edit');
-    // Route::put('/budgets/{id}', [BudgetController::class, 'updateBudget'])->name('budgets.update');
-    // Route::put('/budgets/remove-attachment/{id}', [BudgetController::class, 'removeAttachment']);    
-    // Route::get('/budget/{id}/check-approval/{action}', [BudgetController::class, 'checkApproval']);   
-    // Route::get('/api/sites/{cpnyid}', [BudgetController::class, 'getSitesByCompany']);
-    // Route::get('/api/job-parent-info/{parentId}/{departementId}/{deptId}', [BudgetController::class, 'getParentJobInfo']);
-    // Route::get('/api/vacant-employees/{deptId}', [BudgetController::class, 'getVacantByTopParent']);  
-    
-
-
-
     Route::get('/canvasssheet', [BudgetController::class, 'CanvassSheet'])->name('canvasssheet');
     Route::get ('/canvass/create', [CanvassxController::class, 'createCS'])->name('canvass.create');
     Route::get('/vendors', [VendorController::class, 'index']);  
-   
-
-    
+       
     // Route for the getting the data feed
     Route::get('/json-data-feed', [DataFeedController::class, 'getDataFeed'])->name('json_data_feed');
 

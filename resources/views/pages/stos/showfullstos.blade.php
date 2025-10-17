@@ -9,11 +9,7 @@
                             <div class="flex w-full flex-col rounded-2xl bg-white shadow-sm dark:bg-gray-800">
 
                                 <!-- Main Content -->
-<<<<<<< Updated upstream
                                 <div>
-=======
-                                <div>                                  
->>>>>>> Stashed changes
                                     <div class="chart-container"></div>
                                     <div id="modalForm"
                                         class="fixed inset-0 z-50 flex hidden items-center justify-center bg-gray-500/10 bg-opacity-50 backdrop-blur-md">
@@ -31,11 +27,7 @@
                                                     class="text-lg text-gray-500">close</button>
 
                                             </div>
-<<<<<<< Updated upstream
 
-=======
-                                          
->>>>>>> Stashed changes
                                             <div id="tab-view" class="tab-content hidden">
                                                 <div class="flex justify-between">
                                                     <h3 class="mb-4 text-lg font-semibold">Employee List</h3>
@@ -43,7 +35,6 @@
                                                     </h4>
                                                 </div>
                                                 <div class="overflow-y-auto" style="max-height: 500px;">
-<<<<<<< Updated upstream
                                                     <table class="w-full border bg-gray-300/10 text-sm text-black">
                                                         <thead>
                                                             <tr class="text-left">
@@ -53,17 +44,6 @@
                                                                 <th class="border px-2 py-1">Jabatan</th>
                                                                 <th class="border px-2 py-1">Foto</th>
                                                                 <th class="border px-2 py-1">Action</th>
-=======
-                                                    <table
-                                                        class="w-full border border-black bg-gray-300/10 text-sm text-black">
-                                                        <thead>
-                                                            <tr class="text-left">
-                                                                <th class="border border-black px-2 py-1">No</th>
-                                                                <th class="border border-black px-2 py-1">Name</th>
-                                                                <th class="border border-black px-2 py-1">Company</th>
-                                                                <th class="border border-black px-2 py-1">Jabatan</th>
-                                                                <th class="border border-black px-2 py-1">Foto</th>
->>>>>>> Stashed changes
                                                             </tr>
                                                         </thead>
                                                         <tbody id="employeeTableBody">
@@ -135,7 +115,7 @@
             <div id="modalJobProfile"
                 class="fixed inset-0 z-50 flex hidden items-center justify-center bg-gray-900/40 backdrop-blur-sm">
                 <div
-                    class="relative max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-lg bg-white p-6 dark:bg-gray-800">
+                    class="relative max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-lg bg-white p-6 shadow-xl dark:bg-gray-800">
                     <div
                         class="mb-4 flex items-center justify-between border-b border-gray-200 pb-4 dark:border-gray-700">
                         <h3 class="text-xl font-semibold text-gray-800 dark:text-white">
@@ -296,13 +276,13 @@
                                         <div style="font-size:12px;color:#333">
                                             <div style="margin-top:10px;">
                                                 ${members.map(m => `
-                                                                                                                                                        <div style="display:flex;align-items:center;margin-bottom:6px;">
-                                                                                                                                                            <img src="${m.image}" style="width:30px;height:30px;border-radius:50%;margin-right:8px;" />
-                                                                                                                                                            <span style="font-size:12px; color:${m.name.toUpperCase() === 'VACANT' ? 'red' : '#000'};">
-                                                                                                                                                                ${m.name} (${m.company})
-                                                                                                                                                            </span>
-                                                                                                                                                        </div>
-                                                                                                                                                    `).join('')}
+                                                                                                                                            <div style="display:flex;align-items:center;margin-bottom:6px;">
+                                                                                                                                                <img src="${m.image}" style="width:30px;height:30px;border-radius:50%;margin-right:8px;" />
+                                                                                                                                                <span style="font-size:12px; color:${m.name.toUpperCase() === 'VACANT' ? 'red' : '#000'};">
+                                                                                                                                                    ${m.name} (${m.company})
+                                                                                                                                                </span>
+                                                                                                                                            </div>
+                                                                                                                                        `).join('')}
                                             </div>
                                         </div>
                                     </div>
@@ -340,11 +320,7 @@
                     alert('Clicked node ID: ' + id); // ganti ini untuk buka modal
                 }
             </script>
-<<<<<<< Updated upstream
 
-=======
-            
->>>>>>> Stashed changes
             <script>
                 function openModal(id) {
                     currentDeptId = id;
@@ -384,7 +360,6 @@
                             employees.forEach((emp, index) => {
                                 html += `
                                 <tr>
-<<<<<<< Updated upstream
                                     <td class="border   px-2 py-1">${index + 1}</td>
                                     <td class="border   px-2 py-1">${emp.employee_name}</td>
                                     <td class="border   px-2 py-1">${emp.employee_company}</td>
@@ -407,15 +382,6 @@
                                             </button>                               
                                         </div>
                                     </td>
-=======
-                                    <td class="border border-black px-2 py-1">${index + 1}</td>
-                                    <td class="border border-black px-2 py-1">${emp.employee_name}</td>
-                                    <td class="border border-black px-2 py-1">${emp.employee_company}</td>
-                                    <td class="border border-black px-2 py-1">${emp.employee_level}</td>
-                                    <td class="border border-black px-2 py-1 text-center">
-                                        <img src="${emp.image || 'https://cdn-icons-png.flaticon.com/512/149/149071.png'}" class="w-25 h-25 rounded-full mx-auto">
-                                    </td>                                    
->>>>>>> Stashed changes
 
                                 </tr>
                             `;

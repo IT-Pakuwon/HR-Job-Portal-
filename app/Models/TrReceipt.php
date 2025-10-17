@@ -45,4 +45,9 @@ class TrReceipt extends Model
         'deleted_at',
         'completed_at',
     ];
+
+    public function creator()
+    {
+        return $this->belongsTo(User::class, 'created_by', 'username');
+    }
 }

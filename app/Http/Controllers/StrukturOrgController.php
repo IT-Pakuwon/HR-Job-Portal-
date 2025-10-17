@@ -37,6 +37,7 @@ use App\Models\StoSubGrading;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
+use Vinkla\Hashids\Facades\Hashids;
 
 
 class StrukturOrgController extends Controller
@@ -65,8 +66,94 @@ class StrukturOrgController extends Controller
 
         return view('pages.stos.stos', compact('all', 'onProgress', 'reject', 'revise', 'completed'));
     }
-    
+
     public function json(Request $request)
+    {
+        // ---- Status filter ----
+        $status = $request->has('status') ? $request->query('status') : 'P';
+
+        // Kolom yang akan dikirim ke front-end (tanpa 'id' mentah)
+        $select = [
+            'id',                // dipakai internal saja untuk di-encode -> hid
+            'sto_id',
+            'sto_date',
+            'cpnyid',
+            'departementid',
+            'user',
+            'created_user',
+            'status',
+        ];
+
+        $base = TrSto::query()->select($select);
+
+        // Status 'D' = gabungan D/H (Revise/Draft)
+        if (!empty($status)) {
+            if ($status === 'D') {
+                $base->whereIn('status', ['D', 'H']);
+            } else {
+                $base->where('status', $status);
+            }
+        }
+
+        // recordsTotal = jumlah setelah constraint dasar (mis. status), sebelum search
+        $recordsTotal = (clone $base)->count();
+
+        // ---- Search ----
+        $search = $request->input('search.value');
+        if ($search) {
+            $base->where(function ($q) use ($search) {
+                $q->where('sto_id', 'like', "%{$search}%")
+                ->orWhere('cpnyid', 'like', "%{$search}%")
+                ->orWhere('departementid', 'like', "%{$search}%")
+                ->orWhere('user', 'like', "%{$search}%")
+                ->orWhere('created_user', 'like', "%{$search}%")
+                ->orWhere('status', 'like', "%{$search}%")
+                ->orWhere('sto_date', 'like', "%{$search}%");
+                // ⚠️ JANGAN cari pakai 'id' mentah, karena kita sembunyikan
+            });
+        }
+
+        // recordsFiltered = jumlah SETELAH search
+        $recordsFiltered = (clone $base)->count();
+
+        // ---- Sorting ----
+        // Sesuaikan urutan ini dengan kolom yang kamu render di DataTables front-end.
+        // Contoh: [0]=DocID(button) -> sort by sto_id, [1]=sto_date, [2]=cpnyid, dst.
+        $columns = ['sto_id', 'sto_date', 'cpnyid', 'departementid', 'user', 'status'];
+        $orderColumnIndex = (int) $request->input('order.0.column', 0);
+        $orderDir = $request->input('order.0.dir', 'desc');
+        $orderColumn = $columns[$orderColumnIndex] ?? 'sto_id';
+        $base->orderBy($orderColumn, $orderDir);
+
+        // ---- Pagination ----
+        $start = (int) $request->input('start', 0);
+        $length = (int) $request->input('length', 10);
+
+        $rows = $base->skip($start)->take($length)->get();
+
+        // ---- Mapping: tambah 'hid', sembunyikan 'id' ----
+        $data = $rows->map(function ($r) {
+            return [
+                'eid'           => Hashids::encode($r->id),
+                'sto_id'        => $r->sto_id,
+                'sto_date'      => optional($r->sto_date)->format('Y-m-d') ?? $r->sto_date,
+                'cpnyid'        => $r->cpnyid,
+                'departementid' => $r->departementid,
+                'user'          => $r->user,
+                'created_user'  => $r->created_user,
+                'status'        => $r->status,
+            ];
+        });
+
+        return response()->json([
+            'draw'            => (int) $request->input('draw', 1),
+            'recordsTotal'    => $recordsTotal,
+            'recordsFiltered' => $recordsFiltered,
+            'data'            => $data,
+        ]);
+    }
+    
+    public function json_xxx(Request $request)
     {
         // DataTables server-side protocol
         $status = $request->has('status') ? $request->query('status') : 'P';
@@ -121,7 +208,7 @@ class StrukturOrgController extends Controller
         $start = intval($request->input('start', 0));
         $length = intval($request->input('length', 10));
         $total = $query->count();
-        $data = $query->skip($start)->take($length)->get();
+        $data = $query->skip($start)->take($length)->get();        
 
         return response()->json([
             'draw' => intval($request->input('draw', 1)),
@@ -311,7 +398,8 @@ class StrukturOrgController extends Controller
                 ->orderby('aprvid','ASC')
                 ->first();
 
-            $id = $sto->id;
+            // $id = $sto->id;
+            $eid = Hashids::encode($sto->id);
             $data = array(
                 'docid' => $t_approval_next->docid,
                 'cpnyid' => $t_approval_next->aprvcpnyid,
@@ -319,7 +407,7 @@ class StrukturOrgController extends Controller
                 'date' => $t_approval_next->aprvdatebefore,
                 'name' => $t_approval_next->created_user,                          
                 'info' => 'Struktur Organisasi New Employee',           
-                'url' => url('/showsto/') . $id
+                'url' => url('/showsto/') . $eid
     
             );
     
@@ -345,8 +433,11 @@ class StrukturOrgController extends Controller
     }
 
     
-    public function editSto(Request $request,$id)
+    public function editSto(Request $request,$hash)
     {
+        $id = Hashids::decode($hash)[0] ?? null;
+        abort_if(!$id, 404);
+
         $user = request()->user();
         $usercpny = Usercpny::where('username', '=', $user->username)
             ->get();
@@ -508,7 +599,9 @@ class StrukturOrgController extends Controller
                 ->orderby('aprvid','ASC')
                 ->first();
 
-            $id = $sto->id;
+            $eid = Hashids::encode($sto->id); 
+
+            // $id = $sto->id;
             $data = array(
                 'docid' => $t_approval_next->docid,
                 'cpnyid' => $t_approval_next->aprvcpnyid,
@@ -516,7 +609,7 @@ class StrukturOrgController extends Controller
                 'date' => $t_approval_next->aprvdatebefore,
                 'name' => $t_approval_next->created_user,                          
                 'info' => 'Struktur Organisasi New Employee',           
-                'url' => url('/showsto/') . $id
+                'url' => url('/showsto/') . $eid
     
             );
     
@@ -554,8 +647,11 @@ class StrukturOrgController extends Controller
     }
  
 
-    public function showSto($id)
+    public function showSto($hash)
     {        
+        $id = Hashids::decode($hash)[0] ?? null;
+        abort_if(!$id, 404);
+       
         $user = Auth::user();       
 
         if (!$user) {
@@ -666,6 +762,8 @@ class StrukturOrgController extends Controller
             ->orderby('aprvid','ASC')
             ->first();
 
+        $eid = Hashids::encode($sto->id);
+
         if ($count_approval <> 1) {
             //update datebefore
             $t_approval_next->aprvdatebefore = $datestamp;
@@ -679,7 +777,7 @@ class StrukturOrgController extends Controller
                 'date' => $t_approval_next->aprvdatebefore,
                 'name' => $t_approval_next->created_user,
                 'info' => 'Struktur Organisasi New Employee',               
-                'url' => url('/showstos/') . $sto->id
+                'url' => url('/showstos/') . $eid
 
             );
 
@@ -741,6 +839,8 @@ class StrukturOrgController extends Controller
             $t_aprv->save();
         }
 
+        $eid = Hashids::encode($sto->id);
+
         //send email 
         $data = array(
             'docid' => $t_approval->docid,
@@ -750,7 +850,7 @@ class StrukturOrgController extends Controller
             'date' => $t_approval->aprvdatebefore,
             'name' => $t_approval->created_user,
             'info' => 'Struktur Organisasi New Employee',               
-            'url' => url('/showstos/') . $sto->id
+            'url' => url('/showstos/') . $eid
 
         );
        
@@ -813,6 +913,8 @@ class StrukturOrgController extends Controller
             $t_aprv->save();
         }
 
+        $eid = Hashids::encode($sto->id);
+
         //send email 
         $data = array(
             'docid' => $t_approval->docid,
@@ -822,7 +924,7 @@ class StrukturOrgController extends Controller
             'date' => $t_approval->aprvdatebefore,
             'name' => $t_approval->created_user,
             'info' => 'Struktur Organisasi New Employee',               
-            'url' => url('/showstos/') . $sto->id
+            'url' => url('/showstos/') . $eid
 
         );
 

@@ -25,7 +25,7 @@ use App\Models\JobpostingQualification;
 use App\Models\AutonbrJobportal;
 use App\Models\ViewCareer;
 use Mail;
-
+use Vinkla\Hashids\Facades\Hashids;
 
 class JobapplicantController extends Controller
 {
@@ -168,14 +168,63 @@ class JobapplicantController extends Controller
             $query->skip($start)->take($length);
         }
 
-        $data = $query->select(
-                'vc.*',
-                DB::raw('IFNULL(vs.total_tags, 0) as total_tags'),
-                DB::raw('IFNULL(vs.matched_count, 0) as matched_count'),
-                DB::raw('IFNULL(vs.match_score_percentage, 0) as match_score_percentage')
-            )
-            ->orderBy($orderBy, $orderDir)
-            ->get();
+        // $data = $query->select(
+        //         'vc.*',
+        //         DB::raw('IFNULL(vs.total_tags, 0) as total_tags'),
+        //         DB::raw('IFNULL(vs.matched_count, 0) as matched_count'),
+        //         DB::raw('IFNULL(vs.match_score_percentage, 0) as match_score_percentage')
+        //     )
+        //     ->orderBy($orderBy, $orderDir)
+        //     ->get();
+        $rows = $query->select([
+            DB::raw('vc.id as _id'),
+            'vc.docid',
+            'vc.apply_date',
+            'vc.fullname',
+            'vc.education_name',
+            'vc.religion',
+            'vc.height',
+            'vc.weight',
+            'vc.company_name',
+            'vc.prev_apply_step',
+            'vc.job_title',
+            'vc.job_level',
+            'vc.status_app',
+            'vc.status',
+            'vc.cpnyid',
+            'vc.created_user',
+            'vc.is_read',
+            DB::raw('IFNULL(vs.total_tags, 0) as total_tags'),
+            DB::raw('IFNULL(vs.matched_count, 0) as matched_count'),
+            DB::raw('IFNULL(vs.match_score_percentage, 0) as match_score_percentage'),
+        ])
+        ->orderBy($orderBy, $orderDir)
+        ->get();
+
+        $data = $rows->map(function ($r) {
+            return [
+                'eid'                    => Hashids::encode($r->_id),
+                'docid'                  => $r->docid,
+                'apply_date'             => $r->apply_date, // bisa diformat Y-m-d jika perlu
+                'fullname'               => $r->fullname,
+                'education_name'         => $r->education_name,
+                'religion'               => $r->religion,
+                'height'                 => $r->height,
+                'weight'                 => $r->weight,
+                'company_name'           => $r->company_name,
+                'prev_apply_step'        => $r->prev_apply_step,
+                'job_title'              => $r->job_title,
+                'job_level'              => $r->job_level,
+                'status_app'             => $r->status_app,
+                'status'                 => $r->status,
+                'cpnyid'                 => $r->cpnyid,
+                'created_user'           => $r->created_user,
+                'is_read'                => $r->is_read,
+                'total_tags'             => (int) $r->total_tags,
+                'matched_count'          => (int) $r->matched_count,
+                'match_score_percentage' => (int) $r->match_score_percentage,
+            ];
+        });
 
         return response()->json([
             'draw'            => intval($request->input('draw')),

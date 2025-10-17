@@ -46,7 +46,7 @@
             <div class="lg:col-span-1">
                 <div class="flex h-full flex-col rounded-xl bg-white dark:bg-gray-800">
                     <header
-                        class="sticky top-0 z-10 flex items-center justify-between rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
+                        class="flex items-center justify-between rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
                         <h1 class="text-xl font-semibold text-gray-800 dark:text-gray-100">
                             🆔 {{ $sto->sto_id }}
                         </h1>
@@ -74,10 +74,10 @@
                         </div>
 
                         <div
-                            class="absolute bottom-4 right-7 flex items-center space-x-2 rounded-xl bg-gray-900/60 p-2 backdrop-blur-sm">
+                            class="absolute bottom-4 right-7 flex items-center space-x-2 rounded-xl bg-gray-900/60 p-2 shadow-xl backdrop-blur-sm">
                             <button
                                 onclick="window.open('{{ route('orgchart.fullscreen', ['sto' => $sto->id]) }}', '_blank')"
-                                class="flex h-10 w-10 items-center justify-center rounded-full bg-blue-600 text-white transition-colors hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                                class="flex h-10 w-10 items-center justify-center rounded-full bg-blue-600 text-white shadow-md transition-colors hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
                                     viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                     <path stroke-linecap="round" stroke-linejoin="round"
@@ -115,7 +115,6 @@
                                                 <thead class="bg-gray-50 dark:bg-gray-700">
                                                     <tr>
                                                         <th
-<<<<<<< Updated upstream
                                                             class="table-header-cell border border-gray-200 dark:border-gray-600 dark:text-gray-200">
                                                             No</th>
                                                         <th
@@ -139,27 +138,6 @@
                                                 </thead>
                                                 <tbody id="employeeTableBody"
                                                     class="divide-y divide-gray-200 border-gray-200 dark:divide-gray-600 dark:border-gray-600 dark:text-gray-300">
-=======
-                                                            class="table-header-cell border border-gray-200 dark:border-gray-600">
-                                                            No</th>
-                                                        <th
-                                                            class="table-header-cell border border-gray-200 dark:border-gray-600">
-                                                            Name</th>
-                                                        <th
-                                                            class="table-header-cell border border-gray-200 dark:border-gray-600">
-                                                            Company</th>
-                                                        <th
-                                                            class="table-header-cell border border-gray-200 dark:border-gray-600">
-                                                            Jabatan
-                                                        </th>
-                                                        <th
-                                                            class="table-header-cell border border-gray-200 dark:border-gray-600">
-                                                            Foto</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody id="employeeTableBody"
-                                                    class="divide-y divide-gray-200 border-gray-200 dark:divide-gray-600">
->>>>>>> Stashed changes
                                                 </tbody>
                                             </table>
                                         </div>
@@ -273,7 +251,7 @@
                                         class="mb-4 flex flex-wrap gap-2 border-b border-gray-200 pb-2 dark:border-gray-700">
                                         @foreach ($levels as $level)
                                             <button @click="tab = '{{ $level }}'"
-                                                :class="{ 'bg-indigo-600 text-white  ': tab === '{{ $level }}', 'text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700': tab !== '{{ $level }}' }"
+                                                :class="{ 'bg-indigo-600 text-white shadow-md': tab === '{{ $level }}', 'text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700': tab !== '{{ $level }}' }"
                                                 class="rounded-md px-4 py-2 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
                                                 {{ $level }}
                                             </button>
@@ -424,7 +402,7 @@
                                         class="flex-1 rounded-lg border border-transparent bg-gray-100 p-3 text-gray-800 transition-all duration-200 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white dark:focus:ring-indigo-400">
                                     <button id="postCommentBtn"
                                         @click="if(newComment.trim()) { comments.push({ text: newComment, user: currentUser }); newComment = ''; }"
-                                        class="hover: rounded-lg bg-indigo-600 px-5 py-3 text-sm font-semibold text-white transition-all duration-200 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 active:scale-95 dark:focus:ring-offset-gray-800">
+                                        class="hover: rounded-lg bg-indigo-600 px-5 py-3 text-sm font-semibold text-white shadow-md transition-all duration-200 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 active:scale-95 dark:focus:ring-offset-gray-800">
                                         Post 🚀
                                     </button>
                                 </div>
@@ -443,6 +421,7 @@
             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
         </svg>
     </div>
+
     <div id="rejectTaskModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50">
         <div class="w-full max-w-md rounded-lg bg-white p-6 dark:bg-gray-700">
             <h2 class="mb-4 text-xl font-semibold text-gray-800 dark:text-white">Reject Task</h2>
@@ -479,7 +458,8 @@
     </div>
     <div id="modalJobProfile"
         class="fixed inset-0 z-50 flex hidden items-center justify-center bg-gray-900/40 backdrop-blur-sm">
-        <div class="relative max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-lg bg-white p-6 dark:bg-gray-800">
+        <div
+            class="relative max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-lg bg-white p-6 shadow-xl dark:bg-gray-800">
             <div class="mb-4 flex items-center justify-between border-b border-gray-200 pb-4 dark:border-gray-700">
                 <h3 class="text-xl font-semibold text-gray-800 dark:text-white">
                     Job Profile <span id="jobLevelLabel"
@@ -864,11 +844,11 @@
             });
         }
     </script>
-
-    <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/lucide.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    {{-- <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/lucide.min.js"></script> --}}
 
     <!-- D3 Org Chart Dependencies -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/d3-org-chart@3.1.0"></script>
     <script src="https://cdn.jsdelivr.net/npm/d3-flextree@2.1.2/build/d3-flextree.js"></script>
@@ -928,23 +908,13 @@
                                 <div style="font-size:12px;color:#333">
                                     <div style="margin-top:10px;">
                                         ${members.map(m => `
-<<<<<<< Updated upstream
-                                                                                                                                                    <div style="display:flex;align-items:center;margin-bottom:6px;">
-                                                                                                                                                        <img src="${m.image}" style="width:30px;height:30px;border-radius:50%;margin-right:8px;" />
-                                                                                                                                                        <span style="font-size:12px; color:${m.name.toUpperCase() === 'VACANT' ? 'red' : '#000'};">
-                                                                                                                                                            ${m.name} (${m.company})
-                                                                                                                                                        </span>
-                                                                                                                                                    </div>
-                                                                                                                                                `).join('')}
-=======
-                                            <div style="display:flex;align-items:center;margin-bottom:6px;">
-                                                <img src="${m.image}" style="width:30px;height:30px;border-radius:50%;margin-right:8px;" />
-                                                <span style="font-size:12px; color:${m.name.toUpperCase() === 'VACANT' ? 'red' : '#000'};">
-                                                    ${m.name} (${m.company})
-                                                </span>
-                                            </div>
-                                        `).join('')}
->>>>>>> Stashed changes
+                                                                                                                                    <div style="display:flex;align-items:center;margin-bottom:6px;">
+                                                                                                                                        <img src="${m.image}" style="width:30px;height:30px;border-radius:50%;margin-right:8px;" />
+                                                                                                                                        <span style="font-size:12px; color:${m.name.toUpperCase() === 'VACANT' ? 'red' : '#000'};">
+                                                                                                                                            ${m.name} (${m.company})
+                                                                                                                                        </span>
+                                                                                                                                    </div>
+                                                                                                                                `).join('')}
                                     </div>
                                 </div>
                             </div>
@@ -1004,7 +974,6 @@
                     let html = '';
                     employees.forEach((emp, index) => {
                         html += `
-<<<<<<< Updated upstream
                         <tr>
                             <td class="border dark:border-gray-700  px-2 py-1">${index + 1}</td>
                             <td class="border dark:border-gray-700  px-2 py-1">${emp.employee_name}</td>
@@ -1031,18 +1000,6 @@
 
                         </tr>
                     `;
-=======
-                                    <tr>
-                                        <td class="border border-gray-200 px-2 py-1">${index + 1}</td>
-                                        <td class="border border-gray-200 px-2 py-1">${emp.employee_name}</td>
-                                        <td class="border border-gray-200 px-2 py-1">${emp.employee_company}</td>
-                                        <td class="border border-gray-200 px-2 py-1">${emp.employee_level}</td>
-                                        <td class="border border-gray-200 px-2 py-1 text-center">
-                                            ${emp.image ? `<img src="${emp.image}" class="w-25 h-25 rounded-full mx-auto">` : '-'}
-                                        </td>                                       
-                                    </tr>
-                                `;
->>>>>>> Stashed changes
                     });
 
 

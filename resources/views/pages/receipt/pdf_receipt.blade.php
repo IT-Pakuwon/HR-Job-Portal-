@@ -35,9 +35,9 @@
                             <td style="width:28mm;">Received From</td>
                             <td style="width:4mm;">:</td>
                             <td>
-                                <div><strong>OFFICE ONE ( VV00001 )</strong></div>
-                                <div>ITC MANGGA DUA, LANTAI 1, BLOK E2 NO.26</div>
-                                <div>KOTA ADM. JAKARTA UTARA 14439</div>
+                                <div><strong>{{ $po->vendorname ?? '' }} ( {{ $po->vendorid ?? '' }} )</strong></div>
+                                <div>{{ $po->vendoralamat ?? ''}}</div>
+                                {{-- <div>KOTA ADM. JAKARTA UTARA 14439</div> --}}
                             </td>
                         </tr>
                     </table>
@@ -48,27 +48,27 @@
                         <tr>
                             <td style="width:28mm;">STTB Nbr</td>
                             <td style="width:4mm;">:</td>
-                            <td>GR25102033</td>
+                            <td>{{ $rcp->receiptnbr ?? '' }}</td>
                         </tr>
                         <tr>
                             <td>Receipt Date</td>
                             <td>:</td>
-                            <td>14/10/2025</td>
+                            <td>{{ $rcp->receiptdate ? \Carbon\Carbon::parse($rcp->receiptdate)->format('d/m/Y') : '' }}</td>
                         </tr>
                         <tr>
                             <td>PO Nbr</td>
                             <td>:</td>
-                            <td>8000006160</td>
+                            <td>{{ $rcp->ponbr ?? '' }}</td>
                         </tr>
                         <tr>
                             <td>SPPB Nbr</td>
                             <td>:</td>
-                            <td>PB25090018</td>
+                            <td>{{ $rcp->sppbjktid ?? '' }}</td>
                         </tr>
                         <tr>
                             <td>Department</td>
                             <td>:</td>
-                            <td>WAREHOUSE ATK</td>
+                            <td>{{ $rcp->department_id ?? '' }}</td>
                         </tr>
                     </table>
                 </td>
@@ -88,31 +88,20 @@
                 </tr>
             </thead>
             <tbody>
-                <tr>
-                    <td style="border:1px solid #000;text-align:center;padding:4px;">1</td>
-                    <td style="border:1px solid #000;padding:4px;">ATK-AMP-1011</td>
-                    <td style="border:1px solid #000;padding:4px;">AMPLOP COKLAT POLOS UKURAN A3<br>( RB25090054 /
-                        RB25090066 )</td>
-                    <td style="border:1px solid #000;text-align:center;padding:4px;">AW</td>
-                    <td style="border:1px solid #000;text-align:center;padding:4px;">PCS</td>
-                    <td style="border:1px solid #000;text-align:center;padding:4px;">200.00</td>
-                </tr>
-                <tr>
-                    <td style="border:1px solid #000;text-align:center;padding:4px;">2</td>
-                    <td style="border:1px solid #000;padding:4px;">ATK-BRD-1001</td>
-                    <td style="border:1px solid #000;padding:4px;">PAPAN JALAN/CLIP BOARD NAMA<br>( RB25090020 )</td>
-                    <td style="border:1px solid #000;text-align:center;padding:4px;">AW</td>
-                    <td style="border:1px solid #000;text-align:center;padding:4px;">PCS</td>
-                    <td style="border:1px solid #000;text-align:center;padding:4px;">1.00</td>
-                </tr>
-                <tr>
-                    <td style="border:1px solid #000;text-align:center;padding:4px;">3</td>
-                    <td style="border:1px solid #000;padding:4px;">ATK-DOC-1006</td>
-                    <td style="border:1px solid:#000;padding:4px;">BOX FILE<br>( RB25090005 )</td>
-                    <td style="border:1px solid:#000;text-align:center;padding:4px;">AW</td>
-                    <td style="border:1px solid:#000;text-align:center;padding:4px;">PCS</td>
-                    <td style="border:1px solid:#000;text-align:center;padding:4px;">5.00</td>
-                </tr>
+                 @php
+                    $nf0 = fn($n) => number_format((float) $n, 0, ',', '.');
+                    $nf2 = fn($n) => number_format((float) $n, 2, ',', '.');
+                @endphp
+                @foreach ($rcpdetails as $i => $item)
+                    <tr>
+                        <td style="border:1px solid #000;text-align:center;padding:4px;">{{ $i + 1 }}</td>
+                        <td style="border:1px solid #000;padding:4px;">{{ $item->inventoryid }}</td>
+                        <td style="border:1px solid #000;padding:4px;">{{ $item->inventory_descr }}</td>
+                        <td style="border:1px solid #000;text-align:center;padding:4px;">{{ $item->siteid }}</td>
+                        <td style="border:1px solid #000;text-align:center;padding:4px;">{{ $item->uom }}</td>
+                        <td style="border:1px solid #000;text-align:center;padding:4px;">{{ $nf2($item->qty_received) }}</td>
+                    </tr>
+                @endforeach               
                 <tr>
                     <td colspan="6" style="border:1px solid #000;height:25mm;">&nbsp;</td>
                 </tr>
@@ -124,9 +113,9 @@
             <tr>
                 <td style="border:1px solid #000;text-align:center;vertical-align:bottom;height:30mm;">
                     <div style="font-weight:600;margin-bottom:18mm;">Input Computer</div>
-                    <div>Arie Wibisono</div>
+                    <div>{{ ucwords(strtolower(optional($rcp->creator)->name)) }}</div>
                     <div style="border-top:1px solid #000;width:60%;margin:6px auto 0;"></div>
-                    <div style="font-size:11px;margin-top:2mm;">14/10/2025</div>
+                    <div style="font-size:11px;margin-top:2mm;">{{ $rcp->receiptdate ? \Carbon\Carbon::parse($rcp->created_at)->format('d/m/Y') : '' }}</div>
                 </td>
                 <td style="border:1px solid #000;text-align:center;vertical-align:bottom;height:30mm;">
                     <div style="font-weight:600;margin-bottom:18mm;">Diterima Oleh</div>
