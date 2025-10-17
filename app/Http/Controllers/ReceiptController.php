@@ -535,13 +535,11 @@ class ReceiptController extends Controller
         if (!$authUser) {
             return redirect()->route('login');
         }
-
-        // ===== HEADER
-        /** @var TrReceipt $rcp */
+        
         $rcp = TrReceipt::findOrFail($id);
 
         // ===== DETAIL
-        $details = TrReceiptdetail::where('receiptnbr', $rcp->receiptnbr)
+        $rcpdetails = TrReceiptdetail::where('receiptnbr', $rcp->receiptnbr)
             ->orderBy('receipt_no')
             ->get();
 
@@ -551,12 +549,14 @@ class ReceiptController extends Controller
         // ===== COMPANY (untuk brand/footnote)
         $company = CompanyPG::where('cpny_id', $rcp->cpny_id)->first();
 
-        $createdName = ucwords(strtolower($authUser->name));
+        // $createdName = ucwords(strtolower($authUser->name));
+        $createdName = ucwords(strtolower(optional($rcp->creator)->name));
+        
         $now = Carbon::now();
 
         $data = [
             'rcp'       => $rcp,
-            'details'   => $details,
+            'rcpdetails'   => $rcpdetails,
             'po'       => $po,
             'company'   => $company,
             'now'       => $now,
@@ -564,7 +564,8 @@ class ReceiptController extends Controller
         ];
 
         // Gunakan satu view khusus receipt
-        $view = 'pages.receipt.pdf_receipt';
+        // $view = 'pages.receipt.pdf_receipt';
+        $view = 'pages.receipt.pdf_bpg';
 
         // 1) render view -> Dompdf
         $pdf = Pdf::loadView($view, $data)->setPaper('A4', 'portrait');
@@ -587,10 +588,11 @@ class ReceiptController extends Controller
 
         $rightWidth = $metrics->getTextWidth($rightTpl, $font, $size);
         $y = $h - 28;               // ~10mm dari bawah (tergantung margin @page)
+        $x = $canvas->get_width() - $w - 75;
 
         // kiri 20px, kanan (w - 20px - textwidth)
-        $canvas->page_text(20, $y, $leftTxt, $font, $size, [0,0,0]);
-        $canvas->page_text($w - 20 - $rightWidth, $y, $rightTpl, $font, $size, [0,0,0]);
+        $canvas->page_text(30, $y, $leftTxt, $font, $size, [0,0,0]);
+        $canvas->page_text($w - $x - $rightWidth, $y, $rightTpl, $font, $size, [0,0,0]);
 
         // 4) Stream
         $basename = 'RCP';

@@ -59,7 +59,7 @@ use App\Models\GroupAccspecific;
 use App\Models\CompanyAddress;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Hash;
-
+use Vinkla\Hashids\Facades\Hashids;
 
 class CareerController extends Controller
 {
@@ -141,8 +141,11 @@ class CareerController extends Controller
     }
 
 
-    public function showCareer($id)
+    public function showCareer($hash)
     {        
+        $id = Hashids::decode($hash)[0] ?? null;
+        abort_if(!$id, 404);
+
         $user = Auth::user();       
 
         if (!$user) {

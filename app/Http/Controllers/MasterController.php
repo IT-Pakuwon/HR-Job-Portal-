@@ -27,9 +27,13 @@ use App\Models\User;
 use App\Models\MsTenant;
 use App\Models\MsVendor;
 use App\Models\MsTax;
+use App\Models\MsCategory;
+use App\Models\MsWorktype;
+use App\Models\MsSubworktype;
 use Illuminate\Support\Str;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Imports\BqDetailTempImport; 
+
 
 class MasterController extends Controller
 {
@@ -572,6 +576,71 @@ class MasterController extends Controller
             'ok' => true,
             'data' => $rows
         ]);
+    }
+
+     // dropdown untuk wotype & worequest dari MsCategory (doctype='WO')
+    public function getCategories(string $categoryid)
+    {
+        $items = MsCategory::query()
+            ->where('doctype', 'WO')
+            ->where('categoryid', $categoryid) // 'wotype' atau 'worequest'
+            ->where('status', 'A')
+            ->orderBy('category_name')
+            ->get(['category_name as text']); // kita kirim text saja, value akan sama
+
+        // hasil: [{text: 'Maintenance'}, ...]
+        return response()->json($items);
+    }
+
+    // daftar worktype (opsional: filter by departementid)
+    public function getWorktypes(Request $request)
+    {
+        $dept = $request->query('departementid'); // kalau kamu punya id, kirim via query
+        $q = MsWorktype::query()->where('status', 'A');       
+
+        $items = $q->orderBy('worktype_name')
+            ->get(['worktypeid as value', 'worktype_name as text']);
+
+        return response()->json($items);
+    }
+
+    public function getSubWorktypes(Request $request, string $worktypeid)
+    {
+        // Ambil doctype dari query (?doctype=WO); default 'WO' untuk safety
+        $doctype = $request->query('doctype', 'SPBB');
+
+        $items = MsSubworktype::query()
+            ->where('worktypeid', $worktypeid)
+            ->where('doctype', $doctype)       // <-- filter doctype
+            ->where('status', 'A')
+            ->orderBy('subworktype_name')
+            ->get(['subworktypeid as value', 'subworktype_name as text']);
+
+        return response()->json($items);
+    }
+
+
+    public function getLocations(string $cpny_id)
+    {
+        $items = MsLocationPG::query()
+            ->where('cpny_id', $cpny_id)
+            ->where('status', 'A')
+            ->orderBy('location_name')
+            ->get(['location_id as value', 'location_name as text']);
+
+        return response()->json($items);
+    }
+
+    public function getSubLocations(string $cpny_id, string $location_id)
+    {
+        $items = MsSubLocationPG::query()
+            ->where('cpny_id', $cpny_id)
+            ->where('location_id', $location_id)
+            ->where('status', 'A')
+            ->orderBy('sub_location_name')
+            ->get(['sub_location_id as value', 'sub_location_name as text']);
+
+        return response()->json($items);
     }
 
 }

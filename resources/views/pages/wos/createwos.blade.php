@@ -1,0 +1,670 @@
+<x-app-layout>
+    <style>
+        .is-invalid {
+            border-color: #ef4444 !important;
+        }
+
+        .error-feedback {
+            display: block;
+            color: #dc2626;
+            font-size: 12px;
+            margin-top: 6px;
+        }
+    </style>
+    <style>
+        .req::after {
+            content: " *";
+            color: #dc2626;
+            font-weight: 700;
+        }
+    </style>
+    <style>
+        /* Overlay full-screen */
+        #loadingSpinnerContainer {
+            position: fixed;
+            inset: 0;
+            display: none;
+            /* akan ditampilkan via JS */
+            background: rgba(17, 24, 39, .55);
+            backdrop-filter: blur(2px);
+            z-index: 2000;
+        }
+
+        /* Kartu spinner di tengah */
+        #loadingSpinnerContainer .loading-card {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            padding: 18px 22px;
+            border-radius: 16px;
+            background: linear-gradient(180deg, rgba(31, 41, 55, .9), rgba(17, 24, 39, .9));
+            border: 1px solid rgba(255, 255, 255, .08);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, .35), inset 0 0 0 1px rgba(255, 255, 255, .04);
+        }
+
+        /* Spinner dual ring */
+        #loadingSpinnerContainer .loading-spinner {
+            width: 54px;
+            height: 54px;
+            border-radius: 50%;
+            border: 4px solid transparent;
+            border-top-color: #6366f1;
+            /* indigo-500 */
+            animation: spin 1s linear infinite;
+            position: relative;
+        }
+
+        #loadingSpinnerContainer .loading-spinner::after {
+            content: "";
+            position: absolute;
+            inset: 6px;
+            border-radius: 50%;
+            border: 4px solid transparent;
+            border-left-color: #a5b4fc;
+            /* indigo-200 */
+            animation: spinReverse .75s linear infinite;
+        }
+
+        #loadingSpinnerContainer .loading-text {
+            color: #e5e7eb;
+            font-weight: 600;
+            letter-spacing: .02em;
+        }
+
+        #loadingSpinnerContainer .loading-ellipsis span {
+            display: inline-block;
+            animation: blink 1.4s infinite both;
+        }
+
+        #loadingSpinnerContainer .loading-ellipsis span:nth-child(2) {
+            animation-delay: .2s;
+        }
+
+        #loadingSpinnerContainer .loading-ellipsis span:nth-child(3) {
+            animation-delay: .4s;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        @keyframes spinReverse {
+            to {
+                transform: rotate(-360deg);
+            }
+        }
+
+        @keyframes blink {
+            0% {
+                opacity: .3;
+                transform: translateY(0);
+            }
+
+            20% {
+                opacity: 1;
+                transform: translateY(-2px);
+            }
+
+            100% {
+                opacity: .3;
+                transform: translateY(0);
+            }
+        }
+    </style>
+
+
+    <div class="max-w-9xl mx-auto w-full px-4 py-4 sm:px-6 lg:px-8">
+        <div class="grid grid-cols-1 gap-8 lg:grid-cols-2 lg:grid-rows-[minmax(0,auto)_1fr]">
+            <div class="flex flex-col gap-8 lg:col-span-2 lg:row-span-1">
+                <form id="woForm" class="flex flex-col gap-4" enctype="multipart/form-data">
+                    @csrf
+                    <div class="w-full rounded-xl bg-white p-6 shadow-md dark:bg-gray-800">
+                        <div class="mb-6 border-b border-gray-200 pb-4 dark:border-gray-700">
+                            <h2 class="text-xl font-extrabold text-gray-800 dark:text-white">Create WO</h2>
+                        </div>
+                        <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
+                            <div class="flex flex-col gap-2">
+                                <label
+                                    class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Company</label>
+                                <select
+                                    class="req w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                    name="cpnyid" required>
+                                    @foreach ($usercpny as $p)
+                                        <option value="{{ $p->cpnyid }}"
+                                            {{ $p->cpnyid == $usercpny2->cpnyid ? 'selected' : '' }}>
+                                            {{ $p->cpnyid }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="flex flex-col gap-2">
+                                <label
+                                    class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Department</label>
+                                <select
+                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                    name="departementid" required>
+                                    @foreach ($userdept as $p)
+                                        <option value="{{ $p->deptname }}"
+                                            {{ $p->deptname == $userdept2->deptname ? 'selected' : '' }}>
+                                            {{ $p->deptname }}</option>
+                                    @endforeach
+                                </select>
+                            </div> 
+                            <!-- WOTYPE (MsCategory: doctype=WO, categoryid=wotype) -->
+                            <div class="flex flex-col gap-2">
+                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">WO Type</label>
+                                <select name="wotype" id="wotype"
+                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                    required>
+                                    <option value="">-- choose --</option>
+                                </select>
+                            </div>
+
+                            <!-- WOREQUEST (MsCategory: doctype=WO, categoryid=worequest) -->
+                            <div class="flex flex-col gap-2">
+                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">WO Request</label>
+                                <select name="worequest" id="worequest"
+                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                    required>
+                                    <option value="">-- choose --</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
+                            <div class="flex flex-col gap-2">
+                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Lokasi</label>
+                                <div class="flex gap-2">
+                                <input type="text" id="lokasi_display"
+                                        class="flex-1 rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-gray-600 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                        placeholder="Pilih Location & Sub Location" readonly>
+                                <button type="button" id="btnLokasi"
+                                        class="rounded-lg bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700">Pilih</button>
+                                </div>
+                                <!-- hidden fields to submit -->
+                                <input type="hidden" name="location_id" id="location_id">
+                                <input type="hidden" name="sub_location_id" id="sub_location_id">
+                            </div>
+
+                            <!-- Jenis pekerjaan (modal trigger) -->
+                            <div class="flex flex-col gap-2">
+                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Jenis Pekerjaan</label>
+                                <div class="flex gap-2">
+                                    <input type="text" id="jenis_pekerjaan_display"
+                                        class="flex-1 rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-gray-600 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                        placeholder="Pilih Worktype & Subworktype" readonly>
+                                    <button type="button" id="btnJenisPekerjaan"
+                                        class="rounded-lg bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700">Pilih</button>
+                                </div>
+                                <!-- hidden fields to submit -->
+                                <input type="hidden" name="worktypeid" id="worktypeid">
+                                <input type="hidden" name="subworktypeid" id="subworktypeid">
+                            </div>
+
+                            <!-- PIC REQUESTER -->
+                            <div class="flex flex-col gap-2">
+                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">PIC Requester</label>
+                                <input type="text" name="picrequester" id="picrequester"
+                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                    value="{{ auth()->user()->username ?? '' }}" required>
+                            </div>
+
+                            <!-- BIAYA WO -->
+                            <div class="flex flex-col gap-2">
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Biaya WO</label>
+                                <input type="number" step="0.01" min="0" name="biaya_wo" id="biaya_wo"
+                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                    placeholder="0.00">
+                            </div>
+                        </div>            
+                       
+                        <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
+                            <div class="flex flex-col gap-2 lg:col-span-4">
+                                <label for="keperluan"
+                                    class="block text-sm font-medium text-gray-700 dark:text-gray-300">Description</label>
+                                <textarea name="keperluan" id="keperluan"
+                                    class="w-full rounded-lg border border-gray-300 bg-white p-3 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                    rows="3"></textarea>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- Modal -->
+                    <div id="modalJenisPekerjaan" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50">
+                        <div class="w-[95vw] max-w-2xl rounded-2xl bg-white p-6 dark:bg-gray-800">
+                            <div class="mb-4 flex items-center justify-between">
+                            <h3 class="text-lg font-semibold text-gray-800 dark:text-white">Pilih Jenis Pekerjaan</h3>
+                            <button type="button" id="closeJenisPekerjaan" class="text-2xl leading-none text-gray-400 hover:text-gray-600">×</button>
+                            </div>
+
+                            <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                            <!-- Kiri: Worktype -->
+                            <div>
+                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Worktype</label>
+                                <select id="modal_worktypeid"
+                                class="mt-1 w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
+                                <option value="">-- choose --</option>
+                                </select>
+                            </div>
+
+                            <!-- Kanan: Subworktype (dependent) -->
+                            <div>
+                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Sub Worktype</label>
+                                <select id="modal_subworktypeid"
+                                class="mt-1 w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
+                                <option value="">-- choose --</option>
+                                </select>
+                            </div>
+                            </div>
+
+                            <div class="mt-6 flex justify-end gap-3">
+                            <button type="button" id="cancelJenisPekerjaan" class="rounded-lg border px-4 py-2 hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700">Cancel</button>
+                            <button type="button" id="saveJenisPekerjaan" class="rounded-lg bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700">Save</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Modal Lokasi -->
+                    <div id="modalLokasi" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50">
+                        <div class="w-[95vw] max-w-2xl rounded-2xl bg-white p-6 dark:bg-gray-800">
+                            <div class="mb-4 flex items-center justify-between">
+                            <h3 class="text-lg font-semibold text-gray-800 dark:text-white">Pilih Lokasi</h3>
+                            <button type="button" id="closeLokasi" class="text-2xl leading-none text-gray-400 hover:text-gray-600">×</button>
+                            </div>
+
+                            <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                            <!-- Kiri: Location -->
+                            <div>
+                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Location</label>
+                                <select id="modal_location_id"
+                                        class="mt-1 w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
+                                <option value="">-- choose --</option>
+                                </select>
+                            </div>
+
+                            <!-- Kanan: Sub Location (dependent) -->
+                            <div>
+                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Sub Location</label>
+                                <select id="modal_sub_location_id"
+                                        class="mt-1 w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
+                                <option value="">-- choose --</option>
+                                </select>
+                            </div>
+                            </div>
+
+                            <div class="mt-6 flex justify-end gap-3">
+                            <button type="button" id="cancelLokasi" class="rounded-lg border px-4 py-2 hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700">Cancel</button>
+                            <button type="button" id="saveLokasi" class="rounded-lg bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700">Save</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- ===== Attachment ===== --}}
+                    <div class="w-full rounded-xl bg-white p-6 shadow-md dark:bg-gray-800">
+                        <details class="group" open>
+                            <summary
+                                class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-xl font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
+                                <span>Attachments</span>
+                                <span class="text-sm font-medium text-gray-500 transition-all group-open:hidden">See
+                                    details &rarr;</span>
+                                <span
+                                    class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline">Hide
+                                    details &darr;</span>
+                            </summary>
+                            <div class="flex flex-col pt-6">
+                                <div id="attachmentsContainer">
+                                    <div class="attachment-row flex items-center gap-2">
+                                        <input type="file" name="attachments[]"
+                                            class="flex-grow rounded-md border border-gray-200 bg-white px-4 py-2 text-sm text-gray-700 file:mr-4 file:rounded-full file:border-0 file:bg-indigo-100 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-indigo-700 hover:file:bg-indigo-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:file:bg-indigo-700 dark:file:text-white dark:hover:file:bg-indigo-600">
+                                        <button type="button"
+                                            class="removeAttachment hidden rounded border border-red-600 bg-red-200/30 p-3 text-red-600 transition-colors hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">🗑️
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <button type="button" id="addAttachment"
+                                class="mt-4 flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 bg-gray-50 px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20"
+                                    fill="currentColor">
+                                    <path fill-rule="evenodd"
+                                        d="M10 2a1 1 0 011 1v6h6a1 1 0 110 2h-6v6a1 1 0 11-2 0v-6H3a1 1 0 110-2h6V3a1 1 0 011-1z"
+                                        clip-rule="evenodd" />
+                                </svg> Add Attachment
+                            </button>
+                        </details>
+
+                        <div class="flex w-full justify-end gap-4 pt-4">
+                            <button type="button" id="cancelBtn"
+                                class="inline-flex items-center justify-center rounded-lg bg-red-600 px-6 py-3 text-base font-semibold text-white shadow-md transition-colors hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">
+                                <span id="cancelText">Cancel</span>
+                                <svg id="cancelSpinner" class="ml-2 hidden h-5 w-5 animate-spin text-white"
+                                    xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10"
+                                        stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+                                </svg>
+                            </button>
+                            <button type="submit" id="submitBtn"
+                                class="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-6 py-3 text-base font-semibold text-white shadow-md transition-colors hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                                <span id="btnText">Submit Approval</span>
+                                <svg id="loadingSpinner" class="ml-2 hidden h-5 w-5 animate-spin text-white"
+                                    xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10"
+                                        stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <div id="successMessage" class="mt-4 hidden font-bold text-green-600 lg:col-span-2">
+                Wo Created Successfully!
+            </div>
+        </div>
+    </div>
+
+    <div id="loadingSpinnerContainer" role="status" aria-live="polite" aria-label="Loading">
+        <div class="loading-card">
+            <div class="loading-spinner"></div>
+            <div class="loading-text">
+                Processing
+                <span class="loading-ellipsis"><span>.</span><span>.</span><span>.</span></span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showOverlay(text = 'Processing') {
+            const $ov = $('#loadingSpinnerContainer');
+            $ov.find('.loading-text').html(
+                (text || 'Processing') +
+                '<span class="loading-ellipsis"><span>.</span><span>.</span><span>.</span></span>'
+            );
+            // pastikan tampil (tetap bisa fadeIn)
+            $ov.stop(true, true).fadeIn(120);
+        }
+
+        function hideOverlay() {
+            $('#loadingSpinnerContainer').stop(true, true).fadeOut(120);
+        }
+    </script>
+
+    <script>
+        $(function () {
+        const $cpny   = $('select[name="cpnyid"]');
+        const $dept   = $('select[name="departementid"]');
+
+        // ====== Load Categories (wotype & worequest) ======
+        function loadCategories($select, categoryid) {
+            $select.empty().append('<option value="">-- choose --</option>');
+            $.getJSON(`/wos/ajax/categories/${categoryid}`, function(list){
+            list.forEach(it => {
+                // value & text sama = category_name
+                $select.append(new Option(it.text, it.text));
+            });
+            });
+        }
+        loadCategories($('#wotype'), 'wotype');
+        loadCategories($('#worequest'), 'worequest');
+
+       
+        // ====== Modal Jenis Pekerjaan ======
+        function openJenisModal(){ $('#modalJenisPekerjaan').removeClass('hidden').addClass('flex'); }
+        function closeJenisModal(){ $('#modalJenisPekerjaan').addClass('hidden').removeClass('flex'); }
+
+        $('#btnJenisPekerjaan').on('click', function(){
+            // load worktypes (optional: kirim departementid sebagai filter)
+            const params = $.param({ departementid: $dept.val() || '' });
+            $('#modal_worktypeid').empty().append('<option value="">-- choose --</option>');
+            $('#modal_subworktypeid').empty().append('<option value="">-- choose --</option>');
+            $.getJSON(`/wos/ajax/worktypes?${params}`, function(list){
+            list.forEach(it => $('#modal_worktypeid').append(new Option(it.text, it.value)));
+            openJenisModal();
+            });
+        });
+
+        $('#closeJenisPekerjaan, #cancelJenisPekerjaan').on('click', closeJenisModal);
+
+        // when worktype selected → load subworktypes
+        // $('#modal_worktypeid').on('change', function(){
+        //     const wt = $(this).val();
+        //     const $sub = $('#modal_subworktypeid');
+        //     $sub.empty().append('<option value="">-- choose --</option>');
+        //     if (!wt) return;
+        //     $.getJSON(`/wos/ajax/subworktypes/${encodeURIComponent(wt)}`, function(list){
+        //     list.forEach(it => $sub.append(new Option(it.text, it.value)));
+        //     });
+        // });
+        // ketika worktype dipilih → load subworktypes (doctype=WO)
+        $('#modal_worktypeid').on('change', function(){
+        const wt = $(this).val();
+        const $sub = $('#modal_subworktypeid');
+        $sub.empty().append('<option value="">-- choose --</option>');
+        if (!wt) return;
+
+        const doctype = 'WO'; // kirim dari view
+        $.getJSON(`/wos/ajax/subworktypes/${encodeURIComponent(wt)}?doctype=${encodeURIComponent(doctype)}`, function(list){
+            list.forEach(it => $sub.append(new Option(it.text, it.value)));
+        });
+        });
+
+
+        // Save modal selection → write to hidden fields
+        $('#saveJenisPekerjaan').on('click', function(){
+            const wtVal = $('#modal_worktypeid').val();
+            const wtTxt = $('#modal_worktypeid option:selected').text();
+            const swVal = $('#modal_subworktypeid').val();
+            const swTxt = $('#modal_subworktypeid option:selected').text();
+
+            if (!wtVal || !swVal) {
+            toastr.error('Pilih Worktype dan Sub Worktype.');
+            return;
+            }
+            $('#worktypeid').val(wtVal);
+            $('#subworktypeid').val(swVal);
+            $('#jenis_pekerjaan_display').val(`${wtTxt} — ${swTxt}`);
+            closeJenisModal();
+        });
+        });
+    </script>
+
+    <script>
+        $(function () {
+        const $cpny = $('select[name="cpnyid"]');
+
+        function openLokasiModal(){ $('#modalLokasi').removeClass('hidden').addClass('flex'); }
+        function closeLokasiModal(){ $('#modalLokasi').addClass('hidden').removeClass('flex'); }
+
+        // buka modal & load locations berdasarkan company
+        $('#btnLokasi').on('click', function(){
+            const cpny = $cpny.val();
+            if (!cpny) {
+            toastr.error('Pilih Company terlebih dahulu.');
+            return;
+            }
+            // reset
+            $('#modal_location_id').empty().append('<option value="">-- choose --</option>');
+            $('#modal_sub_location_id').empty().append('<option value="">-- choose --</option>');
+            // load locations
+            $.getJSON(`/wos/ajax/locations/${encodeURIComponent(cpny)}`, function(list){
+            list.forEach(it => $('#modal_location_id').append(new Option(it.text, it.value)));
+            openLokasiModal();
+            });
+        });
+
+        $('#closeLokasi, #cancelLokasi').on('click', closeLokasiModal);
+
+        // ketika pilih location -> load sub locations
+        $('#modal_location_id').on('change', function(){
+            const cpny = $cpny.val();
+            const loc  = $(this).val();
+            const $sub = $('#modal_sub_location_id');
+            $sub.empty().append('<option value="">-- choose --</option>');
+            if (!cpny || !loc) return;
+            $.getJSON(`/wos/ajax/sublocations/${encodeURIComponent(cpny)}/${encodeURIComponent(loc)}`, function(list){
+            list.forEach(it => $sub.append(new Option(it.text, it.value)));
+            });
+        });
+
+        // simpan pilihan -> tulis ke hidden & display
+        $('#saveLokasi').on('click', function(){
+            const locVal = $('#modal_location_id').val();
+            const locTxt = $('#modal_location_id option:selected').text();
+            const subVal = $('#modal_sub_location_id').val();
+            const subTxt = $('#modal_sub_location_id option:selected').text();
+
+            if (!locVal || !subVal) {
+            toastr.error('Pilih Location dan Sub Location.');
+            return;
+            }
+            $('#location_id').val(locVal);
+            $('#sub_location_id').val(subVal);
+            $('#lokasi_display').val(`${locTxt} — ${subTxt}`);
+            closeLokasiModal();
+        });
+
+        // jika company berubah, kosongkan pilihan lokasi sebelumnya (karena depend on cpny)
+        $cpny.on('change', function(){
+            $('#location_id, #sub_location_id, #lokasi_display').val('');
+        });
+        });
+    </script>
+
+    <script>
+        $(function(){
+        function clearAllErrors(scope = '#woForm') {
+            $(scope).find('.is-invalid').removeClass('is-invalid').removeAttr('aria-invalid');
+            $(scope).find('.error-feedback').remove();
+        }
+        function addError($el, message) {
+            if (!$el || !$el.length) return;
+            $el.addClass('is-invalid').attr('aria-invalid', 'true');
+            if ($el.next('.error-feedback').length === 0) {
+            $el.after('<small class="error-feedback">' + message + '</small>');
+            }
+        }
+
+        $('#woForm').on('submit', function(e){
+            e.preventDefault();
+            clearAllErrors();
+
+            const $cpny = $('select[name="cpnyid"]');
+            const $dept = $('select[name="departementid"]');
+            const $wotype = $('#wotype');
+            const $worequest = $('#worequest');
+            const $wt = $('#worktypeid');
+            const $swt = $('#subworktypeid');
+            const $loc = $('#location_id');
+            const $subloc = $('#sub_location_id');
+            const $pic = $('#picrequester');
+            const $biaya = $('#biaya_wo');
+
+            let ok = true;
+            if(!$cpny.val())     { addError($cpny, 'Company wajib.'); ok=false; }
+            if(!$dept.val())     { addError($dept, 'Department wajib.'); ok=false; }
+            if(!$wotype.val())   { addError($wotype, 'WO Type wajib.'); ok=false; }
+            if(!$worequest.val()){ addError($worequest, 'WO Request wajib.'); ok=false; }
+            if(!$wt.val())       { addError($('#jenis_pekerjaan_display'), 'Pilih Worktype.'); ok=false; }
+            if(!$swt.val())      { addError($('#jenis_pekerjaan_display'), 'Pilih Sub Worktype.'); ok=false; }
+            if(!$loc.val())      { addError($loc, 'Location wajib.'); ok=false; }
+            if(!$subloc.val())   { addError($subloc, 'Sub Location wajib.'); ok=false; }
+            if(!$pic.val())      { addError($pic, 'PIC Requester wajib.'); ok=false; }
+            if($biaya.val() && isNaN(parseFloat($biaya.val()))) {
+                addError($biaya, 'Biaya WO tidak valid.'); ok=false;
+            }
+
+            if(!ok){
+            toastr.error('Mohon lengkapi input yang wajib.');
+            const $first = $('#woForm .is-invalid').first();
+            if ($first.length) $('html,body').animate({scrollTop: $first.offset().top - 120}, 300);
+            return;
+            }
+
+            $('#submitBtn').prop('disabled', true);
+            $('#cancelBtn').prop('disabled', true);
+            $('#btnText').text('Processing...');
+            showOverlay('Submitting');
+
+            const formData = new FormData(document.getElementById('woForm'));
+            $.ajax({
+            url: "{{ route('wos.store') }}",
+            type: "POST",
+            data: formData,
+            processData: false,
+            contentType: false
+            })
+            .done(function(res){
+            toastr.success(res.message || "WO created successfully!");
+            window.location.href = "/wos";
+            })
+            .fail(function(xhr){
+            if (xhr.status === 422 && xhr.responseJSON?.errors) {
+                let msg = 'Mohon periksa input:<br>';
+                Object.keys(xhr.responseJSON.errors).forEach(k => {
+                msg += `- ${xhr.responseJSON.errors[k].join(', ')}<br>`;
+                });
+                toastr.error(msg);
+            } else if (xhr.responseJSON?.message) {
+                toastr.error(xhr.responseJSON.message);
+            } else {
+                toastr.error('Error! Please check the input.');
+            }
+            })
+            .always(function(){
+            $('#submitBtn').prop('disabled', false);
+            $('#cancelBtn').prop('disabled', false);
+            $('#btnText').text('Submit Approval');
+            hideOverlay();
+            });
+        });
+        });
+        </script>
+
+
+    <script>
+        // ===== Attachment =====
+        $(document).ready(function() {
+            // Fungsi Tambah Attachment
+            $('#addAttachment').click(function() {
+                $('#attachmentsContainer').append(`
+            <div class="attachment-row flex items-center gap-2">
+                <input type="file" name="attachments[]" class="mt-2 flex-grow rounded-md border border-gray-200 bg-white px-4 py-2 text-sm text-gray-700 file:mr-4 file:rounded-full file:border-0 file:bg-indigo-100 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-indigo-700 hover:file:bg-indigo-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:file:bg-indigo-700 dark:file:text-white dark:hover:file:bg-indigo-600">
+                    <button type="button" class="removeAttachment rounded border border-red-600 bg-red-200/30 p-3 text-red-600 transition hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">🗑️</button>
+            </div>
+        `);
+                toggleDeleteButton();
+            });
+
+            // Fungsi Hapus Attachment
+            $(document).on('click', '.removeAttachment', function() {
+                $(this).closest('.attachment-row').remove();
+                toggleDeleteButton();
+            });
+
+            // Fungsi untuk Menampilkan atau Menyembunyikan Tombol Delete
+            function toggleDeleteButton() {
+                if ($('.attachment-row').length > 1) {
+                    $('.removeAttachment').removeClass('hidden');
+                } else {
+                    $('.removeAttachment').addClass('hidden');
+                }
+            }
+        });
+    </script>
+
+ 
+
+    <!-- Toastr CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+    <!-- Toastr JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+
+</x-app-layout>
