@@ -111,9 +111,25 @@
     }
 
     /* Signature / approval table */
+    /* === Signature / approval table (with border) === */
+    .sig-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 12px;
+    }
+
+    .sig-table th,
     .sig-table td {
+        border: 1px solid #000;
+        padding: 6px;
+        vertical-align: top;
         font-size: 11px;
+    }
+
+    .sig-table th {
+        background: #f7f7f7;
         text-align: left;
+        font-weight: bold;
     }
 
     .sig-name {

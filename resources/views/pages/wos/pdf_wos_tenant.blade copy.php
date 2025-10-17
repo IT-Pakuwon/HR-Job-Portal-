@@ -170,35 +170,23 @@
 <table class="meta-table">
     <tbody>
         <tr>
-            <td class="meta-label">{{ $doc_type }} No </td>
+            <td class="meta-label">{{ $doc_type }} No</td>
             <td>{{ $docid }}</td>
             <td class="meta-label">Name</td>
             <td>{{ $created_by_name ?? $created_by_username }}</td>
         </tr>
         <tr>
             <td class="meta-label">{{ $doc_type }} Date</td>
-            <td>{{ $sppkdate }}</td>
+            <td>{{ $wodate }}</td>
             <td class="meta-label">Department</td>
             <td>{{ $department_id }}</td>
         </tr>
-        <tr>
-            <td class="meta-label">Request Type</td>
-            <td>{{ $requesttype_name }}</td>
-            <td class="meta-label">No Polisi</td>
-            <td>{{ $no_polisi }}</td>
-        </tr>
-        @if (!empty($namakendaraan))
+        @if (!empty($requesttype_name))
             <tr>
-                <td class="meta-label">Nama Kendaraan</td>
-                <td colspan="3">{{ $namakendaraan }}</td>
+                <td class="meta-label">Request Type</td>
+                <td colspan="3">{{ $requesttype_name }}</td>
             </tr>
         @endif
-        <tr>
-            <td class="meta-label">Pemilik</td>
-            <td>{{ $pemilikkendaraan }}</td>
-            <td class="meta-label">KM</td>
-            <td>{{ $km_kendaraan }}</td>
-        </tr>
     </tbody>
 </table>
 
@@ -212,36 +200,6 @@
 </table>
 
 
-<table style="width:100%; border-collapse:collapse; border:1px solid #000;">
-    <thead>
-        <tr>
-            <th style="text-align:center; width:15px;">No</th>
-            <th style="text-align:center; width:100px;">InventoryID</th>
-            <th style="text-align:center;">Description</th>
-            <th style="text-align:center; width:20px;">Qty</th>
-            <th style="text-align:center; width:20px;">UoM</th>
-            <th style="text-align:center; width:100px;">Location</th>
-            <th style="text-align:center; width:100px;">Sub Location</th>
-        </tr>
-    </thead>
-    <tbody>
-        @forelse($detail as $i => $dt)
-            <tr>
-                <td style="text-align:center;">{{ $i + 1 }}</td>
-                <td>{{ $dt->inventoryid }}</td>
-                <td>{{ $dt->inventory_descr }}</td>
-                <td style="text-align:right;">{{ number_format((float) $dt->qty, 2) }}</td>
-                <td style="text-align:center;">{{ $dt->uom }}</td>
-                <td>{{ optional($dt->location)->location_name }}</td>
-                <td>{{ optional($dt->subLocation)->sub_location_name }}</td>
-            </tr>
-        @empty
-            <tr>
-                <td colspan="7" style="text-align:center;">No items.</td>
-            </tr>
-        @endforelse
-    </tbody>
-</table>
 
 
 

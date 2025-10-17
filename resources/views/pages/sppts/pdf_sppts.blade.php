@@ -111,9 +111,25 @@
     }
 
     /* Signature / approval table */
+    /* === Signature / approval table (with border) === */
+    .sig-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 12px;
+    }
+
+    .sig-table th,
     .sig-table td {
+        border: 1px solid #000;
+        padding: 6px;
+        vertical-align: top;
         font-size: 11px;
+    }
+
+    .sig-table th {
+        background: #f7f7f7;
         text-align: left;
+        font-weight: bold;
     }
 
     .sig-name {
@@ -172,19 +188,19 @@
             <td class="meta-label">BQ No</td>
             <td>{{ $bqid }}</td>
         </tr>
-         <tr>
+        <tr>
             <td class="meta-label">Tenant</td>
             <td>{{ $nama_tenant }}</td>
             <td class="meta-label">Lantai - Unit</td>
             <td>{{ $no_unit_tenant }}</td>
         </tr>
-         <tr>
+        <tr>
             <td class="meta-label">Pic</td>
             <td>{{ $pic_pengawas }}</td>
             <td class="meta-label">Kondisi Unit</td>
             <td>{{ $condition_unit }}</td>
         </tr>
-         <tr>
+        <tr>
             <td class="meta-label">Beban</td>
             <td>{{ $beban }}</td>
             <td class="meta-label"></td>

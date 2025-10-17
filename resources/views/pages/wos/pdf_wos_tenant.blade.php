@@ -1,264 +1,246 @@
-<style>
-    body {
-        font-family: Arial, sans-serif;
-        font-size: 12px;
-        color: #000;
-    }
+<!DOCTYPE html>
+<html lang="en">
 
-    h2 {
-        margin: 0;
-        font-size: 16px;
-        text-align: center;
-        font-weight: bold;
-    }
+<head>
+    <meta charset="UTF-8">
+    <title>Work Order (WO) Daily</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 12mm;
+        }
 
-    .subtitle {
-        text-align: center;
-        font-size: 13px;
-        margin-bottom: 12px;
-    }
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 11px;
+            color: #000;
+            line-height: 1.4;
+        }
 
-    /* General table */
-    table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-bottom: 12px;
-    }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
 
-    th,
-    td {
-        border: 1px solid #000;
-        padding: 6px;
-        vertical-align: top;
-        font-size: 11px;
-    }
+        td {
+            vertical-align: top;
+            padding: 2px 4px;
+        }
 
-    th {
-        text-align: center;
-        background: #f7f7f7;
-        font-weight: bold;
-    }
+        .header-table td {
+            font-size: 12px;
+        }
 
-    .meta-table {
-        width: 100%;
-        border-collapse: collapse;
-        table-layout: fixed;
-    }
+        .title {
+            font-size: 16px;
+            font-weight: bold;
+            text-align: center;
+        }
 
-    .meta-table td {
-        border: 1px solid #000;
-        padding: 6px;
-        font-size: 12px;
-        vertical-align: top;
-        word-wrap: break-word;
-        /* old browser */
-        white-space: normal;
-        /* modern browser */
-    }
+        .subtitle {
+            text-align: center;
+            font-size: 13px;
+            font-weight: bold;
+        }
 
-    .meta-label {
-        width: 140px;
-        font-weight: bold;
-    }
+        .border-top {
+            border-top: 1px solid #000;
+        }
 
-    .items-table {
-        width: 100%;
-        border-collapse: collapse;
-        table-layout: fixed;
-        /* biar wrap jalan */
-    }
+        .border-bottom {
+            border-bottom: 1px solid #000;
+        }
 
-    .items-table th,
-    .items-table td {
-        border: 1px solid #000;
-        padding: 6px;
-        font-size: 12px;
-        vertical-align: top;
-        word-wrap: break-word;
-        white-space: normal;
-        text-align: left;
-        /* semua rata kiri */
-    }
+        .spacer {
+            height: 8px;
+        }
 
-    .items-table th:nth-child(1),
-    .items-table td:nth-child(1) {
-        text-align: center;
-    }
+        .section {
+            margin-top: 6px;
+        }
 
-    .items-table th:nth-child(2),
-    .items-table td:nth-child(2) {
-        width: 100px;
-    }
+        /* Info table structure */
+        .info-table td {
+            padding: 2px 4px;
+        }
 
-    .items-table th:nth-child(4),
-    .items-table td:nth-child(4) {
-        width: 60px;
-    }
+        .info-table td:first-child {
+            width: 100px;
+        }
 
-    .items-table th:nth-child(5),
-    .items-table td:nth-child(5) {
-        width: 60px;
-    }
+        .info-table td:nth-child(2) {
+            width: 10px;
+        }
 
-    .items-table th:nth-child(6),
-    .items-table td:nth-child(6) {
-        width: 120px;
-    }
+        /* Estimation section */
+        .estimation-table td {
+            padding: 3px 4px;
+        }
 
-    .items-table th:nth-child(7),
-    .items-table td:nth-child(7) {
-        width: 140px;
-    }
+        .estimation-table td:first-child {
+            width: 260px;
+            font-weight: bold;
+        }
 
-    /* Signature / approval table */
-    .sig-table td {
-        font-size: 11px;
-        text-align: left;
-    }
+        .text-center {
+            text-align: center;
+        }
 
-    .sig-name {
-        font-weight: bold;
-    }
+        /* Signature Section */
+        .signature-table {
+            width: 100%;
+            margin-top: 40px;
+            text-align: center;
+            border-collapse: collapse;
+        }
 
-    .sig-status {
-        margin: 2px 0;
-        font-size: 11px;
-    }
+        .signature-table td {
+            font-size: 12px;
+            vertical-align: bottom;
+            padding: 6px;
+        }
 
-    .sig-num {
-        font-weight: bold;
-        margin-right: 4px;
-    }
+        .signature-table td strong {
+            font-weight: bold;
+        }
+    </style>
+</head>
 
-    .status {
-        font-weight: bold;
-    }
+<body>
 
-    .status.blue {
-        color: blue;
-    }
-
-    .status.red {
-        color: red;
-    }
-
-    .status.orange {
-        color: orange;
-    }
-</style>
-
-<h2 style="text-align:center"><span style="font-size:16px"><strong>{{ $title }}</strong></span></h2>
-<p style="text-align:center">{{ $cpnyname }}</p>
-
-
-<table class="meta-table">
-    <tbody>
+    <!-- Header -->
+    <table class="header-table">
         <tr>
-            <td class="meta-label">{{ $doc_type }} No</td>
-            <td>{{ $docid }}</td>
-            <td class="meta-label">Name</td>
-            <td>{{ $created_by_name ?? $created_by_username }}</td>
+            <td style="width: 33%;"><strong>AW - Artisan Wahyu, PT</strong></td>
+            <td style="width: 34%; text-align: center; vertical-align: middle;">
+                <div class="title">Work Order (WO)</div>
+                <div class="subtitle">Daily</div>
+            </td>
+            <td style="width: 33%;">
+                <table>
+                    <tr>
+                        <td>WO ID</td>
+                        <td>:</td>
+                        <td>WO20070004</td>
+                    </tr>
+                    <tr>
+                        <td>Date</td>
+                        <td>:</td>
+                        <td>7/27/2020</td>
+                    </tr>
+                    <tr>
+                        <td>Status WO</td>
+                        <td>:</td>
+                        <td>Completed</td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+
+    <div class="spacer"></div>
+    <div class="border-top"></div>
+
+    <!-- Info Section -->
+    <table class="info-table section">
+        <tr>
+            <td>User</td>
+            <td>:</td>
+            <td>Ade Fahmi</td>
+            <td>Cnpy ID</td>
+            <td>:</td>
+            <td>AW</td>
+            <td>Department</td>
+            <td>:</td>
+            <td>ENGINEERING DEPT</td>
         </tr>
         <tr>
-            <td class="meta-label">{{ $doc_type }} Date</td>
-            <td>{{ $wodate }}</td>
-            <td class="meta-label">Department</td>
-            <td>{{ $department_id }}</td>
+            <td>Tipe</td>
+            <td>:</td>
+            <td>Tenant</td>
+            <td>Request</td>
+            <td>:</td>
+            <td>AW - Artisan Wahyu, PT</td>
+            <td>PIC</td>
+            <td>:</td>
+            <td>Ade Fahmi</td>
         </tr>
-        @if (!empty($requesttype_name))
-            <tr>
-                <td class="meta-label">Request Type</td>
-                <td colspan="3">{{ $requesttype_name }}</td>
-            </tr>
-        @endif
-    </tbody>
-</table>
-
-<table class="meta-table">
-    <tbody>
         <tr>
-            <td class="meta-label">Keperluan</td>
-            <td colspan="3">{{ $keperluan }}</td>
+            <td>Jenis Pekerjaan</td>
+            <td>:</td>
+            <td>MEP</td>
+            <td>Sub Jenis Pekerjaan</td>
+            <td>:</td>
+            <td>Electrical</td>
+            <td>Biaya WO</td>
+            <td>:</td>
+            <td></td>
         </tr>
-    </tbody>
-</table>
-
-
-
-
-
-{{-- Approvals --}}
-@php
-    $stColor = match (true) {
-        in_array($status_doc, ['Approved', 'Completed']) => 'blue',
-        in_array($status_doc, ['Rejected', 'Cancel']) => 'red',
-        $status_doc === 'Hold' => 'orange',
-        default => 'black',
-    };
-
-    $colsPerRow = $approve_count > 5 ? 4 : 3;
-    $chunks = $approval->values()->chunk($colsPerRow);
-    $idx = 1;
-    $totalCols = 1 + $colsPerRow;
-@endphp
-
-<table class="sig-table">
-    <thead>
         <tr>
-            <th colspan="{{ $totalCols }}" style="text-align: left;">
-                Status: <span class="status {{ $stColor }}">{{ $status_doc }}</span>
-            </th>
+            <td>Lokasi</td>
+            <td>:</td>
+            <td>LANTAI 2</td>
+            <td>Sub Lokasi</td>
+            <td>:</td>
+            <td>MSCP</td>
+            <td colspan="3"></td>
         </tr>
-    </thead>
-    <tbody>
-        @forelse($chunks as $rowIndex => $chunk)
-            <tr>
-                @if ($rowIndex === 0)
-                    <td rowspan="{{ $chunks->count() }}" style="width:160px;">
-                        <div class="sig-name">{{ $created_by_name ?? $created_by_username }}</div>
-                        <div class="sig-status blue">Created</div>
-                        <div>{{ $req_date_fmt }}</div>
-                    </td>
-                @endif
+        <tr>
+            <td>Info Pekerjaan</td>
+            <td>:</td>
+            <td colspan="7">Penggantian lampu yang padam di area MSCP (WO susulan)</td>
+        </tr>
+    </table>
 
-                @foreach ($chunk as $dt2)
-                    @php
-                        $label = match ($dt2->status) {
-                            'A' => 'Approved',
-                            'R' => 'Rejected',
-                            'P' => 'Waiting',
-                            default => 'Revised',
-                        };
-                        $color = match ($dt2->status) {
-                            'A' => 'blue',
-                            'R' => 'red',
-                            'P' => 'orange',
-                            default => 'red',
-                        };
-                        $dateStr = $dt2->aprvdateafter
-                            ? \Carbon\Carbon::parse($dt2->aprvdateafter)->format('d M Y H:i')
-                            : '';
-                    @endphp
-                    <td>
-                        <div><span class="sig-num">{{ $idx++ }}.</span><span
-                                class="sig-name">{{ $dt2->name }}</span></div>
-                        <div class="sig-status {{ $color }}">{{ $label }}</div>
-                        <div>{{ $dateStr }}</div>
-                    </td>
-                @endforeach
+    <div class="border-bottom"></div>
 
-                @for ($i = $chunk->count(); $i < $colsPerRow; $i++)
-                    <td>&nbsp;</td>
-                @endfor
-            </tr>
-        @empty
-            <tr>
-                <td>
-                    <div class="sig-name">{{ $created_by_name ?? $created_by_username }}</div>
-                    <div class="sig-status blue">Created</div>
-                    <div>{{ $req_date_fmt }}</div>
-                </td>
-            </tr>
-        @endforelse
-    </tbody>
-</table>
+    <!-- Estimation / Realization -->
+    <table class="estimation-table section">
+        <tr>
+            <td>Estimasi Pekerjaan Work Order</td>
+            <td>:</td>
+            <td>1/1/1901</td>
+            <td class="text-center">s/d</td>
+            <td>1/1/1901</td>
+        </tr>
+        <tr>
+            <td>Realisasi Pekerjaan Work Order</td>
+            <td>:</td>
+            <td>1/1/1901</td>
+            <td class="text-center">s/d</td>
+            <td>1/1/1901</td>
+        </tr>
+    </table>
+
+    <div class="border-bottom"></div>
+
+    <!-- Signature Section -->
+    <table style="width:100%; margin-top:50px; text-align:center; border-collapse:collapse;">
+        <tr>
+            <td style="width:33%; font-weight:bold;">Diminta Oleh</td>
+            <td style="width:33%; font-weight:bold;">Diselesaikan Oleh</td>
+            <td style="width:33%; font-weight:bold;">Dicek Oleh</td>
+        </tr>
+
+        <tr>
+            <td style="height:70px;"></td>
+            <td></td>
+            <td></td>
+        </tr>
+
+        <tr>
+            <td style="letter-spacing:3px;">(
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                )</td>
+            <td style="letter-spacing:3px;">(
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                )</td>
+            <td>(
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<strong>Tenant</strong>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                )</td>
+        </tr>
+    </table>
+
+</body>
+
+</html>
