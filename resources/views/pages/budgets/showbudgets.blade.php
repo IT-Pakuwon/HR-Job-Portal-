@@ -198,10 +198,19 @@
                                 default => 'bg-gray-100 text-gray-700 dark:bg-gray-800/30 dark:text-gray-300',
                             };
                         @endphp
+                        <div class="flex items-center gap-3">
                         <span
                             class="{{ $statusClasses }} inline-flex items-center rounded-full px-4 py-1 text-sm font-semibold transition-colors duration-200">
                             {{ $statusText }}
+
+                            <a href="{{ url('/pdf_budgets') }}/{{ $hash }}" target="_blank">
+                                <button
+                                    class="inline-flex cursor-pointer items-center gap-2 rounded-full bg-indigo-600 px-4 py-1 text-sm font-semibold text-white transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                                    Print PDF
+                                </button>
+                            </a>
                         </span>
+                        </div>
                     </header>
                     <!-- Main Content -->
                     <div class="space-y-4 p-4">

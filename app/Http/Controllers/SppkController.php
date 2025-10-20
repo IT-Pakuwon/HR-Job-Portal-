@@ -26,6 +26,11 @@ use Mail;
 use Illuminate\Support\Facades\Log;
 use PDF;
 use Vinkla\Hashids\Facades\Hashids;
+use App\Http\Controllers\TrAttachmentController;
+use Illuminate\Support\Facades\Response;
+use App\Models\TrAttachment;
+use Illuminate\Support\Str;
+use Google\Cloud\Storage\StorageClient;
 
 class SppkController extends Controller
 {
@@ -381,38 +386,66 @@ class SppkController extends Controller
             }
 
             // === 5) attachments (opsional) ===
-            if ($request->hasfile('attachments')) {
-                foreach ($request->file('attachments') as $file) {
-                    $randomNumber = random_int(10000000, 99999999);
-                    $filename = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+            // if ($request->hasfile('attachments')) {
+            //     foreach ($request->file('attachments') as $file) {
+            //         $randomNumber = random_int(10000000, 99999999);
+            //         $filename = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
                    
-                    $originalName = str_replace('%', '', $file->getClientOriginalName());
-                    $ext        = $file->getClientOriginalExtension();
-                    $attachfile = md5($randomNumber) . '.' . $ext;
+            //         $originalName = str_replace('%', '', $file->getClientOriginalName());
+            //         $ext        = $file->getClientOriginalExtension();
+            //         $attachfile = md5($randomNumber) . '.' . $ext;
 
-                    //attach to folder
-                    $folder_attach = public_path() . '/attachments/'.$year;
-                    $config['upload_path'] = $folder_attach;                   
-                    if(!is_dir($folder_attach))
-                    {
-                        mkdir($folder_attach, 0777);
-                    }
+            //         //attach to folder
+            //         $folder_attach = public_path() . '/attachments/'.$year;
+            //         $config['upload_path'] = $folder_attach;                   
+            //         if(!is_dir($folder_attach))
+            //         {
+            //             mkdir($folder_attach, 0777);
+            //         }
                     
-                    $folder_upload = $folder_attach;
-                    // $folder_upload = public_path() . '/attachments';
-                    $file->move($folder_upload, $attachfile);
+            //         $folder_upload = $folder_attach;
+            //         // $folder_upload = public_path() . '/attachments';
+            //         $file->move($folder_upload, $attachfile);
 
-                    //insert to table attachments
-                    $attach = new Attachment();
-                    $attach->docid = $docid;
-                    $attach->name = $filename;
-                    $attach->attachfile = $attachfile;
-                    $attach->status = 'A';
-                    $attach->extention = $file->getClientOriginalExtension();
-                    $attach->created_user = $user->username;
-                    $attach->save();
+            //         //insert to table attachments
+            //         $attach = new Attachment();
+            //         $attach->docid = $docid;
+            //         $attach->name = $filename;
+            //         $attach->attachfile = $attachfile;
+            //         $attach->status = 'A';
+            //         $attach->extention = $file->getClientOriginalExtension();
+            //         $attach->created_user = $user->username;
+            //         $attach->save();
+            //     }
+            // }            
+
+            if ($request->hasFile('attachments')) {
+                $meta = [
+                    'refnbr'        => $docid,
+                    'doctype'       => $doctype,
+                    'cpnyid'        => $request->input('cpnyid'),
+                    'departementid' => $request->input('departementid'),                    
+                    'base_folder'   => 'att-purchasing-app/sppbjkt',
+                    'created_by'    => $user->username,
+                ];
+
+                $files = (array) $request->file('attachments');
+
+                try {
+                    $uploader = app(TrAttachmentController::class);
+                    $uploadResult = $uploader->uploadInternal($meta, $files);
+                    // tidak return di sini!
+                } catch (\Throwable $e) {
+                    \DB::rollBack();
+                    return response()->json([
+                        'message' => 'Failed to create WO',
+                        'error'   => 'Gagal upload attachment: '.$e->getMessage(),
+                    ], 500);
                 }
-            }            
+            } else {
+                $uploadResult = null; // tidak ada attachment
+            }
+
 
             // === 6) kirim email ke approver pertama ===
             $firstApproval = T_approval::where('docid', $docid)
@@ -469,6 +502,7 @@ class SppkController extends Controller
                 'sppkid'   => $docid,
                 'sppk_no'  => $sppkNo,
                 'totalqty' => $totalQty,
+                'attachments' => $uploadResult,
             ]);
 
         } catch (\Throwable $e) {
@@ -509,20 +543,64 @@ class SppkController extends Controller
         $userdept  = Userdept::where('username', $user->username)->get();
         $userdept2 = Userdept::where('username', $user->username)->first();
 
-        $attachment = Attachment::where('docid', $sppk->sppkid)
+        // $attachment = Attachment::where('docid', $sppk->sppkid)
+        //     ->where('status', 'A')
+        //     ->get();
+
+        $rows = TrAttachment::where('refnbr', $sppk->sppkid)
             ->where('status', 'A')
+            ->orderBy('created_at', 'desc')
             ->get();
 
+        $config      = config('filesystems.disks.gcs');
+        $keyFilePath = $config['key_file'];
+        if (!Str::startsWith($keyFilePath, ['/','C:\\','D:\\'])) {
+            $keyFilePath = base_path($keyFilePath);
+        }
+        $storage = new StorageClient([
+            'projectId'   => $config['project_id'],
+            'keyFilePath' => $keyFilePath,
+        ]);
+        $bucket = $storage->bucket($config['bucket']);
+
+        $attachments = $rows->map(function ($r) use ($bucket) {
+            $objectPath = rtrim($r->folder, '/').'/'.$r->filename;
+            $object     = $bucket->object($objectPath);
+            $signedUrl  = null;
+            try {
+                $signedUrl = $object->signedUrl(
+                    new \DateTimeImmutable('+10 minutes'),
+                    ['version' => 'v4']
+                );
+            } catch (\Throwable $e) {
+                \Log::warning('Signed URL gagal', ['path' => $objectPath, 'error' => $e->getMessage()]);
+            }
+            return (object) [
+                'id'          => $r->id,
+                'display_name' => $r->attachment_name,
+                'created_by'   => $r->created_by,
+                'created_at'   => $r->created_at,
+                'url'          => $signedUrl,
+                'folder'       => $r->folder,
+                'filename'     => $r->filename,
+                'extention'    => $r->extention,
+                'size'         => $r->filesize,
+            ];
+        });
+
         return view('pages.sppks.editsppks', compact(
-            'sppk','sppkdetail','usercpny','usercpny2','userdept','userdept2','attachment'
+            'sppk','sppkdetail','usercpny','usercpny2','userdept','userdept2','attachments','hash'
         ));
     }
 
 
 
-    public function updateSppk(Request $request, $id)
+    public function updateSppk(Request $request, $hash)
     {
         // dd($request->all()); // matikan agar eksekusi lanjut
+
+        $id = Hashids::decode($hash)[0] ?? null;
+        abort_if(!$id, 404, 'WO tidak ditemukan.');
         
         $user      = $request->user();   
         $dt        = Carbon::now();
@@ -721,38 +799,62 @@ class SppkController extends Controller
             }
 
             // attachments (tetap)
-            if ($request->hasfile('attachments')) {
-                foreach ($request->file('attachments') as $file) {
-                    $randomNumber = random_int(10000000, 99999999);
-                    $filename = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+            // if ($request->hasfile('attachments')) {
+            //     foreach ($request->file('attachments') as $file) {
+            //         $randomNumber = random_int(10000000, 99999999);
+            //         $filename = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
                    
-                    $originalName = str_replace('%', '', $file->getClientOriginalName());
-                    $ext        = $file->getClientOriginalExtension();
-                    $attachfile = md5($randomNumber) . '.' . $ext;
+            //         $originalName = str_replace('%', '', $file->getClientOriginalName());
+            //         $ext        = $file->getClientOriginalExtension();
+            //         $attachfile = md5($randomNumber) . '.' . $ext;
 
-                    //attach to folder
-                    $folder_attach = public_path() . '/attachments/'.$year;
-                    $config['upload_path'] = $folder_attach;                   
-                    if(!is_dir($folder_attach))
-                    {
-                        mkdir($folder_attach, 0777);
-                    }
+            //         //attach to folder
+            //         $folder_attach = public_path() . '/attachments/'.$year;
+            //         $config['upload_path'] = $folder_attach;                   
+            //         if(!is_dir($folder_attach))
+            //         {
+            //             mkdir($folder_attach, 0777);
+            //         }
                     
-                    $folder_upload = $folder_attach;
-                    // $folder_upload = public_path() . '/attachments';
-                    $file->move($folder_upload, $attachfile);
+            //         $folder_upload = $folder_attach;
+            //         // $folder_upload = public_path() . '/attachments';
+            //         $file->move($folder_upload, $attachfile);
 
-                    //insert to table attachments
-                    $attach = new Attachment();
-                    $attach->docid = $header->sppkid;
-                    $attach->name = $filename;
-                    $attach->attachfile = $attachfile;
-                    $attach->status = 'A';
-                    $attach->extention = $file->getClientOriginalExtension();
-                    $attach->created_user = $user->username;
-                    $attach->save();
+            //         //insert to table attachments
+            //         $attach = new Attachment();
+            //         $attach->docid = $header->sppkid;
+            //         $attach->name = $filename;
+            //         $attach->attachfile = $attachfile;
+            //         $attach->status = 'A';
+            //         $attach->extention = $file->getClientOriginalExtension();
+            //         $attach->created_user = $user->username;
+            //         $attach->save();
+            //     }
+            // }       
+
+            $uploadResult = null;
+            if ($request->hasFile('attachments')) {
+                $meta = [
+                    'refnbr'        => $header->sppkid,
+                    'doctype'       => $doctype,
+                    'cpnyid'        => $request->cpnyid,
+                    'departementid' => $request->departementid,
+                    'base_folder'   => 'att-purchasing-app/sppbjkt',
+                    'created_by'    => $user->username,
+                ];
+                $files = (array) $request->file('attachments');
+
+                try {
+                    $uploader = app(TrAttachmentController::class);
+                    $uploadResult = $uploader->uploadInternal($meta, $files);
+                } catch (\Throwable $e) {
+                    DB::rollBack();
+                    return response()->json([
+                        'message' => 'Failed to update WO',
+                        'error'   => 'Gagal upload attachment: '.$e->getMessage(),
+                    ], 500);
                 }
-            }       
+            }
 
             // email approver pertama (tetap)
             $firstApproval = T_approval::where('docid', $header->sppkid)
@@ -816,7 +918,7 @@ class SppkController extends Controller
     public function removeAttachment($id)
     {
         try {
-            $attachment = Attachment::findOrFail($id);
+            $attachment = TrAttachment::findOrFail($id);
             $attachment->update(['status' => 'X']); // Update status ke "D" (Deleted)
 
             return response()->json(['success' => true, 'message' => 'Attachment status updated']);
@@ -857,11 +959,60 @@ class SppkController extends Controller
             ->orderBy('aprvid')      
             ->get();
        
-        $attachment = Attachment::where('docid', $sppk->sppkid)    
-            ->where('status','A')        
-            ->get();       
+        // $attachment = Attachment::where('docid', $sppk->sppkid)    
+        //     ->where('status','A')        
+        //     ->get();     
+        
+        // ---------- ambil lampiran dari tr_attachment ----------
+        $rows = TrAttachment::where('refnbr', $sppk->sppkid)
+            ->where('status', 'A')
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        // siapkan Signed URL dari GCS
+        $config = config('filesystems.disks.gcs');
+        $keyFilePath = $config['key_file'];
+        if (!Str::startsWith($keyFilePath, ['/','C:\\','D:\\'])) {
+            $keyFilePath = base_path($keyFilePath);
+        }
+
+        $storage = new StorageClient([
+            'projectId'   => $config['project_id'],
+            'keyFilePath' => $keyFilePath,
+        ]);
+        $bucket = $storage->bucket($config['bucket']);
+
+        // map jadi data siap pakai di view
+        $attachments = $rows->map(function ($r) use ($bucket) {
+            $objectPath = rtrim($r->folder, '/').'/'.$r->filename;   // ex: att-purchasing-app/wo/2025/xxxx-file.pdf
+            $object     = $bucket->object($objectPath);
+
+            // Signed URL 10 menit
+            $signedUrl = null;
+            try {
+                $signedUrl = $object->signedUrl(
+                    new \DateTimeImmutable('+10 minutes'),
+                    ['version' => 'v4']
+                );
+            } catch (\Throwable $e) {
+                // kalau gagal signed URL, biarkan null; di UI tampilkan nama saja
+                \Log::warning('Signed URL gagal', ['path' => $objectPath, 'error' => $e->getMessage()]);
+            }
+
+            return (object) [                
+                'display_name' => $r->attachment_name,         // nama yang enak dibaca
+                'created_by'   => $r->created_by,
+                'created_at'   => $r->created_at,
+                'url'          => $signedUrl,                  // bisa null jika gagal
+                'folder'       => $r->folder,
+                'filename'     => $r->filename,
+                'extention'    => $r->extention,
+                'size'         => $r->filesize,
+            ];
+        });
+        
        
-        return view('pages.sppks.showsppks', compact('sppk','approval','attachment','sppkdetail','hash'));
+        return view('pages.sppks.showsppks', compact('sppk','approval','attachments','sppkdetail','hash'));
     }
 
     

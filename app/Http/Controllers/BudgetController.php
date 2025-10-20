@@ -377,7 +377,8 @@ class BudgetController extends Controller
             ];
             $subjectSuffix = $subjectMap[$status] ?? 'Notification';
 
-            $id = $budget->id;
+            // $id = $budget->id;
+            $eid = Hashids::encode($budget->id);
             $data = array(
                 'docid' => $t_approval_next->docid,
                 'cpnyid' => $t_approval_next->aprvcpnyid,
@@ -388,7 +389,7 @@ class BudgetController extends Controller
                 'docname'  => 'Budget',
                 'info' => 'Budget Company ' . $tempHead->cpny_id . ' Department ' . $tempHead->department_fin_id . ' ' . $tempHead->perpost,     
                 'status'   => $status, 
-                'url' => url('/showbudgets/' . $budget->id)
+                'url' => url('/showbudgets/' . $eid)
     
             );
     
@@ -609,6 +610,8 @@ class BudgetController extends Controller
                 'C' => 'Completed',
             ];
             $subjectSuffix = $subjectMap[$status] ?? 'Notification';
+
+            $eid = Hashids::encode($budget->id);
            
             $data = array(
                 'docid' => $t_approval_next->docid,
@@ -620,7 +623,7 @@ class BudgetController extends Controller
                 'docname'  => 'Budget',
                 'info' => 'Budget Company ' . $tempHead->cpny_id . ' Department ' . $tempHead->department_fin_id . ' ' . $tempHead->perpost,     
                 'status'   => $status,             
-                'url' => url('/showbudgets/' . $budget->id)                 
+                'url' => url('/showbudgets/' . $eid)                 
     
             );
     
@@ -683,7 +686,7 @@ class BudgetController extends Controller
             ->where('status','A')        
             ->get();      
        
-        return view('pages.budgets.showbudgets', compact('budget','budgetdetail','approval','attachment'));
+        return view('pages.budgets.showbudgets', compact('budget','budgetdetail','approval','attachment','hash'));
     }
 
     
@@ -799,6 +802,8 @@ class BudgetController extends Controller
                 $status        = 'C';
                 $subjectSuffix = $subjectMap[$status] ?? 'Notification';
 
+                $eid = Hashids::encode($budget->id);
+
                 $data = [
                     'docid'     => $budget->budget_id,
                     'cpnyid'    => $budget->cpny_id ?? '',
@@ -810,7 +815,7 @@ class BudgetController extends Controller
                     'docname'   => 'Budget',
                     'info'      => 'Budget Company ' . ($budget->cpny_id ?? '') . ' Department ' . ($budget->department_fin_id ?? '') . ' ' . ($budget->perpost ?? ''),
                     'status'    => $status,
-                    'url'       => url('/showbudgets/' . $budget->id),
+                    'url'       => url('/showbudgets/' . $eid),
                 ];
 
                 // kirim ke pembuat dokumen
@@ -953,6 +958,8 @@ class BudgetController extends Controller
         ];
         $subjectSuffix = $subjectMap[$status] ?? 'Notification';
 
+        $eid = Hashids::encode($budget->id);
+
         //send email 
         $data = array(
             'docid' => $t_approval->docid,
@@ -965,7 +972,7 @@ class BudgetController extends Controller
             'docname'   => 'Budget',
             'status'    => $status,
             'info' => 'Budget Company ' . $budget->cpny_id . ' Department ' . $budget->department_fin_id . ' ' . $budget->perpost,                 
-            'url' => url('/showbudgets/' . $budget->id)
+            'url' => url('/showbudgets/' . $eid)
 
         );
 
@@ -1044,6 +1051,8 @@ class BudgetController extends Controller
         ];
         $subjectSuffix = $subjectMap[$status] ?? 'Notification';
 
+        $eid = Hashids::encode($budget->id);
+
         //send email 
         $data = array(
             'docid' => $t_approval->docid,
@@ -1056,7 +1065,7 @@ class BudgetController extends Controller
             'docname'   => 'Budget',
             'status'    => $status,
             'info' => 'Budget Company ' . $budget->cpny_id . ' Department ' . $budget->department_fin_id . ' ' . $budget->perpost,               
-            'url' => url('/showbudgets/' . $budget->id)
+            'url' => url('/showbudgets/' . $eid)
 
         );
 
@@ -1117,124 +1126,7 @@ class BudgetController extends Controller
         return response()->json(['canPerformAction' => $canPerformAction]);
     }
 
-    public function insert_jobposting($id)
-    {
-        
-        DB::beginTransaction();
-        try {
-            $doctype = 'JOB';
-            $datenow = Carbon::now()->format('Y-m-d');
-            $dt = Carbon::now();
-            $year = $dt->year;
-            $month = str_pad($dt->month, 2, '0', STR_PAD_LEFT);            
-            $datestamp = Carbon::now()->toDateTimeString();
-            $user = request()->user();
-
-            // Generate task ID
-            $autonbr = AutonbrJobportal::lockForUpdate()
-                ->where('doctype', $doctype)
-                ->where('year', $year)
-                ->where('month', $month)
-                ->where('status', 'A')
-                ->first();
-
-            if (!$autonbr) {
-                $autonbr = Autonbr::create([
-                    'doctype' => $doctype,
-                    'year' => $year,
-                    'month' => $month,
-                    'status' => 'A',
-                    'number' => 1
-                ]);
-                $urutan = 1;
-            } else {
-                $urutan = $autonbr->number + 1;
-                $autonbr->number = $urutan;
-                $autonbr->save();
-            }
-
-            $tglbln = substr($year, 2) . $month;
-            $docid = $doctype . $tglbln . sprintf("%03d", $urutan);
-
-            // $budget = Budget::where('docid', $id)          
-            //     ->first();
-            $budget = Budget::with(['divisionRef'])
-                ->where('docid', $id)
-                ->first();
-
-                  
-            $task = Jobposting::create([
-                'docid' => $docid,
-                'refid' => $budget->docid,
-                'cpnyid' => $budget->cpnyid,
-                'departementid' => $budget->departementid,
-                'division_id' => optional($budget->divisionRef)->division_name,
-                'date' => $datenow,
-                'job_title' => $budget->job_title,
-                'job_level' => $budget->job_level,                
-                'immediate_superior' => $budget->immediate_superior,                
-                'state_position' => $budget->state_position,
-                'job_type' => $budget->job_type,
-                'reason_vacancy' => $budget->reason_vacancy,
-                'required' => $budget->required,
-                'actual' => $budget->actual,
-                'total_actual' => $budget->total_actual,       
-                'education' => $budget->education,
-                'experience_start' => $budget->experience_start,
-                'experience_end' => $budget->experience_end,           
-                'created_user' => $user->username,
-                'status' =>'P'              
-            ]);
-           
-            $jobres = JobResponsiblities::where('docid', $id)          
-                ->get();
-            
-            foreach ($jobres as $jr) {
-                JobpostingResponsiblities::create([
-                    'docid' => $docid,
-                    'refid' => $jr->docid,
-                    'no_job_responsiblities' => $jr->no_job_responsiblities,
-                    'job_responsibilities_descr' => $jr->job_responsibilities_descr,
-                    'created_user' => $jr->created_user,
-                    'status' => 'P'                                               
-                ]);
-            }            
-
-            $jobqua = JobQualification::where('docid', $id)          
-                ->get();
-            
-            foreach ($jobqua as $jq) {
-                JobpostingQualification::create([
-                    'docid' => $docid,
-                    'refid' => $jq->docid,
-                    'no_job_qualification' => $jq->no_job_qualification,
-                    'job_qualification_descr' => $jq->job_qualification_descr,
-                    'created_user' => $jq->created_user,
-                    'status' => 'P'                                               
-                ]);
-            }          
-
-            $jobtag = TrJobtag::where('docid', $id)          
-                ->get();
-            
-            foreach ($jobtag as $jt) {
-                Jobpostingtag::create([
-                    'docid' => $docid,
-                    'refid' => $jt->docid,
-                    'job_tags' => $jt->job_tags,                  
-                    'created_user' => $jt->created_user,
-                    'status' => 'P'                                               
-                ]);
-            }          
-                      
-            DB::commit();
-            return response()->json(['success' => true, 'task' => $task]);
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return response()->json(['error' => 'Gagal menyimpan task', 'message' => $e->getMessage()], 500);
-        }
-    }
-
+   
     public function getSitesByCompany($cpnyid)
     {
         // $sites = Site::where('cpnyid', $cpnyid)
@@ -1246,172 +1138,99 @@ class BudgetController extends Controller
         return response()->json($sites);
     }
 
-    public function getVacantByDepartment_xxx($deptId)
+    public function printBudget($hash)
     {
-        // Ambil ID departemen berdasarkan nama (misal "IT")
-        $dept = StoDepartement::where('departement_name', $deptId)->first(['departement_id']);
-       
-        if (!$dept) {
-            abort(404, 'Departemen tidak ditemukan');
+        $id = Hashids::decode($hash)[0] ?? null;
+        abort_if(!$id, 404);
+
+        $authUser = Auth::user();
+        if (!$authUser) {
+            return redirect()->route('login');
         }
 
-        $departments = DB::table('hr_ms_sto_employee as e')
-            ->join('hr_ms_sto_departement as d2', 'e.departement_id', '=', 'd2.departement_id')
-            ->where('e.employee_name', 'VACANT')
-            ->where('e.status', 'A')
-            ->whereIn('d2.parent_id', function ($query) use ($dept) {
-                $query->select('d1.departement_id')
-                    ->from('hr_ms_sto_departement as d1')
-                    ->where('d1.parent_id', $dept->departement_id);
-            })
-            ->select('d2.departement_id', 'd2.departement_name', 'e.id','d2.parent_id', 'e.employee_level')           
-            ->get();       
- 
-        return response()->json($departments);
-    }
+        // Ambil BUDGET + relasi yang dibutuhkan
+       $budget = Budget::findOrFail($id);
 
-    public function getVacantByTopParent($parentDeptName)
-    {
-        // Ambil departemen root berdasarkan nama (ex: IT, ENGINEERING)
-        $topDept = DB::table('hr_ms_sto_departement')
-            ->whereNull('parent_id')
-            ->where('departement_name', $parentDeptName)
-            ->first();
+        // Detail baris BUDGET
+        $budgetdetail = BudgetDetail::where('budget_id', $budget->budget_id)           
+            ->get();
 
-        if (!$topDept) {
-            return response()->json(['error' => 'Parent departement not found'], 404);
+        // Approval list (non-cancelled)
+        $approval = T_approval::where('docid', $budget->budget_id)
+            ->where('status', '<>', 'X')
+            ->orderBy('aprvid')
+            ->orderBy('created_at')
+            ->get();
+
+        $approve_count = $approval->count();
+
+        // Company (handle null)
+        $company = Company::where('cpnyid', $budget->cpny_id)->first();
+
+        // Mapping status dokumen
+        switch ($budget->status) {
+            case 'R':
+                $status_doc = 'Rejected';
+                break;
+            case 'C':
+                $status_doc = 'Completed';
+                break;
+            case 'D':
+                $status_doc = 'Hold';
+                break;
+            case 'X':
+                $status_doc = 'Cancel';
+                break;
+            default:
+                $status_doc = 'On Progress';
+                break;
         }
 
-        $childIds = $this->getAllChildDepartments($topDept->departement_id);
+        $data = [
+            'title'               => 'Budget Report',
+            'doc_type'            => 'BUDGET',
+            'docid'               => $budget->budget_id,
+            'department_id'       => $budget->department_id,
+            'cpnyname'            => optional($company)->cpnyname,
+            'parent'              => optional($company)->parent,
+            'project'             => optional($company)->project,
+            // identitas & tanggal
+            'created_by_username' => $budget->created_by,
+            'created_by_name'     => ucwords(strtolower(optional($budget->creator)->name)),
+            'created_at_fmt'      => optional($budget->created_at)->format('d F Y'),
+            'req_date_fmt'        => optional($budget->created_at)->format('d M Y H:i'),
+            'budgetdate'            => \Carbon\Carbon::parse($budget->budgetdate)->format('d F Y'),
+            // konten
+            'keperluan'           => $budget->perpost,
+            'status_doc'          => $status_doc,
+            'requesttype_name'    => optional($budget->requestType)->requesttype_name,
+        ];
 
-        $vacants = DB::table('hr_ms_sto_employee as e')
-            ->join('hr_ms_sto_departement as d', 'e.departement_id', '=', 'd.departement_id')
-            ->where('e.employee_name', 'VACANT')
-            ->where('e.status', 'A')
-            ->whereIn('e.departement_id', $childIds)
-            ->select('e.id as employee_id', 'e.employee_name', 'e.employee_company', 'd.departement_id', 'd.departement_name','d.subgrade_name','d.parent_id')
-            ->get();
+        // Kirim ke view
+        $pdf = \PDF::loadView(
+            'pages.budgets.pdf_budgets',
+            array_merge($data, [
+                'detail'         => $budgetdetail,
+                'approval'       => $approval,
+                'approve_count'  => $approve_count,
+            ])
+        );
 
-        return response()->json($vacants);
-    }
+        // Portrait jika <= 5 approver, else landscape
+        $pdf->setPaper('A4', ($approve_count <= 5) ? 'portrait' : 'landscape');
 
-    private function getAllChildDepartments($parentId)
-    {
-        $all = [$parentId];
-        $stack = [$parentId];
-
-        while (!empty($stack)) {
-            $current = array_pop($stack);
-
-            $children = DB::table('hr_ms_sto_departement')
-                ->where('parent_id', $current)
-                ->pluck('departement_id')
-                ->toArray();
-
-            $all = array_merge($all, $children);
-            $stack = array_merge($stack, $children);
-        }
-
-        return array_unique($all);
-    }
-
-
-
-    public function getParentJobInfo_allkaryawan($parentId, $departementId, $deptId)
-    {
-        $employee = DB::table('hr_ms_sto_employee as e')
-            ->join('hr_ms_sto_departement as d', 'e.departement_id', '=', 'd.departement_id')
-            ->where('d.departement_id', $parentId)
-            ->where('e.employee_name', '!=', 'VACANT') // pastikan bukan VACANT
-            ->select('e.employee_name', 'e.employee_level')
-            ->first();
-
-        $jobprofile = DB::table('hr_ms_sto_job_profile')
-            ->where('departement_id', $departementId)
-            ->get();
-
-        $jobspec = DB::table('hr_ms_sto_job_spec')
-            ->where('departement_id', $departementId)
-            ->first();
-
-        $dept = StoDepartement::where('departement_name', $deptId)->first(['departement_id']);
-
-        $childIds = $this->getAllChildDepartments($dept->departement_id);
-        dd($childIds);
-        $actual = DB::table('hr_ms_sto_employee as e')
-            ->whereIn('e.departement_id', $childIds)
-            ->where('e.employee_name', '!=', 'VACANT')
-            ->where('e.status', 'A')
-            ->count();
-
-        return response()->json([
-            'employee_name' => $employee->employee_name ?? 'Not Found',
-            'employee_level' => $employee->employee_level ?? '',
-            'experience_min' => $jobspec->experience_min ?? '',
-            'experience_position' => $jobspec->experience_position ?? '',
-            'education_min' => $jobspec->education_min ?? '',
-            'education_jurusan' => $jobspec->education_jurusan ?? '',
-            'job_profile' => $jobprofile,
-            'actual' => $actual,
-            'required' => 1,
-            'total_actual' => $actual + 1,
-        ]);
+        return $pdf->stream("pdf_budgets_{$budget->budget_id}.pdf");
     }
 
 
-    public function getParentJobInfo($parentId, $departementId,$deptId)
-    {
-        // Ambil 1 orang selain VACANT di parent_id tsb
-        $employee = DB::table('hr_ms_sto_employee as e')
-            ->join('hr_ms_sto_departement as d', 'e.departement_id', '=', 'd.departement_id')
-            ->where('d.departement_id', $parentId)           
-            ->select('e.employee_name', 'e.employee_level','d.subgrade_name')
-            ->first();
-        // dd($employee);
-        $jobprofile = DB::table('hr_ms_sto_job_profile')           
-            ->where('departement_id', $departementId)    
-            ->get();
 
-        $jobspec = DB::table('hr_ms_sto_job_spec')           
-            ->where('departement_id', $departementId)    
-            ->first();       
-
-        $actual = DB::table('hr_ms_sto_employee as e')
-            ->where('e.departement_id', $departementId)
-            ->where('e.employee_name', '!=', 'VACANT')
-            ->where('e.status', 'A')
-            ->count();
+   
 
 
-        // $dept = StoDepartement::where('departement_name', $deptId)->first(['departement_id']);
-        
-        // $actual = DB::table('hr_ms_sto_employee as e')
-        //     ->join('hr_ms_sto_departement as d2', 'e.departement_id', '=', 'd2.departement_id')
-        //     ->where('e.employee_name', '!=','VACANT')
-        //     ->where('e.status', 'A')
-        //     ->whereIn('d2.parent_id', function ($query) use ($dept) {
-        //         $query->select('d1.departement_id')
-        //             ->from('hr_ms_sto_departement as d1')
-        //             ->where('d1.parent_id', $departementId);
-        //     })
-        //     ->select('d2.departement_id', 'd2.departement_name', 'e.id','d2.parent_id', 'e.employee_level')           
-        //     ->count(); 
 
-                 
-        return response()->json([
-            'employee_name' => $employee->employee_name ?? 'Not Found',
-            'employee_level' => $employee->subgrade_name ?? '',
-            'experience_min' => $jobspec->experience_min ?? '',
-            'experience_position' => $jobspec->experience_position ?? '',
-            'education_min' => $jobspec->education_min ?? '',
-            'education_jurusan' => $jobspec->education_jurusan ?? '',
-            'job_profile' => $jobprofile,
-            'actual' => $actual,
-            'required' => 1,
-            'total_actual' => $actual + 1,
-        ]);
-        
-    }
+    
+
+   
 
     
 
