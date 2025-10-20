@@ -499,6 +499,7 @@ class WoController extends Controller
                 \Log::warning('Signed URL gagal', ['path' => $objectPath, 'error' => $e->getMessage()]);
             }
             return (object) [
+                'id'          => $r->id,
                 'display_name' => $r->attachment_name,
                 'created_by'   => $r->created_by,
                 'created_at'   => $r->created_at,
@@ -537,22 +538,45 @@ class WoController extends Controller
     }
 
 
-
-
-    public function updateWo(Request $request, $id)
+    public function updateWo(Request $request, $hash)
     {
-        // dd($request->all()); // matikan agar eksekusi lanjut
+        // --- ambil id dari hash ---
+        $id = Hashids::decode($hash)[0] ?? null;
+        abort_if(!$id, 404, 'WO tidak ditemukan.');
 
-        $user      = $request->user();   
-        $dt        = Carbon::now();
-        $year      = $dt->year;
-        $month     = str_pad($dt->month, 2, '0', STR_PAD_LEFT);
-        $datestamp = $dt->toDateTimeString();   
-        $doctype   = 'PB';
-        $username  = $user->username ?? 'system';
-        $fullname  = $user->name ?? 'system';
+        // --- validasi: sama seperti storeWo ---
+        $validated = $request->validate([
+            'cpnyid'          => ['required','string','max:20'],
+            'departementid'   => ['required','string','max:100'],
+            'wotype'          => ['required','string','max:100'],
+            'worequest'       => ['required','string','max:100'],
+            'worktypeid'      => ['required','string','max:50'],
+            'subworktypeid'   => ['required','string','max:50'],
+            'picrequester'    => ['required','string','max:100'],
+            'biaya_wo'        => ['nullable','string','max:50'],
+            'location_id'     => ['required','string','max:50'],
+            'sub_location_id' => ['required','string','max:50'],
+            'keperluan'       => ['nullable','string','max:1000'],
+            // 'attachments.*' => ['file','mimes:pdf,jpg,jpeg,png,doc,docx,xls,xlsx,zip','max:5120'],
+        ], [
+            'cpnyid.required' => 'Company wajib.',
+            'departementid.required' => 'Department wajib.',
+            'wotype.required' => 'WO Type wajib.',
+            'worequest.required' => 'WO Request wajib.',
+            'worktypeid.required' => 'Worktype wajib.',
+            'subworktypeid.required' => 'Sub Worktype wajib.',
+            'location_id.required' => 'Location wajib.',
+            'sub_location_id.required' => 'Sub Location wajib.',
+            'picrequester.required' => 'PIC Requester wajib.',
+        ]);
 
-        // helper: normalisasi angka (tahan "12.000", "1.234,56", "12,5")
+        $doctype  = 'WO';
+        $user     = $request->user();
+        $username = $user->username ?? 'system';
+        $dt        = \Carbon\Carbon::now();
+        $datestamp = $dt->toDateTimeString();
+
+        // normalisasi angka lokal -> float (sama seperti storeWo)
         $toFloat = function ($v): ?float {
             if ($v === null || $v === '') return null;
             $s = preg_replace('/\s+/', '', (string)$v);
@@ -562,160 +586,66 @@ class WoController extends Controller
             if ($hasComma && $hasDot) {
                 $lastComma = strrpos($s, ',');
                 $lastDot   = strrpos($s, '.');
-                if ($lastComma > $lastDot) {
-                    // koma = decimal, titik = ribuan
+                if ($lastComma > $lastDot) { // format Eropa: 1.234,56
                     $s = str_replace('.', '', $s);
                     $s = str_replace(',', '.', $s);
-                } else {
-                    // titik = decimal, koma = ribuan
+                } else { // format US: 1,234.56
                     $s = str_replace(',', '', $s);
                 }
             } elseif ($hasComma) {
                 $s = str_replace(',', '.', $s);
-            } elseif ($hasDot) {
-                if (substr_count($s, '.') > 1) $s = str_replace('.', '', $s);
+            } elseif ($hasDot && substr_count($s, '.') > 1) {
+                $s = str_replace('.', '', $s);
             }
             return is_numeric($s) ? (float)$s : null;
         };
 
-        $header = TrWO::findOrFail($id);
-        // update header
-        $header->cpny_id        = $request->cpnyid;
-        $header->department_id  = $request->departementid;
-        $header->worktypeid  = $request->worktypeid;
-        $header->keperluan      = $request->keperluan;
-        $header->budget_perpost = $request->perpost;   
-        $header->woid           = $request->woid;
-        $header->status         = 'P';
-        $header->updated_by     = $username;
-        $header->save();
+        // pastikan line approval tersedia
+        $approvalCount = M_approval::where([
+            ['status', '=', 'A'],
+            ['aprvcpnyid', '=', $validated['cpnyid']],
+            ['aprvdeptid', '=', $validated['departementid']],
+            ['aprvdoctype', '=', $doctype],
+        ])->count();
 
-        // arrays utama
-        $detailIds    = array_values($request->input('detail_id', []));
-        $inventoryIds = array_values($request->input('inventoryid', []));
-        $productNames = array_values($request->input('product_name', []));
-        $qtys         = array_values($request->input('qty', []));
-        $uoms         = array_values($request->input('stock_unit', []));
-        $notes        = array_values($request->input('note', []));
-        $locIds       = array_values($request->input('location_id', []));
-        $subLocIds    = array_values($request->input('sub_location_id', []));
-        $actIds       = array_values($request->input('activity_id', []));
-        $buIds        = array_values($request->input('business_unit_id', []));
-        $deptFinIds   = array_values($request->input('department_fin_id', []));
-        $coaIds       = array_values($request->input('coa_id', []));
-        $itemTypes    = array_values($request->input('item_type', []));
-        $itemCats     = array_values($request->input('item_category', []));
-
-        // arrays UoM tambahan
-        $purchaseUnits = array_values($request->input('purchase_unit', []));      // hidden dari UI
-        $uomMultDivs   = array_values($request->input('uom_unitmultdiv', []));    // 'M'/'D'
-        $uomRates      = array_values($request->input('uom_unitrate', []));       // bisa "12.000"
+        if ($approvalCount === 0) {
+            return response()->json([
+                'message' => 'Approval line belum di-setup, Please contact IT!',
+            ], 422);
+        }
 
         DB::beginTransaction();
-
         try {
-            // hapus baris yang di-mark delete
-            if ($request->filled('deleted_detail_ids')) {
-                $idsToDelete = array_filter(array_map('trim', explode(',', $request->deleted_detail_ids)));
-                if ($idsToDelete) TrWOdetail::whereIn('id', $idsToDelete)->delete();
-            }
+          
+            $wo = TrWO::findOrFail($id);
+            $docid = $wo->woid; 
 
-            $rowCount = max(count($inventoryIds), count($qtys));
-            $savedDetails = [];
+            // --- update header ---
+            $wo->cpny_id         = $validated['cpnyid'];
+            $wo->department_id   = $validated['departementid'];
+            $wo->wotype          = $validated['wotype'];
+            $wo->worequest       = $validated['worequest'];
+            $wo->worktypeid      = $validated['worktypeid'];
+            $wo->subworktypeid   = $validated['subworktypeid'];
+            $wo->picrequester    = $validated['picrequester'];
+            $wo->biaya_wo        = $toFloat($validated['biaya_wo'] ?? null) ?? 0;
+            $wo->location_id     = $validated['location_id'];
+            $wo->sub_location_id = $validated['sub_location_id'];
+            $wo->keperluan       = $validated['keperluan'] ?? null;           
+            $wo->status       = 'P';
+            $wo->updated_by      = $username ?? $wo->updated_by;
+            $wo->save();
 
-            for ($i = 0; $i < $rowCount; $i++) {
-                $invId = $inventoryIds[$i] ?? null;
-                $qty   = (float) str_replace(',', '.', (string)($qtys[$i] ?? 0));
-                if (empty($invId) || $qty <= 0) continue;
-
-                // === konversi base_* seperti di store ===
-                $displayUom     = $uoms[$i] ?? null;
-                $baseUom        = $purchaseUnits[$i] ?? null;                        // purchase_unit
-                $typeMultiplier = strtoupper(trim((string)($uomMultDivs[$i] ?? ''))); // 'M'/'D'
-                $rate           = $toFloat($uomRates[$i] ?? null) ?? 1.0;             // 12.000 -> 12.0
-                if ($rate <= 0) { $rate = 1.0; $typeMultiplier = ''; }
-
-                $baseQty = $qty;
-                if ($typeMultiplier === 'M') {
-                    $baseQty = $qty * $rate;
-                } elseif ($typeMultiplier === 'D') {
-                    $baseQty = $qty / $rate;
-                }
-
-                $data = [
-                    'inventoryid'              => $invId,
-                    'inventory_descr'          => $productNames[$i] ?? null,
-                    'qty'                      => $qty,
-                    'uom'                      => $displayUom,
-                    'note'                     => $notes[$i] ?? null,
-                    'inventory_type'                => $itemTypes[$i] ?? null,
-                    'wo_category'            => $itemCats[$i] ?? null,
-
-                    // >>> ini yang ditambahkan <<<
-                    'base_uom'                 => $baseUom,                       // purchase_unit
-                    'base_multiplier'          => $rate,                          // uom_unitrate (float)
-                    'type_multiplier'          => $typeMultiplier ?: null,        // 'M'/'D'/null
-                    'base_qty'                 => $baseQty,                        // hasil M/D
-
-                    'budget_cpny_id'           => $request->cpnyid,
-                    'budget_business_unit_id'  => $buIds[$i] ?? null,
-                    'budget_department_fin_id' => $deptFinIds[$i] ?? null,
-                    'budget_account_id'        => $coaIds[$i] ?? null,
-                    'budget_activity_id'       => $actIds[$i] ?? null,
-                    'openordered'              => $qty,
-                    'ordered'                  => 0,
-                    'location_id'              => $locIds[$i] ?? null,
-                    'sub_location_id'          => $subLocIds[$i] ?? null,
-                    'budget_perpost'           => $request->perpost,
-                    'status'                   => 'P',
-                    'updated_by'               => $username,
-                ];
-
-                $idDetail = $detailIds[$i] ?? null;
-
-                if ($idDetail) {
-                    $detail = TrWOdetail::where('id', $idDetail)
-                        ->where('woid', $header->woid)
-                        ->first();
-                    if ($detail) {
-                        $detail->fill($data)->save();
-                    } else {
-                        $detail = new TrWOdetail($data);
-                        $detail->woid = $header->woid;
-                        $detail->save();
-                    }
-                } else {
-                    $detail = new TrWOdetail($data);
-                    $detail->woid = $header->woid;
-                    $detail->save();
-                }
-
-                $savedDetails[] = $detail->id;
-            }
-
-            // Renumber wo_no 1..N
-            $n = 1;
-            foreach ($savedDetails as $did) {
-                TrWOdetail::where('id', $did)->update(['wo_no' => $n++]);
-            }
-
-            // Hitung total qty (kalau mau pakai base_qty, ganti ke sum('base_qty'))
-            $totalQty = TrWOdetail::where('woid', $header->woid)->sum('qty');
-            $header->totalqty = $totalQty;
-            $header->totalopenordered = $totalQty;
-            $header->save();
-
-            // === regenerasi T_approval (opsional, ikuti logikamu) ===
             $approvals = M_approval::where([
                 ['status', '=', 'A'],
-                ['aprvcpnyid', '=', $request->cpnyid],
-                ['aprvdeptid', '=', $request->departementid],
+                ['aprvcpnyid', '=', $validated['cpnyid']],
+                ['aprvdeptid', '=', $validated['departementid']],
                 ['aprvdoctype', '=', $doctype],
-            ])->get();
+            ])->orderBy('aprvid')->get();
 
             foreach ($approvals as $a) {
                 T_approval::create([
-                    'docid'          => $header->woid,
+                    'docid'          => $docid,
                     'aprvid'         => $a->aprvid,
                     'aprvdoctype'    => $a->aprvdoctype,
                     'aprvcpnyid'     => $a->aprvcpnyid,
@@ -725,60 +655,43 @@ class WoController extends Controller
                     'aprvdatebefore' => $a->aprvid == 1 ? $datestamp : null,
                     'aprvtotalday'   => 1,
                     'status'         => 'P',
-                    'created_by'   => $username,
+                    'created_by'     => $username,
                 ]);
             }
 
-            $firstApprovalUsernames = optional($approvals->first())->aprvusername;
-            if ($firstApprovalUsernames) {
-                $header->completed_by = $firstApprovalUsernames;
-                $header->completed_at = $dt;
-                $header->save();
+            // --- upload attachment baru (kalau ada) ---
+            $uploadResult = null;
+            if ($request->hasFile('attachments')) {
+                $meta = [
+                    'refnbr'        => $docid,
+                    'doctype'       => $doctype,
+                    'cpnyid'        => $validated['cpnyid'],
+                    'departementid' => $validated['departementid'],
+                    'base_folder'   => 'att-purchasing-app/wo',
+                    'created_by'    => $username,
+                ];
+                $files = (array) $request->file('attachments');
+
+                try {
+                    $uploader = app(TrAttachmentController::class);
+                    $uploadResult = $uploader->uploadInternal($meta, $files);
+                } catch (\Throwable $e) {
+                    DB::rollBack();
+                    return response()->json([
+                        'message' => 'Failed to update WO',
+                        'error'   => 'Gagal upload attachment: '.$e->getMessage(),
+                    ], 500);
+                }
             }
 
-            // attachments (tetap)
-            if ($request->hasfile('attachments')) {
-                foreach ($request->file('attachments') as $file) {
-                    $randomNumber = random_int(10000000, 99999999);
-                    $filename = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
-                   
-                    $originalName = str_replace('%', '', $file->getClientOriginalName());
-                    $ext        = $file->getClientOriginalExtension();
-                    $attachfile = md5($randomNumber) . '.' . $ext;
-
-                    //attach to folder
-                    $folder_attach = public_path() . '/attachments/'.$year;
-                    $config['upload_path'] = $folder_attach;                   
-                    if(!is_dir($folder_attach))
-                    {
-                        mkdir($folder_attach, 0777);
-                    }
-                    
-                    $folder_upload = $folder_attach;
-                    // $folder_upload = public_path() . '/attachments';
-                    $file->move($folder_upload, $attachfile);
-
-                    //insert to table attachments
-                    $attach = new Attachment();
-                    $attach->docid = $header->woid;
-                    $attach->name = $filename;
-                    $attach->attachfile = $attachfile;
-                    $attach->status = 'A';
-                    $attach->extention = $file->getClientOriginalExtension();
-                    $attach->created_user = $user->username;
-                    $attach->save();
-                }
-            }       
-
-            // email approver pertama (tetap)
-            $firstApproval = T_approval::where('docid', $header->woid)
+            // --- (opsional) kirim email ke approver pertama kalau status masih P ---
+            $firstApproval = T_approval::where('docid', $docid)
                 ->where('status', 'P')
                 ->orderBy('aprvid')
                 ->first();
 
-            if ($firstApproval) {
-                $status = $header->status; // 'P' | 'R' | 'D' | 'A' | 'C'
-
+            if ($firstApproval && ($wo->status ?? 'P') === 'P') {
+                $status = $wo->status;
                 $subjectMap = [
                     'P' => 'Waiting Approval',
                     'R' => 'Rejected Approval',
@@ -788,19 +701,19 @@ class WoController extends Controller
                 ];
                 $subjectSuffix = $subjectMap[$status] ?? 'Notification';
 
-                $eid = Hashids::encode($header->id);
-                
+                $eid = \Hashids::encode($wo->id);
+
                 $data = [
-                    'docid'    => $firstApproval->docid,
-                    'cpnyid'   => $firstApproval->aprvcpnyid,
-                    'deptname' => $firstApproval->aprvdeptid,
-                    'date'     => $firstApproval->aprvdatebefore,
-                    'name'     => $firstApproval->name,
-                    'createdby'=> $header->created_by,
-                    'info'     => $request->keperluan,
-                    'status'   => $status,
-                    'docname'  => 'WO',
-                    'url'      => url('/showwos/' . $eid),
+                    'docid'     => $firstApproval->docid,
+                    'cpnyid'    => $firstApproval->aprvcpnyid,
+                    'deptname'  => $firstApproval->aprvdeptid,
+                    'date'      => $firstApproval->aprvdatebefore,
+                    'name'      => $firstApproval->name,
+                    'createdby' => $wo->created_by,
+                    'info'      => $wo->keperluan,
+                    'status'    => $status,
+                    'docname'   => 'WO',
+                    'url'       => url('/showwos/' . $eid),
                 ];
 
                 $approvers = array_filter(array_map('trim', explode(',', (string)$firstApproval->aprvusername)));
@@ -809,30 +722,40 @@ class WoController extends Controller
                     ->pluck('test_email');
 
                 foreach ($emails as $email) {
-                    \Mail::send('emails.mailapprovenew', $data, function ($message) use ($email, $data) {
+                    Mail::send('emails.mailapprovenew', $data, function ($message) use ($email, $data, $subjectSuffix) {
                         $message->to($email)
-                            ->subject($data['docid'].' - Waiting Approval WO')
+                            ->subject($data['docid'].' - '.$subjectSuffix.' WO (Updated)')
                             ->from('digitalserver@pakuwon.com', 'Pakuwon System');
                     });
                 }
             }
 
             DB::commit();
-            return response()->json(['message' => 'WO updated successfully']);
+
+            return response()->json([
+                'ok'          => true,
+                'message'     => 'WO updated successfully',
+                'id'          => $wo->id,
+                'docid'       => $docid,
+                'attachments' => $uploadResult, // null jika tidak ada upload baru
+            ]);
 
         } catch (\Throwable $e) {
             DB::rollBack();
             report($e);
-            return response()->json(['message' => 'Update failed', 'error' => $e->getMessage()], 500);
+
+            return response()->json([
+                'message' => 'Failed to update WO',
+                'error'   => config('app.debug') ? $e->getMessage() : null,
+            ], 500);
         }
     }
 
    
-   
     public function removeAttachment($id)
     {
         try {
-            $attachment = Attachment::findOrFail($id);
+            $attachment = TrAttachment::findOrFail($id);
             $attachment->update(['status' => 'X']); // Update status ke "D" (Deleted)
 
             return response()->json(['success' => true, 'message' => 'Attachment status updated']);
@@ -905,7 +828,7 @@ class WoController extends Controller
                 \Log::warning('Signed URL gagal', ['path' => $objectPath, 'error' => $e->getMessage()]);
             }
 
-            return (object) [
+            return (object) [                
                 'display_name' => $r->attachment_name,         // nama yang enak dibaca
                 'created_by'   => $r->created_by,
                 'created_at'   => $r->created_at,
@@ -1565,16 +1488,6 @@ class WoController extends Controller
         return $pdf->stream("pdf_wos{$suffix}_{$wo->woid}.pdf");
     }
 
-
-
-
-
-
     
-
-
-
-
-
 
 }

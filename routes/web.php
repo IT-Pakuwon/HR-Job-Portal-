@@ -408,6 +408,7 @@ Route::post('/logout', function () {
     Route::put('/budgets/remove-attachment/{id}', [BudgetController::class, 'removeAttachment']);    
     Route::get('/budget/{id}/check-approval/{action}', [BudgetController::class, 'checkApproval']);  
     Route::get('/get-business-units/{cpny_id}', [BudgetController::class, 'getBusinessUnits']);  
+    Route::get('/pdf_budgets/{hash}', [BudgetController::class, 'printBudget']);
 
     Route::post('/budgets/import', [BudgetController::class, 'import'])->name('budgets.import');
     Route::post('/budgets/{budget}/import', [BudgetController::class, 'import'])->name('budgets.import.edit');
@@ -612,6 +613,7 @@ Route::post('/logout', function () {
     Route::get('/wo/{id}/check-approval/{action}', [WoController::class, 'checkApproval']);     
     Route::get('/wos/{id}/tracking', [WoController::class, 'tracking'])->name('wos.tracking');
     Route::get('/pdf_wos/{hash}', [WOController::class, 'printWo'])->name('wos.print');
+    Route::put('/wos/remove-attachment/{id}', [WOController::class, 'removeAttachment']);
 
 
     Route::get('/inventory/list', [MasterController::class, 'InventoryList'])->name('inventory.list');
