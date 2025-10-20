@@ -621,6 +621,9 @@
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+
     <script>
         $(function() {
             // ===== renderer util (sama seperti sebelumnya) =====
@@ -686,17 +689,46 @@
                 ];
             }
 
+            // function colSetWithCreate() {
+            //     const createCol = {
+            //         data: null,
+            //         orderable: false,
+            //         searchable: false,
+            //         className: 'text-left',
+            //         render: (_d, _t, row) => `<a href="${buildCreateUrl(row)}" class="inline-flex justify-center items-center px-4 py-2 text-sm leading-tight font-medium text-white rounded text-center transition-colors duration-200 bg-blue-500 hover:bg-blue-700">
+            //         <i class="fas fa-plus"></i></a>`
+            //     };
+            //     return [createCol, ...colSetWithoutCreate()];
+            // }
+
+        
             function colSetWithCreate() {
-                const createCol = {
-                    data: null,
-                    orderable: false,
-                    searchable: false,
-                    className: 'text-left',
-                    render: (_d, _t, row) => `<a href="${buildCreateUrl(row)}" class="inline-flex justify-center items-center px-4 py-2 text-sm leading-tight font-medium text-white rounded text-center transition-colors duration-200 bg-blue-500 hover:bg-blue-700">
-                    <i class="fas fa-plus"></i></a>`
-                };
-                return [createCol, ...colSetWithoutCreate()];
+            const actionCol = {
+                data: null,
+                orderable: false,
+                searchable: false,
+                className: 'text-left',
+                render: (_d, _t, row) => {
+                const createUrl = `/createcs/${row.doc_type}/${row.eid}`;
+                // tombol + (buat CS) & X (complete sisaan)
+                return `
+                    <div class="inline-flex gap-2">
+                    <a href="${createUrl}"
+                        class="inline-flex justify-center items-center px-3 py-1.5 text-sm font-medium text-white rounded bg-blue-500 hover:bg-blue-700"
+                        title="Create CS">
+                        <i class="fas fa-plus"></i>
+                    </a>
+                    <button type="button"
+                        class="btn-complete-open inline-flex justify-center items-center px-3 py-1.5 text-sm font-medium text-white rounded bg-red-500 hover:bg-red-700"
+                        data-doc="${row.doc_type}" data-eid="${row.eid}" title="Complete sisa yang tidak jadi diorder">
+                        <i class="fas fa-times"></i>
+                    </button>
+                    </div>`;
+                }
+            };
+            return [actionCol, ...colSetWithoutCreate()];
             }
+
 
             // ===== Datatables init (tanpa parameter docType) =====
             const tblMine = $('#tblMine').DataTable({
@@ -890,4 +922,71 @@
             });
         });
     </script>
+    <Script>        
+        // Klik tombol X untuk complete sisa openordered
+        $(document).on('click', '.btn-complete-open', function () {
+            const doc = $(this).data('doc');   // SPPB | SPPJ | SPPK | SPPT
+            const eid = $(this).data('eid');   // hashids dari src_id
+
+            Swal.fire({
+                title: 'Complete Sisa Order?',
+                html: `
+                    <div style="text-align:left;">
+                        <p>Dokumen: <b>${doc}</b></p>
+                        <p>Aksi ini akan menandai <b>semua sisa (open qty)</b> sebagai <b>Completed</b>.</p>                       
+                        <p style="color:red; font-weight:bold;">Yakin ingin melanjutkan?</p>
+                    </div>
+                `,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Ya, Complete Sekarang',
+                cancelButtonText: 'Batal',
+                reverseButtons: true,
+                focusCancel: true,
+            }).then((result) => {
+                if (!result.isConfirmed) return;
+
+                const $btn = $(this).prop('disabled', true);
+
+                $.ajax({
+                    url: `/csjobs/complete/${doc}/${eid}`,
+                    type: 'POST',
+                    data: { _token: '{{ csrf_token() }}' },
+                })
+                .done(res => {
+                    if (res.ok) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Berhasil!',
+                            text: res.message || 'Sisa qty telah di-completed-kan.',
+                            timer: 2000,
+                            showConfirmButton: false
+                        });
+
+                        // Refresh semua tabel yang mungkin terpengaruh
+                        try { $('#tblMine').DataTable().ajax.reload(null, false); } catch(e){}
+                        try { $('#tblAll').DataTable().ajax.reload(null, false); } catch(e){}
+                        try { $('#tblRevision').DataTable().ajax.reload(null, false); } catch(e){}
+                        try { $('#tblSppbjkt').DataTable().ajax.reload(null, false); } catch(e){}
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Gagal!',
+                            text: res.message || 'Gagal memproses aksi.',
+                        });
+                    }
+                })
+                .fail(xhr => {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Gagal!',
+                        text: xhr.responseJSON?.message || 'Terjadi kesalahan pada server.',
+                    });
+                })
+                .always(() => $btn.prop('disabled', false));
+            });
+        });
+
+
+    </Script>
 </x-app-layout>

@@ -26,6 +26,12 @@ use Mail;
 use Illuminate\Support\Facades\Log;
 use PDF;
 use Vinkla\Hashids\Facades\Hashids;
+use App\Http\Controllers\TrAttachmentController;
+use Illuminate\Support\Facades\Response;
+use App\Models\TrAttachment;
+use Illuminate\Support\Str;
+use Google\Cloud\Storage\StorageClient;
+
 
 class WoController extends Controller
 {
@@ -292,32 +298,90 @@ class WoController extends Controller
             }
             
             // === attachments (opsional) ===
+            // if ($request->hasFile('attachments')) {
+            //     foreach ($request->file('attachments') as $file) {
+            //         if (!$file->isValid()) continue;
+
+            //         $randomNumber = random_int(10000000, 99999999);
+            //         $filenameNoExt = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+            //         $ext           = $file->getClientOriginalExtension();
+            //         $attachfile    = md5($randomNumber) . '.' . $ext;
+
+            //         $folder_attach = public_path('attachments/'.$year);
+            //         if (!is_dir($folder_attach)) {
+            //             mkdir($folder_attach, 0777, true); // <<< recursive
+            //         }
+            //         $file->move($folder_attach, $attachfile);
+
+            //         $attach = new Attachment();
+            //         $attach->docid        = $docid;
+            //         $attach->name         = str_replace('%','', $filenameNoExt);
+            //         $attach->attachfile   = $attachfile;
+            //         $attach->status       = 'A';
+            //         $attach->extention    = $ext;
+            //         $attach->created_user = $username; // <<< pakai $username
+            //         $attach->save();
+            //     }
+            // }
+
+     
+
+            // $meta = [
+            //     'refnbr'        => $docid,                       // biasanya = docid WO
+            //     'doctype'       => $doctype,                         // bedakan per modul: 'WO', 'PR', dll
+            //     'cpnyid'        => $request->input('cpnyid'),    // opsional
+            //     'departementid' => $request->input('departementid'), // opsional
+            //     'base_folder'   => 'att-purchasing-app/wo',      // beda modul → beda base_folder
+            //     'created_by'    => auth()->user()->username ?? auth()->id(),
+            // ];
+
+            // // ambil file dari request (field: attachments[])
+            // $files = (array) $request->file('attachments');
+
+            // try {
+              
+            //     $uploader = app(TrAttachmentController::class);
+            //     $uploadResult = $uploader->uploadInternal($meta, $files);
+               
+            //     return Response::json([
+            //         'message'       => 'WO created & attachments uploaded',
+            //         'attachments'   => $uploadResult, // folder + daftar item
+            //     ]);
+            // } catch (\Throwable $e) {
+            //     return Response::json([
+            //         'message' => 'Failed to create WO',
+            //         'error'   => $e->getMessage(),
+            //     ], 500);
+            // }
+
             if ($request->hasFile('attachments')) {
-                foreach ($request->file('attachments') as $file) {
-                    if (!$file->isValid()) continue;
+                $meta = [
+                    'refnbr'        => $docid,
+                    'doctype'       => $doctype,
+                    'cpnyid'        => $request->input('cpnyid'),
+                    'departementid' => $request->input('departementid'),
+                    'base_folder'   => 'att-purchasing-app/wo',
+                    'created_by'    => $username,
+                ];
 
-                    $randomNumber = random_int(10000000, 99999999);
-                    $filenameNoExt = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
-                    $ext           = $file->getClientOriginalExtension();
-                    $attachfile    = md5($randomNumber) . '.' . $ext;
+                $files = (array) $request->file('attachments');
 
-                    $folder_attach = public_path('attachments/'.$year);
-                    if (!is_dir($folder_attach)) {
-                        mkdir($folder_attach, 0777, true); // <<< recursive
-                    }
-                    $file->move($folder_attach, $attachfile);
-
-                    $attach = new Attachment();
-                    $attach->docid        = $docid;
-                    $attach->name         = str_replace('%','', $filenameNoExt);
-                    $attach->attachfile   = $attachfile;
-                    $attach->status       = 'A';
-                    $attach->extention    = $ext;
-                    $attach->created_user = $username; // <<< pakai $username
-                    $attach->save();
+                try {
+                    $uploader = app(TrAttachmentController::class);
+                    $uploadResult = $uploader->uploadInternal($meta, $files);
+                    // tidak return di sini!
+                } catch (\Throwable $e) {
+                    \DB::rollBack();
+                    return response()->json([
+                        'message' => 'Failed to create WO',
+                        'error'   => 'Gagal upload attachment: '.$e->getMessage(),
+                    ], 500);
                 }
+            } else {
+                $uploadResult = null; // tidak ada attachment
             }
 
+          
             // === kirim email ke approver pertama ===
             $firstApproval = T_approval::where('docid', $docid)
                 ->where('status', 'P')
@@ -370,6 +434,8 @@ class WoController extends Controller
                 'ok' => true,
                 'message' => 'WO created successfully',
                 'id' => $wo->id,
+                'docid'    => $docid,
+                'attachments' => $uploadResult, // opsional
             ]);
 
         } catch (\Throwable $e) {
@@ -389,36 +455,87 @@ class WoController extends Controller
         $id = Hashids::decode($hash)[0] ?? null;
         abort_if(!$id, 404);
 
-        $wo = TrWO::findOrFail($id);
+        $wo = TrWO::with([
+            'worktype',       // MsWorktype
+            'subworktype',    // MsSubworktype
+            'location',       // MsLocationPG
+            'sublocation',    // MsSubLocationPG
+            'creator:username,name',
+        ])->findOrFail($id);
 
-        // Ambil detail + eager load relasi lokasi & sublokasi
-        $wodetail = TrWOdetail::with([
-                'location:location_id,location_name',
-                'subLocation:sub_location_id,sub_location_name',
-            ])
-            ->where('woid', $wo->woid)
-            ->get()
-            ->map(function ($d) {
-                // Sematkan nama ke attribute agar Blade lama tetap jalan
-                $d->location_name      = optional($d->location)->location_name;
-                $d->sub_location_name  = optional($d->subLocation)->sub_location_name;
-                return $d;
-            });
-
-        $user   = request()->user();
+        $user      = request()->user();
         $usercpny  = Usercpny::where('username', $user->username)->get();
         $usercpny2 = Usercpny::where('username', $user->username)->first();
         $userdept  = Userdept::where('username', $user->username)->get();
         $userdept2 = Userdept::where('username', $user->username)->first();
 
-        $attachment = Attachment::where('docid', $wo->woid)
+        // attachments
+        $rows = TrAttachment::where('refnbr', $wo->woid)
             ->where('status', 'A')
+            ->orderBy('created_at', 'desc')
             ->get();
 
+        $config      = config('filesystems.disks.gcs');
+        $keyFilePath = $config['key_file'];
+        if (!Str::startsWith($keyFilePath, ['/','C:\\','D:\\'])) {
+            $keyFilePath = base_path($keyFilePath);
+        }
+        $storage = new StorageClient([
+            'projectId'   => $config['project_id'],
+            'keyFilePath' => $keyFilePath,
+        ]);
+        $bucket = $storage->bucket($config['bucket']);
+
+        $attachments = $rows->map(function ($r) use ($bucket) {
+            $objectPath = rtrim($r->folder, '/').'/'.$r->filename;
+            $object     = $bucket->object($objectPath);
+            $signedUrl  = null;
+            try {
+                $signedUrl = $object->signedUrl(
+                    new \DateTimeImmutable('+10 minutes'),
+                    ['version' => 'v4']
+                );
+            } catch (\Throwable $e) {
+                \Log::warning('Signed URL gagal', ['path' => $objectPath, 'error' => $e->getMessage()]);
+            }
+            return (object) [
+                'display_name' => $r->attachment_name,
+                'created_by'   => $r->created_by,
+                'created_at'   => $r->created_at,
+                'url'          => $signedUrl,
+                'folder'       => $r->folder,
+                'filename'     => $r->filename,
+                'extention'    => $r->extention,
+                'size'         => $r->filesize,
+            ];
+        });
+
+        // ==== nilai awal untuk prefill (aman jika relasi null) ====
+        $prefill = [
+            'cpnyid'          => $wo->cpny_id ?? '',
+            'departementid'   => $wo->department_id ?? '',
+            'wotype'          => $wo->wotype ?? '',            // (string nama kategori, sama seperti create)
+            'worequest'       => $wo->worequest ?? '',         // (string nama kategori)
+            'location_id'     => $wo->location_id ?? '',
+            'location_name'   => optional($wo->location)->location_name ?? ($wo->location_id ?? ''),
+            'sub_location_id' => $wo->sub_location_id ?? '',
+            'sub_location_name'=> optional($wo->sublocation)->sub_location_name ?? ($wo->sub_location_id ?? ''),
+            'worktypeid'      => $wo->worktypeid ?? '',
+            'worktype_name'   => optional($wo->worktype)->worktype_name ?? ($wo->worktypeid ?? ''),
+            'subworktypeid'   => $wo->subworktypeid ?? '',
+            'subworktype_name'=> optional($wo->subworktype)->subworktype_name ?? ($wo->subworktypeid ?? ''),
+            'picrequester'    => $wo->picrequester ?? ($wo->created_by ?? ''),
+            'biaya_wo'        => $wo->biaya_wo ?? null,
+            'keperluan'       => $wo->keperluan ?? '',
+            'woid'            => $wo->woid ?? '',
+            'hash'            => request()->route('hash') ?? '',
+        ];
+
         return view('pages.wos.editwos', compact(
-            'wo','wodetail','usercpny','usercpny2','userdept','userdept2','attachment'
+            'wo','usercpny','usercpny2','userdept','userdept2','attachments','prefill'
         ));
     }
+
 
 
 
@@ -749,11 +866,58 @@ class WoController extends Controller
             ->orderBy('aprvid')
             ->get();
 
-        $attachment = Attachment::where('docid', $wo->woid)
+        // $attachment = Attachment::where('docid', $wo->woid)
+        //     ->where('status', 'A')
+        //     ->get();
+        // ---------- ambil lampiran dari tr_attachment ----------
+        $rows = TrAttachment::where('refnbr', $wo->woid)
             ->where('status', 'A')
+            ->orderBy('created_at', 'desc')
             ->get();
 
-        return view('pages.wos.showwos', compact('wo', 'approval', 'attachment', 'hash'));
+        // siapkan Signed URL dari GCS
+        $config = config('filesystems.disks.gcs');
+        $keyFilePath = $config['key_file'];
+        if (!Str::startsWith($keyFilePath, ['/','C:\\','D:\\'])) {
+            $keyFilePath = base_path($keyFilePath);
+        }
+
+        $storage = new StorageClient([
+            'projectId'   => $config['project_id'],
+            'keyFilePath' => $keyFilePath,
+        ]);
+        $bucket = $storage->bucket($config['bucket']);
+
+        // map jadi data siap pakai di view
+        $attachments = $rows->map(function ($r) use ($bucket) {
+            $objectPath = rtrim($r->folder, '/').'/'.$r->filename;   // ex: att-purchasing-app/wo/2025/xxxx-file.pdf
+            $object     = $bucket->object($objectPath);
+
+            // Signed URL 10 menit
+            $signedUrl = null;
+            try {
+                $signedUrl = $object->signedUrl(
+                    new \DateTimeImmutable('+10 minutes'),
+                    ['version' => 'v4']
+                );
+            } catch (\Throwable $e) {
+                // kalau gagal signed URL, biarkan null; di UI tampilkan nama saja
+                \Log::warning('Signed URL gagal', ['path' => $objectPath, 'error' => $e->getMessage()]);
+            }
+
+            return (object) [
+                'display_name' => $r->attachment_name,         // nama yang enak dibaca
+                'created_by'   => $r->created_by,
+                'created_at'   => $r->created_at,
+                'url'          => $signedUrl,                  // bisa null jika gagal
+                'folder'       => $r->folder,
+                'filename'     => $r->filename,
+                'extention'    => $r->extention,
+                'size'         => $r->filesize,
+            ];
+        });
+
+        return view('pages.wos.showwos', compact('wo', 'approval', 'attachments', 'hash'));
     }
 
 
@@ -1364,13 +1528,12 @@ class WoController extends Controller
             : 'pages.wos.pdf_wos';
 
         $data = [
-            'title'               => $variant === 'tenant' ? 'Work Order (Tenant)' : 'Work Order',
+            'title'               => $variant === 'tenant' ? 'Work Order (Tenant)' : 'Work Order (WO)',
             'doc_type'            => 'WO',
             'docid'               => $wo->woid,
             'department_id'       => $wo->department_id,
             'cpnyname'            => optional($company)->cpnyname,
-            'parent'              => optional($company)->parent,
-            'project'             => optional($company)->project,
+            'cpnyid'              => $wo->cpny_id,           
             'created_by_username' => $wo->created_by,
             'created_by_name'     => ucwords(strtolower(optional($wo->creator)->name)),
             'created_at_fmt'      => optional($wo->created_at)->format('d F Y'),
@@ -1387,8 +1550,7 @@ class WoController extends Controller
             'location_name'       => optional($wo->location)->location_name,
             'sub_location_name'   => optional($wo->sublocation)->sub_location_name,
             'picrequester'        => $wo->picrequester,
-            'biaya_wo'            => $wo->biaya_wo,
-            'cpny_id'             => $wo->cpny_id,
+            'biaya_wo'            => number_format($wo->biaya_wo, 0, ',', '.'),            
         ];
 
         $pdf = \PDF::loadView($view, array_merge($data, [

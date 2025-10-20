@@ -501,7 +501,7 @@
                     function renderReceiptLink(row) {
                         const url = `/showreceipt/${encodeURIComponent(row.receiptnbr_eid ?? '')}`;
                         const text = row.receiptnbr ?? '';
-                        return `<a href="${url}" class="font-bold text-indigo-700 hover:underline">${text}</a>`;
+                        return `<a href="${url}" class="inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-sm leading-tight font-medium text-white rounded text-center transition-colors duration-200 bg-gray-500 hover:bg-gray-700">${text}</a>`;
                     }
 
                     // init awal

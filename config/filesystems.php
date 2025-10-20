@@ -60,7 +60,8 @@ return [
             'driver'          => 'gcs',
             'project_id'      => env('GCS_PROJECT_ID'),
             'bucket'          => env('GCS_BUCKET'),
-            'path_prefix'     => env('GCS_PATH_PREFIX'),   // opsional
+            // 'path_prefix'     => env('GCS_PATH_PREFIX'),   // opsional
+            'path_prefix'     => null,   // opsional
             'api_uri'         => env('GCS_API_URI'),       // opsional
             'visibility'      => 'private',                 // atau 'private'
             'key_file'        => base_path(env('GCS_KEY_FILE')), // JSON service‑account

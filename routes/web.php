@@ -521,6 +521,7 @@ Route::post('/logout', function () {
     Route::put('/csjobs/{csid}', [CsJobController::class, 'updateCS'])->name('csjobs.update');
     Route::put('/csjobs/remove-attachment/{id}', [CsJobController::class, 'removeAttachment']);
     Route::get('/csjobs/dataset-counts', [CsJobController::class,'CsJobsDatasetCounts'])->name('csjobs.dataset.counts');
+    Route::post('/csjobs/complete/{doc}/{eid}', [CsJobController::class, 'CompleteRemainingOpen'])->name('csjobs.complete');
 
     Route::get('/cslist', [CsListController::class, 'index'])->name('cslist');
     Route::get('/cslist/json', [CsListController::class, 'json'])->name('cslist.json');
@@ -591,9 +592,9 @@ Route::post('/logout', function () {
     Route::post('/receipts', [ReceiptController::class, 'storeReceipt'])->name('receipt.store'); 
     Route::get('/showreceipt/{hash}', [ReceiptController::class, 'showReceipt']);
     Route::get('/receipt/{id}/comments', [ReceiptController::class, 'fetchComments']);
-    Route::post('/receipt/{id}/comments', [ReceiptController::class, 'storeComment']);
-    Route::get('/pdf_receipt/{hash}', [ReceiptController::class, 'printReceipt']);
+    Route::post('/receipt/{id}/comments', [ReceiptController::class, 'storeComment']);  
     Route::post('/receipts/{id}/approve', [ReceiptController::class, 'approveReceipt'])->name('receipts.approve');
+    Route::get('/receipt/print/{hash}', [ReceiptController::class, 'printReceipt'])->name('receipts.print');
 
     Route::get('/wos', [WoController::class, 'index'])->name('wos');
     Route::get('/wos/json', [WoController::class, 'json'])->name('wos.json');

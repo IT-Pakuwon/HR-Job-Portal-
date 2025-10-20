@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Work Order (WO) Daily</title>
+    <title>{{ $title }}</title>
     <style>
         @page {
             size: A4;
@@ -111,27 +111,27 @@
     <!-- Header -->
     <table class="header-table">
         <tr>
-            <td style="width: 33%;"><strong>AW - Artisan Wahyu, PT</strong></td>
+            <td style="width: 33%;"><strong>{{ $cpnyid }} - {{ $cpnyname }}</strong></td>
             <td style="width: 34%; text-align: center; vertical-align: middle;">
-                <div class="title">Work Order (WO)</div>
-                <div class="subtitle">Daily</div>
+                <div class="title">{{ $title }}</div>
+                <div class="subtitle">{{ $wotype }}</div>
             </td>
             <td style="width: 33%;">
                 <table>
                     <tr>
                         <td>WO ID</td>
                         <td>:</td>
-                        <td>WO20070004</td>
+                        <td>{{ $docid }}</td>
                     </tr>
                     <tr>
                         <td>Date</td>
                         <td>:</td>
-                        <td>7/27/2020</td>
+                        <td>{{ $wodate }}</td>
                     </tr>
                     <tr>
                         <td>Status WO</td>
                         <td>:</td>
-                        <td>Completed</td>
+                        <td>{{ $status_doc }}</td>
                     </tr>
                 </table>
             </td>
@@ -146,49 +146,49 @@
         <tr>
             <td>User</td>
             <td>:</td>
-            <td>Ade Fahmi</td>
+            <td>{{ $created_by_name }}</td>
             <td>Cnpy ID</td>
             <td>:</td>
-            <td>AW</td>
+            <td>{{ $cpnyid }}</td>
             <td>Department</td>
             <td>:</td>
-            <td>ENGINEERING DEPT</td>
+            <td>{{ $department_id }}</td>
         </tr>
         <tr>
             <td>Tipe</td>
             <td>:</td>
-            <td>Tenant</td>
+            <td>{{ $worequest }}</td>
             <td>Request</td>
             <td>:</td>
-            <td>AW - Artisan Wahyu, PT</td>
+            <td>{{ $cpnyid }} - {{ $cpnyname }}</td>
             <td>PIC</td>
             <td>:</td>
-            <td>Ade Fahmi</td>
+            <td>{{ $picrequester }}</td>
         </tr>
         <tr>
             <td>Jenis Pekerjaan</td>
             <td>:</td>
-            <td>MEP</td>
+            <td>{{ $worktype_name }}</td>
             <td>Sub Jenis Pekerjaan</td>
             <td>:</td>
-            <td>Electrical</td>
+            <td>{{ $subworktype_name }}</td>
             <td>Biaya WO</td>
             <td>:</td>
-            <td></td>
+            <td>Rp. {{ $biaya_wo }}</td>
         </tr>
         <tr>
             <td>Lokasi</td>
             <td>:</td>
-            <td>LANTAI 2</td>
+            <td>{{ $location_name }}</td>
             <td>Sub Lokasi</td>
             <td>:</td>
-            <td>MSCP</td>
+            <td>{{ $sub_location_name }}</td>
             <td colspan="3"></td>
         </tr>
         <tr>
             <td>Info Pekerjaan</td>
             <td>:</td>
-            <td colspan="7">Penggantian lampu yang padam di area MSCP (WO susulan)</td>
+            <td colspan="7">{{ $keperluan }}</td>
         </tr>
     </table>
 

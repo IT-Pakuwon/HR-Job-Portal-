@@ -411,6 +411,9 @@
                 $select.append(new Option(it.text, it.text));
             });
             });
+             .fail(function(){
+            toastr.error('Gagal memuat data kategori.');
+            });
         }
         loadCategories($('#wotype'), 'wotype');
         loadCategories($('#worequest'), 'worequest');
@@ -574,8 +577,8 @@
             if(!$worequest.val()){ addError($worequest, 'WO Request wajib.'); ok=false; }
             if(!$wt.val())       { addError($('#jenis_pekerjaan_display'), 'Pilih Worktype.'); ok=false; }
             if(!$swt.val())      { addError($('#jenis_pekerjaan_display'), 'Pilih Sub Worktype.'); ok=false; }
-            if(!$loc.val())      { addError($loc, 'Location wajib.'); ok=false; }
-            if(!$subloc.val())   { addError($subloc, 'Sub Location wajib.'); ok=false; }
+            if(!$loc.val())      { addError($('#lokasi_display'), 'Location wajib.'); ok=false; }
+            if(!$subloc.val())   { addError($('#lokasi_display'), 'Sub Location wajib.'); ok=false; }
             if(!$pic.val())      { addError($pic, 'PIC Requester wajib.'); ok=false; }
             if($biaya.val() && isNaN(parseFloat($biaya.val()))) {
                 addError($biaya, 'Biaya WO tidak valid.'); ok=false;
@@ -659,6 +662,22 @@
             }
         });
     </script>
+
+    <script>
+        $(function(){
+        $('#cancelBtn').on('click', function(){
+            if (confirm('Batalkan pembuatan WO ini? Perubahan belum disimpan.')) {
+            // sesuaikan: history back atau route index
+            if (document.referrer) {
+                window.history.back();
+            } else {
+                window.location.href = "/wos";
+            }
+            }
+        });
+        });
+    </script>
+
 
  
 

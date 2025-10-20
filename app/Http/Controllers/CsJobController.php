@@ -1040,6 +1040,105 @@ class CsJobController extends Controller
         }
     }
 
+    public function CompleteRemainingOpen(string $doc, string $eid)
+    {
+        $ids = \Vinkla\Hashids\Facades\Hashids::decode($eid);
+        abort_if(empty($ids), 404);
+        $srcId = $ids[0];
+
+        $doc = strtoupper($doc);
+        abort_unless(in_array($doc, ['SPPB','SPPJ','SPPK','SPPT']), 422, 'Invalid doc type');
+
+        DB::connection('pgsql')->beginTransaction();
+        try {
+            // ambil header + detail & nama kolom key nomor urut seperti helper lain
+            switch ($doc) {
+                case 'SPPB':
+                    $header = \App\Models\TrSPPB::on('pgsql')->lockForUpdate()->findOrFail($srcId);
+                    $details = \App\Models\TrSPPBdetail::on('pgsql')->where('sppbid', $header->sppbid)->get();
+                    break;
+                case 'SPPJ':
+                    $header = \App\Models\TrSPPJ::on('pgsql')->lockForUpdate()->findOrFail($srcId);
+                    $details = \App\Models\TrSPPJdetail::on('pgsql')->where('sppjid', $header->sppjid)->get();
+                    break;
+                case 'SPPK':
+                    $header = \App\Models\TrSPPK::on('pgsql')->lockForUpdate()->findOrFail($srcId);
+                    $details = \App\Models\TrSPPKdetail::on('pgsql')->where('sppkid', $header->sppkid)->get();
+                    break;
+                case 'SPPT':
+                    $header = \App\Models\TrSPPT::on('pgsql')->lockForUpdate()->findOrFail($srcId);
+                    $details = \App\Models\TrSPPTdetail::on('pgsql')->where('spptid', $header->spptid)->get();
+                    break;
+            }
+
+            $detTable = fn($m) => $m->getTable();
+            $hdrTable = $header->getTable();
+
+            $sumCompletedAdded = 0.0;
+            $sumOpenReduced    = 0.0;
+
+            foreach ($details as $d) {
+                // angka dasar
+                $qty        = (float)($d->qty ?? 0);
+                $ordered    = (float)($d->ordered ?? 0);
+                $rejected   = (float)($d->rejectordered ?? 0);
+                $completed  = (float)($d->completeordered ?? 0);
+
+                // remaining: pakai openordered kalau ada, else hitung manual
+                if (\Schema::connection('pgsql')->hasColumn($detTable($d), 'openordered') && $d->openordered !== null) {
+                    $remaining = (float)$d->openordered;
+                } else {
+                    $remaining = max($qty - $ordered - $rejected - $completed, 0);
+                }
+
+                if ($remaining <= 0) continue;
+
+                // update detail: completeordered += remaining, openordered = 0 (jika kolom ada)
+                if (\Schema::connection('pgsql')->hasColumn($detTable($d), 'completeordered')) {
+                    $d->completeordered = $completed + $remaining;
+                }
+                if (\Schema::connection('pgsql')->hasColumn($detTable($d), 'openordered')) {
+                    $d->openordered = 0;
+                }
+
+                // simpan detail
+                $d->save();
+
+                // akumulasi untuk header
+                $sumCompletedAdded += $remaining;
+                $sumOpenReduced    += $remaining;
+            }
+
+            // update header agregat bila kolom tersedia
+            if (\Schema::connection('pgsql')->hasColumn($hdrTable, 'totalcompleteordered')) {
+                $header->totalcompleteordered = (float)($header->totalcompleteordered ?? 0) + $sumCompletedAdded;
+            }
+            if (\Schema::connection('pgsql')->hasColumn($hdrTable, 'totalopenordered')) {
+                $header->totalopenordered = max(0, (float)($header->totalopenordered ?? 0) - $sumOpenReduced);
+            }
+
+            // opsional: kalau semua detail sudah complete, set status header (mis. 'C' atau tetap sesuai workflow)
+            // if (method_exists($details, 'sum')) { ... } — skip bila belum butuh.
+
+            $header->save();
+
+            DB::connection('pgsql')->commit();
+
+            return response()->json([
+                'ok'      => true,
+                'message' => 'Sisa qty berhasil di-mark Completed.',
+            ]);
+        } catch (\Throwable $e) {
+            DB::connection('pgsql')->rollBack();
+            \Log::error('CompleteRemainingOpen failed', ['error'=>$e->getMessage()]);
+            return response()->json([
+                'ok' => false,
+                'message' => 'Gagal memproses: '.$e->getMessage(),
+            ], 422);
+        }
+    }
+
+
 
 
 

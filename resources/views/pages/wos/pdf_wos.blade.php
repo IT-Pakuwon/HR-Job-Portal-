@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Work Order (WO) Daily</title>
+    <title>{{ $title }}</title>
     <style>
         @page {
             size: A4;
@@ -121,32 +121,32 @@
     <!-- Header -->
     <table>
         <tr>
-            <td style="width: 33%;"><strong>AW - Artisan Wahyu, PT</strong></td>
+            <td style="width: 33%;"><strong> {{ $cpnyid }} - {{ $cpnyname }}</strong></td>
             <td style="width: 34%; text-align: center; vertical-align: middle;">
-                <div class="title">Work Order (WO)</div>
-                <div class="subtitle">Daily</div>
+                <div class="title">{{ $title }}</div>
+                <div class="subtitle">{{ $wotype }}</div>
             </td>
             <td style="width: 33%;">
                 <table>
                     <tr>
                         <td>WO ID</td>
                         <td>:</td>
-                        <td>WO20070004</td>
+                        <td>{{ $docid }}</td>
                     </tr>
                     <tr>
                         <td>Date</td>
                         <td>:</td>
-                        <td>7/27/2020</td>
+                        <td>{{ $wodate }}</td>
                     </tr>
                     <tr>
                         <td>Status</td>
                         <td>:</td>
-                        <td>Completed</td>
+                        <td></td>
                     </tr>
                     <tr>
                         <td>Status WO</td>
                         <td>:</td>
-                        <td>Completed</td>
+                        <td>{{ $status_doc }}</td>
                     </tr>
                 </table>
             </td>
@@ -161,53 +161,53 @@
         <tr>
             <td style="width: 12%;">User</td>
             <td style="width: 2%;">:</td>
-            <td style="width: 20%;">Ade Fahmi</td>
+            <td style="width: 20%;">{{ $created_by_name }}</td>
 
             <td style="width: 12%;">Company</td>
             <td style="width: 2%;">:</td>
-            <td style="width: 20%;">AW</td>
+            <td style="width: 20%;">{{ $cpnyid }}</td>
 
             <td style="width: 12%;">Department</td>
             <td style="width: 2%;">:</td>
-            <td style="width: 18%;">ENGINEERING DEPT</td>
+            <td style="width: 18%;">{{ $department_id }}</td>
         </tr>
 
         <tr>
             <td>Type</td>
             <td>:</td>
-            <td>Tenant</td>
+            <td>{{ $worequest }}</td>
 
             <td>Request</td>
             <td>:</td>
-            <td>AW - Artisan Wahyu, PT</td>
+            <td>{{ $cpnyid }} - {{ $cpnyname }}</td>
 
             <td>PIC</td>
             <td>:</td>
-            <td>Ade Fahmi</td>
+            <td>{{ $picrequester }}</td>
         </tr>
 
         <tr>
             <td>Jenis Pekerjaan</td>
             <td>:</td>
-            <td>MEP</td>
+            <td>{{ $worktype_name }}</td>
 
             <td>Sub Jenis Pekerjaan</td>
             <td>:</td>
-            <td>Electrical</td>
+            <td>{{ $subworktype_name }}</td>
 
             <td>Biaya WO</td>
             <td>:</td>
-            <td></td>
+            <td>Rp. {{ $biaya_wo }}</td>
         </tr>
 
         <tr>
             <td>Lokasi</td>
             <td>:</td>
-            <td>LANTAI 2</td>
+            <td>{{ $location_name }}</td>
 
             <td>Sub Lokasi</td>
             <td>:</td>
-            <td>MSCP</td>
+            <td>{{ $sub_location_name }}</td>
 
             <td colspan="3"></td>
         </tr>
@@ -221,13 +221,8 @@
         <tr>
             <td style="width: 17%;">Info Pekerjaan</td>
             <td style="width: 2%;">:</td>
-            <td>Penggantian lampu yang padam di area MSCP (WO susulan)</td>
-        </tr>
-        <tr>
-            <td>Detail Pekerjaan</td>
-            <td>:</td>
-            <td>Penggantian lampu yang padam di area MSCP (WO susulan)</td>
-        </tr>
+            <td>{{ $keperluan }}</td>
+        </tr>        
     </table>
 
     <div class="spacer"></div>

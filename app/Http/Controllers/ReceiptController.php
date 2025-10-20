@@ -25,7 +25,7 @@ use App\Models\TrCS;
 use Vinkla\Hashids\Facades\Hashids;
 use Mail;
 use Barryvdh\DomPDF\Facade\Pdf; 
-
+use App\Models\Company;
 
 class ReceiptController extends Controller
 {
@@ -525,7 +525,7 @@ class ReceiptController extends Controller
         return response()->json(['success'=>true]);
     }
 
-    public function printReceipt(string $hash)
+    public function printReceipt_xxx(string $hash)
     {
         $decoded = Hashids::decode($hash);
         abort_if(empty($decoded), 404, 'Dokumen tidak ditemukan.');
@@ -597,6 +597,53 @@ class ReceiptController extends Controller
         // 4) Stream
         $basename = 'RCP';
         return $dompdf->stream("{$basename}_{$rcp->rcpnbr}.pdf", ['Attachment' => false]);
+    }
+
+    public function printReceipt(string $hash, Request $request)
+    {
+        $id = Hashids::decode($hash)[0] ?? null;
+        abort_if(!$id, 404);
+
+        $user = auth()->user();
+        if (!$user) return redirect()->route('login');
+
+        $rcp = TrReceipt::with(['creator:username,name'])->findOrFail($id);
+        $po  = TrPO::where('ponbr', $rcp->ponbr)->first();
+        $rcpdetails = TrReceiptdetail::where('receiptnbr', $rcp->receiptnbr)
+            ->orderBy('receipt_no')->get();
+        $company = Company::where('cpnyid', $rcp->cpny_id)->first();
+
+        $data = compact('rcp','po','rcpdetails','company');
+
+        $type = strtolower((string)$request->query('type', 'sttb'));
+        $view = $type === 'bpg' ? 'pages.receipt.pdf_bpg' : 'pages.receipt.pdf_receipt';
+
+        $createdName = ucwords(strtolower(optional($rcp->creator)->name ?? $rcp->created_by));
+        $now = now();
+
+        $pdf = Pdf::loadView($view, $data)->setPaper('A4','portrait');
+
+        $dompdf = $pdf->getDomPDF();
+        $dompdf->render();
+
+        // footer
+        $canvas  = $dompdf->get_canvas();
+        $w       = $canvas->get_width();
+        $h       = $canvas->get_height();
+        $metrics = $dompdf->getFontMetrics();
+        $font    = $metrics->get_font('sans-serif', 'normal');
+        $size    = 9;
+
+        $leftTxt  = "Created by: {$createdName}, Sent by: {$createdName}, On: ".$now->format('d/m/Y H:i');
+        $rightTpl = "Page {PAGE_NUM} of {PAGE_COUNT}";
+        $rightWidth = $metrics->getTextWidth($rightTpl, $font, $size);
+        $y = $h - 28;
+        $x = $canvas->get_width() - $w - 75;
+        $canvas->page_text(30, $y, $leftTxt, $font, $size, [0,0,0]);
+        $canvas->page_text($w - $x - $rightWidth, $y, $rightTpl, $font, $size, [0,0,0]);
+
+        $basename = $type === 'bpg' ? 'BPG' : 'STTB';
+        return $dompdf->stream("{$basename}_{$rcp->receiptnbr}.pdf", ['Attachment' => false]);
     }
 
     public function approveReceipt(Request $request, $id)

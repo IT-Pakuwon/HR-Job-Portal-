@@ -189,7 +189,7 @@
 
                             <a href="{{ url('/pdf_sppbs') }}/{{ $hash }}" target="_blank">
                                 <button
-                                    class="inline-flex items-center gap-2 rounded-full bg-indigo-600 px-4 py-1 text-sm font-semibold text-white transition-colors duration-200 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                                    class="inline-flex cursor-pointer items-center gap-2 rounded-full bg-indigo-600 px-4 py-1 text-sm font-semibold text-white transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
                                     Print PDF
                                 </button>
                             </a>
@@ -438,6 +438,8 @@
                                 <th class="px-4 py-2">Location</th>
                                 <th class="px-4 py-2">SubLocation</th>
                                 <th class="px-4 py-2">Ordered</th>
+                                <th class="px-4 py-2">Complete Ordered</th>
+                                <th class="px-4 py-2">Reject Ordered</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -454,6 +456,8 @@
                                     <td class="px-4 py-2">{{ optional($item->location)->location_name }}</td>
                                     <td class="px-4 py-2">{{ optional($item->subLocation)->sub_location_name }}</td>
                                     <td class="px-4 py-2">{{ $item->ordered }}</td>
+                                    <td class="px-4 py-2">{{ $item->completeordered }}</td>
+                                    <td class="px-4 py-2">{{ $item->rejectordered }}</td>
                                 </tr>
                             @endforeach
                         </tbody>

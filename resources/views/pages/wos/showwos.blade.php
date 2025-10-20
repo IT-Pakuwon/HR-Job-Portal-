@@ -418,7 +418,7 @@
                                     </tbody>
                                 </table>
                             </div>
-                            {{-- Attachment tab --}}
+                            {{-- Attachment tab --}}                           
                             <div x-show="activeTab === 'attachment'" class="flex-1 transition-all">
                                 <table class="w-full text-sm">
                                     <thead class="text-gray-600 dark:text-gray-300">
@@ -429,27 +429,25 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        @forelse ($attachment as $at)
-                                            @php
-                                                $year = $at->created_at->year;
-                                                $fileUrl = url('/attachments/' . $year . '/' . $at->attachfile);
-                                            @endphp
-                                            <tr
-                                                class="border-b border-gray-100 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700">
+                                        @forelse ($attachments as $at)
+                                            <tr class="border-b border-gray-100 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700">
                                                 <td class="p-3">
-                                                    <a href="{{ $fileUrl }}" target="_blank"
+                                                    @if ($at->url)
+                                                        <a href="{{ $at->url }}" target="_blank"
                                                         class="flex items-center gap-2 font-medium text-indigo-600 hover:underline dark:text-indigo-400">
-                                                        📎 {{ $at->name }}
-                                                    </a>
+                                                            📎 {{ $at->display_name }}
+                                                        </a>
+                                                    @else
+                                                        <span class="text-gray-700 dark:text-gray-300">📎 {{ $at->display_name }}</span>
+                                                        <span class="ml-2 text-xs text-red-500">(link unavailable)</span>
+                                                    @endif
                                                 </td>
-                                                <td class="p-3">{{ $at->created_user }}</td>
-                                                <td class="p-3">
-                                                    {{ \Carbon\Carbon::parse($at->created_at)->format('d M Y') }}</td>
+                                                <td class="p-3">{{ $at->created_by }}</td>
+                                                <td class="p-3">{{ \Carbon\Carbon::parse($at->created_at)->format('d M Y') }}</td>
                                             </tr>
                                         @empty
                                             <tr>
-                                                <td colspan="3"
-                                                    class="p-4 text-center italic text-gray-500 dark:text-gray-400">
+                                                <td colspan="3" class="p-4 text-center italic text-gray-500 dark:text-gray-400">
                                                     No attachments found.
                                                 </td>
                                             </tr>
@@ -457,6 +455,7 @@
                                     </tbody>
                                 </table>
                             </div>
+
                             {{-- Comments tab --}}
                             <div x-show="activeTab === 'comments'" class="flex-1 transition-all">
                                 <div x-data="{ comments: [], newComment: '', currentUser: 'User1' }" class="flex h-full flex-col">
