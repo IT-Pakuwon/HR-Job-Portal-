@@ -420,12 +420,29 @@
                                 <th class="px-4 py-2">Detail</th>
                                 <th class="px-4 py-2">Qty</th>
                                 <th class="px-4 py-2">Unit Price</th>
-                                <th class="px-4 py-2 text-right">Total Budget</th>
-                                @for ($i = 1; $i <= 12; $i++)
+                                <th class="px-4 py-2 text-left">Total Budget</th>
+                                @php
+                                    $months = [
+                                        'January',
+                                        'February',
+                                        'March',
+                                        'April',
+                                        'May',
+                                        'June',
+                                        'July',
+                                        'August',
+                                        'September',
+                                        'October',
+                                        'November',
+                                        'December',
+                                    ];
+                                @endphp
+
+                                @foreach ($months as $month)
                                     <th class="px-4 py-2 text-right">
-                                        Period{{ str_pad($i, 2, '0', STR_PAD_LEFT) }}
+                                        {{ $month }}
                                     </th>
-                                @endfor
+                                @endforeach
                             </tr>
                         </thead>
                         <tbody>
