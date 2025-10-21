@@ -170,17 +170,17 @@
                 <div class="rounded-xl bg-white duration-300 sm:w-1/2 md:w-full dark:bg-gray-800">
                     <header
                         class="sticky top-0 z-10 flex items-center justify-between rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
-                        {{-- Rounded-t-xl, stronger    , and darker background for header --}}
+                        {{-- Header with rounded top and dark mode support --}}
                         <h1 class="flex items-center gap-2 text-lg font-bold text-gray-800 dark:text-gray-100">
-                            {{-- Larger, bolder title --}}
+                            {{-- Budget ID label --}}
                             <span
                                 class="inline-flex items-center rounded-md bg-purple-100 px-2 py-1 text-sm font-semibold text-purple-700">
                                 ID
-                            </span> {{-- Iconic color for the ID icon --}}
+                            </span>
                             {{ $budget->budget_id }}
                         </h1>
+
                         @php
-                            // Define the status text
                             $statusText = match ($budget->status) {
                                 'D' => 'Revise',
                                 'P' => 'On Progress',
@@ -198,20 +198,22 @@
                                 default => 'bg-gray-100 text-gray-700 dark:bg-gray-800/30 dark:text-gray-300',
                             };
                         @endphp
-                        <div class="flex items-center gap-3">
-                        <span
-                            class="{{ $statusClasses }} inline-flex items-center rounded-full px-4 py-1 text-sm font-semibold transition-colors duration-200">
-                            {{ $statusText }}
 
-                            <a href="{{ url('/pdf_budgets') }}/{{ $hash }}" target="_blank">
-                                <button
-                                    class="inline-flex cursor-pointer items-center gap-2 rounded-full bg-indigo-600 px-4 py-1 text-sm font-semibold text-white transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
-                                    Print PDF
-                                </button>
+                        <div class="flex items-center gap-3">
+                            {{-- Status badge --}}
+                            <span
+                                class="{{ $statusClasses }} inline-flex items-center rounded-full px-4 py-1 text-sm font-semibold transition-colors duration-200">
+                                {{ $statusText }}
+                            </span>
+
+                            {{-- Print button --}}
+                            <a href="{{ url('/pdf_budgets/' . $hash) }}" target="_blank"
+                                class="inline-flex items-center gap-2 rounded-full bg-indigo-600 px-4 py-1 text-sm font-semibold text-white transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                                Print PDF
                             </a>
-                        </span>
                         </div>
                     </header>
+
                     <!-- Main Content -->
                     <div class="space-y-4 p-4">
                         <div class="grid grid-cols-1 gap-6 md:grid-cols-3">

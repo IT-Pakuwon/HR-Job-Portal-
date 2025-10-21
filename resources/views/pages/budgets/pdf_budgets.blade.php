@@ -1,310 +1,309 @@
-<style>
-    body {
-        font-family: Arial, sans-serif;
-        font-size: 12px;
-        color: #000;
-    }
+<!DOCTYPE html>
+<html lang="en">
 
-    h2 {
-        margin: 0;
-        font-size: 16px;
-        text-align: center;
-        font-weight: bold;
-    }
+<head>
+    <meta charset="UTF-8">
+    <title>PT. ELITE PRIMA HUTAMA – BUDGET 2025</title>
+    <style>
+        @page {
+            size: A3 landscape;
+            margin: 15mm;
+        }
 
-    .subtitle {
-        text-align: center;
-        font-size: 13px;
-        margin-bottom: 12px;
-    }
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 11px;
+            color: #000;
+            margin: 0;
+        }
 
-    /* General table */
-    table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-bottom: 12px;
-    }
+        h2 {
+            text-align: center;
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 0;
+        }
 
-    th,
-    td {
-        border: 1px solid #000;
-        padding: 6px;
-        vertical-align: top;
-        font-size: 11px;
-    }
+        .subtitle {
+            text-align: center;
+            font-size: 13px;
+            margin-top: 0;
+            margin-bottom: 15px;
+        }
 
-    th {
-        text-align: center;
-        background: #f7f7f7;
-        font-weight: bold;
-    }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+            word-wrap: break-word;
+        }
 
-    .meta-table {
-        width: 100%;
-        border-collapse: collapse;
-        table-layout: fixed;
-    }
+        th,
+        td {
+            border: 1px solid #000;
+            padding: 6px 4px;
+            vertical-align: middle;
+        }
 
-    .meta-table td {
-        border: 1px solid #000;
-        padding: 6px;
-        font-size: 12px;
-        vertical-align: top;
-        word-wrap: break-word;
-        /* old browser */
-        white-space: normal;
-        /* modern browser */
-    }
+        th {
+            background: #f2f2f2;
+            font-weight: bold;
+            text-align: center;
+        }
 
-    .meta-label {
-        width: 140px;
-        font-weight: bold;
-    }
+        td.text-right {
+            text-align: right;
+        }
 
-    .items-table {
-        width: 100%;
-        border-collapse: collapse;
-        table-layout: fixed;
-        /* biar wrap jalan */
-    }
-
-    .items-table th,
-    .items-table td {
-        border: 1px solid #000;
-        padding: 6px;
-        font-size: 12px;
-        vertical-align: top;
-        word-wrap: break-word;
-        white-space: normal;
-        text-align: left;
-        /* semua rata kiri */
-    }
-
-    .items-table th:nth-child(1),
-    .items-table td:nth-child(1) {
-        text-align: center;
-    }
-
-    .items-table th:nth-child(2),
-    .items-table td:nth-child(2) {
-        width: 100px;
-    }
-
-    .items-table th:nth-child(4),
-    .items-table td:nth-child(4) {
-        width: 60px;
-    }
-
-    .items-table th:nth-child(5),
-    .items-table td:nth-child(5) {
-        width: 60px;
-    }
-
-    .items-table th:nth-child(6),
-    .items-table td:nth-child(6) {
-        width: 120px;
-    }
-
-    .items-table th:nth-child(7),
-    .items-table td:nth-child(7) {
-        width: 140px;
-    }
-
-    /* Signature / approval table */
-    /* === Signature / approval table (with border) === */
-    .sig-table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-top: 12px;
-    }
-
-    .sig-table th,
-    .sig-table td {
-        border: 1px solid #000;
-        padding: 6px;
-        vertical-align: top;
-        font-size: 11px;
-    }
-
-    .sig-table th {
-        background: #f7f7f7;
-        text-align: left;
-        font-weight: bold;
-    }
-
-    .sig-name {
-        font-weight: bold;
-    }
-
-    .sig-status {
-        margin: 2px 0;
-        font-size: 11px;
-    }
-
-    .sig-num {
-        font-weight: bold;
-        margin-right: 4px;
-    }
-
-    .status {
-        font-weight: bold;
-    }
-
-    .status.blue {
-        color: blue;
-    }
-
-    .status.red {
-        color: red;
-    }
-
-    .status.orange {
-        color: orange;
-    }
-</style>
-
-<h2 style="text-align:center"><span style="font-size:16px"><strong>{{ $title }}</strong></span></h2>
-<p style="text-align:center">{{ $cpnyname }}</p>
+        td.text-center {
+            text-align: center;
+        }
 
 
-<table class="meta-table">
-    <tbody>
-        <tr>
-            <td class="meta-label">{{ $doc_type }} No</td>
-            <td>{{ $docid }}</td>
-            <td class="meta-label">Name</td>
-            <td>{{ $created_by_name ?? $created_by_username }}</td>
-        </tr>
-        <tr>
-            <td class="meta-label">{{ $doc_type }} Date</td>
-            <td>{{ $budgetdate }}</td>
-            <td class="meta-label">Department</td>
-            <td>{{ $department_id }}</td>
-        </tr>
-        @if (!empty($requesttype_name))
+        .total-row {
+            background: #dcdcdc86;
+            font-weight: bold;
+        }
+
+        tr,
+        th,
+        td {
+            box-sizing: border-box;
+        }
+
+        .page-break {
+            page-break-before: always;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- ==================== PAGE 1 : OPEX ==================== -->
+    <h2>PT. ELITE PRIMA HUTAMA</h2>
+    <p class="subtitle">OPEX EPH - BUDGET 2025</p>
+
+    <table>
+        <thead>
             <tr>
-                <td class="meta-label">Request Type</td>
-                <td colspan="3">{{ $requesttype_name }}</td>
+                <th style="width: 5%">Account</th>
+                <th style="width: 5%">Activity ID</th>
+                <th style="width: 8%">Description</th>
+                <th style="width: 8%">Detail</th>
+                <th style="width: 4%">Qty</th>
+                <th style="width: 8%">Unit Price</th>
+                <th style="width: 8%">Total Budget</th>
+                <th style="width: 5%">January</th>
+                <th style="width: 5%">February</th>
+                <th style="width: 5%">March</th>
+                <th style="width: 5%">April</th>
+                <th style="width: 5%">May</th>
+                <th style="width: 5%">June</th>
+                <th style="width: 5%">July</th>
+                <th style="width: 5%">August</th>
+                <th style="width: 5%">September</th>
+                <th style="width: 5%">October</th>
+                <th style="width: 5%">November</th>
+                <th style="width: 5%">December</th>
             </tr>
-        @endif
-    </tbody>
-</table>
-
-<table class="meta-table">
-    <tbody>
-        <tr>
-            <td class="meta-label">Keperluan</td>
-            <td colspan="3">{{ $keperluan }}</td>
-        </tr>
-    </tbody>
-</table>
-
-
-<table style="width:100%; border-collapse:collapse; border:1px solid #000;">
-    <thead>
-        <tr>
-            <th style="text-align:center; width:15px;">No</th>
-            <th style="text-align:center; width:100px;">InventoryID</th>
-            <th style="text-align:center;">Description</th>
-            <th style="text-align:center; width:20px;">Qty</th>
-            <th style="text-align:center; width:20px;">UoM</th>
-            <th style="text-align:center; width:100px;">Location</th>
-            <th style="text-align:center; width:100px;">Sub Location</th>
-        </tr>
-    </thead>
-    <tbody>
-        @forelse($detail as $i => $dt)
+        </thead>
+        <tbody>
             <tr>
-                <td style="text-align:center;">{{ $i + 1 }}</td>
-                <td>{{ $dt->inventoryid }}</td>
-                <td>{{ $dt->inventory_descr }}</td>
-                <td style="text-align:right;">{{ number_format((float) $dt->qty, 2) }}</td>
-                <td style="text-align:center;">{{ $dt->uom }}</td>
-                <td>{{ optional($dt->location)->location_name }}</td>
-                <td>{{ optional($dt->subLocation)->sub_location_name }}</td>
+                <td class="text-center">62010400</td>
+                <td class="text-center">OTH000001</td>
+                <td>Langganan Cloud GCP</td>
+                <td>Google Cloud</td>
+                <td class="text-center">12.000</td>
+                <td class="text-right">10,000,000.00</td>
+                <td class="text-right">120,000,000</td>
+                <td class="text-right">10,000,000</td>
+                <td class="text-right">10,000,000</td>
+                <td class="text-right">10,000,000</td>
+                <td class="text-right">10,000,000</td>
+                <td class="text-right">10,000,000</td>
+                <td class="text-right">10,000,000</td>
+                <td class="text-right">10,000,000</td>
+                <td class="text-right">10,000,000</td>
+                <td class="text-right">10,000,000</td>
+                <td class="text-right">10,000,000</td>
+                <td class="text-right">10,000,000</td>
+                <td class="text-right">10,000,000</td>
             </tr>
-        @empty
             <tr>
-                <td colspan="7" style="text-align:center;">No items.</td>
+                <td class="text-center">62010400</td>
+                <td class="text-center">OTH000002</td>
+                <td>Power BI</td>
+                <td>Data Analyst Power BI</td>
+                <td class="text-center">1.000</td>
+                <td class="text-right">4,000,000.00</td>
+                <td class="text-right">4,000,000</td>
+                <td class="text-right">0</td>
+                <td class="text-right">0</td>
+                <td class="text-right">0</td>
+                <td class="text-right">4,000,000</td>
+                <td class="text-right">0</td>
+                <td class="text-right">0</td>
+                <td class="text-right">0</td>
+                <td class="text-right">0</td>
+                <td class="text-right">0</td>
+                <td class="text-right">0</td>
+                <td class="text-right">0</td>
+                <td class="text-right">0</td>
             </tr>
-        @endforelse
-    </tbody>
-</table>
-
-
-
-{{-- Approvals --}}
-@php
-    $stColor = match (true) {
-        in_array($status_doc, ['Approved', 'Completed']) => 'blue',
-        in_array($status_doc, ['Rejected', 'Cancel']) => 'red',
-        $status_doc === 'Hold' => 'orange',
-        default => 'black',
-    };
-
-    $colsPerRow = $approve_count > 5 ? 4 : 3;
-    $chunks = $approval->values()->chunk($colsPerRow);
-    $idx = 1;
-    $totalCols = 1 + $colsPerRow;
-@endphp
-
-<table class="sig-table">
-    <thead>
-        <tr>
-            <th colspan="{{ $totalCols }}" style="text-align: left;">
-                Status: <span class="status {{ $stColor }}">{{ $status_doc }}</span>
-            </th>
-        </tr>
-    </thead>
-    <tbody>
-        @forelse($chunks as $rowIndex => $chunk)
             <tr>
-                @if ($rowIndex === 0)
-                    <td rowspan="{{ $chunks->count() }}" style="width:160px;">
-                        <div class="sig-name">{{ $created_by_name ?? $created_by_username }}</div>
-                        <div class="sig-status blue">Created</div>
-                        <div>{{ $req_date_fmt }}</div>
-                    </td>
-                @endif
-
-                @foreach ($chunk as $dt2)
-                    @php
-                        $label = match ($dt2->status) {
-                            'A' => 'Approved',
-                            'R' => 'Rejected',
-                            'P' => 'Waiting',
-                            default => 'Revised',
-                        };
-                        $color = match ($dt2->status) {
-                            'A' => 'blue',
-                            'R' => 'red',
-                            'P' => 'orange',
-                            default => 'red',
-                        };
-                        $dateStr = $dt2->aprvdateafter
-                            ? \Carbon\Carbon::parse($dt2->aprvdateafter)->format('d M Y H:i')
-                            : '';
-                    @endphp
-                    <td>
-                        <div><span class="sig-num">{{ $idx++ }}.</span><span
-                                class="sig-name">{{ $dt2->name }}</span></div>
-                        <div class="sig-status {{ $color }}">{{ $label }}</div>
-                        <div>{{ $dateStr }}</div>
-                    </td>
-                @endforeach
-
-                @for ($i = $chunk->count(); $i < $colsPerRow; $i++)
-                    <td>&nbsp;</td>
-                @endfor
+                <td class="text-center">62010400</td>
+                <td class="text-center">OTH000003</td>
+                <td>Maintenance Server</td>
+                <td>1 Tahun 4x</td>
+                <td class="text-center">4.000</td>
+                <td class="text-right">10,000,000.00</td>
+                <td class="text-right">40,000,000</td>
+                <td class="text-right">10,000,000</td>
+                <td class="text-right">0</td>
+                <td class="text-right">0</td>
+                <td class="text-right">10,000,000</td>
+                <td class="text-right">0</td>
+                <td class="text-right">0</td>
+                <td class="text-right">0</td>
+                <td class="text-right">10,000,000</td>
+                <td class="text-right">0</td>
+                <td class="text-right">0</td>
+                <td class="text-right">0</td>
+                <td class="text-right">10,000,000</td>
             </tr>
-        @empty
+
+            <tr class="total-row">
+                <td colspan="6" class="text-right">TOTAL OPEX</td>
+                <td class="text-right">164,000,000</td>
+                <td class="text-right">20,000,000</td>
+                <td class="text-right">10,000,000</td>
+                <td class="text-right">10,000,000</td>
+                <td class="text-right">24,000,000</td>
+                <td class="text-right">10,000,000</td>
+                <td class="text-right">10,000,000</td>
+                <td class="text-right">10,000,000</td>
+                <td class="text-right">20,000,000</td>
+                <td class="text-right">10,000,000</td>
+                <td class="text-right">10,000,000</td>
+                <td class="text-right">10,000,000</td>
+                <td class="text-right">20,000,000</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="page-break"></div>
+    <h2>PT. ELITE PRIMA HUTAMA</h2>
+    <p class="subtitle">CAPEX EPH - BUDGET 2025</p>
+
+    <table>
+        <thead>
             <tr>
-                <td>
-                    <div class="sig-name">{{ $created_by_name ?? $created_by_username }}</div>
-                    <div class="sig-status blue">Created</div>
-                    <div>{{ $req_date_fmt }}</div>
-                </td>
+                <th style="width: 5%">Account</th>
+                <th style="width: 5%">Activity ID</th>
+                <th style="width: 8%">Description</th>
+                <th style="width: 8%">Detail</th>
+                <th style="width: 4%">Qty</th>
+                <th style="width: 8%">Unit Price</th>
+                <th style="width: 8%">Total Budget</th>
+                <th style="width: 5%">January</th>
+                <th style="width: 5%">February</th>
+                <th style="width: 5%">March</th>
+                <th style="width: 5%">April</th>
+                <th style="width: 5%">May</th>
+                <th style="width: 5%">June</th>
+                <th style="width: 5%">July</th>
+                <th style="width: 5%">August</th>
+                <th style="width: 5%">September</th>
+                <th style="width: 5%">October</th>
+                <th style="width: 5%">November</th>
+                <th style="width: 5%">December</th>
             </tr>
-        @endforelse
-    </tbody>
-</table>
+        </thead>
+        <tbody>
+            <tr>
+                <td class="text-center">62010400</td>
+                <td class="text-center">OTH000001</td>
+                <td>Langganan Cloud GCP</td>
+                <td>Google Cloud</td>
+                <td class="text-center">12.000</td>
+                <td class="text-right">10,000,000.00</td>
+                <td class="text-right">120,000,000</td>
+                <td class="text-right">10,000,000</td>
+                <td class="text-right">10,000,000</td>
+                <td class="text-right">10,000,000</td>
+                <td class="text-right">10,000,000</td>
+                <td class="text-right">10,000,000</td>
+                <td class="text-right">10,000,000</td>
+                <td class="text-right">10,000,000</td>
+                <td class="text-right">10,000,000</td>
+                <td class="text-right">10,000,000</td>
+                <td class="text-right">10,000,000</td>
+                <td class="text-right">10,000,000</td>
+                <td class="text-right">10,000,000</td>
+            </tr>
+            <tr>
+                <td class="text-center">62010400</td>
+                <td class="text-center">OTH000002</td>
+                <td>Power BI</td>
+                <td>Data Analyst Power BI</td>
+                <td class="text-center">1.000</td>
+                <td class="text-right">4,000,000.00</td>
+                <td class="text-right">4,000,000</td>
+                <td class="text-right">0</td>
+                <td class="text-right">0</td>
+                <td class="text-right">0</td>
+                <td class="text-right">4,000,000</td>
+                <td class="text-right">0</td>
+                <td class="text-right">0</td>
+                <td class="text-right">0</td>
+                <td class="text-right">0</td>
+                <td class="text-right">0</td>
+                <td class="text-right">0</td>
+                <td class="text-right">0</td>
+                <td class="text-right">0</td>
+            </tr>
+            <tr>
+                <td class="text-center">62010400</td>
+                <td class="text-center">OTH000003</td>
+                <td>Maintenance Server</td>
+                <td>1 Tahun 4x</td>
+                <td class="text-center">4.000</td>
+                <td class="text-right">10,000,000.00</td>
+                <td class="text-right">40,000,000</td>
+                <td class="text-right">10,000,000</td>
+                <td class="text-right">0</td>
+                <td class="text-right">0</td>
+                <td class="text-right">10,000,000</td>
+                <td class="text-right">0</td>
+                <td class="text-right">0</td>
+                <td class="text-right">0</td>
+                <td class="text-right">10,000,000</td>
+                <td class="text-right">0</td>
+                <td class="text-right">0</td>
+                <td class="text-right">0</td>
+                <td class="text-right">10,000,000</td>
+            </tr>
+
+            <!-- ✅ ONE TOTAL ROW ONLY -->
+            <tr class="total-row">
+                <td colspan="6" class="text-right">TOTAL CAPEX</td>
+                <td class="text-right">164,000,000</td>
+                <td class="text-right">20,000,000</td>
+                <td class="text-right">10,000,000</td>
+                <td class="text-right">10,000,000</td>
+                <td class="text-right">24,000,000</td>
+                <td class="text-right">10,000,000</td>
+                <td class="text-right">10,000,000</td>
+                <td class="text-right">10,000,000</td>
+                <td class="text-right">20,000,000</td>
+                <td class="text-right">10,000,000</td>
+                <td class="text-right">10,000,000</td>
+                <td class="text-right">10,000,000</td>
+                <td class="text-right">20,000,000</td>
+            </tr>
+        </tbody>
+    </table>
+
+</body>
+
+</html>
