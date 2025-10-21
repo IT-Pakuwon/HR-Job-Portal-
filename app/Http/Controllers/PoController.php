@@ -23,6 +23,11 @@ use Vinkla\Hashids\Facades\Hashids;
 use TijsVerkoyen\CssToInlineStyles\CssToInlineStyles;
 use Mail;
 use Barryvdh\DomPDF\Facade\Pdf; 
+use App\Http\Controllers\TrAttachmentController;
+use Illuminate\Support\Facades\Response;
+use App\Models\TrAttachment;
+use Google\Cloud\Storage\StorageClient;
+use Illuminate\Support\Str;
 
 
 class PoController extends Controller
@@ -38,20 +43,61 @@ class PoController extends Controller
         // Header PO
         $po = TrPO::findOrFail($id);
 
-        // Detail PO (pakai ponbr sebagai foreign key detail)
+        // Detail PO
         $podetail = TrPOdetail::where('ponbr', $po->ponbr)
-            ->orderBy('cs_no') // ganti sesuai nama kolom line kalau berbeda
+            ->orderBy('cs_no')
             ->get();
 
-       
-        $attachment = Attachment::where('docid', $po->ponbr)
+        // -------- Ambil lampiran dari tr_attachment & buat Signed URL --------
+        $rows = TrAttachment::where('refnbr', $po->ponbr)
             ->where('status', 'A')
+            ->orderBy('created_at', 'desc')
             ->get();
+
+        $config = config('filesystems.disks.gcs');
+        $keyFilePath = $config['key_file'];
+        if (!Str::startsWith($keyFilePath, ['/','C:\\','D:\\'])) {
+            $keyFilePath = base_path($keyFilePath);
+        }
+
+        $storage = new StorageClient([
+            'projectId'   => $config['project_id'],
+            'keyFilePath' => $keyFilePath,
+        ]);
+        $bucket = $storage->bucket($config['bucket']);
+
+        // map untuk view
+        $attachment = $rows->map(function ($r) use ($bucket) {
+            $objectPath = rtrim($r->folder, '/').'/'.$r->filename; // ex: att-purchasing-app/po/2025/xxx.pdf
+            $object     = $bucket->object($objectPath);
+
+            $signedUrl = null;
+            try {
+                $signedUrl = $object->signedUrl(
+                    new \DateTimeImmutable('+10 minutes'),
+                    ['version' => 'v4']
+                );
+            } catch (\Throwable $e) {
+                \Log::warning('Signed URL gagal', ['path' => $objectPath, 'error' => $e->getMessage()]);
+            }
+
+            return (object) [
+                'id'           => $r->id,
+                'display_name' => $r->attachment_name,
+                'created_by'   => $r->created_by,
+                'created_at'   => $r->created_at,
+                'url'          => $signedUrl,      // bisa null jika gagal
+                'folder'       => $r->folder,
+                'filename'     => $r->filename,
+                'extention'    => $r->extention,
+                'size'         => $r->filesize,
+            ];
+        });
 
         $eid_ponbr = Hashids::encode($po->ponbr);
 
         $prefix = strtoupper(substr((string) $po->sppbjktid, 0, 2));
-       if ($prefix === 'PB') {
+        if ($prefix === 'PB') {
             $id = TrSPPB::where('sppbid', $po->sppbjktid)->value('id');
         } elseif ($prefix === 'PJ') {
             $id = TrSPPJ::where('sppjid', $po->sppbjktid)->value('id');
@@ -69,7 +115,6 @@ class PoController extends Controller
             'PT' => 'showsppts',
         ];
 
-        // SPPB/J/K/T URL (opsional)
         $sppbUrl = null;
         if (!empty($po->sppbjktid) && isset($routeMap[$prefix])) {
             $sppbHash = Hashids::encode($id);
@@ -78,24 +123,20 @@ class PoController extends Controller
 
         $id = TrCS::where('csid', $po->csid)->value('id');
 
-        // CS URL (opsional)
         $csUrl = null;
         if (!empty($po->csid)) {
             $csHash = Hashids::encode($id);
             $csUrl  = url("/showcs/{$csHash}");
         }
 
-        // Kembalikan ke view
-        // - kirim variabel baru: $po, $podetail
-        // - plus alias lama ($sppb, $sppbdetail) untuk kompatibilitas view lama
         return view('pages.purchase.showpo', [
-            'po'         => $po,
-            'podetail'   => $podetail,          
-            'attachment' => $attachment,
-            'hash'       => $hash, 
-            'eid_ponbr' => $eid_ponbr,
-            'sppbUrl'    => $sppbUrl,   
-            'csUrl'      => $csUrl,     
+            'po'          => $po,
+            'podetail'    => $podetail,
+            'attachment'  => $attachment,   // <- sudah dalam format siap pakai
+            'hash'        => $hash, 
+            'eid_ponbr'   => $eid_ponbr,
+            'sppbUrl'     => $sppbUrl,   
+            'csUrl'       => $csUrl,     
         ]);
     }
 
@@ -296,7 +337,7 @@ class PoController extends Controller
         ]);
     }
 
-    public function uploadAttachments(Request $request, $poid)
+    public function uploadAttachments_xxx(Request $request, $poid)
     {
         try {
             $user = $request->user();
@@ -359,8 +400,110 @@ class PoController extends Controller
             ], 500);
         }
     }
+
+    public function uploadAttachments(Request $request, $ponbr)
+    {
+        try {
+            $po = TrPO::where('ponbr', $ponbr)->firstOrFail();
+            $user       = $request->user();
+            $year       = (int) ($request->input('year') ?? now()->year);
+            $refnbr     = (string) $ponbr;     // PO => pakai ponbr sebagai refnbr
+            $doctype    = 'PO';
+            $cpnyid     = $po->cpny_id;
+            $deptId     = $po->department_id;
+            $createdBy  = $user->username ?? $user->id ?? 'system';
+
+            if (!$request->hasFile('attachments')) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No files received.',
+                ], 422);
+            }
+
+            // === Delegasikan upload ke TrAttachmentController ===
+            $meta = [
+                'refnbr'        => $refnbr,
+                'doctype'       => $doctype,
+                'cpnyid'        => $cpnyid,
+                'departementid' => $deptId,
+                'base_folder'   => 'att-purchasing-app/'.strtolower($doctype), // <= PO
+                'created_by'    => $createdBy,
+            ];
+            $files = (array) $request->file('attachments');
+
+            try {
+                /** @var \App\Http\Controllers\TrAttachmentController $uploader */
+                $uploader     = app(TrAttachmentController::class);
+                $uploadResult = $uploader->uploadInternal($meta, $files); // array paths (opsional)
+            } catch (\Throwable $e) {
+                \Log::error('PO uploadInternal gagal', ['error' => $e->getMessage()]);
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Gagal upload attachment: '.$e->getMessage(),
+                ], 500);
+            }
+
+            // === Ambil ulang daftar attachment untuk dikembalikan ke FE (dengan Signed URL) ===
+            $rows = TrAttachment::where('refnbr', $refnbr)
+                ->where('doctype', $doctype)
+                ->where('status', 'A')
+                ->orderBy('created_at', 'desc')
+                ->get();
+
+            // Siapkan Signed URL via GCS (biar FE bisa langsung klik)
+            $config = config('filesystems.disks.gcs');
+            $keyFilePath = $config['key_file'];
+            if (!Str::startsWith($keyFilePath, ['/','C:\\','D:\\'])) {
+                $keyFilePath = base_path($keyFilePath);
+            }
+            $storage = new StorageClient([
+                'projectId'   => $config['project_id'],
+                'keyFilePath' => $keyFilePath,
+            ]);
+            $bucket = $storage->bucket($config['bucket']);
+
+            $attachments = $rows->map(function ($r) use ($bucket) {
+                $objectPath = rtrim($r->folder, '/').'/'.$r->filename;   // ex: att-purchasing-app/po/2025/xxxx-file.pdf
+                $object     = $bucket->object($objectPath);
+
+                $signedUrl = null;
+                try {
+                    $signedUrl = $object->signedUrl(
+                        new \DateTimeImmutable('+10 minutes'),
+                        ['version' => 'v4']
+                    );
+                } catch (\Throwable $e) {
+                    \Log::warning('Signed URL gagal', ['path' => $objectPath, 'error' => $e->getMessage()]);
+                }
+
+                return [
+                    'display_name' => $r->attachment_name,
+                    'created_by'   => $r->created_by,
+                    'created_at'   => optional($r->created_at)->toDateTimeString(),
+                    'extention'    => $r->extention,
+                    'size'         => $r->filesize,
+                    'url'          => $signedUrl,   // bisa null jika gagal
+                    'folder'       => $r->folder,
+                    'filename'     => $r->filename,
+                ];
+            });
+
+            return response()->json([
+                'success'     => true,
+                'message'     => 'Files uploaded.',
+                // kembalikan daftar terbaru agar view (yang “pakai yg atas”) bisa langsung render
+                'attachments' => $attachments,
+            ]);
+        } catch (\Throwable $e) {
+            \Log::error('PO uploadAttachments error', ['error' => $e->getMessage()]);
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 500);
+        }
+    }
    
-    public function listAttachment($ponbr)
+    public function listAttachment_xxx($ponbr)
     {
         $rows = Attachment::where('docid', $ponbr)
             ->where('status', 'A')
@@ -379,12 +522,70 @@ class PoController extends Controller
 
         return response()->json(['success'=>true, 'attachments'=>$rows]);
     }
+
+    Public function listAttachment($ponbr)
+    {
+        $doctype = 'PO';
+
+        $rows = TrAttachment::where('refnbr', $ponbr)
+            ->where('doctype', $doctype)
+            ->where('status', 'A')
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        // GCS signed URL
+        $config = config('filesystems.disks.gcs');
+        $keyFilePath = $config['key_file'];
+        if (!Str::startsWith($keyFilePath, ['/','C:\\','D:\\'])) {
+            $keyFilePath = base_path($keyFilePath);
+        }
+        $storage = new StorageClient([
+            'projectId'   => $config['project_id'],
+            'keyFilePath' => $keyFilePath,
+        ]);
+        $bucket = $storage->bucket($config['bucket']);
+
+        $attachments = $rows->map(function ($r) use ($bucket) {
+            $objectPath = rtrim($r->folder, '/').'/'.$r->filename;
+            $object     = $bucket->object($objectPath);
+
+            $signedUrl = null;
+            try {
+                $signedUrl = $object->signedUrl(
+                    new \DateTimeImmutable('+10 minutes'),
+                    ['version' => 'v4']
+                );
+            } catch (\Throwable $e) {
+                \Log::warning('Signed URL gagal', ['path' => $objectPath, 'error' => $e->getMessage()]);
+            }
+
+            return [
+                'id'            => $r->id,
+                // alias supaya kompatibel dengan JS lama & baru
+                'name'          => $r->attachment_name,   // << digunakan oleh JS kamu
+                'display_name'  => $r->attachment_name,
+                'created_user'  => $r->created_by,        // << digunakan oleh JS kamu
+                'created_by'    => $r->created_by,
+                'created_at'    => optional($r->created_at)->toDateTimeString(),
+                'extention'     => $r->extention,
+                'size'          => $r->filesize,
+                'url'           => $signedUrl,            // bisa null jika gagal
+                'folder'        => $r->folder,
+                'filename'      => $r->filename,
+            ];
+        });
+
+        return response()->json([
+            'success'     => true,
+            'attachments' => $attachments,
+        ]);
+    }
     
 
     public function removeAttachment($id)
     {
         try {
-            $attachment = Attachment::findOrFail($id);
+            $attachment = TrAttachment::findOrFail($id);
             $attachment->update(['status' => 'X']); // Update status ke "D" (Deleted)
 
             return response()->json(['success' => true, 'message' => 'Attachment status updated']);

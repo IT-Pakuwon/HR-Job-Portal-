@@ -359,10 +359,8 @@
                     <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
                         <!-- Existing Attachments -->
                         <div class="w-full rounded-xl bg-white p-6 shadow-md dark:bg-gray-800">
-                            <div
-                                class="flex items-center justify-between border-b border-gray-200 pb-4 dark:border-gray-700">
-                                <h3 class="text-lg font-bold text-gray-800 dark:text-white">Attachments
-                                    {{ $doc }}</h3>
+                            <div class="flex items-center justify-between border-b border-gray-200 pb-4 dark:border-gray-700">
+                                <h3 class="text-lg font-bold text-gray-800 dark:text-white">Attachments {{ $doc }}</h3>
                             </div>
 
                             @if (($attachment ?? collect())->count())
@@ -377,22 +375,22 @@
                                         </thead>
                                         <tbody>
                                             @foreach ($attachment as $at)
-                                                @php
-                                                    $year = $at->created_at->year;
-                                                    $fileUrl = url('/attachments/' . $year . '/' . $at->attachfile);
-                                                @endphp
-                                                <tr
-                                                    class="border-b border-gray-100 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700">
+                                                <tr class="border-b border-gray-100 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700">
                                                     <td class="p-3">
-                                                        <a href="{{ $fileUrl }}" target="_blank"
+                                                        @if (!empty($at->url))
+                                                            <a href="{{ $at->url }}" target="_blank"
                                                             class="flex items-center gap-2 font-medium text-indigo-600 hover:underline dark:text-indigo-400">
-                                                            📎 {{ $at->name }}
-                                                        </a>
+                                                                📎 {{ $at->display_name }}
+                                                            </a>
+                                                        @else
+                                                            <span class="flex items-center gap-2 font-medium text-gray-700 dark:text-gray-300">
+                                                                📎 {{ $at->display_name }}
+                                                            </span>
+                                                            <span class="ml-2 text-xs text-red-500">(link unavailable)</span>
+                                                        @endif
                                                     </td>
-                                                    <td class="p-3">{{ $at->created_user }}</td>
-                                                    <td class="p-3">
-                                                        {{ \Carbon\Carbon::parse($at->created_at)->format('d M Y') }}
-                                                    </td>
+                                                    <td class="p-3">{{ $at->created_by }}</td>
+                                                    <td class="p-3">{{ \Carbon\Carbon::parse($at->created_at)->format('d M Y') }}</td>
                                                 </tr>
                                             @endforeach
                                         </tbody>
@@ -402,6 +400,7 @@
                                 <p class="mt-4 text-sm text-gray-500 dark:text-gray-400">Attachment Empty.</p>
                             @endif
                         </div>
+
 
 
                         <!-- New Attachments -->

@@ -331,7 +331,7 @@ class WoController extends Controller
             //     'doctype'       => $doctype,                         // bedakan per modul: 'WO', 'PR', dll
             //     'cpnyid'        => $request->input('cpnyid'),    // opsional
             //     'departementid' => $request->input('departementid'), // opsional
-            //     'base_folder'   => 'att-purchasing-app/wo',      // beda modul → beda base_folder
+            //     'base_folder'   => 'att-purchasing-app/'.strtolower($doctype),      // beda modul → beda base_folder
             //     'created_by'    => auth()->user()->username ?? auth()->id(),
             // ];
 
@@ -360,7 +360,7 @@ class WoController extends Controller
                     'doctype'       => $doctype,
                     'cpnyid'        => $request->input('cpnyid'),
                     'departementid' => $request->input('departementid'),
-                    'base_folder'   => 'att-purchasing-app/wo',
+                    'base_folder'   => 'att-purchasing-app/'.strtolower($doctype),
                     'created_by'    => $username,
                 ];
 
@@ -667,7 +667,7 @@ class WoController extends Controller
                     'doctype'       => $doctype,
                     'cpnyid'        => $validated['cpnyid'],
                     'departementid' => $validated['departementid'],
-                    'base_folder'   => 'att-purchasing-app/wo',
+                    'base_folder'   => 'att-purchasing-app/'.strtolower($doctype),
                     'created_by'    => $username,
                 ];
                 $files = (array) $request->file('attachments');

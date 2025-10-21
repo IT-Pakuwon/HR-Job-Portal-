@@ -427,7 +427,7 @@ class SppbController extends Controller
                     'doctype'       => $doctype,
                     'cpnyid'        => $request->input('cpnyid'),
                     'departementid' => $request->input('departementid'),                    
-                    'base_folder'   => 'att-purchasing-app/sppbjkt',
+                    'base_folder'   => 'att-purchasing-app/'.strtolower($doctype),
                     'created_by'    => $user->username,
                 ];
 
@@ -440,7 +440,7 @@ class SppbController extends Controller
                 } catch (\Throwable $e) {
                     \DB::rollBack();
                     return response()->json([
-                        'message' => 'Failed to create WO',
+                        'message' => 'Failed to create PB',
                         'error'   => 'Gagal upload attachment: '.$e->getMessage(),
                     ], 500);
                 }
@@ -601,7 +601,7 @@ class SppbController extends Controller
         // dd($request->all()); // matikan agar eksekusi lanjut
 
         $id = Hashids::decode($hash)[0] ?? null;
-        abort_if(!$id, 404, 'WO tidak ditemukan.');
+        abort_if(!$id, 404, 'PB tidak ditemukan.');
 
         $user      = $request->user();   
         $dt        = Carbon::now();
@@ -838,7 +838,7 @@ class SppbController extends Controller
                     'doctype'       => $doctype,
                     'cpnyid'        => $request->cpnyid,
                     'departementid' => $request->departementid,
-                    'base_folder'   => 'att-purchasing-app/sppbjkt',
+                    'base_folder'   => 'att-purchasing-app/'.strtolower($doctype),
                     'created_by'    => $user->username,
                 ];
                 $files = (array) $request->file('attachments');
@@ -849,7 +849,7 @@ class SppbController extends Controller
                 } catch (\Throwable $e) {
                     DB::rollBack();
                     return response()->json([
-                        'message' => 'Failed to update WO',
+                        'message' => 'Failed to update PB',
                         'error'   => 'Gagal upload attachment: '.$e->getMessage(),
                     ], 500);
                 }

@@ -43,14 +43,20 @@ use Illuminate\Support\Facades\Schema;
 use Vinkla\Hashids\Facades\Hashids;
 use App\Models\TrPO;
 use App\Models\TrPOdetail;
+use App\Http\Controllers\TrAttachmentController;
+use Illuminate\Support\Facades\Response;
+use App\Models\TrAttachment;
+use Google\Cloud\Storage\StorageClient;
+
 
 
 class CanvassController extends Controller
 {
+
+
     public function createCS(string $doc, string $hash)
     {
-        
-        $src = Hashids::decode($hash)[0] ?? null;
+        $src = \Hashids::decode($hash)[0] ?? null;
         abort_if(!$src, 404);
 
         $doc = strtoupper($doc);
@@ -59,38 +65,29 @@ class CanvassController extends Controller
         $header = null;
         $detail = collect();
         $docno  = null;
-        $srcLineKey = null;
 
         switch ($doc) {
-            case 'SPPB':                
+            case 'SPPB':
                 $header = TrSPPB::with([
                     'requestType:requesttypeid,requesttype_name',
                     'creator:username,name',
-                    'purchaser:username,name' 
-                ])
-                ->findOrFail($src); 
+                    'purchaser:username,name'
+                ])->findOrFail($src);
                 $detail = TrSPPBdetail::where('sppbid', $header->sppbid)
-                    ->orderBy('sppb_no', 'asc')
-                    ->get();
-                $attachment = Attachment::where('docid', $header->sppbid)    
-                    ->where('status','A')        
-                    ->get();
+                            ->orderBy('sppb_no','asc')->get();
+                $refnbr = $header->sppbid;          // <-- pakai sebagai refnbr di TrAttachment
                 $docno  = $header->sppbno ?? $header->doc_no ?? $header->sppbid;
                 break;
 
-            case 'SPPJ':                
+            case 'SPPJ':
                 $header = TrSPPJ::with([
                     'requestType:requesttypeid,requesttype_name',
                     'creator:username,name',
-                    'purchaser:username,name' 
-                ])
-                ->findOrFail($src);
+                    'purchaser:username,name'
+                ])->findOrFail($src);
                 $detail = TrSPPJdetail::where('sppjid', $header->sppjid)
-                    ->orderBy('sppj_no', 'asc')
-                    ->get();
-                $attachment = Attachment::where('docid', $header->sppjid)    
-                    ->where('status','A')        
-                    ->get();
+                            ->orderBy('sppj_no','asc')->get();
+                $refnbr = $header->sppjid;
                 $docno  = $header->sppjno ?? $header->doc_no ?? $header->sppjid;
                 break;
 
@@ -98,47 +95,86 @@ class CanvassController extends Controller
                 $header = TrSPPK::with([
                     'requestType:requesttypeid,requesttype_name',
                     'creator:username,name',
-                    'purchaser:username,name' 
-                ])
-                ->findOrFail($src);                
-                $detail = TrSPPKdetail::where('sppkid', $header->sppkid)    
-                    ->orderBy('sppk_no', 'asc')
-                    ->get();
-                $attachment = Attachment::where('docid', $header->sppkid)    
-                    ->where('status','A')        
-                    ->get();
+                    'purchaser:username,name'
+                ])->findOrFail($src);
+                $detail = TrSPPKdetail::where('sppkid', $header->sppkid)
+                            ->orderBy('sppk_no','asc')->get();
+                $refnbr = $header->sppkid;
                 $docno  = $header->sppkno ?? $header->doc_no ?? $header->sppkid;
                 break;
 
-            case 'SPPT':                
+            case 'SPPT':
                 $header = TrSPPT::with([
                     'requestType:requesttypeid,requesttype_name',
                     'creator:username,name',
-                    'purchaser:username,name' 
-                ])
-                ->findOrFail($src);
+                    'purchaser:username,name'
+                ])->findOrFail($src);
                 $detail = TrSPPTdetail::where('spptid', $header->spptid)
-                    ->orderBy('sppt_no', 'asc')
-                    ->get();
-                $attachment = Attachment::where('docid', $header->spptid)    
-                    ->where('status','A')        
-                    ->get();
+                            ->orderBy('sppt_no','asc')->get();
+                $refnbr = $header->spptid;
                 $docno  = $header->spptno ?? $header->doc_no ?? $header->spptid;
                 break;
         }
-     
-        // $items = $detail;
+
+        // ===== Ambil lampiran dari TrAttachment (berdasarkan refnbr) =====
+        $rows = TrAttachment::where('refnbr', $refnbr)
+            ->where('status', 'A')
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        // ===== Siapkan Signed URL dari GCS (private) =====
+        $config = config('filesystems.disks.gcs');
+        $keyFilePath = $config['key_file'];
+        if (!Str::startsWith($keyFilePath, ['/','C:\\','D:\\'])) {
+            $keyFilePath = base_path($keyFilePath);
+        }
+
+        $storage = new StorageClient([
+            'projectId'   => $config['project_id'],
+            'keyFilePath' => $keyFilePath,
+        ]);
+        $bucket = $storage->bucket($config['bucket']);
+
+        // Map ke bentuk siap pakai di view "createcs"
+        $attachments = $rows->map(function ($r) use ($bucket) {
+            $objectPath = rtrim($r->folder, '/').'/'.$r->filename; // contoh: att-purchasing-app/wo/2025/xxx.pdf
+            $object     = $bucket->object($objectPath);
+
+            $signedUrl = null;
+            try {
+                $signedUrl = $object->signedUrl(
+                    new \DateTimeImmutable('+10 minutes'),
+                    ['version' => 'v4']
+                );
+            } catch (\Throwable $e) {
+                \Log::warning('Signed URL gagal', ['path' => $objectPath, 'error' => $e->getMessage()]);
+            }
+
+            return (object) [
+                'display_name' => $r->attachment_name,
+                'created_by'   => $r->created_by,
+                'created_at'   => $r->created_at,
+                'url'          => $signedUrl, // bisa null jika gagal
+                'folder'       => $r->folder,
+                'filename'     => $r->filename,
+                'extention'    => $r->extention,
+                'size'         => $r->filesize,
+            ];
+        });
+
+        // Map detail (logika kamu sendiri)
         $items = $this->mapRemainingLines($detail);
 
         return view('pages.canvass.createcs', [
-            'doc'     => $doc,
-            'src_id'  => $src,
-            'docno'   => $docno,
-            'header'  => $header,
-            'attachment'  => $attachment,
-            'items'   => $items,  
+            'doc'        => $doc,
+            'src_id'     => $src,
+            'docno'      => $docno,
+            'header'     => $header,
+            'attachment' => $attachments, // tetap pakai key 'attachment' agar Blade lama aman
+            'items'      => $items,
         ]);
     }
+
 
     private function mapRemainingLines($detail)
     {
@@ -580,37 +616,64 @@ class CanvassController extends Controller
             }
 
             // ==== 7) Attachments (opsional) ====
-            if ($request->hasfile('attachments')) {
-                foreach ($request->file('attachments') as $file) {
-                    $randomNumber = random_int(10000000, 99999999);
-                    $filename = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+            // if ($request->hasfile('attachments')) {
+            //     foreach ($request->file('attachments') as $file) {
+            //         $randomNumber = random_int(10000000, 99999999);
+            //         $filename = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
                    
-                    $originalName = str_replace('%', '', $file->getClientOriginalName());
-                    $ext        = $file->getClientOriginalExtension();
-                    $attachfile = md5($randomNumber) . '.' . $ext;
+            //         $originalName = str_replace('%', '', $file->getClientOriginalName());
+            //         $ext        = $file->getClientOriginalExtension();
+            //         $attachfile = md5($randomNumber) . '.' . $ext;
 
-                    //attach to folder
-                    $folder_attach = public_path() . '/attachments/'.$year;
-                    $config['upload_path'] = $folder_attach;                   
-                    if(!is_dir($folder_attach))
-                    {
-                        mkdir($folder_attach, 0777);
-                    }
+            //         //attach to folder
+            //         $folder_attach = public_path() . '/attachments/'.$year;
+            //         $config['upload_path'] = $folder_attach;                   
+            //         if(!is_dir($folder_attach))
+            //         {
+            //             mkdir($folder_attach, 0777);
+            //         }
                     
-                    $folder_upload = $folder_attach;                 
-                    $file->move($folder_upload, $attachfile);
+            //         $folder_upload = $folder_attach;                 
+            //         $file->move($folder_upload, $attachfile);
 
-                    //insert to table attachments
-                    $attach = new Attachment();
-                    $attach->docid = $csid;
-                    $attach->name = $filename;
-                    $attach->attachfile = $attachfile;
-                    $attach->status = 'A';
-                    $attach->extention = $file->getClientOriginalExtension();
-                    $attach->created_user = $user->username;
-                    $attach->save();
+            //         //insert to table attachments
+            //         $attach = new Attachment();
+            //         $attach->docid = $csid;
+            //         $attach->name = $filename;
+            //         $attach->attachfile = $attachfile;
+            //         $attach->status = 'A';
+            //         $attach->extention = $file->getClientOriginalExtension();
+            //         $attach->created_user = $user->username;
+            //         $attach->save();
+            //     }
+            // }            
+
+            if ($request->hasFile('attachments')) {
+                $meta = [
+                    'refnbr'        => $csid,
+                    'doctype'       => $doctype,
+                    'cpnyid'        => $cpnyId,
+                    'departementid' => $deptId,                    
+                    'base_folder'   => 'att-purchasing-app/'.strtolower($doctype),
+                    'created_by'    => $user->username,
+                ];
+
+                $files = (array) $request->file('attachments');
+
+                try {
+                    $uploader = app(TrAttachmentController::class);
+                    $uploadResult = $uploader->uploadInternal($meta, $files);
+                    // tidak return di sini!
+                } catch (\Throwable $e) {
+                    \DB::rollBack();
+                    return response()->json([
+                        'message' => 'Failed to create CS',
+                        'error'   => 'Gagal upload attachment: '.$e->getMessage(),
+                    ], 500);
                 }
-            }            
+            } else {
+                $uploadResult = null; // tidak ada attachment
+            }
 
             // ==== 8) Email ke approver pertama ====
             $firstApproval = T_approval::where('docid', $csid)
@@ -663,6 +726,7 @@ class CanvassController extends Controller
             return response()->json([
                 'message' => 'CS created successfully',
                 'csid'    => $csid,
+                'attachments' => $uploadResult,
             ]);
 
         } catch (\Throwable $e) {
@@ -909,43 +973,71 @@ class CanvassController extends Controller
             }
           
             // ==== 7) Attachments (opsional) ====
-            if ($request->hasfile('attachments')) {
-                foreach ($request->file('attachments') as $file) {
-                    $randomNumber = random_int(10000000, 99999999);
-                    $filename = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+            // if ($request->hasfile('attachments')) {
+            //     foreach ($request->file('attachments') as $file) {
+            //         $randomNumber = random_int(10000000, 99999999);
+            //         $filename = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
                    
-                    $originalName = str_replace('%', '', $file->getClientOriginalName());
-                    $ext        = $file->getClientOriginalExtension();
-                    $attachfile = md5($randomNumber) . '.' . $ext;
+            //         $originalName = str_replace('%', '', $file->getClientOriginalName());
+            //         $ext        = $file->getClientOriginalExtension();
+            //         $attachfile = md5($randomNumber) . '.' . $ext;
 
-                    //attach to folder
-                    $folder_attach = public_path() . '/attachments/'.$year;
-                    $config['upload_path'] = $folder_attach;                   
-                    if(!is_dir($folder_attach))
-                    {
-                        mkdir($folder_attach, 0777);
-                    }
+            //         //attach to folder
+            //         $folder_attach = public_path() . '/attachments/'.$year;
+            //         $config['upload_path'] = $folder_attach;                   
+            //         if(!is_dir($folder_attach))
+            //         {
+            //             mkdir($folder_attach, 0777);
+            //         }
                     
-                    $folder_upload = $folder_attach;                 
-                    $file->move($folder_upload, $attachfile);
+            //         $folder_upload = $folder_attach;                 
+            //         $file->move($folder_upload, $attachfile);
 
-                    //insert to table attachments
-                    $attach = new Attachment();
-                    $attach->docid = $csid;
-                    $attach->name = $filename;
-                    $attach->attachfile = $attachfile;
-                    $attach->status = 'A';
-                    $attach->extention = $file->getClientOriginalExtension();
-                    $attach->created_user = $user->username;
-                    $attach->save();
+            //         //insert to table attachments
+            //         $attach = new Attachment();
+            //         $attach->docid = $csid;
+            //         $attach->name = $filename;
+            //         $attach->attachfile = $attachfile;
+            //         $attach->status = 'A';
+            //         $attach->extention = $file->getClientOriginalExtension();
+            //         $attach->created_user = $user->username;
+            //         $attach->save();
+            //     }
+            // }   
+
+            if ($request->hasFile('attachments')) {
+                $meta = [
+                     'refnbr'        => $csid,
+                    'doctype'       => $doctype,
+                    'cpnyid'        => $cpnyId,
+                    'departementid' => $deptId,                    
+                    'base_folder'   => 'att-purchasing-app/'.strtolower($doctype),
+                    'created_by'    => $user->username,
+                ];
+
+                $files = (array) $request->file('attachments');
+
+                try {
+                    $uploader = app(TrAttachmentController::class);
+                    $uploadResult = $uploader->uploadInternal($meta, $files);
+                    // tidak return di sini!
+                } catch (\Throwable $e) {
+                    \DB::rollBack();
+                    return response()->json([
+                        'message' => 'Failed to create CS',
+                        'error'   => 'Gagal upload attachment: '.$e->getMessage(),
+                    ], 500);
                 }
-            }   
+            } else {
+                $uploadResult = null; // tidak ada attachment
+            }
            
             DB::connection('pgsql')->commit();
 
             return response()->json([
                 'message' => 'CS created successfully',
                 'csid'    => $csid,
+                'attachments' => $uploadResult,
             ]);
 
         } catch (\Throwable $e) {
@@ -996,13 +1088,109 @@ class CanvassController extends Controller
             ->orderBy('aprvid')
             ->get();
 
-        $attachmentCS = Attachment::where('docid', $cs->csid)
-            ->where('status','A')
+        // $attachmentCS = Attachment::where('docid', $cs->csid)
+        //     ->where('status','A')
+        //     ->get();
+
+        // ---------- ambil lampiran dari tr_attachment ----------
+        $rows = TrAttachment::where('refnbr', $cs->csid)
+            ->where('status', 'A')
+            ->orderBy('created_at', 'desc')
             ->get();
 
-        $attachmentBJKT = Attachment::where('docid', $cs->sppbjktid)
-            ->where('status','A')
+        // siapkan Signed URL dari GCS
+        $config = config('filesystems.disks.gcs');
+        $keyFilePath = $config['key_file'];
+        if (!Str::startsWith($keyFilePath, ['/','C:\\','D:\\'])) {
+            $keyFilePath = base_path($keyFilePath);
+        }
+
+        $storage = new StorageClient([
+            'projectId'   => $config['project_id'],
+            'keyFilePath' => $keyFilePath,
+        ]);
+        $bucket = $storage->bucket($config['bucket']);
+
+        // map jadi data siap pakai di view
+        $attachmentCS = $rows->map(function ($r) use ($bucket) {
+            $objectPath = rtrim($r->folder, '/').'/'.$r->filename;   // ex: att-purchasing-app/wo/2025/xxxx-file.pdf
+            $object     = $bucket->object($objectPath);
+
+            // Signed URL 10 menit
+            $signedUrl = null;
+            try {
+                $signedUrl = $object->signedUrl(
+                    new \DateTimeImmutable('+10 minutes'),
+                    ['version' => 'v4']
+                );
+            } catch (\Throwable $e) {
+                // kalau gagal signed URL, biarkan null; di UI tampilkan nama saja
+                \Log::warning('Signed URL gagal', ['path' => $objectPath, 'error' => $e->getMessage()]);
+            }
+
+            return (object) [                
+                'display_name' => $r->attachment_name,         // nama yang enak dibaca
+                'created_by'   => $r->created_by,
+                'created_at'   => $r->created_at,
+                'url'          => $signedUrl,                  // bisa null jika gagal
+                'folder'       => $r->folder,
+                'filename'     => $r->filename,
+                'extention'    => $r->extention,
+                'size'         => $r->filesize,
+            ];
+        });
+
+        // $attachmentBJKT = Attachment::where('docid', $cs->sppbjktid)
+        //     ->where('status','A')
+        //     ->get();
+
+        // ---------- ambil lampiran dari tr_attachment ----------
+        $rows = TrAttachment::where('refnbr', $cs->sppbjktid)
+            ->where('status', 'A')
+            ->orderBy('created_at', 'desc')
             ->get();
+
+        // siapkan Signed URL dari GCS
+        $config = config('filesystems.disks.gcs');
+        $keyFilePath = $config['key_file'];
+        if (!Str::startsWith($keyFilePath, ['/','C:\\','D:\\'])) {
+            $keyFilePath = base_path($keyFilePath);
+        }
+
+        $storage = new StorageClient([
+            'projectId'   => $config['project_id'],
+            'keyFilePath' => $keyFilePath,
+        ]);
+        $bucket = $storage->bucket($config['bucket']);
+
+        // map jadi data siap pakai di view
+        $attachmentBJKT = $rows->map(function ($r) use ($bucket) {
+            $objectPath = rtrim($r->folder, '/').'/'.$r->filename;   // ex: att-purchasing-app/wo/2025/xxxx-file.pdf
+            $object     = $bucket->object($objectPath);
+
+            // Signed URL 10 menit
+            $signedUrl = null;
+            try {
+                $signedUrl = $object->signedUrl(
+                    new \DateTimeImmutable('+10 minutes'),
+                    ['version' => 'v4']
+                );
+            } catch (\Throwable $e) {
+                // kalau gagal signed URL, biarkan null; di UI tampilkan nama saja
+                \Log::warning('Signed URL gagal', ['path' => $objectPath, 'error' => $e->getMessage()]);
+            }
+
+            return (object) [                
+                'display_name' => $r->attachment_name,         // nama yang enak dibaca
+                'created_by'   => $r->created_by,
+                'created_at'   => $r->created_at,
+                'url'          => $signedUrl,                  // bisa null jika gagal
+                'folder'       => $r->folder,
+                'filename'     => $r->filename,
+                'extention'    => $r->extention,
+                'size'         => $r->filesize,
+            ];
+        });
 
         // =========================
         // Ambil header sumber (SPPB/J/K/T) dari 2 huruf depan sppbjktid

@@ -431,7 +431,7 @@ class SppjController extends Controller
                     'doctype'       => $doctype,
                     'cpnyid'        => $request->input('cpnyid'),
                     'departementid' => $request->input('departementid'),                    
-                    'base_folder'   => 'att-purchasing-app/sppbjkt',
+                    'base_folder'   => 'att-purchasing-app/'.strtolower($doctype),
                     'created_by'    => $user->username,
                 ];
 
@@ -444,7 +444,7 @@ class SppjController extends Controller
                 } catch (\Throwable $e) {
                     \DB::rollBack();
                     return response()->json([
-                        'message' => 'Failed to create WO',
+                        'message' => 'Failed to create PJ',
                         'error'   => 'Gagal upload attachment: '.$e->getMessage(),
                     ], 500);
                 }
@@ -607,7 +607,7 @@ class SppjController extends Controller
         // dd($request->all()); // matikan agar eksekusi lanjut
 
         $id = Hashids::decode($hash)[0] ?? null;
-        abort_if(!$id, 404, 'WO tidak ditemukan.');
+        abort_if(!$id, 404, 'PJ tidak ditemukan.');
 
         $user      = $request->user();   
         $dt        = Carbon::now();
@@ -843,7 +843,7 @@ class SppjController extends Controller
                     'doctype'       => $doctype,
                     'cpnyid'        => $request->cpnyid,
                     'departementid' => $request->departementid,
-                    'base_folder'   => 'att-purchasing-app/sppbjkt',
+                    'base_folder'   => 'att-purchasing-app/'.strtolower($doctype),
                     'created_by'    => $user->username,
                 ];
                 $files = (array) $request->file('attachments');
@@ -854,7 +854,7 @@ class SppjController extends Controller
                 } catch (\Throwable $e) {
                     DB::rollBack();
                     return response()->json([
-                        'message' => 'Failed to update WO',
+                        'message' => 'Failed to update PJ',
                         'error'   => 'Gagal upload attachment: '.$e->getMessage(),
                     ], 500);
                 }
@@ -1881,6 +1881,7 @@ class SppjController extends Controller
                         ->orWhere('id', $request->input('idx')) // kalau kamu kirim idx juga
                         ->first();
             $cpny_id = $sppj->cpny_id ?? $sppj->cpnyid ?? null;
+            $deptid = $sppj->department_id ?? $sppj->departmentid ?? null;
         }
 
         // Grand total header
@@ -1958,41 +1959,68 @@ class SppjController extends Controller
 
             // ===== Attachments (optional): simpan ke /public/attachments/{year} =====
            
+            // if ($request->hasFile('attachments')) {
+            //     foreach ($request->file('attachments') as $file) {
+            //         if (!$file || !$file->isValid()) continue;
+
+            //         // ambil nama asli dan extension
+            //         $original   = $file->getClientOriginalName();
+            //         $baseName   = pathinfo($original, PATHINFO_FILENAME);
+            //         $ext        = strtolower($file->getClientOriginalExtension());
+
+            //         // sanitasi nama untuk disimpan di kolom "name"
+            //         $safeName   = Str::limit(preg_replace('/[^A-Za-z0-9_\- ]/', '', $baseName), 120, '');
+
+            //         // buat nama file unik untuk disimpan di folder & kolom "attachfile"
+            //         $unique     = md5(uniqid('', true));
+            //         $storedName = $unique . '-' . ($safeName !== '' ? Str::slug($safeName, '_') : 'photo') . '.' . $ext;
+
+            //         // pastikan folder ada
+            //         $folder = public_path('attachments/' . $year);
+            //         if (!is_dir($folder)) {
+            //             @mkdir($folder, 0755, true);
+            //         }
+
+            //         // pindahkan file
+            //         $file->move($folder, $storedName);
+
+            //         // simpan ke DB tanpa mass assignment
+            //         $attach = new Attachment();
+            //         $attach->docid        = $bqid;      // relasi ke dokumen BQ
+            //         $attach->name         = $safeName;  // nama (tanpa ext)
+            //         $attach->attachfile   = $storedName; // nama file di server (dengan ext)
+            //         $attach->status       = 'A';
+            //         $attach->extention    = $ext;        // kolommu memang "extention"
+            //         $attach->created_user = $username;
+            //         $attach->save();
+            //     }
+            // }
+
             if ($request->hasFile('attachments')) {
-                foreach ($request->file('attachments') as $file) {
-                    if (!$file || !$file->isValid()) continue;
+                $meta = [
+                    'refnbr'        => $bqid,
+                    'doctype'       => $doctype,
+                    'cpnyid'        => $cpny_id,
+                    'departementid' => $deptid,                    
+                    'base_folder'   => 'att-purchasing-app/'.strtolower($doctype),
+                    'created_by'    => $username,
+                ];
 
-                    // ambil nama asli dan extension
-                    $original   = $file->getClientOriginalName();
-                    $baseName   = pathinfo($original, PATHINFO_FILENAME);
-                    $ext        = strtolower($file->getClientOriginalExtension());
+                $files = (array) $request->file('attachments');
 
-                    // sanitasi nama untuk disimpan di kolom "name"
-                    $safeName   = Str::limit(preg_replace('/[^A-Za-z0-9_\- ]/', '', $baseName), 120, '');
-
-                    // buat nama file unik untuk disimpan di folder & kolom "attachfile"
-                    $unique     = md5(uniqid('', true));
-                    $storedName = $unique . '-' . ($safeName !== '' ? Str::slug($safeName, '_') : 'photo') . '.' . $ext;
-
-                    // pastikan folder ada
-                    $folder = public_path('attachments/' . $year);
-                    if (!is_dir($folder)) {
-                        @mkdir($folder, 0755, true);
-                    }
-
-                    // pindahkan file
-                    $file->move($folder, $storedName);
-
-                    // simpan ke DB tanpa mass assignment
-                    $attach = new Attachment();
-                    $attach->docid        = $bqid;      // relasi ke dokumen BQ
-                    $attach->name         = $safeName;  // nama (tanpa ext)
-                    $attach->attachfile   = $storedName; // nama file di server (dengan ext)
-                    $attach->status       = 'A';
-                    $attach->extention    = $ext;        // kolommu memang "extention"
-                    $attach->created_user = $username;
-                    $attach->save();
+                try {
+                    $uploader = app(TrAttachmentController::class);
+                    $uploadResult = $uploader->uploadInternal($meta, $files);
+                    // tidak return di sini!
+                } catch (\Throwable $e) {
+                    \DB::rollBack();
+                    return response()->json([
+                        'message' => 'Failed to create PB',
+                        'error'   => 'Gagal upload attachment: '.$e->getMessage(),
+                    ], 500);
                 }
+            } else {
+                $uploadResult = null; // tidak ada attachment
             }
 
 
@@ -2019,6 +2047,11 @@ class SppjController extends Controller
         $bq = Bq::findOrFail($id);
         $bqid    = $bq->bqid;                 // <-- dipertahankan (tidak generate baru)
         $sppjtid = $bq->sppjtid ?? $request->input('sppjtid');
+
+        $sppj = TrSPPJ::where('sppjid', $sppjtid)                   
+                    ->first();
+        $cpny_id = $sppj->cpny_id ?? $sppj->cpnyid ?? null;
+        $deptid = $sppj->department_id ?? $sppj->departmentid ?? null;
 
         // Ambil temp data jika ada
         $tempId   = $request->input('temp_id');
@@ -2090,36 +2123,64 @@ class SppjController extends Controller
             }
 
             // ===================== ATTACHMENTS (tambahan) =====================
+            // if ($request->hasFile('attachments')) {
+            //     $year = $now->year;
+            //     $folder = public_path('attachments/' . $year);
+            //     if (!is_dir($folder)) {
+            //         @mkdir($folder, 0755, true);
+            //     }
+
+            //     foreach ($request->file('attachments') as $file) {
+            //         if (!$file || !$file->isValid()) continue;
+
+            //         $original   = $file->getClientOriginalName();
+            //         $baseName   = pathinfo($original, PATHINFO_FILENAME);
+            //         $ext        = strtolower($file->getClientOriginalExtension());
+
+            //         $safeName   = Str::limit(preg_replace('/[^A-Za-z0-9_\- ]/', '', $baseName), 120, '');
+            //         $unique     = md5(uniqid('', true));
+            //         $storedName = $unique . '-' . ($safeName !== '' ? Str::slug($safeName, '_') : 'photo') . '.' . $ext;
+
+            //         $file->move($folder, $storedName);
+
+            //         $attach = new Attachment();
+            //         $attach->docid        = $bqid;
+            //         $attach->name         = $safeName;
+            //         $attach->attachfile   = $storedName;
+            //         $attach->status       = 'A';
+            //         $attach->extention    = $ext;
+            //         $attach->created_user = $username;
+            //         $attach->save();
+            //     }
+            // }
+
             if ($request->hasFile('attachments')) {
-                $year = $now->year;
-                $folder = public_path('attachments/' . $year);
-                if (!is_dir($folder)) {
-                    @mkdir($folder, 0755, true);
+                $meta = [
+                    'refnbr'        => $bqid,
+                    'doctype'       => $doctype,
+                    'cpnyid'        => $cpny_id,
+                    'departementid' => $deptid,                    
+                    'base_folder'   => 'att-purchasing-app/'.strtolower($doctype),
+                    'created_by'    => $user->username,
+                ];
+
+                $files = (array) $request->file('attachments');
+
+                try {
+                    $uploader = app(TrAttachmentController::class);
+                    $uploadResult = $uploader->uploadInternal($meta, $files);
+                    // tidak return di sini!
+                } catch (\Throwable $e) {
+                    \DB::rollBack();
+                    return response()->json([
+                        'message' => 'Failed to create PB',
+                        'error'   => 'Gagal upload attachment: '.$e->getMessage(),
+                    ], 500);
                 }
-
-                foreach ($request->file('attachments') as $file) {
-                    if (!$file || !$file->isValid()) continue;
-
-                    $original   = $file->getClientOriginalName();
-                    $baseName   = pathinfo($original, PATHINFO_FILENAME);
-                    $ext        = strtolower($file->getClientOriginalExtension());
-
-                    $safeName   = Str::limit(preg_replace('/[^A-Za-z0-9_\- ]/', '', $baseName), 120, '');
-                    $unique     = md5(uniqid('', true));
-                    $storedName = $unique . '-' . ($safeName !== '' ? Str::slug($safeName, '_') : 'photo') . '.' . $ext;
-
-                    $file->move($folder, $storedName);
-
-                    $attach = new Attachment();
-                    $attach->docid        = $bqid;
-                    $attach->name         = $safeName;
-                    $attach->attachfile   = $storedName;
-                    $attach->status       = 'A';
-                    $attach->extention    = $ext;
-                    $attach->created_user = $username;
-                    $attach->save();
-                }
+            } else {
+                $uploadResult = null; // tidak ada attachment
             }
+
 
             DB::commit();
             return response()->json(['success' => true, 'bq' => $bq]);

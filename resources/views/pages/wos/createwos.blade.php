@@ -405,16 +405,18 @@
         // ====== Load Categories (wotype & worequest) ======
         function loadCategories($select, categoryid) {
             $select.empty().append('<option value="">-- choose --</option>');
-            $.getJSON(`/wos/ajax/categories/${categoryid}`, function(list){
-            list.forEach(it => {
-                // value & text sama = category_name
-                $select.append(new Option(it.text, it.text));
-            });
-            });
-             .fail(function(){
-            toastr.error('Gagal memuat data kategori.');
-            });
-        }
+            $.getJSON(`/wos/ajax/categories/${encodeURIComponent(categoryid)}?doctype=WO`)
+                .done(function(list){
+                list.forEach(function(it){
+                    // value & text sama = category_name
+                    $select.append(new Option(it.text, it.text));
+                });
+                })
+                .fail(function(){
+                toastr.error('Gagal memuat data kategori.');
+                });
+            }
+
         loadCategories($('#wotype'), 'wotype');
         loadCategories($('#worequest'), 'worequest');
 

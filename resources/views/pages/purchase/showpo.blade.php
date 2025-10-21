@@ -741,113 +741,65 @@
 
 
                             {{-- Attachment tab --}}
-                            <div x-show="activeTab === 'attachment'"
-                                class="flex h-full flex-1 flex-col transition-all">
+                            {{-- Attachment tab (PO pakai TrAttachmentController generic) --}}
+                            <div x-show="activeTab === 'attachment'" class="flex h-full flex-1 flex-col transition-all">
                                 <div class="flex-1 overflow-auto rounded-lg">
                                     <table class="w-full text-sm">
-                                        <thead class="text-gray-600 dark:text-gray-300">
-                                            <tr class="border-b border-gray-200 dark:border-gray-700">
-                                                <th class="p-3 text-left font-semibold">Filename</th>
-                                                <th class="p-3 text-left font-semibold">Created By</th>
-                                                <th class="p-3 text-left font-semibold">Date</th>
-                                                @if ($po->status === 'H')
-                                                    <th class="p-3 text-center font-semibold">Action</th>
-                                                @endif
-                                            </tr>
-                                        </thead>
-                                        <tbody id="attachmentTbody">
-                                            @forelse ($attachment as $at)
-                                                @php
-                                                    $year = $at->created_at->year;
-                                                    $fileUrl = url('/attachments/' . $year . '/' . $at->attachfile);
-                                                @endphp
-                                                <tr
-                                                    class="border-b border-gray-100 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700">
-                                                    <td class="p-3">
-                                                        <a href="{{ $fileUrl }}" target="_blank"
-                                                            class="flex items-center gap-2 font-medium text-indigo-600 hover:underline dark:text-indigo-400">
-                                                            📎 {{ $at->name }}.{{ $at->extention }}
-                                                        </a>
-                                                    </td>
-                                                    <td class="p-3">{{ $at->created_user }}</td>
-                                                    <td class="p-3">
-                                                        {{ \Carbon\Carbon::parse($at->created_at)->format('d M Y') }}
-                                                    </td>
-                                                    @if ($po->status === 'H')
-                                                        <td class="p-3 text-center">
-                                                            {{-- <button type="button" class="btn-del-attachment rounded bg-red-600/90 px-3 py-1 text-white text-xs"
-                                                            data-id="{{ $at->id }}">
-                                                        Delete
-                                                    </button> --}}
-                                                            <button type="button"
-                                                                class="btn-del-attachment mt-4 rounded border border-red-700 bg-red-200/10 px-3 py-3 text-white hover:border-red-700 hover:bg-red-400/30 dark:bg-red-700/30"
-                                                                data-id="{{ $at->id }}">🗑️
-                                                            </button>
-                                                        </td>
-                                                    @endif
-                                                </tr>
-                                            @empty
-                                                <tr>
-                                                    <td colspan="{{ $po->status === 'H' ? 4 : 3 }}"
-                                                        class="p-4 text-center italic text-gray-500 dark:text-gray-400">
-                                                        No attachments found.
-                                                    </td>
-                                                </tr>
-                                            @endforelse
-                                        </tbody>
+                                    <thead class="text-gray-600 dark:text-gray-300">
+                                        <tr class="border-b border-gray-200 dark:border-gray-700">
+                                        <th class="p-3 text-left font-semibold">Filename</th>
+                                        <th class="p-3 text-left font-semibold">Created By</th>
+                                        <th class="p-3 text-left font-semibold">Date</th>
+                                        @if ($po->status === 'H')
+                                            <th class="p-3 text-center font-semibold">Action</th>
+                                        @endif
+                                        </tr>
+                                    </thead>
+                                    <tbody id="poAttachmentTbody"></tbody>
                                     </table>
                                 </div>
+
                                 @if ($po->status === 'H')
-                                    <form id="attachmentUploadForm" enctype="multipart/form-data"
+                                {{-- Upload (status HOLD saja yang boleh) --}}
+                                <form id="poAttachmentUploadForm" enctype="multipart/form-data"
                                         class="sticky bottom-0 z-10 mt-6 rounded-b-lg border-t border-gray-200 bg-gray-100 p-4 shadow-sm backdrop-blur-sm dark:border-gray-700 dark:bg-gray-700">
+                                    @csrf
+                                    {{-- opsional kalau mau kirim meta tambahan --}}
+                                    <input type="hidden" name="cpnyid" value="{{ $po->cpny_id }}">
+                                    <input type="hidden" name="departementid" value="{{ $po->department_id }}">
 
-                                        @csrf
-                                        <input type="hidden" name="ponbr" value="{{ $po->ponbr }}">
-
-                                        <div class="flex flex-col gap-3 md:flex-row md:items-center md:gap-4">
-                                            {{-- File Input --}}
-                                            <div class="flex-1">
-                                                <label for="attachFiles"
-                                                    class="mb-2 block text-sm font-semibold text-gray-800 dark:text-gray-200">
-                                                    Upload Attachment
-                                                </label>
-
-                                                <div class="flex items-center gap-3">
-                                                    <input type="file" id="attachFiles" name="attachments[]"
-                                                        multiple
-                                                        class="block w-full cursor-pointer rounded-md border border-gray-300 bg-white px-2 py-[7px] text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" />
-
-                                                    {{-- Buttons --}}
-                                                    <button type="button" id="btnUploadAttachment"
-                                                        class="inline-flex h-[36px] items-center justify-center rounded-md bg-indigo-600 px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                                                        Upload
-                                                    </button>
-                                                    <button type="button" id="btnResetAttachment"
-                                                        class="inline-flex h-[36px] items-center justify-center rounded-md border border-gray-300 bg-white px-4 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-400 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">
-                                                        Reset
-                                                    </button>
-                                                </div>
-
-                                                <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                                                    Max 10 files, PDF / Image preferred.
-                                                </p>
-                                            </div>
+                                    <div class="flex flex-col gap-3 md:flex-row md:items-center md:gap-4">
+                                    <div class="flex-1">
+                                        <label for="poAttachFiles" class="mb-2 block text-sm font-semibold text-gray-800 dark:text-gray-200">
+                                        Upload Attachment
+                                        </label>
+                                        <div class="flex items-center gap-3">
+                                        <input type="file" id="poAttachFiles" name="attachments[]" multiple
+                                                class="block w-full cursor-pointer rounded-md border border-gray-300 bg-white px-2 py-[7px] text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" />
+                                        <button type="button" id="btnUploadPOAttachment"
+                                                class="inline-flex h-[36px] items-center justify-center rounded-md bg-indigo-600 px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                            Upload
+                                        </button>
+                                        <button type="button" id="btnResetPOAttachment"
+                                                class="inline-flex h-[36px] items-center justify-center rounded-md border border-gray-300 bg-white px-4 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-400 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">
+                                            Reset
+                                        </button>
                                         </div>
+                                        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Max 10 files, PDF / Image preferred.</p>
+                                    </div>
+                                    </div>
 
-                                        {{-- Progress Bar --}}
-                                        <div id="uploadProgress" class="mt-4 hidden">
-                                            <div
-                                                class="h-2 w-full overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700">
-                                                <div id="uploadBar"
-                                                    class="h-2 w-0 rounded-full bg-indigo-600 transition-all duration-300 ease-out dark:bg-indigo-500">
-                                                </div>
-                                            </div>
-                                            <p id="uploadPct" class="mt-1 text-xs text-gray-600 dark:text-gray-300">0%
-                                            </p>
-                                        </div>
-                                    </form>
+                                    <div id="poUploadProgress" class="mt-4 hidden">
+                                    <div class="h-2 w-full overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700">
+                                        <div id="poUploadBar" class="h-2 w-0 rounded-full bg-indigo-600 transition-all duration-300 ease-out dark:bg-indigo-500"></div>
+                                    </div>
+                                    <p id="poUploadPct" class="mt-1 text-xs text-gray-600 dark:text-gray-300">0%</p>
+                                    </div>
+                                </form>
                                 @endif
                             </div>
+
+
 
 
                             {{-- Comments tab --}}
@@ -1265,7 +1217,7 @@
         });
     </script>
 
-    <script>
+    {{-- <script>
         $(function() {
             const ponbr = "{{ $po->ponbr }}";
             const isHold = "{{ $po->status }}" === 'H';
@@ -1386,8 +1338,8 @@
             // opsional: panggil refresh saat tab dibuka / halaman siap
             // refreshAttachments();
         });
-    </script>
-    <script>
+    </script> --}}
+    {{-- <script>
         $(function() {
             // Reset file input & progress UI
             $('#btnResetAttachment').on('click', function() {
@@ -1427,7 +1379,7 @@
                 }
             });
         });
-    </script>
+    </script> --}}
 
 
     <script>
@@ -1465,6 +1417,152 @@
             });
         });
     </script>
+
+    <script>
+        $(function () {
+        const isHold   = @json($po->status === 'H');
+        const listUrl  = @json(route('attachments.list',   ['doctype' => 'PO', 'refnbr' => $po->ponbr]));
+        const uploadUrl= @json(route('attachments.upload', ['doctype' => 'PO', 'refnbr' => $po->ponbr]));
+        const delRoute = @json(route('attachments.delete', ':id'));
+
+        function $tbody(){ return $('#poAttachmentTbody'); }
+
+        function renderAttachmentRows(rows){
+            const $tb = $tbody().empty();
+            if (!rows || !rows.length){
+            $tb.append(`
+                <tr>
+                <td colspan="${isHold ? 4 : 3}" class="p-4 text-center italic text-gray-500 dark:text-gray-400">
+                    No attachments found.
+                </td>
+                </tr>
+            `);
+            return;
+            }
+
+            rows.forEach(at => {
+            const name   = at.name || at.display_name || '(no name)';
+            const by     = at.created_user ?? at.created_by ?? '-';
+            const date   = at.created_at ? dayjs(at.created_at).format('DD MMM YYYY') : '-';
+            const link   = at.url
+                ? `<a href="${at.url}" target="_blank" class="flex items-center gap-2 font-medium text-indigo-600 hover:underline dark:text-indigo-400">📎 ${name}</a>`
+                : `<span class="flex items-center gap-2 font-medium text-gray-700 dark:text-gray-300">📎 ${name}</span>
+                <span class="ml-2 text-xs text-red-500">(link unavailable)</span>`;
+            const action = isHold
+                ? `<td class="p-3 text-center">
+                    <button type="button"
+                            class="btn-del-attachment mt-4 rounded border border-red-700 bg-red-200/10 px-3 py-3 text-white hover:border-red-700 hover:bg-red-400/30 dark:bg-red-700/30"
+                            data-id="${at.id ?? ''}">🗑️</button>
+                </td>`
+                : '';
+
+            $tb.append(`
+                <tr class="border-b border-gray-100 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700">
+                <td class="p-3">${link}</td>
+                <td class="p-3">${by}</td>
+                <td class="p-3">${date}</td>
+                ${action}
+                </tr>
+            `);
+            });
+        }
+
+        function refreshAttachments(){
+            $.get(listUrl)
+            .done(res => {
+                if (res.success) renderAttachmentRows(res.attachments || []);
+                else toastr.error(res.message || 'Failed to load attachments.');
+            })
+            .fail(() => toastr.error('Failed to load attachments.'));
+        }
+
+        // initial load dari API (agar signed URL fresh)
+        refreshAttachments();
+
+        // ===== Upload (HOLD only) =====
+        $('#btnUploadPOAttachment').on('click', function(){
+            const $form = $('#poAttachmentUploadForm')[0];
+            const files = $('#poAttachFiles')[0]?.files;
+            if (!files || !files.length){
+            toastr.warning('Please choose at least one file.');
+            return;
+            }
+
+            const fd = new FormData($form);
+
+            if (typeof showOverlay === 'function') showOverlay('Uploading');
+            $('#poUploadProgress').removeClass('hidden'); $('#poUploadBar').css('width','0%'); $('#poUploadPct').text('0%');
+
+            $.ajax({
+            url: uploadUrl,
+            method: 'POST',
+            data: fd,
+            processData: false,
+            contentType: false,
+            xhr: function(){
+                const xhr = new window.XMLHttpRequest();
+                xhr.upload.addEventListener('progress', function(e){
+                if (e.lengthComputable){
+                    const pct = Math.round((e.loaded / e.total) * 100);
+                    $('#poUploadBar').css('width', pct + '%');
+                    $('#poUploadPct').text(pct + '%');
+                }
+                });
+                return xhr;
+            },
+            success: function(res){
+                if (typeof hideOverlay === 'function') hideOverlay();
+                if (!res || !res.success){
+                toastr.error(res?.message || 'Upload failed.');
+                return;
+                }
+                toastr.success('Upload success.');
+                $('#poAttachFiles').val('');
+                renderAttachmentRows(res.attachments || []); // backend sudah kembalikan list terbaru
+            },
+            error: function(xhr){
+                if (typeof hideOverlay === 'function') hideOverlay();
+                toastr.error(xhr.responseJSON?.message || 'Upload failed.');
+            }
+            });
+        });
+
+        // Reset
+        $('#btnResetPOAttachment').on('click', function(){
+            try { $('#poAttachFiles')[0].value = ''; } catch(e){}
+            const $fresh = $('#poAttachFiles').clone({withDataAndEvents:false});
+            $('#poAttachFiles').replaceWith($fresh);
+            $('#poUploadBar').css('width','0%'); $('#poUploadPct').text('0%'); $('#poUploadProgress').addClass('hidden');
+            toastr.info('Attachment input has been reset.');
+        });
+
+        // ===== Delete (HOLD only) =====
+        $(document).on('click', '.btn-del-attachment', function(){
+            if (!isHold) return;
+            const id = $(this).data('id');
+            if (!id){ toastr.error('Invalid attachment id.'); return; }
+            if (!confirm('Hapus attachment ini?')) return;
+
+            $.ajax({
+            url: delRoute.replace(':id', id),
+            method: 'POST',
+            data: {_method:'DELETE', _token: @json(csrf_token())},
+            success: function(res){
+                if (!res || !res.success){
+                toastr.error(res?.message || 'Gagal menghapus attachment.');
+                return;
+                }
+                toastr.success('Attachment dihapus.');
+                refreshAttachments();
+            },
+            error: function(xhr){
+                toastr.error(xhr.responseJSON?.message || 'Gagal menghapus attachment.');
+            }
+            });
+        });
+        });
+        </script>
+
 
 
 

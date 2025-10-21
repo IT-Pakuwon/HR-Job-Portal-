@@ -55,6 +55,7 @@ use App\Http\Controllers\PoController;
 use App\Http\Controllers\ReceiptListController;
 use App\Http\Controllers\ReceiptController;
 use App\Http\Controllers\WoController;
+use App\Http\Controllers\TrAttachmentController;
 
 use App\Http\Controllers\CanvassxController;
 
@@ -462,6 +463,7 @@ Route::post('/logout', function () {
     Route::get('/vendorscs', [MasterController::class, 'vendors']); 
     Route::get('/taxes', [MasterController::class, 'taxes'])->name('taxes.index');
     Route::get('/sites', [MasterController::class, 'sitesWarehouse'])->name('sites.index');
+    Route::get('/api/tenants/show', [MasterController::class, 'showTenant'])->name('tenants.show');
 
     Route::get('/sppts', [SpptController::class, 'index'])->name('sppts');
     Route::get('/sppts/json', [SpptController::class, 'json'])->name('sppts.json');
@@ -628,6 +630,10 @@ Route::post('/logout', function () {
     Route::get('/wos/ajax/subworktypes/{worktypeid}', [MasterController::class, 'getSubWorktypes']);         
     Route::get('/wos/ajax/locations/{cpny_id}',     [MasterController::class, 'getLocations']);              
     Route::get('/wos/ajax/sublocations/{cpny_id}/{location_id}', [MasterController::class, 'getSubLocations']); 
+
+    Route::post('/attachments/{doctype}/{refnbr}',  [TrAttachmentController::class, 'uploadAttachments'])->name('attachments.upload');
+    Route::get ('/attachments/{doctype}/{refnbr}',  [TrAttachmentController::class, 'listAttachments'])->name('attachments.list');
+    Route::delete('/attachments/{id}',               [TrAttachmentController::class, 'deleteAttachment'])->name('attachments.delete');
 
 
     Route::get('/eng/users', [UsersEngController::class, 'index'])->name('userseng');
