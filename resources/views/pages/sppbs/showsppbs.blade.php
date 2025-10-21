@@ -364,7 +364,7 @@
                                             <th class="p-3 text-left font-semibold">Date</th>
                                         </tr>
                                     </thead>
-                                    <tbody>
+                                    {{-- <tbody>
                                         @forelse ($attachments as $at)
                                             <tr class="border-b border-gray-100 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700">
                                                 <td class="p-3">
@@ -388,9 +388,42 @@
                                                 </td>
                                             </tr>
                                         @endforelse
-                                    </tbody>
+                                    </tbody> --}}
+                                    <tbody id="sppbAttachmentTbody"></tbody>                                   
+
                                 </table>
+                                {{-- Upload attachment (multi) --}}
+                                <div class="border-t border-gray-200 p-4 dark:border-gray-700">
+                                    <form id="sppbAttachmentUploadForm" enctype="multipart/form-data">
+                                        @csrf
+                                        <div class="flex flex-col gap-3 md:flex-row md:items-center">
+                                        <div class="flex-1">
+                                            <label for="sppbAttachFiles" class="mb-2 block text-sm font-semibold text-gray-800 dark:text-gray-200">
+                                            Upload Attachments
+                                            </label>
+                                            <div class="flex items-center gap-3">
+                                            <input type="hidden" name="cpnyid" value="{{ $sppb->cpny_id }}">
+                                            <input type="hidden" name="departementid" value="{{ $sppb->department_id }}">
+                                            <input type="file" id="sppbAttachFiles" name="attachments[]" multiple
+                                                    class="block w-full cursor-pointer rounded-md border border-gray-300 bg-white px-2 py-[7px] text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" />
+                                            <button type="button" id="btnUploadSppbAttachment"
+                                                    class="inline-flex h-[36px] items-center justify-center rounded-md bg-indigo-600 px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                                Upload
+                                            </button>
+                                            <button type="button" id="btnResetSppbAttachment"
+                                                    class="inline-flex h-[36px] items-center justify-center rounded-md border border-gray-300 bg-white px-4 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-400 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">
+                                                Reset
+                                            </button>
+                                            </div>
+                                            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                                            Max 10 files, PDF / Image preferred.
+                                            </p>
+                                        </div>
+                                        </div>
+                                    </form>
+                                </div>
                             </div>
+                             
                             {{-- Comments tab --}}
                             <div x-show="activeTab === 'comments'" class="flex-1 transition-all">
                                 <div x-data="{ comments: [], newComment: '', currentUser: 'User1' }" class="flex h-full flex-col">
@@ -852,6 +885,105 @@
             });
         }
     </script>
+
+    <!-- pastikan dayjs sudah di-include -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dayjs/1.11.10/dayjs.min.js"></script>
+
+    <script>
+        $(function () {
+        const listUrl   = @json(route('attachments.list',   ['doctype' => 'PB', 'refnbr' => $sppb->sppbid]));
+        const uploadUrl = @json(route('attachments.upload', ['doctype' => 'PB', 'refnbr' => $sppb->sppbid]));
+
+        function $tbody() { return $('#sppbAttachmentTbody'); } // <tbody id="sppbAttachmentTbody">
+
+        function renderSppbAttachmentRows(rows){
+            const $tb = $tbody().empty();
+
+            if (!rows || !rows.length) {
+            $tb.append(`
+                <tr>
+                <td colspan="3" class="p-4 text-center italic text-gray-500 dark:text-gray-400">
+                    No attachments found.
+                </td>
+                </tr>
+            `);
+            return;
+            }
+
+            rows.forEach(at => {
+            const fileName  = at.name || at.display_name || '(no name)';
+            const createdBy = at.created_user ?? at.created_by ?? '-';
+            const dateStr   = at.created_at ? dayjs(at.created_at).format('DD MMM YYYY') : '-';
+            const linkHtml  = at.url
+                ? `<a href="${at.url}" target="_blank"
+                    class="flex items-center gap-2 font-medium text-indigo-600 hover:underline dark:text-indigo-400">📎 ${fileName}</a>`
+                : `<span class="text-gray-700 dark:text-gray-300">📎 ${fileName}</span>
+                <span class="ml-2 text-xs text-red-500">(link unavailable)</span>`;
+
+            $tb.append(`
+                <tr class="border-b border-gray-100 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700">
+                <td class="p-3">${linkHtml}</td>
+                <td class="p-3">${createdBy}</td>
+                <td class="p-3">${dateStr}</td>
+                </tr>
+            `);
+            });
+        }
+
+        function refreshSppbAttachments(){
+            $.get(listUrl)
+            .done(res => {
+                if (res.success) renderSppbAttachmentRows(res.attachments);
+                else toastr.error(res.message || 'Failed to load attachments.');
+            })
+            .fail(() => toastr.error('Failed to load attachments.'));
+        }
+
+        // optional: load saat tab dibuka / page load
+        refreshSppbAttachments();
+
+        $('#btnUploadSppbAttachment').on('click', function(){
+            const $form = $('#sppbAttachmentUploadForm')[0];
+            const files = $('#sppbAttachFiles')[0].files;
+
+            if (!files || !files.length) {
+            toastr.warning('Please choose at least one file.');
+            return;
+            }
+
+            const fd = new FormData($form);
+            if (typeof showOverlay === 'function') showOverlay('Uploading');
+
+            $.ajax({
+            url: uploadUrl,
+            method: 'POST',
+            data: fd,
+            processData: false,
+            contentType: false,
+            success: function(res){
+                if (typeof hideOverlay === 'function') hideOverlay();
+                if (!res || !res.success) {
+                toastr.error(res?.message || 'Upload failed.');
+                return;
+                }
+                toastr.success('Upload success.');
+                $('#sppbAttachFiles').val('');
+                // back-end sudah mengembalikan list terbaru
+                renderSppbAttachmentRows(res.attachments || []);
+            },
+            error: function(xhr){
+                if (typeof hideOverlay === 'function') hideOverlay();
+                toastr.error(xhr.responseJSON?.message || 'Upload failed.');
+            }
+            });
+        });
+
+        $('#btnResetSppbAttachment').on('click', function(){
+            $('#sppbAttachFiles').val('');
+        });
+        });
+    </script>
+
 
 
 

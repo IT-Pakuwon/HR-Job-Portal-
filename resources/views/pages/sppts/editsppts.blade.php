@@ -419,10 +419,7 @@
                                                                 placeholder="0,00" value="{{ $qtyDisp }}">
                                                         </td>
 
-                                                        {{-- UoM --}}
-                                                        {{-- <td class="border p-3">
-                                                        <input type="text" name="stock_unit[]" readonly class="stock_unitField w-full cursor-not-allowed border-none bg-gray-50 p-2 text-gray-600 focus:outline-none" value="{{ $d->uom ?? '-' }}">
-                                                    </td> --}}
+                                                       
                                                         <td class="border p-3">
                                                             <div class="flex items-center gap-2">
                                                                 <!-- Hidden untuk kirim detail UoM -->
@@ -538,9 +535,7 @@
                                                                 class="qtyField w-full border-none bg-transparent p-2 text-right focus:outline-none focus:ring-0"
                                                                 placeholder="0,00">
                                                         </td>
-                                                        {{-- <td class="border p-3">
-                                                        <input type="text" name="stock_unit[]" readonly class="stock_unitField w-full cursor-not-allowed border-none bg-gray-50 p-2 text-gray-600 focus:outline-none" placeholder="-">
-                                                    </td> --}}
+                                                       
                                                         <td class="border p-3">
                                                             <div class="flex items-center gap-2">
                                                                 <!-- Hidden untuk kirim detail UoM -->
@@ -646,10 +641,7 @@
                             </div>
 
                             <!-- Tabs -->
-                            <div class="mb-3 flex border-b border-gray-200 dark:border-gray-700">
-                                {{-- <button type="button"
-                                    class="invTab border-b-2 border-indigo-600 px-4 py-2 font-semibold"
-                                    data-type="stock">Stock</button> --}}
+                            <div class="mb-3 flex border-b border-gray-200 dark:border-gray-700">                                
                                 <button type="button"
                                     class="invTab border-b-2 border-transparent px-4 py-2 font-semibold"
                                     data-type="nonstock">Non-Stock</button>
@@ -1134,80 +1126,6 @@
     </script>
 
 
-    {{-- <script>
-        // ===== Simpan Form =====
-        $(function () {
-        $('#spptForm').on('submit', function (e) {
-            e.preventDefault();
-
-            // normalisasi qty (koma -> titik)
-            $('.qtyField').each(function () {
-            if (this.value.includes(',')) this.value = this.value.replace(',', '.');
-            });
-
-            // validasi minimal 1 detail valid
-            const hasValid = $('#spptTable tr.sppt-row').toArray().some(tr => {
-            const $tr = $(tr);
-            const invId = ($tr.find('.inventoryIdField').val() || '').trim();
-            const qty   = parseFloat($tr.find('input[name="qty[]"]').val() || '0');
-            return invId !== '' && qty > 0;
-            });
-            if (!hasValid) { toastr.error('Minimal 1 item detail harus dipilih (Product Name & Qty > 0).'); return; }
-
-            // lock UI
-            $('#submitBtn, #cancelBtn').prop('disabled', true);
-            $('#btnText').text('Processing...');
-            $('#loadingSpinner').removeClass('hidden');
-
-            // kirim ke route update (pakai action form sendiri)
-            const form   = document.getElementById('spptForm');
-            const formData = new FormData(form);
-            formData.set('_method','PUT'); // penting!
-
-            $.ajax({
-            url: form.action,        // <-- otomatis: route('sppts.update', $sppt->id)
-            type: 'POST',
-            data: formData,
-            processData: false,
-            contentType: false,
-            success: function (res) {
-                toastr.success(res.message || "SPPT updated successfully!");
-                window.location.href = "/sppts";
-            },
-            error: function (xhr) {
-                if (xhr.status === 422 && xhr.responseJSON && xhr.responseJSON.errors) {
-                const errors = xhr.responseJSON.errors;
-                let msg = 'Mohon periksa input:<br>';
-                Object.keys(errors).forEach(k => { msg += `- ${errors[k].join(', ')}<br>`; });
-                toastr.error(msg);
-                } else if (xhr.responseJSON && xhr.responseJSON.message) {
-                toastr.error(xhr.responseJSON.message);
-                } else {
-                toastr.error('Error! Please check the input.');
-                }
-            },
-            complete: function () {
-                $('#submitBtn, #cancelBtn').prop('disabled', false);
-                $('#btnText').text('Submit Approval');
-                $('#loadingSpinner').addClass('hidden');
-            }
-            });
-        });
-        
-
-        // ===== Cancel Button =====
-        $('#cancelBtn').click(function () {
-            const confirmed = confirm("Are you sure you want to cancel? Unsaved changes will be lost.");
-            if (confirmed) {
-            $('#cancelBtn').prop('disabled', true);
-            $('#cancelText').text('Cancelling...');
-            $('#cancelSpinner').removeClass('hidden');
-            window.location.href = "{{ route('sppts') }}";
-            }
-        });
-        });
-    </script> --}}
-
     <script>
         // ===== Simpan Form (EDIT) =====
         $(function() {
@@ -1542,15 +1460,6 @@
                 currentRow.find('.coaIdField').val('');
                 currentRow.find('.coaNameField').val('');
 
-                // //opsional: auto-isi COA bila inventory bawa default account_id (seperti sebelumnya)
-                // if (account_id) {
-                //     currentRow.find('.coaIdField').val(account_id);
-                //     currentRow.find('.coaNameField').val(account_id);
-                // } else {
-                //     currentRow.find('.coaIdField').val('');
-                //     currentRow.find('.coaNameField').val('');
-                // }
-
                 closeModal();
             });
         });
@@ -1583,44 +1492,9 @@
                 } else {
                     $('.removeAttachment').addClass('hidden');
                 }
-            }
-
-            // $(document).on('click', '.removeAttachment2', function() {
-            //     let attachmentId = $(this).data('id'); // Ambil ID attachment
-            //     let row = $(this).closest('.attachment-row'); // Dapatkan row attachment
-
-            //     // Cek konfirmasi pengguna
-            //     let confirmDelete = confirm('Are you sure you want to remove this attachment?');
-
-            //     if (confirmDelete) {
-            //         $.ajax({
-            //             url: "/sppts/remove-attachment/" + attachmentId, // Endpoint ke controller
-            //             type: "POST",
-            //             data: {
-            //                 _method: "PUT",
-            //                 _token: "{{ csrf_token() }}"
-            //             },
-            //             success: function(response) {
-            //                 if (response.success) {
-            //                     row.remove(); // Hapus dari tampilan jika berhasil
-            //                     alert("Attachment removed successfully!");
-            //                 } else {
-            //                     alert("Failed to remove attachment.");
-            //                 }
-            //             },
-            //             error: function(xhr) {
-            //                 alert("Error! Unable to remove attachment.");
-            //                 console.error(xhr.responseText);
-            //             }
-            //         });
-            //     } else {
-            //         // **TIDAK ADA AKSI JIKA USER MEMBATALKAN**
-            //         return false;
-            //     }
-            // });
+            }          
         });
     </script>
-
     <script>
         $(document).on('click', '.removeAttachment2', function () {
             const $btn = $(this);
@@ -1667,56 +1541,7 @@
         });
     </script>
 
-    {{-- <script>
-        // ===== Request Type =====
-        $(function() {
-            const $cpny = $('select[name="cpnyid"]');
-            const $requestType = $('#requesttypeid');
-
-            function buildRequestTypeOptions(list, selected) {
-                let opts = '<option value="" disabled>Select Request Type</option>';
-                list.forEach(rt => {
-                    const sel = (selected && String(selected) === String(rt.requesttypeid)) ? 'selected' :
-                        '';
-                    opts +=
-                        `<option value="${rt.requesttypeid}" ${sel}>${rt.requesttype_name || rt.name || rt.requesttypeid}</option>`;
-                });
-                return opts;
-            }
-
-            function loadRequestTypes(cpnyid, selected = null) {
-                if (!cpnyid) {
-                    $requestType.html('<option value="" disabled selected>Choose company first</option>');
-                    return;
-                }
-                $requestType.html('<option value="" disabled selected>Loading...</option>');
-                $.getJSON("{{ route('requesttypes.byCompany') }}", {
-                        cpnyid
-                    })
-                    .done(function(res) {
-                        const data = res.data || [];
-                        if (data.length === 0) {
-                            $requestType.html('<option value="" disabled selected>No request type</option>');
-                        } else {
-                            $requestType.html(buildRequestTypeOptions(data, selected));
-                        }
-                    })
-                    .fail(function() {
-                        $requestType.html('<option value="" disabled selected>Failed to load</option>');
-                    });
-            }
-
-            // initial load (pakai value yg sudah selected di header)
-            const initialCpny = $cpny.val();
-            loadRequestTypes(initialCpny);
-
-            // reload saat company berubah
-            $cpny.on('change', function() {
-                loadRequestTypes($(this).val());
-            });
-        });
-    </script> --}}
-
+   
     <script>
         $(function() {
             const DOCTYPE = 'SPPT';
@@ -2541,7 +2366,7 @@
         });
     </script>
 
-    <script>
+    {{-- <script>
         $(function() {
             /** ---------- Helper umum ---------- **/
             function injectSelect2Value($select, id, text) {
@@ -2628,10 +2453,143 @@
 
 
         });
-    </script>
+    </script> --}}
 
+    <script>
+$(function () {
+  /** ---------- Helper umum ---------- **/
+  function injectSelect2Value($select, id, text) {
+      $select.find('option[value="' + String(id) + '"]').remove();
+      const opt = new Option(text, String(id), true, true);
+      $select.append(opt).trigger('change');
+  }
 
+  // Format tampilan item di dropdown
+  function formatTenant(item) {
+      if (!item.id) return item.text;
+      const unit = item.unit_label ? `<span class="text-gray-500"> — ${item.unit_label}</span>` : '';
+      return $(`<span>${item.text}${unit}</span>`);
+  }
 
+  // ========== INIT SELECT2 TENANT ==========
+  $('#tenant_select').select2({
+      width: '100%',
+      placeholder: $('#tenant_select').data('placeholder') || 'Cari tenant...',
+      allowClear: true,
+      ajax: {
+          url: "{{ route('tenants.search') }}",
+          dataType: 'json',
+          delay: 250,
+          data: params => ({
+              q: params.term || '',
+              page: params.page || 1,
+              per_page: 10
+          }),
+          processResults: (data, params) => {
+              params.page = params.page || 1;
+              const results = (data.data || []).map(it => ({
+                  id: it.id,                               // ID/kode tenant
+                  text: it.text,                           // NAMA tenant
+                  unit_label: it.unit_label || (it.floor && it.unit ? `${it.floor} - ${it.unit}` : ''),
+                  floor: it.floor || it.lantai || '',
+                  unit: it.unit || ''
+              }));
+              return {
+                  results,
+                  pagination: { more: (params.page * 10) < (data.total || 0) }
+              };
+          },
+          cache: true
+      },
+      templateResult: formatTenant,
+      // PENTING: pastikan selalu pakai nama (text) jika ada, jangan kembali ke id
+      templateSelection: item => (item && item.text) ? item.text : (item && item.name) ? item.name : '',
+      escapeMarkup: m => m
+  })
+  .on('select2:select', function(e) {
+      const d = e.params.data || {};
+      // simpan ID ke hidden
+      $('#nama_tenant').val(d.id || '');
+      // isi Lantai – Unit
+      const label = d.unit_label || ((d.floor && d.unit) ? `${d.floor} - ${d.unit}` : '');
+      $('#no_unit_tenant').val(label);
+  })
+  .on('select2:clear', function() {
+      $('#nama_tenant').val('');
+      $('#no_unit_tenant').val('');
+  });
+
+  // ========== PREFILL SAAT EDIT ==========
+  const TENANT_ID   = @json($sppt->nama_tenant ?? null);   // ID tenant (wajib ada kalau mau prefill)
+  const TENANT_NAME = @json($sppt->tenant_name ?? null);   // Nama tenant (opsional)
+  const TENANT_UNIT = @json($sppt->no_unit_tenant ?? null);// "Lantai - Unit" (opsional)
+
+  async function fetchTenantById(id) {
+      // Prefer: endpoint detail by ID
+      // Response ideal: { id, name, floor, unit, unit_label }
+      try {
+          const res = await $.getJSON("{{ route('tenants.show') }}", { id });
+          return res && res.data ? res.data : null;
+      } catch (e) { return null; }
+  }
+
+  (async function prefillTenant() {
+      if (!TENANT_ID) {
+          // kosongkan kalau memang tidak ada
+          $('#tenant_select').val(null).trigger('change');
+          $('#nama_tenant').val('');
+          $('#no_unit_tenant').val('');
+          return;
+      }
+
+      // Kalau backend sudah kirim nama → gampang
+      if (TENANT_NAME) {
+          injectSelect2Value($('#tenant_select'), TENANT_ID, TENANT_NAME);
+          $('#nama_tenant').val(TENANT_ID);
+          if (TENANT_UNIT) $('#no_unit_tenant').val(TENANT_UNIT);
+          return;
+      }
+
+      // Kalau backend hanya kirim ID → fetch detail by ID
+      const detail = await fetchTenantById(TENANT_ID);
+
+      if (detail && (detail.name || detail.text)) {
+          const name = detail.name || detail.text;
+          const unitLabel = detail.unit_label || ((detail.floor && detail.unit) ? `${detail.floor} - ${detail.unit}` : '');
+          injectSelect2Value($('#tenant_select'), TENANT_ID, name);
+          $('#nama_tenant').val(TENANT_ID);
+          $('#no_unit_tenant').val(unitLabel || '');
+          return;
+      }
+
+      // Fallback terakhir (misal endpoint detail belum ada) → coba pakai search khusus id exact
+      try {
+          const res = await $.getJSON("{{ route('tenants.search') }}", { id: TENANT_ID, page: 1, per_page: 1 });
+          const it = (res && res.data && res.data[0]) ? res.data[0] : null;
+          if (it) {
+              const name = it.text || String(TENANT_ID);
+              const unitLabel = it.unit_label || ((it.floor && it.unit) ? `${it.floor} - ${it.unit}` : '');
+              injectSelect2Value($('#tenant_select'), TENANT_ID, name);
+              $('#nama_tenant').val(TENANT_ID);
+              $('#no_unit_tenant').val(unitLabel || '');
+              return;
+          }
+      } catch(e){/* ignore */}
+
+      // Kalau tetap gagal: tampilkan ID sementara, tapi clear lantai–unit supaya terlihat perlu diisi
+      injectSelect2Value($('#tenant_select'), TENANT_ID, String(TENANT_ID));
+      $('#nama_tenant').val(TENANT_ID);
+      $('#no_unit_tenant').val('');
+  })();
+
+  // Opsional: bila Company berubah, clear tenant & unit agar konsisten antar perusahaan
+  $('select[name="cpnyid"]').on('change', function() {
+      $('#tenant_select').val(null).trigger('change');
+      $('#nama_tenant').val('');
+      $('#no_unit_tenant').val('');
+  });
+});
+</script>
 
 
     <!-- Toastr CSS -->

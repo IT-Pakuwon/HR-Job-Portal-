@@ -392,44 +392,47 @@
                             <div x-show="activeTab === 'attachment'" class="flex-1 p-2 transition-all">
                                 <table class="w-full text-sm">
                                     <thead class="text-gray-600 dark:text-gray-300">
-                                        <tr
-                                            class="border-b border-gray-200 text-gray-600 dark:border-gray-700 dark:text-gray-300">
+                                        <tr class="border-b border-gray-200 dark:border-gray-700">
                                             <th class="p-3 text-left font-semibold">Filename</th>
                                             <th class="p-3 text-left font-semibold">Type</th>
                                             <th class="p-3 text-left font-semibold">Created By</th>
                                             <th class="p-3 text-left font-semibold">Date</th>
                                         </tr>
                                     </thead>
-                                    <tbody>
+                                    {{-- <tbody>
                                         @php
+                                            // Gabungkan: lampiran dari dokumen sumber (PB/PJ/PK/PT) + lampiran dari CS
+                                            // attachmentBJKT & attachmentCS sudah berisi object: display_name, url, created_by, created_at, folder, filename, extention, size
                                             $allAttachments = collect($attachmentBJKT)
-                                                ->map(function ($at) {
-                                                    $at->type = 'PB';
+                                                ->map(function ($at) use ($prefix) {
+                                                    $at->type = $prefix; // PB / PJ / PK / PT
                                                     return $at;
                                                 })
                                                 ->merge(
                                                     collect($attachmentCS)->map(function ($at) {
                                                         $at->type = 'CS';
                                                         return $at;
-                                                    }),
+                                                    })
                                                 );
                                         @endphp
 
                                         @forelse ($allAttachments as $at)
-                                            @php
-                                                $year = \Carbon\Carbon::parse($at->created_at)->year;
-                                                $fileUrl = url("/attachments/{$year}/{$at->attachfile}");
-                                            @endphp
-                                            <tr
-                                                class="border-b border-gray-200 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700">
+                                            <tr class="border-b border-gray-200 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700">
                                                 <td class="px-3 py-2">
-                                                    <a href="{{ $fileUrl }}" target="_blank"
+                                                    @if (!empty($at->url))
+                                                        <a href="{{ $at->url }}" target="_blank"
                                                         class="font-medium text-indigo-600 hover:underline dark:text-indigo-400">
-                                                        📎 {{ $at->name }}
-                                                    </a>
+                                                            📎 {{ $at->display_name }}
+                                                        </a>
+                                                    @else
+                                                        <span class="font-medium text-gray-700 dark:text-gray-300">
+                                                            📎 {{ $at->display_name }}
+                                                        </span>
+                                                        <span class="ml-2 text-xs text-red-500">(link unavailable)</span>
+                                                    @endif
                                                 </td>
                                                 <td class="px-3 py-2">{{ $at->type }}</td>
-                                                <td class="px-3 py-2">{{ $at->created_user }}</td>
+                                                <td class="px-3 py-2">{{ $at->created_by }}</td>
                                                 <td class="px-3 py-2">
                                                     {{ \Carbon\Carbon::parse($at->created_at)->format('d M Y') }}
                                                 </td>
@@ -442,9 +445,38 @@
                                                 </td>
                                             </tr>
                                         @endforelse
-                                    </tbody>
+                                    </tbody> --}}
+                                    <tbody id="allAttachmentTbody"></tbody>
                                 </table>
+                                <div class="border-t border-gray-200 p-4 dark:border-gray-700">
+                                    <form id="csAttachmentUploadForm" enctype="multipart/form-data">
+                                        @csrf
+                                        <div class="flex flex-col gap-3 md:flex-row md:items-center">
+                                        <div class="flex-1">
+                                            <label for="csAttachFiles" class="mb-2 block text-sm font-semibold text-gray-800 dark:text-gray-200">
+                                            Upload Attachments (CS)
+                                            </label>
+                                            <div class="flex items-center gap-3">
+                                            <input type="hidden" name="cpnyid" value="{{ $cs->cpny_id }}">
+                                            <input type="hidden" name="departementid" value="{{ $cs->department_id }}">
+                                            <input type="file" id="csAttachFiles" name="attachments[]" multiple
+                                                    class="block w-full cursor-pointer rounded-md border border-gray-300 bg-white px-2 py-[7px] text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" />
+                                            <button type="button" id="btnUploadCSAttachment"
+                                                    class="inline-flex h-[36px] items-center justify-center rounded-md bg-indigo-600 px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                                Upload
+                                            </button>
+                                            <button type="button" id="btnResetCSAttachment"
+                                                    class="inline-flex h-[36px] items-center justify-center rounded-md border border-gray-300 bg-white px-4 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-400 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">
+                                                Reset
+                                            </button>
+                                            </div>
+                                            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">PDF / gambar disarankan.</p>
+                                        </div>
+                                        </div>
+                                    </form>
+                                </div>
                             </div>
+
                             {{-- Comments tab --}}
                             <div x-show="activeTab === 'comments'" class="flex-1 transition-all">
                                 <div x-data="{ comments: [], newComment: '', currentUser: 'User1' }" class="flex h-full flex-col">
@@ -976,6 +1008,146 @@
             });
         }
     </script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dayjs/1.11.10/dayjs.min.js"></script>
+
+   <script>
+        $(function () {
+        // API khusus CS
+        const listUrl   = @json(route('attachments.list',   ['doctype' => 'CS', 'refnbr' => $cs->csid]));
+        const uploadUrl = @json(route('attachments.upload', ['doctype' => 'CS', 'refnbr' => $cs->csid]));
+
+        // Data awal dari server (punya signed URL juga) —> dipakai untuk render awal biar langsung tampil
+        const prefix     = @json($prefix); // 'PB' / 'PJ' / 'PK' / 'PT'
+        const bjktStatic = (@json($attachmentBJKT ?? []))
+            .map(a => ({
+            id: a.id ?? null,
+            name: a.display_name,
+            display_name: a.display_name,
+            created_by: a.created_by,
+            created_user: a.created_by,
+            created_at: a.created_at,
+            url: a.url,
+            type: prefix
+            }));
+
+        const csInitial = (@json($attachmentCS ?? []))
+            .map(a => ({
+            id: a.id ?? null,
+            name: a.display_name,
+            display_name: a.display_name,
+            created_by: a.created_by,
+            created_user: a.created_by,
+            created_at: a.created_at,
+            url: a.url,
+            type: 'CS'
+            }));
+
+        function $tbody(){ return $('#allAttachmentTbody'); }
+
+        function renderAllAttachments(csRows){
+            const $tb = $tbody().empty();
+            // normalisasi csRows dari API
+            const csNorm = (csRows || []).map(a => ({
+            id: a.id ?? null,
+            name: a.name || a.display_name || '(no name)',
+            display_name: a.display_name || a.name || '(no name)',
+            created_by: a.created_by || a.created_user || '-',
+            created_user: a.created_user || a.created_by || '-',
+            created_at: a.created_at || null,
+            url: a.url || null,
+            type: 'CS'
+            }));
+
+            const merged = [...bjktStatic, ...csNorm];
+
+            if (!merged.length){
+            $tb.append(`
+                <tr>
+                <td colspan="4" class="p-4 text-center italic text-gray-500 dark:text-gray-400">
+                    No attachments found.
+                </td>
+                </tr>
+            `);
+            return;
+            }
+
+            merged.forEach(at => {
+            const fileName = at.name || at.display_name || '(no name)';
+            const dateStr  = at.created_at ? dayjs(at.created_at).format('DD MMM YYYY') : '-';
+            const linkHtml = at.url
+                ? `<a href="${at.url}" target="_blank"
+                    class="font-medium text-indigo-600 hover:underline dark:text-indigo-400">📎 ${fileName}</a>`
+                : `<span class="font-medium text-gray-700 dark:text-gray-300">📎 ${fileName}</span>
+                <span class="ml-2 text-xs text-red-500">(link unavailable)</span>`;
+
+            $tb.append(`
+                <tr class="border-b border-gray-200 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700">
+                <td class="px-3 py-2">${linkHtml}</td>
+                <td class="px-3 py-2">${at.type || ''}</td>
+                <td class="px-3 py-2">${at.created_by || at.created_user || '-'}</td>
+                <td class="px-3 py-2">${dateStr}</td>
+                </tr>
+            `);
+            });
+        }
+
+        // Render awal pakai data server (cepat tampil)
+        renderAllAttachments(csInitial);
+
+        // Jika perlu refresh CS dari API (mis. signed URL baru), panggil ini
+        function refreshCSAttachments(){
+            $.get(listUrl)
+            .done(res => {
+                if (res.success) renderAllAttachments(res.attachments || []);
+                else toastr.error(res.message || 'Failed to load attachments.');
+            })
+            .fail(() => toastr.error('Failed to load attachments.'));
+        }
+
+        // Upload khusus CS
+        $('#btnUploadCSAttachment').on('click', function(){
+            const $form = $('#csAttachmentUploadForm')[0];
+            const files = $('#csAttachFiles')[0].files;
+
+            if (!files || !files.length){
+            toastr.warning('Please choose at least one file.');
+            return;
+            }
+
+            const fd = new FormData($form);
+            if (typeof showOverlay === 'function') showOverlay('Uploading');
+
+            $.ajax({
+            url: uploadUrl,
+            method: 'POST',
+            data: fd,
+            processData: false,
+            contentType: false,
+            success: function(res){
+                if (typeof hideOverlay === 'function') hideOverlay();
+                if (!res || !res.success){
+                toastr.error(res?.message || 'Upload failed.');
+                return;
+                }
+                toastr.success('Upload success.');
+                $('#csAttachFiles').val('');
+                // Back-end sudah mengembalikan list CS terbaru -> merge lagi dengan BJKT statis
+                renderAllAttachments(res.attachments || []);
+            },
+            error: function(xhr){
+                if (typeof hideOverlay === 'function') hideOverlay();
+                toastr.error(xhr.responseJSON?.message || 'Upload failed.');
+            }
+            });
+        });
+
+        $('#btnResetCSAttachment').on('click', function(){
+            $('#csAttachFiles').val('');
+        });
+        });
+        </script>
+
 
 
 

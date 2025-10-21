@@ -35,6 +35,7 @@ use App\Http\Controllers\TrAttachmentController;
 use Illuminate\Support\Facades\Response;
 use App\Models\TrAttachment;
 use Google\Cloud\Storage\StorageClient;
+use App\Models\MsTenant;
 
 
 class SpptController extends Controller
@@ -436,7 +437,7 @@ class SpptController extends Controller
                     'doctype'       => $doctype,
                     'cpnyid'        => $request->input('cpnyid'),
                     'departementid' => $request->input('departementid'),                    
-                    'base_folder'   => 'att-purchasing-app/sppbjkt',
+                    'base_folder'   => 'att-purchasing-app/'.strtolower($doctype),
                     'created_by'    => $user->username,
                 ];
 
@@ -449,7 +450,7 @@ class SpptController extends Controller
                 } catch (\Throwable $e) {
                     \DB::rollBack();
                     return response()->json([
-                        'message' => 'Failed to create WO',
+                        'message' => 'Failed to create PT',
                         'error'   => 'Gagal upload attachment: '.$e->getMessage(),
                     ], 500);
                 }
@@ -526,7 +527,7 @@ class SpptController extends Controller
         }
     }
    
-    public function editSppt($hash)
+    public function editSppt_xxx($hash)
     {
         $id = Hashids::decode($hash)[0] ?? null;
         abort_if(!$id, 404);
@@ -603,6 +604,103 @@ class SpptController extends Controller
         ));
     }
 
+    public function editSppt($hash)
+{
+    $id = Hashids::decode($hash)[0] ?? null;
+    abort_if(!$id, 404);
+
+    $sppt = TrSPPT::findOrFail($id);
+
+   // ===== Prefill TENANT: pakai MsTenant (unit_id, store_name, floor_id, store_no)
+if (!empty($sppt->nama_tenant)) {
+    $tenant = \App\Models\MsTenant::select('unit_id','store_name','floor_id','store_no')
+        ->where('unit_id', $sppt->nama_tenant)
+        ->first();
+
+    if ($tenant) {
+        $sppt->tenant_name    = $tenant->store_name; // <-- label yg ditampilkan Select2
+        $sppt->no_unit_tenant = trim(
+            ($tenant->floor_id ? $tenant->floor_id : '') .
+            ($tenant->store_no ? (' - '.$tenant->store_no) : '')
+        );
+    }
+}
+
+// ===== (Opsional) Prefill PIC: ambil nama lengkap utk label Select2 PIC
+if (!empty($sppt->pic_pengawas)) {
+    $pic = \App\Models\User::where('username', $sppt->pic_pengawas)
+        ->first(['username','name as full_name']);
+    if ($pic) {
+        $sppt->pic_name = $pic->full_name;
+    }
+}
+
+
+    // ===== Detail + eager load lokasi (sudah OK)
+    $spptdetail = TrSPPTdetail::with([
+            'location:location_id,location_name',
+            'subLocation:sub_location_id,sub_location_name',
+        ])
+        ->where('spptid', $sppt->spptid)
+        ->get()
+        ->map(function ($d) {
+            $d->location_name     = optional($d->location)->location_name;
+            $d->sub_location_name = optional($d->subLocation)->sub_location_name;
+            return $d;
+        });
+
+    $user      = request()->user();
+    $usercpny  = Usercpny::where('username', $user->username)->get();
+    $usercpny2 = Usercpny::where('username', $user->username)->first();
+    $userdept  = Userdept::where('username', $user->username)->get();
+    $userdept2 = Userdept::where('username', $user->username)->first();
+
+    $rows = TrAttachment::where('refnbr', $sppt->spptid)
+        ->where('status', 'A')
+        ->orderBy('created_at', 'desc')
+        ->get();
+
+    $config      = config('filesystems.disks.gcs');
+    $keyFilePath = $config['key_file'];
+    if (!Str::startsWith($keyFilePath, ['/','C:\\','D:\\'])) {
+        $keyFilePath = base_path($keyFilePath);
+    }
+    $storage = new StorageClient([
+        'projectId'   => $config['project_id'],
+        'keyFilePath' => $keyFilePath,
+    ]);
+    $bucket = $storage->bucket($config['bucket']);
+
+    $attachments = $rows->map(function ($r) use ($bucket) {
+        $objectPath = rtrim($r->folder, '/').'/'.$r->filename;
+        $object     = $bucket->object($objectPath);
+        $signedUrl  = null;
+        try {
+            $signedUrl = $object->signedUrl(
+                new \DateTimeImmutable('+10 minutes'),
+                ['version' => 'v4']
+            );
+        } catch (\Throwable $e) {
+            \Log::warning('Signed URL gagal', ['path' => $objectPath, 'error' => $e->getMessage()]);
+        }
+        return (object) [
+            'id'           => $r->id,
+            'display_name' => $r->attachment_name,
+            'created_by'   => $r->created_by,
+            'created_at'   => $r->created_at,
+            'url'          => $signedUrl,
+            'folder'       => $r->folder,
+            'filename'     => $r->filename,
+            'extention'    => $r->extention,
+            'size'         => $r->filesize,
+        ];
+    });
+
+    return view('pages.sppts.editsppts', compact(
+        'sppt','spptdetail','usercpny','usercpny2','userdept','userdept2','attachments','hash'
+    ));
+}
+
 
 
     public function updateSppt(Request $request, $hash)
@@ -610,7 +708,7 @@ class SpptController extends Controller
         // dd($request->all()); // matikan agar eksekusi lanjut
 
         $id = Hashids::decode($hash)[0] ?? null;
-        abort_if(!$id, 404, 'WO tidak ditemukan.');
+        abort_if(!$id, 404, 'PT tidak ditemukan.');
 
         $user      = $request->user();   
         $dt        = Carbon::now();
@@ -851,7 +949,7 @@ class SpptController extends Controller
                     'doctype'       => $doctype,
                     'cpnyid'        => $request->cpnyid,
                     'departementid' => $request->departementid,
-                    'base_folder'   => 'att-purchasing-app/sppbjkt',
+                    'base_folder'   => 'att-purchasing-app/'.strtolower($doctype),
                     'created_by'    => $user->username,
                 ];
                 $files = (array) $request->file('attachments');
@@ -862,7 +960,7 @@ class SpptController extends Controller
                 } catch (\Throwable $e) {
                     DB::rollBack();
                     return response()->json([
-                        'message' => 'Failed to update WO',
+                        'message' => 'Failed to update PT',
                         'error'   => 'Gagal upload attachment: '.$e->getMessage(),
                     ], 500);
                 }

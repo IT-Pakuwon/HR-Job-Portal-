@@ -581,6 +581,7 @@ class MasterController extends Controller
      // dropdown untuk wotype & worequest dari MsCategory (doctype='WO')
     public function getCategories(string $categoryid)
     {
+       
         $items = MsCategory::query()
             ->where('doctype', 'WO')
             ->where('categoryid', $categoryid) // 'wotype' atau 'worequest'
@@ -642,5 +643,29 @@ class MasterController extends Controller
 
         return response()->json($items);
     }
+
+    
+    public function showTenant(Request $req)
+    {
+        $id = $req->get('id');
+        if (!$id) return response()->json(['data' => null]);
+
+        $t = MsTenant::select('unit_id','store_name','floor_id','store_no')
+            ->where('unit_id', $id)
+            ->first();
+
+        if (!$t) return response()->json(['data' => null]);
+
+        return response()->json([
+            'data' => [
+                'id'         => $t->unit_id,
+                'name'       => $t->store_name,
+                'floor'      => $t->floor_id,               // jika perlu label lantai, lihat catatan 3)
+                'unit'       => $t->store_no,
+                'unit_label' => ($t->floor_id && $t->store_no) ? "{$t->floor_id} - {$t->store_no}" : null,
+            ]
+        ]);
+    }
+
 
 }

@@ -253,39 +253,65 @@ class ReceiptController extends Controller
             $header->save();
 
 
-            if ($request->hasfile('attachments')) {
-                foreach ($request->file('attachments') as $file) {
-                    $randomNumber = random_int(10000000, 99999999);
-                    $filename = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+            // if ($request->hasfile('attachments')) {
+            //     foreach ($request->file('attachments') as $file) {
+            //         $randomNumber = random_int(10000000, 99999999);
+            //         $filename = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
                    
-                    $originalName = str_replace('%', '', $file->getClientOriginalName());
-                    $ext        = $file->getClientOriginalExtension();
-                    $attachfile = md5($randomNumber) . '.' . $ext;
+            //         $originalName = str_replace('%', '', $file->getClientOriginalName());
+            //         $ext        = $file->getClientOriginalExtension();
+            //         $attachfile = md5($randomNumber) . '.' . $ext;
 
-                    //attach to folder
-                    $folder_attach = public_path() . '/attachments/'.$year;
-                    $config['upload_path'] = $folder_attach;                   
-                    if(!is_dir($folder_attach))
-                    {
-                        mkdir($folder_attach, 0777);
-                    }
+            //         //attach to folder
+            //         $folder_attach = public_path() . '/attachments/'.$year;
+            //         $config['upload_path'] = $folder_attach;                   
+            //         if(!is_dir($folder_attach))
+            //         {
+            //             mkdir($folder_attach, 0777);
+            //         }
                     
-                    $folder_upload = $folder_attach;
-                    // $folder_upload = public_path() . '/attachments';
-                    $file->move($folder_upload, $attachfile);
+            //         $folder_upload = $folder_attach;
+            //         // $folder_upload = public_path() . '/attachments';
+            //         $file->move($folder_upload, $attachfile);
 
-                    //insert to table attachments
-                    $attach = new Attachment();
-                    $attach->docid = $receiptnbr;
-                    $attach->name = $filename;
-                    $attach->attachfile = $attachfile;
-                    $attach->status = 'A';
-                    $attach->extention = $file->getClientOriginalExtension();
-                    $attach->created_user = $user->username;
-                    $attach->save();
+            //         //insert to table attachments
+            //         $attach = new Attachment();
+            //         $attach->docid = $receiptnbr;
+            //         $attach->name = $filename;
+            //         $attach->attachfile = $attachfile;
+            //         $attach->status = 'A';
+            //         $attach->extention = $file->getClientOriginalExtension();
+            //         $attach->created_user = $user->username;
+            //         $attach->save();
+            //     }
+            // }            
+
+            if ($request->hasFile('attachments')) {
+                $meta = [
+                    'refnbr'        => $receiptnbr,
+                    'doctype'       => $doctype,
+                    'cpnyid'        => $cpnyid,
+                    'departementid' => $deptid,                    
+                    'base_folder'   => 'att-purchasing-app/'.strtolower($doctype),
+                    'created_by'    => $user->username,
+                ];
+
+                $files = (array) $request->file('attachments');
+
+                try {
+                    $uploader = app(TrAttachmentController::class);
+                    $uploadResult = $uploader->uploadInternal($meta, $files);
+                    // tidak return di sini!
+                } catch (\Throwable $e) {
+                    \DB::rollBack();
+                    return response()->json([
+                        'message' => 'Failed to create PB',
+                        'error'   => 'Gagal upload attachment: '.$e->getMessage(),
+                    ], 500);
                 }
-            }            
-
+            } else {
+                $uploadResult = null; // tidak ada attachment
+            }
                        
             DB::commit();
 
