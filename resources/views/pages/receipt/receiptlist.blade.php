@@ -239,7 +239,7 @@
 
 
     <div class="max-w-9xl mx-auto w-full px-4 py-4 sm:px-6 lg:px-8">
-        <div class="grid-col-1 grid gap-6 xl:grid-cols-4 xl:grid-rows-1">
+        <div class="grid-col-1 grid gap-6 xl:grid-cols-5 xl:grid-rows-1">
             {{-- Receipt Jobs --}}
             <button>
                 <a href="#" class="scope-filter group block" data-scope="receiptjobs">
@@ -253,6 +253,21 @@
                     </div>
                 </a>
             </button>
+
+            {{-- Return Jobs --}}
+            <button>
+            <a href="#" class="scope-filter group block" data-scope="returnjobs">
+                <div
+                class="scope-card flex items-center gap-4 rounded-lg border border-purple-700 bg-purple-200/20 p-3 text-purple-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-purple-100 hover:shadow-lg active:scale-95">
+                <span class="text-xl group-hover:animate-pulse">↩️</span>
+                <div class="flex flex-grow items-center justify-between">
+                    <p class="text-lg font-medium">Return Jobs</p>
+                    <p class="text-right text-xl font-extrabold">{{ $returnjobs }}</p>
+                </div>
+                </div>
+            </a>
+            </button>
+
 
             {{-- On Progress --}}
             <button>
@@ -324,10 +339,12 @@
 
                     const titleMap = {
                         receiptjobs: 'Receipt - Jobs',
-                        onprogress: 'Receipt - On Progress',
-                        completed: 'Receipt - Completed',
-                        all: 'Receipt - All',
+                        returnjobs:  'Receipt - Return Jobs',   // ← tambah ini
+                        onprogress:  'Receipt - On Progress',
+                        completed:   'Receipt - Completed',
+                        all:         'Receipt - All',
                     };
+
 
                     function headerFor(sc) {
                         if (sc === 'receiptjobs') {
@@ -341,10 +358,22 @@
                                 <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Created By</th>
                             `;
                         }
+                        if (sc === 'returnjobs') {
+                            return `
+                            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Action</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Receipt Nbr</th>
+                            <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">Receipt Date</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">PO Nbr</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">SPPB/J/K/T</th>
+                            <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">Company</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Created By</th>
+                            `;
+                        }
                         // TrReceipt scopes (tanpa kolom "+")
                         return `
                             <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Receipt Nbr</th>
                             <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">Receipt Date</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Receipt Type</th>
                             <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">PO Nbr</th>
                             <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">SPPB/J/K/T</th>
                             <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">Company</th>
@@ -355,39 +384,28 @@
                     function columnsFor(sc) {
                         let buttonClass =
                             'inline-flex items-center justify-center w-[100px] rounded bg-gray-500 py-1.5 text-white hover:bg-gray-700';
-                        if (sc === 'receiptjobs') {
-                            return [{
-                                    data: null,
-                                    orderable: false,
-                                    searchable: false,
-                                    render: (_v, t, row) => renderPlusCreate(row)
-                                },
-                                {
-                                    data: 'ponbr',
-                                    render: (_v, _t, row) => renderPoLink(row)
-                                },
-                                {
-                                    data: 'podate',
-                                    render: (_v, _t, row) => row.podate_fmt ?? '',
-                                    className: 'text-center'
-                                },
-                                {
-                                    data: 'cpny_id',
-                                    className: 'text-center'
-                                },
-                                {
-                                    data: 'vendorname'
-                                },
-                                {
-                                    data: 'podeliverydate',
-                                    render: (_v, _t, row) => row.podelivery_fmt ?? '',
-                                    className: 'text-center'
-                                },
-                                {
-                                    data: 'created_by'
-                                },
-                            ];
-                        }
+                            if (sc === 'receiptjobs') {
+                                return [
+                                { data: null, orderable:false, searchable:false, render: (_v,t,row)=>renderPlusCreate(row) },
+                                { data: 'ponbr', render: (_v,_t,row)=>renderPoLink(row) },
+                                { data: 'podate', render: (_v,_t,row)=>row.podate_fmt ?? '', className:'text-center' },
+                                { data: 'cpny_id', className:'text-center' },
+                                { data: 'vendorname' },
+                                { data: 'podeliverydate', render: (_v,_t,row)=>row.podelivery_fmt ?? '', className:'text-center' },
+                                { data: 'created_by' },
+                                ];
+                            }
+                            if (sc === 'returnjobs') {
+                                return [
+                                { data: null, orderable:false, searchable:false, render: (_v,t,row)=>renderPlusReturn(row) },
+                                { data: 'receiptnbr', render: (_v,_t,row)=>renderReceiptLink(row) },
+                                { data: 'receiptdate', render: (_v,_t,row)=>row.receiptdate_fmt ?? '', className:'text-center' },
+                                { data: 'ponbr', render: (_v,_t,row)=>renderPoLink(row) },
+                                { data: 'sppbjktid', render: (_v,_t,row)=>renderSppbLink(row) },
+                                { data: 'cpny_id', className:'text-center' },
+                                { data: 'created_by' },
+                                ];
+                            }
                         // TrReceipt scopes: tanpa kolom "+"
                         return [{
                                 data: 'receiptnbr',
@@ -398,6 +416,7 @@
                                 render: (_v, _t, row) => row.receiptdate_fmt ?? '',
                                 className: 'text-center'
                             },
+                            { data: 'receipttype' },
                             {
                                 data: 'ponbr',
                                 render: (_v, _t, row) => renderPoLink(row)
@@ -416,18 +435,12 @@
                         ];
                     }
 
-                    function orderFor(sc) {
-                        // receiptjobs: tanggal di idx 2
-                        if (sc === 'receiptjobs') return [
-                            [2, 'desc'],
-                            [1, 'desc']
-                        ];
-                        // TrReceipt: tanggal di idx 1
-                        return [
-                            [1, 'desc'],
-                            [0, 'desc']
-                        ];
+                    function orderFor(sc){
+                        if (sc === 'receiptjobs') return [[2,'desc'],[1,'desc']];
+                        if (sc === 'returnjobs')  return [[2,'desc'],[1,'desc']];
+                        return [[1,'desc'],[0,'desc']];
                     }
+
 
                     function updateTitle(sc) {
                         $title.text(titleMap[sc] ?? 'Receipt');
@@ -479,6 +492,12 @@
                     <i class="fas fa-plus"></i></a>`;
                     }
 
+                    function renderPlusReturn(row){
+                        const url = `{{ route('receipt.return.create') }}` + `?rcp=${encodeURIComponent(row.receiptnbr_eid ?? '')}`;
+                        return `<a href="${url}" class="inline-flex items-center justify-center rounded bg-indigo-600 px-2 py-1 text-white text-sm font-bold hover:bg-indigo-700">+</a>`;
+                    }
+
+
                     function renderPoLink(row) {
                         const text = row.ponbr ?? '';
                         // gunakan hash id jika tersedia
@@ -493,7 +512,7 @@
                         const text = row.sppbjktid ?? '';
                         if (row.sppb_route && row.sppb_eid) {
                             const url = `/${row.sppb_route}/${encodeURIComponent(row.sppb_eid)}`;
-                            return `<a href="${url}" class="font-bold text-indigo-700 hover:underline">${text}</a>`;
+                            return `<a href="${url}" class="inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-sm leading-tight font-medium text-white rounded text-center transition-colors duration-200 bg-gray-500 hover:bg-gray-700">${text}</a>`;
                         }
                         return text;
                     }

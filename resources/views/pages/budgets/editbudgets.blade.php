@@ -163,12 +163,12 @@
                     {{-- Form Import --}}
                     {{-- <form id="budgetForm" action="{{ route('budget.import.edit', $budget->id) }}" method="POST" enctype="multipart/form-data"> --}}
                     <form id="budgetForm"
-                        action="{{ $budget ? route('budgets.import.edit', $budget->id) : route('budgets.import') }}"
+                        action="{{ $budget ? route('budgets.import.edit', $hash) : route('budgets.import') }}"
                         method="POST" enctype="multipart/form-data">
                         @csrf
                         <div class="rounded-2xl border bg-white p-4 shadow dark:bg-gray-800">
                             <div class="mb-4 flex justify-between border-b pb-2 dark:border-gray-600">
-                                <h2 class="text-xl font-bold">📥 Import Budget {{ $budget->budget_id }}</h2>
+                                <h2 class="text-xl font-bold">📥 Import Budget {{ $hash }}</h2>
                             </div>
 
                             <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
@@ -302,40 +302,72 @@
                             <div class="flex w-full flex-col gap-2 rounded-2xl border-b bg-white dark:bg-gray-800">
                                 <div class="flex w-full flex-col gap-2 rounded-2xl pl-8 pr-8 pt-4">
                                     <div class="flex w-full flex-col">
-                                        <details class="group mb-4" open>
+                                        <details class="group" open>
                                             <summary
-                                                class="mb-4 flex cursor-pointer items-center justify-between rounded">
-                                                <span class="text-lg font-semibold">Attachments</span>
-                                                <span class="transition-all group-open:hidden">See details</span>
-                                                <span class="hidden transition-all group-open:inline">Hide
-                                                    details</span>
+                                                class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-xl font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
+                                                <span>Attachments</span>
+                                                <span class="text-sm font-medium text-gray-500 transition-all group-open:hidden">See details &rarr;</span>
+                                                <span class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline">Hide details &darr;</span>
                                             </summary>
-                                            <div class="flex h-auto flex-col justify-start">
-                                                <div id="attachmentsContainer">
-                                                    @foreach ($attachment as $attach)
-                                                        <div class="attachment-row flex items-center gap-2"
-                                                            data-attachid="{{ $attach->id }}">
-                                                            <a href="{{ url('/attachments/' . $attach->attachfile) }}"
-                                                                target="_blank"
-                                                                class="mt-4 w-full border p-3 text-lg">📎
-                                                                {{ $attach->name }}</a>
-                                                            <button type="button"
-                                                                class="removeAttachment2 mt-4 rounded border border-red-700 bg-red-200/10 px-3 py-3 text-white hover:border-red-700 hover:bg-red-400/30 dark:bg-red-700/30"
-                                                                data-id="{{ $attach->id }}">🗑️
-                                                            </button>
+
+                                            {{-- Existing attachments (signed URL) --}}
+                                            <div id="attachmentsList" class="mt-6 flex flex-col gap-2">
+                                                @forelse ($attachments as $att)
+                                                    <div class="attachment-row flex items-center justify-between gap-3 rounded-lg border border-gray-200 p-3 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700/40"
+                                                        data-id="{{ $att->id }}">
+                                                        <div class="flex min-w-0 items-center gap-3">
+                                                            <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-indigo-100 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300">📎</div>
+                                                            <div class="min-w-0">
+                                                                @if ($att->url)
+                                                                    <a href="{{ $att->url }}" target="_blank"
+                                                                    class="block truncate font-medium text-indigo-700 hover:underline dark:text-indigo-300">
+                                                                        {{ $att->display_name }}
+                                                                    </a>
+                                                                @else
+                                                                    <span class="block truncate font-medium text-gray-700 dark:text-gray-200">
+                                                                        {{ $att->display_name }} (no link)
+                                                                    </span>
+                                                                @endif
+                                                                <div class="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
+                                                                    {{ strtoupper($att->extention ?? '-') }}
+                                                                    @if(!empty($att->size)) • {{ number_format($att->size/1024, 0) }} KB @endif
+                                                                    @if(!empty($att->created_at)) • {{ \Carbon\Carbon::parse($att->created_at)->format('d M Y H:i') }} @endif
+                                                                </div>
+                                                            </div>
                                                         </div>
-                                                    @endforeach
-                                                </div>
-                                                <button type="button" id="addAttachment"
-                                                    class="mb-4 mt-4 flex items-center justify-center gap-2 rounded border border-gray-700 bg-gray-200/10 p-2 text-gray-800 hover:border-indigo-700 hover:bg-indigo-200/10 hover:font-medium hover:text-indigo-800">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5"
-                                                        viewBox="0 0 20 20" fill="currentColor">
-                                                        <path fill-rule="evenodd"
-                                                            d="M10 2a1 1 0 011 1v6h6a1 1 0 110 2h-6v6a1 1 0 11-2 0v-6H3a1 1 0 110-2h6V3a1 1 0 011-1z"
-                                                            clip-rule="evenodd" />
-                                                    </svg> Add Attachment
-                                                </button>
+
+                                                        <button type="button"
+                                                                class="removeAttachment2 inline-flex items-center gap-2 rounded-md border border-red-200 bg-red-50 px-3 py-1.5 text-sm font-medium text-red-700 transition hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:border-red-700/40 dark:bg-red-900/20 dark:text-red-300 dark:hover:bg-red-900/30"
+                                                                aria-label="Remove attachment">
+                                                            🗑️
+                                                        </button>
+                                                    </div>
+                                                @empty
+                                                    <div class="rounded-lg border border-dashed border-gray-300 p-4 text-sm text-gray-500 dark:border-gray-700 dark:text-gray-400">
+                                                        No existing attachments.
+                                                    </div>
+                                                @endforelse
                                             </div>
+
+                                            {{-- Upload baru --}}
+                                            <div id="attachmentsContainer" class="mt-6">
+                                                <div class="attachment-row flex items-center gap-2">
+                                                    <input type="file" name="attachments[]"
+                                                        class="flex-grow rounded-md border border-gray-200 bg-white px-4 py-2 text-sm text-gray-700 file:mr-4 file:rounded-full file:border-0 file:bg-indigo-100 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-indigo-700 hover:file:bg-indigo-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:file:bg-indigo-700 dark:file:text-white dark:hover:file:bg-indigo-600">
+                                                    <button type="button"
+                                                            class="removeAttachment hidden inline-flex items-center gap-2 rounded-md border border-red-200 bg-red-50 px-3 py-1.5 text-sm font-medium text-red-700 transition hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:border-red-700/40 dark:bg-red-900/20 dark:text-red-300 dark:hover:bg-red-900/30">
+                                                        🗑️
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            <button type="button" id="addAttachment"
+                                                    class="mt-4 flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 bg-gray-50 px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                                    <path fill-rule="evenodd" d="M10 2a1 1 0 011 1v6h6a1 1 0 110 2h-6v6a1 1 0 11-2 0v-6H3a1 1 0 110-2h6V3a1 1 0 011-1z" clip-rule="evenodd"/>
+                                                </svg>
+                                                Add Attachment
+                                            </button>
                                         </details>
                                     </div>
                                     <div class="border-b"></div>
@@ -467,7 +499,7 @@
         });
     </script>
 
-    <script>
+    {{-- <script>
         $(document).ready(function() {
             // Fungsi Tambah Attachment
             $('#addAttachment').click(function() {
@@ -495,7 +527,50 @@
                 }
             }
         });
-    </script>
+    </script> --}}
+    <script>
+        $(document).ready(function () {
+            const rowTemplate = `
+            <div class="attachment-row flex items-center gap-2">
+                <input type="file" name="attachments[]"
+                class="flex-grow rounded-md border border-gray-200 bg-white px-4 py-2 text-sm text-gray-700
+                        file:mr-4 file:rounded-full file:border-0 file:bg-indigo-100 file:px-4 file:py-2
+                        file:text-sm file:font-semibold file:text-indigo-700 hover:file:bg-indigo-200
+                        dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300
+                        dark:file:bg-indigo-700 dark:file:text-white dark:hover:file:bg-indigo-600">
+                <button type="button"
+                class="removeAttachment inline-flex items-center gap-2 rounded-md border border-red-200 bg-red-50 px-3 py-1.5
+                        text-sm font-medium text-red-700 transition hover:bg-red-100 focus:outline-none
+                        focus:ring-2 focus:ring-red-500 focus:ring-offset-2
+                        dark:border-red-700/40 dark:bg-red-900/20 dark:text-red-300 dark:hover:bg-red-900/30">
+                🗑️
+                </button>
+            </div>`;
+
+            // Tambah baris baru
+            $('#addAttachment').on('click', function () {
+            $('#attachmentsContainer').append(rowTemplate);
+            toggleDeleteButton();
+            });
+
+            // Hapus baris (delegation)
+            $(document).on('click', '.removeAttachment', function () {
+            $(this).closest('.attachment-row').remove();
+            toggleDeleteButton();
+            });
+
+            // tampil/sembunyikan tombol hapus (biar baris pertama tidak bisa dihapus kalau cuma satu)
+            function toggleDeleteButton() {
+            const rows = $('#attachmentsContainer .attachment-row');
+            const show = rows.length > 1;
+            rows.find('.removeAttachment')[show ? 'removeClass' : 'addClass']('hidden');
+            }
+
+            // panggil sekali saat load (kalau hanya satu baris → tombol hidden)
+            toggleDeleteButton();
+        });
+        </script>
+
 
     <script>
         $(document).ready(function() {
@@ -506,7 +581,7 @@
                 formData.append('_method', 'PUT'); // spoof → PUT
 
                 /* ⬇️  pakai $budget, bukan $budgets */
-                const url = "{{ route('budgets.update', $budget->id) }}";
+                const url = "{{ route('budgets.update', $hash) }}";
 
                 $('#submitBtn').attr('disabled', true);
                 $('#cancelBtn').prop('disabled', true);
@@ -558,40 +633,50 @@
             });
         });
     </script>
-
+    
     <script>
-        $(document).on('click', '.removeAttachment2', function() {
-            let attachmentId = $(this).data('id'); // Ambil ID attachment
-            let row = $(this).closest('.attachment-row'); // Dapatkan row attachment
+        $(document).on('click', '.removeAttachment2', function () {
+            const $btn = $(this);
+            const $row = $btn.closest('.attachment-row');
+            const attachmentId = $row.data('id');
 
-            // Cek konfirmasi pengguna
-            let confirmDelete = confirm('Are you sure you want to remove this attachment?');
-
-            if (confirmDelete) {
-                $.ajax({
-                    url: "/budgets/remove-attachment/" + attachmentId, // Endpoint ke controller
-                    type: "POST",
-                    data: {
-                        _method: "PUT",
-                        _token: "{{ csrf_token() }}"
-                    },
-                    success: function(response) {
-                        if (response.success) {
-                            row.remove(); // Hapus dari tampilan jika berhasil
-                            alert("Attachment removed successfully!");
-                        } else {
-                            alert("Failed to remove attachment.");
-                        }
-                    },
-                    error: function(xhr) {
-                        alert("Error! Unable to remove attachment.");
-                        console.error(xhr.responseText);
-                    }
-                });
-            } else {
-                // **TIDAK ADA AKSI JIKA USER MEMBATALKAN**
-                return false;
+            if (!attachmentId) {
+                toastr.error('Attachment ID tidak ditemukan.');
+                return;
             }
+
+            if (!confirm('Are you sure you want to remove this attachment?')) return;
+
+            // lock UI kecil pada tombol
+            const originalHtml = $btn.html();
+            $btn.prop('disabled', true).html(`
+                <svg class="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+                </svg>
+                Removing...
+            `);
+
+            $.ajax({
+                url: "/budgets/remove-attachment/" + attachmentId,
+                type: "POST",
+                data: { _method: "PUT", _token: "{{ csrf_token() }}" }
+            })
+            .done(function (res) {
+                if (res && res.success) {
+                    // animasi keluar biar halus
+                    $row.slideUp(180, function(){ $(this).remove(); });
+                    toastr.success('Attachment removed.');
+                } else {
+                    toastr.error(res?.message || 'Failed to remove attachment.');
+                    $btn.prop('disabled', false).html(originalHtml);
+                }
+            })
+            .fail(function (xhr) {
+                toastr.error('Error! Unable to remove attachment.');
+                console.error(xhr.responseText);
+                $btn.prop('disabled', false).html(originalHtml);
+            });
         });
     </script>
 

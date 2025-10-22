@@ -506,8 +506,7 @@
         document.addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
         });
     </script>
-
-     <script src="https://cdnjs.cloudflare.com/ajax/libs/dayjs/1.11.10/dayjs.min.js"></script>
+    
 
     <script>
         $(function () {

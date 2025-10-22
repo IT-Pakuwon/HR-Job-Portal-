@@ -43,7 +43,10 @@ use App\Models\CompanyPG;
 use App\Models\BusinessUnitPG;
 use Illuminate\Support\Str;
 use Vinkla\Hashids\Facades\Hashids;
-
+use App\Http\Controllers\TrAttachmentController;
+use Illuminate\Support\Facades\Response;
+use App\Models\TrAttachment;
+use Google\Cloud\Storage\StorageClient;
 
 class BudgetController extends Controller
 {
@@ -59,10 +62,10 @@ class BudgetController extends Controller
     }
     
     public function json(Request $request)
-    {       
-        $status = $request->has('status') ? $request->query('status') : 'P';
+    {
+        $status = $request->query('status', 'P');
 
-        $query = Budget::query();
+        $query = Budget::with(['businessUnit', 'departmentFin']);
 
         if (!empty($status)) {
             $query->where('status', $status);
@@ -70,15 +73,21 @@ class BudgetController extends Controller
 
         $budget = $query->orderBy('id', 'desc')->get();
 
-        // Encode id dengan hashids → tambahkan field eid
+        // Tambahkan nama relasi langsung ke hasil
         $budget->transform(function ($row) {
             $row->eid = Hashids::encode($row->id);
-            unset($row->id); // opsional: sembunyikan id asli
+
+            // tampilkan nama relasi
+            $row->business_unit_name = $row->businessUnit->business_unit_name ?? null;
+            $row->department_name     = $row->departmentFin->department_name ?? null;
+
+            unset($row->businessUnit, $row->departmentFin); // opsional: sembunyikan object relasi
             return $row;
         });
-        
+
         return response()->json(['data' => $budget]);
     }
+
 
    
     public function createBudget()
@@ -101,8 +110,10 @@ class BudgetController extends Controller
         return view('pages.budgets.createbudgets', compact('companies','departements','tempData','temp_id'));
     }
    
-    public function import(Request $request, Budget $budget = null)
+    public function import_xxx(Request $request, Budget $budget = null)
     {
+
+        
         $request->validate([
             'file'              => 'required|mimes:xlsx,xls,csv',
             'cpny_id'           => 'required',
@@ -143,6 +154,56 @@ class BudgetController extends Controller
         }
     }
 
+   
+    public function import(Request $request, $hash = null)
+    {
+        $request->validate([
+            'file'              => 'required|mimes:xlsx,xls,csv',
+            'cpny_id'           => 'required',
+            'business_unit_id'  => 'required',
+            'department_fin_id' => 'required',
+        ]);
+
+        // Jika edit, decode hash -> ambil Budget
+        $budget = null;
+        if ($hash) {
+            $decoded = Hashids::decode($hash);
+            $id = $decoded[0] ?? null;
+            abort_if(!$id, 404, 'Invalid budget hash.');
+            $budget = Budget::findOrFail($id);
+        }
+
+        try {
+            $username = Auth::user()->username;
+            $temp_id  = Str::uuid()->toString();
+
+            MsBudgetTemp::where('created_by', $username)->delete();
+
+            Excel::import(
+                new MsBudgetTempImport(
+                    $temp_id,
+                    $request->cpny_id,
+                    $request->business_unit_id,
+                    $request->department_fin_id,
+                    $username
+                ),
+                $request->file('file')
+            );
+
+            session(['import_temp_id' => $temp_id]);
+
+            // untuk redirect cukup pakai hash yg sudah ada
+            return $budget
+                ? redirect()->route('budget.edit', $hash)
+                        ->with('success', 'Data berhasil di-import (edit mode).')
+                : redirect()->route('budget.create')
+                        ->with('success', 'Data berhasil di-import.');
+        } catch (\Throwable $e) {
+            return back()->with('error', 'Gagal import: '.$e->getMessage());
+        }
+    }
+
+
     public function getBusinessUnits($cpny_id)
     {        
         $units = BusinessUnitPG::where('cpny_id', $cpny_id)->get();
@@ -153,12 +214,12 @@ class BudgetController extends Controller
     public function storeBudget(Request $request)
     {
                
-        // dd($request->all());               
+                   
         $temp_id = $request->input('temp_id'); 
-        $doctype = 'BUD';
+        $doctype = 'BD';     
         $tempData = MsBudgetTemp::where('temp_budget_id', $temp_id)->get();
         $tempHead = $tempData->first(); // ambil 1 record untuk akses data header
-        $business_unit = BusinessUnitPG::where('business_unit_id', $tempHead->business_unit_id)->first();
+        // $business_unit = BusinessUnitPG::where('business_unit_id', $tempHead->business_unit_id)->first();
 
         if (!$tempHead) {
             return response()->json(['message' => 'Tidak ada data budget import ditemukan!'], 422);
@@ -217,7 +278,7 @@ class BudgetController extends Controller
                 'budget_date' => $datenow,
                 'perpost' => $tempHead->perpost,
                 'cpny_id' => $tempHead->cpny_id,
-                'business_unit_id' => $business_unit->business_unit_name,  
+                'business_unit_id' => $tempHead->business_unit_id,  
                 'department_fin_id' => $tempHead->department_fin_id,              
                 'totalbudget' => $tempData->sum('totalbudget'),              
                 'created_by' => $user->username,
@@ -328,38 +389,66 @@ class BudgetController extends Controller
             }            
             
             // Simpan Attachments ke attachments          
-            if ($request->hasfile('attachments')) {
-                foreach ($request->file('attachments') as $file) {
-                    $randomNumber = random_int(10000000, 99999999);
-                    $filename = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+            // if ($request->hasfile('attachments')) {
+            //     foreach ($request->file('attachments') as $file) {
+            //         $randomNumber = random_int(10000000, 99999999);
+            //         $filename = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
                    
-                    $originalName = str_replace('%', '', $file->getClientOriginalName());
-                    $ext        = $file->getClientOriginalExtension();
-                    $attachfile = md5($randomNumber) . '.' . $ext;
+            //         $originalName = str_replace('%', '', $file->getClientOriginalName());
+            //         $ext        = $file->getClientOriginalExtension();
+            //         $attachfile = md5($randomNumber) . '.' . $ext;
 
-                    //attach to folder
-                    $folder_attach = public_path() . '/attachments/'.$year;
-                    $config['upload_path'] = $folder_attach;                   
-                    if(!is_dir($folder_attach))
-                    {
-                        mkdir($folder_attach, 0777);
-                    }
+            //         //attach to folder
+            //         $folder_attach = public_path() . '/attachments/'.$year;
+            //         $config['upload_path'] = $folder_attach;                   
+            //         if(!is_dir($folder_attach))
+            //         {
+            //             mkdir($folder_attach, 0777);
+            //         }
                     
-                    $folder_upload = $folder_attach;
-                    // $folder_upload = public_path() . '/attachments';
-                    $file->move($folder_upload, $attachfile);
+            //         $folder_upload = $folder_attach;
+            //         // $folder_upload = public_path() . '/attachments';
+            //         $file->move($folder_upload, $attachfile);
 
-                    //insert to table attachments
-                    $attach = new Attachment();
-                    $attach->docid = $docid;
-                    $attach->name = $filename;
-                    $attach->attachfile = $attachfile;
-                    $attach->status = 'A';
-                    $attach->extention = $file->getClientOriginalExtension();
-                    $attach->created_user = $user->username;
-                    $attach->save();
+            //         //insert to table attachments
+            //         $attach = new Attachment();
+            //         $attach->docid = $docid;
+            //         $attach->name = $filename;
+            //         $attach->attachfile = $attachfile;
+            //         $attach->status = 'A';
+            //         $attach->extention = $file->getClientOriginalExtension();
+            //         $attach->created_user = $user->username;
+            //         $attach->save();
+            //     }
+            // }            
+             
+
+            if ($request->hasFile('attachments')) {
+                $meta = [
+                    'refnbr'        => $docid,
+                    'doctype'       => $doctype,
+                    'cpnyid'        => $tempHead->cpny_id,
+                    'departementid' => $tempHead->department_fin_id,                    
+                    'base_folder'   => 'att-purchasing-app/'.strtolower($doctype),
+                    'created_by'    => $user->username,
+                ];
+
+                $files = (array) $request->file('attachments');
+
+                try {
+                    $uploader = app(TrAttachmentController::class);
+                    $uploadResult = $uploader->uploadInternal($meta, $files);
+                    // tidak return di sini!
+                } catch (\Throwable $e) {
+                    \DB::rollBack();
+                    return response()->json([
+                        'message' => 'Failed to create PB',
+                        'error'   => 'Gagal upload attachment: '.$e->getMessage(),
+                    ], 500);
                 }
-            }            
+            } else {
+                $uploadResult = null; // tidak ada attachment
+            }
 
             $t_approval_next = T_approval::where('docid', $docid)
                 ->where('status', 'P')
@@ -435,9 +524,50 @@ class BudgetController extends Controller
             ->get();
         $temp_id  = session('import_temp_id');
         $tempData = $temp_id ? MsBudgetTemp::where('temp_budget_id', $temp_id)->get() : [];
-        $attachment = Attachment::where('docid', $budget->budget_id)  
-            ->where('status','A')         
+        // $attachment = Attachment::where('docid', $budget->budget_id)  
+        //     ->where('status','A')         
+        //     ->get();
+
+         $rows = TrAttachment::where('refnbr', $budget->budget_id)
+            ->where('status', 'A')
+            ->orderBy('created_at', 'desc')
             ->get();
+
+        $config      = config('filesystems.disks.gcs');
+        $keyFilePath = $config['key_file'];
+        if (!Str::startsWith($keyFilePath, ['/','C:\\','D:\\'])) {
+            $keyFilePath = base_path($keyFilePath);
+        }
+        $storage = new StorageClient([
+            'projectId'   => $config['project_id'],
+            'keyFilePath' => $keyFilePath,
+        ]);
+        $bucket = $storage->bucket($config['bucket']);
+
+        $attachments = $rows->map(function ($r) use ($bucket) {
+            $objectPath = rtrim($r->folder, '/').'/'.$r->filename;
+            $object     = $bucket->object($objectPath);
+            $signedUrl  = null;
+            try {
+                $signedUrl = $object->signedUrl(
+                    new \DateTimeImmutable('+10 minutes'),
+                    ['version' => 'v4']
+                );
+            } catch (\Throwable $e) {
+                \Log::warning('Signed URL gagal', ['path' => $objectPath, 'error' => $e->getMessage()]);
+            }
+            return (object) [
+                'id'          => $r->id,
+                'display_name' => $r->attachment_name,
+                'created_by'   => $r->created_by,
+                'created_at'   => $r->created_at,
+                'url'          => $signedUrl,
+                'folder'       => $r->folder,
+                'filename'     => $r->filename,
+                'extention'    => $r->extention,
+                'size'         => $r->filesize,
+            ];
+        });
 
         return view('pages.budgets.editbudgets', compact(
             'budget',
@@ -447,16 +577,222 @@ class BudgetController extends Controller
             'departements',
             'temp_id',
             'tempData',
-            'attachment'
+            'attachments',
+            'hash'
         ));
     }
 
+    public function updateBudget(Request $request, $hash)
+    {
+        $id = Hashids::decode($hash)[0] ?? null;
+        abort_if(!$id, 404, 'BD tidak ditemukan.');
+
+        $doctype  = 'BD';
+        $user     = $request->user();
+        $now      = Carbon::now();
+        $datenow  = $now->toDateString();
+        $datestamp= $now->toDateTimeString();
+
+        // ambil budget yang mau diupdate
+        $budget = Budget::findOrFail($id);
+
+        // ambil temp (opsional)
+        $temp_id  = $request->input('temp_id') ?: session('import_temp_id');
+        $tempData = $temp_id ? MsBudgetTemp::where('temp_budget_id', $temp_id)->get() : collect();
+        $useTemp  = $tempData->isNotEmpty();
+        $tempHead = $useTemp ? $tempData->first() : null;
+
+        // header yang dipakai untuk approval/meta
+        // - jika ada import → ambil dari temp
+        // - jika tidak ada import → pakai request (kalau dikirim), atau fallback ke nilai lama
+        $cpnyId   = $useTemp ? $tempHead->cpny_id           : ($request->input('cpny_id')           ?? $budget->cpny_id);
+        $deptId   = $useTemp ? $tempHead->department_fin_id : ($request->input('department_fin_id') ?? $budget->department_fin_id);
+        $buId     = $useTemp ? $tempHead->business_unit_id  : ($request->input('business_unit_id')  ?? $budget->business_unit_id);
+        // Perpost: form-mu tidak ada input perpost; kalau tanpa import, biarkan tetap.
+        $perpost  = $useTemp ? $tempHead->perpost : $budget->perpost;
+
+        // validasi approval line terhadap header yang dipakai
+        $count_approval = M_approval::where('status', 'A')
+            ->where('aprvcpnyid', $cpnyId)
+            ->where('aprvdeptid', $deptId)
+            ->where('aprvdoctype', $doctype)
+            ->count();
+
+        if ($count_approval === 0) {
+            return response()->json([
+                'message' => 'Approval line belum di-setup, Please contact IT!'
+            ], 422);
+        }
+
+        DB::beginTransaction();
+        try {
+            // totalbudget:
+            // - dengan import → sum dari temp
+            // - tanpa import  → sum dari detail existing
+            $totalBudget = $useTemp
+                ? $tempData->sum('totalbudget')
+                : BudgetDetail::where('budget_id', $budget->budget_id)->sum('totalbudget');
+
+            // update header
+            $budget->update([
+                'budget_date'       => $datenow,
+                'perpost'           => $perpost,
+                'cpny_id'           => $cpnyId,
+                'business_unit_id'  => $buId,               // simpan ID; kalau butuh nama, ambil terpisah
+                'department_fin_id' => $deptId,
+                'totalbudget'       => $totalBudget,
+                'status'            => 'P',
+                'updated_by'        => $user->username,     // jaga created_by tetap milik pembuat awal
+            ]);
+
+            // kalau ada import → replace detail
+            if ($useTemp) {
+                BudgetDetail::where('budget_id', $budget->budget_id)->delete();
+
+                foreach ($tempData as $row) {
+                    BudgetDetail::create([
+                        'budget_id'          => $budget->budget_id,
+                        'perpost'            => $row->perpost,
+                        'cpny_id'            => $row->cpny_id,
+                        'business_unit_id'   => $row->business_unit_id,
+                        'department_fin_id'  => $row->department_fin_id,
+                        'account_id'         => $row->account_id,
+                        'activity_id'        => $row->activity_id,
+                        'activity_descr'     => $row->activity_descr,
+                        'activity_detail'    => $row->activity_detail,
+                        'qty_budget'         => $row->qty_budget,
+                        'unit_price_budget'  => $row->unit_price_budget,
+                        'totalbudget'        => $row->totalbudget,
+                        'period01_budget'    => $row->period01_budget,
+                        'period02_budget'    => $row->period02_budget,
+                        'period03_budget'    => $row->period03_budget,
+                        'period04_budget'    => $row->period04_budget,
+                        'period05_budget'    => $row->period05_budget,
+                        'period06_budget'    => $row->period06_budget,
+                        'period07_budget'    => $row->period07_budget,
+                        'period08_budget'    => $row->period08_budget,
+                        'period09_budget'    => $row->period09_budget,
+                        'period10_budget'    => $row->period10_budget,
+                        'period11_budget'    => $row->period11_budget,
+                        'period12_budget'    => $row->period12_budget,
+                        'created_by'         => $user->username,
+                        'status'             => 'P',
+                    ]);
+                }
+
+                // bersihkan temp bila sudah dipakai
+                MsBudgetTemp::where('temp_budget_id', $temp_id)->delete();
+            }
+
+            // susun ulang approval (kalau memang prosesnya butuh dibuat ulang setiap submit)
+            $m_approval = M_approval::where('aprvdoctype', $doctype)
+                ->where('aprvcpnyid', $cpnyId)
+                ->where('aprvdeptid', $deptId)
+                ->where('status', 'A')
+                ->get();
+
+            // hapus draft t_approval lama untuk doc ini (opsional, jika memang logikanya begitu)
+            // T_approval::where('docid', $budget->budget_id)->delete();
+
+            foreach ($m_approval as $mp) {
+                $aprvdatebefore = ($mp->aprvid == 1) ? $datestamp : null;
+                T_approval::create([
+                    'docid'          => $budget->budget_id,
+                    'aprvid'         => $mp->aprvid,
+                    'aprvdoctype'    => $mp->aprvdoctype,
+                    'aprvcpnyid'     => $mp->aprvcpnyid,
+                    'aprvdeptid'     => $mp->aprvdeptid,
+                    'aprvusername'   => $mp->aprvusername,
+                    'name'           => $mp->name,
+                    'aprvdatebefore' => $aprvdatebefore,
+                    'aprvtotalday'   => 1,
+                    'status'         => 'P',
+                    'created_user'   => $user->username,
+                ]);
+            }
+
+            // attachments tetap bisa diupload baik ada import maupun tidak
+            if ($request->hasFile('attachments')) {
+                $meta = [
+                    'refnbr'        => $budget->budget_id,
+                    'doctype'       => $doctype,
+                    'cpnyid'        => $cpnyId,
+                    'departementid' => $deptId,
+                    'base_folder'   => 'att-purchasing-app/'.strtolower($doctype),
+                    'created_by'    => $user->username,
+                ];
+                $files = (array) $request->file('attachments');
+
+                try {
+                    $uploader = app(TrAttachmentController::class);
+                    $uploader->uploadInternal($meta, $files);
+                } catch (\Throwable $e) {
+                    DB::rollBack();
+                    return response()->json([
+                        'message' => 'Failed to update BD',
+                        'error'   => 'Gagal upload attachment: '.$e->getMessage(),
+                    ], 500);
+                }
+            }
+
+            // cari approver berikutnya (jika ada) untuk notifikasi
+            $t_approval_next = T_approval::where('docid', $budget->budget_id)
+                ->where('status', 'P')
+                ->orderBy('aprvid', 'ASC')
+                ->first();
+
+            if ($t_approval_next) {
+                $eid  = Hashids::encode($budget->id);
+                $data = [
+                    'docid'     => $t_approval_next->docid,
+                    'cpnyid'    => $t_approval_next->aprvcpnyid,
+                    'deptname'  => $t_approval_next->aprvdeptid,
+                    'date'      => $t_approval_next->aprvdatebefore,
+                    'name'      => $t_approval_next->name,
+                    'createdby' => $budget->created_by,
+                    'docname'   => 'Budget',
+                    'info'      => 'Budget Company '.$cpnyId.' Department '.$deptId.' '.$perpost,
+                    'status'    => 'P',
+                    'url'       => url('/showbudgets/'.$eid),
+                ];
+
+                $multiapp = explode(',', $t_approval_next->aprvusername);
+                $email_it = User::whereIn('username', $multiapp)
+                    ->where('status', 'A')
+                    ->get();
+
+                foreach ($email_it as $emailsit) {
+                    Mail::send('emails.mailapprovenew', $data, function ($message) use ($data, $emailsit) {
+                        $message->to($emailsit->test_email)->subject($data['docid'].' - Waiting Approval Budgets');
+                        $message->from('digitalserver@pakuwon.com', 'Pakuwon System');
+                    });
+                }
+            }
+
+            DB::commit();
+            return response()->json(['success' => true, 'budget' => $budget]);
+
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            return response()->json([
+                'error'   => 'Gagal menyimpan budget',
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+
+
     
-    public function updateBudget(Request $request, $id)
+    public function updateBudget_xxx(Request $request, $hash)
     {
         // dd($request->all());      
+
+        $id = Hashids::decode($hash)[0] ?? null;
+        abort_if(!$id, 404, 'BD tidak ditemukan.');
+
         $temp_id = $request->input('temp_id'); 
-        $doctype = 'BUD';
+        $doctype = 'BD';
         $tempData = MsBudgetTemp::where('temp_budget_id', $temp_id)->get();
         $tempHead = $tempData->first(); // ambil 1 record untuk akses data header
         $business_unit = BusinessUnitPG::where('business_unit_id', $tempHead->business_unit_id)->first();
@@ -562,36 +898,61 @@ class BudgetController extends Controller
           
 
             // Simpan Attachments ke attachments          
-            if ($request->hasfile('attachments')) {
-                foreach ($request->file('attachments') as $file) {
-                    $randomNumber = random_int(10000000, 99999999);
-                    $filename = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+            // if ($request->hasfile('attachments')) {
+            //     foreach ($request->file('attachments') as $file) {
+            //         $randomNumber = random_int(10000000, 99999999);
+            //         $filename = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
                    
-                    $originalName = str_replace('%', '', $file->getClientOriginalName());
-                    $ext        = $file->getClientOriginalExtension();
-                    $attachfile = md5($randomNumber) . '.' . $ext;
+            //         $originalName = str_replace('%', '', $file->getClientOriginalName());
+            //         $ext        = $file->getClientOriginalExtension();
+            //         $attachfile = md5($randomNumber) . '.' . $ext;
 
-                    //attach to folder
-                    $folder_attach = public_path() . '/attachments/'.$year;
-                    $config['upload_path'] = $folder_attach;                   
-                    if(!is_dir($folder_attach))
-                    {
-                        mkdir($folder_attach, 0777);
-                    }
+            //         //attach to folder
+            //         $folder_attach = public_path() . '/attachments/'.$year;
+            //         $config['upload_path'] = $folder_attach;                   
+            //         if(!is_dir($folder_attach))
+            //         {
+            //             mkdir($folder_attach, 0777);
+            //         }
                     
-                    $folder_upload = $folder_attach;
-                    // $folder_upload = public_path() . '/attachments';
-                    $file->move($folder_upload, $attachfile);
+            //         $folder_upload = $folder_attach;
+            //         // $folder_upload = public_path() . '/attachments';
+            //         $file->move($folder_upload, $attachfile);
 
-                    //insert to table attachments
-                    $attach = new Attachment();
-                    $attach->docid = $budget->docid;
-                    $attach->name = $filename;
-                    $attach->attachfile = $attachfile;
-                    $attach->status = 'A';
-                    $attach->extention = $file->getClientOriginalExtension();
-                    $attach->created_user = $user->username;
-                    $attach->save();
+            //         //insert to table attachments
+            //         $attach = new Attachment();
+            //         $attach->docid = $budget->docid;
+            //         $attach->name = $filename;
+            //         $attach->attachfile = $attachfile;
+            //         $attach->status = 'A';
+            //         $attach->extention = $file->getClientOriginalExtension();
+            //         $attach->created_user = $user->username;
+            //         $attach->save();
+            //     }
+            // }
+
+            
+            $uploadResult = null;
+            if ($request->hasFile('attachments')) {
+                $meta = [
+                    'refnbr'        => $budget->budget_id,
+                    'doctype'       => $doctype,
+                    'cpnyid'        => $tempHead->cpny_id,
+                    'departementid' => $tempHead->department_fin_id,
+                    'base_folder'   => 'att-purchasing-app/'.strtolower($doctype),
+                    'created_by'    => $user->username,
+                ];
+                $files = (array) $request->file('attachments');
+
+                try {
+                    $uploader = app(TrAttachmentController::class);
+                    $uploadResult = $uploader->uploadInternal($meta, $files);
+                } catch (\Throwable $e) {
+                    DB::rollBack();
+                    return response()->json([
+                        'message' => 'Failed to update BD',
+                        'error'   => 'Gagal upload attachment: '.$e->getMessage(),
+                    ], 500);
                 }
             }
 
@@ -651,7 +1012,7 @@ class BudgetController extends Controller
     public function removeAttachment($id)
     {
         try {
-            $attachment = Attachment::findOrFail($id);
+            $attachment = TrAttachment::findOrFail($id);
             $attachment->update(['status' => 'X']); 
 
             return response()->json(['success' => true, 'message' => 'Attachment status updated']);
@@ -672,8 +1033,14 @@ class BudgetController extends Controller
             return redirect()->route('login');
         }
 
-        $budget = Budget::findOrFail($id);
-        // $budget = Budget::with('departement.subgrading')->findOrFail($id);
+        // $budget = Budget::findOrFail($id);
+        $budget = Budget::with([
+            'businessUnit',
+            'departmentFin',
+            'creator'
+        ])->findOrFail($id);
+
+
         $approval = T_approval::where('docid', $budget->budget_id)
             ->where('status','<>','X')      
             ->orderBy('created_at')
@@ -712,7 +1079,7 @@ class BudgetController extends Controller
         $user = request()->user();
         $comment = new T_Message();
         $comment->docid = $id;
-        $comment->doctype = 'BUD';
+        $comment->doctype = 'BD';
         $comment->username = $user->username; 
         $comment->name = $user->name; 
         $comment->message = $request->comment;
@@ -990,7 +1357,7 @@ class BudgetController extends Controller
         }
 
         $id = $budget->id;
-        $doctype ='BUD';
+        $doctype ='BD';
         app('App\Http\Controllers\SendCommentController')->sendmsg($id, $doctype, $request);
 
         return response()->json(['success' => true, 'message' => 'Budget rejected successfully']);
@@ -1083,7 +1450,7 @@ class BudgetController extends Controller
         }
 
         $id = $budget->id;
-        $doctype ='BUD';
+        $doctype ='BD';
         app('App\Http\Controllers\SendCommentController')->sendmsg($id, $doctype, $request);
 
         return response()->json(['success' => true, 'message' => 'Budget revise successfully']);
@@ -1148,10 +1515,10 @@ class BudgetController extends Controller
             return redirect()->route('login');
         }
 
-        // Ambil BUDGET + relasi yang dibutuhkan
+        // Ambil BDGET + relasi yang dibutuhkan
        $budget = Budget::findOrFail($id);
 
-        // Detail baris BUDGET
+        // Detail baris BDGET
         $budgetdetail = BudgetDetail::where('budget_id', $budget->budget_id)           
             ->get();
 
@@ -1188,7 +1555,7 @@ class BudgetController extends Controller
 
         $data = [
             'title'               => 'Budget Report',
-            'doc_type'            => 'BUDGET',
+            'doc_type'            => 'BDGET',
             'docid'               => $budget->budget_id,
             'department_id'       => $budget->department_id,
             'cpnyname'            => optional($company)->cpnyname,

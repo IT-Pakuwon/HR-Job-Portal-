@@ -597,7 +597,10 @@ Route::post('/logout', function () {
     Route::get('/receipt/{id}/comments', [ReceiptController::class, 'fetchComments']);
     Route::post('/receipt/{id}/comments', [ReceiptController::class, 'storeComment']);  
     Route::post('/receipts/{id}/approve', [ReceiptController::class, 'approveReceipt'])->name('receipts.approve');
-    Route::get('/receipt/print/{hash}', [ReceiptController::class, 'printReceipt'])->name('receipts.print');
+    Route::get('/receipt/print/{hash}', [ReceiptController::class, 'printReceipt'])->name('receipts.print');   
+    Route::get('/receipt-return/create', [ReceiptController::class, 'createReturn'])->name('receipt.return.create');
+    Route::post('/receipt-return', [ReceiptController::class, 'storeReturn'])->name('receipt.return.store');
+
 
     Route::get('/wos', [WoController::class, 'index'])->name('wos');
     Route::get('/wos/json', [WoController::class, 'json'])->name('wos.json');

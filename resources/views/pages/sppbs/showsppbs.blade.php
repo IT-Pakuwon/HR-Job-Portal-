@@ -886,8 +886,6 @@
         }
     </script>
 
-    <!-- pastikan dayjs sudah di-include -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/dayjs/1.11.10/dayjs.min.js"></script>
 
     <script>
         $(function () {

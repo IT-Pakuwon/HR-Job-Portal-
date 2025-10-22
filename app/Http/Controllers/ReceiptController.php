@@ -29,35 +29,47 @@ use App\Models\Company;
 
 class ReceiptController extends Controller
 {
-    public function createReceipt(Request $req)
+    public function createReceipt(Request $req) 
     {
         $ponbr_eid = (string) $req->query('ponbr', '');
         abort_if($ponbr_eid === '', 404, 'PO number required');
 
         $id = Hashids::decode($ponbr_eid)[0] ?? null;
         abort_if(!$id, 404);
-        
-        // --- ambil header PO ---
+
+        // --- Ambil header PO ---
         $po = TrPO::select([
-                'ponbr','podate','sppbjktid','vendorname','cpny_id',
-                'department_id','user_peminta'
+                'id','ponbr','podate','sppbjktid','vendorname',
+                'cpny_id','department_id','user_peminta'
             ])->where('id', $id)->first();
-            
+
         abort_if(!$po, 404, 'PO not found');
 
-        // --- ambil detail PO ---
+        // --- Ambil detail PO + hitung sisa yang masih bisa diterima ---
+        // qty_sisa = max(qty - qty_received + qty_return, 0)
         $details = TrPOdetail::select([
                 'id','ponbr',
                 'inventoryid','inventory_descr','siteid',
-                DB::raw("COALESCE(qty) as qty"),
-                DB::raw("COALESCE(uom) as uom")
+                DB::raw("COALESCE(uom,'')               AS uom"),
+                DB::raw("COALESCE(qty,0)                AS qty_original"),
+                DB::raw("COALESCE(qty_received,0)       AS qty_received"),
+                DB::raw("COALESCE(qty_return,0)         AS qty_return"),
+                DB::raw("GREATEST(COALESCE(qty,0) - COALESCE(qty_received,0) + COALESCE(qty_return,0), 0) AS qty_sisa")
             ])
             ->where('ponbr', $po->ponbr)
             ->orderBy('id')
-            ->get();
+            ->get()
+            // tampilkan hanya yang masih ada sisa
+            ->filter(fn($r) => (float)$r->qty_sisa > 0)
+            // supaya view tetap pakai $d->qty → set ke qty_sisa
+            ->map(function ($r) {
+                $r->qty = (float) $r->qty_sisa;
+                return $r;
+            })
+            ->values();
 
-        // tampilan butuh list attachment existing? untuk create biasanya kosong
-        $attachments = []; // biarkan kosong saat create
+        // Saat create, attachment biasanya kosong
+        $attachments = [];
 
         return view('pages.receipt.createreceipt', [
             'po'          => $po,
@@ -140,7 +152,7 @@ class ReceiptController extends Controller
             $header = new TrReceipt();
             $header->receiptnbr        = $receiptnbr;
             $header->receiptdate       = $now->toDateString();      // tanggal dokumen
-            $header->receipttype       = $doctype;                  // 'GR'
+            $header->receipttype       = 'receipt';                  // 'GR'
             $header->ponbr             = $ponbr;
             $header->ref_receiptnbr    = null;
             $header->cpny_id           = $po->cpny_id ?? null;
@@ -208,7 +220,7 @@ class ReceiptController extends Controller
                 $det->taxamt                  = $src->taxamt;
                 $det->totalcost               = $src->totalcost;
 
-                $det->receipttype             = $doctype;
+                $det->receipttype             = 'receipt';
                 $det->siteid                  = $siteFromForm !== '' ? $siteFromForm : ($src->siteid ?? null);
 
                 // Open ordered (jika belum dihitung sisa, biarkan null)
@@ -675,7 +687,12 @@ class ReceiptController extends Controller
     public function approveReceipt(Request $request, $id)
     {
         return DB::connection('pgsql')->transaction(function () use ($id) {
-            
+
+            $user  = Auth::user();
+            $uname = $user->username ?? null;
+            $now   = \Carbon\Carbon::now();
+
+            // Lock header dulu
             $rcp = TrReceipt::where('id', $id)->lockForUpdate()->firstOrFail();
 
             if ($rcp->status !== 'P') {
@@ -685,7 +702,7 @@ class ReceiptController extends Controller
                 ], 422);
             }
 
-            // Ambil detail receipt terkait
+            // Ambil semua detail receipt
             $rcpdetails = TrReceiptdetail::where('receiptnbr', $rcp->receiptnbr)
                 ->orderBy('receipt_no')
                 ->get();
@@ -696,9 +713,9 @@ class ReceiptController extends Controller
                     'message' => 'Tidak ada detail receipt untuk diproses.'
                 ], 422);
             }
-          
-            $po = TrPO::where('ponbr', $rcp->ponbr)->lockForUpdate()->first();
 
+            // Lock PO yang terkait
+            $po = TrPO::where('ponbr', $rcp->ponbr)->lockForUpdate()->first();
             if (!$po) {
                 return response()->json([
                     'ok' => false,
@@ -706,105 +723,429 @@ class ReceiptController extends Controller
                 ], 422);
             }
 
-            // Map agar minimize query berulang
-            $poDetails = TrPOdetail::where('ponbr', $rcp->ponbr)
-                ->get()
-                ->groupBy(function ($row) {
-                    // key utama: inventoryid + '|' + uom
-                    return ($row->inventoryid ?? '').'|'.($row->uom ?? '');
-                });
+            // Ambil semua detail PO sekali, lalu buat peta (map) pencocokan
+            $poDetailRows  = TrPOdetail::where('ponbr', $rcp->ponbr)->get();
+            $poByKey       = $poDetailRows->keyBy(fn($row) => ($row->inventoryid ?? '').'|'.($row->uom ?? ''));
+            $poByInventory = $poDetailRows->groupBy('inventoryid');
 
-            // Fallback map berdasarkan inventoryid saja
-            $poDetailsByInv = TrPOdetail::where('ponbr', $rcp->ponbr)
-                ->get()
-                ->groupBy('inventoryid');
+            $totalQtyReceivedThisReceipt = 0.0; // hanya untuk tipe 'receipt'
+            $totalQtyReturnThisReceipt   = 0.0; // hanya untuk tipe 'return'
 
-            // Akumulasi total receipt qty (opsional untuk set ke TrReceipt.totalqty_received)
-            $totalQtyReceivedThisReceipt = 0;
+            if ($rcp->receipttype === 'receipt') {
+                // ======== APPROVE untuk penerimaan barang ========
+                foreach ($rcpdetails as $rd) {
+                    $key   = ($rd->inventoryid ?? '').'|'.($rd->uom ?? '');
+                    $poDet = $poByKey->get($key) ?: optional($poByInventory->get($rd->inventoryid))->first();
+                    if (!$poDet) continue;
 
-            foreach ($rcpdetails as $rd) {
-                $key = ($rd->inventoryid ?? '').'|'.($rd->uom ?? '');
-               
-                $poDet = optional($poDetails->get($key))->first();
+                    $qtyRec     = (float) ($rd->qty_received ?? 0);
+                    $baseQtyRec = (float) ($rd->base_qty_received ?? 0);
 
-                if (!$poDet) {
-                    // fallback: cari berdasarkan inventoryid saja
-                    $poDet = optional($poDetailsByInv->get($rd->inventoryid))->first();
+                    $poDet->qty_received      = (float) ($poDet->qty_received ?? 0) + $qtyRec;
+                    $poDet->base_qty_received = (float) ($poDet->base_qty_received ?? 0) + $baseQtyRec;
+
+                    // set flag detail
+                    $ordered = (float) ($poDet->qty ?? 0);
+                    if ($ordered > 0 && $poDet->qty_received >= $ordered) {
+                        $poDet->received  = true;
+                        $poDet->completed = true;
+                        $poDet->status    = 'C';
+                    } else {
+                        $poDet->received  = true;   // sudah ada penerimaan
+                        $poDet->completed = false;
+                        $poDet->status    = 'P';    // partial
+                    }
+
+                    $poDet->updated_by = $uname;
+                    $poDet->save();
+
+                    $totalQtyReceivedThisReceipt += $qtyRec;
                 }
 
-                if (!$poDet) {
-                    // jika masih tidak ketemu, lanjut item ini tapi catat
-                    // (bisa juga choose to fail; di sini kita skip dan lanjut)
-                    continue;
+                // Recalculate total qty_received di header PO
+                $po->totalqtyreceived = TrPOdetail::where('ponbr', $rcp->ponbr)->sum('qty_received');
+
+                // Jika semua detail sudah completed, close PO
+                $allCompleted = TrPOdetail::where('ponbr', $rcp->ponbr)
+                    ->where(function ($q) {
+                        // masih ada item yang qty > qty_received
+                        $q->whereRaw('(COALESCE(qty,0) > COALESCE(qty_received,0))');
+                    })
+                    ->exists() === false;
+
+                if ($allCompleted) {
+                    $po->status       = 'C';
+                    $po->completed_by = $uname;
+                    $po->completed_at = $now;
                 }
+                $po->updated_by = $uname;
+                $po->save();
 
-                // Increment qty_received (gunakan 0 jika null)
-                $qtyRec   = (float) ($rd->qty_received ?? 0);
-                $baseQtyRec = (float) ($rd->base_qty_received ?? 0);
+                // Update header receipt
+                $rcp->status            = 'C';
+                $rcp->totalqty_received = $totalQtyReceivedThisReceipt;  // jika kolom ini memang ada
+                $rcp->completed_by      = $uname;
+                $rcp->completed_at      = $now;
+                $rcp->updated_by        = $uname;
+                $rcp->save();
 
-                $poDet->qty_received       = (float) ($poDet->qty_received ?? 0) + $qtyRec;
-                $poDet->base_qty_received  = (float) ($poDet->base_qty_received ?? 0) + $baseQtyRec;
-
-                // Set flag received/completed bila mencapai qty
-                if ($poDet->qty_received >= (float) ($poDet->qty ?? 0)) {
-                    $poDet->received  = true;
-                    $poDet->completed = true;
-                    $poDet->status    = 'C';
-                } else {
-                    $poDet->received  = true; // sudah pernah diterima sebagian
-                    $poDet->status    = 'P';  // partial
-                }
-
-                $poDet->updated_by = Auth::id();
-                $poDet->save();
-
-                $totalQtyReceivedThisReceipt += $qtyRec;
+                return response()->json([
+                    'ok'      => true,
+                    'message' => 'Receipt (penerimaan) berhasil di-approve & PO diperbarui.',
+                    'data'    => [
+                        'type'                 => $rcp->receipttype,
+                        'receiptnbr'           => $rcp->receiptnbr,
+                        'ponbr'                => $rcp->ponbr,
+                        'po_totalqtyreceived'  => (float) $po->totalqtyreceived,
+                    ],
+                ]);
             }
 
-            // Recalculate totalqtyreceived di PO (sum qty_received dari seluruh detail)
-            $totalQtyReceived = TrPOdetail::where('ponbr', $rcp->ponbr)->sum('qty_received');
+            if ($rcp->receipttype === 'return') {
+                // ======== APPROVE untuk return barang ========
+                foreach ($rcpdetails as $rd) {
+                    $key   = ($rd->inventoryid ?? '').'|'.($rd->uom ?? '');
+                    $poDet = $poByKey->get($key) ?: optional($poByInventory->get($rd->inventoryid))->first();
+                    if (!$poDet) continue;
 
-            $po->totalqtyreceived = $totalQtyReceived;
-            // Opsional: jika semua detail completed → set PO statusnya
-            $allCompleted = TrPOdetail::where('ponbr', $rcp->ponbr)
-                ->where(function($q){
-                    $q->whereNull('qty')
-                      ->orWhereColumn('qty_received', '<', 'qty');
-                })
-                ->doesntExist();
+                    $qtyRet = (float) ($rd->qty_return ?? 0);
+                    $baseQtyRet = (float) ($rd->base_qty_return ?? 0);
 
-            if ($allCompleted) {
-                $po->status = 'C';
-                $po->completed_by = Auth::username();
-                $po->completed_at = Carbon::now();
-            } else {
-                // kalau masih ada sisa, status tetap berjalan
-                if ($po->status === 'P') {
-                    $po->status = 'P';
+                    // Catat di PO detail kolom return (TIDAK mengurangi qty_received di sini)
+                    $poDet->qty_return      = (float) ($poDet->qty_return ?? 0) + $qtyRet;
+                    if (property_exists($poDet, 'base_qty_return')) {
+                        $poDet->base_qty_return = (float) ($poDet->base_qty_return ?? 0) + $baseQtyRet;
+                    }
+
+                    // Status PO tidak di-close karena return
+                    $poDet->updated_by = $uname;
+                    $poDet->save();
+
+                    $totalQtyReturnThisReceipt += $qtyRet;
                 }
+
+                // (optional) kalau kamu punya kolom akumulasi return di header PO, isi di sini.
+                // Contoh:
+                // $po->totalqty_return = TrPOdetail::where('ponbr', $rcp->ponbr)->sum('qty_return');
+                $po->updated_by = $uname;
+                $po->save();
+
+                // Update header receipt return → Completed
+                $rcp->status       = 'C';
+                // (optional) kalau ada kolom totalqty_return di header receipt, catat:
+                if (Schema::hasColumn($rcp->getTable(), 'totalqty_return')) {
+                    $rcp->totalqty_return = $totalQtyReturnThisReceipt;
+                }
+                $rcp->completed_by = $uname;
+                $rcp->completed_at = $now;
+                $rcp->updated_by   = $uname;
+                $rcp->save();
+
+                return response()->json([
+                    'ok'      => true,
+                    'message' => 'Receipt (return) berhasil di-approve & qty_return di PO diperbarui.',
+                    'data'    => [
+                        'type'                => $rcp->receipttype,
+                        'receiptnbr'          => $rcp->receiptnbr,
+                        'ponbr'               => $rcp->ponbr,
+                        // 'po_totalqty_return' => TrPOdetail::where('ponbr', $rcp->ponbr)->sum('qty_return'), // jika ingin dikirim
+                    ],
+                ]);
             }
 
-            $po->updated_by = Auth::username();
-            $po->save();
-
-            // Update Receipt → Completed
-            $rcp->status = 'C';
-            $rcp->totalqty_received = $totalQtyReceivedThisReceipt; // opsional, simpan total di receipt
-            $rcp->completed_by = Auth::username();
-            $rcp->completed_at = Carbon::now();
-            $rcp->updated_by = Auth::username();
-            $rcp->save();
-
+            // receipttype selain 'receipt' / 'return' → tolak
             return response()->json([
-                'ok' => true,
-                'message' => 'Receipt berhasil di-approve dan data PO diperbarui.',
-                'data' => [
-                    'receiptnbr' => $rcp->receiptnbr,
-                    'ponbr'      => $rcp->ponbr,
-                    'po_totalqtyreceived' => (float) $po->totalqtyreceived,
-                ],
-            ]);
+                'ok' => false,
+                'message' => 'Tipe receipt tidak dikenali.'
+            ], 422);
         });
+    }
+
+
+
+    public function createReturn(Request $request)
+    {
+        $eid = (string) $request->query('rcp', '');
+        $id  = Hashids::decode($eid)[0] ?? null;
+        abort_if(!$id, 404);
+
+        // Header receipt asal (tipe bebas; kita cuma mau referensinya)
+        $rcp = TrReceipt::findOrFail($id);
+
+        // Detail dari receipt asal (yang qty_received-nya menjadi dasar perhitungan)
+        $origDetails = TrReceiptdetail::select([
+            'id',
+            'receiptnbr',
+            'receipt_no',
+            'inventoryid',
+            'inventory_descr',
+            'uom',
+            'siteid',
+
+            // Pastikan sama-sama numeric
+            DB::raw("COALESCE((qty_received)::numeric, 0)::numeric AS qty_received"),
+            DB::raw("COALESCE((base_qty_received)::numeric, 0)::numeric AS base_qty_received"),
+
+            // Kolom multiplier sering disimpan varchar → kosongkan jadi NULL, lalu cast ke int, lalu COALESCE 1
+            DB::raw("COALESCE(NULLIF(type_multiplier, '')::int, 1) AS type_multiplier"),
+            DB::raw("COALESCE(NULLIF(base_multiplier, '')::int, 1) AS base_multiplier"),
+        ])
+        ->where('receiptnbr', $rcp->receiptnbr)
+        ->orderBy('receipt_no')
+        ->get();
+
+
+        // Total qty_return yang SUDAH dibuat dari semua dokumen 'return' yang refer ke receipt ini
+        // Asumsi: dokumen pengembalian (return) disimpan di TrReceipt dengan receipttype='return'
+        // dan TrReceiptdetail.qty_return berisi qty return per item.
+        $returnedAgg = TrReceiptdetail::query()
+            ->select([
+                'inventoryid',
+                'uom',
+                'siteid',
+                DB::raw('SUM(COALESCE(qty_return,0)) AS sum_returned')
+            ])
+            ->whereIn('receiptnbr', function($q) use ($rcp) {
+                $q->select('receiptnbr')
+                ->from('tr_receipt') // tabel TrReceipt
+                ->where('receipttype', 'return')
+                ->where('ref_receiptnbr', $rcp->receiptnbr);
+            })
+            ->groupBy('inventoryid','uom','siteid')
+            ->get()
+            ->keyBy(function($r){
+                return ($r->inventoryid ?? '').'|'.($r->uom ?? '').'|'.($r->siteid ?? '');
+            });
+
+        // Hitung sisa return per baris asal; tampilkan hanya yang masih > 0
+        $details = $origDetails->map(function($row) use ($returnedAgg){
+                $key = ($row->inventoryid ?? '').'|'.($row->uom ?? '').'|'.($row->siteid ?? '');
+                $sudahReturn = (float) optional($returnedAgg->get($key))->sum_returned ?? 0.0;
+
+                $qtyReceived = (float) $row->qty_received;
+                $sisa        = max($qtyReceived - $sudahReturn, 0);
+
+                // Agar view bisa langsung pakai $d->qty sebagai 'qty yang masih bisa direturn'
+                $row->qty_sisa_return = $sisa;
+                $row->qty             = $sisa; // kompatibel dengan view yg pakai $d->qty
+                return $row;
+            })
+            ->filter(fn($r) => $r->qty_sisa_return > 0)
+            ->values();
+
+        // Jika semua item sudah habis direturn, optional: tampilkan info
+        if ($details->isEmpty()) {
+            return back()->with('warning', 'Semua item pada receipt ini sudah tidak memiliki sisa untuk di-return.');
+        }
+
+        // Kirimkan juga ref_receiptnbr untuk hidden input di form
+        $ref_receiptnbr = $rcp->receiptnbr;
+
+        // Tampilkan view input return (qty_return), hidden: ref_receiptnbr
+        return view('pages.receipt.return_create', [
+            'rcp'             => $rcp,
+            'details'         => $details,
+            'eid'             => $eid,
+            'ref_receiptnbr'  => $ref_receiptnbr,
+        ]);
+    }
+
+    // Simpan dokumen return
+    public function storeReturn(Request $request)
+    {
+        $user = $request->user();
+        $username = $user->username ?? 'system';
+
+        $eid = (string)$request->input('rcp', '');
+        $id  = Hashids::decode($eid)[0] ?? null;
+        abort_if(!$id, 404);
+
+        $src = TrReceipt::findOrFail($id); // receipt sumber (GR)
+        $qtyInput = (array)$request->input('qty_return', []); // [detail_id => qty]
+        $notes    = (string)$request->input('return_note', '');
+
+        // minimal satu qty > 0
+        $hasAny = false;
+        foreach ($qtyInput as $k => $v) {
+            $q = (float)str_replace(',', '.', (string)$v);
+            if ($q > 0) { $hasAny = true; break; }
+        }
+        if (!$hasAny) {
+            return back()->withErrors(['Minimal satu baris Qty Return > 0.'])->withInput();
+        }
+
+        DB::beginTransaction();
+        try {
+            // === Autonumber: RTYYMM#### (ubah doctype bila perlu)
+            $doctype = 'GR';
+            $now   = Carbon::now();
+            $year  = (int)$now->year;
+            $month = str_pad($now->month, 2, '0', STR_PAD_LEFT);
+
+            $autonbr = Autonbr::lockForUpdate()
+                ->where('doctype', $doctype)->where('year', $year)->where('month', $month)
+                ->first();
+
+            if (!$autonbr) {
+                $autonbr = Autonbr::create([
+                    'doctype' => $doctype,
+                    'year'    => $year,
+                    'month'   => $month,
+                    'status'  => 'A',
+                    'number'  => 1,
+                ]);
+                $urut = 1;
+            } else {
+                $urut = ($autonbr->number ?? 0) + 1;
+                $autonbr->update(['number' => $urut]);
+            }
+
+            $receiptnbr = $doctype . substr($year,2) . $month . sprintf('%04d', $urut);
+
+            // === Header return (copy dari sumber)
+            $hdr = new TrReceipt();
+            $hdr->receiptnbr        = $receiptnbr;
+            $hdr->receiptdate       = $now->toDateString();
+            // agar muncul di tab Return Jobs sesuai filter kamu:
+            $hdr->receipttype       = 'return'; // <— sesuai filter returnjobs (status C + receipttype='receipt')
+            $hdr->ponbr             = $src->ponbr;
+            $hdr->ref_receiptnbr    = $src->receiptnbr;            // <— penting
+            $hdr->cpny_id           = $src->cpny_id;
+            $hdr->csid              = $src->csid;
+            $hdr->sppbjktid         = $src->sppbjktid;
+            $hdr->department_id     = $src->department_id;
+            $hdr->user_peminta      = $src->user_peminta;
+            $hdr->receiptnote       = $notes;
+            $hdr->vendorid          = $src->vendorid;
+            $hdr->vendorname        = $src->vendorname;
+            $hdr->totalqty_received = 0; // untuk return kita isi setelah loop sbg total qty return
+            $hdr->status            = 'P'; // langsung complete, atau 'P' kalau mau ada approval
+            $hdr->created_by        = $username;
+            $hdr->created_at        = $now;
+            $hdr->save();
+
+            // === Detail return: simpan hanya baris qty_return > 0
+            $srcDetails = TrReceiptdetail::where('receiptnbr', $src->receiptnbr)->get()->keyBy('id');
+            $line  = 0; $totalReturn = 0.0;
+
+            foreach ($qtyInput as $detailId => $raw) {
+                $qty = (float)str_replace(',', '.', (string)$raw);
+                if ($qty <= 0) continue;          // ⬅️ hanya simpan baris > 0
+                $srcDet = $srcDetails[$detailId] ?? null;
+                if (!$srcDet) continue;
+
+                $line++;
+
+                $det = new TrReceiptdetail();
+                $det->receiptnbr              = $receiptnbr;
+                $det->receipt_no              = $line;
+
+                $det->ponbr                   = $src->ponbr;
+                $det->po_no                   = $srcDet->po_no;
+
+                $det->csid                    = $src->csid;
+                $det->cs_no                   = $srcDet->cs_no;
+                $det->sppbjktid               = $src->sppbjktid;
+                $det->sppbjktid_no            = $srcDet->sppbjktid_no;
+
+                $det->inventory_type          = $srcDet->inventory_type;
+                $det->inventoryid             = $srcDet->inventoryid;
+                $det->inventory_descr         = $srcDet->inventory_descr;
+                $det->qtyordered              = $srcDet->qtyordered;
+                $det->uom                     = $srcDet->uom;
+
+                // base
+                $det->type_multiplier         = null;
+                $det->base_multiplier         = 1;
+                $det->base_qty                = 0; // return: base qty utama tidak dipakai
+                $det->base_uom                = $srcDet->uom;
+
+                // harga (copy)
+                $det->unitcost                = $srcDet->unitcost;
+                $det->taxcodeid               = $srcDet->taxcodeid;
+                $det->taxamt                  = $srcDet->taxamt;
+                $det->totalcost               = $srcDet->totalcost;
+
+                $det->receipttype             = $hdr->receipttype;
+
+                // open ordered (tidak relevan utk return)
+                $det->qty_open_ordered        = 0;
+                $det->base_qty_open_ordered   = 0;
+
+                // return qty
+                $det->qty_received            = 0;
+                $det->base_qty_received       = 0;
+
+                $det->qty_return              = $qty;
+                $det->base_qty_return         = $qty;
+
+                $det->ref_receiptnbr          = $src->receiptnbr;  // <— referensi
+
+                // budget (copy)
+                $det->budget_perpost          = $srcDet->budget_perpost;
+                $det->budget_cpny_id          = $srcDet->budget_cpny_id;
+                $det->budget_business_unit_id = $srcDet->budget_business_unit_id;
+                $det->budget_department_fin_id= $srcDet->budget_department_fin_id;
+                $det->budget_account_id       = $srcDet->budget_account_id;
+                $det->budget_activity_id      = $srcDet->budget_activity_id;
+                $det->budget_activity_descr   = $srcDet->budget_activity_descr;
+
+                $det->status                  = 'C';
+                $det->created_by              = $username;
+                $det->created_at              = $now;
+                $det->save();
+
+                $totalReturn += $qty;
+            }
+
+            if ($totalReturn <= 0) {
+                DB::rollBack();
+                return back()->withErrors(['Minimal satu baris Qty Return > 0.'])->withInput();
+            }
+
+            // simpan total return di header (pakai kolom totalqty_received sebagai penampung)
+            $hdr->totalqty_received = $totalReturn;
+            $hdr->save();
+    
+            $deptid = $src->department_id;
+            $cpnyid = $src->cpny_id;
+            
+            if ($request->hasFile('attachments')) {
+                $meta = [
+                    'refnbr'        => $receiptnbr,
+                    'doctype'       => $doctype,
+                    'cpnyid'        => $cpnyid,
+                    'departementid' => $deptid,                    
+                    'base_folder'   => 'att-purchasing-app/'.strtolower($doctype),
+                    'created_by'    => $user->username,
+                ];
+
+                $files = (array) $request->file('attachments');
+
+                try {
+                    $uploader = app(TrAttachmentController::class);
+                    $uploadResult = $uploader->uploadInternal($meta, $files);
+                    // tidak return di sini!
+                } catch (\Throwable $e) {
+                    \DB::rollBack();
+                    return response()->json([
+                        'message' => 'Failed to create PB',
+                        'error'   => 'Gagal upload attachment: '.$e->getMessage(),
+                    ], 500);
+                }
+            } else {
+                $uploadResult = null; // tidak ada attachment
+            }
+
+            DB::commit();
+
+            return redirect()->route('receiptlist.index')
+                ->with('success', "Return {$receiptnbr} created from {$src->receiptnbr}. Total Qty Return: {$totalReturn}");
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            report($e);
+            return back()->withErrors([config('app.debug') ? $e->getMessage() : 'Failed to create Return'])->withInput();
+        }
     }
 
 

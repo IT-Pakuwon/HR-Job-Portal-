@@ -1,22 +1,5 @@
 <x-app-layout>
     <style>
-        /* This container needs a defined height and overflow-y for the sticky position to work. */
-        .table-container {
-            height: 400px;
-            /* You can adjust this height as needed */
-            overflow-y: auto;
-            -bottom-left-radius: 1rem;
-            -bottom-right-radius: 1rem;
-        }
-
-        .sticky-header thead {
-            position: sticky;
-            top: 0;
-            /* Optional: Ensure the header is above the body content when scrolling */
-            z-index: 10;
-        }
-    </style>
-    <style>
         /* Overlay full-screen di tengah */
         #loadingSpinnerContainer {
             position: fixed;
@@ -165,23 +148,22 @@
                 </button>
             </div>
         </div>
-        <div class="flex w-full flex-col gap-6 overflow-hidden sm:col-span-1 lg:row-span-1 xl:row-span-1 xl:flex-col">
-            <div class="flex flex-col gap-6 sm:w-1/2 md:w-full xl:flex-row">
-                <div class="rounded-xl bg-white duration-300 sm:w-1/2 md:w-full dark:bg-gray-800">
+        <div class="flex w-full flex-col gap-6 xl:flex-col">
+            <div class="flex w-full items-stretch gap-6 xl:flex-row">
+                {{-- Left card (SPPB Info) --}}
+                <div class="flex flex-1 flex-col rounded-xl bg-white dark:bg-gray-800">
                     <header
                         class="sticky top-0 z-10 flex items-center justify-between rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
-                        {{-- Header with rounded top and dark mode support --}}
                         <h1 class="flex items-center gap-2 text-lg font-bold text-gray-800 dark:text-gray-100">
-                            {{-- Budget ID label --}}
                             <span
                                 class="inline-flex items-center rounded-md bg-purple-100 px-2 py-1 text-sm font-semibold text-purple-700">
                                 ID
                             </span>
-                            {{ $budget->budget_id }}
+                            {{ $sppb->sppbid }}
                         </h1>
 
                         @php
-                            $statusText = match ($budget->status) {
+                            $statusText = match ($sppb->status) {
                                 'D' => 'Revise',
                                 'P' => 'On Progress',
                                 'C' => 'Completed',
@@ -190,7 +172,7 @@
                                 default => 'Unknown',
                             };
 
-                            $statusClasses = match ($budget->status) {
+                            $statusClasses = match ($sppb->status) {
                                 'D' => 'bg-blue-100 text-blue-700 dark:bg-blue-800/30 dark:text-blue-300',
                                 'P' => 'bg-yellow-100 text-yellow-700 dark:bg-yellow-800/30 dark:text-yellow-300',
                                 'C' => 'bg-green-100 text-green-700 dark:bg-green-800/30 dark:text-green-300',
@@ -200,66 +182,88 @@
                         @endphp
 
                         <div class="flex items-center gap-3">
-                            {{-- Status badge --}}
                             <span
                                 class="{{ $statusClasses }} inline-flex items-center rounded-full px-4 py-1 text-sm font-semibold transition-colors duration-200">
                                 {{ $statusText }}
                             </span>
 
-                            {{-- Print button --}}
-                            <a href="{{ url('/pdf_budgets/' . $hash) }}" target="_blank"
-                                class="inline-flex items-center gap-2 rounded-full bg-indigo-600 px-4 py-1 text-sm font-semibold text-white transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
-                                Print PDF
+                            <a href="{{ url('/pdf_sppbs') }}/{{ $hash }}" target="_blank">
+                                <button
+                                    class="inline-flex cursor-pointer items-center gap-2 rounded-full bg-indigo-600 px-4 py-1 text-sm font-semibold text-white transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                                    Print PDF
+                                </button>
                             </a>
                         </div>
                     </header>
+                    <div class="flex flex-1 flex-col overflow-y-auto p-4">
+                        <div class="grid grid-cols-1 gap-x-8 gap-y-3 text-sm sm:grid-cols-2">
 
-                    <!-- Main Content -->
-                    <div class="space-y-4 p-4">
-                        <div class="grid grid-cols-1 gap-6 md:grid-cols-3">
-                            @php
-                                $jobDetails = [
-                                    [
-                                        'label' => 'Company',
-                                        'value' => $budget->cpny_id,
-                                    ],
-                                    [
-                                        'label' => 'Creted By',
-                                        'value' => ucwords(strtolower($budget->creator->name ?? $budget->creator->username ?? '-')),
-                                    ],
-                                    [
-                                        'label' => 'Date',
-                                        'value' => date('j F Y', strtotime($budget->budget_date)),
-                                    ],
-                                    [
-                                        'label' => 'Business Unit',
-                                        'value' => ucwords(strtolower($budget->businessUnit->business_unit_name)),
-                                    ],
-                                    [
-                                        'label' => 'Department',
-                                        'value' => $budget->departmentFin->department_name,
-                                    ],
+                            {{-- Company --}}
+                            <div class="flex items-center gap-2 p-2">
+                                <x-heroicon-o-building-office class="h-5 w-5 text-gray-400" />
+                                <span class="min-w-32 max-w-32 text-gray-500">Company</span>
+                                <span
+                                    class="break-words font-medium text-gray-900 dark:text-gray-300">{{ $sppb->cpny_id }}</span>
+                            </div>
 
-                                    [
-                                        'label' => 'Perpost',
-                                        'value' => $budget->perpost,
-                                    ],
-                                ];
-                            @endphp
-                            @foreach ($jobDetails as $detail)
-                                <div
-                                    class="rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-800">
-                                    <p class="text-xs text-gray-500 dark:text-gray-400">{{ $detail['label'] }}</p>
-                                    <p class="text-sm font-medium text-gray-900 dark:text-gray-100">
-                                        {{ $detail['value'] }}
-                                    </p>
+                            {{-- Department --}}
+                            <div class="flex items-center gap-2 p-2">
+                                <x-heroicon-o-squares-2x2 class="h-5 w-5 text-gray-400" />
+                                <span class="min-w-32 max-w-32 text-gray-500">Department</span>
+                                <span
+                                    class="break-words font-medium text-gray-900 dark:text-gray-300">{{ $sppb->department_id }}</span>
+                            </div>
+
+                            {{-- Date --}}
+                            <div class="flex items-center gap-2 p-2">
+                                <x-heroicon-o-calendar class="h-5 w-5 text-gray-400" />
+                                <span class="min-w-32 max-w-32 text-gray-500">Date</span>
+                                <span class="break-words font-medium text-gray-900 dark:text-gray-300">
+                                    {{ date('j F Y', strtotime($sppb->sppbdate)) }}
+                                </span>
+                            </div>
+
+                            {{-- Created User --}}
+                            <div class="flex items-center gap-2 p-2">
+                                <x-heroicon-o-user class="h-5 w-5 text-gray-400" />
+                                <span class="min-w-32 max-w-32 text-gray-500">Created User</span>
+                                <span class="break-words font-medium text-gray-900 dark:text-gray-300">
+                                    {{ ucwords(strtolower(optional($sppb->creator)->name)) }}
+                                </span>
+                            </div>
+
+                            <div class="col-span-2 flex flex-col gap-3 sm:flex-row">
+
+                                {{-- Request Type --}}
+                                <div class="flex flex-1 items-center gap-2 rounded-md bg-gray-50 p-3 dark:bg-gray-700">
+                                    <x-heroicon-o-clipboard-document-list class="h-5 w-5 text-gray-400" />
+                                    <div class="flex flex-col">
+                                        <span class="text-gray-500">Request Type</span>
+                                        <span class="break-words font-medium text-gray-900 dark:text-gray-300">
+                                            {{ optional($sppb->requestType)->requesttype_name }}
+                                        </span>
+                                    </div>
                                 </div>
-                            @endforeach
+
+                                {{-- Purpose --}}
+                                <div class="flex flex-1 items-center gap-2 rounded-md bg-gray-50 p-3 dark:bg-gray-700">
+                                    <x-heroicon-o-clipboard-document-check class="h-5 w-5 text-gray-400" />
+                                    <div class="flex flex-col">
+                                        <span class="text-gray-500">Purpose</span>
+                                        <span <span
+                                            class="break-words font-medium text-gray-900 dark:text-gray-300">{{ $sppb->keperluan }}</span>
+                                    </div>
+                                </div>
+
+                            </div>
                         </div>
                     </div>
 
+
                 </div>
-                <div class="flex flex-col gap-4 sm:w-1/2 md:w-full">
+
+                {{-- Right card (Tabs) --}}
+                <div class="flex flex-1 flex-col rounded-xl bg-white dark:bg-gray-800">
                     <div x-data="{ activeTab: 'attachment' }" class="flex flex-1 flex-col">
                         <header
                             class="sticky top-0 z-10 flex items-center rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
@@ -294,7 +298,7 @@
                         {{-- Tabs Content --}}
                         <div class="flex flex-1 flex-col rounded-b-xl bg-white dark:bg-gray-800">
                             {{-- Approval tab --}}
-                            <div x-show="activeTab === 'approval'" class="flex-1 p-2 transition-all">
+                            <div x-show="activeTab === 'approval'" class="flex-1 p-4 transition-all">
                                 <table class="w-full text-sm">
                                     <thead>
                                         <tr
@@ -350,9 +354,8 @@
                                     </tbody>
                                 </table>
                             </div>
-
                             {{-- Attachment tab --}}
-                            <div x-show="activeTab === 'attachment'" class="flex-1 p-2 transition-all">
+                            <div x-show="activeTab === 'attachment'" class="flex-1 transition-all">
                                 <table class="w-full text-sm">
                                     <thead class="text-gray-600 dark:text-gray-300">
                                         <tr class="border-b border-gray-200 dark:border-gray-700">
@@ -362,46 +365,46 @@
                                         </tr>
                                     </thead>
                                     {{-- <tbody>
-                                        @forelse ($attachment as $at)
-                                            @php
-                                                $year = $at->created_at->year;
-                                                $fileUrl = url('/attachments/' . $year . '/' . $at->attachfile);
-                                            @endphp
-                                            <tr
-                                                class="border-b border-gray-100 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700">
+                                        @forelse ($attachments as $at)
+                                            <tr class="border-b border-gray-100 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700">
                                                 <td class="p-3">
-                                                    <a href="{{ $fileUrl }}" target="_blank"
+                                                    @if ($at->url)
+                                                        <a href="{{ $at->url }}" target="_blank"
                                                         class="flex items-center gap-2 font-medium text-indigo-600 hover:underline dark:text-indigo-400">
-                                                        📎 {{ $at->name }}
-                                                    </a>
+                                                            📎 {{ $at->display_name }}
+                                                        </a>
+                                                    @else
+                                                        <span class="text-gray-700 dark:text-gray-300">📎 {{ $at->display_name }}</span>
+                                                        <span class="ml-2 text-xs text-red-500">(link unavailable)</span>
+                                                    @endif
                                                 </td>
-                                                <td class="p-3">{{ $at->created_user }}</td>
-                                                <td class="p-3">
-                                                    {{ \Carbon\Carbon::parse($at->created_at)->format('d M Y') }}</td>
+                                                <td class="p-3">{{ $at->created_by }}</td>
+                                                <td class="p-3">{{ \Carbon\Carbon::parse($at->created_at)->format('d M Y') }}</td>
                                             </tr>
                                         @empty
                                             <tr>
-                                                <td colspan="3"
-                                                    class="p-4 text-center italic text-gray-500 dark:text-gray-400">
+                                                <td colspan="3" class="p-4 text-center italic text-gray-500 dark:text-gray-400">
                                                     No attachments found.
                                                 </td>
                                             </tr>
                                         @endforelse
                                     </tbody> --}}
-                                    <tbody id="budgetAttachmentTbody"></tbody> 
+                                    <tbody id="sppbAttachmentTbody"></tbody>                                   
+
                                 </table>
+                                {{-- Upload attachment (multi) --}}
                                 <div class="border-t border-gray-200 p-4 dark:border-gray-700">
-                                    <form id="budgetAttachmentUploadForm" enctype="multipart/form-data">
+                                    <form id="sppbAttachmentUploadForm" enctype="multipart/form-data">
                                         @csrf
                                         <div class="flex flex-col gap-3 md:flex-row md:items-center">
                                         <div class="flex-1">
-                                            <label for="budgetAttachFiles" class="mb-2 block text-sm font-semibold text-gray-800 dark:text-gray-200">
+                                            <label for="sppbAttachFiles" class="mb-2 block text-sm font-semibold text-gray-800 dark:text-gray-200">
                                             Upload Attachments
                                             </label>
                                             <div class="flex items-center gap-3">
-                                            <input type="hidden" name="cpnyid" value="{{ $budget->cpny_id }}">
-                                            <input type="hidden" name="departementid" value="{{ $budget->department_id }}">
-                                            <input type="file" id="budgetAttachFiles" name="attachments[]" multiple
+                                            <input type="hidden" name="cpnyid" value="{{ $sppb->cpny_id }}">
+                                            <input type="hidden" name="departementid" value="{{ $sppb->department_id }}">
+                                            <input type="file" id="sppbAttachFiles" name="attachments[]" multiple
                                                     class="block w-full cursor-pointer rounded-md border border-gray-300 bg-white px-2 py-[7px] text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" />
                                             <button type="button" id="btnUploadSppbAttachment"
                                                     class="inline-flex h-[36px] items-center justify-center rounded-md bg-indigo-600 px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
@@ -420,9 +423,9 @@
                                     </form>
                                 </div>
                             </div>
-
+                             
                             {{-- Comments tab --}}
-                            <div x-show="activeTab === 'comments'" class="flex-1 p-2 transition-all">
+                            <div x-show="activeTab === 'comments'" class="flex-1 transition-all">
                                 <div x-data="{ comments: [], newComment: '', currentUser: 'User1' }" class="flex h-full flex-col">
                                     <div id="commentList"
                                         class="custom-scrollbar flex-1 flex-col space-y-4 overflow-y-auto p-4">
@@ -444,74 +447,55 @@
                     </div>
                 </div>
             </div>
-            <div class="min-h-[12rem] flex-col rounded-2xl dark:bg-gray-800">
+
+
+            {{-- SPPB Detail table --}}
+            <div class="flex w-full flex-col rounded-2xl bg-white dark:bg-gray-800">
                 <header
-                    class="-b -gray-300/10 dark: -gray-600 flex items-center justify-between rounded-t-2xl bg-gray-50 px-6 py-4 dark:bg-gray-700 dark:text-gray-100">
-                    <h2 class="text-xl font-semibold">📝 Budget Detail</h2>
+                    class="flex items-center justify-between rounded-t-2xl border-b border-gray-200 bg-white px-6 py-4 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
+                    <h2 class="text-xl font-semibold">📝 SPPB Detail</h2>
                 </header>
-
-                <!-- scrollable container -->
-                <div class="table-container max-h-[31.5rem] min-h-[15rem] flex-grow overflow-y-auto">
-                    <table class="sticky-header w-full text-sm dark:text-gray-200">
-                        <thead class="sticky top-0 z-10 bg-gray-50 dark:bg-gray-700">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm text-gray-700 dark:text-gray-200">
+                        <thead class="bg-gray-100 dark:bg-gray-700 dark:text-gray-100">
                             <tr>
-                                <th class="px-4 py-2">Account</th>
-                                <th class="px-4 py-2">Activity ID</th>
+                                <th class="px-4 py-2">No</th>
+                                <th class="px-4 py-2">InventoryID</th>
                                 <th class="px-4 py-2">Description</th>
-                                <th class="px-4 py-2">Detail</th>
                                 <th class="px-4 py-2">Qty</th>
-                                <th class="px-4 py-2">Unit Price</th>
-                                <th class="px-4 py-2 text-left">Total Budget</th>
-                                @php
-                                    $months = [
-                                        'January',
-                                        'February',
-                                        'March',
-                                        'April',
-                                        'May',
-                                        'June',
-                                        'July',
-                                        'August',
-                                        'September',
-                                        'October',
-                                        'November',
-                                        'December',
-                                    ];
-                                @endphp
-
-                                @foreach ($months as $month)
-                                    <th class="px-4 py-2 text-right">
-                                        {{ $month }}
-                                    </th>
-                                @endforeach
+                                <th class="px-4 py-2">UoM</th>
+                                <th class="px-4 py-2">Note</th>
+                                <th class="px-4 py-2">Coa</th>
+                                <th class="px-4 py-2">Location</th>
+                                <th class="px-4 py-2">SubLocation</th>
+                                <th class="px-4 py-2">Ordered</th>
+                                <th class="px-4 py-2">Complete Ordered</th>
+                                <th class="px-4 py-2">Reject Ordered</th>
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach ($budgetdetail as $item)
+                            @foreach ($sppbdetail as $item)
                                 <tr
-                                    class="-t dark: -gray-600 bg-white hover:bg-gray-50 dark:bg-gray-600 dark:text-gray-300 dark:hover:bg-gray-700">
-                                    <td class="px-4 py-2">{{ $item->account_id }}</td>
-                                    <td class="px-4 py-2">{{ $item->activity_id }}</td>
-                                    <td class="px-4 py-2">{{ $item->activity_descr }}</td>
-                                    <td class="px-4 py-2">{{ $item->activity_detail }}</td>
-                                    <td class="px-4 py-2">{{ $item->qty_budget }}</td>
-                                    <td class="px-4 py-2">{{ $item->unit_price_budget }}</td>
-                                    <td class="px-4 py-2 text-right">
-                                        {{ number_format($item->totalbudget) }}
-                                    </td>
-                                    @for ($i = 1; $i <= 12; $i++)
-                                        @php $period='period' . str_pad($i, 2, '0', STR_PAD_LEFT) . '_budget' ; @endphp
-                                        <td class="px-4 py-2 text-right">{{ number_format($item->$period) }}</td>
-                                    @endfor
+                                    class="border-t border-gray-200 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800">
+                                    <td class="px-4 py-2">{{ $item->sppb_no }}</td>
+                                    <td class="px-4 py-2">{{ $item->inventoryid }}</td>
+                                    <td class="px-4 py-2">{{ $item->inventory_descr }}</td>
+                                    <td class="px-4 py-2">{{ $item->qty }}</td>
+                                    <td class="px-4 py-2">{{ $item->uom }}</td>
+                                    <td class="px-4 py-2">{{ $item->note }}</td>
+                                    <td class="px-4 py-2">{{ $item->budget_account_id }}</td>
+                                    <td class="px-4 py-2">{{ optional($item->location)->location_name }}</td>
+                                    <td class="px-4 py-2">{{ optional($item->subLocation)->sub_location_name }}</td>
+                                    <td class="px-4 py-2">{{ $item->ordered }}</td>
+                                    <td class="px-4 py-2">{{ $item->completeordered }}</td>
+                                    <td class="px-4 py-2">{{ $item->rejectordered }}</td>
                                 </tr>
                             @endforeach
                         </tbody>
                     </table>
                 </div>
             </div>
-
         </div>
-
     </div>
     {{-- <div id="loadingSpinnerContainer" class="flex h-16 items-center justify-center">
         <svg class="h-10 w-10 animate-spin text-indigo-500" xmlns="http://www.w3.org/2000/svg" fill="none"
@@ -530,8 +514,9 @@
         </div>
     </div>
 
+
     <div id="rejectTaskModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50">
-        <div class="w-full max-w-md rounded-lg bg-white px-6 py-2 dark:bg-gray-700">
+        <div class="w-full max-w-md rounded-lg bg-white p-6 dark:bg-gray-700">
             <h2 class="mb-4 text-xl font-semibold text-gray-800 dark:text-white">Reject</h2>
             <textarea id="rejectReason" class="mt-2 w-full rounded-lg p-3 focus:outline-none dark:bg-gray-800 dark:text-white"
                 placeholder="Enter rejection reason..."></textarea>
@@ -560,6 +545,7 @@
                     class="inline-flex items-center gap-1 rounded-md bg-gray-500 px-3 py-2 text-sm font-medium text-gray-100 transition-colors hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:bg-gray-100 dark:bg-gray-700/30 dark:text-gray-300 dark:hover:bg-gray-600/50">
                     Revise
                 </button>
+
             </div>
         </div>
     </div>
@@ -577,17 +563,17 @@
 
     <script>
         $(document).ready(function() {
-            let budget_id = "{{ $budget->budget_id }}"; // Ambil task ID dari PHP ke JavaScript
-            loadComments(budget_id);
+            let sppbid = "{{ $sppb->sppbid }}"; // Ambil task ID dari PHP ke JavaScript
+            loadComments(sppbid);
 
             // **Fungsi untuk Memuat Komentar**
-            function loadComments(budget_id) {
-                console.log("Loading comments for Doc ID:", budget_id);
+            function loadComments(sppbid) {
+                console.log("Loading comments for Doc ID:", sppbid);
                 let commentList = $('#commentList');
                 commentList.html('<p class="text-gray-500 italic">Loading comments...</p>'); // Loader
 
                 $.ajax({
-                    url: `/budget/${budget_id}/comments`,
+                    url: `/sppb/${sppbid}/comments`,
                     type: 'GET',
                     success: function(response) {
                         console.log("Comments Loaded:", response);
@@ -620,6 +606,11 @@
                 });
             }
 
+            $(document).on('click', '#postCommentBtn', function(e) {
+                e.preventDefault();
+                addComment();
+            });
+
             // **Fungsi untuk Menambahkan Komentar**
             function addComment() {
                 let input = $('#commentInput').val().trim();
@@ -629,13 +620,13 @@
                     return;
                 }
 
-                $('#postCommentBtn').prop('disabled', true).text('Posting...🚀'); // Disable button saat proses
+                $('#postCommentBtn').prop('disabled', true).text('Posting... 🚀'); // Disable button saat proses
 
                 $.ajax({
-                    url: `/budget/${budget_id}/comments`,
+                    url: `/sppb/${sppbid}/comments`,
                     type: 'POST',
                     data: {
-                        budget_id: budget_id,
+                        sppbid: sppbid,
                         comment: input,
                         _token: '{{ csrf_token() }}'
                     },
@@ -643,7 +634,7 @@
                         console.log('Comment added successfully:', response);
 
                         if (response.status === "success") {
-                            loadComments(budget_id); // **Reload komentar setelah menambahkan**
+                            loadComments(sppbid); // **Reload komentar setelah menambahkan**
                             $('#commentInput').val(''); // Kosongkan input setelah sukses
                         }
                     },
@@ -675,22 +666,22 @@
     </script>
     <script>
         $(document).on("click", "#approveBtn", function() {
-            let budget_id = "{{ $budget->budget_id }}"; // Ambil Task ID dari modal        
-            approveBudget(budget_id);
+            let sppbid = "{{ $sppb->sppbid }}"; // Ambil Task ID dari modal        
+            approveSPPB(sppbid);
         });
 
-        function approveBudget(budget_id) {
+        function approveSPPB(sppbid) {
             let $spinner = $("#loadingSpinnerContainer"); // Ambil elemen spinner
 
             // Tampilkan spinner di kanan bawah
             $spinner.fadeIn();
 
             $.ajax({
-                url: `/budget/${budget_id}/approve`,
+                url: `/sppb/${sppbid}/approve`,
                 type: "POST",
                 data: {
                     _token: "{{ csrf_token() }}",
-                    budget_id: budget_id
+                    sppbid: sppbid
                 },
                 success: function(response) {
                     if (response.success) {
@@ -702,8 +693,8 @@
                             );
 
                         // Tampilkan alert sukses
-                        toastr.success("Budget approved successfully!");
-                        window.location.href = "/budgets";
+                        toastr.success("SPPB approved successfully!");
+                        window.location.href = "/sppbs";
                     } else {
                         toastr.error(response.message);
                     }
@@ -712,9 +703,9 @@
                     console.error(xhr.responseText);
 
                     if (xhr.status === 403) {
-                        toastr.error("You are not authorized to approve this budget.");
+                        toastr.error("You are not authorized to approve this sppb.");
                     } else {
-                        // toastr.error("Error: Unable to approve budget.");
+                        toastr.error("Error: Unable to approve sppb.");
                     }
                 },
                 complete: function() {
@@ -732,8 +723,8 @@
             $(document).on("click", "#rejectBtn", function() {
                 $("#rejectReason").val(""); // Reset alasan reject
                 // $("#rejectTaskModal").removeClass("hidden").css("z-index", "60");
-                let budget_id = "{{ $budget->budget_id }}";
-                checkApproval(budget_id, "reject");
+                let sppbid = "{{ $sppb->sppbid }}";
+                checkApproval(sppbid, "reject");
 
             });
 
@@ -744,7 +735,7 @@
 
             // Saat tombol "Reject" ditekan, proses perubahan status
             $(document).on("click", "#confirmRejectBtn", function() {
-                let budget_id = "{{ $budget->budget_id }}"; // Ambil ID tugas dari modal detail
+                let sppbid = "{{ $sppb->sppbid }}"; // Ambil ID tugas dari modal detail
                 let rejectReason = $("#rejectReason").val().trim();
 
                 if (rejectReason === "") {
@@ -757,18 +748,18 @@
                 $spinner.fadeIn();
 
                 $.ajax({
-                    url: `/budget/${budget_id}/reject`,
+                    url: `/sppb/${sppbid}/reject`,
                     type: "POST",
                     data: {
                         _token: "{{ csrf_token() }}",
-                        docid: budget_id,
+                        docid: sppbid,
                         reason: rejectReason
                     },
                     success: function(response) {
                         if (response.success) {
                             // alert("Task has been rejected successfully.");
 
-                            // Update status di modal budget
+                            // Update status di modal sppb
                             $("#xstatus").text("Rejected")
                                 .removeClass()
                                 .addClass(
@@ -776,9 +767,9 @@
                                 );
                             $spinner.fadeOut();
 
-                            window.location.href = "/budgets";
+                            window.location.href = "/sppbs";
                         } else {
-                            alert("Failed to reject budget.");
+                            alert("Failed to reject sppb.");
                         }
                     },
                     error: function(xhr) {
@@ -787,7 +778,7 @@
                         if (xhr.status === 403) {
                             alert("You Can't Rejected!"); // Popup jika user tidak berhak
                         } else {
-                            // alert("Error: Unable to reject budget status.");
+                            alert("Error: Unable to reject sppb status.");
                         }
                     },
                 });
@@ -800,8 +791,8 @@
             $(document).on("click", "#reviseBtn", function() {
                 $("#reviseReason").val(""); // Reset alasan revise
                 // $("#reviseTaskModal").removeClass("hidden").css("z-index", "60");
-                let budget_id = "{{ $budget->budget_id }}";
-                checkApproval(budget_id, "revise");
+                let sppbid = "{{ $sppb->sppbid }}";
+                checkApproval(sppbid, "revise");
 
             });
 
@@ -812,7 +803,7 @@
 
             // Saat tombol "Revise" ditekan, proses perubahan status
             $(document).on("click", "#confirmReviseBtn", function() {
-                let budget_id = "{{ $budget->budget_id }}"; // Ambil ID tugas dari modal detail
+                let sppbid = "{{ $sppb->sppbid }}"; // Ambil ID tugas dari modal detail
                 let reviseReason = $("#reviseReason").val().trim();
 
                 if (reviseReason === "") {
@@ -824,27 +815,27 @@
                 $spinner.fadeIn();
 
                 $.ajax({
-                    url: `/budget/${budget_id}/revise`,
+                    url: `/sppb/${sppbid}/revise`,
                     type: "POST",
                     data: {
                         _token: "{{ csrf_token() }}",
-                        docid: budget_id,
+                        docid: sppbid,
                         reason: reviseReason
                     },
                     success: function(response) {
                         if (response.success) {
                             // alert("Task has been reviseed successfully.");
 
-                            // Update status di modal budget
+                            // Update status di modal sppb
                             $("#xstatus").text("Revised")
                                 .removeClass()
                                 .addClass(
                                     "w-full max-w-32 bg-red-300/30 dark:bg-red-300 text-red-600 flex justify-items-center focus:outline-none pointer-events-none    -none font-semibold px-2 py-0.5 rounded"
                                 );
                             $spinner.fadeOut();
-                            window.location.href = "/budgets";
+                            window.location.href = "/sppbs";
                         } else {
-                            alert("Failed to revise budget.");
+                            alert("Failed to revise sppb.");
                         }
                     },
                     error: function(xhr) {
@@ -853,7 +844,7 @@
                         if (xhr.status === 403) {
                             alert("You Can't Revised!"); // Popup jika user tidak berhak
                         } else {
-                            // alert("Error: Unable to revise budget status.");
+                            alert("Error: Unable to revise sppb status.");
                         }
                     },
                 });
@@ -866,10 +857,10 @@
     <!-- Toastr JS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
     <script>
-        function checkApproval(budget_id, action) {
-            console.log(budget_id, '-', action);
+        function checkApproval(sppbid, action) {
+            console.log(sppbid, '-', action);
             $.ajax({
-                url: `/budget/${budget_id}/check-approval/${action}`,
+                url: `/sppb/${sppbid}/check-approval/${action}`,
                 type: "GET",
                 success: function(response) {
                     if (response.canPerformAction) {
@@ -881,11 +872,11 @@
                             $("#reviseReason").val(""); // Reset alasan revise
                             $("#reviseTaskModal").removeClass("hidden").css("z-index", "60");
                             // } else if (action === "approve") {
-                            // approveBudget(budget_id); // Jika approve, langsung jalankan proses approval
+                            //     approveSPPB(sppbid); // Jika approve, langsung jalankan proses approval
                         }
                     } else {
                         // Jika user tidak boleh melakukan aksi, tampilkan popup toastr
-                        toastr.error("You are not authorized to " + action + " this budget.");
+                        toastr.error("You are not authorized to " + action + " this sppb.");
                     }
                 },
                 error: function() {
@@ -893,14 +884,15 @@
                 }
             });
         }
-    </script> 
+    </script>
 
+ 
     <script>
         $(function () {
-        const listUrl   = @json(route('attachments.list',   ['doctype' => 'BD', 'refnbr' => $budget->budget_id]));
-        const uploadUrl = @json(route('attachments.upload', ['doctype' => 'BD', 'refnbr' => $budget->budget_id]));
+        const listUrl   = @json(route('attachments.list',   ['doctype' => 'PB', 'refnbr' => $sppb->sppbid]));
+        const uploadUrl = @json(route('attachments.upload', ['doctype' => 'PB', 'refnbr' => $sppb->sppbid]));
 
-        function $tbody() { return $('#budgetAttachmentTbody'); } // <tbody id="budgetAttachmentTbody">
+        function $tbody() { return $('#sppbAttachmentTbody'); } // <tbody id="sppbAttachmentTbody">
 
         function renderSppbAttachmentRows(rows){
             const $tb = $tbody().empty();
@@ -949,8 +941,8 @@
         refreshSppbAttachments();
 
         $('#btnUploadSppbAttachment').on('click', function(){
-            const $form = $('#budgetAttachmentUploadForm')[0];
-            const files = $('#budgetAttachFiles')[0].files;
+            const $form = $('#sppbAttachmentUploadForm')[0];
+            const files = $('#sppbAttachFiles')[0].files;
 
             if (!files || !files.length) {
             toastr.warning('Please choose at least one file.');
@@ -973,7 +965,7 @@
                 return;
                 }
                 toastr.success('Upload success.');
-                $('#budgetAttachFiles').val('');
+                $('#sppbAttachFiles').val('');
                 // back-end sudah mengembalikan list terbaru
                 renderSppbAttachmentRows(res.attachments || []);
             },
@@ -985,10 +977,12 @@
         });
 
         $('#btnResetSppbAttachment').on('click', function(){
-            $('#budgetAttachFiles').val('');
+            $('#sppbAttachFiles').val('');
         });
         });
     </script>
+
+
 
 
 

@@ -13,6 +13,7 @@ use App\Models\TrSPPK;
 use App\Models\TrSPPT;
 use Vinkla\Hashids\Facades\Hashids;
 use Illuminate\Support\Str;
+use App\Models\TrPo;
 
 
 class ReceiptListController extends Controller
@@ -30,9 +31,16 @@ class ReceiptListController extends Controller
         $completed   = TrReceipt::where('created_by', $u)->where('status','C')->count();
         $all         = TrReceipt::when($cpny_id, fn($q)=>$q->where('cpny_id',$cpny_id))->count();
 
-        return view('pages.receipt.receiptlist', compact('receiptjobs','onProgress','completed','all'));
+        // 🔹 Return Jobs count (status C + type receipt), optional filter cpny
+        $returnjobs  = TrReceipt::when($cpny_id, fn($q)=>$q->where('cpny_id',$cpny_id))
+                        ->where('status','C')
+                        ->where('receipttype','receipt')
+                        ->count();
+
+        return view('pages.receipt.receiptlist', compact(
+            'receiptjobs','onProgress','completed','all','returnjobs'
+        ));
     }
- 
 
     public function json(Request $req)
     {
@@ -48,61 +56,55 @@ class ReceiptListController extends Controller
 
         if ($scope === 'receiptjobs') {
             $base = vPoPending::with('creator')
-                ->when($cpny_id, fn($q)=>$q->where('cpny_id',$cpny_id))
+                ->when($cpny_id, fn($q)=>$q->where('cpny_id', $cpny_id))
                 ->select([
-                    'id', // penting untuk hash -> id
-                    'ponbr',
-                    'podate',
-                    'cpny_id',
-                    'vendorname',
-                    'podeliverydate',
-                    'created_by',
+                    'id','ponbr','podate','cpny_id','vendorname',
+                    'podeliverydate','created_by',
                 ]);
 
-            $orderColumns = [0=>'ponbr',1=>'ponbr',2=>'podate',3=>'cpny_id',4=>'vendorname',5=>'podeliverydate',6=>'created_by'];
+            $orderColumns = [
+                0=>'ponbr', 1=>'ponbr', 2=>'podate', 3=>'cpny_id',
+                4=>'vendorname', 5=>'podeliverydate', 6=>'created_by'
+            ];
 
             if ($search !== '') {
                 $base->where(function($q) use ($search){
                     $q->where('ponbr','ilike',"%{$search}%")
-                    ->orWhere('cpny_id','ilike',"%{$search}%")
-                    ->orWhere('vendorname','ilike',"%{$search}%")
-                    ->orWhere('created_by','ilike',"%{$search}%")
-                    ->orWhereRaw("TO_CHAR(podate,'YYYY-MM-DD') ILIKE ?", ["%{$search}%"])
-                    ->orWhereRaw("TO_CHAR(podeliverydate,'YYYY-MM-DD') ILIKE ?", ["%{$search}%"]);
+                      ->orWhere('cpny_id','ilike',"%{$search}%")
+                      ->orWhere('vendorname','ilike',"%{$search}%")
+                      ->orWhere('created_by','ilike',"%{$search}%")
+                      ->orWhereRaw("TO_CHAR(podate,'YYYY-MM-DD') ILIKE ?", ["%{$search}%"])
+                      ->orWhereRaw("TO_CHAR(podeliverydate,'YYYY-MM-DD') ILIKE ?", ["%{$search}%"]);
                 });
             }
         } else {
-            // ===== TrReceipt scopes (tanpa kolom "+") =====
+            // Semua scope selain 'receiptjobs' → dari TrReceipt
             $base = TrReceipt::query()
                 ->when($cpny_id, fn($q)=>$q->where('cpny_id',$cpny_id))
                 ->when($scope==='onprogress', fn($q)=>$q->where('created_by',$u)->where('status','P'))
                 ->when($scope==='completed',  fn($q)=>$q->where('created_by',$u)->where('status','C'))
-                ->select([
-                    'id',              // penting untuk hash receiptnbr_eid
-                    'receiptnbr',
-                    'receiptdate',
-                    'ponbr',
-                    'sppbjktid',
-                    'cpny_id',
-                    'created_by',
-                ]);
+                ->when($scope==='returnjobs', fn($q)=>$q->where('status','C')->where('receipttype','receipt'))
+                ->select(['id','receiptnbr','receiptdate','receipttype','ponbr','sppbjktid','cpny_id','created_by']);
 
             $orderColumns = [
                 0=>'receiptnbr',
                 1=>'receiptdate',
-                2=>'ponbr',
-                3=>'sppbjktid',
-                4=>'cpny_id',
-                5=>'created_by'];
+                2=>'receipttype', 
+                3=>'ponbr',
+                4=>'sppbjktid',
+                5=>'cpny_id',
+                6=>'created_by'
+            ];
 
             if ($search !== '') {
                 $base->where(function($q) use ($search){
                     $q->where('receiptnbr','ilike',"%{$search}%")
-                    ->orWhere('ponbr','ilike',"%{$search}%")
-                    ->orWhere('sppbjktid','ilike',"%{$search}%")
-                    ->orWhere('cpny_id','ilike',"%{$search}%")
-                    ->orWhere('created_by','ilike',"%{$search}%")
-                    ->orWhereRaw("TO_CHAR(receiptdate,'YYYY-MM-DD') ILIKE ?", ["%{$search}%"]);
+                      ->orWhere('ponbr','ilike',"%{$search}%")
+                      ->orWhere('sppbjktid','ilike',"%{$search}%")
+                      ->orWhere('receipttype','ilike',"%{$search}%")
+                      ->orWhere('cpny_id','ilike',"%{$search}%")
+                      ->orWhere('created_by','ilike',"%{$search}%")
+                      ->orWhereRaw("TO_CHAR(receiptdate,'YYYY-MM-DD') ILIKE ?", ["%{$search}%"]);
                 });
             }
         }
@@ -115,59 +117,55 @@ class ReceiptListController extends Controller
         $orderCol = $orderColumns[$orderIdx] ?? ($scope==='receiptjobs' ? 'podate' : 'receiptdate');
 
         $rows = $base->orderBy($orderCol, $orderDir)
-                    ->orderBy($scope==='receiptjobs' ? 'ponbr' : 'receiptnbr','desc')
-                    ->skip($start)->take($length)
-                    ->get();
+                     ->orderBy($scope==='receiptjobs' ? 'ponbr' : 'receiptnbr','desc')
+                     ->skip($start)->take($length)
+                     ->get();
 
-        // ======== ENRICH / FORMAT =========
-        $rows->transform(function($r) use ($scope){
+        // ========= ENRICH / FORMAT =========
+        // Siapkan map ponbr->id untuk scope ≠ 'receiptjobs'
+        $poIdMap = [];
+        if ($scope !== 'receiptjobs' && $rows->count()) {
+            $ponbrs = $rows->pluck('ponbr')->filter()->unique()->values()->all();
+
+            // a) coba dari vPoPending (PO status P/O)
+            $poIdMap = vPoPending::whereIn('ponbr', $ponbrs)->pluck('id','ponbr')->toArray();
+
+            // b) fallback ke tabel tr_po (semua status)
+            $missing = array_values(array_diff($ponbrs, array_keys($poIdMap)));
+            if (!empty($missing)) {
+                $fallback = TrPo::whereIn('ponbr', $missing)->pluck('id','ponbr')->toArray();
+                $poIdMap = $poIdMap + $fallback; // merge, jangan overwrite yang sudah ada
+            }
+        }
+
+        $rows->transform(function($r) use ($scope, $poIdMap) {
             if ($scope === 'receiptjobs') {
-                $r->podate_fmt     = !empty($r->podate) ? Carbon::parse($r->podate)->format('Y-m-d') : null;
-                $r->podelivery_fmt = !empty($r->podeliverydate) ? Carbon::parse($r->podeliverydate)->format('Y-m-d') : null;
-
-                // link PO by id (hash dari id)
-                $r->ponbr_eid = Hashids::encode((string)$r->id);
+                $r->podate_fmt     = $r->podate        ? Carbon::parse($r->podate)->format('Y-m-d')        : null;
+                $r->podelivery_fmt = $r->podeliverydate? Carbon::parse($r->podeliverydate)->format('Y-m-d'): null;
+                $r->ponbr_eid      = Hashids::encode((string)$r->id);
             } else {
-                $r->receiptdate_fmt = !empty($r->receiptdate) ? Carbon::parse($r->receiptdate)->format('Y-m-d') : null;
+                $r->receiptdate_fmt = $r->receiptdate ? Carbon::parse($r->receiptdate)->format('Y-m-d') : null;
+                $r->receiptnbr_eid  = Hashids::encode((string)$r->id);
 
-                // link RECEIPT by id
-                $r->receiptnbr_eid = Hashids::encode((string)$r->id);
-
-                // === 1) PO link (ponbr) ===
-                // Ambil PO id berdasarkan ponbr (ganti 'tr_po' sesuai tabel PO header milikmu)
-                $poId = vPoPending::where('ponbr', $r->ponbr)->value('id'); // <-- sesuaikan nama tabel
+                // 🔗 PO link – pakai key PONBR (bukan id!)
+                $poId = $poIdMap[$r->ponbr] ?? null;
                 $r->ponbr_eid = $poId ? Hashids::encode((string)$poId) : null;
 
-                // === 2) SPPB/J/K/T link ===
+                // 🔗 SPPB/J/K/T link (tetap sama)
                 $r->sppb_route = null;
                 $r->sppb_eid   = null;
-
                 if (!empty($r->sppbjktid)) {
-                    $prefix = Str::upper(Str::substr($r->sppbjktid, 0, 2));
-                    $routeMap = [
-                        'PB' => 'showsppbs',
-                        'PJ' => 'showsppjs',
-                        'PK' => 'showsppks',
-                        'PT' => 'showsppts',
-                    ];
-                    if (!array_key_exists($prefix, $routeMap)) {
-                        // invalid prefix → biarkan null, akan ditampilkan plain text
-                    } else {
-                        // cari id masing-masing dokumen berdasarkan kolom key-nya
-                        // ganti nama tabel jika model tersedia
-                        if ($prefix === 'PB') {
-                            $id = TrSPPB::where('sppbid', $r->sppbjktid)->value('id');
-                        } elseif ($prefix === 'PJ') {
-                            $id = TrSPPJ::where('sppjid', $r->sppbjktid)->value('id');
-                        } elseif ($prefix === 'PK') {
-                            $id = TrSPPK::where('sppkid', $r->sppbjktid)->value('id');
-                        } else /* PT */ {
-                            $id = TrSPPT::where('spptid', $r->sppbjktid)->value('id');
-                        }
+                    $prefix   = Str::upper(Str::substr($r->sppbjktid, 0, 2));
+                    $routeMap = ['PB'=>'showsppbs','PJ'=>'showsppjs','PK'=>'showsppks','PT'=>'showsppts'];
+                    if (isset($routeMap[$prefix])) {
+                        if ($prefix === 'PB')      { $id = TrSPPB::where('sppbid', $r->sppbjktid)->value('id'); }
+                        elseif ($prefix === 'PJ') { $id = TrSPPJ::where('sppjid', $r->sppbjktid)->value('id'); }
+                        elseif ($prefix === 'PK') { $id = TrSPPK::where('sppkid', $r->sppbjktid)->value('id'); }
+                        else /* PT */             { $id = TrSPPT::where('spptid', $r->sppbjktid)->value('id'); }
 
                         if ($id) {
-                            $r->sppb_route = $routeMap[$prefix];                 // ex: showsppbs
-                            $r->sppb_eid   = Hashids::encode((string)$id);       // hash id dokumen
+                            $r->sppb_route = $routeMap[$prefix];
+                            $r->sppb_eid   = Hashids::encode((string)$id);
                         }
                     }
                 }

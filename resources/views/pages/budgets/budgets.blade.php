@@ -396,11 +396,11 @@
                                 className: 'no-pointer'
                             },
                             {
-                                data: 'business_unit_id',
+                                data: 'business_unit_name',
                                 className: 'no-pointer'
                             },
                             {
-                                data: 'department_fin_id',
+                                data: 'department_name',
                                 className: 'no-pointer'
                             },
                             {
