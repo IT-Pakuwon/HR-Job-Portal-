@@ -33,6 +33,7 @@ use App\Models\MsSubworktype;
 use Illuminate\Support\Str;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Imports\BqDetailTempImport; 
+use App\Models\TrWO;
 
 
 class MasterController extends Controller
@@ -664,6 +665,47 @@ class MasterController extends Controller
                 'unit'       => $t->store_no,
                 'unit_label' => ($t->floor_id && $t->store_no) ? "{$t->floor_id} - {$t->store_no}" : null,
             ]
+        ]);
+    }
+
+    public function getWoComplated(Request $request)
+    {
+        $status   = $request->input('status', 'C');
+        $dept     = trim($request->input('departementid', ''));
+        $search   = trim($request->input('search', ''));
+        $page     = max((int) $request->input('page', 1), 1);
+        $perPage  = min(max((int) $request->input('per_page', 10), 1), 100);
+
+        // base query pakai model
+        $query = TrWO::query()
+            ->select('woid', 'wodate', 'created_by', 'department_id')
+            ->where('status', $status);
+
+        if ($dept !== '') {
+            $query->where('department_id', $dept);
+        }
+
+        if ($search !== '') {
+            $query->where(function ($q) use ($search) {
+                $q->where('woid', 'ILIKE', "%{$search}%")
+                    ->orWhere('created_by', 'ILIKE', "%{$search}%")
+                    ->orWhere('department_id', 'ILIKE', "%{$search}%")
+                    ->orWhere('wodate', 'ILIKE', "%{$search}%");
+            });
+        }
+
+        $total = $query->count();
+
+        $rows = $query->orderByDesc('wodate')
+            ->offset(($page - 1) * $perPage)
+            ->limit($perPage)
+            ->get();
+
+        return response()->json([
+            'data'      => $rows,
+            'total'     => $total,
+            'page'      => $page,
+            'per_page'  => $perPage,
         ]);
     }
 

@@ -1,6 +1,6 @@
 <x-app-layout>
     @php
-        $currentPage = Route::currentRouteName() == 'sppbs' ? 'HR' : '';
+        $currentPage = Route::currentRouteName() == 'spbs' ? 'HR' : '';
     @endphp
     <style>
         /* Active / Selected state */
@@ -145,19 +145,19 @@
                     }
                 }
 
-                /* Sppb Table Specific Styles */
-                #sppbsTable_filter {
+                /* Spb Table Specific Styles */
+                #spbsTable_filter {
                     margin-bottom: 20px;
                     display: flex;
                     justify-content: flex-start;
                     align-items: center;
                 }
 
-                #sppbsTable_filter label {
+                #spbsTable_filter label {
                     margin-right: 2px;
                 }
 
-                #sppbsTable_filter input {
+                #spbsTable_filter input {
                     width: auto;
                     padding: 5px;
                     min-width: 80px;
@@ -167,29 +167,29 @@
                     background-color: #f9fafb;
                 }
 
-                #sppbsTable_wrapper {
+                #spbsTable_wrapper {
                     width: 100%;
                 }
 
-                #sppbsTable td {
+                #spbsTable td {
                     white-space: nowrap;
                     overflow: hidden;
                     text-overflow: ellipsis;
                 }
 
-                #sppbsTable th,
-                #sppbsTable td {
+                #spbsTable th,
+                #spbsTable td {
                     padding: 10px;
                     max-width: 200px;
                 }
 
-                #sppbsTable_length {
+                #spbsTable_length {
                     width: auto;
                     display: flex;
                     justify-content: flex-start;
                 }
 
-                #sppbsTable_length select {
+                #spbsTable_length select {
                     width: auto;
                     padding: 5px;
                     min-width: 80px;
@@ -199,11 +199,11 @@
                     background-color: #f9fafb;
                 }
 
-                #sppbsTable_length select option {
+                #spbsTable_length select option {
                     padding: 5px;
                 }
 
-                #sppbsTable_info {
+                #spbsTable_info {
                     margin-top: 10px;
                     margin-bottom: 10px;
                 }
@@ -214,45 +214,45 @@
                     margin-bottom: 10px;
                 }
 
-                #sppbsTable tbody tr td {
+                #spbsTable tbody tr td {
                     padding: 8px 8px;
                     line-height: 2;
                 }
 
-                #sppbsTable tbody tr {
+                #spbsTable tbody tr {
                     transition: background-color 0.3s ease, color 0.3s ease;
                 }
 
-                #sppbsTable tbody tr:hover {
+                #spbsTable tbody tr:hover {
                     background-color: #8f8f8f11;
                     opacity: 100%;
                     cursor: pointer;
                 }
 
-                #sppbsTable tbody tr:hover td {
+                #spbsTable tbody tr:hover td {
                     /* color: black; */
                 }
 
-                #sppbsTable th:nth-child(1),
-                #sppbsTable td:nth-child(1) {
+                #spbsTable th:nth-child(1),
+                #spbsTable td:nth-child(1) {
                     width: 120px;
                     text-align: center;
                 }
 
-                #sppbsTable th:nth-child(4),
-                #sppbsTable td:nth-child(4) {
+                #spbsTable th:nth-child(4),
+                #spbsTable td:nth-child(4) {
                     width: 120px;
                     text-align: center;
                 }
 
-                /* --- Custom Styles for RowGroup Collapse/Expand (Applied to sppbsTable) --- */
+                /* --- Custom Styles for RowGroup Collapse/Expand (Applied to spbsTable) --- */
                 /* Initially hide rows in collapsed groups */
-                #sppbsTable tbody tr.collapsed-group-row {
+                #spbsTable tbody tr.collapsed-group-row {
                     display: none;
                 }
 
                 /* Style for group rows */
-                #sppbsTable tr.group-row {
+                #spbsTable tr.group-row {
                     background-color: #e6e6e6;
                     /* Light gray background for group headers */
                     font-weight: bold;
@@ -263,13 +263,13 @@
                     /* Darker text for group headers */
                 }
 
-                #sppbsTable tr.group-row:hover {
+                #spbsTable tr.group-row:hover {
                     background-color: #d4d4d4;
                     /* Slightly darker on hover */
                 }
 
                 /* Icon styling */
-                #sppbsTable tr.group-row .fas {
+                #spbsTable tr.group-row .fas {
                     margin-right: 8px;
                     width: 16px;
                     /* Ensure consistent icon width */
@@ -277,14 +277,14 @@
                 }
 
                 /* Adjust padding for group rows to look consistent with other cells */
-                #sppbsTable tr.group-row td {
+                #spbsTable tr.group-row td {
                     padding: 10px !important;
                     border-bottom: 1px solid #ddd;
                     /* Separator for groups */
                 }
 
                 /* Remove border from the first td in group row to match the colspan */
-                #sppbsTable tr.group-row td:first-child {
+                #spbsTable tr.group-row td:first-child {
                     border-left: none;
                 }
 
@@ -338,47 +338,44 @@
                 <div
                     class="flex flex-col items-start justify-between gap-4 border-b border-gray-200 p-4 sm:flex-row sm:items-center dark:border-gray-700">
                     {{-- Changed text-3xl to text-xl --}}
-                    <h1 class="text-xl font-extrabold text-gray-700 dark:text-white">Request SPPB</h1>
-                    <a href="{{ url('/createsppbs') }}"
+                    <h1 class="text-xl font-extrabold text-gray-700 dark:text-white">Request SPB</h1>
+                    <a href="{{ url('/createspbs') }}"
                         class="inline-flex items-center rounded-xl bg-blue-600 px-6 py-2 text-base font-semibold text-white transition-colors duration-200 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
                         <i class="fas fa-plus pr-2"></i>Create
                     </a>
                 </div>
 
                 <div class="overflow-x-auto p-6"> {{-- Padding applied here instead of outer container --}}
-                    <table id="sppbsTable" class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                    <table id="spbsTable" class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                         <thead class="bg-gray-50 dark:bg-gray-700">
                             <tr>
-                                <th scope="col"
-                                    class="w-32 px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
-                                    DocID
+                                <th class="w-32 px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                                DocID
                                 </th>
-                                <th scope="col"
-                                    class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
-                                    Date
+                                <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                                Date
                                 </th>
-                                <th scope="col"
-                                    class="w-32 px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
-                                    Company
+                                <th class="w-32 px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                                Company
                                 </th>
-                                <th scope="col"
-                                    class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
-                                    Department
+                                <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                                Department
                                 </th>
-                                <th scope="col"
-                                    class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
-                                    Request Type
+                                <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                                Work Type
                                 </th>
-                                <th scope="col"
-                                    class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
-                                    Description
+                                <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                                Sub Work Type
                                 </th>
-                                <th scope="col"
-                                    class="w-32 px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
-                                    Status
+                                <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                                Description
+                                </th>
+                                <th class="w-32 px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                                Status
                                 </th>
                             </tr>
                         </thead>
+
                         <tbody class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-800">
                             {{-- Table rows will be populated here by JavaScript/DataTables --}}
                         </tbody>
@@ -394,7 +391,7 @@
                     <!-- Header -->
                     <div class="mb-4 flex items-center justify-between">
                         <h3 class="text-lg font-semibold text-gray-800 dark:text-white">
-                            SPPB Tracking <span id="trackDoc" class="font-bold text-indigo-600"></span>
+                            SPB Tracking <span id="trackDoc" class="font-bold text-indigo-600"></span>
                         </h3>
                         <button id="closeTracking"
                             class="text-2xl leading-none text-gray-400 hover:text-gray-600 dark:text-gray-400 dark:hover:text-gray-200">
@@ -479,7 +476,7 @@
                     list.innerHTML = steps.map((s, i) => {
                         const st = String(s.status || '').toUpperCase();
                         const C = MAP[st] || MAP._;
-                        const title = (s.title && String(s.title).trim()) || 'SPPB';
+                        const title = (s.title && String(s.title).trim()) || 'SPB';
 
                         const when = (s.at && String(s.at).trim()) || '';
                         const by = (s.by && String(s.by).trim()) || '';
@@ -512,10 +509,6 @@
                     }).join('');
                 }
             </script>
-
-
-
-
 
             <script>
                 // Scroll controls
@@ -562,7 +555,7 @@
                     openTrackingModal(doc);
 
                     $.ajax({
-                        url: `/sppbs/${id}/tracking`,
+                        url: `/spbs/${id}/tracking`,
                         method: 'GET',
                         dataType: 'json',
                         success: function(res) {
@@ -573,7 +566,7 @@
                             // fallback demo
                             renderTimeline([{
                                     key: 'submitted',
-                                    title: 'SPPB',
+                                    title: 'SPB',
                                     status: 'C',
                                     status_label: 'Submitted',
                                     by: 'Williem Halim',
@@ -602,7 +595,7 @@
                     // simpan status filter global
                     let statusFilter = 'P'; // default
 
-                    const table = $('#sppbsTable').DataTable({
+                    const table = $('#spbsTable').DataTable({
                         processing: true,
                         serverSide: true,
                         deferRender: true,
@@ -614,7 +607,7 @@
                         lengthMenu: [10, 25, 50, 100, 250],
 
                         ajax: {
-                            url: "{{ route('sppbs.json') }}",
+                            url: "{{ route('spbs.json') }}",
                             type: "GET",
                             data: function(d) {
                                 d.status = statusFilter ?? ''; // kirim status ke server
@@ -626,95 +619,68 @@
                         ], // Date desc, lalu DocID desc
 
                         columns: [
-                            // DocID (button link)
+                            // 0. DocID (dengan tombol Tracking)
                             {
-                                data: 'sppbid',
+                                data: 'spbid',
                                 render: function(data, type, row) {
-                                    // let url = `/showsppbs/${row.id}`;
-                                    let url = `/showsppbs/${row.eid}`;
-                                    let cls =
-                                        'inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-sm leading-tight font-medium text-white rounded text-center transition-colors duration-200 bg-gray-500 hover:bg-gray-700';
+                                let url = `/showspbs/${row.eid}`;
+                                let cls = 'inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-sm leading-tight font-medium text-white rounded text-center transition-colors duration-200 bg-gray-500 hover:bg-gray-700';
+                                const text = data || row.id;
 
-                                    const text = data || row.id;
+                                if (row.status === 'D' && row.created_by === currentUser) {
+                                    url = `/editspbs/${row.eid}`;
+                                    cls = 'inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-sm leading-tight font-medium text-white rounded text-center transition-colors duration-200 bg-yellow-500 hover:bg-yellow-700';
+                                }
 
-                                    // jika status Draft & milik current user → ke halaman edit
-                                    if (row.status === 'D' && row.created_by === currentUser) {
-                                        // url = `/editsppbs/${row.id}`;
-                                        url = `/editsppbs/${row.eid}`;
-                                        cls =
-                                            'inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-sm leading-tight font-medium text-white rounded text-center transition-colors duration-200 bg-yellow-500 hover:bg-yellow-700';
-
-                                    }
-
-                                    return `
+                                return `
                                     <div class="flex items-left gap-2 whitespace-nowrap">
-                                        <a href="${url}" class="${cls}">${text}</a>
-                                        <button type="button"
-                                        class="tracking-btn inline-flex items-left justify-center rounded-full p-2
-                                                text-red-600 hover:text-red-700 hover:bg-red-50"
-                                        data-id="${row.id}" aria-label="Tracking" title="Tracking">
+                                    <a href="${url}" class="${cls}">${text}</a>
+                                    <button type="button"
+                                            class="tracking-btn inline-flex items-left justify-center rounded-full p-2 text-red-600 hover:text-red-700 hover:bg-red-50"
+                                            data-id="${row.id}" data-doc="${text}" aria-label="Tracking" title="Tracking">
                                         <i class="fa-solid fa-paper-plane"></i>
-                                        </button>
+                                    </button>
                                     </div>
-                                    `;
+                                `;
                                 }
                             },
 
-                            {
-                                data: 'sppbdate',
-                                className: 'text-left'
-                            },
-                            {
-                                data: 'cpny_id',
-                                className: 'text-center w-32'
-                            },
-                            {
-                                data: 'department_id',
-                                className: 'text-center whitespace-normal break-words'
-                            },
-                            {
-                                data: 'requesttype_name',
-                                defaultContent: '-',
-                                className: 'text-left'
-                            },
-                            {
-                                data: 'keperluan'
-                            },
+                            // 1. Date
+                            { data: 'spbdate', className: 'text-left' },
 
+                            // 2. Company
+                            { data: 'cpny_id', className: 'text-center w-32' },
+
+                            // 3. Department
+                            { data: 'department_id', className: 'text-center whitespace-normal break-words' },
+
+                            // 4. Work Type
+                            { data: 'worktype_name', defaultContent: '-', className: 'text-left' },
+
+                            // 5. Sub Work Type
+                            { data: 'subworktype_name', defaultContent: '-', className: 'text-left' },
+
+                            // 6. Description
+                            { data: 'keperluan' },
+
+                            // 7. Status (badge)
                             {
                                 data: 'status',
                                 className: 'text-left',
                                 render: function(data) {
-                                    const map = {
-                                        'D': {
-                                            t: 'Revise',
-                                            c: 'bg-gray-300/30 text-gray-600'
-                                        },
-                                        'P': {
-                                            t: 'On Progress',
-                                            c: 'bg-blue-300/30 text-blue-600'
-                                        },
-                                        'C': {
-                                            t: 'Completed',
-                                            c: 'bg-green-300/30 text-green-600'
-                                        },
-                                        'X': {
-                                            t: 'Cancel',
-                                            c: 'bg-red-300/30 text-red-600'
-                                        },
-                                        'R': {
-                                            t: 'Rejected',
-                                            c: 'bg-red-300/30 text-red-600'
-                                        },
-                                    };
-                                    const it = map[data] || {
-                                        t: data || '-',
-                                        c: 'bg-gray-300/30 text-gray-600'
-                                    };
-                                    return `<span class="w-32 inline-block ${it.c} font-semibold px-4 py-2 text-center rounded">${it.t}</span>`;
+                                const map = {
+                                    'D': { t: 'Revise',     c: 'bg-gray-300/30 text-gray-600' },
+                                    'P': { t: 'On Progress',c: 'bg-blue-300/30 text-blue-600' },
+                                    'C': { t: 'Completed',  c: 'bg-green-300/30 text-green-600' },
+                                    'X': { t: 'Cancel',     c: 'bg-red-300/30 text-red-600' },
+                                    'R': { t: 'Rejected',   c: 'bg-red-300/30 text-red-600' },
+                                };
+                                const it = map[data] || { t: data || '-', c: 'bg-gray-300/30 text-gray-600' };
+                                return `<span class="w-32 inline-block ${it.c} font-semibold px-4 py-2 text-center rounded">${it.t}</span>`;
                                 }
                             }
                         ],
+
 
                         // Tweak untuk kinerja
                         searchDelay: 400, // debounce search

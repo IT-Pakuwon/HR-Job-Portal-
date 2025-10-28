@@ -5,14 +5,17 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class TrSPBdetail extends Model
+class TrIssuedetail extends Model
 {
     protected $connection = 'pgsql';
-    protected $table = "tr_spb_detail";
+    protected $table = "tr_issue_detail";
 
     protected $fillable = [
+        'issueid',
+        'issue_no',
         'spbid',
         'spb_no',
+        'issuetype',
         'inventoryid',
         'inventory_descr',
         'siteid',
@@ -22,6 +25,8 @@ class TrSPBdetail extends Model
         'base_multiplier',
         'base_qty',
         'base_uom',
+        'unitcost',
+        'totalcost',
         'note',
         'location_id',
         'sub_location_id',
@@ -31,10 +36,8 @@ class TrSPBdetail extends Model
         'budget_department_fin_id',
         'budget_account_id',
         'budget_activity_id',
-        'stock_qty',
-        'spb_openqty',
+        'reason_code',
         'issue_qty',
-        'spb_completeqty',
         'status',
         'created_by',
         'updated_by'
