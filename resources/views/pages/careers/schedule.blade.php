@@ -48,10 +48,14 @@
                     <select
                         class="w-full rounded-sm border border-gray-200/50 bg-gray-200/10 p-3 focus:ring focus:ring-blue-300 dark:bg-gray-800"
                         name="reftype" style="width: 100%; margin-bottom: 16px;" required>
-                        @foreach ($typestep as $p)
+                        {{-- @foreach ($typestep as $p)
                             <option value="{{ $p->step_id }}">{{ $p->step_descr }}</option>
-                        @endforeach
-                    </select>
+                        @endforeach --}}
+                        <option value="">Select</option>
+                        <option value="Interview User">Interview User</option>
+                        <option value="Interview HC">Interview HC</option>
+                        <option value="Interview HC & User">Interview HC & User</option>                        
+                    </select>            
                 </div>
                 <div class="flex w-1/2 flex-col">
                     <label>Site</label>

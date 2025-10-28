@@ -40,13 +40,19 @@
 
     <div class="max-w-9xl mx-auto px-4 py-4 sm:px-6 lg:px-8">
         <div class="mb-4 flex items-center justify-between">
-            <button onclick="history.back()"
-                class="inline-flex items-center gap-1 rounded-md bg-gray-100 px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:bg-gray-700/30 dark:text-gray-300 dark:hover:bg-gray-600/50">
-                ← Back
-            </button>        
+            <div>
+                <button onclick="history.back()"
+                    class="inline-flex items-center gap-1 rounded-md bg-gray-100 px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:bg-gray-700/30 dark:text-gray-300 dark:hover:bg-gray-600/50">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                        stroke="currentColor" class="h-4 w-4">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+                    </svg>
+                    Back
+                </button>
+            </div>
+
             <div class="flex gap-3">
-                @if ($rcp->status === 'P')
-                <button id="submitBtn"
+                <button id="approveBtn"
                     class="inline-flex items-center gap-1 rounded-md bg-green-100 px-3 py-2 text-sm font-medium text-green-700 transition-colors hover:bg-green-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 dark:bg-green-700/30 dark:text-green-300 dark:hover:bg-green-600/50">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                         stroke="currentColor" class="h-4 w-4">
@@ -55,8 +61,25 @@
                     </svg>
                     Approve
                 </button>
-                @endif               
-            </div>    
+                <button id="reviseBtn"
+                    class="inline-flex items-center gap-1 rounded-md bg-gray-500 px-3 py-2 text-sm font-medium text-gray-100 transition-colors hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:bg-gray-100 dark:bg-gray-700/30 dark:text-gray-300 dark:hover:bg-gray-600/50">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                        stroke="currentColor" class="size-4">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
+                    </svg>
+                    Revise
+                </button>
+                <button id="rejectBtn"
+                    class="inline-flex items-center gap-1 rounded-md bg-red-100 px-3 py-2 text-sm font-medium text-red-700 transition-colors hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:bg-red-700/30 dark:text-red-300 dark:hover:bg-red-600/50">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                        stroke="currentColor" class="h-4 w-4">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M7.498 15.25H4.372c-1.026 0-1.945-.694-2.054-1.715a12.137 12.137 0 0 1-.068-1.285c0-2.848.992-5.464 2.649-7.521C5.287 4.247 5.886 4 6.504 4h4.016a4.5 4.5 0 0 1 1.423.23l3.114 1.04a4.5 4.5 0 0 0 1.423.23h1.294M7.498 15.25c.618 0 .991.724.725 1.282A7.471 7.471 0 0 0 7.5 19.75 2.25 2.25 0 0 0 9.75 22a.75.75 0 0 0 .75-.75v-.633c0-.573.11-1.14.322-1.672.304-.76.93-1.33 1.653-1.715a9.04 9.04 0 0 0 2.86-2.4c.498-.634 1.226-1.08 2.032-1.08h.384m-10.253 1.5H9.7m8.075-9.75c.01.05.027.1.05.148.593 1.2.925 2.55.925 3.977 0 1.487-.36 2.89-.999 4.125m.023-8.25c-.076-.365.183-.75.575-.75h.908c.889 0 1.713-.518 1.972-1.368.339 1.11.521 2.287.521 3.507 0 1.553-.295 3.036-.831 4.398-.306.774-1.086 1.227-1.918 1.227h-1.053c-.472 0-.745-.556-.5-.96a8.95 8.95 0 0 0 .303-.54" />
+                    </svg>
+                    Reject
+                </button>
+            </div>
         </div>
         
 
@@ -424,7 +447,7 @@
     </script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-    <script>
+    {{-- <script>
         document.addEventListener('DOMContentLoaded', function () {
             const btn = document.getElementById('submitBtn');
             if (!btn) return;
@@ -483,6 +506,194 @@
                         btn.disabled = false;
                         btn.innerHTML = originalText;
                     });
+                });
+            });
+        });
+    </script> --}}
+
+       <script>
+        $(document).on("click", "#approveBtn", function() {
+            let spbid = "{{ $spb->spbid }}"; // Ambil Task ID dari modal        
+            approveSPB(spbid);
+        });
+
+        function approveSPB(spbid) {
+            let $spinner = $("#loadingSpinnerContainer"); // Ambil elemen spinner
+
+            // Tampilkan spinner di kanan bawah
+            $spinner.fadeIn();
+
+            $.ajax({
+                url: `/spb/${spbid}/approve`,
+                type: "POST",
+                data: {
+                    _token: "{{ csrf_token() }}",
+                    spbid: spbid
+                },
+                success: function(response) {
+                    if (response.success) {
+                        // Update status di UI
+                        $("#xstatus").text("Approved")
+                            .removeClass()
+                            .addClass(
+                                "w-full max-w-32 bg-green-300/30 dark:bg-green-300 text-green-600 flex justify-items-center focus:outline-none pointer-events-none    -none font-semibold px-2 py-0.5 rounded"
+                            );
+
+                        // Tampilkan alert sukses
+                        toastr.success("SPB approved successfully!");
+                        window.location.href = "/spbs";
+                    } else {
+                        toastr.error(response.message);
+                    }
+                },
+                error: function(xhr) {
+                    console.error(xhr.responseText);
+
+                    if (xhr.status === 403) {
+                        toastr.error("You are not authorized to approve this spb.");
+                    } else {
+                        toastr.error("Error: Unable to approve spb.");
+                    }
+                },
+                complete: function() {
+                    // Sembunyikan spinner setelah request selesai
+                    $spinner.fadeOut();
+                }
+            });
+        }
+    </script>
+
+
+    <script>
+        $(document).ready(function() {
+            // Saat tombol "Reject" ditekan, tampilkan modal Reject di depan
+            $(document).on("click", "#rejectBtn", function() {
+                $("#rejectReason").val(""); // Reset alasan reject
+                // $("#rejectTaskModal").removeClass("hidden").css("z-index", "60");
+                let spbid = "{{ $spb->spbid }}";
+                checkApproval(spbid, "reject");
+
+            });
+
+            // Saat tombol "Cancel" ditekan, tutup modal Reject
+            $(document).on("click", "#cancelRejectBtn", function() {
+                $("#rejectTaskModal").addClass("hidden");
+            });
+
+            // Saat tombol "Reject" ditekan, proses perubahan status
+            $(document).on("click", "#confirmRejectBtn", function() {
+                let spbid = "{{ $spb->spbid }}"; // Ambil ID tugas dari modal detail
+                let rejectReason = $("#rejectReason").val().trim();
+
+                if (rejectReason === "") {
+                    toastr.error("Please provide a reason for rejection.");
+                    return;
+                }
+
+                let $spinner = $("#loadingSpinnerContainer"); // Ambil elemen spinner        
+                // Tampilkan spinner di kanan bawah
+                $spinner.fadeIn();
+
+                $.ajax({
+                    url: `/spb/${spbid}/reject`,
+                    type: "POST",
+                    data: {
+                        _token: "{{ csrf_token() }}",
+                        docid: spbid,
+                        reason: rejectReason
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            // alert("Task has been rejected successfully.");
+
+                            // Update status di modal spb
+                            $("#xstatus").text("Rejected")
+                                .removeClass()
+                                .addClass(
+                                    "w-full max-w-32 bg-red-300/30 dark:bg-red-300 text-red-600 flex justify-items-center focus:outline-none pointer-events-none    -none font-semibold px-2 py-0.5 rounded"
+                                );
+                            $spinner.fadeOut();
+
+                            window.location.href = "/spbs";
+                        } else {
+                            alert("Failed to reject spb.");
+                        }
+                    },
+                    error: function(xhr) {
+                        console.error(xhr.responseText);
+
+                        if (xhr.status === 403) {
+                            alert("You Can't Rejected!"); // Popup jika user tidak berhak
+                        } else {
+                            alert("Error: Unable to reject spb status.");
+                        }
+                    },
+                });
+            });
+        });
+    </script>
+    <script>
+        $(document).ready(function() {
+            // Saat tombol "Revise" ditekan, tampilkan modal Revise di depan
+            $(document).on("click", "#reviseBtn", function() {
+                $("#reviseReason").val(""); // Reset alasan revise
+                // $("#reviseTaskModal").removeClass("hidden").css("z-index", "60");
+                let spbid = "{{ $spb->spbid }}";
+                checkApproval(spbid, "revise");
+
+            });
+
+            // Saat tombol "Cancel" ditekan, tutup modal Revise
+            $(document).on("click", "#cancelReviseBtn", function() {
+                $("#reviseTaskModal").addClass("hidden");
+            });
+
+            // Saat tombol "Revise" ditekan, proses perubahan status
+            $(document).on("click", "#confirmReviseBtn", function() {
+                let spbid = "{{ $spb->spbid }}"; // Ambil ID tugas dari modal detail
+                let reviseReason = $("#reviseReason").val().trim();
+
+                if (reviseReason === "") {
+                    toastr.error("Please provide a reason for revise.");
+                    return;
+                }
+                let $spinner = $("#loadingSpinnerContainer"); // Ambil elemen spinner        
+                // Tampilkan spinner di kanan bawah
+                $spinner.fadeIn();
+
+                $.ajax({
+                    url: `/spb/${spbid}/revise`,
+                    type: "POST",
+                    data: {
+                        _token: "{{ csrf_token() }}",
+                        docid: spbid,
+                        reason: reviseReason
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            // alert("Task has been reviseed successfully.");
+
+                            // Update status di modal spb
+                            $("#xstatus").text("Revised")
+                                .removeClass()
+                                .addClass(
+                                    "w-full max-w-32 bg-red-300/30 dark:bg-red-300 text-red-600 flex justify-items-center focus:outline-none pointer-events-none    -none font-semibold px-2 py-0.5 rounded"
+                                );
+                            $spinner.fadeOut();
+                            window.location.href = "/spbs";
+                        } else {
+                            alert("Failed to revise spb.");
+                        }
+                    },
+                    error: function(xhr) {
+                        console.error(xhr.responseText);
+
+                        if (xhr.status === 403) {
+                            alert("You Can't Revised!"); // Popup jika user tidak berhak
+                        } else {
+                            alert("Error: Unable to revise spb status.");
+                        }
+                    },
                 });
             });
         });

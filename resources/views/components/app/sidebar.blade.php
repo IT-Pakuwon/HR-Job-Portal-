@@ -76,7 +76,7 @@
                         :class="{ 'lg:block': sidebarExpanded, 'lg:hidden': !sidebarExpanded }">
                         Human Resources
                     </li>
-                    <li
+                    {{-- <li
                         class="bg-linear-to-r @if (in_array(Request::segment(1), ['stos', 'showstos'])) {{ 'from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]' }} @endif mb-0.5 rounded-lg py-2 pl-4 pr-3 last:mb-0">
                         <a class="@if (!in_array(Request::segment(1), ['stos', 'showstos'])) {{ 'hover:text-gray-900 dark:hover:text-white' }} @endif block truncate text-gray-800 transition dark:text-gray-100"
                             href="{{ route('stos', 'showstos') }}">
@@ -92,13 +92,13 @@
                                     Structure</span>
                             </div>
                         </a>
-                    </li>
+                    </li> --}}
                     <!-- Dashboard -->
                     <li class="bg-linear-to-r @if (in_array(Request::segment(1), [
                             'personnels',
                             'createPersonnel',
                             'editPersonnel',
-                            'showpersonnels',
+                            // 'showpersonnels/{hash}',
                             'jobapplicant',
                             'changestos',
                             'showApplicant',
@@ -112,7 +112,7 @@
                             'personnels',
                             'createPersonnel',
                             'editPersonnel',
-                            'showpersonnels',
+                            // 'showpersonnels/{hash}',
                             'jobapplicant',
                             'changestos',
                             'showApplicant',
@@ -129,7 +129,7 @@
                                 'personnels',
                                 'createPersonnel',
                                 'editPersonnel',
-                                'showpersonnels',
+                                // 'showpersonnels/{hash}',
                                 'jobapplicant',
                                 'showApplicant',
                                 'showcareers',
@@ -145,7 +145,7 @@
                                             'personnels',
                                             'createPersonnel',
                                             'editPersonnel',
-                                            'showpersonnels',
+                                            // 'showpersonnels/{hash}',
                                             'jobapplicant',
                                             'changestos',
                                             'editChangesto',
@@ -177,7 +177,7 @@
                                     'personnels',
                                     'createPersonnel',
                                     'editPersonnel',
-                                    'showpersonnels',
+                                    // 'showpersonnels/{hash}',
                                     'jobapplicant',
                                     'showcareers',
                                     'changestos',
@@ -188,25 +188,26 @@
                                 ])) {{ 'hidden' }} @endif mt-1 pl-8"
                                 :class="open ? 'block!' : 'hidden'">
                                 <li class="mb-1 last:mb-0">
-                                    <a class="@if (Route::is('personnels', 'createPersonnel', 'editPersonnel', 'showpersonnels')) {{ 'text-violet-500!' }} @endif block truncate text-gray-500/90 transition hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                                    <a class="@if (Route::is('personnels', 'createPersonnel', 'editPersonnel', 'showpersonnels/{hash}')) {{ 'text-violet-500!' }} @endif block truncate text-gray-500/90 transition hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
                                         href="{{ route('personnels') }}">
                                         <span
                                             class="lg:sidebar-expanded:opacity-100 text-m font-medium duration-200 lg:opacity-0 2xl:opacity-100">PRF</span>
                                     </a>
                                 </li>
                                 <li class="mb-1 last:mb-0">
-                                    <a class="@if (Route::is('jobapplicant', 'showcareers')) {{ 'text-violet-500!' }} @endif block truncate text-gray-500/90 transition hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                                    <a class="@if (Route::is('jobapplicant')) {{ 'text-violet-500!' }} @endif block truncate text-gray-500/90 transition hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
                                         href="{{ route('jobapplicant') }}">
                                         <span
                                             class="lg:sidebar-expanded:opacity-100 text-m font-medium duration-200 lg:opacity-0 2xl:opacity-100">Applicant
                                             Portal</span>
                                     </a>
                                 </li>
-                                 <li class="mb-1 last:mb-0">
+                                <li class="mb-1 last:mb-0">
                                     <a class="@if (Route::is('changestos')) {{ 'text-violet-500!' }} @endif block truncate text-gray-500/90 transition hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
                                         href="{{ route('changestos') }}">
                                         <span
-                                            class="lg:sidebar-expanded:opacity-100 text-m font-medium duration-200 lg:opacity-0 2xl:opacity-100">Request Additional</span>
+                                            class="lg:sidebar-expanded:opacity-100 text-m font-medium duration-200 lg:opacity-0 2xl:opacity-100">Request
+                                            Additional</span>
                                     </a>
                                 </li>
                             </ul>
@@ -231,7 +232,7 @@
                                             stroke-width="1.5" stroke="currentColor" width="16" height="16">
                                             <path stroke-linecap="round" stroke-linejoin="round"
                                                 d=" M2.25 18.75a60.07 60.07 0 0 1 15.797 2.101c.727.198 1.453-.342
-                                                                                                                                                                                                    1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 0 1 3 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 0 0-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 0 1-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 0 0 3 15h-.75M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm3 0h.008v.008H18V10.5Zm-12 0h.008v.008H6V10.5Z" />
+                                                                                                                                                                                                                                                        1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 0 1 3 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 0 0-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 0 1-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 0 0 3 15h-.75M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm3 0h.008v.008H18V10.5Zm-12 0h.008v.008H6V10.5Z" />
                                         </svg>
                                         <span
                                             class="lg:sidebar-expanded:opacity-100 text-m ml-4 font-medium duration-200 lg:opacity-0 2xl:opacity-100">Budget</span>
@@ -547,19 +548,20 @@
                                             <a class="@if (Route::is('wos')) {{ 'text-violet-500!' }} @endif block truncate text-gray-500/90 transition hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
                                                 href="{{ route('wos') }}">
                                                 <span
-                                                    class="lg:sidebar-expanded:opacity-100 text-m font-medium duration-200 lg:opacity-0 2xl:opacity-100">WO List</span>
+                                                    class="lg:sidebar-expanded:opacity-100 text-m font-medium duration-200 lg:opacity-0 2xl:opacity-100">WO
+                                                    List</span>
                                             </a>
-                                        </li>                                       
+                                        </li>
                                     </ul>
                                 </div>
                             </li>
-                            <li class="bg-linear-to-r @if (in_array(Request::segment(1), ['wos'])) {{ 'from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]' }} @endif mb-0.5 rounded-lg py-2 pl-4 pr-3 last:mb-0"
-                                x-data="{ open: {{ in_array(Request::segment(1), ['wos']) ? 1 : 0 }} }">
-                                <a class="@if (!in_array(Request::segment(1), ['wos'])) {{ 'hover:text-gray-900 dark:hover:text-white' }} @endif block truncate text-gray-800 transition dark:text-gray-100"
+                            <li class="bg-linear-to-r @if (in_array(Request::segment(1), ['spbs'])) {{ 'from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]' }} @endif mb-0.5 rounded-lg py-2 pl-4 pr-3 last:mb-0"
+                                x-data="{ open: {{ in_array(Request::segment(1), ['spbs']) ? 1 : 0 }} }">
+                                <a class="@if (!in_array(Request::segment(1), ['spbs'])) {{ 'hover:text-gray-900 dark:hover:text-white' }} @endif block truncate text-gray-800 transition dark:text-gray-100"
                                     href="#0" @click.prevent="open = !open; sidebarExpanded = true">
                                     <div class="flex items-center justify-between">
                                         <div class="flex items-center">
-                                            <svg class="@if (in_array(Request::segment(1), ['wos'])) text-violet-500 @else text-gray-400 dark:text-gray-500 @endif shrink-0"
+                                            <svg class="@if (in_array(Request::segment(1), ['spbs'])) text-violet-500 @else text-gray-400 dark:text-gray-500 @endif shrink-0"
                                                 xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                                 stroke-width="1.5" stroke="currentColor" width="16" height="16">
                                                 <path stroke-linecap="round" stroke-linejoin="round"
@@ -573,7 +575,7 @@
                                         </div>
                                         <div
                                             class="lg:sidebar-expanded:opacity-100 ml-2 flex shrink-0 duration-200 lg:opacity-0 2xl:opacity-100">
-                                            <svg class="@if (in_array(Request::segment(1), ['wos'])) {{ 'rotate-180' }} @endif ml-1 h-3 w-3 shrink-0 fill-current text-gray-400 dark:text-gray-500"
+                                            <svg class="@if (in_array(Request::segment(1), ['spbs'])) {{ 'rotate-180' }} @endif ml-1 h-3 w-3 shrink-0 fill-current text-gray-400 dark:text-gray-500"
                                                 :class="open ? 'rotate-180' : 'rotate-0'" viewBox="0 0 12 12">
                                                 <path d="M5.9 11.4L.5 6l1.4-1.4 4 4 4-4L11.3 6z" />
                                             </svg>
@@ -581,15 +583,29 @@
                                     </div>
                                 </a>
                                 <div class="lg:sidebar-expanded:block lg:hidden 2xl:block">
-                                    <ul class="@if (!in_array(Request::segment(1), ['wos'])) {{ 'hidden' }} @endif mt-1 pl-8"
+                                    <ul class="@if (!in_array(Request::segment(1), ['spbs'])) {{ 'hidden' }} @endif mt-1 pl-8"
                                         :class="open ? 'block!' : 'hidden'">
                                         <li class="mb-1 last:mb-0">
-                                            <a class="@if (Route::is('wos')) {{ 'text-violet-500!' }} @endif block truncate text-gray-500/90 transition hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-                                                href="{{ route('wos') }}">
+                                            <a class="@if (Route::is('spbs')) {{ 'text-violet-500!' }} @endif block truncate text-gray-500/90 transition hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                                                href="{{ route('spbs') }}">
                                                 <span
-                                                    class="lg:sidebar-expanded:opacity-100 text-m font-medium duration-200 lg:opacity-0 2xl:opacity-100">SPB List</span>
+                                                    class="lg:sidebar-expanded:opacity-100 text-m font-medium duration-200 lg:opacity-0 2xl:opacity-100">SPB
+                                                    List</span>
                                             </a>
-                                        </li>                                       
+                                        </li>
+                                    </ul>
+                                </div>
+                                <div class="lg:sidebar-expanded:block lg:hidden 2xl:block">
+                                    <ul class="@if (!in_array(Request::segment(1), ['issuelist'])) {{ 'hidden' }} @endif mt-1 pl-8"
+                                        :class="open ? 'block!' : 'hidden'">
+                                        <li class="mb-1 last:mb-0">
+                                            <a class="@if (Route::is('issuelist')) {{ 'text-violet-500!' }} @endif block truncate text-gray-500/90 transition hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                                                href="{{ route('issuelist') }}">
+                                                <span
+                                                    class="lg:sidebar-expanded:opacity-100 text-m font-medium duration-200 lg:opacity-0 2xl:opacity-100">Issue
+                                                    List</span>
+                                            </a>
+                                        </li>
                                     </ul>
                                 </div>
                             </li>

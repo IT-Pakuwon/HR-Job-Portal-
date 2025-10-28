@@ -945,14 +945,7 @@ class WoController extends Controller
                 $wo->completed_at = $now;
                 $wo->save();
 
-                $wodetail = TrWOdetail::where('woid', $wo->woid)                
-                    ->get();
-
-                foreach ($wodetail as $d) {
-                    $d->status = 'C'; 
-                    $d->save();
-                }
-
+             
                 // Kirim email ke requester (creator)
                 $status        = 'C';
                 $subjectSuffix = $subjectMap[$status] ?? 'Notification';                

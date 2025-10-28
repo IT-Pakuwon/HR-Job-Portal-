@@ -150,7 +150,7 @@
         </div>
         <div class="flex w-full flex-col gap-6 xl:flex-col">
             <div class="flex w-full items-stretch gap-6 xl:flex-row">
-                {{-- Left card (SPPB Info) --}}
+                {{-- Left card (SPB Info) --}}
                 <div class="flex flex-1 flex-col rounded-xl bg-white dark:bg-gray-800">
                     <header
                         class="sticky top-0 z-10 flex items-center justify-between rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
@@ -159,11 +159,11 @@
                                 class="inline-flex items-center rounded-md bg-purple-100 px-2 py-1 text-sm font-semibold text-purple-700">
                                 ID
                             </span>
-                            {{ $sppb->sppbid }}
+                            {{ $spb->spbid }}
                         </h1>
 
                         @php
-                            $statusText = match ($sppb->status) {
+                            $statusText = match ($spb->status) {
                                 'D' => 'Revise',
                                 'P' => 'On Progress',
                                 'C' => 'Completed',
@@ -172,7 +172,7 @@
                                 default => 'Unknown',
                             };
 
-                            $statusClasses = match ($sppb->status) {
+                            $statusClasses = match ($spb->status) {
                                 'D' => 'bg-blue-100 text-blue-700 dark:bg-blue-800/30 dark:text-blue-300',
                                 'P' => 'bg-yellow-100 text-yellow-700 dark:bg-yellow-800/30 dark:text-yellow-300',
                                 'C' => 'bg-green-100 text-green-700 dark:bg-green-800/30 dark:text-green-300',
@@ -187,7 +187,7 @@
                                 {{ $statusText }}
                             </span>
 
-                            <a href="{{ url('/pdf_sppbs') }}/{{ $hash }}" target="_blank">
+                            <a href="{{ url('/pdf_spbs') }}/{{ $hash }}" target="_blank">
                                 <button
                                     class="inline-flex cursor-pointer items-center gap-2 rounded-full bg-indigo-600 px-4 py-1 text-sm font-semibold text-white transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
                                     Print PDF
@@ -203,7 +203,7 @@
                                 <x-heroicon-o-building-office class="h-5 w-5 text-gray-400" />
                                 <span class="min-w-32 max-w-32 text-gray-500">Company</span>
                                 <span
-                                    class="break-words font-medium text-gray-900 dark:text-gray-300">{{ $sppb->cpny_id }}</span>
+                                    class="break-words font-medium text-gray-900 dark:text-gray-300">{{ $spb->cpny_id }}</span>
                             </div>
 
                             {{-- Department --}}
@@ -211,7 +211,7 @@
                                 <x-heroicon-o-squares-2x2 class="h-5 w-5 text-gray-400" />
                                 <span class="min-w-32 max-w-32 text-gray-500">Department</span>
                                 <span
-                                    class="break-words font-medium text-gray-900 dark:text-gray-300">{{ $sppb->department_id }}</span>
+                                    class="break-words font-medium text-gray-900 dark:text-gray-300">{{ $spb->department_id }}</span>
                             </div>
 
                             {{-- Date --}}
@@ -219,7 +219,7 @@
                                 <x-heroicon-o-calendar class="h-5 w-5 text-gray-400" />
                                 <span class="min-w-32 max-w-32 text-gray-500">Date</span>
                                 <span class="break-words font-medium text-gray-900 dark:text-gray-300">
-                                    {{ date('j F Y', strtotime($sppb->sppbdate)) }}
+                                    {{ date('j F Y', strtotime($spb->spbdate)) }}
                                 </span>
                             </div>
 
@@ -228,34 +228,52 @@
                                 <x-heroicon-o-user class="h-5 w-5 text-gray-400" />
                                 <span class="min-w-32 max-w-32 text-gray-500">Created User</span>
                                 <span class="break-words font-medium text-gray-900 dark:text-gray-300">
-                                    {{ ucwords(strtolower(optional($sppb->creator)->name)) }}
+                                    {{ ucwords(strtolower(optional($spb->creator)->name)) }}
                                 </span>
                             </div>
 
-                            <div class="col-span-2 flex flex-col gap-3 sm:flex-row">
-
-                                {{-- Request Type --}}
-                                <div class="flex flex-1 items-center gap-2 rounded-md bg-gray-50 p-3 dark:bg-gray-700">
+                            {{-- Baris atas: Jenis Pekerjaan & WO ID --}}
+                            <div class="col-span-2 grid gap-3 sm:grid-cols-2">
+                                {{-- Jenis Pekerjaan (Worktype & Subworktype) --}}
+                                <div class="flex items-center gap-2 rounded-md bg-gray-50 p-3 dark:bg-gray-700">
                                     <x-heroicon-o-clipboard-document-list class="h-5 w-5 text-gray-400" />
                                     <div class="flex flex-col">
-                                        <span class="text-gray-500">Request Type</span>
+                                        <span class="text-gray-500">Jenis Pekerjaan</span>
                                         <span class="break-words font-medium text-gray-900 dark:text-gray-300">
-                                            {{ optional($sppb->requestType)->requesttype_name }}
+                                            {{ optional($spb->worktype)->worktype_name ?? '-' }}
+                                            @php $sub = optional($spb->subworktype)->subworktype_name; @endphp
+                                            @if($sub)
+                                                — {{ $sub }}
+                                            @endif
                                         </span>
                                     </div>
                                 </div>
 
-                                {{-- Purpose --}}
-                                <div class="flex flex-1 items-center gap-2 rounded-md bg-gray-50 p-3 dark:bg-gray-700">
-                                    <x-heroicon-o-clipboard-document-check class="h-5 w-5 text-gray-400" />
+                                {{-- WO ID --}}
+                                <div class="flex items-center gap-2 rounded-md bg-gray-50 p-3 dark:bg-gray-700">
+                                    <x-heroicon-o-document-text class="h-5 w-5 text-gray-400" />
                                     <div class="flex flex-col">
-                                        <span class="text-gray-500">Purpose</span>
-                                        <span <span
-                                            class="break-words font-medium text-gray-900 dark:text-gray-300">{{ $sppb->keperluan }}</span>
+                                        <span class="text-gray-500">WO ID</span>
+                                        <span class="break-words font-medium text-gray-900 dark:text-gray-300">
+                                            {{ $spb->woid ?? '-' }}
+                                        </span>
                                     </div>
                                 </div>
-
                             </div>
+
+                            {{-- Baris bawah: Description full width --}}
+                            <div class="col-span-2">
+                                <div class="flex items-start gap-2 rounded-md bg-gray-50 p-3 dark:bg-gray-700">
+                                    <x-heroicon-o-clipboard-document-check class="mt-0.5 h-5 w-5 text-gray-400" />
+                                    <div class="flex flex-col">
+                                        <span class="text-gray-500">Description</span>
+                                        <span class="break-words font-medium text-gray-900 dark:text-gray-300">
+                                            {{ $spb->keperluan }}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
                         </div>
                     </div>
 
@@ -364,53 +382,29 @@
                                             <th class="p-3 text-left font-semibold">Date</th>
                                         </tr>
                                     </thead>
-                                    {{-- <tbody>
-                                        @forelse ($attachments as $at)
-                                            <tr class="border-b border-gray-100 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700">
-                                                <td class="p-3">
-                                                    @if ($at->url)
-                                                        <a href="{{ $at->url }}" target="_blank"
-                                                        class="flex items-center gap-2 font-medium text-indigo-600 hover:underline dark:text-indigo-400">
-                                                            📎 {{ $at->display_name }}
-                                                        </a>
-                                                    @else
-                                                        <span class="text-gray-700 dark:text-gray-300">📎 {{ $at->display_name }}</span>
-                                                        <span class="ml-2 text-xs text-red-500">(link unavailable)</span>
-                                                    @endif
-                                                </td>
-                                                <td class="p-3">{{ $at->created_by }}</td>
-                                                <td class="p-3">{{ \Carbon\Carbon::parse($at->created_at)->format('d M Y') }}</td>
-                                            </tr>
-                                        @empty
-                                            <tr>
-                                                <td colspan="3" class="p-4 text-center italic text-gray-500 dark:text-gray-400">
-                                                    No attachments found.
-                                                </td>
-                                            </tr>
-                                        @endforelse
-                                    </tbody> --}}
-                                    <tbody id="sppbAttachmentTbody"></tbody>                                   
+                            
+                                    <tbody id="spbAttachmentTbody"></tbody>                                   
 
                                 </table>
                                 {{-- Upload attachment (multi) --}}
                                 <div class="border-t border-gray-200 p-4 dark:border-gray-700">
-                                    <form id="sppbAttachmentUploadForm" enctype="multipart/form-data">
+                                    <form id="spbAttachmentUploadForm" enctype="multipart/form-data">
                                         @csrf
                                         <div class="flex flex-col gap-3 md:flex-row md:items-center">
                                         <div class="flex-1">
-                                            <label for="sppbAttachFiles" class="mb-2 block text-sm font-semibold text-gray-800 dark:text-gray-200">
+                                            <label for="spbAttachFiles" class="mb-2 block text-sm font-semibold text-gray-800 dark:text-gray-200">
                                             Upload Attachments
                                             </label>
                                             <div class="flex items-center gap-3">
-                                            <input type="hidden" name="cpnyid" value="{{ $sppb->cpny_id }}">
-                                            <input type="hidden" name="departementid" value="{{ $sppb->department_id }}">
-                                            <input type="file" id="sppbAttachFiles" name="attachments[]" multiple
+                                            <input type="hidden" name="cpnyid" value="{{ $spb->cpny_id }}">
+                                            <input type="hidden" name="departementid" value="{{ $spb->department_id }}">
+                                            <input type="file" id="spbAttachFiles" name="attachments[]" multiple
                                                     class="block w-full cursor-pointer rounded-md border border-gray-300 bg-white px-2 py-[7px] text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" />
-                                            <button type="button" id="btnUploadSppbAttachment"
+                                            <button type="button" id="btnUploadSpbAttachment"
                                                     class="inline-flex h-[36px] items-center justify-center rounded-md bg-indigo-600 px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
                                                 Upload
                                             </button>
-                                            <button type="button" id="btnResetSppbAttachment"
+                                            <button type="button" id="btnResetSpbAttachment"
                                                     class="inline-flex h-[36px] items-center justify-center rounded-md border border-gray-300 bg-white px-4 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-400 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">
                                                 Reset
                                             </button>
@@ -449,11 +443,11 @@
             </div>
 
 
-            {{-- SPPB Detail table --}}
+            {{-- SPB Detail table --}}
             <div class="flex w-full flex-col rounded-2xl bg-white dark:bg-gray-800">
                 <header
                     class="flex items-center justify-between rounded-t-2xl border-b border-gray-200 bg-white px-6 py-4 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
-                    <h2 class="text-xl font-semibold">📝 SPPB Detail</h2>
+                    <h2 class="text-xl font-semibold">📝 SPB Detail</h2>
                 </header>
                 <div class="overflow-x-auto">
                     <table class="w-full text-sm text-gray-700 dark:text-gray-200">
@@ -474,10 +468,10 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach ($sppbdetail as $item)
+                            @foreach ($spbdetail as $item)
                                 <tr
                                     class="border-t border-gray-200 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800">
-                                    <td class="px-4 py-2">{{ $item->sppb_no }}</td>
+                                    <td class="px-4 py-2">{{ $item->spb_no }}</td>
                                     <td class="px-4 py-2">{{ $item->inventoryid }}</td>
                                     <td class="px-4 py-2">{{ $item->inventory_descr }}</td>
                                     <td class="px-4 py-2">{{ $item->qty }}</td>
@@ -563,17 +557,17 @@
 
     <script>
         $(document).ready(function() {
-            let sppbid = "{{ $sppb->sppbid }}"; // Ambil task ID dari PHP ke JavaScript
-            loadComments(sppbid);
+            let spbid = "{{ $spb->spbid }}"; // Ambil task ID dari PHP ke JavaScript
+            loadComments(spbid);
 
             // **Fungsi untuk Memuat Komentar**
-            function loadComments(sppbid) {
-                console.log("Loading comments for Doc ID:", sppbid);
+            function loadComments(spbid) {
+                console.log("Loading comments for Doc ID:", spbid);
                 let commentList = $('#commentList');
                 commentList.html('<p class="text-gray-500 italic">Loading comments...</p>'); // Loader
 
                 $.ajax({
-                    url: `/sppb/${sppbid}/comments`,
+                    url: `/spb/${spbid}/comments`,
                     type: 'GET',
                     success: function(response) {
                         console.log("Comments Loaded:", response);
@@ -623,10 +617,10 @@
                 $('#postCommentBtn').prop('disabled', true).text('Posting... 🚀'); // Disable button saat proses
 
                 $.ajax({
-                    url: `/sppb/${sppbid}/comments`,
+                    url: `/spb/${spbid}/comments`,
                     type: 'POST',
                     data: {
-                        sppbid: sppbid,
+                        spbid: spbid,
                         comment: input,
                         _token: '{{ csrf_token() }}'
                     },
@@ -634,7 +628,7 @@
                         console.log('Comment added successfully:', response);
 
                         if (response.status === "success") {
-                            loadComments(sppbid); // **Reload komentar setelah menambahkan**
+                            loadComments(spbid); // **Reload komentar setelah menambahkan**
                             $('#commentInput').val(''); // Kosongkan input setelah sukses
                         }
                     },
@@ -666,22 +660,22 @@
     </script>
     <script>
         $(document).on("click", "#approveBtn", function() {
-            let sppbid = "{{ $sppb->sppbid }}"; // Ambil Task ID dari modal        
-            approveSPPB(sppbid);
+            let spbid = "{{ $spb->spbid }}"; // Ambil Task ID dari modal        
+            approveSPB(spbid);
         });
 
-        function approveSPPB(sppbid) {
+        function approveSPB(spbid) {
             let $spinner = $("#loadingSpinnerContainer"); // Ambil elemen spinner
 
             // Tampilkan spinner di kanan bawah
             $spinner.fadeIn();
 
             $.ajax({
-                url: `/sppb/${sppbid}/approve`,
+                url: `/spb/${spbid}/approve`,
                 type: "POST",
                 data: {
                     _token: "{{ csrf_token() }}",
-                    sppbid: sppbid
+                    spbid: spbid
                 },
                 success: function(response) {
                     if (response.success) {
@@ -693,8 +687,8 @@
                             );
 
                         // Tampilkan alert sukses
-                        toastr.success("SPPB approved successfully!");
-                        window.location.href = "/sppbs";
+                        toastr.success("SPB approved successfully!");
+                        window.location.href = "/spbs";
                     } else {
                         toastr.error(response.message);
                     }
@@ -703,9 +697,9 @@
                     console.error(xhr.responseText);
 
                     if (xhr.status === 403) {
-                        toastr.error("You are not authorized to approve this sppb.");
+                        toastr.error("You are not authorized to approve this spb.");
                     } else {
-                        toastr.error("Error: Unable to approve sppb.");
+                        toastr.error("Error: Unable to approve spb.");
                     }
                 },
                 complete: function() {
@@ -723,8 +717,8 @@
             $(document).on("click", "#rejectBtn", function() {
                 $("#rejectReason").val(""); // Reset alasan reject
                 // $("#rejectTaskModal").removeClass("hidden").css("z-index", "60");
-                let sppbid = "{{ $sppb->sppbid }}";
-                checkApproval(sppbid, "reject");
+                let spbid = "{{ $spb->spbid }}";
+                checkApproval(spbid, "reject");
 
             });
 
@@ -735,7 +729,7 @@
 
             // Saat tombol "Reject" ditekan, proses perubahan status
             $(document).on("click", "#confirmRejectBtn", function() {
-                let sppbid = "{{ $sppb->sppbid }}"; // Ambil ID tugas dari modal detail
+                let spbid = "{{ $spb->spbid }}"; // Ambil ID tugas dari modal detail
                 let rejectReason = $("#rejectReason").val().trim();
 
                 if (rejectReason === "") {
@@ -748,18 +742,18 @@
                 $spinner.fadeIn();
 
                 $.ajax({
-                    url: `/sppb/${sppbid}/reject`,
+                    url: `/spb/${spbid}/reject`,
                     type: "POST",
                     data: {
                         _token: "{{ csrf_token() }}",
-                        docid: sppbid,
+                        docid: spbid,
                         reason: rejectReason
                     },
                     success: function(response) {
                         if (response.success) {
                             // alert("Task has been rejected successfully.");
 
-                            // Update status di modal sppb
+                            // Update status di modal spb
                             $("#xstatus").text("Rejected")
                                 .removeClass()
                                 .addClass(
@@ -767,9 +761,9 @@
                                 );
                             $spinner.fadeOut();
 
-                            window.location.href = "/sppbs";
+                            window.location.href = "/spbs";
                         } else {
-                            alert("Failed to reject sppb.");
+                            alert("Failed to reject spb.");
                         }
                     },
                     error: function(xhr) {
@@ -778,7 +772,7 @@
                         if (xhr.status === 403) {
                             alert("You Can't Rejected!"); // Popup jika user tidak berhak
                         } else {
-                            alert("Error: Unable to reject sppb status.");
+                            alert("Error: Unable to reject spb status.");
                         }
                     },
                 });
@@ -791,8 +785,8 @@
             $(document).on("click", "#reviseBtn", function() {
                 $("#reviseReason").val(""); // Reset alasan revise
                 // $("#reviseTaskModal").removeClass("hidden").css("z-index", "60");
-                let sppbid = "{{ $sppb->sppbid }}";
-                checkApproval(sppbid, "revise");
+                let spbid = "{{ $spb->spbid }}";
+                checkApproval(spbid, "revise");
 
             });
 
@@ -803,7 +797,7 @@
 
             // Saat tombol "Revise" ditekan, proses perubahan status
             $(document).on("click", "#confirmReviseBtn", function() {
-                let sppbid = "{{ $sppb->sppbid }}"; // Ambil ID tugas dari modal detail
+                let spbid = "{{ $spb->spbid }}"; // Ambil ID tugas dari modal detail
                 let reviseReason = $("#reviseReason").val().trim();
 
                 if (reviseReason === "") {
@@ -815,27 +809,27 @@
                 $spinner.fadeIn();
 
                 $.ajax({
-                    url: `/sppb/${sppbid}/revise`,
+                    url: `/spb/${spbid}/revise`,
                     type: "POST",
                     data: {
                         _token: "{{ csrf_token() }}",
-                        docid: sppbid,
+                        docid: spbid,
                         reason: reviseReason
                     },
                     success: function(response) {
                         if (response.success) {
                             // alert("Task has been reviseed successfully.");
 
-                            // Update status di modal sppb
+                            // Update status di modal spb
                             $("#xstatus").text("Revised")
                                 .removeClass()
                                 .addClass(
                                     "w-full max-w-32 bg-red-300/30 dark:bg-red-300 text-red-600 flex justify-items-center focus:outline-none pointer-events-none    -none font-semibold px-2 py-0.5 rounded"
                                 );
                             $spinner.fadeOut();
-                            window.location.href = "/sppbs";
+                            window.location.href = "/spbs";
                         } else {
-                            alert("Failed to revise sppb.");
+                            alert("Failed to revise spb.");
                         }
                     },
                     error: function(xhr) {
@@ -844,7 +838,7 @@
                         if (xhr.status === 403) {
                             alert("You Can't Revised!"); // Popup jika user tidak berhak
                         } else {
-                            alert("Error: Unable to revise sppb status.");
+                            alert("Error: Unable to revise spb status.");
                         }
                     },
                 });
@@ -857,10 +851,10 @@
     <!-- Toastr JS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
     <script>
-        function checkApproval(sppbid, action) {
-            console.log(sppbid, '-', action);
+        function checkApproval(spbid, action) {
+            console.log(spbid, '-', action);
             $.ajax({
-                url: `/sppb/${sppbid}/check-approval/${action}`,
+                url: `/spb/${spbid}/check-approval/${action}`,
                 type: "GET",
                 success: function(response) {
                     if (response.canPerformAction) {
@@ -872,11 +866,11 @@
                             $("#reviseReason").val(""); // Reset alasan revise
                             $("#reviseTaskModal").removeClass("hidden").css("z-index", "60");
                             // } else if (action === "approve") {
-                            //     approveSPPB(sppbid); // Jika approve, langsung jalankan proses approval
+                            //     approveSPB(spbid); // Jika approve, langsung jalankan proses approval
                         }
                     } else {
                         // Jika user tidak boleh melakukan aksi, tampilkan popup toastr
-                        toastr.error("You are not authorized to " + action + " this sppb.");
+                        toastr.error("You are not authorized to " + action + " this spb.");
                     }
                 },
                 error: function() {
@@ -889,12 +883,12 @@
  
     <script>
         $(function () {
-        const listUrl   = @json(route('attachments.list',   ['doctype' => 'PB', 'refnbr' => $sppb->sppbid]));
-        const uploadUrl = @json(route('attachments.upload', ['doctype' => 'PB', 'refnbr' => $sppb->sppbid]));
+        const listUrl   = @json(route('attachments.list',   ['doctype' => 'RB', 'refnbr' => $spb->spbid]));
+        const uploadUrl = @json(route('attachments.upload', ['doctype' => 'RB', 'refnbr' => $spb->spbid]));
 
-        function $tbody() { return $('#sppbAttachmentTbody'); } // <tbody id="sppbAttachmentTbody">
+        function $tbody() { return $('#spbAttachmentTbody'); } // <tbody id="spbAttachmentTbody">
 
-        function renderSppbAttachmentRows(rows){
+        function renderSpbAttachmentRows(rows){
             const $tb = $tbody().empty();
 
             if (!rows || !rows.length) {
@@ -928,21 +922,21 @@
             });
         }
 
-        function refreshSppbAttachments(){
+        function refreshSpbAttachments(){
             $.get(listUrl)
             .done(res => {
-                if (res.success) renderSppbAttachmentRows(res.attachments);
+                if (res.success) renderSpbAttachmentRows(res.attachments);
                 else toastr.error(res.message || 'Failed to load attachments.');
             })
             .fail(() => toastr.error('Failed to load attachments.'));
         }
 
         // optional: load saat tab dibuka / page load
-        refreshSppbAttachments();
+        refreshSpbAttachments();
 
-        $('#btnUploadSppbAttachment').on('click', function(){
-            const $form = $('#sppbAttachmentUploadForm')[0];
-            const files = $('#sppbAttachFiles')[0].files;
+        $('#btnUploadSpbAttachment').on('click', function(){
+            const $form = $('#spbAttachmentUploadForm')[0];
+            const files = $('#spbAttachFiles')[0].files;
 
             if (!files || !files.length) {
             toastr.warning('Please choose at least one file.');
@@ -965,9 +959,9 @@
                 return;
                 }
                 toastr.success('Upload success.');
-                $('#sppbAttachFiles').val('');
+                $('#spbAttachFiles').val('');
                 // back-end sudah mengembalikan list terbaru
-                renderSppbAttachmentRows(res.attachments || []);
+                renderSpbAttachmentRows(res.attachments || []);
             },
             error: function(xhr){
                 if (typeof hideOverlay === 'function') hideOverlay();
@@ -976,8 +970,8 @@
             });
         });
 
-        $('#btnResetSppbAttachment').on('click', function(){
-            $('#sppbAttachFiles').val('');
+        $('#btnResetSpbAttachment').on('click', function(){
+            $('#spbAttachFiles').val('');
         });
         });
     </script>

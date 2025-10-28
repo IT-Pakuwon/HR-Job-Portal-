@@ -73,7 +73,7 @@
             ;
             font-size: 10px;
             text-align: center;
-            margin-top: 30px;
+            margin-top: 25px;
         }
 
         .pdf-footer .pt-name {

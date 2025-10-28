@@ -56,6 +56,9 @@ use App\Http\Controllers\ReceiptListController;
 use App\Http\Controllers\ReceiptController;
 use App\Http\Controllers\WoController;
 use App\Http\Controllers\TrAttachmentController;
+use App\Http\Controllers\SpbController;  
+use App\Http\Controllers\IssueListController;
+use App\Http\Controllers\IssueController;
 
 use App\Http\Controllers\CanvassxController;
 
@@ -596,7 +599,11 @@ Route::post('/logout', function () {
     Route::get('/showreceipt/{hash}', [ReceiptController::class, 'showReceipt']);
     Route::get('/receipt/{id}/comments', [ReceiptController::class, 'fetchComments']);
     Route::post('/receipt/{id}/comments', [ReceiptController::class, 'storeComment']);  
-    Route::post('/receipts/{id}/approve', [ReceiptController::class, 'approveReceipt'])->name('receipts.approve');
+    // Route::post('/receipts/{id}/approve', [ReceiptController::class, 'approveReceipt'])->name('receipts.approve');
+    Route::post('/receipt/{id}/approve', [ReceiptController::class, 'approveReceipt']);
+    Route::post('/receipt/{id}/reject', [ReceiptController::class, 'rejectReceipt']);
+    Route::post('/receipt/{id}/revise', [ReceiptController::class, 'reviseReceipt']);
+    Route::get('/editreceipts/{hash}', [ReceiptController::class, 'editReceipt']);
     Route::get('/receipt/print/{hash}', [ReceiptController::class, 'printReceipt'])->name('receipts.print');   
     Route::get('/receipt-return/create', [ReceiptController::class, 'createReturn'])->name('receipt.return.create');
     Route::post('/receipt-return', [ReceiptController::class, 'storeReturn'])->name('receipt.return.store');
@@ -620,6 +627,35 @@ Route::post('/logout', function () {
     Route::get('/pdf_wos/{hash}', [WOController::class, 'printWo'])->name('wos.print');
     Route::put('/wos/remove-attachment/{id}', [WOController::class, 'removeAttachment']);
 
+    Route::get('/spbs', [SpbController::class, 'index'])->name('spbs');
+    Route::get('/spbs/json', [SpbController::class, 'json'])->name('spbs.json');
+    Route::get('/createspbs', [SpbController::class, 'createSpb']);
+    Route::post('/spbs', [SpbController::class, 'storeSpb'])->name('spbs.store');
+    Route::get('/showspbs/{hash}', [SpbController::class, 'showSpb']);
+    Route::get('/spb/{id}/comments', [SpbController::class, 'fetchComments']);
+    Route::post('/spb/{id}/comments', [SpbController::class, 'storeComment']);
+    Route::post('/spb/{id}/approve', [SpbController::class, 'approveSpb']);
+    Route::post('/spb/{id}/reject', [SpbController::class, 'rejectSpb']);
+    Route::post('/spb/{id}/revise', [SpbController::class, 'reviseSpb']);
+    Route::get('/editspbs/{hash}', [SpbController::class, 'editSpb']);
+    Route::put('/spbs/{id}', [SpbController::class, 'updateSpb'])->name('spbs.update');
+    Route::put('/spbs/remove-attachment/{id}', [SpbController::class, 'removeAttachment']);    
+    Route::get('/spb/{id}/check-approval/{action}', [SpbController::class, 'checkApproval']);     
+    Route::get('/spbs/{id}/tracking', [SpbController::class, 'tracking'])->name('spbs.tracking');
+    Route::get('/pdf_spbs/{hash}', [SpbController::class, 'printSpb']);
+
+    Route::get('/issuelist', [IssueListController::class, 'index'])->name('issuelist');
+    Route::get('/issuelist/json', [IssueListController::class, 'json'])->name('issuelist.json');
+    Route::get('/issue/create', [IssueController::class, 'createIssue'])->name('issue.create');    
+    Route::post('/issues', [IssueController::class, 'storeIssue'])->name('issue.store'); 
+    Route::get('/showissue/{hash}', [IssueController::class, 'showIssue']);
+    Route::get('/issue/{id}/comments', [IssueController::class, 'fetchComments']);
+    Route::post('/issue/{id}/comments', [IssueController::class, 'storeComment']);  
+    Route::post('/issues/{id}/approve', [IssueController::class, 'approveIssue'])->name('issues.approve');
+    Route::get('/issue/print/{hash}', [IssueController::class, 'printIssue'])->name('issues.print');   
+    Route::get('/issue-return/create', [IssueController::class, 'createReturn'])->name('issue.return.create');
+    Route::post('/issue-return', [IssueController::class, 'storeReturn'])->name('issue.return.store');
+
 
     Route::get('/inventory/list', [MasterController::class, 'InventoryList'])->name('inventory.list');
     Route::get('/request-types/by-doctype', [MasterController::class, 'RequestType'])->name('requesttypes.byDoctype');
@@ -632,7 +668,8 @@ Route::post('/logout', function () {
     Route::get('/wos/ajax/worktypes',               [MasterController::class, 'getWorktypes']);              
     Route::get('/wos/ajax/subworktypes/{worktypeid}', [MasterController::class, 'getSubWorktypes']);         
     Route::get('/wos/ajax/locations/{cpny_id}',     [MasterController::class, 'getLocations']);              
-    Route::get('/wos/ajax/sublocations/{cpny_id}/{location_id}', [MasterController::class, 'getSubLocations']); 
+    Route::get('/wos/ajax/sublocations/{cpny_id}/{location_id}', [MasterController::class, 'getSubLocations']);
+    Route::get('/wos/ajax/wos', [MasterController::class, 'getWoComplated'])->name('wos.ajax.index'); 
 
     Route::post('/attachments/{doctype}/{refnbr}',  [TrAttachmentController::class, 'uploadAttachments'])->name('attachments.upload');
     Route::get ('/attachments/{doctype}/{refnbr}',  [TrAttachmentController::class, 'listAttachments'])->name('attachments.list');
