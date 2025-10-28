@@ -11,8 +11,12 @@ class CompanyPG extends Model
     protected $table = "ms_company";
 
     protected $fillable = [
-        'cpny_id',
-        'cpny_name',     
-        'status'
+        // 'cpny_id',
+        // 'cpny_name',     
+        // 'status'
+        'cpny_id', 'cpny_name', 'address_line1', 'address_line2', 'city', 
+        'province', 'postalcode', 'phone', 'fax', 'tax_registration', 
+        'tax_address_line', 'warehouse_note', 'status', 'created_by', 
+        'created_at', 'updated_by', 'updated_at', 'deleted_by', 'deleted_at'
     ];
 }
