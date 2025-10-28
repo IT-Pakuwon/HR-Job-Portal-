@@ -54,16 +54,18 @@ class SpbController extends Controller
         $search = trim((string) $request->input('search.value', ''));
         $status = (string) $request->query('status', ''); // '' = all
 
-        $baseTable = (new TrSPB)->getTable(); // e.g. "tr_spb"
+        $baseTable = (new TrSPB)->getTable(); // "tr_spb"
 
+        // urutan index harus sinkron dengan <th> di view
         $columns = [
             0 => 'spb.spbid',
             1 => 'spb.spbdate',
             2 => 'spb.cpny_id',
             3 => 'spb.department_id',
-            4 => 'rt.requesttype_name',
-            5 => 'spb.keperluan',
-            6 => 'spb.status',
+            4 => 'wt.worktype_name',
+            5 => 'swt.subworktype_name',
+            6 => 'spb.keperluan',
+            7 => 'spb.status',
         ];
 
         $orderIdx = (int) $request->input('order.0.column', 0);
@@ -71,8 +73,11 @@ class SpbController extends Controller
         $orderCol = $columns[$orderIdx] ?? 'spb.spbid';
 
         $base = TrSPB::from($baseTable.' as spb')
-            ->leftJoin('ms_request_type as rt', function ($join) {
-                $join->on('rt.requesttypeid', '=', 'spb.requesttypeid');
+            ->leftJoin('ms_worktype as wt', function ($join) {
+                $join->on('wt.worktypeid', '=', 'spb.worktypeid');
+            })
+            ->leftJoin('ms_subworktype as swt', function ($join) {
+                $join->on('swt.subworktypeid', '=', 'spb.subworktypeid');
             });
 
         if ($status !== '') {
@@ -83,12 +88,13 @@ class SpbController extends Controller
 
         if ($search !== '') {
             $base->where(function ($q) use ($search) {
-                $q->where('spb.spbid',          'like', "%{$search}%")
-                ->orWhere('spb.cpny_id',       'like', "%{$search}%")
+                $q->where('spb.spbid', 'like', "%{$search}%")
+                ->orWhere('spb.cpny_id', 'like', "%{$search}%")
                 ->orWhere('spb.department_id', 'like', "%{$search}%")
-                ->orWhere('rt.requesttype_name','like', "%{$search}%")
-                ->orWhere('spb.keperluan',     'like', "%{$search}%")
-                ->orWhere('spb.status',        'like', "%{$search}%");
+                ->orWhere('wt.worktype_name', 'like', "%{$search}%")
+                ->orWhere('swt.subworktype_name', 'like', "%{$search}%")
+                ->orWhere('spb.keperluan', 'like', "%{$search}%")
+                ->orWhere('spb.status', 'like', "%{$search}%");
             });
         }
 
@@ -100,8 +106,10 @@ class SpbController extends Controller
                     'spb.spbdate',
                     'spb.cpny_id',
                     'spb.department_id',
-                    'spb.requesttypeid',
-                    'rt.requesttype_name',
+                    'spb.worktypeid',
+                    'spb.subworktypeid',
+                    'wt.worktype_name',
+                    'swt.subworktype_name',
                     'spb.keperluan',
                     'spb.status',
                     'spb.created_by'
@@ -112,10 +120,9 @@ class SpbController extends Controller
                 ->take($length)
                 ->get();
 
-        // Encode id dengan hashids → tambahkan field eid
+        // Encode id dengan hashids → JANGAN hapus id, karena dipakai untuk tombol tracking
         $data->transform(function ($row) {
-            $row->eid = Hashids::encode($row->id);
-            unset($row->id); // opsional: sembunyikan id asli
+            $row->eid = \Hashids::encode($row->id);
             return $row;
         });
 
@@ -126,8 +133,6 @@ class SpbController extends Controller
             'data'            => $data,
         ]);
     }
-
-
 
     
     public function createSpb()
@@ -145,79 +150,58 @@ class SpbController extends Controller
         return view('pages.spbs.createspbs', compact('usercpny','usercpny2','userdept','userdept2'));
     }
 
-    
-    
+        
     public function storeSpb(Request $request)
     {
-        // dd($request->all()); // Debugging: check request data
-        // kumpulkan array dari form
-        $inventoryIds  = $request->input('inventoryid',  $request->input('inventory_id', []));
-        $productNames  = $request->input('product_name', []);
-        $qtys          = $request->input('qty', []);
-        $uoms          = $request->input('stock_unit',   $request->input('uom', [])); // <- penting
-        $notes         = $request->input('note', []);
-        $locations     = $request->input('location', []);
-        $locationIds   = $request->input('location_id', $request->input('locationid', [])); // <- kalau perlu simpan
-        $subLocIds     = $request->input('sub_location_id', $request->input('sublocationid', []));
-        $subLocations  = $request->input('sub_location', []);      
-        $activityIds   = $request->input('activity_id', []);
-        $busUnitIds    = $request->input('business_unit_id', []);
-        $deptFinIds    = $request->input('department_fin_id', []);
-        $coaIds        = $request->input('coa_id', []); // account_id
-        $item_types    = $request->input('item_type', []);
-        $item_categories = $request->input('item_category', []);
-
-        $purchaseUnits    = $request->input('purchase_unit', []);     // dari hidden purchase_unit[]
-        $uomMultDivs      = $request->input('uom_unitmultdiv', []);   // 'M' atau 'D'
-        $uomRates         = $request->input('uom_unitrate', []);      // bisa "12", "12,5", "12.000",
-
         $doctype  = 'RB';
         $user     = $request->user();
         $username = $user->username ?? 'system';
-        $fullname = $user->name ?? 'system';
+        $dt       = Carbon::now();
+        $year     = (int) $dt->format('Y');
+        $month    = $dt->format('m');
+        $datestamp= $dt->toDateTimeString();
 
-        $dt        = Carbon::now();
-        $year      = $dt->year;
-        $month     = str_pad($dt->month, 2, '0', STR_PAD_LEFT);
-        $datestamp = $dt->toDateTimeString();
+        // === Kumpulkan array dari form ===
+        $inventoryIds   = $request->input('inventoryid',  $request->input('inventory_id', []));
+        $productNames   = $request->input('product_name', []);
+        $qtys           = $request->input('qty', []);
+        $uoms           = $request->input('stock_unit',   $request->input('uom', []));
+        $notes          = $request->input('note', []);
 
+        // lokasi (gabungan modal)
+        $locationIds    = $request->input('location_id', $request->input('locationid', []));
+        $subLocIds      = $request->input('sub_location_id', $request->input('sublocationid', []));
 
-        // helper untuk normalisasi angka lokal (ID format)     
+        // COA chain
+        $activityIds    = $request->input('activity_id', []);
+        $busUnitIds     = $request->input('business_unit_id', []);
+        $deptFinIds     = $request->input('department_fin_id', []);
+        $coaIds         = $request->input('coa_id', []);
+
+        // konversi UoM
+        $purchaseUnits  = $request->input('purchase_unit', []);     // base_uom
+        $uomMultDivs    = $request->input('uom_unitmultdiv', []);   // 'M' | 'D'
+        $uomRates       = $request->input('uom_unitrate', []);      // bisa format lokal
+
+        // helper angka lokal → float
         $toFloat = function ($v): ?float {
             if ($v === null || $v === '') return null;
             $s = preg_replace('/\s+/', '', (string)$v);
-
             $hasComma = strpos($s, ',') !== false;
             $hasDot   = strpos($s, '.') !== false;
-
             if ($hasComma && $hasDot) {
-                // Decimal = separator yang muncul paling akhir
-                $lastComma = strrpos($s, ',');
-                $lastDot   = strrpos($s, '.');
-                if ($lastComma > $lastDot) {
-                    // koma = decimal, titik = ribuan
-                    $s = str_replace('.', '', $s);
-                    $s = str_replace(',', '.', $s);
-                } else {
-                    // titik = decimal, koma = ribuan
-                    $s = str_replace(',', '', $s);
-                }
+                $lastComma = strrpos($s, ','); $lastDot = strrpos($s, '.');
+                if ($lastComma > $lastDot) { $s = str_replace('.', '', $s); $s = str_replace(',', '.', $s); }
+                else { $s = str_replace(',', '', $s); }
             } elseif ($hasComma) {
-                // hanya koma → koma = decimal
                 $s = str_replace(',', '.', $s);
-            } elseif ($hasDot) {
-                // hanya titik → asumsikan titik = decimal
-                // kalau ada >1 titik, anggap titik = ribuan → hapus semua titik
-                if (substr_count($s, '.') > 1) {
-                    $s = str_replace('.', '', $s);
-                }
-                // kalau 1 titik, biarkan sebagai decimal
+            } elseif ($hasDot && substr_count($s, '.') > 1) {
+                $s = str_replace('.', '', $s);
             }
             return is_numeric($s) ? (float)$s : null;
         };
 
-
-        // pastikan line approval ada
+        // === Cek line approval ===
         $approvalCount = M_approval::where([
             ['status', '=', 'A'],
             ['aprvcpnyid', '=', $request->cpnyid],
@@ -226,27 +210,18 @@ class SpbController extends Controller
         ])->count();
 
         if ($approvalCount === 0) {
-            return response()->json([
-                'message' => 'Approval line belum di-setup, Please contact IT!',
-            ], 422);
+            return response()->json(['message' => 'Approval line belum di-setup, Please contact IT!'], 422);
         }
 
         DB::beginTransaction();
         try {
-            // === generate autonbr & docid (lock) ===
+            // === Nomor otomatis ===
             $autonbr = Autonbr::lockForUpdate()
-                ->where('doctype', $doctype)
-                ->where('year', $year)
-                ->where('month', $month)
-                ->first();
+                ->where('doctype', $doctype)->where('year', $year)->where('month', $month)->first();
 
             if (!$autonbr) {
                 $autonbr = Autonbr::create([
-                    'doctype' => $doctype,
-                    'year'    => $year,
-                    'month'   => $month,
-                    'status'  => 'A',
-                    'number'  => 1,
+                    'doctype' => $doctype, 'year' => $year, 'month' => $month, 'status' => 'A', 'number' => 1,
                 ]);
                 $urutan = 1;
             } else {
@@ -254,109 +229,110 @@ class SpbController extends Controller
                 $autonbr->update(['number' => $urutan]);
             }
 
-            $tglbln = substr($year, 2) . $month;               // YYMM
+            $tglbln = substr((string)$year, 2) . $month; // YYMM
             $docid  = $doctype . $tglbln . sprintf("%04d", $urutan);
-            $spbNo = $docid;                                   // atau 'SPB-'.$docid
 
-            // === 1) header dulu (totalqty sementara 0) ===
+            // === Guard minimal 1 detail valid ===
+            $rowCount = max(count($inventoryIds), count($qtys));
+            $hasValid = false;
+            for ($i=0; $i<$rowCount; $i++) {
+                $inv = $inventoryIds[$i] ?? null;
+                $qty = (float) str_replace(',', '.', (string)($qtys[$i] ?? 0));
+                if (!empty($inv) && $qty > 0) { $hasValid = true; break; }
+            }
+            if (!$hasValid) {
+                return response()->json(['message' => 'Minimal 1 baris detail dengan Product & Qty > 0.'], 422);
+            }
+
+            // === Header (pakai kolom TrSPB::fillable) ===
             $header = new TrSPB();
-            $header->spbid            = $docid;                // PK string
-            $header->spbdate          = $dt->toDateString();
+            $header->spbid             = $docid;
+            $header->spbdate           = $dt->toDateString();
             $header->cpny_id           = $request->input('cpnyid');
             $header->department_id     = $request->input('departementid');
-            $header->requesttypeid     = $request->input('requesttypeid');
+            $header->worktypeid        = $request->input('worktypeid');
+            $header->subworktypeid     = $request->input('subworktypeid');
             $header->keperluan         = $request->input('keperluan');
             $header->budget_perpost    = $request->input('perpost');
             $header->woid              = $request->input('woid');
-            $header->spbid             = null;
-            $header->totalopenordered  = 0;
-            $header->totalqty          = 0;
-            $header->totalordered      = 0;
-            $header->totalrejectordered = 0;
-            $header->totalcompleteordered = 0;
-            $header->assignby          = null;
-            $header->assigndate        = null;
-            $header->assignpurchasing  = null;
-            $header->csjobs            = null;
-            $header->cs                = null;
+            $header->totalspbqty       = 0;
+            $header->totalspbopenqty   = 0;
+            $header->totalissueqty     = 0;
+            $header->totalcompleteqty  = 0;
             $header->status            = 'P';
             $header->created_by        = $username;
             $header->save();
 
-            // === 2) detail ===
-            $totalQty         = 0;
-            $totalOpenOrdered = 0;
-            $rowCount = max(count($inventoryIds), count($qtys));
-           
-            for ($i = 0; $i < $rowCount; $i++) {
-                $invId = $inventoryIds[$i] ?? null;
+            // === Detail (pakai kolom TrSPBdetail::fillable) ===
+            $totalQty = 0;
+
+            for ($i=0; $i<$rowCount; $i++) {
+                $invId       = $inventoryIds[$i] ?? null;
                 $productName = $productNames[$i] ?? null;
-                // qty: sudah kamu konversi koma->titik di JS; tetap jaga-jaga:
-                $qty   = (float) str_replace(',', '.', (string) ($qtys[$i] ?? 0));
-                $uom   = $uoms[$i] ?? null;
+                $qtyRaw      = $qtys[$i] ?? 0;
+                $qty         = (float) str_replace(',', '.', (string)$qtyRaw);
+                $uom         = $uoms[$i] ?? null;
 
                 if (empty($invId) || $qty <= 0) continue;
 
-                // ==== perhitungan base_* ====
-                $baseUom        = $purchaseUnits[$i] ?? null;                   // WAJIB: purchase_unit
-                $typeMultiplier = strtoupper(trim((string)($uomMultDivs[$i] ?? ''))); // 'M' / 'D' / ''
-                $rateRaw        = $uomRates[$i] ?? null;
-                $rate           = $toFloat($rateRaw) ?? 1.0;                     // default 1 kalau kosong/tidak valid
-                if ($rate <= 0) {                                                // guard divide-by-zero & negatif
-                    $rate = 1.0;
-                    $typeMultiplier = '';                                        // anggap tidak ada konversi
-                }
-
-                // base_qty logic
+                // konversi base
+                $baseUom        = $purchaseUnits[$i] ?? null;
+                $typeMultiplier = strtoupper(trim((string)($uomMultDivs[$i] ?? '')));
+                $rate           = $toFloat($uomRates[$i] ?? null) ?? 1.0;
+                if ($rate <= 0) { $rate = 1.0; $typeMultiplier = ''; }
                 $baseQty = $qty;
-                if ($typeMultiplier === 'M') {
-                    $baseQty = $qty * $rate;
-                } elseif ($typeMultiplier === 'D') {
-                    $baseQty = $qty / $rate;
-                }
+                if ($typeMultiplier === 'M')      $baseQty = $qty * $rate;
+                elseif ($typeMultiplier === 'D')  $baseQty = $qty / $rate;
 
                 $detail = new TrSPBdetail();
-                $detail->spbid                   = $docid;
-                $detail->spb_no                  = $i + 1;   // nomor urut detail
-                $detail->inventoryid              = $invId;
-                $detail->inventory_descr          = $productName;
-                $detail->qty                      = $qty;
-                $detail->uom                      = $uom;
-                $detail->note                     = $notes[$i]   ?? null;
-                $detail->inventory_type                = $item_types[$i] ?? null;
-                $detail->spb_category            = $item_categories[$i] ?? null;
-                $detail->base_uom                 = $baseUom;            // = purchase_unit
-                $detail->base_multiplier          = $rate;               // = uom_unitrate (float)
-                $detail->type_multiplier          = $typeMultiplier ?: null; // = 'M' / 'D' / null
-                $detail->base_qty                 = $baseQty;            // hitungan M/D               
-                $detail->budget_cpny_id           = $request->cpnyid;
-                $detail->budget_business_unit_id  = $busUnitIds[$i]     ?? null;
-                $detail->budget_department_fin_id = $deptFinIds[$i] ?? null;
-                $detail->budget_account_id        = $coaIds[$i]         ?? null;
-                $detail->budget_activity_id       = $activityIds[$i]   ?? null;               
-                $detail->location_id              = $locationIds[$i]  ?? null;
-                $detail->sub_location_id          = $subLocIds[$i]    ?? null;
-                $detail->budget_perpost           = $request->perpost;
-                $detail->assignby                 = null;
-                $detail->assigndate               = null;
-                $detail->assignpurchasing         = null;
-                $detail->openordered              = $qty;
-                $detail->ordered                  = 0;
-                $detail->rejectordered            = 0;
-                $detail->completeordered          = 0;
-                $detail->status                   = 'P';
-                $detail->created_by               = $username;
+                $detail->spbid                      = $docid;
+                $detail->spb_no                     = $i + 1;
+                $detail->inventoryid                = $invId;
+                $detail->inventory_descr            = $productName;
+                $detail->siteid                     = null;                 // kalau ada, isi sesuai kebutuhanmu
+                $detail->qty                        = $qty;
+                $detail->uom                        = $uom;
+                $detail->type_multiplier            = $typeMultiplier ?: null;
+                $detail->base_multiplier            = $rate;
+                $detail->base_qty                   = $baseQty;
+                $detail->base_uom                   = $baseUom;
+                $detail->note                       = $notes[$i]           ?? null;
+
+                $detail->location_id                = $locationIds[$i]     ?? null;
+                $detail->sub_location_id            = $subLocIds[$i]       ?? null;
+
+                $detail->budget_perpost             = $request->perpost;
+                $detail->budget_cpny_id             = $request->cpnyid;
+                $detail->budget_business_unit_id    = $busUnitIds[$i]      ?? null;
+                $detail->budget_department_fin_id   = $deptFinIds[$i]      ?? null;
+                $detail->budget_account_id          = $coaIds[$i]          ?? null;
+                $detail->budget_activity_id         = $activityIds[$i]     ?? null;
+
+                $detail->stock_qty                  = 0;                    // isi jika punya info stok
+                $detail->spb_openqty                = $qty;                 // open = awalnya = qty
+                $detail->issue_qty                  = 0;
+                $detail->spb_completeqty            = 0;
+
+                $detail->status                     = 'P';
+                $detail->created_by                 = $username;
                 $detail->save();
 
                 $totalQty += $qty;
             }
 
-            // update totalqty di header
-            $header->totalqty = $totalQty;
-            $header->totalopenordered = $totalQty;
+            if ($totalQty <= 0) {
+                DB::rollBack();
+                return response()->json(['message' => 'Tidak ada detail valid untuk disimpan.'], 422);
+            }
+
+            // === Update total header (pakai kolom TrSPB) ===
+            $header->totalspbqty      = $totalQty;
+            $header->totalspbopenqty  = $totalQty;
+            $header->totalissueqty    = 0;
+            $header->totalcompleteqty = 0;
             $header->save();
 
-            // === 4) copy line approval (M_approval -> T_approval) ===
+            // === Copy line approval ===
             $approvals = M_approval::where([
                 ['status', '=', 'A'],
                 ['aprvcpnyid', '=', $request->cpnyid],
@@ -376,99 +352,43 @@ class SpbController extends Controller
                     'aprvdatebefore' => $a->aprvid == 1 ? $datestamp : null,
                     'aprvtotalday'   => 1,
                     'status'         => 'P',
-                    'created_by'   => $username,
+                    'created_by'     => $username,
                 ]);
             }
 
-            $firstApprovalUsernames = optional($approvals->first())->aprvusername; // bisa comma-separated
-            if ($firstApprovalUsernames) {
-                $header->completed_by = $firstApprovalUsernames;
-                $header->completed_at = $dt; // atau Carbon::now()
-                $header->save();
-            }
-
-            // === 5) attachments (opsional) ===
-            // if ($request->hasfile('attachments')) {
-            //     foreach ($request->file('attachments') as $file) {
-            //         $randomNumber = random_int(10000000, 99999999);
-            //         $filename = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
-                   
-            //         $originalName = str_replace('%', '', $file->getClientOriginalName());
-            //         $ext        = $file->getClientOriginalExtension();
-            //         $attachfile = md5($randomNumber) . '.' . $ext;
-
-            //         //attach to folder
-            //         $folder_attach = public_path() . '/attachments/'.$year;
-            //         $config['upload_path'] = $folder_attach;                   
-            //         if(!is_dir($folder_attach))
-            //         {
-            //             mkdir($folder_attach, 0777);
-            //         }
-                    
-            //         $folder_upload = $folder_attach;
-            //         // $folder_upload = public_path() . '/attachments';
-            //         $file->move($folder_upload, $attachfile);
-
-            //         //insert to table attachments
-            //         $attach = new Attachment();
-            //         $attach->docid = $docid;
-            //         $attach->name = $filename;
-            //         $attach->attachfile = $attachfile;
-            //         $attach->status = 'A';
-            //         $attach->extention = $file->getClientOriginalExtension();
-            //         $attach->created_user = $user->username;
-            //         $attach->save();
-            //     }
-            // }            
-
+            // === Attachments (opsional) ===
+            $uploadResult = null;
             if ($request->hasFile('attachments')) {
                 $meta = [
                     'refnbr'        => $docid,
                     'doctype'       => $doctype,
                     'cpnyid'        => $request->input('cpnyid'),
-                    'departementid' => $request->input('departementid'),                    
+                    'departementid' => $request->input('departementid'),
                     'base_folder'   => 'att-purchasing-app/'.strtolower($doctype),
-                    'created_by'    => $user->username,
+                    'created_by'    => $username,
                 ];
-
                 $files = (array) $request->file('attachments');
-
                 try {
-                    $uploader = app(TrAttachmentController::class);
+                    $uploader     = app(TrAttachmentController::class);
                     $uploadResult = $uploader->uploadInternal($meta, $files);
-                    // tidak return di sini!
                 } catch (\Throwable $e) {
-                    \DB::rollBack();
+                    DB::rollBack();
                     return response()->json([
-                        'message' => 'Failed to create PB',
+                        'message' => 'Failed to create SPB',
                         'error'   => 'Gagal upload attachment: '.$e->getMessage(),
                     ], 500);
                 }
-            } else {
-                $uploadResult = null; // tidak ada attachment
             }
 
-            // === 6) kirim email ke approver pertama ===
+            // === Notifikasi approver pertama (opsional) ===
             $firstApproval = T_approval::where('docid', $docid)
-                ->where('status', 'P')
-                ->orderBy('aprvid')
-                ->first();
+                ->where('status', 'P')->orderBy('aprvid')->first();
 
             if ($firstApproval) {
+                $status     = $header->status;
+                $subjectMap = ['P'=>'Waiting Approval','R'=>'Rejected Approval','D'=>'Revise Approval','A'=>'Approved','C'=>'Completed'];
+                $eid        = Hashids::encode($header->id ?? $docid); // fallback kalau tidak ada id auto
 
-                $status = $header->status; // 'P' | 'R' | 'D' | 'A' | 'C'
-                
-                $subjectMap = [
-                    'P' => 'Waiting Approval',
-                    'R' => 'Rejected Approval',
-                    'D' => 'Revise Approval',
-                    'A' => 'Approved',
-                    'C' => 'Completed',
-                ];
-                $subjectSuffix = $subjectMap[$status] ?? 'Notification';
-
-                $eid = Hashids::encode($header->id);
-                
                 $data = [
                     'docid'    => $firstApproval->docid,
                     'cpnyid'   => $firstApproval->aprvcpnyid,
@@ -481,16 +401,14 @@ class SpbController extends Controller
                     'docname'  => 'SPB',
                     'url'      => url('/showspbs/' . $eid),
                 ];
-                
+
                 $approvers = array_filter(array_map('trim', explode(',', (string)$firstApproval->aprvusername)));
-                $emails = User::whereIn('username', $approvers)
-                    ->where('status', 'A')
-                    ->pluck('test_email');
+                $emails = User::whereIn('username', $approvers)->where('status', 'A')->pluck('test_email');
 
                 foreach ($emails as $email) {
-                    \Mail::send('emails.mailapprovenew', $data, function ($message) use ($email, $data) {
+                    Mail::send('emails.mailapprovenew', $data, function ($message) use ($email, $data, $subjectMap, $status) {
                         $message->to($email)
-                            ->subject($data['docid'].' - Waiting Approval SPB')
+                            ->subject($data['docid'].' - '.($subjectMap[$status] ?? 'Notification').' SPB')
                             ->from('digitalserver@pakuwon.com', 'Pakuwon System');
                     });
                 }
@@ -499,23 +417,21 @@ class SpbController extends Controller
             DB::commit();
 
             return response()->json([
-                'message'  => 'SPB created successfully',
-                'spbid'   => $docid,
-                'spb_no'  => $spbNo,
-                'totalqty' => $totalQty,
+                'message'     => 'SPB created successfully',
+                'spbid'       => $docid,               
+                'totalqty'    => $totalQty,
                 'attachments' => $uploadResult,
             ]);
-
         } catch (\Throwable $e) {
             DB::rollBack();
             report($e);
-
             return response()->json([
                 'message' => 'Failed to create SPB',
                 'error'   => config('app.debug') ? $e->getMessage() : null,
             ], 500);
         }
     }
+
    
     public function editSpb($hash)
     {
@@ -598,21 +514,16 @@ class SpbController extends Controller
 
     public function updateSpb(Request $request, $hash)
     {
-        // dd($request->all()); // matikan agar eksekusi lanjut
-
         $id = Hashids::decode($hash)[0] ?? null;
-        abort_if(!$id, 404, 'PB tidak ditemukan.');
+        abort_if(!$id, 404, 'SPB tidak ditemukan.');
 
-        $user      = $request->user();   
-        $dt        = Carbon::now();
-        $year      = $dt->year;
-        $month     = str_pad($dt->month, 2, '0', STR_PAD_LEFT);
-        $datestamp = $dt->toDateTimeString();   
+        $user      = $request->user();
+        $dt        = \Carbon\Carbon::now();
+        $datestamp = $dt->toDateTimeString();
         $doctype   = 'RB';
         $username  = $user->username ?? 'system';
-        $fullname  = $user->name ?? 'system';
 
-        // helper: normalisasi angka (tahan "12.000", "1.234,56", "12,5")
+        // helper normalisasi angka lokal
         $toFloat = function ($v): ?float {
             if ($v === null || $v === '') return null;
             $s = preg_replace('/\s+/', '', (string)$v);
@@ -623,11 +534,9 @@ class SpbController extends Controller
                 $lastComma = strrpos($s, ',');
                 $lastDot   = strrpos($s, '.');
                 if ($lastComma > $lastDot) {
-                    // koma = decimal, titik = ribuan
                     $s = str_replace('.', '', $s);
                     $s = str_replace(',', '.', $s);
                 } else {
-                    // titik = decimal, koma = ribuan
                     $s = str_replace(',', '', $s);
                 }
             } elseif ($hasComma) {
@@ -638,61 +547,70 @@ class SpbController extends Controller
             return is_numeric($s) ? (float)$s : null;
         };
 
+        /** @var TrSPB $header */
         $header = TrSPB::findOrFail($id);
-        // update header
-        $header->cpny_id        = $request->cpnyid;
-        $header->department_id  = $request->departementid;
-        $header->requesttypeid  = $request->requesttypeid;
-        $header->keperluan      = $request->keperluan;
-        $header->budget_perpost = $request->perpost;   
-        $header->woid           = $request->woid;
-        $header->status         = 'P';
-        $header->updated_by     = $username;
-        $header->save();
 
-        // arrays utama
-        $detailIds    = array_values($request->input('detail_id', []));
-        $inventoryIds = array_values($request->input('inventoryid', []));
-        $productNames = array_values($request->input('product_name', []));
-        $qtys         = array_values($request->input('qty', []));
-        $uoms         = array_values($request->input('stock_unit', []));
-        $notes        = array_values($request->input('note', []));
-        $locIds       = array_values($request->input('location_id', []));
-        $subLocIds    = array_values($request->input('sub_location_id', []));
-        $actIds       = array_values($request->input('activity_id', []));
-        $buIds        = array_values($request->input('business_unit_id', []));
-        $deptFinIds   = array_values($request->input('department_fin_id', []));
-        $coaIds       = array_values($request->input('coa_id', []));
-        $itemTypes    = array_values($request->input('item_type', []));
-        $itemCats     = array_values($request->input('item_category', []));
+        // === Ambil arrays dari form ===
+        $detailIds      = array_values($request->input('detail_id', [])); // optional dari UI edit
+        $inventoryIds   = array_values($request->input('inventoryid', []));
+        $productNames   = array_values($request->input('product_name', []));
+        $qtys           = array_values($request->input('qty', []));
+        $uoms           = array_values($request->input('stock_unit', $request->input('uom', []))); // display uom
+        $notes          = array_values($request->input('note', []));
+        $locIds         = array_values($request->input('location_id', []));
+        $subLocIds      = array_values($request->input('sub_location_id', []));
+        $actIds         = array_values($request->input('activity_id', []));
+        $buIds          = array_values($request->input('business_unit_id', []));
+        $deptFinIds     = array_values($request->input('department_fin_id', []));
+        $coaIds         = array_values($request->input('coa_id', []));
+        $itemTypes      = array_values($request->input('item_type', []));
+        $itemCats       = array_values($request->input('item_category', []));
 
-        // arrays UoM tambahan
-        $purchaseUnits = array_values($request->input('purchase_unit', []));      // hidden dari UI
-        $uomMultDivs   = array_values($request->input('uom_unitmultdiv', []));    // 'M'/'D'
-        $uomRates      = array_values($request->input('uom_unitrate', []));       // bisa "12.000"
+        // UoM konversi
+        $purchaseUnits  = array_values($request->input('purchase_unit', []));
+        $uomMultDivs    = array_values($request->input('uom_unitmultdiv', []));
+        $uomRates       = array_values($request->input('uom_unitrate', []));
 
         DB::beginTransaction();
-
         try {
-            // hapus baris yang di-mark delete
+            // === Update header (sesuai model) ===
+            $header->fill([
+                'cpny_id'        => $request->cpnyid,
+                'department_id'  => $request->departementid,
+                'worktypeid'     => $request->worktypeid,
+                'subworktypeid'  => $request->subworktypeid,
+                'keperluan'      => $request->keperluan,
+                'budget_perpost' => $request->perpost,
+                'woid'           => $request->woid,
+                'status'         => 'P',
+                'updated_by'     => $username,
+            ])->save();
+
+            // === Hapus detail yang di-mark delete (jika ada) ===
             if ($request->filled('deleted_detail_ids')) {
                 $idsToDelete = array_filter(array_map('trim', explode(',', $request->deleted_detail_ids)));
-                if ($idsToDelete) TrSPBdetail::whereIn('id', $idsToDelete)->delete();
+                if (!empty($idsToDelete)) {
+                    TrSPBdetail::where('spbid', $header->spbid)
+                        ->whereIn('id', $idsToDelete)
+                        ->delete();
+                }
             }
 
-            $rowCount = max(count($inventoryIds), count($qtys));
-            $savedDetails = [];
+            // === Simpan / update detail ===
+            $rowCount     = max(count($inventoryIds), count($qtys));
+            $savedIds     = [];
+            $runningNo    = 1;
 
             for ($i = 0; $i < $rowCount; $i++) {
                 $invId = $inventoryIds[$i] ?? null;
                 $qty   = (float) str_replace(',', '.', (string)($qtys[$i] ?? 0));
                 if (empty($invId) || $qty <= 0) continue;
 
-                // === konversi base_* seperti di store ===
+                // Konversi base_* (match store)
                 $displayUom     = $uoms[$i] ?? null;
-                $baseUom        = $purchaseUnits[$i] ?? null;                        // purchase_unit
-                $typeMultiplier = strtoupper(trim((string)($uomMultDivs[$i] ?? ''))); // 'M'/'D'
-                $rate           = $toFloat($uomRates[$i] ?? null) ?? 1.0;             // 12.000 -> 12.0
+                $baseUom        = $purchaseUnits[$i] ?? null;
+                $typeMultiplier = strtoupper(trim((string)($uomMultDivs[$i] ?? ''))); // 'M'/'D'/''
+                $rate           = $toFloat($uomRates[$i] ?? null) ?? 1.0;
                 if ($rate <= 0) { $rate = 1.0; $typeMultiplier = ''; }
 
                 $baseQty = $qty;
@@ -702,31 +620,35 @@ class SpbController extends Controller
                     $baseQty = $qty / $rate;
                 }
 
-                $data = [
+                $payload = [
+                    'spbid'                    => $header->spbid,
+                    'spb_no'                   => $runningNo,                 // direnumber tiap loop
                     'inventoryid'              => $invId,
                     'inventory_descr'          => $productNames[$i] ?? null,
                     'qty'                      => $qty,
                     'uom'                      => $displayUom,
+                    'type_multiplier'          => $typeMultiplier ?: null,
+                    'base_multiplier'          => $rate,
+                    'base_qty'                 => $baseQty,
+                    'base_uom'                 => $baseUom,
                     'note'                     => $notes[$i] ?? null,
-                    'inventory_type'                => $itemTypes[$i] ?? null,
-                    'spb_category'            => $itemCats[$i] ?? null,
+                    'location_id'              => $locIds[$i] ?? null,
+                    'sub_location_id'          => $subLocIds[$i] ?? null,
 
-                    // >>> ini yang ditambahkan <<<
-                    'base_uom'                 => $baseUom,                       // purchase_unit
-                    'base_multiplier'          => $rate,                          // uom_unitrate (float)
-                    'type_multiplier'          => $typeMultiplier ?: null,        // 'M'/'D'/null
-                    'base_qty'                 => $baseQty,                        // hasil M/D
-
+                    // budget mapping
+                    'budget_perpost'           => $request->perpost,
                     'budget_cpny_id'           => $request->cpnyid,
                     'budget_business_unit_id'  => $buIds[$i] ?? null,
                     'budget_department_fin_id' => $deptFinIds[$i] ?? null,
                     'budget_account_id'        => $coaIds[$i] ?? null,
                     'budget_activity_id'       => $actIds[$i] ?? null,
-                    'openordered'              => $qty,
-                    'ordered'                  => 0,
-                    'location_id'              => $locIds[$i] ?? null,
-                    'sub_location_id'          => $subLocIds[$i] ?? null,
-                    'budget_perpost'           => $request->perpost,
+
+                    // extra (ikuti model)
+                    'stock_qty'                => null,
+                    'spb_openqty'              => $qty,  // open = qty saat submit/edit
+                    'issue_qty'                => 0,
+                    'spb_completeqty'          => 0,
+
                     'status'                   => 'P',
                     'updated_by'               => $username,
                 ];
@@ -737,35 +659,39 @@ class SpbController extends Controller
                     $detail = TrSPBdetail::where('id', $idDetail)
                         ->where('spbid', $header->spbid)
                         ->first();
+
                     if ($detail) {
-                        $detail->fill($data)->save();
+                        $detail->fill($payload)->save();
                     } else {
-                        $detail = new TrSPBdetail($data);
-                        $detail->spbid = $header->spbid;
-                        $detail->save();
+                        $detail = TrSPBdetail::create(array_merge($payload, [
+                            'created_by' => $username,
+                        ]));
                     }
                 } else {
-                    $detail = new TrSPBdetail($data);
-                    $detail->spbid = $header->spbid;
-                    $detail->save();
+                    $detail = TrSPBdetail::create(array_merge($payload, [
+                        'created_by' => $username,
+                    ]));
                 }
 
-                $savedDetails[] = $detail->id;
+                $savedIds[] = $detail->id;
+                $runningNo++;
             }
 
-            // Renumber spb_no 1..N
-            $n = 1;
-            foreach ($savedDetails as $did) {
-                TrSPBdetail::where('id', $did)->update(['spb_no' => $n++]);
-            }
-
-            // Hitung total qty (kalau mau pakai base_qty, ganti ke sum('base_qty'))
+            // === Recalculate header totals (mengikuti store) ===
             $totalQty = TrSPBdetail::where('spbid', $header->spbid)->sum('qty');
-            $header->totalqty = $totalQty;
-            $header->totalopenordered = $totalQty;
-            $header->save();
 
-            // === regenerasi T_approval (opsional, ikuti logikamu) ===
+            $header->fill([
+                'totalspbqty'       => $totalQty,
+                'totalspbopenqty'   => $totalQty,  // sama dengan qty saat baru/diupdate
+                'totalissueqty'     => 0,
+                'totalcompleteqty'  => 0,
+                'updated_by'        => $username,
+            ])->save();
+
+            // === (Opsional) regenerate approval lines seperti store ===
+            // Hapus approval lama pending untuk doc ini agar tidak dobel (opsional; sesuaikan kebijakanmu)
+            // T_approval::where('docid', $header->spbid)->where('status','P')->delete();
+
             $approvals = M_approval::where([
                 ['status', '=', 'A'],
                 ['aprvcpnyid', '=', $request->cpnyid],
@@ -785,52 +711,16 @@ class SpbController extends Controller
                     'aprvdatebefore' => $a->aprvid == 1 ? $datestamp : null,
                     'aprvtotalday'   => 1,
                     'status'         => 'P',
-                    'created_by'   => $username,
+                    'created_by'     => $username,
                 ]);
             }
 
-            $firstApprovalUsernames = optional($approvals->first())->aprvusername;
-            if ($firstApprovalUsernames) {
-                $header->completed_by = $firstApprovalUsernames;
-                $header->completed_at = $dt;
+            if ($first = $approvals->first()) {
+                $header->completed_by = $first->aprvusername;
                 $header->save();
             }
 
-            // attachments (tetap)
-            // if ($request->hasfile('attachments')) {
-            //     foreach ($request->file('attachments') as $file) {
-            //         $randomNumber = random_int(10000000, 99999999);
-            //         $filename = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
-                   
-            //         $originalName = str_replace('%', '', $file->getClientOriginalName());
-            //         $ext        = $file->getClientOriginalExtension();
-            //         $attachfile = md5($randomNumber) . '.' . $ext;
-
-            //         //attach to folder
-            //         $folder_attach = public_path() . '/attachments/'.$year;
-            //         $config['upload_path'] = $folder_attach;                   
-            //         if(!is_dir($folder_attach))
-            //         {
-            //             mkdir($folder_attach, 0777);
-            //         }
-                    
-            //         $folder_upload = $folder_attach;
-            //         // $folder_upload = public_path() . '/attachments';
-            //         $file->move($folder_upload, $attachfile);
-
-            //         //insert to table attachments
-            //         $attach = new Attachment();
-            //         $attach->docid = $header->spbid;
-            //         $attach->name = $filename;
-            //         $attach->attachfile = $attachfile;
-            //         $attach->status = 'A';
-            //         $attach->extention = $file->getClientOriginalExtension();
-            //         $attach->created_user = $user->username;
-            //         $attach->save();
-            //     }
-            // }       
-
-              
+            // === Upload attachments (tetap seperti store) ===
             $uploadResult = null;
             if ($request->hasFile('attachments')) {
                 $meta = [
@@ -844,52 +734,35 @@ class SpbController extends Controller
                 $files = (array) $request->file('attachments');
 
                 try {
-                    $uploader = app(TrAttachmentController::class);
-                    $uploadResult = $uploader->uploadInternal($meta, $files);
+                    $uploader      = app(TrAttachmentController::class);
+                    $uploadResult  = $uploader->uploadInternal($meta, $files);
                 } catch (\Throwable $e) {
                     DB::rollBack();
                     return response()->json([
-                        'message' => 'Failed to update PB',
+                        'message' => 'Failed to update SPB',
                         'error'   => 'Gagal upload attachment: '.$e->getMessage(),
                     ], 500);
                 }
             }
 
-            // email approver pertama (tetap)
-            $firstApproval = T_approval::where('docid', $header->spbid)
-                ->where('status', 'P')
-                ->orderBy('aprvid')
-                ->first();
-
-            if ($firstApproval) {
-                $status = $header->status; // 'P' | 'R' | 'D' | 'A' | 'C'
-
-                $subjectMap = [
-                    'P' => 'Waiting Approval',
-                    'R' => 'Rejected Approval',
-                    'D' => 'Revise Approval',
-                    'A' => 'Approved',
-                    'C' => 'Completed',
-                ];
-                $subjectSuffix = $subjectMap[$status] ?? 'Notification';
-
+            // === (Opsional) Email ke approver pertama (ikuti logika store) ===
+            if ($firstPending = T_approval::where('docid', $header->spbid)->where('status','P')->orderBy('aprvid')->first()) {
                 $eid = Hashids::encode($header->id);
-                
                 $data = [
-                    'docid'    => $firstApproval->docid,
-                    'cpnyid'   => $firstApproval->aprvcpnyid,
-                    'deptname' => $firstApproval->aprvdeptid,
-                    'date'     => $firstApproval->aprvdatebefore,
-                    'name'     => $firstApproval->name,
+                    'docid'    => $firstPending->docid,
+                    'cpnyid'   => $firstPending->aprvcpnyid,
+                    'deptname' => $firstPending->aprvdeptid,
+                    'date'     => $firstPending->aprvdatebefore,
+                    'name'     => $firstPending->name,
                     'createdby'=> $header->created_by,
                     'info'     => $request->keperluan,
-                    'status'   => $status,
+                    'status'   => $header->status, // 'P'
                     'docname'  => 'SPB',
                     'url'      => url('/showspbs/' . $eid),
                 ];
 
-                $approvers = array_filter(array_map('trim', explode(',', (string)$firstApproval->aprvusername)));
-                $emails = User::whereIn('username', $approvers)
+                $approverUsernames = array_filter(array_map('trim', explode(',', (string)$firstPending->aprvusername)));
+                $emails = User::whereIn('username', $approverUsernames)
                     ->where('status', 'A')
                     ->pluck('test_email');
 
@@ -903,12 +776,21 @@ class SpbController extends Controller
             }
 
             DB::commit();
-            return response()->json(['message' => 'SPB updated successfully']);
+
+            return response()->json([
+                'message'      => 'SPB updated successfully',
+                'spbid'        => $header->spbid,
+                'totalspbqty'  => $header->totalspbqty,
+                'attachments'  => $uploadResult,
+            ]);
 
         } catch (\Throwable $e) {
             DB::rollBack();
             report($e);
-            return response()->json(['message' => 'Update failed', 'error' => $e->getMessage()], 500);
+            return response()->json([
+                'message' => 'Update failed',
+                'error'   => config('app.debug') ? $e->getMessage() : null,
+            ], 500);
         }
     }
 
@@ -928,50 +810,65 @@ class SpbController extends Controller
  
 
     public function showSpb($hash)
-    {        
-        $id = Hashids::decode($hash)[0] ?? null;
-        abort_if(!$id, 404);
-
-        $user = Auth::user();       
-
+    {
+        $user = Auth::user();
         if (!$user) {
             return redirect()->route('login');
         }
 
-        // $spb = TrSPB::findOrFail($id);
-        $spb = TrSPB::with([
-            'requestType:requesttypeid,requesttype_name',
-            'creator:username,name'
-        ])
-        ->findOrFail($id);        
+        // --- Normalisasi hash -> spbid ---
+        $spbid = null;
 
+        // 1) hash lama: angka (id)
+        $decoded = Hashids::decode($hash);
+        if (isset($decoded[0]) && !empty($decoded[0])) {
+            $byId = TrSPB::select('spbid')->where('id', $decoded[0])->first();
+            if ($byId) {
+                $spbid = $byId->spbid;
+            }
+        }
+
+        // 2) hash baru: encodeHex(spbid) ATAU langsung kirim spbid
+        if (!$spbid) {
+            try {
+                $maybeSpbid = Hashids::decodeHex($hash);
+                $spbid = $maybeSpbid ?: $hash; // kalau decodeHex gagal, anggap hash = spbid asli
+            } catch (\Throwable $e) {
+                $spbid = $hash;
+            }
+        }
+
+        abort_if(!$spbid, 404);
+
+        // --- Header SPB + relasi sesuai model ---
+        $spb = TrSPB::with([
+            'worktype:worktypeid,worktype_name',
+            'subworktype:subworktypeid,subworktype_name',
+            'creator:username,name',
+        ])->where('spbid', $spbid)->firstOrFail();
+
+        // --- Detail + relasi lokasi ---
         $spbdetail = TrSPBdetail::with([
             'location:location_id,location_name',
-            'subLocation:sub_location_id,sub_location_name'
-        ])
-        ->where('spbid', $spb->spbid)
-        ->get();
-        
+            'subLocation:sub_location_id,sub_location_name',
+        ])->where('spbid', $spb->spbid)->get();
+
+        // --- Approval trail ---
         $approval = T_approval::where('docid', $spb->spbid)
-            ->where('status','<>','X')      
+            ->where('status', '<>', 'X')
             ->orderBy('created_at')
-            ->orderBy('aprvid')      
+            ->orderBy('aprvid')
             ->get();
-       
-        // $attachment = Attachment::where('docid', $spb->spbid)    
-        //     ->where('status','A')        
-        //     ->get();    
-        
-        // ---------- ambil lampiran dari tr_attachment ----------
+
+        // --- Attachments (GCS signed URL) ---
         $rows = TrAttachment::where('refnbr', $spb->spbid)
             ->where('status', 'A')
             ->orderBy('created_at', 'desc')
             ->get();
 
-        // siapkan Signed URL dari GCS
         $config = config('filesystems.disks.gcs');
         $keyFilePath = $config['key_file'];
-        if (!Str::startsWith($keyFilePath, ['/','C:\\','D:\\'])) {
+        if (!Str::startsWith($keyFilePath, ['/', 'C:\\', 'D:\\'])) {
             $keyFilePath = base_path($keyFilePath);
         }
 
@@ -981,12 +878,10 @@ class SpbController extends Controller
         ]);
         $bucket = $storage->bucket($config['bucket']);
 
-        // map jadi data siap pakai di view
         $attachments = $rows->map(function ($r) use ($bucket) {
-            $objectPath = rtrim($r->folder, '/').'/'.$r->filename;   // ex: att-purchasing-app/wo/2025/xxxx-file.pdf
+            $objectPath = rtrim($r->folder, '/').'/'.$r->filename;
             $object     = $bucket->object($objectPath);
 
-            // Signed URL 10 menit
             $signedUrl = null;
             try {
                 $signedUrl = $object->signedUrl(
@@ -994,24 +889,23 @@ class SpbController extends Controller
                     ['version' => 'v4']
                 );
             } catch (\Throwable $e) {
-                // kalau gagal signed URL, biarkan null; di UI tampilkan nama saja
                 \Log::warning('Signed URL gagal', ['path' => $objectPath, 'error' => $e->getMessage()]);
             }
 
-            return (object) [                
-                'display_name' => $r->attachment_name,         // nama yang enak dibaca
+            return (object) [
+                'display_name' => $r->attachment_name,
                 'created_by'   => $r->created_by,
                 'created_at'   => $r->created_at,
-                'url'          => $signedUrl,                  // bisa null jika gagal
+                'url'          => $signedUrl,
                 'folder'       => $r->folder,
                 'filename'     => $r->filename,
                 'extention'    => $r->extention,
                 'size'         => $r->filesize,
             ];
         });
-        
-       
-        return view('pages.spbs.showspbs', compact('spb','approval','attachments','spbdetail','hash'));
+
+        // untuk konsistensi link detail, kirim balik hash apa adanya
+        return view('pages.spbs.showspbs', compact('spb', 'approval', 'attachments', 'spbdetail', 'hash'));
     }
 
     
@@ -1587,20 +1481,19 @@ class SpbController extends Controller
             return redirect()->route('login');
         }
 
-        // Ambil SPB + relasi yang dibutuhkan
-        $spb = TrSPB::with([
-                'requestType:requesttypeid,requesttype_name',
-                'creator:username,name',
-            ])
-            ->findOrFail($id);
 
-        // Detail baris SPB
+        // Ambil SPB + relasi yang dibutuhkan
+         $spb = TrSPB::with([
+            'worktype:worktypeid,worktype_name',
+            'subworktype:subworktypeid,subworktype_name',
+            'creator:username,name',
+        ])->where('id', $id)->firstOrFail();
+
+        // --- Detail + relasi lokasi ---
         $spbdetail = TrSPBdetail::with([
-                'location:location_id,location_name',
-                'subLocation:sub_location_id,sub_location_name',
-            ])
-            ->where('spbid', $spb->spbid)
-            ->get();
+            'location:location_id,location_name',
+            'subLocation:sub_location_id,sub_location_name',
+        ])->where('spbid', $spb->spbid)->get();
 
         // Approval list (non-cancelled)
         $approval = T_approval::where('docid', $spb->spbid)
@@ -1634,7 +1527,7 @@ class SpbController extends Controller
         }
 
         $data = [
-            'title'               => 'Surat Permintaan Pembelian Barang',
+            'title'               => 'Surat Permintaan Barang',
             'doc_type'            => 'SPB',
             'docid'               => $spb->spbid,
             'department_id'       => $spb->department_id,

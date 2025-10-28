@@ -15,40 +15,37 @@ class TrSPB extends Model
         'spbdate',
         'cpny_id',
         'department_id',
-        'requesttypeid',
+        'worktypeid',
+        'subworktypeid',
         'keperluan',
         'budget_perpost',
         'woid',
-        'spbid',
-        'totalopenordered',
-        'totalqty',
-        'totalordered',
-        'totalrejectordered',
-        'totalcompleteordered',
-        'assignby',
-        'assigndate',
-        'assignpurchasing',
-        'csjobs',
-        'cs',
+        'totalspbqty',
+        'totalspbopenqty',
+        'totalissueqty',
+        'totalcompleteqty',
         'status',
         'created_by',
         'updated_by',
         'completed_by'
     ];
-
-    public function requestType()
-    {
-        return $this->belongsTo(MsRequestType::class, 'requesttypeid', 'requesttypeid');           
-    }
+ 
 
     public function creator()
     {
         return $this->belongsTo(User::class, 'created_by', 'username');
     }
 
-    public function purchaser()
+    public function worktype()
     {
-        return $this->belongsTo(User::class, 'assignpurchasing', 'username');
+        // foreignKey di TrWO = worktypeid, ownerKey di MsWorktype = id
+        return $this->belongsTo(MsWorktype::class, 'worktypeid', 'worktypeid')->withDefault();
+    }
+
+    /** Sub-tipe pekerjaan */
+    public function subworktype()
+    {
+        return $this->belongsTo(MsSubworktype::class, 'subworktypeid', 'subworktypeid')->withDefault();
     }
 
     

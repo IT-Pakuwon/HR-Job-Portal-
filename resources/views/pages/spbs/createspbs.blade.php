@@ -123,11 +123,11 @@
     <div class="max-w-9xl mx-auto w-full px-4 py-4 sm:px-6 lg:px-8">
         <div class="grid grid-cols-1 gap-8 lg:grid-cols-2 lg:grid-rows-[minmax(0,auto)_1fr]">
             <div class="flex flex-col gap-8 lg:col-span-2 lg:row-span-1">
-                <form id="sppbForm" class="flex flex-col gap-4" enctype="multipart/form-data">
+                <form id="spbForm" class="flex flex-col gap-4" enctype="multipart/form-data">
                     @csrf
                     <div class="w-full rounded-xl bg-white p-6 shadow-md dark:bg-gray-800">
                         <div class="mb-6 border-b border-gray-200 pb-4 dark:border-gray-700">
-                            <h2 class="text-xl font-extrabold text-gray-800 dark:text-white">Create SPPB</h2>
+                            <h2 class="text-xl font-extrabold text-gray-800 dark:text-white">Create SPB</h2>
                         </div>
                         <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
                             <div class="flex flex-col gap-2">
@@ -156,21 +156,20 @@
                                     @endforeach
                                 </select>
                             </div>
-                            {{-- <div class="flex flex-col gap-2">
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Wo ID</label>
-                                <select class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300" name="woid" required>
-                                  
-                                </select>
-                            </div>    --}}
                             <div class="flex flex-col gap-2">
-                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Request
-                                    Type</label>
-                                <select id="requesttypeid" name="requesttypeid"
-                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
-                                    required>
-                                    <option value="" disabled selected>Loading...</option>
-                                </select>
+                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Jenis Pekerjaan</label>
+                                <div class="flex gap-2">
+                                    <input type="text" id="jenis_pekerjaan_display"
+                                        class="flex-1 rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-gray-600 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                        placeholder="Pilih Worktype & Subworktype" readonly>
+                                    <button type="button" id="btnJenisPekerjaan"
+                                        class="rounded-lg bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700">Pilih</button>
+                                </div>
+                                <!-- hidden fields to submit -->
+                                <input type="hidden" name="worktypeid" id="worktypeid">
+                                <input type="hidden" name="subworktypeid" id="subworktypeid">
                             </div>
+
                             <div class="flex flex-col gap-2">
                                 <label
                                     class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Perpost</label>
@@ -185,6 +184,19 @@
                                 </select>
                             </div>
                         </div>
+                        <!-- WOID (letakkan sebelum Description) -->
+                        <div class="flex flex-col gap-2 lg:col-span-4">
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">WO ID</label>
+                        <div class="flex items-center gap-2">
+                            <input type="text" name="woid" id="woid"
+                                class="flex-1 rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                placeholder="Pilih WO..." readonly>
+                            <button type="button" id="openWoModal"
+                                    class="rounded border border-gray-500 px-2 py-2 hover:bg-gray-100 dark:hover:bg-gray-700"
+                                    title="Lookup">🔎</button>
+                        </div>
+                        </div>
+
                         <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
                             <div class="flex flex-col gap-2 lg:col-span-4">
                                 <label for="keperluan"
@@ -203,7 +215,7 @@
                             <details class="group" open>
                                 <summary
                                     class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-xl font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
-                                    <span>SPPB Detail</span>
+                                    <span>SPB Detail</span>
                                     <span class="text-sm font-medium text-gray-500 transition-all group-open:hidden">See
                                         details &rarr;</span>
                                     <span
@@ -221,13 +233,13 @@
                                                     <th class="req w-28 w-[8%] border p-3">UoM</th>
                                                     <th class="w-[15%] border p-3">Note</th>
                                                     <th class="req border p-3">Location</th>
-                                                    <th class="req border p-3">Sub Location</th>
+                                                    {{-- <th class="req border p-3">Sub Location</th> --}}
                                                     <th class="req w-[10%] border p-3">Coa</th>
                                                     <th class="w-16 border p-3 text-center"></th>
                                                 </tr>
                                             </thead>
-                                            <tbody id="sppbTable">
-                                                <tr class="sppb-row">
+                                            <tbody id="spbTable">
+                                                <tr class="spb-row">
                                                     <td class="border p-3 text-center">1</td>
 
                                                     <!-- Product Name (text + zoom button + hidden id) -->
@@ -256,16 +268,7 @@
                                                             class="qtyField w-full border-none bg-transparent p-2 text-right focus:outline-none focus:ring-0"
                                                             placeholder="0,00">
                                                     </td>
-
-                                                    <!-- UoM auto-filled -->
-                                                    {{-- <td class="border p-3">
-                                    <input type="text" name="stock_unit[]" readonly
-                                            class="stock_unitField w-full cursor-not-allowed border-none bg-gray-50 p-2 text-gray-600 focus:outline-none"
-                                            placeholder="-">
-                                             <button type="button"
-                                                class="openUomModal rounded border border-gray-500 px-1 py-1 hover:bg-gray-100 dark:hover:bg-gray-700"
-                                                title="Lookup">🔎</button>
-                                    </td> --}}
+                                
                                                     {{-- UoM --}}
                                                     <td class="border p-3">
                                                         <div class="flex items-center gap-2">
@@ -294,7 +297,7 @@
                                                     </td>
 
                                                     <!-- Location & Sub Location -->
-                                                    <td class="border p-3">
+                                                    {{-- <td class="border p-3">
                                                         <div class="flex items-center gap-2">
                                                             <input type="hidden" name="location_id[]"
                                                                 class="locationIdField">
@@ -318,7 +321,20 @@
                                                                 class="openSubLocationModal rounded border border-gray-500 px-1 py-1 hover:bg-gray-100 dark:hover:bg-gray-700"
                                                                 title="Lookup">🔎</button>
                                                         </div>
+                                                    </td> --}}
+                                                    <td class="border p-3">
+                                                        <div class="flex items-center gap-2">
+                                                            <input type="hidden" name="location_id[]"     class="locationIdField">
+                                                            <input type="hidden" name="sub_location_id[]" class="subLocationIdField">
+                                                            <input type="text"  name="location_combo_display[]" 
+                                                                class="locationDisplayField w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0"
+                                                                placeholder="Select location & sub location..." readonly>
+                                                            <button type="button"
+                                                                    class="openLokasiPicker rounded border border-gray-500 px-1 py-1 hover:bg-gray-100 dark:hover:bg-gray-700"
+                                                                    title="Lookup">🔎</button>
+                                                        </div>
                                                     </td>
+
 
                                                     <!-- Coa (lookup modal) -->
                                                     <td class="border p-3">
@@ -341,14 +357,14 @@
 
                                                     <td class="border p-3 text-center">
                                                         <button type="button"
-                                                            class="removeSppb hidden rounded border border-red-700 bg-red-200/10 px-3 py-3 text-white hover:border-red-700 hover:bg-red-400/30">🗑️</button>
+                                                            class="removeSpb hidden rounded border border-red-700 bg-red-200/10 px-3 py-3 text-white hover:border-red-700 hover:bg-red-400/30">🗑️</button>
                                                     </td>
                                                 </tr>
                                             </tbody>
                                         </table>
                                     </div>
 
-                                    <button type="button" id="addSppb"
+                                    <button type="button" id="addSpb"
                                         class="mb-4 mt-4 flex items-center justify-center gap-2 rounded border border-gray-700 bg-gray-200/10 p-2 text-gray-800 hover:border-red-700 hover:bg-red-200/10 hover:font-medium hover:text-red-800">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20"
                                             fill="currentColor">
@@ -506,6 +522,61 @@
                         </div>
                     </div>
 
+                    <!-- Modal: Location + Sub Location -->
+                    <div id="modalLokasi" class="fixed inset-0 z-[1000] hidden items-center justify-center bg-black/50 p-4">
+                    <div class="w-full max-w-2xl rounded-2xl bg-white shadow-xl dark:bg-gray-800">
+                        <!-- Header -->
+                        <div class="flex items-center justify-between border-b border-gray-200 px-5 py-4 dark:border-gray-700">
+                        <div class="flex items-center gap-3">
+                            <h3 class="text-lg font-bold text-gray-800 dark:text-gray-100">Pilih Location & Sub Location</h3>
+                            <div class="text-xs text-gray-500 dark:text-gray-400">                            
+                            </div>
+                        </div>
+                        <button type="button" id="closeLokasi"
+                                class="rounded p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-700 dark:text-gray-300">✖</button>
+                        </div>
+
+                        <!-- Body -->
+                        <div class="px-5 py-5">
+                        <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                            <!-- Location -->
+                            <div>
+                            <label class="req mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Location</label>
+                            <select id="modal_location_id"
+                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
+                                <option value="">-- choose --</option>
+                            </select>
+                            <small class="mt-1 block text-xs text-gray-500 dark:text-gray-400">Wajib memilih Location.</small>
+                            </div>
+
+                            <!-- Sub Location -->
+                            <div>
+                            <label class="req mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Sub Location</label>
+                            <select id="modal_sub_location_id"
+                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
+                                <option value="">-- choose --</option>
+                            </select>
+                            <small class="mt-1 block text-xs text-gray-500 dark:text-gray-400">Wajib memilih sub location.</small>
+                            </div>
+                        </div>
+                        </div>
+
+                        <!-- Footer -->
+                        <div class="flex items-center justify-end gap-3 border-t border-gray-200 px-5 py-4 dark:border-gray-700">
+                        <button type="button" id="cancelLokasi"
+                                class="rounded-lg border px-4 py-2 text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700">
+                            Cancel
+                        </button>
+                        <button type="button" id="saveLokasi"
+                                class="rounded-lg bg-indigo-600 px-4 py-2 font-semibold text-white hover:bg-indigo-700">
+                            Save
+                        </button>
+                        </div>
+                    </div>
+                    </div>
+
+
+
                     <!-- ===== Modal Lookup COA ===== -->
                     <div id="coaModal"
                         class="fixed inset-0 z-[1000] hidden items-center justify-center bg-black/40 p-4">
@@ -601,6 +672,86 @@
                         </div>
                     </div>
 
+                    <!-- ===== Modal Jenis Pekerjaan ===== -->
+                    <div id="modalJenisPekerjaan" class="fixed inset-0 z-[1100] hidden items-center justify-center bg-black/40 p-4">
+                        <div class="w-full max-w-2xl rounded-xl bg-white p-5 shadow-lg dark:bg-gray-800">
+                            <div class="mb-4 flex items-center justify-between">
+                            <h3 class="text-lg font-bold text-gray-800 dark:text-white">Pilih Jenis Pekerjaan</h3>
+                            <button type="button" id="closeJenisPekerjaan"
+                                class="rounded px-3 py-1 hover:bg-gray-100 dark:hover:bg-gray-700">✖</button>
+                            </div>
+
+                            <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Worktype</label>
+                                <select id="modal_worktypeid"
+                                class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
+                                <option value="">-- choose --</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Sub Worktype</label>
+                                <select id="modal_subworktypeid"
+                                class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
+                                <option value="">-- choose --</option>
+                                </select>
+                            </div>
+                            </div>
+
+                            <div class="mt-5 flex items-center justify-end gap-2">
+                            <button type="button" id="cancelJenisPekerjaan"
+                                class="rounded-lg border px-4 py-2 hover:bg-gray-100 dark:border-gray-600 dark:hover:bg-gray-700">Cancel</button>
+                            <button type="button" id="saveJenisPekerjaan"
+                                class="rounded-lg bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700">Save</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ===== Modal Lookup WO (status = 'C') ===== -->
+                    <div id="woModal" class="fixed inset-0 z-[1000] hidden items-center justify-center bg-black/40 p-4">
+                        <div class="w-full max-w-4xl rounded-xl bg-white p-4 shadow-lg dark:bg-gray-800">
+                            <div class="mb-3 flex items-center justify-between">
+                            <h3 class="text-lg font-bold text-gray-800 dark:text-white">Select WO</h3>
+                            <button type="button" id="closeWoModal" class="rounded px-3 py-1 hover:bg-gray-100 dark:hover:bg-gray-700">✖</button>
+                            </div>
+
+                            <div class="mb-3 flex items-center gap-2 text-sm">
+                            <input id="woSearch" type="text" placeholder="Search woid/wodate/created_by/departement_id..."
+                                    class="rounded border border-gray-300 bg-white px-3 py-1 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
+                            <button id="woRefresh" type="button"
+                                    class="rounded border px-3 py-1 hover:bg-gray-100 dark:hover:bg-gray-700">↻</button>
+                            <div class="ml-auto flex items-center gap-3">
+                                {{-- <span>Status: <b>C</b></span> --}}
+                                <span>Dept: <b id="woDeptBadge"></b></span>
+                            </div>
+                            </div>
+
+                            <div class="max-h-[60vh] overflow-auto">
+                            <table class="w-full text-left">
+                                <thead class="sticky top-0 bg-gray-50 text-sm dark:bg-gray-900">
+                                <tr>
+                                    <th class="border p-2">WO ID</th>
+                                    <th class="border p-2">WO Date</th>
+                                    <th class="border p-2">Created By</th>
+                                    <th class="border p-2">Department</th>
+                                    <th class="w-24 border p-2 text-center">Action</th>
+                                </tr>
+                                </thead>
+                                <tbody id="woTableBody" class="text-sm"></tbody>
+                            </table>
+                            </div>
+
+                            <div class="mt-3 flex items-center justify-between text-sm">
+                            <span id="woCount" class="opacity-80"></span>
+                            <div class="space-x-2">
+                                <button id="woPrev" type="button" class="rounded border px-3 py-1 disabled:opacity-40">Prev</button>
+                                <button id="woNext" type="button" class="rounded border px-3 py-1 disabled:opacity-40">Next</button>
+                            </div>
+                            </div>
+                        </div>
+                    </div>
+
+
                     {{-- ===== Attachment ===== --}}
                     <div class="w-full rounded-xl bg-white p-6 shadow-md dark:bg-gray-800">
                         <details class="group" open>
@@ -662,7 +813,7 @@
             </div>
 
             <div id="successMessage" class="mt-4 hidden font-bold text-green-600 lg:col-span-2">
-                Sppb Created Successfully!
+                Spb Created Successfully!
             </div>
         </div>
     </div>
@@ -694,12 +845,10 @@
     </script>
 
 
-
-
     <script>
         $(function() {
             // helper: bersihkan error
-            function clearAllErrors(scope = '#sppbForm') {
+            function clearAllErrors(scope = '#spbForm') {
                 $(scope).find('.is-invalid').removeClass('is-invalid').removeAttr('aria-invalid');
                 $(scope).find('.error-feedback').remove();
             }
@@ -712,7 +861,7 @@
                 }
             }
             // hapus error saat user memperbaiki input
-            $(document).on('input change', '#sppbForm input, #sppbForm textarea, #sppbForm select', function() {
+            $(document).on('input change', '#spbForm input, #spbForm textarea, #spbForm select', function() {
                 $(this).removeClass('is-invalid').removeAttr('aria-invalid');
                 $(this).next('.error-feedback').remove();
             });
@@ -723,7 +872,7 @@
 
                 let validRows = 0;
 
-                $('#sppbTable tr.sppb-row').each(function() {
+                $('#spbTable tr.spb-row').each(function() {
                     const $row = $(this);
 
                     const invId = ($row.find('.inventoryIdField').val() || '').trim();
@@ -787,19 +936,19 @@
                 }
 
                 // scroll ke error pertama jika ada
-                const $first = $('#sppbForm .is-invalid').first();
+                const $first = $('#spbForm .is-invalid').first();
                 if ($first.length) {
                     $('html,body').animate({
                         scrollTop: $first.offset().top - 120
                     }, 300);
                     $first.trigger('focus');
-                    toastr.error('Mohon perbaiki field yang ditandai merah pada detail SPPB.');
+                    toastr.error('Mohon perbaiki field yang ditandai merah pada detail SPB.');
                     return false;
                 }
                 return true;
             }
 
-            $('#sppbForm').on('submit', function(e) {
+            $('#spbForm').on('submit', function(e) {
                 e.preventDefault();
 
                 // Validasi detail dulu
@@ -817,18 +966,18 @@
                 // $('#loadingSpinner').removeClass('hidden');
                 showOverlay('Submitting');
 
-                const formData = new FormData(document.getElementById('sppbForm'));
+                const formData = new FormData(document.getElementById('spbForm'));
 
                 $.ajax({
-                        url: "{{ route('sppbs.store') }}",
+                        url: "{{ route('spbs.store') }}",
                         type: "POST",
                         data: formData,
                         processData: false,
                         contentType: false
                     })
                     .done(function(res) {
-                        toastr.success(res.message || "Sppb Requisition Submit Successfully!");
-                        window.location.href = "/sppbs";
+                        toastr.success(res.message || "Spb Requisition Submit Successfully!");
+                        window.location.href = "/spbs";
                     })
                     .fail(function(xhr) {
                         // tampilkan pesan validasi 422 (Laravel)
@@ -859,29 +1008,29 @@
 
 
     <script>
-        // ===== SPPB Detail =====
+        // ===== SPB Detail =====
         $(function() {
-            let sppbcount = 1;
+            let spbcount = 1;
             let currentRow = null; // row yang sedang aktif untuk receive pilihan inventory
 
             function updateRowNumbers() {
-                sppbcount = 0;
-                $('#sppbTable tr').each(function() {
-                    sppbcount++;
-                    $(this).find('td:first').text(sppbcount);
+                spbcount = 0;
+                $('#spbTable tr').each(function() {
+                    spbcount++;
+                    $(this).find('td:first').text(spbcount);
                 });
             }
 
             function updateRemoveButtons() {
-                if ($('.sppb-row').length > 1) $('.removeSppb').removeClass('hidden');
-                else $('.removeSppb').addClass('hidden');
+                if ($('.spb-row').length > 1) $('.removeSpb').removeClass('hidden');
+                else $('.removeSpb').addClass('hidden');
             }
 
-            $('#addSppb').on('click', function() {
-                sppbcount++;
+            $('#addSpb').on('click', function() {
+                spbcount++;
                 const row = `
-            <tr class="sppb-row">
-                <td class="p-3 border text-center">${sppbcount}</td>
+            <tr class="spb-row">
+                <td class="p-3 border text-center">${spbcount}</td>
 
                 <td class="p-3 border">
                 <div class="flex items-center gap-2">
@@ -920,18 +1069,16 @@
                         class="w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0">
                 </td>
 
-                <td class="p-3 border">
+                <td class="border p-3">
                     <div class="flex items-center gap-2">
-                        <input type="hidden" name="location_id[]" class="locationIdField">
-                        <input type="text" name="location[]" class="locationNameField w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0" placeholder="Select location..." readonly>
-                        <button type="button" class="openLocationModal rounded border border-gray-500 px-1 py-1 hover:bg-gray-100 dark:hover:bg-gray-700" title="Lookup">🔎</button>
-                    </div>
-                </td>
-                <td class="p-3 border">
-                    <div class="flex items-center gap-2">
+                        <input type="hidden" name="location_id[]"     class="locationIdField">
                         <input type="hidden" name="sub_location_id[]" class="subLocationIdField">
-                        <input type="text"   name="sub_location[]"    class="subLocationNameField w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0" placeholder="Select sub location..." readonly>
-                        <button type="button" class="openSubLocationModal rounded border border-gray-500 px-1 py-1 hover:bg-gray-100 dark:hover:bg-gray-700" title="Lookup">🔎</button>
+                        <input type="text"  name="location_combo_display[]" 
+                            class="locationDisplayField w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0"
+                            placeholder="Select location & sub location..." readonly>
+                        <button type="button"
+                                class="openLokasiPicker rounded border border-gray-500 px-1 py-1 hover:bg-gray-100 dark:hover:bg-gray-700"
+                                title="Lookup">🔎</button>
                     </div>
                 </td>
              
@@ -948,15 +1095,15 @@
 
 
                 <td class="p-3 border text-center">
-                <button type="button" class="removeSppb bg-red-200/10 hover:border-red-700 hover:bg-red-400/30 border-red-700 border text-white px-3 py-3 rounded hidden">🗑️</button>
+                <button type="button" class="removeSpb bg-red-200/10 hover:border-red-700 hover:bg-red-400/30 border-red-700 border text-white px-3 py-3 rounded hidden">🗑️</button>
                 </td>
             </tr>`;
-                $('#sppbTable').append(row);
+                $('#spbTable').append(row);
                 updateRemoveButtons();
             });
 
-            $(document).on('click', '.removeSppb', function() {
-                $(this).closest('.sppb-row').remove();
+            $(document).on('click', '.removeSpb', function() {
+                $(this).closest('.spb-row').remove();
                 updateRowNumbers();
                 updateRemoveButtons();
             });
@@ -1112,14 +1259,7 @@
                     .remove();
 
 
-                // //opsional: auto-isi COA bila inventory bawa default account_id (seperti sebelumnya)
-                // if (account_id) {
-                //     currentRow.find('.coaIdField').val(account_id);
-                //     currentRow.find('.coaNameField').val(account_id);
-                // } else {
-                //     currentRow.find('.coaIdField').val('');
-                //     currentRow.find('.coaNameField').val('');
-                // }
+          
 
                 closeModal();
             });
@@ -1163,7 +1303,7 @@
         // ===== Request Type =====
         $(function() {
             const $requestType = $('#requesttypeid');
-            const DOCTYPE = 'SPPB';
+            const DOCTYPE = 'SPB';
 
             function buildRequestTypeOptions(list, selected) {
                 let opts = '<option value="" disabled>Select Request Type</option>';
@@ -1205,316 +1345,7 @@
     </script>
 
 
-    <script>
-        $(function() {
-            // ===== Location modal state =====
-            const $locModal = $('#locationModal');
-            const $locTbody = $('#locTableBody');
-            const $locCount = $('#locCount');
-            const $locCpnyBad = $('#locCpnyBadge');
-
-            let currentLocRow = null; // tr row yang akan diisi location
-            let locState = {
-                search: '',
-                page: 1,
-                per_page: 10,
-                total: 0,
-                cpnyid: null
-            };
-
-            function openLocModal(forRow) {
-                currentLocRow = forRow;
-                // baca cpnyid dari header
-                const cpny = $('select[name="cpnyid"]').val();
-                locState.cpnyid = cpny || '';
-                $locCpnyBad.text(locState.cpnyid || '-');
-
-                $locModal.removeClass('hidden').addClass('flex');
-                loadLocations();
-            }
-
-            function closeLocModal() {
-                $locModal.addClass('hidden').removeClass('flex');
-            }
-
-            $(document).on('click', '.openLocationModal', function() {
-                openLocModal($(this).closest('tr'));
-            });
-            $('#closeLocationModal').on('click', closeLocModal);
-            $(document).on('keydown', function(e) {
-                if (e.key === 'Escape' && $locModal.is(':visible')) closeLocModal();
-            });
-
-            // Search & refresh
-            $('#locSearch').on('input', function() {
-                locState.search = $(this).val().trim();
-                locState.page = 1;
-                loadLocations();
-            });
-            $('#locRefresh').on('click', function() {
-                $('#locSearch').val('');
-                locState.search = '';
-                locState.page = 1;
-                loadLocations();
-            });
-
-            // Pagination
-            $('#locPrev').on('click', function() {
-                if (locState.page > 1) {
-                    locState.page--;
-                    loadLocations();
-                }
-            });
-            $('#locNext').on('click', function() {
-                const maxPage = Math.ceil(locState.total / locState.per_page);
-                if (locState.page < maxPage) {
-                    locState.page++;
-                    loadLocations();
-                }
-            });
-
-            // Load locations from API (by cpnyid)
-            function loadLocations() {
-                if (!locState.cpnyid) {
-                    $locTbody.html('<tr><td colspan="3" class="p-3 text-center">Select Company first</td></tr>');
-                    $locCount.text('');
-                    $('#locPrev, #locNext').prop('disabled', true);
-                    return;
-                }
-
-                $locTbody.html('<tr><td colspan="3" class="p-3 text-center">Loading...</td></tr>');
-                $.getJSON("{{ route('locations.byCompany') }}", {
-                        cpnyid: locState.cpnyid,
-                        search: locState.search,
-                        page: locState.page,
-                        per_page: locState.per_page
-                    })
-                    .done(function(res) {
-                        // Expected: { data: [{location_id, location_name}], total, page, per_page }
-                        const rows = (res.data || []).map(item => `
-                <tr>
-                <td class="border p-2">${item.location_id}</td>
-                <td class="border p-2">${item.location_name || item.locationname || ''}</td>
-                <td class="border p-2 text-center">
-                    <button type="button" class="chooseLocation rounded border px-2 py-1 hover:bg-gray-100"
-                    data-id="${item.location_id}"
-                    data-name="${$('<div>').text(item.location_name || item.locationname || '').html()}">Choose</button>
-                </td>
-                </tr>
-            `).join('');
-
-                        $locTbody.html(rows || '<tr><td colspan="3" class="p-3 text-center">No data</td></tr>');
-                        locState.total = res.total || 0;
-                        $locCount.text(`Showing ${rows ? (res.data.length) : 0} of ${locState.total} items`);
-                        const maxPage = Math.ceil((locState.total || 0) / locState.per_page) || 1;
-                        $('#locPrev').prop('disabled', locState.page <= 1);
-                        $('#locNext').prop('disabled', locState.page >= maxPage);
-                    })
-                    .fail(function() {
-                        $locTbody.html(
-                            '<tr><td colspan="3" class="p-3 text-center text-red-600">Failed to load</td></tr>'
-                        );
-                        $locCount.text('');
-                        $('#locPrev, #locNext').prop('disabled', true);
-                    });
-            }
-
-            // Choose -> fill row
-            $(document).on('click', '.chooseLocation', function() {
-                if (!currentLocRow) return;
-                const id = $(this).data('id');
-                const name = $(this).data('name');
-
-                currentLocRow.find('.locationIdField').val(id);
-                currentLocRow.find('.locationNameField').val(name);
-
-                currentLocRow.find('.locationNameField').removeClass('is-invalid').next('.error-feedback')
-                    .remove();
-
-
-                closeLocModal();
-            });
-
-            // Reload lokasi jika company berubah (supaya konsisten)
-            $('select[name="cpnyid"]').on('change', function() {
-                if ($locModal.is(':visible')) {
-                    locState.cpnyid = $(this).val();
-                    $locCpnyBad.text(locState.cpnyid || '-');
-                    locState.page = 1;
-                    loadLocations();
-                }
-            });
-        });
-    </script>
-
-    <script>
-        $(function() {
-            // ===== Sub Location modal state =====
-            const $subLocModal = $('#subLocationModal');
-            const $subLocTbody = $('#subLocTableBody');
-            const $subLocCount = $('#subLocCount');
-            const $subLocCpnyBad = $('#subLocCpnyBadge');
-            const $subLocParent = $('#subLocParentBadge');
-
-            let currentSubLocRow = null;
-            let subLocState = {
-                search: '',
-                page: 1,
-                per_page: 10,
-                total: 0,
-                cpnyid: null,
-                location_id: null
-            };
-
-            function openSubLocModal(forRow) {
-                currentSubLocRow = forRow;
-
-                // baca cpnyid header & location_id di row aktif
-                const cpny = $('select[name="cpnyid"]').val();
-                const locId = forRow.find('.locationIdField').val();
-
-                if (!cpny) {
-                    if (window.toastr) toastr.warning('Pilih Company terlebih dahulu.');
-                    return;
-                }
-                if (!locId) {
-                    if (window.toastr) toastr.warning('Pilih Location terlebih dahulu pada baris ini.');
-                    return;
-                }
-
-                subLocState.cpnyid = cpny;
-                subLocState.location_id = locId;
-                subLocState.page = 1;
-                subLocState.search = '';
-
-                $subLocCpnyBad.text(cpny);
-                $subLocParent.text(locId);
-
-                $('#subLocSearch').val('');
-                $subLocModal.removeClass('hidden').addClass('flex');
-                loadSubLocations();
-            }
-
-            function closeSubLocModal() {
-                $subLocModal.addClass('hidden').removeClass('flex');
-            }
-
-            $(document).on('click', '.openSubLocationModal', function() {
-                openSubLocModal($(this).closest('tr'));
-            });
-            $('#closeSubLocationModal').on('click', closeSubLocModal);
-            $(document).on('keydown', function(e) {
-                if (e.key === 'Escape' && $subLocModal.is(':visible')) closeSubLocModal();
-            });
-
-            // Search & refresh
-            $('#subLocSearch').on('input', function() {
-                subLocState.search = $(this).val().trim();
-                subLocState.page = 1;
-                loadSubLocations();
-            });
-            $('#subLocRefresh').on('click', function() {
-                $('#subLocSearch').val('');
-                subLocState.search = '';
-                subLocState.page = 1;
-                loadSubLocations();
-            });
-
-            // Pagination
-            $('#subLocPrev').on('click', function() {
-                if (subLocState.page > 1) {
-                    subLocState.page--;
-                    loadSubLocations();
-                }
-            });
-            $('#subLocNext').on('click', function() {
-                const maxPage = Math.ceil(subLocState.total / subLocState.per_page);
-                if (subLocState.page < maxPage) {
-                    subLocState.page++;
-                    loadSubLocations();
-                }
-            });
-
-            // Load Sub Locations
-            function loadSubLocations() {
-                if (!subLocState.cpnyid || !subLocState.location_id) {
-                    $subLocTbody.html(
-                        '<tr><td colspan="3" class="p-3 text-center">Select company & location first</td></tr>');
-                    $subLocCount.text('');
-                    $('#subLocPrev, #subLocNext').prop('disabled', true);
-                    return;
-                }
-
-                $subLocTbody.html('<tr><td colspan="3" class="p-3 text-center">Loading...</td></tr>');
-                $.getJSON("{{ route('sublocations.byLocation') }}", {
-                        cpnyid: subLocState.cpnyid,
-                        location_id: subLocState.location_id,
-                        search: subLocState.search,
-                        page: subLocState.page,
-                        per_page: subLocState.per_page
-                    })
-                    .done(function(res) {
-                        // Expected: { data: [{sub_location_id / sub_location_id, sub_location_name / sub_location_name}], total,... }
-                        const rows = (res.data || []).map(item => {
-                            const id = item.sub_location_id ?? item.sub_location_id ?? '';
-                            const name = item.sub_location_name ?? item.sub_location_name ?? '';
-                            return `
-                <tr>
-                    <td class="border p-2">${id}</td>
-                    <td class="border p-2">${name}</td>
-                    <td class="border p-2 text-center">
-                    <button type="button" class="chooseSubLocation rounded border px-2 py-1 hover:bg-gray-100"
-                        data-id="${id}" data-name="${$('<div>').text(name).html()}">Choose</button>
-                    </td>
-                </tr>
-                `;
-                        }).join('');
-
-                        $subLocTbody.html(rows ||
-                            '<tr><td colspan="3" class="p-3 text-center">No data</td></tr>');
-                        subLocState.total = res.total || 0;
-                        $subLocCount.text(
-                            `Showing ${rows ? (res.data.length) : 0} of ${subLocState.total} items`);
-                        const maxPage = Math.ceil((subLocState.total || 0) / subLocState.per_page) || 1;
-                        $('#subLocPrev').prop('disabled', subLocState.page <= 1);
-                        $('#subLocNext').prop('disabled', subLocState.page >= maxPage);
-                    })
-                    .fail(function() {
-                        $subLocTbody.html(
-                            '<tr><td colspan="3" class="p-3 text-center text-red-600">Failed to load</td></tr>'
-                        );
-                        $subLocCount.text('');
-                        $('#subLocPrev, #subLocNext').prop('disabled', true);
-                    });
-            }
-
-            // Choose → isi row
-            $(document).on('click', '.chooseSubLocation', function() {
-                if (!currentSubLocRow) return;
-                const id = $(this).data('id');
-                const name = $(this).data('name');
-
-                currentSubLocRow.find('.subLocationIdField').val(id);
-                currentSubLocRow.find('.subLocationNameField').val(name);
-
-                currentSubLocRow.find('.subLocationNameField').removeClass('is-invalid').next(
-                    '.error-feedback').remove();
-
-                closeSubLocModal();
-            });
-
-            // Jika company berubah saat modal terbuka → refresh
-            $('select[name="cpnyid"]').on('change', function() {
-                if ($subLocModal.is(':visible')) {
-                    subLocState.cpnyid = $(this).val();
-                    $subLocCpnyBad.text(subLocState.cpnyid || '-');
-                    subLocState.page = 1;
-                    loadSubLocations();
-                }
-            });
-        });
-    </script>
-
+  
 
     <script>
         // === Prevent non-numeric input in Qty fields ===
@@ -1890,6 +1721,321 @@
 
         });
     </script>
+
+    <script>
+        $(function () {
+        const $dept = $('select[name="departementid"]');
+
+        function openJenisModal(){ $('#modalJenisPekerjaan').removeClass('hidden').addClass('flex'); }
+        function closeJenisModal(){ $('#modalJenisPekerjaan').addClass('hidden').removeClass('flex'); }
+
+        $('#btnJenisPekerjaan').on('click', function(){
+            // 1) Buka modal dulu
+            openJenisModal();
+
+            // 2) Reset option
+            const $wt  = $('#modal_worktypeid');
+            const $swt = $('#modal_subworktypeid');
+            $wt.empty().append('<option value="">-- choose --</option>');
+            $swt.empty().append('<option value="">-- choose --</option>');
+
+            // 3) Load worktypes (optional filter departementid)
+            const params = $.param({ departementid: $dept.val() || '' });
+            $.getJSON(`/wos/ajax/worktypes?${params}`)
+            .done(function(list){
+                (list || []).forEach(it => $wt.append(new Option(it.text, it.value)));
+            })
+            .fail(function(){
+                toastr.error('Gagal memuat Worktype.');
+            });
+        });
+
+        $('#closeJenisPekerjaan, #cancelJenisPekerjaan').on('click', closeJenisModal);
+
+        // Ketika worktype dipilih → load subworktypes (doctype=WO)
+        $('#modal_worktypeid').on('change', function(){
+            const wt = $(this).val();
+            const $sub = $('#modal_subworktypeid');
+            $sub.empty().append('<option value="">-- choose --</option>');
+            if (!wt) return;
+
+            const doctype = 'SPB';
+            $.getJSON(`/wos/ajax/subworktypes/${encodeURIComponent(wt)}?doctype=${encodeURIComponent(doctype)}`)
+            .done(function(list){
+                (list || []).forEach(it => $sub.append(new Option(it.text, it.value)));
+            })
+            .fail(function(){
+                toastr.error('Gagal memuat Sub Worktype.');
+            });
+        });
+
+        // Save ke hidden + tampilan
+        $('#saveJenisPekerjaan').on('click', function(){
+            const wtVal = $('#modal_worktypeid').val();
+            const wtTxt = $('#modal_worktypeid option:selected').text();
+            const swVal = $('#modal_subworktypeid').val();
+            const swTxt = $('#modal_subworktypeid option:selected').text();
+
+            if (!wtVal || !swVal) {
+            toastr.error('Pilih Worktype dan Sub Worktype.');
+            return;
+            }
+            $('#worktypeid').val(wtVal);
+            $('#subworktypeid').val(swVal);
+            $('#jenis_pekerjaan_display').val(`${wtTxt} — ${swTxt}`);
+            closeJenisModal();
+
+            // bersihkan error jika ada
+            $('#jenis_pekerjaan_display').removeClass('is-invalid').next('.error-feedback').remove();
+        });
+        });
+    </script>
+
+    <script>
+        $(function() {
+        const $woModal = $('#woModal');
+        const $woTbody = $('#woTableBody');
+        const $woCount = $('#woCount');
+        const $woDeptBadge = $('#woDeptBadge');
+
+        let woState = {
+            search: '',
+            page: 1,
+            per_page: 10,
+            total: 0,
+            status: 'C',
+            departementid: null, // opsional filter by dept
+        };
+
+        function openWoModal() {
+            // baca dept dari header (opsional untuk filter)
+            woState.departementid = $('select[name="departementid"]').val() || '';
+            $woDeptBadge.text(woState.departementid || '-');
+
+            $woModal.removeClass('hidden').addClass('flex');
+            loadWo();
+        }
+
+        function closeWoModal() {
+            $woModal.addClass('hidden').removeClass('flex');
+        }
+
+        // open/close
+        $('#openWoModal').on('click', openWoModal);
+        $('#closeWoModal').on('click', closeWoModal);
+        $(document).on('keydown', function(e){
+            if (e.key === 'Escape' && $woModal.is(':visible')) closeWoModal();
+        });
+
+        // search & refresh
+        $('#woSearch').on('input', function(){
+            woState.search = $(this).val().trim();
+            woState.page = 1;
+            loadWo();
+        });
+        $('#woRefresh').on('click', function(){
+            $('#woSearch').val('');
+            woState.search = '';
+            woState.page = 1;
+            loadWo();
+        });
+
+        // pagination
+        $('#woPrev').on('click', function(){
+            if (woState.page > 1) {
+            woState.page--;
+            loadWo();
+            }
+        });
+        $('#woNext').on('click', function(){
+            const maxPage = Math.ceil((woState.total || 0) / woState.per_page) || 1;
+            if (woState.page < maxPage) {
+            woState.page++;
+            loadWo();
+            }
+        });
+
+        // load WO list (tr_wo dengan status='C')
+        function loadWo() {
+            $woTbody.html('<tr><td colspan="5" class="p-3 text-center">Loading...</td></tr>');
+            $.getJSON(
+            // SESUAIKAN endpoint ini dengan rute kamu.
+            // Contoh konsisten dengan pola lain: /wos/ajax/wos
+            `/wos/ajax/wos`,
+            {
+                status: woState.status,               // 'C'
+                departementid: woState.departementid, // opsional
+                search: woState.search,
+                page: woState.page,
+                per_page: woState.per_page
+            }
+            )
+            .done(function(res){
+            // Expected response:
+            // { data: [{ woid, wodate, created_by, departement_id }], total, page, per_page }
+            const rows = (res.data || []).map(it => {
+                // pastikan aman untuk HTML
+                const woid = it.woid || '';
+                const wodate = it.wodate || ''; // tampilkan apa adanya; format bisa di-backend
+                const created_by = it.created_by || '';
+                const dept = it.departement_id || it.department_id || '';
+
+                return `
+                <tr>
+                    <td class="border p-2">${woid}</td>
+                    <td class="border p-2">${wodate}</td>
+                    <td class="border p-2">${created_by}</td>
+                    <td class="border p-2">${dept}</td>
+                    <td class="border p-2 text-center">
+                    <button type="button" class="chooseWo rounded border px-2 py-1 hover:bg-gray-100"
+                        data-woid="${$('<div>').text(woid).html()}">Choose</button>
+                    </td>
+                </tr>
+                `;
+            }).join('');
+
+            $woTbody.html(rows || '<tr><td colspan="5" class="p-3 text-center">No data</td></tr>');
+            woState.total = res.total || 0;
+            $woCount.text(`Showing ${rows ? (res.data.length) : 0} of ${woState.total} items`);
+
+            const maxPage = Math.ceil((woState.total || 0) / woState.per_page) || 1;
+            $('#woPrev').prop('disabled', woState.page <= 1);
+            $('#woNext').prop('disabled', woState.page >= maxPage);
+            })
+            .fail(function(){
+            $woTbody.html('<tr><td colspan="5" class="p-3 text-center text-red-600">Failed to load</td></tr>');
+            $woCount.text('');
+            $('#woPrev, #woNext').prop('disabled', true);
+            });
+        }
+
+        // pilih WO → isi input
+        $(document).on('click', '.chooseWo', function(){
+            const woid = $(this).data('woid') || '';
+            $('#woid').val(woid);
+            // bersihkan error jika ada
+            $('#woid').removeClass('is-invalid').next('.error-feedback').remove();
+            closeWoModal();
+        });
+
+        // jika user ganti department saat modal terbuka → refresh
+        $('select[name="departementid"]').on('change', function(){
+            if ($woModal.is(':visible')) {
+            woState.departementid = $(this).val() || '';
+            $woDeptBadge.text(woState.departementid || '-');
+            woState.page = 1;
+            loadWo();
+            }
+        });
+        });
+    </script>
+        <script>
+        $(function () {
+        const $lokasiModal = $('#modalLokasi');
+        const $selLoc  = $('#modal_location_id');
+        const $selSub  = $('#modal_sub_location_id');
+        let currentLocRow = null;
+
+        function openLokasiModal(forRow) {
+            currentLocRow = forRow;
+
+            const cpny = $('select[name="cpnyid"]').val();
+            if (!cpny) { toastr.warning('Pilih Company terlebih dahulu.'); return; }
+
+            // reset dropdown
+            $selLoc.empty().append('<option value="">-- choose --</option>');
+            $selSub.empty().append('<option value="">-- choose --</option>');
+
+            // load locations
+            $.getJSON(`/wos/ajax/locations/${encodeURIComponent(cpny)}`)
+            .done(function(list){
+                list.forEach(it => $selLoc.append(new Option(it.text, it.value)));
+
+                // preselect jika row sudah punya value
+                const curLoc = currentLocRow.find('.locationIdField').val();
+                if (curLoc) {
+                $selLoc.val(curLoc).trigger('change');
+                }
+            })
+            .fail(function(){
+                toastr.error('Gagal memuat lokasi.');
+            });
+
+            $lokasiModal.removeClass('hidden').addClass('flex');
+        }
+
+        function closeLokasiModal() {
+            $lokasiModal.addClass('hidden').removeClass('flex');
+        }
+
+        // Open modal dari tombol di row
+        $(document).on('click', '.openLokasiPicker', function(){
+            openLokasiModal($(this).closest('tr'));
+        });
+
+        // Close modal
+        $('#closeLokasi, #cancelLokasi').on('click', closeLokasiModal);
+
+        // Ketika location dipilih → load sublocations
+        $selLoc.on('change', function(){
+            const cpny = $('select[name="cpnyid"]').val();
+            const loc  = $(this).val();
+            $selSub.empty().append('<option value="">-- choose --</option>');
+
+            if (!loc) return;
+
+            $.getJSON(`/wos/ajax/sublocations/${encodeURIComponent(cpny)}/${encodeURIComponent(loc)}`)
+            .done(function(list){
+                list.forEach(it => $selSub.append(new Option(it.text, it.value)));
+
+                // preselect jika row sudah punya sub_location_id
+                if (currentLocRow) {
+                const curSub = currentLocRow.find('.subLocationIdField').val();
+                if (curSub) $selSub.val(curSub);
+                }
+            })
+            .fail(function(){
+                toastr.error('Gagal memuat sub location.');
+            });
+        });
+
+        // Save ke row aktif
+        $('#saveLokasi').on('click', function(){
+            const locId   = $selLoc.val();
+            const locText = $('#modal_location_id option:selected').text();
+            const subId   = $selSub.val();
+            const subText = $('#modal_sub_location_id option:selected').text();
+
+            if (!locId || !subId) {
+            toastr.error('Pilih Location dan Sub Location.');
+            return;
+            }
+
+            // Tulis ke hidden + tampilan
+            currentLocRow.find('.locationIdField').val(locId);
+            currentLocRow.find('.subLocationIdField').val(subId);
+            currentLocRow.find('.locationDisplayField').val(`${locText} — ${subText}`);
+
+            // bersihkan error UI jika ada
+            currentLocRow.find('.locationDisplayField').removeClass('is-invalid')
+            .next('.error-feedback').remove();
+
+            closeLokasiModal();
+        });
+
+        // Jika company berubah dan modal terbuka → reload lokasi
+        $('select[name="cpnyid"]').on('change', function(){
+            if ($lokasiModal.is(':visible')) {
+            // reset dan panggil open ulang dengan row yang sama
+            $selLoc.empty().append('<option value="">-- choose --</option>');
+            $selSub.empty().append('<option value="">-- choose --</option>');
+            if (currentLocRow) openLokasiModal(currentLocRow);
+            }
+        });
+        });
+    </script>
+
+
 
 
 

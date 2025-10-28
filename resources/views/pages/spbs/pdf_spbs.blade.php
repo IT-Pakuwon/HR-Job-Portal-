@@ -177,7 +177,7 @@
         </tr>
         <tr>
             <td class="meta-label">{{ $doc_type }} Date</td>
-            <td>{{ $sppbdate }}</td>
+            <td>{{ $spbdate }}</td>
             <td class="meta-label">Department</td>
             <td>{{ $department_id }}</td>
         </tr>
