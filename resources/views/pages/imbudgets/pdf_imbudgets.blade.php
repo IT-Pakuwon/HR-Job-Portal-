@@ -187,18 +187,12 @@
                 <td colspan="3">{{ $requesttype_name }}</td>
             </tr>
         @endif
-    </tbody>
-</table>
-
-<table class="meta-table">
-    <tbody>
         <tr>
             <td class="meta-label">Keperluan</td>
             <td colspan="3">{{ $keperluan }}</td>
         </tr>
     </tbody>
 </table>
-
 
 <table style="width:100%; border-collapse:collapse; border:1px solid #000;">
     <thead>

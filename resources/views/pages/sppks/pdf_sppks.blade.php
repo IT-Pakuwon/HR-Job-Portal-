@@ -199,11 +199,6 @@
             <td class="meta-label">KM</td>
             <td>{{ $km_kendaraan }}</td>
         </tr>
-    </tbody>
-</table>
-
-<table class="meta-table">
-    <tbody>
         <tr>
             <td class="meta-label">Keperluan</td>
             <td colspan="3">{{ $keperluan }}</td>
