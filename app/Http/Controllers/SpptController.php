@@ -1555,8 +1555,11 @@ if (!empty($sppt->pic_pengawas)) {
         return response()->json(['canPerformAction' => $canPerformAction]);
     }
 
-    public function tracking($id)
+    public function tracking($hash)
     {
+        $id = Hashids::decode($hash)[0] ?? null;
+        abort_if(!$id, 404);
+
         $sppt = TrSPPT::findOrFail($id);
 
         $getName = function (?string $username) {

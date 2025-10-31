@@ -1330,8 +1330,11 @@ class SpbController extends Controller
         return response()->json(['canPerformAction' => $canPerformAction]);
     }
 
-    public function tracking($id)
+    public function tracking($hash)
     {
+        $id = Hashids::decode($hash)[0] ?? null;
+        abort_if(!$id, 404);
+
         $spb = TrSPB::findOrFail($id);
 
         $getName = function (?string $username) {

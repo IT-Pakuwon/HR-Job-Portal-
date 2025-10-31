@@ -845,7 +845,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
     <!-- Toastr JS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
-    <script>
+    {{-- <script>
         function checkApproval(sppbid, action) {
             console.log(sppbid, '-', action);
             $.ajax({
@@ -873,7 +873,36 @@
                 }
             });
         }
+    </script> --}}
+
+    <script>
+        function checkApproval(sppbid, action) {
+            $.ajax({
+                url: `/approval/${sppbid}/check/${action}?doctype=PB`,
+                type: "GET",
+                success: function(response) {
+                    if (response.canPerformAction) {
+
+                        if (action === "reject") {
+                            $("#rejectReason").val("");
+                            $("#rejectTaskModal").removeClass("hidden").css("z-index", "60");
+
+                        } else if (action === "revise") {
+                            $("#reviseReason").val("");
+                            $("#reviseTaskModal").removeClass("hidden").css("z-index", "60");
+                        }
+
+                    } else {
+                        toastr.error("You are not authorized to " + action + " this SPPB.");
+                    }
+                },
+                error: function() {
+                    toastr.error("Error checking approval status.");
+                }
+            });
+        }
     </script>
+
 
 
     <script>
@@ -994,7 +1023,7 @@
                             <tr class="border-b border-gray-100 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700">
                                 <td class="p-3">${row.aprv_leveling}</td>
                                 <td class="p-3">${row.aprv_name}</td>
-                                <td class="p-3">${formatDate(row.aprv_datebefore)}</td>
+                                <td class="p-3">${formatDate(row.aprv_dateafter)}</td>
                                 <td class="p-3">${statusLabel}</td>
                             </tr>
                         `;

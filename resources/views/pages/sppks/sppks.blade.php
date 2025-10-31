@@ -705,7 +705,7 @@
                                         <button type="button"
                                         class="tracking-btn inline-flex items-center justify-center rounded-full p-2
                                                 text-red-600 hover:text-red-700 hover:bg-red-50"
-                                        data-id="${row.id}" aria-label="Tracking" title="Tracking">
+                                        data-id="${row.eid}" aria-label="Tracking" title="Tracking">
                                         <i class="fa-solid fa-paper-plane"></i>
                                         </button>
                                     </div>

@@ -697,7 +697,7 @@ Route::post('/logout', function () {
     Route::get('/comments/{doctype}/{id}',  [SendCommentController::class, 'fetchComments']);
     Route::post('/comments/{doctype}/{id}', [SendCommentController::class, 'storeComment']);
     Route::get('/approval/{refnbr}/{doctype}', [ApprovalController::class, 'getApprovalByDocument'])->name('approval.get');
-
+    Route::get('/approval/{refnbr}/check/{action}', [ApprovalController::class, 'checkApproval'])->name('approval.check');
 
 
     Route::get('/eng/users', [UsersEngController::class, 'index'])->name('userseng');

@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Support\Facades\Auth; 
+use Illuminate\Http\Request;
 use App\Models\MsApproval;
 use App\Models\TrApproval;
 use App\Models\User;
@@ -250,11 +252,12 @@ class ApprovalController extends Controller
         $data = TrApproval::query()
             ->where('refnbr', $refnbr)
             ->where('aprv_doctype', $doctype)
+            ->where('status', '<>','X')
             ->orderByRaw("CAST(aprv_leveling AS DECIMAL(10,2)) ASC")
             ->get([
                 'aprv_leveling',
                 'aprv_name',
-                'aprv_datebefore',
+                'aprv_dateafter',
                 'status'
             ]);
 
@@ -264,5 +267,51 @@ class ApprovalController extends Controller
             'data'    => $data,
         ]);
     }
+
+    public function checkApproval(Request $request, string $refnbr, string $action)
+    {
+        $user     = Auth::user();
+        $username = strtolower($user->username ?? '');
+        $doctype  = $request->input('doctype'); // opsional, contoh: PB, PR, CS, PO dll
+
+        // Aksi yang wajib step aktif: approve/reject/revise
+        $needsActiveStep = in_array(strtolower($action), ['approve', 'reject', 'revise'], true);
+
+        // Semua approval pending berdasarkan dokumen
+        $baseQuery = TrApproval::query()
+            ->where('refnbr', $refnbr)
+            ->when($doctype, fn($q) => $q->where('aprv_doctype', $doctype))
+            ->where('status', 'P') // pending
+            ->orderByRaw("CAST(aprv_leveling AS numeric) ASC");
+
+        // Step yang sudah aktif untuk action approve/reject/revise
+        $activeStep = (clone $baseQuery)->whereNotNull('aprv_datebefore')->first();
+
+        if ($needsActiveStep && !$activeStep) {
+            return response()->json(['canPerformAction' => false]);
+        }
+
+        // Tentukan step yang diperiksa untuk hak approve user
+        $stepToCheck = $needsActiveStep ? $activeStep : $baseQuery->first();
+
+        if (!$stepToCheck) {
+            return response()->json(['canPerformAction' => false]);
+        }
+
+        // Normalisasi username (support pemisah ; atau ,)
+        $list = preg_split('/[;,]/', (string)$stepToCheck->aprv_username) ?: [];
+        $list = array_filter(array_map(fn($s) => strtolower(trim($s)), $list));
+
+        $canPerform = in_array($username, $list, true);
+
+        return response()->json([
+            'canPerformAction' => $canPerform,
+            // optional debug:
+            // 'doctype' => $doctype,
+            // 'level' => $stepToCheck->aprv_leveling,
+            // 'active' => (bool) $stepToCheck->aprv_datebefore,
+        ]);
+    }
+
 
 }
