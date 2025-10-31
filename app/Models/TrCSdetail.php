@@ -65,7 +65,8 @@ class TrCSdetail extends Model
         // // pengikat header numerik (kalau dipakai)
         // 'cs_no'                 => 'integer',
         // 'sppbjkt_no'               => 'integer',
-        'csid' , 'sppbjktid' , 'cs_no' , 'sppbjkt_no' , 'inventory_type' , 'inventoryid' , 'inventory_descr' , 'qty' , 'uom' , 
+        'csid' , 'sppbjktid' , 'cs_no' , 'sppbjkt_no' , 'inventory_type' , 'inventory_sub_type' , 'inventory_category',
+        'inventoryid' , 'inventory_descr' , 'qty' , 'uom' , 
         'type_multiplier' , 'base_multiplier' , 'base_qty' , 'base_uom' , 'inventory_last_price' , 'csnote_detail' , 
         'vendorid1' , 'vendorprice1' , 'vendortotalprice1' , 'vendor1selected' , 
         'vendorid2' , 'vendorprice2' , 'vendortotalprice2' , 'vendor2selected' , 

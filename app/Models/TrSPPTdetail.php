@@ -42,7 +42,7 @@ class TrSPPTdetail extends Model
         // 'status',
         // 'created_by',
         // 'updated_by'
-        'spptid' , 'sppt_no' , 'inventory_type' , 'inventory_category' , 'inventoryid' , 'inventory_descr' , 'qty' , 'uom' , 
+        'spptid' , 'sppt_no' , 'inventory_type' , 'inventory_sub_type','inventory_category' , 'inventoryid' , 'inventory_descr' , 'qty' , 'uom' , 
         'siteid' , 'type_multiplier' , 'base_multiplier' , 'base_qty' , 'base_uom' , 'note' , 'location_id' , 'sub_location_id' , 
         'budget_perpost' , 'budget_cpny_id' , 'budget_business_unit_id' , 'budget_department_fin_id' , 'budget_account_id' , 
         'budget_activity_id' , 'budget_activity_descr' , 'assignby' , 'assigndate' , 'assignpurchasing' , 'openordered' , 
