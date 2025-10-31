@@ -30,17 +30,21 @@ class ReceiptListController extends Controller
         $onProgress  = TrReceipt::where('created_by', $u)->where('status','P')->count();
         $completed   = TrReceipt::where('created_by', $u)->where('status','C')->count();
         $all         = TrReceipt::when($cpny_id, fn($q)=>$q->where('cpny_id',$cpny_id))->count();
+        $rejected    = TrReceipt::where('created_by', $u)->where('status','R')->count();
+        $revise      = TrReceipt::where('created_by', $u)->where('status','D')->count();
 
-        // 🔹 Return Jobs count (status C + type receipt), optional filter cpny
+        // Return Jobs (status C + type receipt)
         $returnjobs  = TrReceipt::when($cpny_id, fn($q)=>$q->where('cpny_id',$cpny_id))
                         ->where('status','C')
-                        ->where('receipttype','receipt')
+                        ->where('receipttype','PR')
                         ->count();
+        
 
         return view('pages.receipt.receiptlist', compact(
-            'receiptjobs','onProgress','completed','all','returnjobs'
+            'receiptjobs','onProgress','completed','all','returnjobs','rejected','revise'
         ));
     }
+
 
     public function json(Request $req)
     {
@@ -59,7 +63,7 @@ class ReceiptListController extends Controller
                 ->when($cpny_id, fn($q)=>$q->where('cpny_id', $cpny_id))
                 ->select([
                     'id','ponbr','podate','cpny_id','vendorname',
-                    'podeliverydate','created_by',
+                    'podeliverydate','created_by','status'
                 ]);
 
             $orderColumns = [
@@ -79,12 +83,15 @@ class ReceiptListController extends Controller
             }
         } else {
             // Semua scope selain 'receiptjobs' → dari TrReceipt
-            $base = TrReceipt::query()
+           $base = TrReceipt::query()
                 ->when($cpny_id, fn($q)=>$q->where('cpny_id',$cpny_id))
                 ->when($scope==='onprogress', fn($q)=>$q->where('created_by',$u)->where('status','P'))
                 ->when($scope==='completed',  fn($q)=>$q->where('created_by',$u)->where('status','C'))
-                ->when($scope==='returnjobs', fn($q)=>$q->where('status','C')->where('receipttype','receipt'))
-                ->select(['id','receiptnbr','receiptdate','receipttype','ponbr','sppbjktid','cpny_id','created_by']);
+                ->when($scope==='returnjobs', fn($q)=>$q->where('status','C')->where('receipttype','PR'))
+                ->when($scope==='rejected',   fn($q)=>$q->where('created_by',$u)->where('status','R'))
+                ->when($scope==='revise',     fn($q)=>$q->where('created_by',$u)->where('status','D'))
+
+                ->select(['id','receiptnbr','receiptdate','receipttype','ponbr','sppbjktid','cpny_id','created_by','status']);
 
             $orderColumns = [
                 0=>'receiptnbr',

@@ -16,79 +16,74 @@
             z-index: 10;
         }
     </style>
-    <style>
-        /* Overlay full-screen di tengah */
+   <style>
+        /* Overlay full-screen */
         #loadingSpinnerContainer {
             position: fixed;
             inset: 0;
-            /* = top/right/bottom/left: 0 */
             display: none;
-            /* ditampilkan via JS .fadeIn() */
-            display: grid;
-            place-items: center;
-            /* center horizontal + vertical */
+            /* akan ditampilkan via JS */
             background: rgba(17, 24, 39, .55);
-            /* #111827 dengan transparansi */
             backdrop-filter: blur(2px);
-            /* efek blur background */
             z-index: 2000;
         }
 
-        /* Kartu spinner */
-        .loading-card {
+        /* Kartu spinner di tengah */
+        #loadingSpinnerContainer .loading-card {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
             display: flex;
             flex-direction: column;
             align-items: center;
             gap: 10px;
             padding: 18px 22px;
-            -radius: 16px;
+            border-radius: 16px;
             background: linear-gradient(180deg, rgba(31, 41, 55, .9), rgba(17, 24, 39, .9));
-            : 1px solid rgba(255, 255, 255, .08);
+            border: 1px solid rgba(255, 255, 255, .08);
             box-shadow: 0 10px 30px rgba(0, 0, 0, .35), inset 0 0 0 1px rgba(255, 255, 255, .04);
         }
 
         /* Spinner dual ring */
-        .loading-spinner {
+        #loadingSpinnerContainer .loading-spinner {
             width: 54px;
             height: 54px;
-            -radius: 50%;
-            : 4px solid transparent;
-            -top-color: #6366f1;
+            border-radius: 50%;
+            border: 4px solid transparent;
+            border-top-color: #6366f1;
             /* indigo-500 */
             animation: spin 1s linear infinite;
             position: relative;
         }
 
-        .loading-spinner::after {
+        #loadingSpinnerContainer .loading-spinner::after {
             content: "";
             position: absolute;
             inset: 6px;
-            -radius: 50%;
-            : 4px solid transparent;
-            -left-color: #a5b4fc;
+            border-radius: 50%;
+            border: 4px solid transparent;
+            border-left-color: #a5b4fc;
             /* indigo-200 */
             animation: spinReverse .75s linear infinite;
         }
 
-        /* Teks */
-        .loading-text {
+        #loadingSpinnerContainer .loading-text {
             color: #e5e7eb;
-            /* gray-200 */
             font-weight: 600;
             letter-spacing: .02em;
         }
 
-        /* Dots animasi */
-        .loading-ellipsis span {
+        #loadingSpinnerContainer .loading-ellipsis span {
             display: inline-block;
             animation: blink 1.4s infinite both;
         }
 
-        .loading-ellipsis span:nth-child(2) {
+        #loadingSpinnerContainer .loading-ellipsis span:nth-child(2) {
             animation-delay: .2s;
         }
 
-        .loading-ellipsis span:nth-child(3) {
+        #loadingSpinnerContainer .loading-ellipsis span:nth-child(3) {
             animation-delay: .4s;
         }
 

@@ -157,48 +157,77 @@
 </script>
 
 <script>
-    $(document).ready(function() {
+    // $(document).ready(function() {
+    //     const docidOnboarding = $('#docid_onboarding').data('docid');
+    //     console.log('docid:', docidOnboarding);
+
+    //     // Fetch data dari controller
+    //     $.get(`/onboarding/${docidOnboarding}`, function(data) {
+    //         let html = '';
+    //         data.forEach(item => {
+    //             const checked = item.checklist_onboarding_receive ? 'checked' : '';
+    //             html += `
+    //         <label>
+    //           <input type="checkbox" name="checklist[]" value="${item.id}" ${checked}>
+    //           ${item.checklist_onboarding_descr}
+    //         </label>
+    //       `;
+    //         });
+    //         $('#checklistArea').html(html);
+    //     });
+
+    //     // Submit perubahan
+    //     $('#checklistForm').submit(function(e) {
+    //         e.preventDefault();
+    //         const checked = [];
+    //         $('#checklistForm input[type=checkbox]:checked').each(function() {
+    //             checked.push($(this).val());
+    //         });
+
+    //         $.post("{{ route('onboarding.checklist.update') }}", {
+    //             _token: $('input[name="_token"]').val(),
+    //             docid_onboarding: docidOnboarding,
+    //             checked: checked
+    //         }, function(response) {
+    //             if (response.success) {
+    //                 toastr.success('Checklist berhasil disimpan.');
+    //             } else {
+    //                 toastr.error('Gagal menyimpan checklist.');
+    //             }
+    //         }).fail(function() {
+    //             toastr.error('Terjadi kesalahan saat menyimpan.');
+    //         });
+    //     });
+    // });
+    $(document).ready(function () {
         const docidOnboarding = $('#docid_onboarding').data('docid');
         console.log('docid:', docidOnboarding);
 
-        // Fetch data dari controller
-        $.get(`/onboarding/${docidOnboarding}`, function(data) {
+        if (!docidOnboarding) {
+            $('#checklistArea').html(
+            '<p class="text-gray-500 italic">Onboarding belum dibuat atau docid tidak tersedia.</p>'
+            );
+            return; // ⟵ stop supaya tidak nembak /onboarding tanpa docid
+        }
+
+        const url = `/onboarding/${encodeURIComponent(docidOnboarding)}`;
+        $.get(url, function (data) {
             let html = '';
             data.forEach(item => {
-                const checked = item.checklist_onboarding_receive ? 'checked' : '';
-                html += `
-            <label>
-              <input type="checkbox" name="checklist[]" value="${item.id}" ${checked}>
-              ${item.checklist_onboarding_descr}
-            </label>
-          `;
+            const checked = item.checklist_onboarding_receive ? 'checked' : '';
+            html += `
+                <label>
+                <input type="checkbox" name="checklist[]" value="${item.id}" ${checked}>
+                ${item.checklist_onboarding_descr}
+                </label>
+            `;
             });
             $('#checklistArea').html(html);
-        });
-
-        // Submit perubahan
-        $('#checklistForm').submit(function(e) {
-            e.preventDefault();
-            const checked = [];
-            $('#checklistForm input[type=checkbox]:checked').each(function() {
-                checked.push($(this).val());
-            });
-
-            $.post("{{ route('onboarding.checklist.update') }}", {
-                _token: $('input[name="_token"]').val(),
-                docid_onboarding: docidOnboarding,
-                checked: checked
-            }, function(response) {
-                if (response.success) {
-                    toastr.success('Checklist berhasil disimpan.');
-                } else {
-                    toastr.error('Gagal menyimpan checklist.');
-                }
-            }).fail(function() {
-                toastr.error('Terjadi kesalahan saat menyimpan.');
-            });
+        }).fail(function(xhr){
+            toastr.error('Gagal memuat checklist onboarding.');
         });
     });
+
 </script>
 
 <script>

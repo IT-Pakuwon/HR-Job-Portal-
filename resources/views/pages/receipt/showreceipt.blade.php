@@ -1,19 +1,105 @@
 <x-app-layout>
     <meta name="csrf-token" content="{{ csrf_token() }}">
     {{-- === Styles (fixed CSS typos) === --}}
-    <style>
-    #loadingSpinnerContainer{
-        position:fixed; inset:0;
-        display:none;                 /* ⬅️ tetap none */
-        place-items: center;
-        background: rgba(17,24,39,.55);
-        backdrop-filter: blur(2px);
-        z-index:2000;
-    }
-    .loading-card{display:flex;flex-direction:column;align-items:center;gap:10px;padding:18px 22px;border-radius:16px;background:linear-gradient(180deg,rgba(31,41,55,.9),rgba(17,24,39,.9));border:1px solid rgba(255,255,255,.08)}
-    .loading-spinner{width:54px;height:54px;border-radius:50%;border:4px solid transparent;border-top-color:#6366f1;animation:spin 1s linear infinite;position:relative}
-    .loading-spinner::after{content:"";position:absolute;inset:6px;border-radius:50%;border:4px solid transparent;border-left-color:#a5b4fc;animation:spinReverse .75s linear infinite}
-    @keyframes spin{to{transform:rotate(360deg)}} @keyframes spinReverse{to{transform:rotate(-360deg)}}
+   <style>
+        /* Overlay full-screen */
+        #loadingSpinnerContainer {
+            position: fixed;
+            inset: 0;
+            display: none;
+            /* akan ditampilkan via JS */
+            background: rgba(17, 24, 39, .55);
+            backdrop-filter: blur(2px);
+            z-index: 2000;
+        }
+
+        /* Kartu spinner di tengah */
+        #loadingSpinnerContainer .loading-card {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            padding: 18px 22px;
+            border-radius: 16px;
+            background: linear-gradient(180deg, rgba(31, 41, 55, .9), rgba(17, 24, 39, .9));
+            border: 1px solid rgba(255, 255, 255, .08);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, .35), inset 0 0 0 1px rgba(255, 255, 255, .04);
+        }
+
+        /* Spinner dual ring */
+        #loadingSpinnerContainer .loading-spinner {
+            width: 54px;
+            height: 54px;
+            border-radius: 50%;
+            border: 4px solid transparent;
+            border-top-color: #6366f1;
+            /* indigo-500 */
+            animation: spin 1s linear infinite;
+            position: relative;
+        }
+
+        #loadingSpinnerContainer .loading-spinner::after {
+            content: "";
+            position: absolute;
+            inset: 6px;
+            border-radius: 50%;
+            border: 4px solid transparent;
+            border-left-color: #a5b4fc;
+            /* indigo-200 */
+            animation: spinReverse .75s linear infinite;
+        }
+
+        #loadingSpinnerContainer .loading-text {
+            color: #e5e7eb;
+            font-weight: 600;
+            letter-spacing: .02em;
+        }
+
+        #loadingSpinnerContainer .loading-ellipsis span {
+            display: inline-block;
+            animation: blink 1.4s infinite both;
+        }
+
+        #loadingSpinnerContainer .loading-ellipsis span:nth-child(2) {
+            animation-delay: .2s;
+        }
+
+        #loadingSpinnerContainer .loading-ellipsis span:nth-child(3) {
+            animation-delay: .4s;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        @keyframes spinReverse {
+            to {
+                transform: rotate(-360deg);
+            }
+        }
+
+        @keyframes blink {
+            0% {
+                opacity: .3;
+                transform: translateY(0);
+            }
+
+            20% {
+                opacity: 1;
+                transform: translateY(-2px);
+            }
+
+            100% {
+                opacity: .3;
+                transform: translateY(0);
+            }
+        }
     </style>
 
 
@@ -238,13 +324,79 @@
                             <nav class="flex flex-grow">
                                 <button @click="activeTab = 'attachment'"
                                   :class="activeTab === 'attachment' ? 'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400' : 'border-b-2 border-transparent text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-gray-100'"
-                                  class="flex-1 px-4 py-2 text-center text-sm font-medium">Attachment</button>
+                                  class="flex-1 px-4 py-2 text-center text-sm font-medium">Attachment
+                                </button>
+                                <button @click="activeTab = 'approval'"
+                                :class="activeTab === 'approval'
+                                    ?
+                                    'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400' :
+                                    'border-b-2 border-transparent text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-gray-100'"
+                                class="flex-1 px-4 py-2 text-center text-sm font-medium transition-colors duration-200">
+                                Approval Details
+                            </button>
 
                                 <button @click="activeTab = 'comments'"
                                   :class="activeTab === 'comments' ? 'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400' : 'border-b-2 border-transparent text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-gray-100'"
                                   class="flex-1 px-4 py-2 text-center text-sm font-medium">Comments</button>
                             </nav>
                         </header>
+
+                        <div x-show="activeTab === 'approval'" class="flex-1 p-4 transition-all">
+                                <table class="w-full text-sm">
+                                    <thead>
+                                        <tr
+                                            class="border-b border-gray-200 text-gray-600 dark:border-gray-700 dark:text-gray-300">
+                                            <th class="p-3 text-left font-semibold">Level</th>
+                                            <th class="p-3 text-left font-semibold">Name</th>
+                                            <th class="p-3 text-left font-semibold">Date</th>
+                                            <th class="p-3 text-left font-semibold">Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach ($approval as $ap)
+                                            <tr
+                                                class="border-b border-gray-100 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700">
+                                                <td class="p-3">{{ $ap->aprvid }}</td>
+                                                <td class="p-3">{{ $ap->name }}</td>
+                                                <td class="p-3">
+                                                    {{ \Carbon\Carbon::parse($ap->aprvdatebefore)->format('d M Y') }}
+                                                </td>
+                                                <td class="p-3">
+                                                    @php
+                                                        $statusText = '';
+                                                        $statusClass = '';
+                                                        switch ($ap->status) {
+                                                            case 'P':
+                                                                $statusText = 'Waiting Approval';
+                                                                $statusClass = 'bg-yellow-500 text-white';
+                                                                break;
+                                                            case 'A':
+                                                                $statusText = 'Approved';
+                                                                $statusClass = 'bg-green-500 text-white';
+                                                                break;
+                                                            case 'R':
+                                                                $statusText = 'Rejected';
+                                                                $statusClass = 'bg-red-500 text-white';
+                                                                break;
+                                                            case 'D':
+                                                                $statusText = 'Revise';
+                                                                $statusClass = 'bg-blue-500 text-white';
+                                                                break;
+                                                            default:
+                                                                $statusText = 'Unknown';
+                                                                $statusClass = 'bg-gray-500 text-white';
+                                                        }
+                                                    @endphp
+                                                    <span
+                                                        class="{{ $statusClass }} inline-block rounded-full px-3 py-1 text-xs font-semibold">
+                                                        {{ $statusText }}
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
 
                         {{-- Attachment Tab --}}
                         <div x-show="activeTab === 'attachment'" class="flex h-full flex-1 flex-col transition-all">
@@ -370,6 +522,41 @@
         </div>
     </div>
 
+    <div id="rejectTaskModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50">
+        <div class="w-full max-w-md rounded-lg bg-white p-6 dark:bg-gray-700">
+            <h2 class="mb-4 text-xl font-semibold text-gray-800 dark:text-white">Reject</h2>
+            <textarea id="rejectReason" class="mt-2 w-full rounded-lg p-3 focus:outline-none dark:bg-gray-800 dark:text-white"
+                placeholder="Enter rejection reason..."></textarea>
+
+            <div class="mt-4 flex justify-between">
+                <button id="cancelRejectBtn" class="rounded-lg bg-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-400">
+                    Cancel
+                </button>
+                <button id="confirmRejectBtn" class="rounded-lg bg-red-500 px-4 py-2 text-white hover:bg-red-600">
+                    Reject
+                </button>
+            </div>
+        </div>
+    </div>
+    <div id="reviseTaskModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50">
+        <div class="w-full max-w-md rounded-lg bg-white p-6 dark:bg-gray-700">
+            <h2 class="mb-4 text-xl font-semibold text-gray-800 dark:text-white">Revise Task</h2>
+            <textarea id="reviseReason" class="mt-2 w-full rounded-lg p-3 focus:outline-none dark:bg-gray-800 dark:text-white"
+                placeholder="Enter revise reason..."></textarea>
+
+            <div class="mt-4 flex justify-between">
+                <button id="cancelReviseBtn" class="rounded-lg bg-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-400">
+                    Cancel
+                </button>
+                <button id="confirmReviseBtn"
+                    class="inline-flex items-center gap-1 rounded-md bg-gray-500 px-3 py-2 text-sm font-medium text-gray-100 transition-colors hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:bg-gray-100 dark:bg-gray-700/30 dark:text-gray-300 dark:hover:bg-gray-600/50">
+                    Revise
+                </button>
+
+            </div>
+        </div>
+    </div>
+
     {{-- Overlay --}}
     <div id="loadingSpinnerContainer" role="status" aria-live="polite" aria-label="Loading">
         <div class="loading-card">
@@ -381,154 +568,132 @@
     {{-- dayjs & toastr --}}
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dayjs/1.11.10/dayjs.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dayjs/1.11.10/plugin/relativeTime.min.js"></script>
-    <script>dayjs.extend(dayjs_plugin_relativeTime);</script>
+   
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 
+    <script>
+        dayjs.extend(dayjs_plugin_relativeTime);
+
+        const $spinner = $("#loadingSpinnerContainer");
+        $spinner.fadeIn(); // tampilkan saat mulai proses
+        // ...
+        $spinner.fadeOut(); // sembunyikan saat selesai
+    </script>
+
     {{-- Comments --}}
     <script>
-        $(function () {
-            const receiptnbr = @json($rcp->receiptnbr);
+        $(document).ready(function() {
+            const receiptnbr  = "{{ $rcp->receiptnbr }}";
+            const doctype = "PR"; 
 
-            function loadComments(docid) {
-                const $list = $('#commentList').html('<p class="text-gray-500 italic">Loading comments...</p>');
-                $.get(`/receipt/${docid}/comments`)
-                .done(res => {
-                    $list.empty();
-                    if (!res.comments || !res.comments.length) {
-                        $list.append('<p class="text-gray-500 italic">No comments yet.</p>');
-                        return;
+            loadComments(receiptnbr, doctype);
+
+            function loadComments(refnbr, doctype) {
+                let commentList = $('#commentList');
+                commentList.html('<p class="text-gray-500 italic">Loading comments...</p>');
+
+                $.ajax({
+                    url: `/comments/${doctype}/${refnbr}`,
+                    type: 'GET',
+                    success: function(response) {
+                        commentList.empty();
+
+                        if (!response.comments || response.comments.length === 0) {
+                            commentList.append('<p class="text-gray-500 italic">No comments yet. Be the first to comment!</p>');
+                            return;
+                        }
+
+                        response.comments.forEach(comment => {
+                            // fallback jika data lama masih punya created_at
+                            const timeStr = comment.message_date ?? comment.created_at;
+                            const timeAgo = timeStr ? dayjs(timeStr).fromNow() : '';
+
+                            commentList.append(`
+                                <div class="p-3 bg-gray-100 dark:bg-gray-800 rounded-lg mb-2">
+                                    <p class="text-sm font-semibold">
+                                        ${comment.username}
+                                        <span class="text-xs text-gray-500">(${timeAgo})</span>
+                                    </p>
+                                    <p class="text-gray-800 dark:text-gray-200">${comment.message}</p>
+                                </div>
+                            `);
+                        });
+                    },
+                    error: function(xhr) {
+                        console.error("Error fetching comments:", xhr.responseText);
+                        commentList.html('<p class="text-red-500 italic">Failed to load comments.</p>');
                     }
-                    res.comments.forEach(c => {
-                        const timeAgo = dayjs(c.created_at).fromNow();
-                        $list.append(`
-                            <div class="p-3 bg-gray-100 dark:bg-gray-800 rounded-lg mb-2 border border-gray-200 dark:border-gray-700">
-                                <p class="text-sm font-semibold">${c.username} <span class="text-xs text-gray-500">(${timeAgo})</span></p>
-                                <p class="text-gray-800 dark:text-gray-200">${c.message}</p>
-                            </div>`);
-                    });
-                })
-                .fail(() => {
-                    $list.html('<p class="text-red-500 italic">Failed to load comments.</p>');
                 });
             }
 
-            function addComment(docid, message) {
-                return $.post(`/receipt/${docid}/comments`, {
-                    receiptnbr: docid,
-                    comment: message,
-                    _token: '{{ csrf_token() }}'
-                });
-            }
+            function addComment() {
+                let input = $('#commentInput').val().trim();
+                if (input === "") {
+                    alert("Please enter a comment.");
+                    return;
+                }
 
-            loadComments(receiptnbr);
+                $('#postCommentBtn').prop('disabled', true).text('Posting... 🚀');
 
-            $('#postCommentBtn').on('click', function() {
-                const msg = ($('#commentInput').val() || '').trim();
-                if (!msg) { toastr.warning('Please enter a comment.'); return; }
-                $(this).prop('disabled', true).text('Posting... 🚀');
-                addComment(receiptnbr, msg)
-                    .done(res => {
-                        if (res.status === 'success') {
+                $.ajax({
+                    url: `/comments/${doctype}/${receiptnbr}`,
+                    type: 'POST',
+                    data: {
+                        comment: input,
+                        _token: '{{ csrf_token() }}'
+                    },
+                    success: function(response) {
+                        if (response.status === "success") {
+                            loadComments(receiptnbr, doctype);
                             $('#commentInput').val('');
-                            loadComments(receiptnbr);
-                        } else {
-                            toastr.error(res.message || 'Failed to post comment.');
                         }
-                    })
-                    .fail(xhr => toastr.error(xhr.responseJSON?.message || 'Failed to post comment.'))
-                    .always(() => $('#postCommentBtn').prop('disabled', false).text('Post 🚀'));
-            });
-
-            $('#commentInput').on('keypress', function(e){
-                if (e.which === 13 && !e.shiftKey) { e.preventDefault(); $('#postCommentBtn').click(); }
-            });
-        });
-    </script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
-    {{-- <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const btn = document.getElementById('submitBtn');
-            if (!btn) return;
-
-            btn.addEventListener('click', function () {
-
-                Swal.fire({
-                    title: 'Approve Receipt?',
-                    text: "Data qty_received PO akan diperbarui.",
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonColor: '#16a34a', // hijau
-                    cancelButtonColor: '#d33',     // merah
-                    confirmButtonText: 'Ya, Approve',
-                    cancelButtonText: 'Batal'
-                }).then((result) => {
-                    if (!result.isConfirmed) return;
-
-                    btn.disabled = true;
-                    const originalText = btn.innerHTML;
-                    btn.innerHTML = 'Processing...';
-
-                    fetch("{{ route('receipts.approve', ['id' => $rcp->id]) }}", {
-                        method: 'POST',
-                        headers: {
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                            'Accept': 'application/json',
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({})
-                    })
-                    .then(async (res) => {
-                        const data = await res.json().catch(() => ({}));
-                        if (!res.ok) {
-                            throw new Error(data?.message || 'Gagal memproses.');
-                        }
-
-                        // ✅ Swal success
-                        Swal.fire({
-                            icon: 'success',
-                            title: 'Berhasil!',
-                            text: data.message || 'Receipt berhasil di-approve.',
-                            timer: 1800,
-                            showConfirmButton: false
-                        }).then(() => {
-                            window.location.reload();
-                        });
-                    })
-                    .catch((err) => {
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Terjadi Kesalahan',
-                            text: err.message || 'Gagal memproses.',
-                        });
-
-                        btn.disabled = false;
-                        btn.innerHTML = originalText;
-                    });
+                    },
+                    error: function(xhr) {
+                        console.error("Error adding comment:", xhr);
+                        alert("Error: " + (xhr.responseJSON ? xhr.responseJSON.message : "Unknown Error"));
+                    },
+                    complete: function() {
+                        $('#postCommentBtn').prop('disabled', false).text('Post 🚀');
+                    }
                 });
+            }
+
+            $(document).on('click', '#postCommentBtn', function(e) {
+                e.preventDefault();
+                addComment();
             });
-        });
-    </script> --}}
 
-       <script>
+            $('#commentInput').keypress(function(event) {
+                if (event.which === 13 && !event.shiftKey) {
+                    event.preventDefault();
+                    addComment();
+                }
+            });
+
+            
+        });
+    </script>  
+    
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
         $(document).on("click", "#approveBtn", function() {
-            let spbid = "{{ $spb->spbid }}"; // Ambil Task ID dari modal        
-            approveSPB(spbid);
+            let receiptnbr = "{{ $rcp->receiptnbr }}"; // Ambil Task ID dari modal        
+            approveReceipt(receiptnbr);
         });
 
-        function approveSPB(spbid) {
+        function approveReceipt(receiptnbr) {
             let $spinner = $("#loadingSpinnerContainer"); // Ambil elemen spinner
 
             // Tampilkan spinner di kanan bawah
             $spinner.fadeIn();
 
             $.ajax({
-                url: `/spb/${spbid}/approve`,
+                url: `/receipt/${receiptnbr}/approve`,
                 type: "POST",
                 data: {
                     _token: "{{ csrf_token() }}",
-                    spbid: spbid
+                    receiptnbr: receiptnbr
                 },
                 success: function(response) {
                     if (response.success) {
@@ -540,8 +705,8 @@
                             );
 
                         // Tampilkan alert sukses
-                        toastr.success("SPB approved successfully!");
-                        window.location.href = "/spbs";
+                        toastr.success("Receipt approved successfully!");
+                        window.location.href = "/receiptlist";
                     } else {
                         toastr.error(response.message);
                     }
@@ -550,9 +715,9 @@
                     console.error(xhr.responseText);
 
                     if (xhr.status === 403) {
-                        toastr.error("You are not authorized to approve this spb.");
+                        toastr.error("You are not authorized to approve this receipt.");
                     } else {
-                        toastr.error("Error: Unable to approve spb.");
+                        toastr.error("Error: Unable to approve receipt.");
                     }
                 },
                 complete: function() {
@@ -570,8 +735,8 @@
             $(document).on("click", "#rejectBtn", function() {
                 $("#rejectReason").val(""); // Reset alasan reject
                 // $("#rejectTaskModal").removeClass("hidden").css("z-index", "60");
-                let spbid = "{{ $spb->spbid }}";
-                checkApproval(spbid, "reject");
+                let receiptnbr = "{{ $rcp->receiptnbr }}";
+                checkApproval(receiptnbr, "reject");
 
             });
 
@@ -582,7 +747,7 @@
 
             // Saat tombol "Reject" ditekan, proses perubahan status
             $(document).on("click", "#confirmRejectBtn", function() {
-                let spbid = "{{ $spb->spbid }}"; // Ambil ID tugas dari modal detail
+                let receiptnbr = "{{ $rcp->receiptnbr }}"; // Ambil ID tugas dari modal detail
                 let rejectReason = $("#rejectReason").val().trim();
 
                 if (rejectReason === "") {
@@ -595,18 +760,18 @@
                 $spinner.fadeIn();
 
                 $.ajax({
-                    url: `/spb/${spbid}/reject`,
+                    url: `/receipt/${receiptnbr}/reject`,
                     type: "POST",
                     data: {
                         _token: "{{ csrf_token() }}",
-                        docid: spbid,
+                        docid: receiptnbr,
                         reason: rejectReason
                     },
                     success: function(response) {
                         if (response.success) {
                             // alert("Task has been rejected successfully.");
 
-                            // Update status di modal spb
+                            // Update status di modal receipt
                             $("#xstatus").text("Rejected")
                                 .removeClass()
                                 .addClass(
@@ -614,9 +779,9 @@
                                 );
                             $spinner.fadeOut();
 
-                            window.location.href = "/spbs";
+                            window.location.href = "/receiptlist";
                         } else {
-                            alert("Failed to reject spb.");
+                            alert("Failed to reject receipt.");
                         }
                     },
                     error: function(xhr) {
@@ -625,7 +790,7 @@
                         if (xhr.status === 403) {
                             alert("You Can't Rejected!"); // Popup jika user tidak berhak
                         } else {
-                            alert("Error: Unable to reject spb status.");
+                            alert("Error: Unable to reject receipt status.");
                         }
                     },
                 });
@@ -638,8 +803,8 @@
             $(document).on("click", "#reviseBtn", function() {
                 $("#reviseReason").val(""); // Reset alasan revise
                 // $("#reviseTaskModal").removeClass("hidden").css("z-index", "60");
-                let spbid = "{{ $spb->spbid }}";
-                checkApproval(spbid, "revise");
+                let receiptnbr = "{{ $rcp->receiptnbr }}";
+                checkApproval(receiptnbr, "revise");
 
             });
 
@@ -650,7 +815,7 @@
 
             // Saat tombol "Revise" ditekan, proses perubahan status
             $(document).on("click", "#confirmReviseBtn", function() {
-                let spbid = "{{ $spb->spbid }}"; // Ambil ID tugas dari modal detail
+                let receiptnbr = "{{ $rcp->receiptnbr }}"; // Ambil ID tugas dari modal detail
                 let reviseReason = $("#reviseReason").val().trim();
 
                 if (reviseReason === "") {
@@ -662,27 +827,27 @@
                 $spinner.fadeIn();
 
                 $.ajax({
-                    url: `/spb/${spbid}/revise`,
+                    url: `/receipt/${receiptnbr}/revise`,
                     type: "POST",
                     data: {
                         _token: "{{ csrf_token() }}",
-                        docid: spbid,
+                        docid: receiptnbr,
                         reason: reviseReason
                     },
                     success: function(response) {
                         if (response.success) {
                             // alert("Task has been reviseed successfully.");
 
-                            // Update status di modal spb
+                            // Update status di modal receipt
                             $("#xstatus").text("Revised")
                                 .removeClass()
                                 .addClass(
                                     "w-full max-w-32 bg-red-300/30 dark:bg-red-300 text-red-600 flex justify-items-center focus:outline-none pointer-events-none    -none font-semibold px-2 py-0.5 rounded"
                                 );
                             $spinner.fadeOut();
-                            window.location.href = "/spbs";
+                            window.location.href = "/receiptlist";
                         } else {
-                            alert("Failed to revise spb.");
+                            alert("Failed to revise receipt.");
                         }
                     },
                     error: function(xhr) {
@@ -691,12 +856,42 @@
                         if (xhr.status === 403) {
                             alert("You Can't Revised!"); // Popup jika user tidak berhak
                         } else {
-                            alert("Error: Unable to revise spb status.");
+                            alert("Error: Unable to revise receipt status.");
                         }
                     },
                 });
             });
         });
+    </script>
+
+    <script>
+        function checkApproval(receiptnbr, action) {
+            console.log(receiptnbr, '-', action);
+            $.ajax({
+                url: `/receipt/${receiptnbr}/check-approval/${action}`,
+                type: "GET",
+                success: function(response) {
+                    if (response.canPerformAction) {
+                        // Jika user bisa melakukan aksi, tampilkan modal atau langsung proses approval
+                        if (action === "reject") {
+                            $("#rejectReason").val(""); // Reset alasan reject
+                            $("#rejectTaskModal").removeClass("hidden").css("z-index", "60");
+                        } else if (action === "revise") {
+                            $("#reviseReason").val(""); // Reset alasan revise
+                            $("#reviseTaskModal").removeClass("hidden").css("z-index", "60");
+                            // } else if (action === "approve") {
+                            //     approveSPB(receiptnbr); // Jika approve, langsung jalankan proses approval
+                        }
+                    } else {
+                        // Jika user tidak boleh melakukan aksi, tampilkan popup toastr
+                        toastr.error("You are not authorized to " + action + " this spb.");
+                    }
+                },
+                error: function() {
+                    toastr.error("Error checking approval status.");
+                }
+            });
+        }
     </script>
 
    <script>

@@ -3,30 +3,75 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\T_Message;
-use App\Models\ProjectTask;
+use App\Models\TrMessage;
 use Illuminate\Support\Carbon;
 
 class SendCommentController extends Controller
 {
     public function sendmsg(int $id, string $doctype, Request $request)
     {
-        $datestamp = Carbon::now()->toDateTimeString();       
-        $user = request()->user(); 
-        // dd($doctype.'-',$id);
-            //    dd($request->all());
-        //save trx_message
-        T_Message::create([
-            'docid' => $request->docid,
-            'doctype' => $doctype,
-            'username' => $user->username,
-            'name' => $user->name,
-            'message' => $request->reason,
-            'created_user' => $user->username,
-            'status' => 'A'
+        $user = $request->user();   // ambil user yg login
+
+        TrMessage::create([
+            'refnbr'        => $request->docid,          // menyesuaikan dengan nama field baru
+            'doctype'       => $doctype,
+            'message_date'  => Carbon::now(),
+            'cpnyid'        => $user->cpnyid ?? null,     // jika user memiliki cpnyid
+            'departementid' => $user->departementid ?? null, // jika user memiliki departementid
+            'username'      => $user->username,
+            'name'          => $user->name,
+            'message'       => $request->reason,
+            'status'        => 'A',
+            'created_by'    => $user->username,
+            'updated_by'    => $user->username,
         ]);
 
-        
+        return response()->json([
+            'success' => true,
+            'message' => 'Message successfully saved!'
+        ]);
+    }
+
+    public function fetchComments(string $doctype, $id)
+    {
+        $comments = TrMessage::where('doctype', $doctype)
+            ->where('refnbr', $id)
+            ->orderByDesc('message_date')
+            ->get();
+
+        return response()->json([
+            'status'   => 'success',
+            'comments' => $comments,
+        ]);
+    }
+
+    // POST /comments/{doctype}/{id}
+    public function storeComment(Request $request, string $doctype, $id)
+    {
+        $request->validate([
+            'comment' => 'required|string|max:500',
+        ]);
+
+        $user = $request->user();
+
+        $comment = TrMessage::create([
+            'refnbr'        => $id,
+            'doctype'       => $doctype,
+            'message_date'  => Carbon::now(),
+            'cpnyid'        => $user->cpnyid ?? null,
+            'departementid' => $user->departementid ?? null,
+            'username'      => $user->username ?? ($user->email ?? 'system'),
+            'name'          => $user->name ?? $user->username ?? 'System',
+            'message'       => $request->comment,
+            'status'        => 'A',
+            'created_by'    => $user->username ?? ($user->email ?? 'system'),
+            'updated_by'    => $user->username ?? ($user->email ?? 'system'),
+        ]);
+
+        return response()->json([
+            'status'  => 'success',
+            'message' => 'Comment added successfully!',
+            'comment' => $comment,
+        ]);
     }
 }
-

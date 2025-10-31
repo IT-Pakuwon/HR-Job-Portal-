@@ -18,8 +18,10 @@ use App\Models\Userdept;
 use App\Models\User;
 use App\Models\Site;
 use App\Models\Division;
-use App\Models\TrSPPB;
-use App\Models\TrSPPBdetail;
+use App\Models\TrIMBudget;
+use App\Models\TrIMBudgetdetail;
+use App\Models\TrCS;
+use App\Models\TrCSdetail;
 use App\Models\MsLocationPG;
 use App\Models\MsSubLocationPG;
 use Mail;
@@ -32,20 +34,20 @@ use App\Models\TrAttachment;
 use Illuminate\Support\Str;
 use Google\Cloud\Storage\StorageClient;
 
-class SppbController extends Controller
+class IMBudgetController extends Controller
 {
     public function index()
     {
-        $all = TrSPPB::count();
-        $onProgress = TrSPPB::where('status', 'P')->count();
-        $reject = TrSPPB::where('status', 'R')->count();
-        $revise = TrSPPB::where('status', 'D')->count();
-        $completed = TrSPPB::where('status', 'C')->count();
+        $all = TrIMBudget::count();
+        $onProgress = TrIMBudget::where('status', 'P')->count();
+        $reject = TrIMBudget::where('status', 'R')->count();
+        $cancel = TrIMBudget::where('status', 'X')->count();
+        $completed = TrIMBudget::where('status', 'C')->count();
        
-        return view('pages.sppbs.sppbs', compact('all', 'onProgress', 'reject', 'revise', 'completed'));
+        return view('pages.imbudgets.imbudgets', compact('all', 'onProgress', 'reject', 'cancel', 'completed'));
     }
 
-    
+
     public function json(Request $request)
     {
         $draw   = (int) $request->input('draw', 1);
@@ -54,68 +56,71 @@ class SppbController extends Controller
         $search = trim((string) $request->input('search.value', ''));
         $status = (string) $request->query('status', ''); // '' = all
 
-        $baseTable = (new TrSPPB)->getTable(); // e.g. "tr_sppb"
+        $baseTable = (new TrIMBudget)->getTable(); // "tr_imbudget"
 
+        // Urutan kolom sesuai DataTables di view
         $columns = [
-            0 => 'sppb.sppbid',
-            1 => 'sppb.sppbdate',
-            2 => 'sppb.cpny_id',
-            3 => 'sppb.department_id',
-            4 => 'rt.requesttype_name',
-            5 => 'sppb.keperluan',
-            6 => 'sppb.status',
+            0 => 'imb.imbudgetid',
+            1 => 'imb.imbudgetdate',
+            2 => 'imb.csid',
+            3 => 'imb.sppbjktid',
+            4 => 'imb.cpny_id',
+            5 => 'imb.user_peminta',
+            6 => 'imb.status',
         ];
 
-        $orderIdx = (int) $request->input('order.0.column', 0);
-        $orderDir = $request->input('order.0.dir', 'asc') === 'asc' ? 'asc' : 'desc';
-        $orderCol = $columns[$orderIdx] ?? 'sppb.sppbid';
+        $orderIdx = (int) $request->input('order.0.column', 1); // default by date
+        $orderDir = $request->input('order.0.dir', 'desc') === 'asc' ? 'asc' : 'desc';
+        $orderCol = $columns[$orderIdx] ?? 'imb.imbudgetdate';
 
-        $base = TrSPPB::from($baseTable.' as sppb')
-            ->leftJoin('ms_request_type as rt', function ($join) {
-                $join->on('rt.requesttypeid', '=', 'sppb.requesttypeid');
-            });
+        $base = TrIMBudget::from($baseTable.' as imb');
 
         if ($status !== '') {
-            $base->where('sppb.status', $status);
+            $base->where('imb.status', $status);
         }
 
-        $recordsTotal = (clone $base)->distinct('sppb.sppbid')->count('sppb.sppbid');
+        // total sebelum filter search
+        $recordsTotal = (clone $base)->count();
 
         if ($search !== '') {
             $base->where(function ($q) use ($search) {
-                $q->where('sppb.sppbid',          'like', "%{$search}%")
-                ->orWhere('sppb.cpny_id',       'like', "%{$search}%")
-                ->orWhere('sppb.department_id', 'like', "%{$search}%")
-                ->orWhere('rt.requesttype_name','like', "%{$search}%")
-                ->orWhere('sppb.keperluan',     'like', "%{$search}%")
-                ->orWhere('sppb.status',        'like', "%{$search}%");
+                $q->where('imb.imbudgetid', 'like', "%{$search}%")
+                ->orWhere('imb.csid', 'like', "%{$search}%")
+                ->orWhere('imb.sppbjktid', 'like', "%{$search}%")
+                ->orWhere('imb.cpny_id', 'like', "%{$search}%")
+                ->orWhere('imb.user_peminta', 'like', "%{$search}%")
+                ->orWhere('imb.status', 'like', "%{$search}%");
             });
         }
 
-        $recordsFiltered = (clone $base)->distinct('sppb.sppbid')->count('sppb.sppbid');
+        // total setelah filter search
+        $recordsFiltered = (clone $base)->count();
 
-        $data = $base->select(
-                    'sppb.id',
-                    'sppb.sppbid',
-                    'sppb.sppbdate',
-                    'sppb.cpny_id',
-                    'sppb.department_id',
-                    'sppb.requesttypeid',
-                    'rt.requesttype_name',
-                    'sppb.keperluan',
-                    'sppb.status',
-                    'sppb.created_by'
+        $rows = $base->select(
+                    'imb.imbudgetid',
+                    'imb.imbudgetdate',
+                    'imb.csid',
+                    'imb.sppbjktid',
+                    'imb.cpny_id',
+                    'imb.user_peminta',
+                    'imb.status',
+                    'imb.created_by'
                 )
                 ->orderBy($orderCol, $orderDir)
-                ->orderBy('sppb.sppbid', 'desc')
+                ->orderBy('imb.imbudgetid', 'desc')
                 ->skip($start)
                 ->take($length)
                 ->get();
 
-        // Encode id dengan hashids → tambahkan field eid
-        $data->transform(function ($row) {
-            $row->eid = Hashids::encode($row->id);
-            unset($row->id); // opsional: sembunyikan id asli
+        // Optional: format tanggal jadi Y-m-d (biar rapi konsisten)
+        $rows->transform(function ($row) {
+            $row->imbudgetdate = $row->imbudgetdate
+                ? \Carbon\Carbon::parse($row->imbudgetdate)->format('Y-m-d')
+                : null;
+
+            // gunakan imbudgetid langsung untuk URL (di view pakai encodeURIComponent)
+            $row->eid = $row->imbudgetid;
+
             return $row;
         });
 
@@ -123,105 +128,70 @@ class SppbController extends Controller
             'draw'            => $draw,
             'recordsTotal'    => $recordsTotal,
             'recordsFiltered' => $recordsFiltered,
-            'data'            => $data,
+            'data'            => $rows,
         ]);
     }
 
-
-
-    
-    public function createSppb()
-    {        
-        $user = request()->user();
-        $usercpny = Usercpny::where('username', '=', $user->username)
-            ->get();
-        $usercpny2 = Usercpny::where('username', '=', $user->username)
-            ->first();
-        $userdept = Userdept::where('username', '=', $user->username)
-            ->get();
-        $userdept2 = Userdept::where('username', '=', $user->username)
-            ->first();                     
-       
-        return view('pages.sppbs.createsppbs', compact('usercpny','usercpny2','userdept','userdept2'));
-    }
-
     
     
-    public function storeSppb(Request $request)
+    public function GenerateIMBudget(Request $request) 
     {
-        // dd($request->all()); // Debugging: check request data
-        // kumpulkan array dari form
-        $inventoryIds  = $request->input('inventoryid',  $request->input('inventory_id', []));
-        $productNames  = $request->input('product_name', []);
-        $qtys          = $request->input('qty', []);
-        $uoms          = $request->input('stock_unit',   $request->input('uom', [])); // <- penting
-        $notes         = $request->input('note', []);
-        $locations     = $request->input('location', []);
-        $locationIds   = $request->input('location_id', $request->input('locationid', [])); // <- kalau perlu simpan
-        $subLocIds     = $request->input('sub_location_id', $request->input('sublocationid', []));
-        $subLocations  = $request->input('sub_location', []);      
-        $activityIds   = $request->input('activity_id', []);
-        $busUnitIds    = $request->input('business_unit_id', []);
-        $deptFinIds    = $request->input('department_fin_id', []);
-        $coaIds        = $request->input('coa_id', []); // account_id
-        $item_types    = $request->input('item_type', []);
-        $item_categories = $request->input('item_category', []);
+        // --- Ambil CS header & detail ---
+        $csid = $request->input('csid', 'CS25100015'); // default contoh
+        $cs = TrCS::where('csid', $csid)->first();
+        if (!$cs) {
+            return response()->json([
+                'message' => "CS dengan csid '{$csid}' tidak ditemukan."
+            ], 404);
+        }
+        $csdetail = TrCSdetail::where('csid', $csid)->get();
 
-        $purchaseUnits    = $request->input('purchase_unit', []);     // dari hidden purchase_unit[]
-        $uomMultDivs      = $request->input('uom_unitmultdiv', []);   // 'M' atau 'D'
-        $uomRates         = $request->input('uom_unitrate', []);      // bisa "12", "12,5", "12.000",
-
-        $doctype  = 'PB';
+        // --- Konfigurasi dasar ---
+        $doctype  = 'IM';
         $user     = $request->user();
         $username = $user->username ?? 'system';
-        $fullname = $user->name ?? 'system';
 
         $dt        = Carbon::now();
         $year      = $dt->year;
         $month     = str_pad($dt->month, 2, '0', STR_PAD_LEFT);
         $datestamp = $dt->toDateTimeString();
 
-
-        // helper untuk normalisasi angka lokal (ID format)     
+        // helper angka lokal
         $toFloat = function ($v): ?float {
             if ($v === null || $v === '') return null;
             $s = preg_replace('/\s+/', '', (string)$v);
-
             $hasComma = strpos($s, ',') !== false;
             $hasDot   = strpos($s, '.') !== false;
-
             if ($hasComma && $hasDot) {
-                // Decimal = separator yang muncul paling akhir
                 $lastComma = strrpos($s, ',');
                 $lastDot   = strrpos($s, '.');
                 if ($lastComma > $lastDot) {
-                    // koma = decimal, titik = ribuan
                     $s = str_replace('.', '', $s);
                     $s = str_replace(',', '.', $s);
                 } else {
-                    // titik = decimal, koma = ribuan
                     $s = str_replace(',', '', $s);
                 }
             } elseif ($hasComma) {
-                // hanya koma → koma = decimal
                 $s = str_replace(',', '.', $s);
-            } elseif ($hasDot) {
-                // hanya titik → asumsikan titik = decimal
-                // kalau ada >1 titik, anggap titik = ribuan → hapus semua titik
-                if (substr_count($s, '.') > 1) {
-                    $s = str_replace('.', '', $s);
-                }
-                // kalau 1 titik, biarkan sebagai decimal
+            } elseif ($hasDot && substr_count($s, '.') > 1) {
+                $s = str_replace('.', '', $s);
             }
             return is_numeric($s) ? (float)$s : null;
         };
 
+        // --- Mapping kolom dari CS header (pakai fallback beberapa nama yang mungkin ada) ---
+        $cpnyid        = $cs->cpny_id         ?? $cs->cpnyid         ?? $request->input('cpnyid');
+        $departementid = $cs->departementid   ?? $cs->department_id  ?? $request->input('departementid');
+        $perpost       = $cs->budget_perpost  ?? $cs->perpost        ?? $request->input('perpost');
+        $sppbjktid     = $cs->sppbjktid       ?? $request->input('sppbjktid');
+        $user_peminta  = $cs->user_peminta    ?? $request->input('user_peminta', $username);
+        $imbudgetnote  = $cs->imbudgetnote    ?? $cs->csnote         ?? $cs->note ?? $request->input('imbudgetnote');
 
-        // pastikan line approval ada
+        // --- Pastikan line approval ada (gunakan cpny & dept dari CS) ---
         $approvalCount = M_approval::where([
             ['status', '=', 'A'],
-            ['aprvcpnyid', '=', $request->cpnyid],
-            ['aprvdeptid', '=', $request->departementid],
+            ['aprvcpnyid', '=', $cpnyid],
+            ['aprvdeptid', '=', $departementid],
             ['aprvdoctype', '=', $doctype],
         ])->count();
 
@@ -233,7 +203,7 @@ class SppbController extends Controller
 
         DB::beginTransaction();
         try {
-            // === generate autonbr & docid (lock) ===
+            // === autonbr & docid ===
             $autonbr = Autonbr::lockForUpdate()
                 ->where('doctype', $doctype)
                 ->where('year', $year)
@@ -254,113 +224,90 @@ class SppbController extends Controller
                 $autonbr->update(['number' => $urutan]);
             }
 
-            $tglbln = substr($year, 2) . $month;               // YYMM
+            $tglbln = substr($year, 2) . $month;   // YYMM
             $docid  = $doctype . $tglbln . sprintf("%04d", $urutan);
-            $sppbNo = $docid;                                   // atau 'SPPB-'.$docid
 
-            // === 1) header dulu (totalqty sementara 0) ===
-            $header = new TrSPPB();
-            $header->sppbid            = $docid;                // PK string
-            $header->sppbdate          = $dt->toDateString();
-            $header->cpny_id           = $request->input('cpnyid');
-            $header->department_id     = $request->input('departementid');
-            $header->requesttypeid     = $request->input('requesttypeid');
-            $header->keperluan         = $request->input('keperluan');
-            $header->budget_perpost    = $request->input('perpost');
-            $header->woid              = $request->input('woid');
-            $header->spbid             = null;
-            $header->totalopenordered  = 0;
-            $header->totalqty          = 0;
-            $header->totalordered      = 0;
-            $header->totalrejectordered = 0;
-            $header->totalcompleteordered = 0;
-            $header->assignby          = null;
-            $header->assigndate        = null;
-            $header->assignpurchasing  = null;
-            $header->csjobs            = null;
-            $header->cs                = null;
-            $header->status            = 'P';
-            $header->created_by        = $username;
+            // === 1) HEADER IMBudget ===
+            $header = new TrIMBudget();
+            $header->imbudgetid               = $docid;
+            $header->imbudgetdate             = $dt->toDateString();
+            $header->csid                     = $csid;
+            $header->sppbjktid                = $sppbjktid;
+            $header->cpny_id                  = $cpnyid;
+            $header->user_peminta             = $user_peminta;
+            $header->imbudgetnote             = $imbudgetnote;
+            $header->budget_perpost           = $perpost;
+            $header->total_budget_needed      = 0;
+            $header->total_budget_requested   = 0;
+            $header->status                   = 'P';
+            $header->created_by               = $username;
             $header->save();
 
-            // === 2) detail ===
-            $totalQty         = 0;
-            $totalOpenOrdered = 0;
-            $rowCount = max(count($inventoryIds), count($qtys));
-           
-            for ($i = 0; $i < $rowCount; $i++) {
-                $invId = $inventoryIds[$i] ?? null;
-                $productName = $productNames[$i] ?? null;
-                // qty: sudah kamu konversi koma->titik di JS; tetap jaga-jaga:
-                $qty   = (float) str_replace(',', '.', (string) ($qtys[$i] ?? 0));
-                $uom   = $uoms[$i] ?? null;
+            // === 2) DETAIL dari CSdetail ===
+            $totalNeeded = 0.0;
+            $totalRequested = 0.0;
 
-                if (empty($invId) || $qty <= 0) continue;
+            foreach ($csdetail as $d) {
+                // Map fleksibel dari berbagai kemungkinan nama kolom di CSdetail
+                $detailBudgetCpny  = $d->budget_cpny_id          ?? $d->cpny_id          ?? $cpnyid;
+                $detailBU          = $d->budget_business_unit_id ?? $d->business_unit_id ?? null;
+                $detailDeptFin     = $d->budget_department_fin_id?? $d->department_fin_id?? null;
+                $detailCoa         = $d->budget_account_id       ?? $d->coa_id           ?? null;
+                $detailAct         = $d->budget_activity_id      ?? $d->activity_id      ?? null;
+                $detailActDescr    = $d->budget_activity_descr   ?? $d->activity_descr   ?? null;
 
-                // ==== perhitungan base_* ====
-                $baseUom        = $purchaseUnits[$i] ?? null;                   // WAJIB: purchase_unit
-                $typeMultiplier = strtoupper(trim((string)($uomMultDivs[$i] ?? ''))); // 'M' / 'D' / ''
-                $rateRaw        = $uomRates[$i] ?? null;
-                $rate           = $toFloat($rateRaw) ?? 1.0;                     // default 1 kalau kosong/tidak valid
-                if ($rate <= 0) {                                                // guard divide-by-zero & negatif
-                    $rate = 1.0;
-                    $typeMultiplier = '';                                        // anggap tidak ada konversi
+                $need              = $toFloat($d->budget_needed   ?? $d->needed   ?? $d->amount_needed   ?? 0) ?? 0.0;
+                $req               = $toFloat($d->budget_requested?? $d->requested?? $d->amount_requested?? 0) ?? 0.0;
+
+                $noteDetail        = $d->csnote_detail ?? null;
+
+                // skip baris kosong
+                if ($need <= 0 && $req <= 0) {
+                    continue;
                 }
 
-                // base_qty logic
-                $baseQty = $qty;
-                if ($typeMultiplier === 'M') {
-                    $baseQty = $qty * $rate;
-                } elseif ($typeMultiplier === 'D') {
-                    $baseQty = $qty / $rate;
-                }
+                $detail = new TrIMBudgetdetail();
+                $detail->imbudgetid                   = $docid;
+                $detail->csid                         = $csid;
+                $detail->sppbjktid                    = $sppbjktid;
+                $detail->budget_perpost               = $perpost;
 
-                $detail = new TrSPPBdetail();
-                $detail->sppbid                   = $docid;
-                $detail->sppb_no                  = $i + 1;   // nomor urut detail
-                $detail->inventoryid              = $invId;
-                $detail->inventory_descr          = $productName;
-                $detail->qty                      = $qty;
-                $detail->uom                      = $uom;
-                $detail->note                     = $notes[$i]   ?? null;
-                $detail->inventory_type                = $item_types[$i] ?? null;
-                $detail->inventory_category            = $item_categories[$i] ?? null;
-                $detail->base_uom                 = $baseUom;            // = purchase_unit
-                $detail->base_multiplier          = $rate;               // = uom_unitrate (float)
-                $detail->type_multiplier          = $typeMultiplier ?: null; // = 'M' / 'D' / null
-                $detail->base_qty                 = $baseQty;            // hitungan M/D               
-                $detail->budget_cpny_id           = $request->cpnyid;
-                $detail->budget_business_unit_id  = $busUnitIds[$i]     ?? null;
-                $detail->budget_department_fin_id = $deptFinIds[$i] ?? null;
-                $detail->budget_account_id        = $coaIds[$i]         ?? null;
-                $detail->budget_activity_id       = $activityIds[$i]   ?? null;               
-                $detail->location_id              = $locationIds[$i]  ?? null;
-                $detail->sub_location_id          = $subLocIds[$i]    ?? null;
-                $detail->budget_perpost           = $request->perpost;
-                $detail->assignby                 = null;
-                $detail->assigndate               = null;
-                $detail->assignpurchasing         = null;
-                $detail->openordered              = $qty;
-                $detail->ordered                  = 0;
-                $detail->rejectordered            = 0;
-                $detail->completeordered          = 0;
-                $detail->status                   = 'P';
-                $detail->created_by               = $username;
+                $detail->budget_cpny_id               = $detailBudgetCpny;
+                $detail->budget_business_unit_id      = $detailBU;
+                $detail->budget_department_fin_id     = $detailDeptFin;
+                $detail->budget_account_id            = $detailCoa;
+                $detail->budget_activity_id           = $detailAct;
+                $detail->budget_activity_descr        = $detailActDescr;
+
+                $detail->budget_needed                = $need;
+                $detail->budget_requested             = $req;
+                $detail->note                         = $noteDetail;
+                $detail->status                       = 'P';
+                $detail->created_by                   = $username;
                 $detail->save();
 
-                $totalQty += $qty;
+                $totalNeeded    += $need;
+                $totalRequested += $req;
             }
 
-            // update totalqty di header
-            $header->totalqty = $totalQty;
-            $header->totalopenordered = $totalQty;
+            // Kalau sama sekali tidak ada detail terpakai, batalkan
+            if ($totalNeeded <= 0 && $totalRequested <= 0) {
+                DB::rollBack();
+                return response()->json([
+                    'message' => "Tidak ada baris detail CS ({$csid}) yang memiliki nilai budget_needed/requested > 0.",
+                ], 422);
+            }
+
+            // === 3) update total header ===
+            $header->total_budget_needed    = $totalNeeded;
+            $header->total_budget_requested = $totalRequested;
             $header->save();
 
             // === 4) copy line approval (M_approval -> T_approval) ===
             $approvals = M_approval::where([
                 ['status', '=', 'A'],
-                ['aprvcpnyid', '=', $request->cpnyid],
-                ['aprvdeptid', '=', $request->departementid],
+                ['aprvcpnyid', '=', $cpnyid],
+                ['aprvdeptid', '=', $departementid],
                 ['aprvdoctype', '=', $doctype],
             ])->get();
 
@@ -376,88 +323,52 @@ class SppbController extends Controller
                     'aprvdatebefore' => $a->aprvid == 1 ? $datestamp : null,
                     'aprvtotalday'   => 1,
                     'status'         => 'P',
-                    'created_by'   => $username,
+                    'created_by'     => $username,
                 ]);
             }
 
-            $firstApprovalUsernames = optional($approvals->first())->aprvusername; // bisa comma-separated
+            // optional: catat approver pertama
+            $firstApprovalUsernames = optional($approvals->first())->aprvusername;
             if ($firstApprovalUsernames) {
                 $header->completed_by = $firstApprovalUsernames;
-                $header->completed_at = $dt; // atau Carbon::now()
+                $header->completed_at = $dt;
                 $header->save();
             }
 
             // === 5) attachments (opsional) ===
-            // if ($request->hasfile('attachments')) {
-            //     foreach ($request->file('attachments') as $file) {
-            //         $randomNumber = random_int(10000000, 99999999);
-            //         $filename = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
-                   
-            //         $originalName = str_replace('%', '', $file->getClientOriginalName());
-            //         $ext        = $file->getClientOriginalExtension();
-            //         $attachfile = md5($randomNumber) . '.' . $ext;
-
-            //         //attach to folder
-            //         $folder_attach = public_path() . '/attachments/'.$year;
-            //         $config['upload_path'] = $folder_attach;                   
-            //         if(!is_dir($folder_attach))
-            //         {
-            //             mkdir($folder_attach, 0777);
-            //         }
-                    
-            //         $folder_upload = $folder_attach;
-            //         // $folder_upload = public_path() . '/attachments';
-            //         $file->move($folder_upload, $attachfile);
-
-            //         //insert to table attachments
-            //         $attach = new Attachment();
-            //         $attach->docid = $docid;
-            //         $attach->name = $filename;
-            //         $attach->attachfile = $attachfile;
-            //         $attach->status = 'A';
-            //         $attach->extention = $file->getClientOriginalExtension();
-            //         $attach->created_user = $user->username;
-            //         $attach->save();
-            //     }
-            // }            
-
             if ($request->hasFile('attachments')) {
                 $meta = [
                     'refnbr'        => $docid,
                     'doctype'       => $doctype,
-                    'cpnyid'        => $request->input('cpnyid'),
-                    'departementid' => $request->input('departementid'),                    
+                    'cpnyid'        => $cpnyid,
+                    'departementid' => $departementid,
                     'base_folder'   => 'att-purchasing-app/'.strtolower($doctype),
-                    'created_by'    => $user->username,
+                    'created_by'    => $username,
                 ];
-
                 $files = (array) $request->file('attachments');
 
                 try {
                     $uploader = app(TrAttachmentController::class);
                     $uploadResult = $uploader->uploadInternal($meta, $files);
-                    // tidak return di sini!
                 } catch (\Throwable $e) {
-                    \DB::rollBack();
+                    DB::rollBack();
                     return response()->json([
-                        'message' => 'Failed to create PB',
+                        'message' => 'Failed to create IMBudget',
                         'error'   => 'Gagal upload attachment: '.$e->getMessage(),
                     ], 500);
                 }
             } else {
-                $uploadResult = null; // tidak ada attachment
+                $uploadResult = null;
             }
 
-            // === 6) kirim email ke approver pertama ===
+            // === 6) Email ke approver pertama ===
             $firstApproval = T_approval::where('docid', $docid)
                 ->where('status', 'P')
                 ->orderBy('aprvid')
                 ->first();
 
             if ($firstApproval) {
-
                 $status = $header->status; // 'P' | 'R' | 'D' | 'A' | 'C'
-                
                 $subjectMap = [
                     'P' => 'Waiting Approval',
                     'R' => 'Rejected Approval',
@@ -467,30 +378,29 @@ class SppbController extends Controller
                 ];
                 $subjectSuffix = $subjectMap[$status] ?? 'Notification';
 
-                $eid = Hashids::encode($header->id);
-                
+                $eid = rawurlencode($header->imbudgetid);
                 $data = [
-                    'docid'    => $firstApproval->docid,
-                    'cpnyid'   => $firstApproval->aprvcpnyid,
-                    'deptname' => $firstApproval->aprvdeptid,
-                    'date'     => $firstApproval->aprvdatebefore,
-                    'name'     => $firstApproval->name,
-                    'createdby'=> $header->created_by,
-                    'info'     => $request->keperluan,
-                    'status'   => $status,
-                    'docname'  => 'SPPB',
-                    'url'      => url('/showsppbs/' . $eid),
+                    'docid'     => $firstApproval->docid,
+                    'cpnyid'    => $firstApproval->aprvcpnyid,
+                    'deptname'  => $firstApproval->aprvdeptid,
+                    'date'      => $firstApproval->aprvdatebefore,
+                    'name'      => $firstApproval->name,
+                    'createdby' => $header->created_by,
+                    'info'      => $imbudgetnote,
+                    'status'    => $status,
+                    'docname'   => 'IMBudget',
+                    'url'       => url('/showimbudgets/' . $eid),
                 ];
-                
+
                 $approvers = array_filter(array_map('trim', explode(',', (string)$firstApproval->aprvusername)));
                 $emails = User::whereIn('username', $approvers)
                     ->where('status', 'A')
                     ->pluck('test_email');
 
                 foreach ($emails as $email) {
-                    \Mail::send('emails.mailapprovenew', $data, function ($message) use ($email, $data) {
+                    \Mail::send('emails.mailapprovenew', $data, function ($message) use ($email, $data, $subjectSuffix) {
                         $message->to($email)
-                            ->subject($data['docid'].' - Waiting Approval SPPB')
+                            ->subject($data['docid'].' - '.$subjectSuffix.' IMBudget')
                             ->from('digitalserver@pakuwon.com', 'Pakuwon System');
                     });
                 }
@@ -499,37 +409,36 @@ class SppbController extends Controller
             DB::commit();
 
             return response()->json([
-                'message'  => 'SPPB created successfully',
-                'sppbid'   => $docid,
-                'sppb_no'  => $sppbNo,
-                'totalqty' => $totalQty,
-                'attachments' => $uploadResult,
+                'message'                 => 'IMBudget created successfully',
+                'imbudgetid'              => $docid,
+                'total_budget_needed'     => $totalNeeded,
+                'total_budget_requested'  => $totalRequested,
+                'attachments'             => $uploadResult,
             ]);
 
         } catch (\Throwable $e) {
             DB::rollBack();
             report($e);
-
             return response()->json([
-                'message' => 'Failed to create SPPB',
+                'message' => 'Failed to create IMBudget',
                 'error'   => config('app.debug') ? $e->getMessage() : null,
             ], 500);
         }
     }
    
-    public function editSppb($hash)
+    public function editIMBudget($hash)
     {
         $id = Hashids::decode($hash)[0] ?? null;
         abort_if(!$id, 404);
 
-        $sppb = TrSPPB::findOrFail($id);
+        $imbudget = TrIMBudget::findOrFail($id);
 
         // Ambil detail + eager load relasi lokasi & sublokasi
-        $sppbdetail = TrSPPBdetail::with([
+        $imbudgetdetail = TrIMBudgetdetail::with([
                 'location:location_id,location_name',
                 'subLocation:sub_location_id,sub_location_name',
             ])
-            ->where('sppbid', $sppb->sppbid)
+            ->where('imbudgetid', $imbudget->imbudgetid)
             ->get()
             ->map(function ($d) {
                 // Sematkan nama ke attribute agar Blade lama tetap jalan
@@ -544,11 +453,11 @@ class SppbController extends Controller
         $userdept  = Userdept::where('username', $user->username)->get();
         $userdept2 = Userdept::where('username', $user->username)->first();
 
-        // $attachment = Attachment::where('docid', $sppb->sppbid)
+        // $attachment = Attachment::where('docid', $imbudget->imbudgetid)
         //     ->where('status', 'A')
         //     ->get();
 
-        $rows = TrAttachment::where('refnbr', $sppb->sppbid)
+        $rows = TrAttachment::where('refnbr', $imbudget->imbudgetid)
             ->where('status', 'A')
             ->orderBy('created_at', 'desc')
             ->get();
@@ -589,14 +498,14 @@ class SppbController extends Controller
             ];
         });
 
-        return view('pages.sppbs.editsppbs', compact(
-            'sppb','sppbdetail','usercpny','usercpny2','userdept','userdept2','attachments','hash'
+        return view('pages.imbudgets.editimbudgets', compact(
+            'imbudget','imbudgetdetail','usercpny','usercpny2','userdept','userdept2','attachments','hash'
         ));
     }
 
 
 
-    public function updateSppb(Request $request, $hash)
+    public function updateIMBudget(Request $request, $hash)
     {
         // dd($request->all()); // matikan agar eksekusi lanjut
 
@@ -638,7 +547,7 @@ class SppbController extends Controller
             return is_numeric($s) ? (float)$s : null;
         };
 
-        $header = TrSPPB::findOrFail($id);
+        $header = TrIMBudget::findOrFail($id);
         // update header
         $header->cpny_id        = $request->cpnyid;
         $header->department_id  = $request->departementid;
@@ -677,7 +586,7 @@ class SppbController extends Controller
             // hapus baris yang di-mark delete
             if ($request->filled('deleted_detail_ids')) {
                 $idsToDelete = array_filter(array_map('trim', explode(',', $request->deleted_detail_ids)));
-                if ($idsToDelete) TrSPPBdetail::whereIn('id', $idsToDelete)->delete();
+                if ($idsToDelete) TrIMBudgetdetail::whereIn('id', $idsToDelete)->delete();
             }
 
             $rowCount = max(count($inventoryIds), count($qtys));
@@ -734,33 +643,33 @@ class SppbController extends Controller
                 $idDetail = $detailIds[$i] ?? null;
 
                 if ($idDetail) {
-                    $detail = TrSPPBdetail::where('id', $idDetail)
-                        ->where('sppbid', $header->sppbid)
+                    $detail = TrIMBudgetdetail::where('id', $idDetail)
+                        ->where('imbudgetid', $header->imbudgetid)
                         ->first();
                     if ($detail) {
                         $detail->fill($data)->save();
                     } else {
-                        $detail = new TrSPPBdetail($data);
-                        $detail->sppbid = $header->sppbid;
+                        $detail = new TrIMBudgetdetail($data);
+                        $detail->imbudgetid = $header->imbudgetid;
                         $detail->save();
                     }
                 } else {
-                    $detail = new TrSPPBdetail($data);
-                    $detail->sppbid = $header->sppbid;
+                    $detail = new TrIMBudgetdetail($data);
+                    $detail->imbudgetid = $header->imbudgetid;
                     $detail->save();
                 }
 
                 $savedDetails[] = $detail->id;
             }
 
-            // Renumber sppb_no 1..N
+            // Renumber imbudget_no 1..N
             $n = 1;
             foreach ($savedDetails as $did) {
-                TrSPPBdetail::where('id', $did)->update(['sppb_no' => $n++]);
+                TrIMBudgetdetail::where('id', $did)->update(['imbudget_no' => $n++]);
             }
 
             // Hitung total qty (kalau mau pakai base_qty, ganti ke sum('base_qty'))
-            $totalQty = TrSPPBdetail::where('sppbid', $header->sppbid)->sum('qty');
+            $totalQty = TrIMBudgetdetail::where('imbudgetid', $header->imbudgetid)->sum('qty');
             $header->totalqty = $totalQty;
             $header->totalopenordered = $totalQty;
             $header->save();
@@ -775,7 +684,7 @@ class SppbController extends Controller
 
             foreach ($approvals as $a) {
                 T_approval::create([
-                    'docid'          => $header->sppbid,
+                    'docid'          => $header->imbudgetid,
                     'aprvid'         => $a->aprvid,
                     'aprvdoctype'    => $a->aprvdoctype,
                     'aprvcpnyid'     => $a->aprvcpnyid,
@@ -820,7 +729,7 @@ class SppbController extends Controller
 
             //         //insert to table attachments
             //         $attach = new Attachment();
-            //         $attach->docid = $header->sppbid;
+            //         $attach->docid = $header->imbudgetid;
             //         $attach->name = $filename;
             //         $attach->attachfile = $attachfile;
             //         $attach->status = 'A';
@@ -834,7 +743,7 @@ class SppbController extends Controller
             $uploadResult = null;
             if ($request->hasFile('attachments')) {
                 $meta = [
-                    'refnbr'        => $header->sppbid,
+                    'refnbr'        => $header->imbudgetid,
                     'doctype'       => $doctype,
                     'cpnyid'        => $request->cpnyid,
                     'departementid' => $request->departementid,
@@ -856,7 +765,7 @@ class SppbController extends Controller
             }
 
             // email approver pertama (tetap)
-            $firstApproval = T_approval::where('docid', $header->sppbid)
+            $firstApproval = T_approval::where('docid', $header->imbudgetid)
                 ->where('status', 'P')
                 ->orderBy('aprvid')
                 ->first();
@@ -884,8 +793,8 @@ class SppbController extends Controller
                     'createdby'=> $header->created_by,
                     'info'     => $request->keperluan,
                     'status'   => $status,
-                    'docname'  => 'SPPB',
-                    'url'      => url('/showsppbs/' . $eid),
+                    'docname'  => 'IMBudget',
+                    'url'      => url('/showimbudgets/' . $eid),
                 ];
 
                 $approvers = array_filter(array_map('trim', explode(',', (string)$firstApproval->aprvusername)));
@@ -896,14 +805,14 @@ class SppbController extends Controller
                 foreach ($emails as $email) {
                     \Mail::send('emails.mailapprovenew', $data, function ($message) use ($email, $data) {
                         $message->to($email)
-                            ->subject($data['docid'].' - Waiting Approval SPPB')
+                            ->subject($data['docid'].' - Waiting Approval IMBudget')
                             ->from('digitalserver@pakuwon.com', 'Pakuwon System');
                     });
                 }
             }
 
             DB::commit();
-            return response()->json(['message' => 'SPPB updated successfully']);
+            return response()->json(['message' => 'IMBudget updated successfully']);
 
         } catch (\Throwable $e) {
             DB::rollBack();
@@ -927,7 +836,7 @@ class SppbController extends Controller
     }
  
 
-    public function showSppb($hash)
+    public function showIMBudget($hash)
     {        
         $id = Hashids::decode($hash)[0] ?? null;
         abort_if(!$id, 404);
@@ -938,32 +847,32 @@ class SppbController extends Controller
             return redirect()->route('login');
         }
 
-        // $sppb = TrSPPB::findOrFail($id);
-        $sppb = TrSPPB::with([
+        // $imbudget = TrIMBudget::findOrFail($id);
+        $imbudget = TrIMBudget::with([
             'requestType:requesttypeid,requesttype_name',
             'creator:username,name'
         ])
         ->findOrFail($id);        
 
-        $sppbdetail = TrSPPBdetail::with([
+        $imbudgetdetail = TrIMBudgetdetail::with([
             'location:location_id,location_name',
             'subLocation:sub_location_id,sub_location_name'
         ])
-        ->where('sppbid', $sppb->sppbid)
+        ->where('imbudgetid', $imbudget->imbudgetid)
         ->get();
         
-        $approval = T_approval::where('docid', $sppb->sppbid)
+        $approval = T_approval::where('docid', $imbudget->imbudgetid)
             ->where('status','<>','X')      
             ->orderBy('created_at')
             ->orderBy('aprvid')      
             ->get();
        
-        // $attachment = Attachment::where('docid', $sppb->sppbid)    
+        // $attachment = Attachment::where('docid', $imbudget->imbudgetid)    
         //     ->where('status','A')        
         //     ->get();    
         
         // ---------- ambil lampiran dari tr_attachment ----------
-        $rows = TrAttachment::where('refnbr', $sppb->sppbid)
+        $rows = TrAttachment::where('refnbr', $imbudget->imbudgetid)
             ->where('status', 'A')
             ->orderBy('created_at', 'desc')
             ->get();
@@ -1011,28 +920,63 @@ class SppbController extends Controller
         });
         
        
-        return view('pages.sppbs.showsppbs', compact('sppb','approval','attachments','sppbdetail','hash'));
+        return view('pages.imbudgets.showimbudgets', compact('imbudget','approval','attachments','imbudgetdetail','hash'));
     }
 
-       
+    
+    public function fetchComments($id)
+    {
+    
+        $comments = T_Message::where('docid', $id)
+            ->orderBy('created_at', 'desc')
+            ->get();
 
-    public function approveSppb(Request $request, $docid)
+        return response()->json([
+            'status' => 'success',
+            'comments' => $comments
+        ]);
+    }
+    public function storeComment(Request $request, $id)
+    {
+        $request->validate([
+            'comment' => 'required|string|max:500',
+        ]);
+        // dd($id);
+        $user = request()->user();
+        $comment = new T_Message();
+        $comment->docid = $id;
+        $comment->doctype = 'PB';
+        $comment->username = $user->username; 
+        $comment->name = $user->name; 
+        $comment->message = $request->comment;
+        $comment->status = 'A';
+        $comment->created_at = now();
+        $comment->save();
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Comment added successfully!',
+            'comment' => $comment
+        ]);
+    }
+
+    public function approveIMBudget(Request $request, $docid)
     {
         $now  = Carbon::now();
         $user = $request->user();
 
-        // $sppb = TrSPPB::where('sppbid', $docid)->first();
-        $sppb = TrSPPB::with('creator')
-            ->where('sppbid', $docid)
+        // $imbudget = TrIMBudget::where('imbudgetid', $docid)->first();
+        $imbudget = TrIMBudget::with('creator')
+            ->where('imbudgetid', $docid)
             ->first();
-        $fullname = data_get($sppb, 'creator.name') ?: $sppb->created_by;
+        $fullname = data_get($imbudget, 'creator.name') ?: $imbudget->created_by;
 
-        if (!$sppb) {
-            return response()->json(['success' => false, 'message' => 'SPPB not found'], 404);
+        if (!$imbudget) {
+            return response()->json(['success' => false, 'message' => 'IMBudget not found'], 404);
         }
 
         // pastikan user memang approver aktif (status P) di doc ini
-        $tApproval = T_approval::where('docid', $sppb->sppbid)
+        $tApproval = T_approval::where('docid', $imbudget->imbudgetid)
             ->where('status', 'P')
             ->where('aprvusername', 'like', "%{$user->username}%")
             ->whereNotNull('aprvdatebefore') 
@@ -1053,12 +997,12 @@ class SppbController extends Controller
             $tApproval->save();
 
             // Update header informasi "terakhir diproses"
-            $sppb->completed_by = $user->username;
-            $sppb->completed_at = $now;
-            $sppb->save();
+            $imbudget->completed_by = $user->username;
+            $imbudget->completed_at = $now;
+            $imbudget->save();
 
             // Hitung sisa pending setelah approve ini
-            $pendingCount = T_approval::where('docid', $sppb->sppbid)
+            $pendingCount = T_approval::where('docid', $imbudget->imbudgetid)
                 ->where('status', 'P')
                 ->count();
 
@@ -1071,19 +1015,19 @@ class SppbController extends Controller
                 'C' => 'Completed',
             ];
 
-            $eid = Hashids::encode($sppb->id);
+            $eid = Hashids::encode($imbudget->id);
 
             if ($pendingCount === 0) {
                 // Tidak ada approver lagi -> dokumen complete
-                $sppb->status       = 'C';
-                $sppb->completed_by = $user->username;
-                $sppb->completed_at = $now;
-                $sppb->save();
+                $imbudget->status       = 'C';
+                $imbudget->completed_by = $user->username;
+                $imbudget->completed_at = $now;
+                $imbudget->save();
 
-                $sppbdetail = TrSPPBdetail::where('sppbid', $sppb->sppbid)                
+                $imbudgetdetail = TrIMBudgetdetail::where('imbudgetid', $imbudget->imbudgetid)                
                     ->get();
 
-                foreach ($sppbdetail as $d) {
+                foreach ($imbudgetdetail as $d) {
                     $d->status = 'C'; 
                     $d->save();
                 }
@@ -1093,20 +1037,20 @@ class SppbController extends Controller
                 $subjectSuffix = $subjectMap[$status] ?? 'Notification';                
 
                 $data = [
-                    'docid'     => $sppb->sppbid,
-                    'cpnyid'    => $sppb->cpny_id ?? $sppb->cpnyid ?? '',
-                    'deptname'  => $sppb->department_id ?? $sppb->departementid ?? '',
-                    'date'      => $sppb->sppbdate,
+                    'docid'     => $imbudget->imbudgetid,
+                    'cpnyid'    => $imbudget->cpny_id ?? $imbudget->cpnyid ?? '',
+                    'deptname'  => $imbudget->department_id ?? $imbudget->departementid ?? '',
+                    'date'      => $imbudget->imbudgetdate,
                     'fullname'  => $fullname,  // nama penerima di email
                     'name'      => $fullname,  // fallback
                     'createdby' => $fullname,
-                    'docname'   => 'SPPB',
-                    'info'      => $sppb->keperluan,
+                    'docname'   => 'IMBudget',
+                    'info'      => $imbudget->keperluan,
                     'status'    => $status,
-                    'url'       => url('/showsppbs/' . $eid),
+                    'url'       => url('/showimbudgets/' . $eid),
                 ];
 
-                $recipients = User::where('username', $sppb->created_by)
+                $recipients = User::where('username', $imbudget->created_by)
                     ->where('status', 'A')
                     ->get();
 
@@ -1115,16 +1059,16 @@ class SppbController extends Controller
                         Mail::send('emails.mailapprovenew', $data, function ($message) use ($data, $rcp, $subjectSuffix) {
                             $to = $rcp->test_email ?? $rcp->email; // pakai field yang memang ada
                             $message->to($to)
-                                ->subject($data['docid'] . ' - ' . $subjectSuffix . ' SPPB')
+                                ->subject($data['docid'] . ' - ' . $subjectSuffix . ' IMBudget')
                                 ->from('digitalserver@pakuwon.com', 'Pakuwon System');
                         });
                     } catch (\Throwable $e) {
-                        Log::error('Failed sending SPPB completion email', ['error' => $e->getMessage()]);
+                        Log::error('Failed sending IMBudget completion email', ['error' => $e->getMessage()]);
                     }
                 }
             } else {
                 // Masih ada approver berikutnya -> cari level berikutnya (P terrendah aprvid)
-                $next = T_approval::where('docid', $sppb->sppbid)
+                $next = T_approval::where('docid', $imbudget->imbudgetid)
                     ->where('status', 'P')
                     ->orderBy('aprvid', 'ASC')
                     ->first();
@@ -1145,11 +1089,11 @@ class SppbController extends Controller
                         'date'      => $next->aprvdatebefore,
                         'fullname'  => $next->name,
                         'name'      => $next->name,
-                        'createdby' => $sppb->created_by,
-                        'docname'   => 'SPPB',
-                        'info'      => $sppb->keperluan,
+                        'createdby' => $imbudget->created_by,
+                        'docname'   => 'IMBudget',
+                        'info'      => $imbudget->keperluan,
                         'status'    => $status,
-                        'url'       => url('/showsppbs/' . $eid),
+                        'url'       => url('/showimbudgets/' . $eid),
                     ];
 
                     $usernames = array_filter(array_map('trim', explode(',', (string) $next->aprvusername)));
@@ -1163,15 +1107,15 @@ class SppbController extends Controller
                                 Mail::send('emails.mailapprovenew', $data, function ($message) use ($data, $rcp, $subjectSuffix) {
                                     $to = $rcp->test_email ?? $rcp->email;
                                     $message->to($to)
-                                        ->subject($data['docid'] . ' - ' . $subjectSuffix . ' SPPB')
+                                        ->subject($data['docid'] . ' - ' . $subjectSuffix . ' IMBudget')
                                         ->from('digitalserver@pakuwon.com', 'Pakuwon System');
                                 });
                             } catch (\Throwable $e) {
-                                Log::error('Failed sending SPPB waiting-approval email', ['error' => $e->getMessage()]);
+                                Log::error('Failed sending IMBudget waiting-approval email', ['error' => $e->getMessage()]);
                             }
                         }
                     } else {
-                        Log::warning('Next approver has empty aprvusername list', ['docid' => $sppb->sppbid]);
+                        Log::warning('Next approver has empty aprvusername list', ['docid' => $imbudget->imbudgetid]);
                     }
                 }
             }
@@ -1180,28 +1124,28 @@ class SppbController extends Controller
             return response()->json(['success' => true, 'message' => 'Task approved successfully']);
         } catch (\Throwable $e) {
             DB::rollBack();
-            Log::error('Approve SPPB failed', ['error' => $e->getMessage()]);
+            Log::error('Approve IMBudget failed', ['error' => $e->getMessage()]);
             return response()->json(['success' => false, 'message' => 'Approve failed'], 500);
         }
     }
     
-    public function rejectSppb(Request $request, $docid)
+    public function rejectIMBudget(Request $request, $docid)
     {
         $now  = Carbon::now();
         $user = $request->user();
 
-        // $sppb = TrSPPB::where('sppbid', $docid)->first();
-        $sppb = TrSPPB::with('creator')
-            ->where('sppbid', $docid)
+        // $imbudget = TrIMBudget::where('imbudgetid', $docid)->first();
+        $imbudget = TrIMBudget::with('creator')
+            ->where('imbudgetid', $docid)
             ->first();
-        $fullname = data_get($sppb, 'creator.name') ?: $sppb->created_by;
+        $fullname = data_get($imbudget, 'creator.name') ?: $imbudget->created_by;
 
-        if (!$sppb) {
+        if (!$imbudget) {
             return response()->json(['success' => false, 'message' => 'Task not found'], 404);
         }
 
         // Validasi: user harus approver aktif (status P) pada dokumen ini
-        $tApproval = T_approval::where('docid', $sppb->sppbid)
+        $tApproval = T_approval::where('docid', $imbudget->imbudgetid)
             ->where('status', 'P')
             ->where('aprvusername', 'like', "%{$user->username}%")
             ->whereNotNull('aprvdatebefore') 
@@ -1221,21 +1165,21 @@ class SppbController extends Controller
             $tApproval->name          = $user->name;
             $tApproval->save();
 
-            // Update header SPPB
-            $sppb->status       = 'R';
-            $sppb->completed_by = $user->username;
-            $sppb->completed_at = $now;
-            $sppb->save();
+            // Update header IMBudget
+            $imbudget->status       = 'R';
+            $imbudget->completed_by = $user->username;
+            $imbudget->completed_at = $now;
+            $imbudget->save();
 
             // Batalkan semua approval yang masih pending
-            T_approval::where('docid', $sppb->sppbid)
+            T_approval::where('docid', $imbudget->imbudgetid)
                 ->where('status', 'P')
                 ->update(['status' => 'X']);
 
             DB::commit();
         } catch (\Throwable $e) {
             DB::rollBack();
-            Log::error('Reject SPPB failed', ['docid' => $docid, 'error' => $e->getMessage()]);
+            Log::error('Reject IMBudget failed', ['docid' => $docid, 'error' => $e->getMessage()]);
             return response()->json(['success' => false, 'message' => 'Reject failed'], 500);
         }
 
@@ -1249,23 +1193,23 @@ class SppbController extends Controller
             'C' => 'Completed',
         ];
         $subjectSuffix = $subjectMap[$status] ?? 'Notification';
-        $eid = Hashids::encode($sppb->id);
+        $eid = Hashids::encode($imbudget->id);
 
         $data = [
-            'docid'     => $sppb->sppbid,
-            'cpnyid'    => $sppb->cpny_id ?? $sppb->cpnyid ?? '',
-            'deptname'  => $sppb->department_id ?? $sppb->departementid ?? '',
+            'docid'     => $imbudget->imbudgetid,
+            'cpnyid'    => $imbudget->cpny_id ?? $imbudget->cpnyid ?? '',
+            'deptname'  => $imbudget->department_id ?? $imbudget->departementid ?? '',
             'date'      => $now->toDateString(),            // bisa juga pakai $tApproval->aprvdateafter
             'fullname'  => $fullname,               // view email kita pakai $fullname
             'name'      => $fullname,               // fallback jika view pakai $name
             'createdby' => $fullname,
-            'docname'   => 'SPPB',
-            'info'      => $sppb->keperluan,
+            'docname'   => 'IMBudget',
+            'info'      => $imbudget->keperluan,
             'status'    => $status,
-            'url'       => url('/showsppbs/' . $eid),
+            'url'       => url('/showimbudgets/' . $eid),
         ];
 
-        $recipients = User::where('username', $sppb->created_by)
+        $recipients = User::where('username', $imbudget->created_by)
             ->where('status', 'A')
             ->get();
 
@@ -1274,11 +1218,11 @@ class SppbController extends Controller
                 $to = $rcp->test_email ?? $rcp->email; // sesuaikan field yang tersedia
                 Mail::send('emails.mailapprovenew', $data, function ($message) use ($data, $to, $subjectSuffix) {
                     $message->to($to)
-                        ->subject($data['docid'] . ' - ' . $subjectSuffix . ' SPPB')
+                        ->subject($data['docid'] . ' - ' . $subjectSuffix . ' IMBudget')
                         ->from('digitalserver@pakuwon.com', 'Pakuwon System');
                 });
             } catch (\Throwable $e) {
-                Log::error('Failed sending SPPB rejected email', [
+                Log::error('Failed sending IMBudget rejected email', [
                     'docid' => $data['docid'],
                     'to'    => $rcp->username,
                     'error' => $e->getMessage()
@@ -1289,34 +1233,34 @@ class SppbController extends Controller
         // Simpan komentar penolakan (jika ada)
         try {
             app('App\Http\Controllers\SendCommentController')
-                ->sendmsg($sppb->id, 'PB', $request);
+                ->sendmsg($imbudget->id, 'PB', $request);
         } catch (\Throwable $e) {
             Log::warning('SendComment after reject failed', [
-                'docid' => $sppb->sppbid,
+                'docid' => $imbudget->imbudgetid,
                 'error' => $e->getMessage()
             ]);
         }
 
-        return response()->json(['success' => true, 'message' => 'SPPB rejected successfully']);
+        return response()->json(['success' => true, 'message' => 'IMBudget rejected successfully']);
     }
 
-    public function reviseSppb(Request $request, $docid)
+    public function reviseIMBudget(Request $request, $docid)
     {
         $now  = Carbon::now();
         $user = $request->user();
 
-        // $sppb = TrSPPB::where('sppbid', $docid)->first();
-        $sppb = TrSPPB::with('creator')
-            ->where('sppbid', $docid)
+        // $imbudget = TrIMBudget::where('imbudgetid', $docid)->first();
+        $imbudget = TrIMBudget::with('creator')
+            ->where('imbudgetid', $docid)
             ->first();
-        $fullname = data_get($sppb, 'creator.name') ?: $sppb->created_by;
+        $fullname = data_get($imbudget, 'creator.name') ?: $imbudget->created_by;
             
-        if (!$sppb) {
-            return response()->json(['success' => false, 'message' => 'SPPB not found'], 404);
+        if (!$imbudget) {
+            return response()->json(['success' => false, 'message' => 'IMBudget not found'], 404);
         }
 
         // Pastikan user adalah approver aktif (status P) dokumen ini
-        $tApproval = T_approval::where('docid', $sppb->sppbid)
+        $tApproval = T_approval::where('docid', $imbudget->imbudgetid)
             ->where('status', 'P')
             ->where('aprvusername', 'like', "%{$user->username}%")
             ->whereNotNull('aprvdatebefore')
@@ -1336,21 +1280,21 @@ class SppbController extends Controller
             $tApproval->name          = $user->name;
             $tApproval->save();
 
-            // Update header SPPB
-            $sppb->status       = 'D';
-            $sppb->completed_by = $user->username;        // mengikuti pola existing
-            $sppb->completed_at = $now;
-            $sppb->save();
+            // Update header IMBudget
+            $imbudget->status       = 'D';
+            $imbudget->completed_by = $user->username;        // mengikuti pola existing
+            $imbudget->completed_at = $now;
+            $imbudget->save();
 
             // Batalkan approval lain yang masih pending
-            T_approval::where('docid', $sppb->sppbid)
+            T_approval::where('docid', $imbudget->imbudgetid)
                 ->where('status', 'P')
                 ->update(['status' => 'X']);
 
             DB::commit();
         } catch (\Throwable $e) {
             DB::rollBack();
-            Log::error('Revise SPPB failed', ['docid' => $docid, 'error' => $e->getMessage()]);
+            Log::error('Revise IMBudget failed', ['docid' => $docid, 'error' => $e->getMessage()]);
             return response()->json(['success' => false, 'message' => 'Revise failed'], 500);
         }
 
@@ -1364,23 +1308,23 @@ class SppbController extends Controller
             'C' => 'Completed',
         ];
         $subjectSuffix = $subjectMap[$status] ?? 'Notification';
-        $eid = Hashids::encode($sppb->id);
+        $eid = Hashids::encode($imbudget->id);
 
         $data = [
-            'docid'     => $sppb->sppbid,
-            'cpnyid'    => $sppb->cpny_id ?? $sppb->cpnyid ?? '',
-            'deptname'  => $sppb->department_id ?? $sppb->departementid ?? '',
+            'docid'     => $imbudget->imbudgetid,
+            'cpnyid'    => $imbudget->cpny_id ?? $imbudget->cpnyid ?? '',
+            'deptname'  => $imbudget->department_id ?? $imbudget->departementid ?? '',
             'date'      => $now->toDateString(),          // atau $tApproval->aprvdateafter
             'fullname'  => $fullname,             // template email pakai $fullname
             'name'      => $fullname,             // fallback jika view pakai $name
             'createdby' => $fullname,
-            'docname'   => 'SPPB',
-            'info'      => $sppb->keperluan,
+            'docname'   => 'IMBudget',
+            'info'      => $imbudget->keperluan,
             'status'    => $status,
-            'url'       => url('/showsppbs/' . $eid),
+            'url'       => url('/showimbudgets/' . $eid),
         ];
 
-        $recipients = User::where('username', $sppb->created_by)
+        $recipients = User::where('username', $imbudget->created_by)
             ->where('status', 'A')
             ->get();
 
@@ -1389,11 +1333,11 @@ class SppbController extends Controller
                 $to = $rcp->test_email ?? $rcp->email; // sesuaikan dengan kolom yang ada
                 Mail::send('emails.mailapprovenew', $data, function ($message) use ($data, $to, $subjectSuffix) {
                     $message->to($to)
-                        ->subject($data['docid'] . ' - ' . $subjectSuffix . ' SPPB')
+                        ->subject($data['docid'] . ' - ' . $subjectSuffix . ' IMBudget')
                         ->from('digitalserver@pakuwon.com', 'Pakuwon System');
                 });
             } catch (\Throwable $e) {
-                Log::error('Failed sending SPPB revise email', [
+                Log::error('Failed sending IMBudget revise email', [
                     'docid' => $data['docid'],
                     'to'    => $rcp->username,
                     'error' => $e->getMessage()
@@ -1404,15 +1348,15 @@ class SppbController extends Controller
         // Simpan komentar revisi (jika ada)
         try {
             app('App\Http\Controllers\SendCommentController')
-                ->sendmsg($sppb->id, 'PB', $request);
+                ->sendmsg($imbudget->id, 'PB', $request);
         } catch (\Throwable $e) {
             Log::warning('SendComment after revise failed', [
-                'docid' => $sppb->sppbid,
+                'docid' => $imbudget->imbudgetid,
                 'error' => $e->getMessage()
             ]);
         }
 
-        return response()->json(['success' => true, 'message' => 'SPPB revised successfully']);
+        return response()->json(['success' => true, 'message' => 'IMBudget revised successfully']);
     }
     
 
@@ -1438,7 +1382,7 @@ class SppbController extends Controller
 
     public function tracking($id)
     {
-        $sppb = TrSPPB::findOrFail($id);
+        $imbudget = TrIMBudget::findOrFail($id);
 
         $getName = function (?string $username) {
             if (!$username) return null;
@@ -1446,20 +1390,20 @@ class SppbController extends Controller
             return $u->name ?? $username;
         };
 
-        $createdByName = $getName($sppb->created_by ?? null);
-        $createdAt     = $sppb->created_at ? \Carbon\Carbon::parse($sppb->created_at)->format('Y-m-d H:i') : null;
+        $createdByName = $getName($imbudget->created_by ?? null);
+        $createdAt     = $imbudget->created_at ? \Carbon\Carbon::parse($imbudget->created_at)->format('Y-m-d H:i') : null;
 
-        $completedByName = $getName($sppb->completed_by ?? null);
-        $completedAt     = $sppb->completed_at ? \Carbon\Carbon::parse($sppb->completed_at)->format('Y-m-d H:i') : null;
+        $completedByName = $getName($imbudget->completed_by ?? null);
+        $completedAt     = $imbudget->completed_at ? \Carbon\Carbon::parse($imbudget->completed_at)->format('Y-m-d H:i') : null;
 
         // kolom opsional, kalau tidak ada biarkan null
-        $rejectedByName  = $getName($sppb->rejected_by ?? null);
-        $rejectedAt      = isset($sppb->rejected_at) ? \Carbon\Carbon::parse($sppb->rejected_at)->format('Y-m-d H:i') : null;
+        $rejectedByName  = $getName($imbudget->rejected_by ?? null);
+        $rejectedAt      = isset($imbudget->rejected_at) ? \Carbon\Carbon::parse($imbudget->rejected_at)->format('Y-m-d H:i') : null;
 
-        $revisedByName   = $getName($sppb->revised_by ?? null);
-        $revisedAt       = isset($sppb->revised_at) ? \Carbon\Carbon::parse($sppb->revised_at)->format('Y-m-d H:i') : null;
+        $revisedByName   = $getName($imbudget->revised_by ?? null);
+        $revisedAt       = isset($imbudget->revised_at) ? \Carbon\Carbon::parse($imbudget->revised_at)->format('Y-m-d H:i') : null;
 
-        $status = (string) ($sppb->status ?? '');
+        $status = (string) ($imbudget->status ?? '');
         $labelMap = [
             'P' => 'Waiting approval',
             'R' => 'Rejected',
@@ -1471,7 +1415,7 @@ class SppbController extends Controller
         // selalu mulai dari Submitted
         $steps = [[
             'key'          => 'submitted',
-            'title'        => 'SPPB',
+            'title'        => 'IMBudget',
             'status'       => 'C',              // dibuat = completed
             'status_label' => 'Submitted',
             'by'           => $createdByName,
@@ -1535,14 +1479,14 @@ class SppbController extends Controller
         }
 
         return response()->json([
-            'doc'   => $sppb->sppbid ?? (string)$sppb->id,
+            'doc'   => $imbudget->imbudgetid ?? (string)$imbudget->id,
             'steps' => $steps,
             'status'=> $status,
             'status_label' => $statusLabel,
         ]);
     }
 
-    public function printSppb($hash)
+    public function printIMBudget($hash)
     {
         $id = Hashids::decode($hash)[0] ?? null;
         abort_if(!$id, 404);
@@ -1552,23 +1496,23 @@ class SppbController extends Controller
             return redirect()->route('login');
         }
 
-        // Ambil SPPB + relasi yang dibutuhkan
-        $sppb = TrSPPB::with([
+        // Ambil IMBudget + relasi yang dibutuhkan
+        $imbudget = TrIMBudget::with([
                 'requestType:requesttypeid,requesttype_name',
                 'creator:username,name',
             ])
             ->findOrFail($id);
 
-        // Detail baris SPPB
-        $sppbdetail = TrSPPBdetail::with([
+        // Detail baris IMBudget
+        $imbudgetdetail = TrIMBudgetdetail::with([
                 'location:location_id,location_name',
                 'subLocation:sub_location_id,sub_location_name',
             ])
-            ->where('sppbid', $sppb->sppbid)
+            ->where('imbudgetid', $imbudget->imbudgetid)
             ->get();
 
         // Approval list (non-cancelled)
-        $approval = T_approval::where('docid', $sppb->sppbid)
+        $approval = T_approval::where('docid', $imbudget->imbudgetid)
             ->where('status', '<>', 'X')
             ->orderBy('aprvid')
             ->orderBy('created_at')
@@ -1577,10 +1521,10 @@ class SppbController extends Controller
         $approve_count = $approval->count();
 
         // Company (handle null)
-        $company = Company::where('cpnyid', $sppb->cpny_id)->first();
+        $company = Company::where('cpnyid', $imbudget->cpny_id)->first();
 
         // Mapping status dokumen
-        switch ($sppb->status) {
+        switch ($imbudget->status) {
             case 'R':
                 $status_doc = 'Rejected';
                 break;
@@ -1600,29 +1544,29 @@ class SppbController extends Controller
 
         $data = [
             'title'               => 'Surat Permintaan Pembelian Barang',
-            'doc_type'            => 'SPPB',
-            'docid'               => $sppb->sppbid,
-            'department_id'       => $sppb->department_id,
+            'doc_type'            => 'IMBudget',
+            'docid'               => $imbudget->imbudgetid,
+            'department_id'       => $imbudget->department_id,
             'cpnyname'            => optional($company)->cpnyname,
             'parent'              => optional($company)->parent,
             'project'             => optional($company)->project,
             // identitas & tanggal
-            'created_by_username' => $sppb->created_by,
-            'created_by_name'     => ucwords(strtolower(optional($sppb->creator)->name)),
-            'created_at_fmt'      => optional($sppb->created_at)->format('d F Y'),
-            'req_date_fmt'        => optional($sppb->created_at)->format('d M Y H:i'),
-            'sppbdate'            => \Carbon\Carbon::parse($sppb->sppbdate)->format('d F Y'),
+            'created_by_username' => $imbudget->created_by,
+            'created_by_name'     => ucwords(strtolower(optional($imbudget->creator)->name)),
+            'created_at_fmt'      => optional($imbudget->created_at)->format('d F Y'),
+            'req_date_fmt'        => optional($imbudget->created_at)->format('d M Y H:i'),
+            'imbudgetdate'            => \Carbon\Carbon::parse($imbudget->imbudgetdate)->format('d F Y'),
             // konten
-            'keperluan'           => $sppb->keperluan,
+            'keperluan'           => $imbudget->keperluan,
             'status_doc'          => $status_doc,
-            'requesttype_name'    => optional($sppb->requestType)->requesttype_name,
+            'requesttype_name'    => optional($imbudget->requestType)->requesttype_name,
         ];
 
         // Kirim ke view
         $pdf = \PDF::loadView(
-            'pages.sppbs.pdf_sppbs',
+            'pages.imbudgets.pdf_imbudgets',
             array_merge($data, [
-                'detail'         => $sppbdetail,
+                'detail'         => $imbudgetdetail,
                 'approval'       => $approval,
                 'approve_count'  => $approve_count,
             ])
@@ -1631,7 +1575,7 @@ class SppbController extends Controller
         // Portrait jika <= 5 approver, else landscape
         $pdf->setPaper('A4', ($approve_count <= 5) ? 'portrait' : 'landscape');
 
-        return $pdf->stream("pdf_sppbs_{$sppb->sppbid}.pdf");
+        return $pdf->stream("pdf_imbudgets_{$imbudget->imbudgetid}.pdf");
     }
 
 

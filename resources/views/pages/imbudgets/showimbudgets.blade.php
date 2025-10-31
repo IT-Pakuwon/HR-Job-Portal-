@@ -555,80 +555,48 @@
         // ...
         $spinner.fadeOut(); // sembunyikan saat selesai
     </script>
-   
+
     <script>
         $(document).ready(function() {
-            const sppbid  = "{{ $sppb->sppbid }}";
-            const doctype = "PB"; 
+            let sppbid = "{{ $sppb->sppbid }}"; // Ambil task ID dari PHP ke JavaScript
+            loadComments(sppbid);
 
-            loadComments(sppbid, doctype);
-
-            function loadComments(refnbr, doctype) {
+            // **Fungsi untuk Memuat Komentar**
+            function loadComments(sppbid) {
+                console.log("Loading comments for Doc ID:", sppbid);
                 let commentList = $('#commentList');
-                commentList.html('<p class="text-gray-500 italic">Loading comments...</p>');
+                commentList.html('<p class="text-gray-500 italic">Loading comments...</p>'); // Loader
 
                 $.ajax({
-                    url: `/comments/${doctype}/${refnbr}`,
+                    url: `/sppb/${sppbid}/comments`,
                     type: 'GET',
                     success: function(response) {
+                        console.log("Comments Loaded:", response);
                         commentList.empty();
 
-                        if (!response.comments || response.comments.length === 0) {
-                            commentList.append('<p class="text-gray-500 italic">No comments yet. Be the first to comment!</p>');
-                            return;
+                        if (response.comments.length === 0) {
+                            commentList.append(
+                                '<p class="text-gray-500 italic">No comments yet. Be the first to comment!</p>'
+                            );
+                        } else {
+                            response.comments.forEach(comment => {
+                                // let timeAgo = moment(comment.created_at)
+                                //     .fromNow(); // Format waktu seperti "4 days ago"
+                                let timeAgo = dayjs(comment.created_at).fromNow();
+                                commentList.append(`
+                                        <div class="p-3 bg-gray-100 dark:bg-gray-800 rounded-lg mb-2        -gray-300 dark:   -gray-700">
+                                            <p class="text-sm font-semibold">${comment.username} 
+                                                <span class="text-xs text-gray-500">(${timeAgo})</span>
+                                            </p>
+                                            <p class="text-gray-800 dark:text-gray-200">${comment.message}</p>
+                                        </div>
+                                `);
+                            });
                         }
-
-                        response.comments.forEach(comment => {
-                            // fallback jika data lama masih punya created_at
-                            const timeStr = comment.message_date ?? comment.created_at;
-                            const timeAgo = timeStr ? dayjs(timeStr).fromNow() : '';
-
-                            commentList.append(`
-                                <div class="p-3 bg-gray-100 dark:bg-gray-800 rounded-lg mb-2">
-                                    <p class="text-sm font-semibold">
-                                        ${comment.username}
-                                        <span class="text-xs text-gray-500">(${timeAgo})</span>
-                                    </p>
-                                    <p class="text-gray-800 dark:text-gray-200">${comment.message}</p>
-                                </div>
-                            `);
-                        });
                     },
                     error: function(xhr) {
                         console.error("Error fetching comments:", xhr.responseText);
                         commentList.html('<p class="text-red-500 italic">Failed to load comments.</p>');
-                    }
-                });
-            }
-
-            function addComment() {
-                let input = $('#commentInput').val().trim();
-                if (input === "") {
-                    alert("Please enter a comment.");
-                    return;
-                }
-
-                $('#postCommentBtn').prop('disabled', true).text('Posting... 🚀');
-
-                $.ajax({
-                    url: `/comments/${doctype}/${sppbid}`,
-                    type: 'POST',
-                    data: {
-                        comment: input,
-                        _token: '{{ csrf_token() }}'
-                    },
-                    success: function(response) {
-                        if (response.status === "success") {
-                            loadComments(sppbid, doctype);
-                            $('#commentInput').val('');
-                        }
-                    },
-                    error: function(xhr) {
-                        console.error("Error adding comment:", xhr);
-                        alert("Error: " + (xhr.responseJSON ? xhr.responseJSON.message : "Unknown Error"));
-                    },
-                    complete: function() {
-                        $('#postCommentBtn').prop('disabled', false).text('Post 🚀');
                     }
                 });
             }
@@ -638,18 +606,59 @@
                 addComment();
             });
 
+            // **Fungsi untuk Menambahkan Komentar**
+            function addComment() {
+                let input = $('#commentInput').val().trim();
+
+                if (input === "") {
+                    alert("Please enter a comment.");
+                    return;
+                }
+
+                $('#postCommentBtn').prop('disabled', true).text('Posting... 🚀'); // Disable button saat proses
+
+                $.ajax({
+                    url: `/sppb/${sppbid}/comments`,
+                    type: 'POST',
+                    data: {
+                        sppbid: sppbid,
+                        comment: input,
+                        _token: '{{ csrf_token() }}'
+                    },
+                    success: function(response) {
+                        console.log('Comment added successfully:', response);
+
+                        if (response.status === "success") {
+                            loadComments(sppbid); // **Reload komentar setelah menambahkan**
+                            $('#commentInput').val(''); // Kosongkan input setelah sukses
+                        }
+                    },
+                    error: function(xhr) {
+                        console.error("Error adding comment:", xhr);
+                        alert("Error: " + (xhr.responseJSON ? xhr.responseJSON.message :
+                            "Unknown Error"));
+                    },
+                    complete: function() {
+                        $('#postCommentBtn').prop('disabled', false).text(
+                            'Post 🚀'); // Aktifkan kembali tombol
+                    }
+                });
+            }
+
+            // **Event Listener untuk Tombol "Post"**
+            $('#postCommentBtn').click(function() {
+                addComment();
+            });
+
+            // **Event Listener untuk Enter (Tanpa Shift) di Input**
             $('#commentInput').keypress(function(event) {
                 if (event.which === 13 && !event.shiftKey) {
                     event.preventDefault();
                     addComment();
                 }
             });
-
-            
         });
     </script>
-
-
     <script>
         $(document).on("click", "#approveBtn", function() {
             let sppbid = "{{ $sppb->sppbid }}"; // Ambil Task ID dari modal        

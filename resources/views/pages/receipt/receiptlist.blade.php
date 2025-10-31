@@ -239,7 +239,7 @@
 
 
     <div class="max-w-9xl mx-auto w-full px-4 py-4 sm:px-6 lg:px-8">
-        <div class="grid-col-1 grid gap-6 xl:grid-cols-5 xl:grid-rows-1">
+        <div class="grid-col-1 grid gap-6 xl:grid-cols-7 xl:grid-rows-1">
             {{-- Receipt Jobs --}}
             <button>
                 <a href="#" class="scope-filter group block" data-scope="receiptjobs">
@@ -278,6 +278,34 @@
                         <div class="flex flex-grow items-center justify-between">
                             <p class="text-lg font-medium">On Progress</p>
                             <p class="text-right text-xl font-extrabold">{{ $onProgress }}</p>
+                        </div>
+                    </div>
+                </a>
+            </button>
+
+            {{-- Rejected - NEW --}}
+            <button>
+                <a href="#" class="scope-filter group block" data-scope="rejected">
+                    <div
+                        class="scope-card flex items-center gap-4 rounded-lg border border-red-700 bg-red-200/20 p-3 text-red-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-red-100 hover:shadow-lg active:scale-95">
+                        <span class="text-xl group-hover:animate-pulse">❌</span>
+                        <div class="flex flex-grow items-center justify-between">
+                            <p class="text-lg font-medium">Rejected</p>
+                            <p class="text-right text-xl font-extrabold">{{ $rejected }}</p>
+                        </div>
+                    </div>
+                </a>
+            </button>
+
+            {{-- Revise - NEW --}}
+            <button>
+                <a href="#" class="scope-filter group block" data-scope="revise">
+                    <div
+                        class="scope-card flex items-center gap-4 rounded-lg border border-yellow-700 bg-yellow-200/20 p-3 text-yellow-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-yellow-100 hover:shadow-lg active:scale-95">
+                        <span class="text-xl group-hover:animate-pulse">🛠️</span>
+                        <div class="flex flex-grow items-center justify-between">
+                            <p class="text-lg font-medium">Revise</p>
+                            <p class="text-right text-xl font-extrabold">{{ $revise }}</p>
                         </div>
                     </div>
                 </a>
@@ -330,6 +358,8 @@
             </div>
 
             <script>
+                const currentUser = @json(auth()->user()->username ?? '');
+
                 $(function() {
                     let scope = 'receiptjobs';
                     const $title = $('h1.text-xl.font-extrabold');
@@ -339,9 +369,11 @@
 
                     const titleMap = {
                         receiptjobs: 'Receipt - Jobs',
-                        returnjobs:  'Receipt - Return Jobs',   // ← tambah ini
+                        returnjobs:  'Receipt - Return Jobs',
                         onprogress:  'Receipt - On Progress',
                         completed:   'Receipt - Completed',
+                        rejected:    'Receipt - Rejected',   
+                        revise:      'Receipt - Revise',     
                         all:         'Receipt - All',
                     };
 
@@ -517,10 +549,37 @@
                         return text;
                     }
 
+                    // function renderReceiptLink(row) {
+                    //     const url = `/showreceipt/${encodeURIComponent(row.receiptnbr_eid ?? '')}`;
+                    //     const text = row.receiptnbr ?? '';
+                    //     return `<a href="${url}" class="inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-sm leading-tight font-medium text-white rounded text-center transition-colors duration-200 bg-gray-500 hover:bg-gray-700">${text}</a>`;
+                    // }
+
                     function renderReceiptLink(row) {
-                        const url = `/showreceipt/${encodeURIComponent(row.receiptnbr_eid ?? '')}`;
-                        const text = row.receiptnbr ?? '';
-                        return `<a href="${url}" class="inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-sm leading-tight font-medium text-white rounded text-center transition-colors duration-200 bg-gray-500 hover:bg-gray-700">${text}</a>`;
+                        const label = row.receiptnbr ?? '';
+                        const hash  = row.receiptnbr_eid || row.eid || row.hash || row.id; // prioritaskan receiptnbr_eid
+
+                        if (!label) return '';
+                        if (!hash) {
+                            // fallback bila hash tidak ada
+                            return `<span class="inline-flex items-center px-3 py-1.5 text-sm font-semibold rounded bg-gray-400 text-white">${label}</span>`;
+                        }
+
+                        // baca status & creator
+                        const statusRaw = (row.status ?? row.xstatus ?? '').toString().trim().toUpperCase();
+                        const creator   = (row.created_by ?? row.createdby ?? '').toString();
+                        const isRevise  = statusRaw === 'D';
+                        const isOwner   = creator === (currentUser ?? '');
+
+                        // Jika Revise dan pemilik dokumen = user sekarang → arahkan ke EDIT
+                        if (isRevise && isOwner) {
+                            const url = `/editreceipts/${encodeURIComponent(hash)}`;
+                            return `<a href="${url}" class="inline-flex items-center justify-center px-3 py-1.5 text-sm font-semibold rounded bg-amber-600 text-white hover:bg-amber-700" title="Edit (Revise)">${label}</a>`;
+                        }
+
+                        // default → SHOW
+                        const url = `/showreceipt/${encodeURIComponent(hash)}`;
+                        return `<a href="${url}" class="inline-flex items-center justify-center px-3 py-1.5 text-sm font-semibold rounded bg-gray-600 text-white hover:bg-gray-700">${label}</a>`;
                     }
 
                     // init awal

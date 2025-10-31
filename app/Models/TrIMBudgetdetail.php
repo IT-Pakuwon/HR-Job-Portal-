@@ -1,0 +1,33 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+
+class TrIMBudgetdetail extends Model
+{
+    protected $connection = 'pgsql';
+    protected $table = "tr_imbudget_detail";
+
+    protected $fillable = [
+        'imbudgetid',
+        'csid',
+        'sppbjktid',
+        'budget_perpost',
+        'budget_cpny_id',
+        'budget_business_unit_id',
+        'budget_department_fin_id',
+        'budget_account_id',
+        'budget_activity_id',
+        'budget_activity_descr',
+        'budget_needed',
+        'budget_requested',
+        'note',
+        'status',
+        'created_by',
+        'updated_by'
+    ];
+
+    
+}

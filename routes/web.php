@@ -59,6 +59,10 @@ use App\Http\Controllers\TrAttachmentController;
 use App\Http\Controllers\SpbController;  
 use App\Http\Controllers\IssueListController;
 use App\Http\Controllers\IssueController;
+use App\Http\Controllers\IMBudgetController;
+use App\Http\Controllers\SendCommentController;
+
+
 
 use App\Http\Controllers\CanvassxController;
 
@@ -282,7 +286,7 @@ Route::post('/logout', function () {
     Route::post('/career/{id}/comments', [CareerController::class, 'storeComment']);
     Route::post('/career/{id}/approve', [CareerController::class, 'approveCareer']);
     Route::post('/career/{id}/reject', [CareerController::class, 'rejectCareer']);
-    Route::post('/career/{id}/revise', [CareerController::class, 'reviseCareer']);
+    Route::post('/career/{id}/rollback', [CareerController::class, 'rollbackCareer']);
     Route::get('/editcareers/{hash}', [CareerController::class, 'editCareer']);
     Route::put('/careers/{id}', [CareerController::class, 'updateCareer'])->name('careers.update');
     Route::put('/careers/remove-attachment/{id}', [CareerController::class, 'removeAttachment']);    
@@ -291,6 +295,7 @@ Route::post('/logout', function () {
     Route::post('/assessment/update', [CareerController::class, 'updateAssessment'])->name('assessment.update');
     Route::post('/assessmentuser/update', [CareerController::class, 'updateAssessmentuser'])->name('assessmentuser.update');
     Route::get('/career/{docid}/check-reject-permission', [CareerController::class, 'checkRejectPermission']);
+    Route::get('/career/{docid}/check-rollback-permission', [CareerController::class, 'checkRollbackPermission']);
     // Route::get('/payroll-confirmation', [CareerController::class, 'index'])->name('payroll.index');
     Route::post('/payroll-confirmation/generate', [CareerController::class, 'generatePayroll'])->name('payroll.generate');
     Route::post('/offering-letter/generate', [CareerController::class, 'generateOffering'])->name('offering.generate');
@@ -422,8 +427,6 @@ Route::post('/logout', function () {
     Route::get('/createsppbs', [SppbController::class, 'createSppb']);
     Route::post('/sppbs', [SppbController::class, 'storeSppb'])->name('sppbs.store');
     Route::get('/showsppbs/{hash}', [SppbController::class, 'showSppb']);
-    Route::get('/sppb/{id}/comments', [SppbController::class, 'fetchComments']);
-    Route::post('/sppb/{id}/comments', [SppbController::class, 'storeComment']);
     Route::post('/sppb/{id}/approve', [SppbController::class, 'approveSppb']);
     Route::post('/sppb/{id}/reject', [SppbController::class, 'rejectSppb']);
     Route::post('/sppb/{id}/revise', [SppbController::class, 'reviseSppb']);
@@ -432,15 +435,13 @@ Route::post('/logout', function () {
     Route::put('/sppbs/remove-attachment/{id}', [SppbController::class, 'removeAttachment']);    
     Route::get('/sppb/{id}/check-approval/{action}', [SppbController::class, 'checkApproval']);     
     Route::get('/sppbs/{id}/tracking', [SppbController::class, 'tracking'])->name('sppbs.tracking');
-    Route::get('/pdf_sppbs/{hash}', [SppbController::class, 'printSppb']);
+    Route::get('/pdf_sppbs/{hash}', [SppbController::class, 'printSppb']);    
 
     Route::get('/sppjs', [SppjController::class, 'index'])->name('sppjs');
     Route::get('/sppjs/json', [SppjController::class, 'json'])->name('sppjs.json');
     Route::get('/createsppjs', [SppjController::class, 'createSppj']);
     Route::post('/sppjs', [SppjController::class, 'storeSppj'])->name('sppjs.store');
-    Route::get('/showsppjs/{hash}', [SppjController::class, 'showSppj']);
-    Route::get('/sppj/{id}/comments', [SppjController::class, 'fetchComments']);
-    Route::post('/sppj/{id}/comments', [SppjController::class, 'storeComment']);
+    Route::get('/showsppjs/{hash}', [SppjController::class, 'showSppj']); 
     Route::post('/sppj/{id}/approve', [SppjController::class, 'approveSppj']);
     Route::post('/sppj/{id}/reject', [SppjController::class, 'rejectSppj']);
     Route::post('/sppj/{id}/revise', [SppjController::class, 'reviseSppj']);
@@ -472,9 +473,7 @@ Route::post('/logout', function () {
     Route::get('/sppts/json', [SpptController::class, 'json'])->name('sppts.json');
     Route::get('/createsppts', [SpptController::class, 'createSppt']);
     Route::post('/sppts', [SpptController::class, 'storeSppt'])->name('sppts.store');
-    Route::get('/showsppts/{hash}', [SpptController::class, 'showSppt']);
-    Route::get('/sppt/{id}/comments', [SpptController::class, 'fetchComments']);
-    Route::post('/sppt/{id}/comments', [SpptController::class, 'storeComment']);
+    Route::get('/showsppts/{hash}', [SpptController::class, 'showSppt']); 
     Route::post('/sppt/{id}/approve', [SpptController::class, 'approveSppt']);
     Route::post('/sppt/{id}/reject', [SpptController::class, 'rejectSppt']);
     Route::post('/sppt/{id}/revise', [SpptController::class, 'reviseSppt']);
@@ -498,9 +497,7 @@ Route::post('/logout', function () {
     Route::get('/sppks/json', [SppkController::class, 'json'])->name('sppks.json');
     Route::get('/createsppks', [SppkController::class, 'createSppk']);
     Route::post('/sppks', [SppkController::class, 'storeSppk'])->name('sppks.store');
-    Route::get('/showsppks/{hash}', [SppkController::class, 'showSppk']);
-    Route::get('/sppk/{id}/comments', [SppkController::class, 'fetchComments']);
-    Route::post('/sppk/{id}/comments', [SppkController::class, 'storeComment']);
+    Route::get('/showsppks/{hash}', [SppkController::class, 'showSppk']);   
     Route::post('/sppk/{id}/approve', [SppkController::class, 'approveSppk']);
     Route::post('/sppk/{id}/reject', [SppkController::class, 'rejectSppk']);
     Route::post('/sppk/{id}/revise', [SppkController::class, 'reviseSppk']);
@@ -554,8 +551,7 @@ Route::post('/logout', function () {
     Route::post('/csstore', [CanvassController::class, 'storeCS'])->name('cs.store');
     Route::post('/cssave', [CanvassController::class, 'saveCS'])->name('cs.save');
     Route::get('/showcs/{hash}', [CanvassController::class, 'showCS']);
-    Route::get('/cs/{id}/comments', [CanvassController::class, 'fetchComments']);
-    Route::post('/cs/{id}/comments', [CanvassController::class, 'storeComment']);
+  
     Route::post('/cs/{id}/approve', [CanvassController::class, 'approveCS']);
     Route::post('/cs/{id}/reject', [CanvassController::class, 'rejectCS']);
     Route::post('/cs/{id}/revise', [CanvassController::class, 'reviseCS']);
@@ -576,8 +572,7 @@ Route::post('/logout', function () {
     Route::get('/polist', [PoListController::class, 'index'])->name('polist');
     Route::get('/polist/json', [PoListController::class, 'json'])->name('polist.json');
     Route::get('/showpo/{hash}', [PoController::class, 'showPo']);
-    Route::get('/po/{id}/comments', [PoController::class, 'fetchComments']);
-    Route::post('/po/{id}/comments', [PoController::class, 'storeComment']);
+ 
     Route::post('/po/{poid}/attachments', [PoController::class, 'uploadAttachments'])->name('po.attachments.upload');
    
     Route::get('/po/{ponbr}/attachments', [PoController::class, 'listAttachment'])->name('po.attachments.list');
@@ -596,32 +591,32 @@ Route::post('/logout', function () {
     Route::get('/receiptlist/json', [ReceiptListController::class, 'json'])->name('receiptlist.json');
     Route::get('/receipt/create', [ReceiptController::class, 'createReceipt'])->name('receipt.create');    
     Route::post('/receipts', [ReceiptController::class, 'storeReceipt'])->name('receipt.store'); 
-    Route::get('/showreceipt/{hash}', [ReceiptController::class, 'showReceipt']);
-    Route::get('/receipt/{id}/comments', [ReceiptController::class, 'fetchComments']);
-    Route::post('/receipt/{id}/comments', [ReceiptController::class, 'storeComment']);  
+    Route::get('/showreceipt/{hash}', [ReceiptController::class, 'showReceipt']);  
     // Route::post('/receipts/{id}/approve', [ReceiptController::class, 'approveReceipt'])->name('receipts.approve');
     Route::post('/receipt/{id}/approve', [ReceiptController::class, 'approveReceipt']);
     Route::post('/receipt/{id}/reject', [ReceiptController::class, 'rejectReceipt']);
     Route::post('/receipt/{id}/revise', [ReceiptController::class, 'reviseReceipt']);
-    Route::get('/editreceipts/{hash}', [ReceiptController::class, 'editReceipt']);
+    Route::get('/receipt/{id}/check-approval/{action}', [ReceiptController::class, 'checkApproval']); 
+    // Route::get('/editreceipts/{hash}', [ReceiptController::class, 'editReceipt']); 
+    Route::get('/editreceipts/{hash}', [ReceiptController::class, 'editReceipt'])->name('receipt.edit');
+    Route::put('/editreceipts/{hash}', [ReceiptController::class, 'updateReceipt'])->name('receipt.update');
+
     Route::get('/receipt/print/{hash}', [ReceiptController::class, 'printReceipt'])->name('receipts.print');   
     Route::get('/receipt-return/create', [ReceiptController::class, 'createReturn'])->name('receipt.return.create');
     Route::post('/receipt-return', [ReceiptController::class, 'storeReturn'])->name('receipt.return.store');
+    Route::put('/receipts/remove-attachment/{id}', [ReceiptController::class, 'removeAttachment']);
 
 
     Route::get('/wos', [WoController::class, 'index'])->name('wos');
     Route::get('/wos/json', [WoController::class, 'json'])->name('wos.json');
     Route::get('/createwos', [WoController::class, 'createWo']);
     Route::post('/wos', [WoController::class, 'storeWo'])->name('wos.store');
-    Route::get('/showwos/{hash}', [WoController::class, 'showWo']);
-    Route::get('/wo/{id}/comments', [WoController::class, 'fetchComments']);
-    Route::post('/wo/{id}/comments', [WoController::class, 'storeComment']);
+    Route::get('/showwos/{hash}', [WoController::class, 'showWo']);  
     Route::post('/wo/{id}/approve', [WoController::class, 'approveWo']);
     Route::post('/wo/{id}/reject', [WoController::class, 'rejectWo']);
     Route::post('/wo/{id}/revise', [WoController::class, 'reviseWo']);
     Route::get('/editwos/{hash}', [WoController::class, 'editWo']);
-    Route::put('/wos/{id}', [WoController::class, 'updateWo'])->name('wos.update');
-    Route::put('/wos/remove-attachment/{id}', [WoController::class, 'removeAttachment']);    
+    Route::put('/wos/{id}', [WoController::class, 'updateWo'])->name('wos.update');    
     Route::get('/wo/{id}/check-approval/{action}', [WoController::class, 'checkApproval']);     
     Route::get('/wos/{id}/tracking', [WoController::class, 'tracking'])->name('wos.tracking');
     Route::get('/pdf_wos/{hash}', [WOController::class, 'printWo'])->name('wos.print');
@@ -631,9 +626,7 @@ Route::post('/logout', function () {
     Route::get('/spbs/json', [SpbController::class, 'json'])->name('spbs.json');
     Route::get('/createspbs', [SpbController::class, 'createSpb']);
     Route::post('/spbs', [SpbController::class, 'storeSpb'])->name('spbs.store');
-    Route::get('/showspbs/{hash}', [SpbController::class, 'showSpb']);
-    Route::get('/spb/{id}/comments', [SpbController::class, 'fetchComments']);
-    Route::post('/spb/{id}/comments', [SpbController::class, 'storeComment']);
+    Route::get('/showspbs/{hash}', [SpbController::class, 'showSpb']);   
     Route::post('/spb/{id}/approve', [SpbController::class, 'approveSpb']);
     Route::post('/spb/{id}/reject', [SpbController::class, 'rejectSpb']);
     Route::post('/spb/{id}/revise', [SpbController::class, 'reviseSpb']);
@@ -648,14 +641,40 @@ Route::post('/logout', function () {
     Route::get('/issuelist/json', [IssueListController::class, 'json'])->name('issuelist.json');
     Route::get('/issue/create', [IssueController::class, 'createIssue'])->name('issue.create');    
     Route::post('/issues', [IssueController::class, 'storeIssue'])->name('issue.store'); 
-    Route::get('/showissue/{hash}', [IssueController::class, 'showIssue']);
-    Route::get('/issue/{id}/comments', [IssueController::class, 'fetchComments']);
-    Route::post('/issue/{id}/comments', [IssueController::class, 'storeComment']);  
-    Route::post('/issues/{id}/approve', [IssueController::class, 'approveIssue'])->name('issues.approve');
+    Route::get('/showissue/{hash}', [IssueController::class, 'showIssue']);     
+    // Route::post('/issues/{id}/approve', [IssueController::class, 'approveIssue'])->name('issues.approve');
+    Route::post('/issue/{id}/approve', [IssueController::class, 'approveIssue']);
+    Route::post('/issue/{id}/reject', [IssueController::class, 'rejectIssue']);
+    Route::post('/issue/{id}/revise', [IssueController::class, 'reviseIssue']);
+    // Route::get('/editissues/{hash}', [IssueController::class, 'editIssue']);
+    // Route::put('/issues/{id}', [IssueController::class, 'updateIssue'])->name('issue.update');
+    Route::get('/editissues/{hash}', [IssueController::class, 'editIssue'])->name('issue.edit');
+    Route::put('/issues/{hash}', [IssueController::class, 'updateIssue'])->name('issue.update');
+
+    Route::put('/issues/remove-attachment/{id}', [IssueController::class, 'removeAttachment']);    
+    Route::get('/issue/{id}/check-approval/{action}', [IssueController::class, 'checkApproval']);  
     Route::get('/issue/print/{hash}', [IssueController::class, 'printIssue'])->name('issues.print');   
     Route::get('/issue-return/create', [IssueController::class, 'createReturn'])->name('issue.return.create');
     Route::post('/issue-return', [IssueController::class, 'storeReturn'])->name('issue.return.store');
 
+    Route::get('/imbudgets', [IMBudgetController::class, 'index'])->name('imbudgets');
+    Route::get('/imbudgets/json', [IMBudgetController::class, 'json'])->name('imbudgets.json');
+    Route::get('/createimbudgets', [IMBudgetController::class, 'createIMBudget']);
+    Route::post('/imbudgets', [IMBudgetController::class, 'storeIMBudget'])->name('imbudgets.store');
+    Route::get('/showimbudgets/{hash}', [IMBudgetController::class, 'showIMBudget']);
+    Route::get('/imbudget/{id}/comments', [IMBudgetController::class, 'fetchComments']);
+    Route::post('/imbudget/{id}/comments', [IMBudgetController::class, 'storeComment']);
+    Route::post('/imbudget/{id}/approve', [IMBudgetController::class, 'approveIMBudget']);
+    Route::post('/imbudget/{id}/reject', [IMBudgetController::class, 'rejectIMBudget']);
+    Route::post('/imbudget/{id}/revise', [IMBudgetController::class, 'reviseIMBudget']);
+    Route::get('/editimbudgets/{hash}', [IMBudgetController::class, 'editIMBudget']);
+    Route::put('/imbudgets/{id}', [IMBudgetController::class, 'updateIMBudget'])->name('imbudgets.update');
+    Route::put('/imbudgets/remove-attachment/{id}', [IMBudgetController::class, 'removeAttachment']);    
+    Route::get('/imbudget/{id}/check-approval/{action}', [IMBudgetController::class, 'checkApproval']);     
+    Route::get('/imbudgets/{id}/tracking', [IMBudgetController::class, 'tracking'])->name('imbudgets.tracking');
+    Route::get('/pdf_imbudgets/{hash}', [IMBudgetController::class, 'printIMBudget']);
+
+    Route::get('/testgenerate', [IMBudgetController::class, 'GenerateIMBudget']);
 
     Route::get('/inventory/list', [MasterController::class, 'InventoryList'])->name('inventory.list');
     Route::get('/request-types/by-doctype', [MasterController::class, 'RequestType'])->name('requesttypes.byDoctype');
@@ -674,6 +693,8 @@ Route::post('/logout', function () {
     Route::post('/attachments/{doctype}/{refnbr}',  [TrAttachmentController::class, 'uploadAttachments'])->name('attachments.upload');
     Route::get ('/attachments/{doctype}/{refnbr}',  [TrAttachmentController::class, 'listAttachments'])->name('attachments.list');
     Route::delete('/attachments/{id}',               [TrAttachmentController::class, 'deleteAttachment'])->name('attachments.delete');
+    Route::get('/comments/{doctype}/{id}',  [SendCommentController::class, 'fetchComments']);
+    Route::post('/comments/{doctype}/{id}', [SendCommentController::class, 'storeComment']);
 
 
     Route::get('/eng/users', [UsersEngController::class, 'index'])->name('userseng');

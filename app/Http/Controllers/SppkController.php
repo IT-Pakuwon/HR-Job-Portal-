@@ -322,7 +322,7 @@ class SppkController extends Controller
                 $detail->uom                      = $uom;
                 $detail->note                     = $notes[$i]   ?? null;
                 $detail->inventory_type                = $item_types[$i] ?? null;
-                $detail->sppk_category            = $item_categories[$i] ?? null;
+                $detail->inventory_category            = $item_categories[$i] ?? null;
                 $detail->base_uom                 = $baseUom;            // = purchase_unit
                 $detail->base_multiplier          = $rate;               // = uom_unitrate (float)
                 $detail->type_multiplier          = $typeMultiplier ?: null; // = 'M' / 'D' / null
@@ -711,7 +711,7 @@ class SppkController extends Controller
                     'uom'                      => $displayUom,
                     'note'                     => $notes[$i] ?? null,
                     'inventory_type'                => $itemTypes[$i] ?? null,
-                    'sppk_category'            => $itemCats[$i] ?? null,
+                    'inventory_category'            => $itemCats[$i] ?? null,
 
                     // >>> ini yang ditambahkan <<<
                     'base_uom'                 => $baseUom,                       // purchase_unit
@@ -1016,42 +1016,7 @@ class SppkController extends Controller
     }
 
     
-    public function fetchComments($id)
-    {
     
-        $comments = T_Message::where('docid', $id)
-            ->orderBy('created_at', 'desc')
-            ->get();
-
-        return response()->json([
-            'status' => 'success',
-            'comments' => $comments
-        ]);
-    }
-    public function storeComment(Request $request, $id)
-    {
-        $request->validate([
-            'comment' => 'required|string|max:500',
-        ]);
-        // dd($id);
-        $user = request()->user();
-        $comment = new T_Message();
-        $comment->docid = $id;
-        $comment->doctype = 'PK';
-        $comment->username = $user->username; 
-        $comment->name = $user->name; 
-        $comment->message = $request->comment;
-        $comment->status = 'A';
-        $comment->created_at = now();
-        $comment->save();
-
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Comment added successfully!',
-            'comment' => $comment
-        ]);
-    }
-
     public function approveSppk(Request $request, $docid)
     {
         $now  = Carbon::now();

@@ -31,6 +31,8 @@ class IssueListController extends Controller
         $onProgress = TrIssue::where('created_by', $u)->where('status', 'P')->count();
         $completed  = TrIssue::where('created_by', $u)->where('status', 'C')->count();
         $all        = TrIssue::when($cpny_id, fn($q) => $q->where('cpny_id', $cpny_id))->count();
+        $rejected   = TrIssue::where('created_by', $u)->where('status','R')->count();
+        $revise     = TrIssue::where('created_by', $u)->where('status','D')->count();
 
         // Opsional: returnjobs = status C + issuetype 'issue' (tetap)
         $returnjobs = TrIssue::when($cpny_id, fn($q) => $q->where('cpny_id', $cpny_id))
@@ -39,7 +41,7 @@ class IssueListController extends Controller
             ->count();
 
         return view('pages.issue.issuelist', compact(
-            'issuejobs', 'onProgress', 'completed', 'all', 'returnjobs'
+            'issuejobs', 'onProgress', 'completed', 'all', 'returnjobs','rejected','revise'
         ));
     }
 
@@ -55,13 +57,19 @@ class IssueListController extends Controller
         $length = (int) $req->input('length', 25);
         $search = trim((string) $req->input('search.value', ''));
 
+        // Map label issuetype
+        $typeLabel = [
+            'IS' => 'Issue',
+            'RI' => 'Return Issue',
+        ];
+
         if ($scope === 'issuejobs') {
             // === TrSPB list untuk issuejobs ===
             $base = TrSPB::when($cpny_id, fn($q) => $q->where('cpny_id', $cpny_id))
                 ->where('status', 'C')
                 ->where('totalspbopenqty', '<>', 0)
                 ->select([
-                    'id', 'spbid', 'spbdate', 'cpny_id', 'keperluan', 'created_by',
+                    'id', 'spbid', 'spbdate', 'cpny_id', 'keperluan', 'created_by', 'status',
                 ]);
 
             $orderColumns = [
@@ -76,21 +84,23 @@ class IssueListController extends Controller
             if ($search !== '') {
                 $base->where(function ($q) use ($search) {
                     $q->where('spbid', 'ilike', "%{$search}%")
-                      ->orWhere('cpny_id', 'ilike', "%{$search}%")
-                      ->orWhere('keperluan', 'ilike', "%{$search}%")
-                      ->orWhere('created_by', 'ilike', "%{$search}%")
-                      ->orWhereRaw("TO_CHAR(spbdate,'YYYY-MM-DD') ILIKE ?", ["%{$search}%"]);
+                    ->orWhere('cpny_id', 'ilike', "%{$search}%")
+                    ->orWhere('keperluan', 'ilike', "%{$search}%")
+                    ->orWhere('created_by', 'ilike', "%{$search}%")
+                    ->orWhereRaw("TO_CHAR(spbdate,'YYYY-MM-DD') ILIKE ?", ["%{$search}%"]);
                 });
             }
         } else {
-            // === TrIssue untuk onprogress/completed/all/returnjobs ===
+            // === TrIssue untuk onprogress/completed/rejected/revise/returnjobs/all ===
             $base = TrIssue::query()
                 ->when($cpny_id, fn($q) => $q->where('cpny_id', $cpny_id))
                 ->when($scope === 'onprogress', fn($q) => $q->where('created_by', $u)->where('status', 'P'))
                 ->when($scope === 'completed',  fn($q) => $q->where('created_by', $u)->where('status', 'C'))
-                ->when($scope === 'returnjobs', fn($q) => $q->where('status', 'C')->where('issuetype', 'issue'))
+                ->when($scope === 'returnjobs', fn($q) => $q->where('status', 'C')->where('issuetype', 'RI'))
+                ->when($scope === 'rejected',   fn($q) => $q->where('created_by', $u)->where('status', 'R'))
+                ->when($scope === 'revise',     fn($q) => $q->where('created_by', $u)->where('status', 'D'))
                 ->select([
-                    'id', 'issueid', 'issuedate', 'issuetype', 'spbid', 'cpny_id', 'created_by',
+                    'id', 'issueid', 'issuedate', 'issuetype', 'spbid', 'cpny_id', 'created_by', 'status',
                 ]);
 
             $orderColumns = [
@@ -105,44 +115,55 @@ class IssueListController extends Controller
 
             if ($search !== '') {
                 $base->where(function ($q) use ($search) {
+                    // Cari juga berdasarkan label "Issue" / "Return Issue"
                     $q->where('issueid', 'ilike', "%{$search}%")
-                      ->orWhere('spbid', 'ilike', "%{$search}%")
-                      ->orWhere('issuetype', 'ilike', "%{$search}%")
-                      ->orWhere('cpny_id', 'ilike', "%{$search}%")
-                      ->orWhere('created_by', 'ilike', "%{$search}%")
-                      ->orWhereRaw("TO_CHAR(issuedate,'YYYY-MM-DD') ILIKE ?", ["%{$search}%"]);
+                    ->orWhere('spbid', 'ilike', "%{$search}%")
+                    ->orWhere('issuetype', 'ilike', "%{$search}%")
+                    ->orWhereRaw("CASE WHEN issuetype='IS' THEN 'Issue' WHEN issuetype='RI' THEN 'Return Issue' ELSE issuetype END ILIKE ?", ["%{$search}%"])
+                    ->orWhere('cpny_id', 'ilike', "%{$search}%")
+                    ->orWhere('created_by', 'ilike', "%{$search}%")
+                    ->orWhereRaw("TO_CHAR(issuedate,'YYYY-MM-DD') ILIKE ?", ["%{$search}%"]);
                 });
             }
         }
 
-        // Hitung total/filtered (di sini sama, karena filter sudah diterapkan pada $base)
+        // Hitung total dan filtered
         $recordsTotal    = (clone $base)->count();
         $recordsFiltered = (clone $base)->count();
 
         // Ordering
-        $defaultOrderIdx = ($scope === 'issuejobs') ? 2 : 2; // spbdate / issuedate
+        $defaultOrderIdx = 2; // spbdate / issuedate
         $orderIdx = (int) $req->input('order.0.column', $defaultOrderIdx);
         $orderDir = $req->input('order.0.dir', 'desc') === 'asc' ? 'asc' : 'desc';
-        $orderCol = $orderColumns[$orderIdx] ?? (($scope === 'issuejobs') ? 'spbdate' : 'issuedate');
+
+        // Kolom order fallback per scope
+        if ($scope === 'issuejobs') {
+            $orderCol = $orderColumns[$orderIdx] ?? 'spbdate';
+        } else {
+            $orderCol = $orderColumns[$orderIdx] ?? 'issuedate';
+        }
 
         $rows = $base->orderBy($orderCol, $orderDir)
-                     ->orderBy(($scope === 'issuejobs') ? 'spbid' : 'issueid', 'desc')
-                     ->skip($start)->take($length)
-                     ->get();
+                    ->orderBy(($scope === 'issuejobs') ? 'spbid' : 'issueid', 'desc')
+                    ->skip($start)->take($length)
+                    ->get();
 
-        // Format tanggal (opsional digunakan di front-end)
-        $rows->transform(function($r){
-            $r->spbdate_fmt = $r->spbdate ? \Carbon\Carbon::parse($r->spbdate)->format('Y-m-d') : null;
-            $r->spb_eid     = Hashids::encode((string)$r->id);
-            return $r;
-        });
-
-        // scope TrIssue
-        $rows->transform(function($r){
-            $r->issuedate_fmt = $r->issuedate ? \Carbon\Carbon::parse($r->issuedate)->format('Y-m-d') : null;
-            $r->issue_eid     = Hashids::encode((string)$r->id);
-            return $r;
-        });
+        // Transform per scope
+        if ($scope === 'issuejobs') {
+            $rows->transform(function ($r) {
+                $r->spbdate_fmt = $r->spbdate ? \Carbon\Carbon::parse($r->spbdate)->format('Y-m-d') : null;
+                $r->spb_eid     = Hashids::encode((string)$r->id);
+                return $r;
+            });
+        } else {
+            $rows->transform(function ($r) use ($typeLabel) {
+                $r->issuedate_fmt = $r->issuedate ? \Carbon\Carbon::parse($r->issuedate)->format('Y-m-d') : null;
+                $r->issue_eid     = Hashids::encode((string)$r->id);
+                // Tampilkan label langsung di field issuetype
+                $r->issuetype     = $typeLabel[$r->issuetype] ?? $r->issuetype;
+                return $r;
+            });
+        }
 
         return response()->json([
             'draw'            => $draw,
@@ -151,4 +172,5 @@ class IssueListController extends Controller
             'data'            => $rows,
         ]);
     }
+
 }
