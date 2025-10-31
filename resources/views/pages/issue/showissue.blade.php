@@ -177,6 +177,12 @@
                             <span class="{{ $statusClasses }} inline-flex items-center rounded-full px-4 py-1 text-sm font-semibold transition-colors duration-200">
                                 {{ $statusText }}
                             </span>
+                            <a href="{{ url('/pdf_issues') }}/{{ $hash }}" target="_blank">
+                                <button
+                                    class="inline-flex cursor-pointer items-center gap-2 rounded-full bg-indigo-600 px-4 py-1 text-sm font-semibold text-white transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                                    Print PDF
+                                </button>
+                            </a>
                         </div>
                     </header>
 
@@ -193,7 +199,9 @@
                             <div class="flex items-center gap-2 p-2">
                                 <x-heroicon-o-document-text class="h-5 w-5 text-gray-400" />
                                 <span class="min-w-32 max-w-32 text-gray-500">Type</span>
-                                <span class="break-words font-medium text-gray-900 dark:text-gray-300">{{ $iss->issuetype }}</span>
+                                <span class="break-words font-medium text-gray-900 dark:text-gray-300">
+                                    {{ $iss->issuetype === 'IS' ? 'Issue' : ($iss->issuetype === 'RI' ? 'Return Issue' : $iss->issuetype) }}
+                                </span>
                             </div>
 
                             <div class="flex items-center gap-2 p-2">

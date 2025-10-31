@@ -239,7 +239,10 @@
                             <div class="flex items-center gap-2 p-2">
                                 <x-heroicon-o-document-text class="h-5 w-5 text-gray-400" />
                                 <span class="min-w-32 max-w-32 text-gray-500">Type</span>
-                                <span class="break-words font-medium text-gray-900 dark:text-gray-300">{{ $rcp->receipttype }}</span>
+                                {{-- <span class="break-words font-medium text-gray-900 dark:text-gray-300">{{ $rcp->receipttype }}</span> --}}
+                                <span class="break-words font-medium text-gray-900 dark:text-gray-300">
+                                    {{ $rcp->receipttype === 'PR' ? 'Purchase Receipt' : ($rcp->receipttype === 'RR' ? 'Return Receipt' : $rcp->receipttype) }}
+                                </span>
                             </div>
 
                             <div class="flex items-center gap-2 p-2">

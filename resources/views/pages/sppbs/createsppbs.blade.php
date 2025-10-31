@@ -237,6 +237,8 @@
                                                                 class="inventoryIdField">
                                                             <input type="hidden" name="item_type[]"
                                                                 class="prodItemTypeField">
+                                                            <input type="hidden" name="item_sub_type[]"
+                                                                class="prodItemSubTypeField">
                                                             <input type="hidden" name="item_category[]"
                                                                 class="prodItemCategoryField">
                                                             <input type="hidden" name="purchase_unit[]"
@@ -887,6 +889,7 @@
                 <div class="flex items-center gap-2">
                     <input type="hidden" name="inventoryid[]" class="inventoryIdField">
                     <input type="hidden" name="item_type[]"     class="prodItemTypeField">
+                    <input type="hidden" name="item_sub_type[]"     class="prodItemSubTypeField">
                     <input type="hidden" name="item_category[]" class="prodItemCategoryField">
                     <input type="hidden" name="purchase_unit[]" class="purchaseUnitField">
                     <input type="text" name="product_name[]" class="productNameField w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0" placeholder="Select product..." readonly>
@@ -1053,7 +1056,8 @@
                         data-id="${item.inventoryid}"
                         data-name="${$('<div>').text(item.inventory_descr).html()}"
                         data-stock_unit="${item.stock_unit || ''}"                        
-                        data-item_type="${$('<div>').text(item.item_type || '').html()}"         
+                        data-item_type="${$('<div>').text(item.item_type || '').html()}"   
+                        data-item_sub_type="${$('<div>').text(item.item_sub_type || '').html()}"      
                         data-purchase_unit="${item.purchase_unit || item.purchaseunit || ''}"
                         data-item_category="${$('<div>').text(item.item_category || '').html()}">
                         Choose
@@ -1090,6 +1094,7 @@
 
                 // NEW: item meta dari inventory
                 const item_type = $(this).data('item_type') || '';
+                const item_sub_type = $(this).data('item_sub_type') || '';
                 const item_category = $(this).data('item_category') || '';
                 const purchase_unit = $(this).data('purchase_unit') || '';
 
@@ -1100,6 +1105,7 @@
 
                 // simpan hidden baru
                 currentRow.find('.prodItemTypeField').val(item_type);
+                currentRow.find('.prodItemSubTypeField').val(item_sub_type);
                 currentRow.find('.prodItemCategoryField').val(item_category);
 
                 currentRow.find('.coaIdField').val('');
