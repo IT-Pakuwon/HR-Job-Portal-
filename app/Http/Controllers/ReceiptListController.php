@@ -74,23 +74,22 @@ class ReceiptListController extends Controller
             if ($search !== '') {
                 $base->where(function($q) use ($search){
                     $q->where('ponbr','ilike',"%{$search}%")
-                      ->orWhere('cpny_id','ilike',"%{$search}%")
-                      ->orWhere('vendorname','ilike',"%{$search}%")
-                      ->orWhere('created_by','ilike',"%{$search}%")
-                      ->orWhereRaw("TO_CHAR(podate,'YYYY-MM-DD') ILIKE ?", ["%{$search}%"])
-                      ->orWhereRaw("TO_CHAR(podeliverydate,'YYYY-MM-DD') ILIKE ?", ["%{$search}%"]);
+                    ->orWhere('cpny_id','ilike',"%{$search}%")
+                    ->orWhere('vendorname','ilike',"%{$search}%")
+                    ->orWhere('created_by','ilike',"%{$search}%")
+                    ->orWhereRaw("TO_CHAR(podate,'YYYY-MM-DD') ILIKE ?", ["%{$search}%"])
+                    ->orWhereRaw("TO_CHAR(podeliverydate,'YYYY-MM-DD') ILIKE ?", ["%{$search}%"]);
                 });
             }
         } else {
             // Semua scope selain 'receiptjobs' → dari TrReceipt
-           $base = TrReceipt::query()
+            $base = TrReceipt::query()
                 ->when($cpny_id, fn($q)=>$q->where('cpny_id',$cpny_id))
                 ->when($scope==='onprogress', fn($q)=>$q->where('created_by',$u)->where('status','P'))
                 ->when($scope==='completed',  fn($q)=>$q->where('created_by',$u)->where('status','C'))
                 ->when($scope==='returnjobs', fn($q)=>$q->where('status','C')->where('receipttype','PR'))
                 ->when($scope==='rejected',   fn($q)=>$q->where('created_by',$u)->where('status','R'))
                 ->when($scope==='revise',     fn($q)=>$q->where('created_by',$u)->where('status','D'))
-
                 ->select(['id','receiptnbr','receiptdate','receipttype','ponbr','sppbjktid','cpny_id','created_by','status']);
 
             $orderColumns = [
@@ -104,14 +103,22 @@ class ReceiptListController extends Controller
             ];
 
             if ($search !== '') {
-                $base->where(function($q) use ($search){
+                $needle = strtolower($search);
+                $base->where(function($q) use ($search, $needle){
                     $q->where('receiptnbr','ilike',"%{$search}%")
-                      ->orWhere('ponbr','ilike',"%{$search}%")
-                      ->orWhere('sppbjktid','ilike',"%{$search}%")
-                      ->orWhere('receipttype','ilike',"%{$search}%")
-                      ->orWhere('cpny_id','ilike',"%{$search}%")
-                      ->orWhere('created_by','ilike',"%{$search}%")
-                      ->orWhereRaw("TO_CHAR(receiptdate,'YYYY-MM-DD') ILIKE ?", ["%{$search}%"]);
+                    ->orWhere('ponbr','ilike',"%{$search}%")
+                    ->orWhere('sppbjktid','ilike',"%{$search}%")
+                    ->orWhere('cpny_id','ilike',"%{$search}%")
+                    ->orWhere('created_by','ilike',"%{$search}%")
+                    ->orWhereRaw("TO_CHAR(receiptdate,'YYYY-MM-DD') ILIKE ?", ["%{$search}%"]);
+
+                    // biar user bisa cari pakai teks
+                    if (strpos($needle, 'purchase') !== false || strpos($needle, 'pr') !== false) {
+                        $q->orWhere('receipttype', 'PR');
+                    }
+                    if (strpos($needle, 'return') !== false || strpos($needle, 'rr') !== false) {
+                        $q->orWhere('receipttype', 'RR');
+                    }
                 });
             }
         }
@@ -124,12 +131,11 @@ class ReceiptListController extends Controller
         $orderCol = $orderColumns[$orderIdx] ?? ($scope==='receiptjobs' ? 'podate' : 'receiptdate');
 
         $rows = $base->orderBy($orderCol, $orderDir)
-                     ->orderBy($scope==='receiptjobs' ? 'ponbr' : 'receiptnbr','desc')
-                     ->skip($start)->take($length)
-                     ->get();
+                    ->orderBy($scope==='receiptjobs' ? 'ponbr' : 'receiptnbr','desc')
+                    ->skip($start)->take($length)
+                    ->get();
 
         // ========= ENRICH / FORMAT =========
-        // Siapkan map ponbr->id untuk scope ≠ 'receiptjobs'
         $poIdMap = [];
         if ($scope !== 'receiptjobs' && $rows->count()) {
             $ponbrs = $rows->pluck('ponbr')->filter()->unique()->values()->all();
@@ -141,7 +147,7 @@ class ReceiptListController extends Controller
             $missing = array_values(array_diff($ponbrs, array_keys($poIdMap)));
             if (!empty($missing)) {
                 $fallback = TrPo::whereIn('ponbr', $missing)->pluck('id','ponbr')->toArray();
-                $poIdMap = $poIdMap + $fallback; // merge, jangan overwrite yang sudah ada
+                $poIdMap = $poIdMap + $fallback;
             }
         }
 
@@ -154,11 +160,15 @@ class ReceiptListController extends Controller
                 $r->receiptdate_fmt = $r->receiptdate ? Carbon::parse($r->receiptdate)->format('Y-m-d') : null;
                 $r->receiptnbr_eid  = Hashids::encode((string)$r->id);
 
-                // 🔗 PO link – pakai key PONBR (bukan id!)
+                // map type ke label ramah
+                $t = strtoupper((string)$r->receipttype);
+                $r->receipttype = $t === 'RR' ? 'Return Receipt' : ($t === 'PR' ? 'Purchase Receipt' : $r->receipttype);
+
+                // 🔗 PO link (via PONBR)
                 $poId = $poIdMap[$r->ponbr] ?? null;
                 $r->ponbr_eid = $poId ? Hashids::encode((string)$poId) : null;
 
-                // 🔗 SPPB/J/K/T link (tetap sama)
+                // 🔗 SPPB/J/K/T link
                 $r->sppb_route = null;
                 $r->sppb_eid   = null;
                 if (!empty($r->sppbjktid)) {
@@ -187,6 +197,7 @@ class ReceiptListController extends Controller
             'data'            => $rows,
         ]);
     }
+
 
 
 

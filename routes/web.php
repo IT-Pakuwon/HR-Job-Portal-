@@ -61,7 +61,7 @@ use App\Http\Controllers\IssueListController;
 use App\Http\Controllers\IssueController;
 use App\Http\Controllers\IMBudgetController;
 use App\Http\Controllers\SendCommentController;
-
+use App\Http\Controllers\ApprovalController;
 
 
 use App\Http\Controllers\CanvassxController;
@@ -407,8 +407,8 @@ Route::post('/logout', function () {
     Route::get('/createbudgets', [BudgetController::class, 'createBudget'])->name('budget.create');
     Route::post('/budgets', [BudgetController::class, 'storeBudget'])->name('budgets.store');
     Route::get('/showbudgets/{hash}', [BudgetController::class, 'showBudget']);
-    Route::get('/budget/{id}/comments', [BudgetController::class, 'fetchComments']);
-    Route::post('/budget/{id}/comments', [BudgetController::class, 'storeComment']);
+    // Route::get('/budget/{id}/comments', [BudgetController::class, 'fetchComments']);
+    // Route::post('/budget/{id}/comments', [BudgetController::class, 'storeComment']);
     Route::post('/budget/{id}/approve', [BudgetController::class, 'approveBudget']);
     Route::post('/budget/{id}/reject', [BudgetController::class, 'rejectBudget']);
     Route::post('/budget/{id}/revise', [BudgetController::class, 'reviseBudget']);
@@ -656,6 +656,7 @@ Route::post('/logout', function () {
     Route::get('/issue/print/{hash}', [IssueController::class, 'printIssue'])->name('issues.print');   
     Route::get('/issue-return/create', [IssueController::class, 'createReturn'])->name('issue.return.create');
     Route::post('/issue-return', [IssueController::class, 'storeReturn'])->name('issue.return.store');
+    Route::get('/pdf_issues/{hash}', [IssueController::class, 'printIssue']);
 
     Route::get('/imbudgets', [IMBudgetController::class, 'index'])->name('imbudgets');
     Route::get('/imbudgets/json', [IMBudgetController::class, 'json'])->name('imbudgets.json');
@@ -695,6 +696,8 @@ Route::post('/logout', function () {
     Route::delete('/attachments/{id}',               [TrAttachmentController::class, 'deleteAttachment'])->name('attachments.delete');
     Route::get('/comments/{doctype}/{id}',  [SendCommentController::class, 'fetchComments']);
     Route::post('/comments/{doctype}/{id}', [SendCommentController::class, 'storeComment']);
+    Route::get('/approval/{refnbr}/{doctype}', [ApprovalController::class, 'getApprovalByDocument'])->name('approval.get');
+
 
 
     Route::get('/eng/users', [UsersEngController::class, 'index'])->name('userseng');

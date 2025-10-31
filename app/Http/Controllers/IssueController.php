@@ -820,46 +820,75 @@ class IssueController extends Controller
         $id = Hashids::decode($hash)[0] ?? null;
         abort_if(!$id, 404);
 
-        $user = auth()->user();
-        if (!$user) return redirect()->route('login');
+        $user = Auth::user();
+        if (!$user) {
+            return redirect()->route('login');
+        }
 
+        // Header + relasi pembuat
+        /** @var TrIssue $iss */
         $iss = TrIssue::with(['creator:username,name'])->findOrFail($id);
-        $spb  = TrSPB::where('spbid', $iss->spbid)->first();
+
+        // SPB terkait (opsional, untuk meta)
+        $spb = TrSPB::where('spbid', $iss->spbid)->first();
+
+        // Detail issue (barang yang dikeluarkan)
         $issdetails = TrIssuedetail::where('issueid', $iss->issueid)
-            ->orderBy('issue_no')->get();
+            ->orderBy('issue_no')
+            ->get();
+
+        // Company (untuk header)
         $company = Company::where('cpnyid', $iss->cpny_id)->first();
 
-        $data = compact('iss','spb','issdetails','company');
+        // Label type
+        $issuetypeLabel = $iss->issuetype === 'IS'
+            ? 'Issue'
+            : ($iss->issuetype === 'RI' ? 'Return Issue' : $iss->issuetype);
 
-        $type = strtolower((string)$request->query('type', 'sttb'));
-        $view = $type === 'bpg' ? 'pages.issue.pdf_bpg' : 'pages.issue.pdf_issue';
+        // Total (opsional)
+        $totalQty = (float) $issdetails->sum('issue_qty');
 
+        // Creator
         $createdName = ucwords(strtolower(optional($iss->creator)->name ?? $iss->created_by));
-        $now = now();
+        $printedAt   = now();
 
-        $pdf = Pdf::loadView($view, $data)->setPaper('A4','spbrtrait');
+        $data = [
+            'iss'            => $iss,
+            'spb'            => $spb,
+            'issdetails'     => $issdetails,
+            'company'        => $company,
+            'issuetypeLabel' => $issuetypeLabel,
+            'totalQty'       => $totalQty,
+            'createdName'    => $createdName,
+            'printedAt'      => $printedAt,
+        ];
 
-        $dompdf = $pdf->getDomPDF();
+        // Selalu pakai BPG (portrait)
+        $pdf = Pdf::loadView('pages.issue.pdf_bpg', $data)->setPaper('A4', 'portrait');
+
+        $dompdf  = $pdf->getDomPDF();
         $dompdf->render();
 
-        // footer
+        // ===== Footer (created/printed & pagination) =====
         $canvas  = $dompdf->get_canvas();
         $w       = $canvas->get_width();
         $h       = $canvas->get_height();
+
         $metrics = $dompdf->getFontMetrics();
         $font    = $metrics->get_font('sans-serif', 'normal');
         $size    = 9;
 
-        $leftTxt  = "Created by: {$createdName}, Sent by: {$createdName}, On: ".$now->format('d/m/Y H:i');
-        $rightTpl = "Page {PAGE_NUM} of {PAGE_COUNT}";
+        $leftTxt    = "Created by: {$createdName} • Printed: " . $printedAt->format('d/m/Y H:i');
+        $rightTpl   = "Page {PAGE_NUM} of {PAGE_COUNT}";
         $rightWidth = $metrics->getTextWidth($rightTpl, $font, $size);
-        $y = $h - 28;
-        $x = $canvas->get_width() - $w - 75;
-        $canvas->page_text(30, $y, $leftTxt, $font, $size, [0,0,0]);
-        $canvas->page_text($w - $x - $rightWidth, $y, $rightTpl, $font, $size, [0,0,0]);
+        $y          = $h - 28;
 
-        $basename = $type === 'bpg' ? 'BPG' : 'STTB';
-        return $dompdf->stream("{$basename}_{$iss->issueid}.pdf", ['Attachment' => false]);
+        // kiri
+        $canvas->page_text(30, $y, $leftTxt, $font, $size, [0,0,0]);
+        // kanan
+        $canvas->page_text($w - 30 - $rightWidth, $y, $rightTpl, $font, $size, [0,0,0]);
+
+        return $dompdf->stream("BPG_{$iss->issueid}.pdf", ['Attachment' => false]);
     }
 
     public function approveIssue(Request $request, $docid)

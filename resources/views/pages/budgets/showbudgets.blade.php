@@ -572,6 +572,99 @@
 
     <script>
         $(document).ready(function() {
+            const budget_id  = "{{ $budget->budget_id }}";
+            const doctype = "BD"; 
+
+            loadComments(budget_id, doctype);
+
+            function loadComments(refnbr, doctype) {
+                let commentList = $('#commentList');
+                commentList.html('<p class="text-gray-500 italic">Loading comments...</p>');
+
+                $.ajax({
+                    url: `/comments/${doctype}/${refnbr}`,
+                    type: 'GET',
+                    success: function(response) {
+                        commentList.empty();
+
+                        if (!response.comments || response.comments.length === 0) {
+                            commentList.append('<p class="text-gray-500 italic">No comments yet. Be the first to comment!</p>');
+                            return;
+                        }
+
+                        response.comments.forEach(comment => {
+                            // fallback jika data lama masih punya created_at
+                            const timeStr = comment.message_date ?? comment.created_at;
+                            const timeAgo = timeStr ? dayjs(timeStr).fromNow() : '';
+
+                            commentList.append(`
+                                <div class="p-3 bg-gray-100 dark:bg-gray-800 rounded-lg mb-2">
+                                    <p class="text-sm font-semibold">
+                                        ${comment.username}
+                                        <span class="text-xs text-gray-500">(${timeAgo})</span>
+                                    </p>
+                                    <p class="text-gray-800 dark:text-gray-200">${comment.message}</p>
+                                </div>
+                            `);
+                        });
+                    },
+                    error: function(xhr) {
+                        console.error("Error fetching comments:", xhr.responseText);
+                        commentList.html('<p class="text-red-500 italic">Failed to load comments.</p>');
+                    }
+                });
+            }
+
+            function addComment() {
+                let input = $('#commentInput').val().trim();
+                if (input === "") {
+                    alert("Please enter a comment.");
+                    return;
+                }
+
+                $('#postCommentBtn').prop('disabled', true).text('Posting... 🚀');
+
+                $.ajax({
+                    url: `/comments/${doctype}/${budget_id}`,
+                    type: 'POST',
+                    data: {
+                        comment: input,
+                        _token: '{{ csrf_token() }}'
+                    },
+                    success: function(response) {
+                        if (response.status === "success") {
+                            loadComments(budget_id, doctype);
+                            $('#commentInput').val('');
+                        }
+                    },
+                    error: function(xhr) {
+                        console.error("Error adding comment:", xhr);
+                        alert("Error: " + (xhr.responseJSON ? xhr.responseJSON.message : "Unknown Error"));
+                    },
+                    complete: function() {
+                        $('#postCommentBtn').prop('disabled', false).text('Post 🚀');
+                    }
+                });
+            }
+
+            $(document).on('click', '#postCommentBtn', function(e) {
+                e.preventDefault();
+                addComment();
+            });
+
+            $('#commentInput').keypress(function(event) {
+                if (event.which === 13 && !event.shiftKey) {
+                    event.preventDefault();
+                    addComment();
+                }
+            });
+
+            
+        });
+    </script>  
+
+    {{-- <script>
+        $(document).ready(function() {
             let budget_id = "{{ $budget->budget_id }}"; // Ambil task ID dari PHP ke JavaScript
             loadComments(budget_id);
 
@@ -667,7 +760,7 @@
                 }
             });
         });
-    </script>
+    </script> --}}
     <script>
         $(document).on("click", "#approveBtn", function() {
             let budget_id = "{{ $budget->budget_id }}"; // Ambil Task ID dari modal        

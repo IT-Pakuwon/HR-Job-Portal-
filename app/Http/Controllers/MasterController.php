@@ -52,7 +52,7 @@ class MasterController extends Controller
                 'inventoryid',
                 'inventory_descr',
                 'stock_unit',
-                'item_type',
+                'item_type',               
                 'item_category',
                 // 'account_id',     // pastikan kolom ada di MsInventoryPG
                 'purchase_unit',  // untuk dikirim ke view
@@ -62,10 +62,13 @@ class MasterController extends Controller
         // If hanya untuk STOCK, else untuk tipe lain
         if ($type === 'STOCK') {
             $query->where('item_sub_type', 'STOCK');
+        } else if ($type === 'JASA') {
+            $query->where('item_sub_type', 'JASA');
         } else {
-            // semua selain STOCK
-            $query->where('item_sub_type', '<>', 'STOCK');
+            // semua selain STOCK dan JASA
+            $query->whereNotIn('item_sub_type', ['STOCK', 'JASA']);
         }
+
         
         // Pencarian (Postgres ILIKE)
         if ($search !== '') {
