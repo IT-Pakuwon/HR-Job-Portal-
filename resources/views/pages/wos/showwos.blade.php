@@ -1,77 +1,72 @@
 <x-app-layout>
     <style>
-        /* Overlay full-screen di tengah */
+        /* Overlay full-screen */
         #loadingSpinnerContainer {
             position: fixed;
             inset: 0;
-            /* = top/right/bottom/left: 0 */
             display: none;
-            /* ditampilkan via JS .fadeIn() */
-            display: grid;
-            place-items: center;
-            /* center horizontal + vertical */
+            /* akan ditampilkan via JS */
             background: rgba(17, 24, 39, .55);
-            /* #111827 dengan transparansi */
             backdrop-filter: blur(2px);
-            /* efek blur background */
             z-index: 2000;
         }
 
-        /* Kartu spinner */
-        .loading-card {
+        /* Kartu spinner di tengah */
+        #loadingSpinnerContainer .loading-card {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
             display: flex;
             flex-direction: column;
             align-items: center;
             gap: 10px;
             padding: 18px 22px;
-            -radius: 16px;
+            border-radius: 16px;
             background: linear-gradient(180deg, rgba(31, 41, 55, .9), rgba(17, 24, 39, .9));
-            : 1px solid rgba(255, 255, 255, .08);
+            border: 1px solid rgba(255, 255, 255, .08);
             box-shadow: 0 10px 30px rgba(0, 0, 0, .35), inset 0 0 0 1px rgba(255, 255, 255, .04);
         }
 
         /* Spinner dual ring */
-        .loading-spinner {
+        #loadingSpinnerContainer .loading-spinner {
             width: 54px;
             height: 54px;
-            -radius: 50%;
-            : 4px solid transparent;
-            -top-color: #6366f1;
+            border-radius: 50%;
+            border: 4px solid transparent;
+            border-top-color: #6366f1;
             /* indigo-500 */
             animation: spin 1s linear infinite;
             position: relative;
         }
 
-        .loading-spinner::after {
+        #loadingSpinnerContainer .loading-spinner::after {
             content: "";
             position: absolute;
             inset: 6px;
-            -radius: 50%;
-            : 4px solid transparent;
-            -left-color: #a5b4fc;
+            border-radius: 50%;
+            border: 4px solid transparent;
+            border-left-color: #a5b4fc;
             /* indigo-200 */
             animation: spinReverse .75s linear infinite;
         }
 
-        /* Teks */
-        .loading-text {
+        #loadingSpinnerContainer .loading-text {
             color: #e5e7eb;
-            /* gray-200 */
             font-weight: 600;
             letter-spacing: .02em;
         }
 
-        /* Dots animasi */
-        .loading-ellipsis span {
+        #loadingSpinnerContainer .loading-ellipsis span {
             display: inline-block;
             animation: blink 1.4s infinite both;
         }
 
-        .loading-ellipsis span:nth-child(2) {
+        #loadingSpinnerContainer .loading-ellipsis span:nth-child(2) {
             animation-delay: .2s;
         }
 
-        .loading-ellipsis span:nth-child(3) {
+        #loadingSpinnerContainer .loading-ellipsis span:nth-child(3) {
             animation-delay: .4s;
         }
 
@@ -571,7 +566,7 @@
         $spinner.fadeOut(); // sembunyikan saat selesai
     </script>
 
-    <script>
+    {{-- <script>
         $(document).ready(function() {
             let woid = "{{ $wo->woid }}"; // Ambil task ID dari PHP ke JavaScript
             loadComments(woid);
@@ -673,7 +668,99 @@
                 }
             });
         });
-    </script>
+    </script> --}}
+    <script>
+        $(document).ready(function() {
+            const woid  = "{{ $wo->woid }}";
+            const doctype = "WO"; 
+
+            loadComments(woid, doctype);
+
+            function loadComments(refnbr, doctype) {
+                let commentList = $('#commentList');
+                commentList.html('<p class="text-gray-500 italic">Loading comments...</p>');
+
+                $.ajax({
+                    url: `/comments/${doctype}/${refnbr}`,
+                    type: 'GET',
+                    success: function(response) {
+                        commentList.empty();
+
+                        if (!response.comments || response.comments.length === 0) {
+                            commentList.append('<p class="text-gray-500 italic">No comments yet. Be the first to comment!</p>');
+                            return;
+                        }
+
+                        response.comments.forEach(comment => {
+                            // fallback jika data lama masih punya created_at
+                            const timeStr = comment.message_date ?? comment.created_at;
+                            const timeAgo = timeStr ? dayjs(timeStr).fromNow() : '';
+
+                            commentList.append(`
+                                <div class="p-3 bg-gray-100 dark:bg-gray-800 rounded-lg mb-2">
+                                    <p class="text-sm font-semibold">
+                                        ${comment.username}
+                                        <span class="text-xs text-gray-500">(${timeAgo})</span>
+                                    </p>
+                                    <p class="text-gray-800 dark:text-gray-200">${comment.message}</p>
+                                </div>
+                            `);
+                        });
+                    },
+                    error: function(xhr) {
+                        console.error("Error fetching comments:", xhr.responseText);
+                        commentList.html('<p class="text-red-500 italic">Failed to load comments.</p>');
+                    }
+                });
+            }
+
+            function addComment() {
+                let input = $('#commentInput').val().trim();
+                if (input === "") {
+                    alert("Please enter a comment.");
+                    return;
+                }
+
+                $('#postCommentBtn').prop('disabled', true).text('Posting... 🚀');
+
+                $.ajax({
+                    url: `/comments/${doctype}/${woid}`,
+                    type: 'POST',
+                    data: {
+                        comment: input,
+                        _token: '{{ csrf_token() }}'
+                    },
+                    success: function(response) {
+                        if (response.status === "success") {
+                            loadComments(woid, doctype);
+                            $('#commentInput').val('');
+                        }
+                    },
+                    error: function(xhr) {
+                        console.error("Error adding comment:", xhr);
+                        alert("Error: " + (xhr.responseJSON ? xhr.responseJSON.message : "Unknown Error"));
+                    },
+                    complete: function() {
+                        $('#postCommentBtn').prop('disabled', false).text('Post 🚀');
+                    }
+                });
+            }
+
+            $(document).on('click', '#postCommentBtn', function(e) {
+                e.preventDefault();
+                addComment();
+            });
+
+            $('#commentInput').keypress(function(event) {
+                if (event.which === 13 && !event.shiftKey) {
+                    event.preventDefault();
+                    addComment();
+                }
+            });
+
+            
+        });
+    </script>  
     <script>
         $(document).on("click", "#approveBtn", function() {
             let woid = "{{ $wo->woid }}"; // Ambil Task ID dari modal        

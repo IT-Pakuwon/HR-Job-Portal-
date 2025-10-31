@@ -164,10 +164,14 @@
                                                             class="inline-flex items-center rounded-md bg-green-100 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
                                                             Approved
                                                         </span>
-                                                        <button id="rollbackBtn"
+                                                        {{-- <button id="rollbackBtn"
                                                             class="inline-flex items-center gap-1 rounded-md bg-yellow-500/15 px-3 py-1.5 text-xs font-medium text-yellow-700 transition hover:bg-yellow-600 hover:text-white focus:outline-none">
                                                             Rollback
+                                                        </button> --}}
+                                                        <button class="rollbackBtn inline-flex items-center gap-1 rounded-md bg-yellow-500/15 px-3 py-1.5 text-xs font-medium text-yellow-700 transition hover:bg-yellow-600 hover:text-white focus:outline-none">
+                                                            Rollback
                                                         </button>
+
                                                     </div>
                                                 @elseif ($step->status === 'R')
                                                     <div class="flex items-center gap-2">
@@ -175,8 +179,11 @@
                                                             class="inline-flex items-center rounded-md bg-red-100 px-2 py-1 text-xs font-medium text-red-700 ring-1 ring-inset ring-red-600/10">
                                                             Rejected
                                                         </span>
-                                                        <button id="rollbackBtn"
+                                                        {{-- <button id="rollbackBtn"
                                                             class="inline-flex items-center gap-1 rounded-md bg-yellow-500/15 px-3 py-1.5 text-xs font-medium text-yellow-700 transition hover:bg-yellow-600 hover:text-white focus:outline-none">
+                                                            Rollback
+                                                        </button> --}}
+                                                        <button class="rollbackBtn inline-flex items-center gap-1 rounded-md bg-yellow-500/15 px-3 py-1.5 text-xs font-medium text-yellow-700 transition hover:bg-yellow-600 hover:text-white focus:outline-none">
                                                             Rollback
                                                         </button>
                                                     </div>
@@ -358,6 +365,26 @@
                 <button id="confirmRejectBtn"
                     class="rounded-lg bg-red-600 px-5 py-2 text-white transition hover:bg-red-700 focus:outline-none">
                     Reject
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="rollbackTaskModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50">
+        <div class="w-full max-w-md rounded-lg bg-white p-4 shadow-lg dark:bg-gray-800">
+            <h2 class="mb-4 text-xl font-semibold text-gray-800 dark:text-white">Rollback Task</h2>
+            <textarea id="rollbackReason"
+                class="w-full rounded-lg border border-gray-300 p-3 focus:border-red-500 focus:outline-none focus:ring-red-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                placeholder="Enter rollbackion reason..." rows="4"></textarea>
+
+            <div class="mt-4 flex justify-end gap-3"> {{-- Buttons aligned to the right --}}
+                <button id="cancelRollbackBtn"
+                    class="rounded-lg bg-gray-300 px-5 py-2 text-gray-700 transition hover:bg-gray-400 focus:outline-none dark:bg-gray-600 dark:text-gray-200 dark:hover:bg-gray-500">
+                    Cancel
+                </button>
+                <button id="confirmRollbackBtn"
+                    class="rounded-lg bg-red-600 px-5 py-2 text-white transition hover:bg-red-700 focus:outline-none">
+                    Rollback
                 </button>
             </div>
         </div>
@@ -605,26 +632,117 @@
         });
     });
 </script>
+
+<script>
+    $(document).ready(function() {
+        // Saat tombol "Rollback" ditekan, tampilkan modal Rollback di depan
+        // $(document).on("click", "#rollbackBtn", function() {
+        //     $("#rollbackReason").val(""); // Reset alasan rollback
+        //     // $("#rollbackTaskModal").removeClass("hidden").css("z-index", "60");
+        //     let docid = "{{ $career->docid }}";
+        //     // checkApproval(docid, "rollback");
+
+        //     $.get(`/career/${docid}/check-rollback-permission`, function(res) {
+        //         if (res.canRollback) {
+        //             checkApproval(docid, "rollback"); // lanjut cek approval umum
+        //         } else {
+        //             toastr.warning("You are not allowed to rollback at this step.zzzz");
+        //         }
+        //     }).fail(function() {
+        //         toastr.error("Failed to verify rollback permission.");
+        //     });
+
+        // });
+        $(document).on("click", ".rollbackBtn", function() {
+            let docid = "{{ $career->docid }}";
+            $.get(`/career/${docid}/check-rollback-permission`, function(res) {
+                if (res.canRollback) {
+                    checkApproval(docid, "rollback");
+                } else {
+                    toastr.warning("You are not allowed to rollback at this step.");
+                }
+            }).fail(function() {
+                toastr.error("Failed to verify rollback permission.");
+            });
+        });
+
+
+        // Saat tombol "Cancel" ditekan, tutup modal Rollback
+        $(document).on("click", "#cancelRollbackBtn", function() {
+            $("#rollbackTaskModal").addClass("hidden");
+        });
+
+        // Saat tombol "Rollback" ditekan, proses perubahan status
+        $(document).on("click", "#confirmRollbackBtn", function() {
+            let docid = "{{ $career->docid }}"; // Ambil ID tugas dari modal detail
+            let rollbackReason = $("#rollbackReason").val().trim();
+
+            if (rollbackReason === "") {
+                toastr.error("Please provide a reason for rollbackion.");
+                return;
+            }
+
+            let $spinner = $("#loadingSpinnerContainer"); // Ambil elemen spinner        
+            // Tampilkan spinner di kanan bawah
+            $spinner.fadeIn();
+
+            $.ajax({
+                url: `/career/${docid}/rollback`,
+                type: "POST",
+                data: {
+                    _token: "{{ csrf_token() }}",
+                    docid: docid,
+                    reason: rollbackReason
+                },
+                success: function(response) {
+                    if (response.success) {
+                        // alert("Task has been rollbacked successfully.");
+
+                        // Update status di modal career
+                        $("#xstatus").text("Rollbacked")
+                            .removeClass()
+                            .addClass(
+                                "w-full max-w-32 bg-red-300/30 dark:bg-red-300 text-red-600 flex justify-items-center focus:outline-none pointer-events-none border-none font-semibold px-2 py-0.5 rounded"
+                            );
+                        $spinner.fadeOut();
+
+                        // window.location.href = "/careers";
+                        location.reload();
+                    } else {
+                        alert("Failed to rollback career.");
+                    }
+                },
+                error: function(xhr) {
+                    console.error(xhr.responseText);
+
+                    if (xhr.status === 403) {
+                        alert("You Can't Rollbacked!"); // Popup jika user tidak berhak
+                    } else {
+                        //    alert("Error: Unable to reject career status.");
+                    }
+                },
+            });
+        });
+    });
+</script>
 <script>
     function checkApproval(docid, action) {
-        console.log(docid, '-', action);
         $.ajax({
             url: `/career/${docid}/check-approval/${action}`,
             type: "GET",
             success: function(response) {
                 if (response.canPerformAction) {
-                    // Jika user bisa melakukan aksi, tampilkan modal atau langsung proses approval
                     if (action === "reject") {
-                        $("#rejectReason").val(""); // Reset alasan reject
+                        $("#rejectReason").val("");
                         $("#rejectTaskModal").removeClass("hidden").css("z-index", "60");
                     } else if (action === "revise") {
-                        $("#reviseReason").val(""); // Reset alasan revise
+                        $("#reviseReason").val("");
                         $("#reviseTaskModal").removeClass("hidden").css("z-index", "60");
-                        // } else if (action === "approve") {
-                        //     approvePersonnel(docid); // Jika approve, langsung jalankan proses approval
+                    } else if (action === "rollback") {
+                        $("#rollbackReason").val("");
+                        $("#rollbackTaskModal").removeClass("hidden").css("z-index", "60");
                     }
                 } else {
-                    // Jika user tidak boleh melakukan aksi, tampilkan popup toastr
                     toastr.error("You are not authorized to " + action + " this career.");
                 }
             },
@@ -633,6 +751,7 @@
             }
         });
     }
+
 </script>
 <style>
     /* Styling untuk loading spinner di kanan bawah */

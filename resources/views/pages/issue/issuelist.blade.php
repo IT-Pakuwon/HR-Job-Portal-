@@ -1,250 +1,93 @@
 <x-app-layout>
     <style>
         /* Active / Selected state */
-        .scope-filter.active .scope-card {
-            transform: scale(1.02);
-        }
+        .scope-filter.active .scope-card { transform: scale(1.02); }
 
         /* Issue Jobs */
         .scope-filter[data-scope="issuejobs"].active .scope-card {
-            background-color: rgb(254 215 170);
-            /* orange-200 */
-            border-color: rgb(194 65 12);
-            /* orange-700 */
-            color: rgb(194 65 12);
+            background-color: rgb(254 215 170); border-color: rgb(194 65 12); color: rgb(194 65 12);
         }
-
         /* On Progress */
         .scope-filter[data-scope="onprogress"].active .scope-card {
-            background-color: rgb(191 219 254);
-            /* blue-200 */
-            border-color: rgb(29 78 216);
-            /* blue-700 */
-            color: rgb(29 78 216);
+            background-color: rgb(191 219 254); border-color: rgb(29 78 216); color: rgb(29 78 216);
         }
-
         /* Completed */
         .scope-filter[data-scope="completed"].active .scope-card {
-            background-color: rgb(187 247 208);
-            /* green-200 */
-            border-color: rgb(21 128 61);
-            /* green-700 */
-            color: rgb(21 128 61);
+            background-color: rgb(187 247 208); border-color: rgb(21 128 61); color: rgb(21 128 61);
         }
-
         /* All */
         .scope-filter[data-scope="all"].active .scope-card {
-            background-color: rgb(229 231 235);
-            /* gray-200 */
-            border-color: rgb(31 41 55);
-            /* gray-700 */
-            color: rgb(31 41 55);
+            background-color: rgb(229 231 235); border-color: rgb(31 41 55); color: rgb(31 41 55);
         }
 
-        .no-border {
-            border: none !important;
-        }
-
-        .grid {
-            width: 100%;
-        }
-
-        select,
-        textarea,
-        input {
-            width: 100%;
-        }
-
-        table.dataTable {
-            width: 100% !important;
-        }
-
-        .dataTables_wrapper {
-            width: 100%;
-        }
-
-        @media (max-width: 600px) {
-            .dataTables_wrapper {
-                padding: 0 10px;
-            }
-        }
+        .no-border { border: none !important; }
+        .grid { width: 100%; }
+        select, textarea, input { width: 100%; }
+        table.dataTable { width: 100% !important; }
+        .dataTables_wrapper { width: 100%; }
+        @media (max-width: 600px) { .dataTables_wrapper { padding: 0 10px; } }
 
         /* === Filter Section === */
-        #issueTable_filter {
-            margin-bottom: 20px;
-            display: flex;
-            justify-content: flex-start;
-            align-items: center;
-        }
-
-        #issueTable_filter label {
-            margin-right: 2px;
-        }
-
+        #issueTable_filter { margin-bottom: 20px; display: flex; justify-content: flex-start; align-items: center; }
+        #issueTable_filter label { margin-right: 2px; }
         #issueTable_filter input {
-            width: auto;
-            padding: 0.25rem 0.5rem;
-            min-width: 80px;
-            border-radius: 0.5rem;
-            border: 1px solid #d1d5db;
-            background-color: #f9fafb;
+            width: auto; padding: 0.25rem 0.5rem; min-width: 80px; border-radius: 0.5rem;
+            border: 1px solid #d1d5db; background-color: #f9fafb;
         }
 
-        /* === Wrapper Width === */
-        #issueTable_wrapper {
-            width: 100%;
-        }
-
-        /* === Cell Formatting === */
+        #issueTable_wrapper { width: 100%; }
         #issueTable td {
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            padding: 10px;
-            max-width: 200px;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 10px; max-width: 200px;
         }
+        #issueTable th { padding: 10px; max-width: 200px; }
 
-        #issueTable th {
-            padding: 10px;
-            max-width: 200px;
-        }
-
-        /* === Length Section === */
-        #issueTable_length {
-            width: auto;
-            display: flex;
-            justify-content: flex-start;
-        }
-
+        #issueTable_length { width: auto; display: flex; justify-content: flex-start; }
         #issueTable_length select {
-            width: auto;
-            padding: 0.25rem 0.5rem;
-            min-width: 80px;
-            border-radius: 0.5rem;
-            border: 1px solid #d1d5db;
-            background-color: #f9fafb;
+            width: auto; padding: 0.25rem 0.5rem; min-width: 80px; border-radius: 0.5rem;
+            border: 1px solid #d1d5db; background-color: #f9fafb;
         }
 
-        /* === Info + Pagination === */
-        #issueTable_info {
-            margin: 10px 0;
+        #issueTable_info { margin: 10px 0; }
+        .dataTables_paginate { margin: 10px 0; }
+
+        #issueTable tbody tr { transition: background-color 0.3s ease, color 0.3s ease; }
+        #issueTable tbody tr:hover { background-color: #8f8f8f11; cursor: pointer; }
+        #issueTable tbody tr td { padding: 8px; line-height: 2; }
+
+        #issueTable th:nth-child(1), #issueTable td:nth-child(1),
+        #issueTable th:nth-child(4), #issueTable td:nth-child(4) {
+            width: 120px; text-align: center;
         }
 
-        .dataTables_paginate {
-            margin: 10px 0;
-        }
+        /* Group row (optional style kept) */
+        #issueTable tbody tr.collapsed-group-row { display: none; }
+        #issueTable tr.group-row { background-color: #e6e6e6; font-weight: bold; cursor: pointer; user-select: none; color: #333; }
+        #issueTable tr.group-row:hover { background-color: #d4d4d4; }
+        #issueTable tr.group-row .fas { margin-right: 8px; width: 16px; text-align: center; }
+        #issueTable tr.group-row td { padding: 10px !important; border-bottom: 1px solid #ddd; }
+        #issueTable tr.group-row td:first-child { border-left: none; }
 
-        /* === Hover Effects === */
-        #issueTable tbody tr {
-            transition: background-color 0.3s ease, color 0.3s ease;
-        }
-
-        #issueTable tbody tr:hover {
-            background-color: #8f8f8f11;
-            cursor: pointer;
-        }
-
-        #issueTable tbody tr td {
-            padding: 8px;
-            line-height: 2;
-        }
-
-        /* === Column Width Alignment === */
-        #issueTable th:nth-child(1),
-        #issueTable td:nth-child(1),
-        #issueTable th:nth-child(4),
-        #issueTable td:nth-child(4) {
-            width: 120px;
-            text-align: center;
-        }
-
-        /* === Group Row & Collapse === */
-        #issueTable tbody tr.collapsed-group-row {
-            display: none;
-        }
-
-        #issueTable tr.group-row {
-            background-color: #e6e6e6;
-            font-weight: bold;
-            cursor: pointer;
-            user-select: none;
-            color: #333;
-        }
-
-        #issueTable tr.group-row:hover {
-            background-color: #d4d4d4;
-        }
-
-        #issueTable tr.group-row .fas {
-            margin-right: 8px;
-            width: 16px;
-            text-align: center;
-        }
-
-        #issueTable tr.group-row td {
-            padding: 10px !important;
-            border-bottom: 1px solid #ddd;
-        }
-
-        #issueTable tr.group-row td:first-child {
-            border-left: none;
-        }
-
-        /* === Custom Switch === */
-        .switch {
-            position: relative;
-            display: inline-block;
-            width: 40px;
-            height: 22px;
-        }
-
-        .switch input {
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
-
+        /* Switch */
+        .switch { position: relative; display: inline-block; width: 40px; height: 22px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
         .slider {
-            position: absolute;
-            cursor: pointer;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: #ccc;
-            transition: .4s;
-            border-radius: 34px;
+            position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #ccc; transition: .4s; border-radius: 34px;
         }
-
         .slider:before {
-            position: absolute;
-            content: "";
-            height: 16px;
-            width: 16px;
-            left: 3px;
-            bottom: 3px;
-            background-color: white;
-            transition: .4s;
-            border-radius: 50%;
+            position: absolute; content: ""; height: 16px; width: 16px; left: 3px; bottom: 3px;
+            background-color: white; transition: .4s; border-radius: 50%;
         }
-
-        input:checked+.slider {
-            background-color: #4CAF50;
-        }
-
-        input:checked+.slider:before {
-            transform: translateX(18px);
-        }
+        input:checked+.slider { background-color: #4CAF50; }
+        input:checked+.slider:before { transform: translateX(18px); }
     </style>
 
-
     <div class="max-w-9xl mx-auto w-full px-4 py-4 sm:px-6 lg:px-8">
-        <div class="grid-col-1 grid gap-6 xl:grid-cols-5 xl:grid-rows-1">
+        <div class="grid-col-1 grid gap-6 xl:grid-cols-7 xl:grid-rows-1">
             {{-- Issue Jobs --}}
             <button>
                 <a href="#" class="scope-filter group block" data-scope="issuejobs">
-                    <div
-                        class="scope-card flex items-center gap-4 rounded-lg border border-orange-700 bg-orange-200/20 p-3 text-orange-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-orange-100 hover:shadow-lg active:scale-95">
+                    <div class="scope-card flex items-center gap-4 rounded-lg border border-orange-700 bg-orange-200/20 p-3 text-orange-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-orange-100 hover:shadow-lg active:scale-95">
                         <span class="text-xl group-hover:animate-pulse">📦</span>
                         <div class="flex flex-grow items-center justify-between">
                             <p class="text-lg font-medium">Issue Jobs</p>
@@ -257,8 +100,7 @@
             {{-- Return Jobs --}}
             <button>
                 <a href="#" class="scope-filter group block" data-scope="returnjobs">
-                    <div
-                        class="scope-card flex items-center gap-4 rounded-lg border border-purple-700 bg-purple-200/20 p-3 text-purple-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-purple-100 hover:shadow-lg active:scale-95">
+                    <div class="scope-card flex items-center gap-4 rounded-lg border border-purple-700 bg-purple-200/20 p-3 text-purple-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-purple-100 hover:shadow-lg active:scale-95">
                         <span class="text-xl group-hover:animate-pulse">↩️</span>
                         <div class="flex flex-grow items-center justify-between">
                             <p class="text-lg font-medium">Return Jobs</p>
@@ -271,8 +113,7 @@
             {{-- On Progress --}}
             <button>
                 <a href="#" class="scope-filter group block" data-scope="onprogress">
-                    <div
-                        class="scope-card flex items-center gap-4 rounded-lg border border-blue-700 bg-blue-200/20 p-3 text-blue-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-blue-100 hover:shadow-lg active:scale-95">
+                    <div class="scope-card flex items-center gap-4 rounded-lg border border-blue-700 bg-blue-200/20 p-3 text-blue-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-blue-100 hover:shadow-lg active:scale-95">
                         <span class="text-xl group-hover:animate-pulse">⏳</span>
                         <div class="flex flex-grow items-center justify-between">
                             <p class="text-lg font-medium">On Progress</p>
@@ -282,11 +123,36 @@
                 </a>
             </button>
 
+            {{-- Rejected --}}
+            <button>
+                <a href="#" class="scope-filter group block" data-scope="rejected">
+                    <div class="scope-card flex items-center gap-4 rounded-lg border border-red-700 bg-red-200/20 p-3 text-red-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-red-100 hover:shadow-lg active:scale-95">
+                        <span class="text-xl group-hover:animate-pulse">❌</span>
+                        <div class="flex flex-grow items-center justify-between">
+                            <p class="text-lg font-medium">Rejected</p>
+                            <p class="text-right text-xl font-extrabold">{{ $rejected }}</p>
+                        </div>
+                    </div>
+                </a>
+            </button>
+
+            {{-- Revise --}}
+            <button>
+                <a href="#" class="scope-filter group block" data-scope="revise">
+                    <div class="scope-card flex items-center gap-4 rounded-lg border border-yellow-700 bg-yellow-200/20 p-3 text-yellow-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-yellow-100 hover:shadow-lg active:scale-95">
+                        <span class="text-xl group-hover:animate-pulse">🛠️</span>
+                        <div class="flex flex-grow items-center justify-between">
+                            <p class="text-lg font-medium">Revise</p>
+                            <p class="text-right text-xl font-extrabold">{{ $revise }}</p>
+                        </div>
+                    </div>
+                </a>
+            </button>
+
             {{-- Completed --}}
             <button>
                 <a href="#" class="scope-filter group block" data-scope="completed">
-                    <div
-                        class="scope-card flex items-center gap-4 rounded-lg border border-green-700 bg-green-200/20 p-3 text-green-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-green-100 hover:shadow-lg active:scale-95">
+                    <div class="scope-card flex items-center gap-4 rounded-lg border border-green-700 bg-green-200/20 p-3 text-green-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-green-100 hover:shadow-lg active:scale-95">
                         <span class="text-xl group-hover:animate-pulse">✅</span>
                         <div class="flex flex-grow items-center justify-between">
                             <p class="text-lg font-medium">Completed</p>
@@ -299,8 +165,7 @@
             {{-- All --}}
             <button>
                 <a href="#" class="scope-filter group block" data-scope="all">
-                    <div
-                        class="scope-card flex items-center gap-4 rounded-lg border border-gray-700 bg-gray-200/20 p-3 text-gray-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-gray-100 hover:shadow-lg active:scale-95 dark:border-white dark:text-white dark:hover:bg-gray-700">
+                    <div class="scope-card flex items-center gap-4 rounded-lg border border-gray-700 bg-gray-200/20 p-3 text-gray-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-gray-100 hover:shadow-lg active:scale-95 dark:border-white dark:text-white dark:hover:bg-gray-700">
                         <span class="text-xl group-hover:animate-pulse">🧾</span>
                         <div class="flex flex-grow items-center justify-between">
                             <p class="text-lg font-medium">All</p>
@@ -313,8 +178,7 @@
 
         <div class="grid">
             <div class="mt-6 rounded-2xl bg-white dark:bg-gray-800">
-                <div
-                    class="flex flex-col items-start justify-between gap-4 border-b border-gray-200 p-4 sm:flex-row sm:items-center dark:border-gray-700">
+                <div class="flex flex-col items-start justify-between gap-4 border-b border-gray-200 p-4 sm:flex-row sm:items-center dark:border-gray-700">
                     <h1 class="text-xl font-extrabold text-gray-700 dark:text-white">Issue</h1>
                 </div>
 
@@ -329,6 +193,8 @@
             </div>
 
             <script>
+                const currentUser = @json(auth()->user()->username ?? '');
+
                 $(function () {
                     let scope = 'issuejobs';
                     const $title = $('h1.text-xl.font-extrabold');
@@ -338,99 +204,106 @@
                         issuejobs:  'Issue - Jobs',
                         returnjobs: 'Issue - Return Jobs',
                         onprogress: 'Issue - On Progress',
+                        rejected:   'Issue - Rejected',
+                        revise:     'Issue - Revise',
                         completed:  'Issue - Completed',
                         all:        'Issue - All',
                     };
 
                     function headerFor(sc) {
                         if (sc === 'issuejobs') {
+                            return `
+                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Action</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">SPB ID</th>
+                                <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">SPB Date</th>
+                                <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">Company</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Keperluan</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Created By</th>
+                            `;
+                        }
+                        // scopes TrIssue (6 kolom)
                         return `
-                            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Action</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Issue ID</th>
+                            <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">Issue Date</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Issue Type</th>
                             <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">SPB ID</th>
-                            <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">SPB Date</th>
                             <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">Company</th>
-                            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Keperluan</th>
                             <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Created By</th>
                         `;
+                    }
+
+                    function renderSpbLink(row) {
+                        const label = row.spbid ?? '';
+                        const hash  = row.spb_eid || row.spb_hash || row.hash || row.id;
+                        if (!label) return '';
+                        const url = `/showspbs/${encodeURIComponent(hash ?? '')}`;
+                        return `<a href="${url}" class="inline-flex items-center justify-center px-3 py-1.5 text-sm font-semibold rounded bg-gray-600 text-white hover:bg-gray-700">${label}</a>`;
+                    }
+
+                    function renderIssueLinkCell(_value, _type, row) {
+                        const label = row.issueid ?? '';
+                        const hash  = row.eid || row.issue_eid || row.issue_hash || row.hash || row.id;
+
+                        if (!label) return '';
+                        if (!hash) {
+                            // aman meski hash tidak ada
+                            return `<span class="inline-flex items-center px-3 py-1.5 text-sm font-semibold rounded bg-gray-400 text-white">${label}</span>`;
                         }
-                        return `
-                        <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Issue ID</th>
-                        <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">Issue Date</th>
-                        <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Issue Type</th>
-                        <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">SPB ID</th>
-                        <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">Company</th>
-                        <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Created By</th>
-                        `;
+
+                        const statusRaw = (row.status ?? row.xstatus ?? '').toString().trim().toUpperCase();
+                        const creator   = (row.created_by ?? row.createdby ?? '').toString();
+
+                        const isRevise  = statusRaw === 'D';
+                        const isOwner   = creator === (currentUser ?? '');
+                        console.log({statusRaw, isRevise, creator, currentUser, isOwner});
+
+                        if (isRevise && isOwner) {
+                            const url = `/editissues/${encodeURIComponent(hash)}`;
+                            return `<a href="${url}" class="inline-flex items-center justify-center px-3 py-1.5 text-sm font-semibold rounded bg-amber-600 text-white hover:bg-amber-700">${label}</a>`;
+                        }
+                        const url = `/showissue/${encodeURIComponent(hash)}`;
+                        return `<a href="${url}" class="inline-flex items-center justify-center px-3 py-1.5 text-sm font-semibold rounded bg-gray-600 text-white hover:bg-gray-700">${label}</a>`;
                     }
 
                     function columnsFor(sc) {
                         if (sc === 'issuejobs') {
-                        return [
-                            { data: null, orderable:false, searchable:false, render: (_v,t,row)=>renderPlusCreate(row) },
-                            { data: 'spbid', render: (_v,_t,row)=>renderSpbLink(row) }, // ⬅️ link button
-                            { data: 'spbdate', render: (_v,_t,row)=>row.spbdate_fmt ?? '', className:'text-center' },
-                            { data: 'cpny_id', className:'text-center' },
-                            { data: 'keperluan' },
-                            { data: 'created_by' },
-                        ];
+                            return [
+                                { data: null, orderable:false, searchable:false, render: (_v,t,row)=>renderPlusCreate(row) },
+                                { data: 'spbid', defaultContent: '', render: (_v,_t,row)=>renderSpbLink(row) },
+                                { data: 'spbdate', defaultContent: '', render: (_v,_t,row)=> row.spbdate_fmt ?? row.spbdate ?? '', className:'text-center' },
+                                { data: 'cpny_id', defaultContent: '', className:'text-center' },
+                                { data: 'keperluan', defaultContent: '' },
+                                { data: 'created_by', defaultContent: '' },
+                            ];
                         }
-                        // scopes TrIssue
+                        // TrIssue scopes (6 kolom)
                         return [
-                        { data: 'issueid', render: (_v,_t,row)=>renderIssueLink(row) }, // ⬅️ link button
-                        { data: 'issuedate', render: (_v,_t,row)=>row.issuedate_fmt ?? '', className:'text-center' },
-                        { data: 'issuetype' },
-                        { data: 'spbid' },
-                        { data: 'cpny_id', className:'text-center' },
-                        { data: 'created_by' },
+                            { data: 'issueid',  defaultContent: '', render: renderIssueLinkCell },
+                            { data: 'issuedate', defaultContent: '', render: (_v,_t,row)=> row.issuedate_fmt ?? row.issuedate ?? '', className:'text-center' },
+                            { data: 'issuetype', defaultContent: '' },
+                            { data: 'spbid',     defaultContent: '' },
+                            { data: 'cpny_id',   defaultContent: '', className:'text-center' },
+                            { data: 'created_by', defaultContent: '' },
                         ];
                     }
 
                     function renderPlusCreate(row) {
                         const url = `{{ route('issue.create') }}` + `?spbid=${encodeURIComponent(row.spbid ?? '')}`;
                         return `<a href="${url}" class="inline-flex justify-center items-center px-3 py-1.5 text-sm font-medium text-white rounded bg-blue-600 hover:bg-blue-700">
-                        <i class="fas fa-plus"></i>
+                            <i class="fas fa-plus"></i>
                         </a>`;
                     }
 
-                    // === NEW: Button link ke showspbs/{hash} ===
-                    function renderSpbLink(row) {
-                        const label = row.spbid ?? '';
-                        const hash  = row.spb_eid || row.spb_hash || row.hash || row.id; // fallback jika belum ada field hash
-                        if (!label) return '';
-                        if (!hash) {
-                        console.warn('Missing spb hash (spb_eid). Falling back to id.'); 
-                        }
-                        const url = `/showspbs/${encodeURIComponent(hash)}`;
-                        return `<a href="${url}" class="inline-flex items-center justify-center px-3 py-1.5 text-sm font-semibold rounded bg-gray-600 text-white hover:bg-gray-700">${label}</a>`;
-                    }
-
-                    // === NEW: Button link ke /showissue/{hash} ===
-                    function renderIssueLink(row) {
-                        const label = row.issueid ?? '';
-                        const hash  = row.issue_eid || row.issue_hash || row.hash || row.id; // fallback jika belum ada field hash
-                        if (!label) return '';
-                        if (!hash) {
-                        console.warn('Missing issue hash (issue_eid). Falling back to id.');
-                        }
-                        const url = `/showissue/${encodeURIComponent(hash)}`;
-                        return `<a href="${url}" class="inline-flex items-center justify-center px-3 py-1.5 text-sm font-semibold rounded bg-gray-600 text-white hover:bg-gray-700">${label}</a>`;
-                    }
-
                     function orderFor(sc) {
-                        // order by date desc, then id desc
-                        if (sc === 'issuejobs') return [[2,'desc'], [1,'desc']];
-                        return [[1,'desc'], [0,'desc']]; // issuedate, issueid
+                        if (sc === 'issuejobs') return [[2,'desc'], [1,'desc']]; // spbdate desc, spbid desc
+                        return [[1,'desc'], [0,'desc']]; // issuedate desc, issueid desc
                     }
 
-                    function updateTitle(sc) {
-                        $title.text(titleMap[sc] ?? 'Issue');
-                    }
+                    function updateTitle(sc) { $title.text(titleMap[sc] ?? 'Issue'); }
 
                     function highlightActive(sc) {
                         $('.scope-filter').removeClass('active')
-                            .each(function() {
-                                if ($(this).data('scope') === sc) $(this).addClass('active');
-                            });
+                          .each(function(){ if ($(this).data('scope') === sc) $(this).addClass('active'); });
                     }
 
                     function resetThead(sc) {
@@ -463,16 +336,7 @@
                         });
                     }
 
-                    function renderPlusCreate(row) {
-                        // Controller sekarang hanya kirim spbid → pakai itu di query
-                        const url = `{{ route('issue.create') }}` + `?spbid=${encodeURIComponent(row.spbid ?? '')}`;
-                        return `<a href="${url}" class="inline-flex justify-center items-center px-3 py-1.5 text-sm font-medium text-white rounded bg-blue-600 hover:bg-blue-700">
-                            <i class="fas fa-plus"></i>
-                        </a>`;
-                    }
-
-                    // init awal
-                    // restore scope yg tersimpan (kalau ada)
+                    // init
                     const savedScope = localStorage.getItem('activeIssueScope');
                     if (savedScope) scope = savedScope;
 
@@ -480,7 +344,7 @@
                     highlightActive(scope);
                     rebuild(scope);
 
-                    // ganti scope
+                    // switch scope
                     $('.scope-filter').on('click', function(e) {
                         e.preventDefault();
                         scope = $(this).data('scope') || 'issuejobs';

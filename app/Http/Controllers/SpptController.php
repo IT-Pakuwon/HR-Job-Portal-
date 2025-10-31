@@ -334,7 +334,7 @@ class SpptController extends Controller
                 $detail->uom                      = $uom;
                 $detail->note                     = $notes[$i]   ?? null;
                 $detail->inventory_type                = $item_types[$i] ?? null;
-                $detail->sppt_category            = $item_categories[$i] ?? null;
+                $detail->inventory_category            = $item_categories[$i] ?? null;
                 $detail->base_uom                 = $baseUom;            // = purchase_unit
                 $detail->base_multiplier          = $rate;               // = uom_unitrate (float)
                 $detail->type_multiplier          = $typeMultiplier ?: null; // = 'M' / 'D' / null
@@ -821,7 +821,7 @@ if (!empty($sppt->pic_pengawas)) {
                     'uom'                      => $displayUom,
                     'note'                     => $notes[$i] ?? null,
                     'inventory_type'                => $itemTypes[$i] ?? null,
-                    'sppt_category'            => $itemCats[$i] ?? null,
+                    'inventory_category'            => $itemCats[$i] ?? null,
 
                     // >>> ini yang ditambahkan <<<
                     'base_uom'                 => $baseUom,                       // purchase_unit
@@ -1130,43 +1130,8 @@ if (!empty($sppt->pic_pengawas)) {
        
         return view('pages.sppts.showsppts', compact('sppt','approval','attachments','spptdetail','bq','hash'));
     }
-
+   
     
-    public function fetchComments($id)
-    {
-    
-        $comments = T_Message::where('docid', $id)
-            ->orderBy('created_at', 'desc')
-            ->get();
-
-        return response()->json([
-            'status' => 'success',
-            'comments' => $comments
-        ]);
-    }
-    public function storeComment(Request $request, $id)
-    {
-        $request->validate([
-            'comment' => 'required|string|max:500',
-        ]);
-        // dd($id);
-        $user = request()->user();
-        $comment = new T_Message();
-        $comment->docid = $id;
-        $comment->doctype = 'PT';
-        $comment->username = $user->username; 
-        $comment->name = $user->name; 
-        $comment->message = $request->comment;
-        $comment->status = 'A';
-        $comment->created_at = now();
-        $comment->save();
-
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Comment added successfully!',
-            'comment' => $comment
-        ]);
-    }
 
     public function approveSppt(Request $request, $docid)
     {

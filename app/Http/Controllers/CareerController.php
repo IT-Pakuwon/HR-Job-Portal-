@@ -484,6 +484,7 @@ class CareerController extends Controller
         $user = request()->user(); // Ambil user yang login
         
         $career = Career::where('docid', $docid)->first();  
+       
 
         if (!$career) {
             return response()->json(['success' => false, 'message' => 'Career not found'], 404);
@@ -498,13 +499,14 @@ class CareerController extends Controller
         // Cek apakah user termasuk dalam daftar approval
         $cek_approval = T_approval::where('docid', $jobposting->refid)
             ->where('aprvusername', 'like', '%' . $user->username . '%')
+            ->where('aprvid','>',1)
             ->first();
-
+       
         $hasGroupAccess = GroupAccspecific::where('username', $user->username)
             ->where('group_access_id', 'STEP')
             ->where('status', 'A')
             ->first();
-        
+       
         if (!$cek_approval && !$hasGroupAccess) {
             return response()->json(['success' => false, 'message' => "You Can't Approve!"], 403);
         }
@@ -658,6 +660,92 @@ class CareerController extends Controller
         $this->sendemail_rejected_applicant($career, $user);
 
         return response()->json(['success' => true, 'message' => 'Career rejected successfully']);
+    }
+
+
+    public function rollbackCareer(Request $request, $docid)
+    {
+        $now  = Carbon::now()->toDateTimeString();
+        $user = $request->user();
+
+        $career = Career::where('docid', $docid)->first();
+        if (!$career) {
+            return response()->json(['success' => false, 'message' => 'Career not found'], 404);
+        }
+
+        $jobposting = Jobposting::where('docid', $career->jobid)->first();
+        if (!$jobposting) {
+            return response()->json(['success' => false, 'message' => 'Job Posting not found'], 404);
+        }
+
+        // CEK USER DALAM APPROVAL LINE
+        $inApprovalLine = T_approval::where('docid', $jobposting->refid)
+            ->where(function ($q) use ($user) {
+                $q->where('aprvusername', $user->username)
+                ->orWhere('aprvusername', 'like', '%'.$user->username.'%');
+            })
+            ->exists();
+
+        $hasGroupAccess = GroupAccspecific::where('username', $user->username)
+            ->where('group_access_id', 'STEP')
+            ->where('status', 'A')
+            ->exists();
+
+        if (!$inApprovalLine && !$hasGroupAccess) {
+            return response()->json(['success' => false, 'message' => "You can't rollback!"], 403);
+        }
+        
+        /** ✅ HAPUS TRANSAKSI APPROVAL PENDING DI T_approval */
+        T_approval::where('docid', $docid)
+            ->where('status', 'P')
+            ->delete(); // <-- ADDED
+
+        /** Ambil step terakhir yang sudah Approved / Rejected */
+        $targetStep = JobApplyStep::where('docid', $career->docid)
+            ->whereIn('status', ['A', 'R'])
+            ->orderBy('step_order', 'DESC')
+            ->first();
+
+        if (!$targetStep) {
+            return response()->json(['success' => false, 'message' => 'No approved/rejected step to rollback'], 404);
+        }
+
+        // Role PIC user -> validasi step_pic
+        $userStepPic = $hasGroupAccess ? 'HC' : 'USER';
+        if (($targetStep->step_pic ?? '') !== $userStepPic) {
+            return response()->json(['success' => false, 'message' => "You can't rollback this step"], 403);
+        }
+
+        DB::beginTransaction();
+        try {
+
+            /** Reset kembali ke pending */
+            $targetStep->status       = 'P';
+            $targetStep->aprvusername = null;
+            $targetStep->aprvuserdate = null;
+            $targetStep->save();
+
+            /** Update status Career kembali Pending */
+            $career->status       = 'P';
+            $career->updated_user = $user->username;
+            $career->updated_at   = $now;
+            $career->save();
+
+            /** Simpan komentar rollback */
+            if ($request->reason) {
+                $request->merge(['comment' => "[ROLLBACK] ".$request->reason]);
+            }
+            app('App\Http\Controllers\SendCommentController')
+                ->sendmsg($career->id, 'JAP', $request);
+
+            DB::commit();
+            return response()->json(['success' => true, 'message' => 'Career rolled back successfully']);
+
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            report($e);
+            return response()->json(['success' => false, 'message' => 'Failed to rollback career'], 500);
+        }
     }
 
      
@@ -869,7 +957,8 @@ class CareerController extends Controller
             $tglbln = substr($year, 2) . $month;
             $docid = $doctype . $tglbln . sprintf("%05d", $urutan);         
                               
-            $ms_checklist = Mschecklist::orderby('step_order','ASC')         
+            $ms_checklist = Mschecklist::where('status','A')
+                ->orderby('step_order','ASC')         
                 ->get();
                 
             foreach ($ms_checklist as $cek) {
@@ -1199,6 +1288,27 @@ class CareerController extends Controller
 
         return response()->json(['canReject' => false]);
     }
+
+    public function checkRollbackPermission($docid)
+    {
+        $user = Auth::user();
+
+        // Ambil step terakhir yang sudah A/R (dan opsional: milik user / role tertentu)
+        $step = JobApplyStep::where('docid', $docid)
+            ->whereIn('status', ['A', 'R'])
+            ->orderBy('step_order', 'DESC')
+            ->first();
+
+        if ($step) {
+            $canRollback = str_contains($step->step_approve ?? '', 'Rollback');
+            // (opsional) batasi hanya yang melakukan approve/reject:
+            // $canRollback = $canRollback && ($step->aprvuser == $user->userid);
+            return response()->json(['canRollback' => $canRollback]);
+        }
+
+        return response()->json(['canRollback' => false]);
+    }
+
 
     public function generatePayroll(Request $request)
     {
@@ -1913,7 +2023,7 @@ class CareerController extends Controller
        
             // Cek apakah user termasuk dalam daftar approval
             $approvals = T_approval::where('docid', $jobposting->refid)
-                ->where('aprvid',1)    
+                ->where('aprvid','>',1)    
                 ->where('status','A') 
                 ->orderBy('aprvid', 'ASC')            
                 ->first();
@@ -1921,13 +2031,13 @@ class CareerController extends Controller
         
             T_approval::create([
                 'docid' => $career->docid,
-                'aprvid' => $approvals->aprvid,
+                'aprvid' => 1,
                 'aprvdoctype' => 'JAP',
                 'aprvcpnyid' => $approvals->aprvcpnyid,
                 'aprvdeptid' => $approvals->aprvdeptid,
                 'aprvusername' => $approvals->aprvusername,
                 'name' => $approvals->name,
-                'aprvdatebefore' => $approvals->aprvid == 1 ? $datestamp : null,
+                'aprvdatebefore' => $approvals->aprvid == 2 ? $datestamp : null,
                 'aprvtotalday' => 1,
                 'status' => 'P',
                 'created_user' => $user->username

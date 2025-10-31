@@ -50,11 +50,12 @@
                         name="reftype" style="width: 100%; margin-bottom: 16px;" required>
                         {{-- @foreach ($typestep as $p)
                             <option value="{{ $p->step_id }}">{{ $p->step_descr }}</option>
-                        @endforeach --}}			<option value="">Select</option>
-                        <option value="IU">Interview User</option>
-                        <option value="IH">Interview HC</option>
-                        <option value="IHU">Interview HC & User</option>     
-                    </select>
+                        @endforeach --}}
+                        <option value="">Select</option>
+                        <option value="Interview User">Interview User</option>
+                        <option value="Interview HC">Interview HC</option>
+                        <option value="Interview HC & User">Interview HC & User</option>                        
+                    </select>            
                 </div>
                 <div class="flex w-1/2 flex-col">
                     <label>Site</label>

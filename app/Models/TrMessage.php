@@ -2,15 +2,14 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class TrMessage extends Model
 {
-    // protected $connection = 'mysql2';
     protected $connection = 'pgsql2';
     protected $table = "tr_message";
-    protected $primaryKey = 'id';
+    protected $primaryKey = 'id';    
+
     protected $fillable = [
         'refnbr',
         'doctype',
@@ -24,4 +23,8 @@ class TrMessage extends Model
         'created_by',
         'updated_by',
     ];
+
+    // protected $casts = [
+    //     'message_date' => 'datetime',
+    // ];
 }

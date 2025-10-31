@@ -844,42 +844,7 @@ class WoController extends Controller
     }
 
 
-    
-    public function fetchComments($id)
-    {
-    
-        $comments = T_Message::where('docid', $id)
-            ->orderBy('created_at', 'desc')
-            ->get();
-
-        return response()->json([
-            'status' => 'success',
-            'comments' => $comments
-        ]);
-    }
-    public function storeComment(Request $request, $id)
-    {
-        $request->validate([
-            'comment' => 'required|string|max:500',
-        ]);
-        // dd($id);
-        $user = request()->user();
-        $comment = new T_Message();
-        $comment->docid = $id;
-        $comment->doctype = 'PB';
-        $comment->username = $user->username; 
-        $comment->name = $user->name; 
-        $comment->message = $request->comment;
-        $comment->status = 'A';
-        $comment->created_at = now();
-        $comment->save();
-
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Comment added successfully!',
-            'comment' => $comment
-        ]);
-    }
+       
 
     public function approveWo(Request $request, $docid)
     {

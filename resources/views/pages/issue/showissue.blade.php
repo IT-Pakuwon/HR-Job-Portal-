@@ -1,15 +1,103 @@
 <x-app-layout>
-    <meta name="csrf-token" content="{{ csrf_token() }}">
-
     <style>
-        #loadingSpinnerContainer{
-            position:fixed; inset:0; display:none; place-items:center;
-            background:rgba(17,24,39,.55); backdrop-filter:blur(2px); z-index:2000;
+        /* Overlay full-screen */
+        #loadingSpinnerContainer {
+            position: fixed;
+            inset: 0;
+            display: none;
+            /* akan ditampilkan via JS */
+            background: rgba(17, 24, 39, .55);
+            backdrop-filter: blur(2px);
+            z-index: 2000;
         }
-        .loading-card{display:flex;flex-direction:column;align-items:center;gap:10px;padding:18px 22px;border-radius:16px;background:linear-gradient(180deg,rgba(31,41,55,.9),rgba(17,24,39,.9));border:1px solid rgba(255,255,255,.08)}
-        .loading-spinner{width:54px;height:54px;border-radius:50%;border:4px solid transparent;border-top-color:#6366f1;animation:spin 1s linear infinite;position:relative}
-        .loading-spinner::after{content:"";position:absolute;inset:6px;border-radius:50%;border:4px solid transparent;border-left-color:#a5b4fc;animation:spinReverse .75s linear infinite}
-        @keyframes spin{to{transform:rotate(360deg)}} @keyframes spinReverse{to{transform:rotate(-360deg)}}
+
+        /* Kartu spinner di tengah */
+        #loadingSpinnerContainer .loading-card {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            padding: 18px 22px;
+            border-radius: 16px;
+            background: linear-gradient(180deg, rgba(31, 41, 55, .9), rgba(17, 24, 39, .9));
+            border: 1px solid rgba(255, 255, 255, .08);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, .35), inset 0 0 0 1px rgba(255, 255, 255, .04);
+        }
+
+        /* Spinner dual ring */
+        #loadingSpinnerContainer .loading-spinner {
+            width: 54px;
+            height: 54px;
+            border-radius: 50%;
+            border: 4px solid transparent;
+            border-top-color: #6366f1;
+            /* indigo-500 */
+            animation: spin 1s linear infinite;
+            position: relative;
+        }
+
+        #loadingSpinnerContainer .loading-spinner::after {
+            content: "";
+            position: absolute;
+            inset: 6px;
+            border-radius: 50%;
+            border: 4px solid transparent;
+            border-left-color: #a5b4fc;
+            /* indigo-200 */
+            animation: spinReverse .75s linear infinite;
+        }
+
+        #loadingSpinnerContainer .loading-text {
+            color: #e5e7eb;
+            font-weight: 600;
+            letter-spacing: .02em;
+        }
+
+        #loadingSpinnerContainer .loading-ellipsis span {
+            display: inline-block;
+            animation: blink 1.4s infinite both;
+        }
+
+        #loadingSpinnerContainer .loading-ellipsis span:nth-child(2) {
+            animation-delay: .2s;
+        }
+
+        #loadingSpinnerContainer .loading-ellipsis span:nth-child(3) {
+            animation-delay: .4s;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        @keyframes spinReverse {
+            to {
+                transform: rotate(-360deg);
+            }
+        }
+
+        @keyframes blink {
+            0% {
+                opacity: .3;
+                transform: translateY(0);
+            }
+
+            20% {
+                opacity: 1;
+                transform: translateY(-2px);
+            }
+
+            100% {
+                opacity: .3;
+                transform: translateY(0);
+            }
+        }
     </style>
 
     @php
@@ -34,18 +122,45 @@
 
     <div class="max-w-9xl mx-auto px-4 py-4 sm:px-6 lg:px-8">
         <div class="mb-4 flex items-center justify-between">
-            <button onclick="history.back()"
-                class="inline-flex items-center gap-1 rounded-md bg-gray-100 px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:bg-gray-700/30 dark:text-gray-300 dark:hover:bg-gray-600/50">
-                ← Back
-            </button>
+            <div>
+                <button onclick="history.back()"
+                    class="inline-flex items-center gap-1 rounded-md bg-gray-100 px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:bg-gray-700/30 dark:text-gray-300 dark:hover:bg-gray-600/50">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                        stroke="currentColor" class="h-4 w-4">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+                    </svg>
+                    Back
+                </button>
+            </div>
 
             <div class="flex gap-3">
-                @if ($iss->status === 'P')
-                <button id="submitBtn"
+                <button id="approveBtn"
                     class="inline-flex items-center gap-1 rounded-md bg-green-100 px-3 py-2 text-sm font-medium text-green-700 transition-colors hover:bg-green-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 dark:bg-green-700/30 dark:text-green-300 dark:hover:bg-green-600/50">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                        stroke="currentColor" class="h-4 w-4">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M6.633 10.25c.806 0 1.533-.446 2.031-1.08a9.041 9.041 0 0 1 2.861-2.4c.723-.384 1.35-.956 1.653-1.715a4.498 4.498 0 0 0 .322-1.672V2.75a.75.75 0 0 1 .75-.75 2.25 2.25 0 0 1 2.25 2.25c0 1.152-.26 2.243-.723 3.218-.266.558.107 1.282.725 1.282m0 0h3.126c1.026 0 1.945.694 2.054 1.715.045.422.068.85.068 1.285a11.95 11.95 0 0 1-2.649 7.521c-.388.482-.987.729-1.605.729H13.48c-.483 0-.964-.078-1.423-.23l-3.114-1.04a4.501 4.501 0 0 0-1.423-.23H5.904m10.598-9.75H14.25M5.904 18.5c.083.205.173.405.27.602.197.4-.078.898-.523.898h-.908c-.889 0-1.713-.518-1.972-1.368a12 12 0 0 1-.521-3.507c0-1.553.295-3.036.831-4.398C3.387 9.953 4.167 9.5 5 9.5h1.053c.472 0 .745.556.5.96a8.958 8.958 0 0 0-1.302 4.665c0 1.194.232 2.333.654 3.375Z" />
+                    </svg>
                     Approve
                 </button>
-                @endif
+                <button id="reviseBtn"
+                    class="inline-flex items-center gap-1 rounded-md bg-gray-500 px-3 py-2 text-sm font-medium text-gray-100 transition-colors hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:bg-gray-100 dark:bg-gray-700/30 dark:text-gray-300 dark:hover:bg-gray-600/50">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                        stroke="currentColor" class="size-4">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
+                    </svg>
+                    Revise
+                </button>
+                <button id="rejectBtn"
+                    class="inline-flex items-center gap-1 rounded-md bg-red-100 px-3 py-2 text-sm font-medium text-red-700 transition-colors hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:bg-red-700/30 dark:text-red-300 dark:hover:bg-red-600/50">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                        stroke="currentColor" class="h-4 w-4">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M7.498 15.25H4.372c-1.026 0-1.945-.694-2.054-1.715a12.137 12.137 0 0 1-.068-1.285c0-2.848.992-5.464 2.649-7.521C5.287 4.247 5.886 4 6.504 4h4.016a4.5 4.5 0 0 1 1.423.23l3.114 1.04a4.5 4.5 0 0 0 1.423.23h1.294M7.498 15.25c.618 0 .991.724.725 1.282A7.471 7.471 0 0 0 7.5 19.75 2.25 2.25 0 0 0 9.75 22a.75.75 0 0 0 .75-.75v-.633c0-.573.11-1.14.322-1.672.304-.76.93-1.33 1.653-1.715a9.04 9.04 0 0 0 2.86-2.4c.498-.634 1.226-1.08 2.032-1.08h.384m-10.253 1.5H9.7m8.075-9.75c.01.05.027.1.05.148.593 1.2.925 2.55.925 3.977 0 1.487-.36 2.89-.999 4.125m.023-8.25c-.076-.365.183-.75.575-.75h.908c.889 0 1.713-.518 1.972-1.368.339 1.11.521 2.287.521 3.507 0 1.553-.295 3.036-.831 4.398-.306.774-1.086 1.227-1.918 1.227h-1.053c-.472 0-.745-.556-.5-.96a8.95 8.95 0 0 0 .303-.54" />
+                    </svg>
+                    Reject
+                </button>
             </div>
         </div>
 
@@ -131,11 +246,78 @@
                                     :class="activeTab === 'attachment' ? 'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400' : 'border-b-2 border-transparent text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-gray-100'"
                                     class="flex-1 px-4 py-2 text-center text-sm font-medium">Attachment</button>
 
+                                <button @click="activeTab = 'approval'"
+                                    :class="activeTab === 'approval'
+                                        ?
+                                        'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400' :
+                                        'border-b-2 border-transparent text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-gray-100'"
+                                    class="flex-1 px-4 py-2 text-center text-sm font-medium transition-colors duration-200">
+                                    Approval Details
+                                </button>
+
                                 <button @click="activeTab = 'comments'"
                                     :class="activeTab === 'comments' ? 'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400' : 'border-b-2 border-transparent text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-gray-100'"
                                     class="flex-1 px-4 py-2 text-center text-sm font-medium">Comments</button>
                             </nav>
                         </header>
+
+                        {{-- Approval tab --}}
+                        <div x-show="activeTab === 'approval'" class="flex-1 p-4 transition-all">
+                            <table class="w-full text-sm">
+                                <thead>
+                                    <tr
+                                        class="border-b border-gray-200 text-gray-600 dark:border-gray-700 dark:text-gray-300">
+                                        <th class="p-3 text-left font-semibold">Level</th>
+                                        <th class="p-3 text-left font-semibold">Name</th>
+                                        <th class="p-3 text-left font-semibold">Date</th>
+                                        <th class="p-3 text-left font-semibold">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach ($approval as $ap)
+                                        <tr
+                                            class="border-b border-gray-100 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700">
+                                            <td class="p-3">{{ $ap->aprvid }}</td>
+                                            <td class="p-3">{{ $ap->name }}</td>
+                                            <td class="p-3">
+                                                {{ \Carbon\Carbon::parse($ap->aprvdatebefore)->format('d M Y') }}
+                                            </td>
+                                            <td class="p-3">
+                                                @php
+                                                    $statusText = '';
+                                                    $statusClass = '';
+                                                    switch ($ap->status) {
+                                                        case 'P':
+                                                            $statusText = 'Waiting Approval';
+                                                            $statusClass = 'bg-yellow-500 text-white';
+                                                            break;
+                                                        case 'A':
+                                                            $statusText = 'Approved';
+                                                            $statusClass = 'bg-green-500 text-white';
+                                                            break;
+                                                        case 'R':
+                                                            $statusText = 'Rejected';
+                                                            $statusClass = 'bg-red-500 text-white';
+                                                            break;
+                                                        case 'D':
+                                                            $statusText = 'Revise';
+                                                            $statusClass = 'bg-blue-500 text-white';
+                                                            break;
+                                                        default:
+                                                            $statusText = 'Unknown';
+                                                            $statusClass = 'bg-gray-500 text-white';
+                                                    }
+                                                @endphp
+                                                <span
+                                                    class="{{ $statusClass }} inline-block rounded-full px-3 py-1 text-xs font-semibold">
+                                                    {{ $statusText }}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
 
                         {{-- Attachment Tab --}}
                         <div x-show="activeTab === 'attachment'" class="flex h-full flex-1 flex-col transition-all">
@@ -239,129 +421,375 @@
     </div>
 
     {{-- Overlay --}}
-    <div id="loadingSpinnerContainer" role="status" aria-live="polite" aria-label="Loading">
+      <div id="loadingSpinnerContainer" role="status" aria-live="polite" aria-label="Loading">
         <div class="loading-card">
             <div class="loading-spinner"></div>
-            <div class="loading-text">Processing<span class="loading-ellipsis"><span>.</span><span>.</span><span>.</span></span></div>
+            <div class="loading-text">
+                Processing<span class="loading-ellipsis"><span>.</span><span>.</span><span>.</span></span>
+            </div>
+        </div>
+    </div>
+     <div id="rejectTaskModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50">
+        <div class="w-full max-w-md rounded-lg bg-white p-6 dark:bg-gray-700">
+            <h2 class="mb-4 text-xl font-semibold text-gray-800 dark:text-white">Reject</h2>
+            <textarea id="rejectReason" class="mt-2 w-full rounded-lg p-3 focus:outline-none dark:bg-gray-800 dark:text-white"
+                placeholder="Enter rejection reason..."></textarea>
+
+            <div class="mt-4 flex justify-between">
+                <button id="cancelRejectBtn" class="rounded-lg bg-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-400">
+                    Cancel
+                </button>
+                <button id="confirmRejectBtn" class="rounded-lg bg-red-500 px-4 py-2 text-white hover:bg-red-600">
+                    Reject
+                </button>
+            </div>
+        </div>
+    </div>
+    <div id="reviseTaskModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50">
+        <div class="w-full max-w-md rounded-lg bg-white p-6 dark:bg-gray-700">
+            <h2 class="mb-4 text-xl font-semibold text-gray-800 dark:text-white">Revise Task</h2>
+            <textarea id="reviseReason" class="mt-2 w-full rounded-lg p-3 focus:outline-none dark:bg-gray-800 dark:text-white"
+                placeholder="Enter revise reason..."></textarea>
+
+            <div class="mt-4 flex justify-between">
+                <button id="cancelReviseBtn" class="rounded-lg bg-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-400">
+                    Cancel
+                </button>
+                <button id="confirmReviseBtn"
+                    class="inline-flex items-center gap-1 rounded-md bg-gray-500 px-3 py-2 text-sm font-medium text-gray-100 transition-colors hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:bg-gray-100 dark:bg-gray-700/30 dark:text-gray-300 dark:hover:bg-gray-600/50">
+                    Revise
+                </button>
+
+            </div>
         </div>
     </div>
 
+    
     {{-- dayjs & toastr --}}
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/dayjs/1.11.10/dayjs.min.js"></script>
+     <script src="https://cdnjs.cloudflare.com/ajax/libs/dayjs/1.11.10/dayjs.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dayjs/1.11.10/plugin/relativeTime.min.js"></script>
-    <script>dayjs.extend(dayjs_plugin_relativeTime);</script>
+
+    <script>
+        dayjs.extend(dayjs_plugin_relativeTime);
+
+        const $spinner = $("#loadingSpinnerContainer");
+        $spinner.fadeIn(); // tampilkan saat mulai proses
+        // ...
+        $spinner.fadeOut(); // sembunyikan saat selesai
+    </script>
+    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 
     {{-- Comments --}}
     <script>
-        $(function () {
-            const issueid = @json($iss->issueid);
+        $(document).ready(function() {
+            const issueid  = "{{ $iss->issueid }}";
+            const doctype = "IS"; 
 
-            function loadComments(docid) {
-                const $list = $('#commentList').html('<p class="text-gray-500 italic">Loading comments...</p>');
-                $.get(`/issue/${encodeURIComponent(docid)}/comments`)
-                .done(res => {
-                    $list.empty();
-                    if (!res.comments || !res.comments.length) {
-                        $list.append('<p class="text-gray-500 italic">No comments yet.</p>');
-                        return;
-                    }
-                    res.comments.forEach(c => {
-                        const timeAgo = dayjs(c.created_at).fromNow();
-                        $list.append(`
-                            <div class="p-3 bg-gray-100 dark:bg-gray-800 rounded-lg mb-2 border border-gray-200 dark:border-gray-700">
-                                <p class="text-sm font-semibold">${c.username} <span class="text-xs text-gray-500">(${timeAgo})</span></p>
-                                <p class="text-gray-800 dark:text-gray-200">${c.message}</p>
-                            </div>`);
-                    });
-                })
-                .fail(() => {
-                    $list.html('<p class="text-red-500 italic">Failed to load comments.</p>');
-                });
-            }
+            loadComments(issueid, doctype);
 
-            function addComment(docid, message) {
-                return $.post(`/issue/${encodeURIComponent(docid)}/comments`, {
-                    issueid: docid,
-                    comment: message,
-                    _token: '{{ csrf_token() }}'
-                });
-            }
+            function loadComments(refnbr, doctype) {
+                let commentList = $('#commentList');
+                commentList.html('<p class="text-gray-500 italic">Loading comments...</p>');
 
-            loadComments(issueid);
+                $.ajax({
+                    url: `/comments/${doctype}/${refnbr}`,
+                    type: 'GET',
+                    success: function(response) {
+                        commentList.empty();
 
-            $('#postCommentBtn').on('click', function() {
-                const msg = ($('#commentInput').val() || '').trim();
-                if (!msg) { toastr.warning('Please enter a comment.'); return; }
-                $(this).prop('disabled', true).text('Posting... 🚀');
-                addComment(issueid, msg)
-                    .done(res => {
-                        if (res.status === 'success') {
-                            $('#commentInput').val('');
-                            loadComments(issueid);
-                        } else {
-                            toastr.error(res.message || 'Failed to post comment.');
+                        if (!response.comments || response.comments.length === 0) {
+                            commentList.append('<p class="text-gray-500 italic">No comments yet. Be the first to comment!</p>');
+                            return;
                         }
-                    })
-                    .fail(xhr => toastr.error(xhr.responseJSON?.message || 'Failed to post comment.'))
-                    .always(() => $('#postCommentBtn').prop('disabled', false).text('Post 🚀'));
+
+                        response.comments.forEach(comment => {
+                            // fallback jika data lama masih punya created_at
+                            const timeStr = comment.message_date ?? comment.created_at;
+                            const timeAgo = timeStr ? dayjs(timeStr).fromNow() : '';
+
+                            commentList.append(`
+                                <div class="p-3 bg-gray-100 dark:bg-gray-800 rounded-lg mb-2">
+                                    <p class="text-sm font-semibold">
+                                        ${comment.username}
+                                        <span class="text-xs text-gray-500">(${timeAgo})</span>
+                                    </p>
+                                    <p class="text-gray-800 dark:text-gray-200">${comment.message}</p>
+                                </div>
+                            `);
+                        });
+                    },
+                    error: function(xhr) {
+                        console.error("Error fetching comments:", xhr.responseText);
+                        commentList.html('<p class="text-red-500 italic">Failed to load comments.</p>');
+                    }
+                });
+            }
+
+            function addComment() {
+                let input = $('#commentInput').val().trim();
+                if (input === "") {
+                    alert("Please enter a comment.");
+                    return;
+                }
+
+                $('#postCommentBtn').prop('disabled', true).text('Posting... 🚀');
+
+                $.ajax({
+                    url: `/comments/${doctype}/${issueid}`,
+                    type: 'POST',
+                    data: {
+                        comment: input,
+                        _token: '{{ csrf_token() }}'
+                    },
+                    success: function(response) {
+                        if (response.status === "success") {
+                            loadComments(issueid, doctype);
+                            $('#commentInput').val('');
+                        }
+                    },
+                    error: function(xhr) {
+                        console.error("Error adding comment:", xhr);
+                        alert("Error: " + (xhr.responseJSON ? xhr.responseJSON.message : "Unknown Error"));
+                    },
+                    complete: function() {
+                        $('#postCommentBtn').prop('disabled', false).text('Post 🚀');
+                    }
+                });
+            }
+
+            $(document).on('click', '#postCommentBtn', function(e) {
+                e.preventDefault();
+                addComment();
             });
 
-            $('#commentInput').on('keypress', function(e){
-                if (e.which === 13 && !e.shiftKey) { e.preventDefault(); $('#postCommentBtn').click(); }
+            $('#commentInput').keypress(function(event) {
+                if (event.which === 13 && !event.shiftKey) {
+                    event.preventDefault();
+                    addComment();
+                }
+            });
+
+            
+        });
+    </script>  
+
+  
+     <script>
+        $(document).on("click", "#approveBtn", function() {
+            let issueid = "{{ $iss->issueid }}"; // Ambil Task ID dari modal        
+            approveSPB(issueid);
+        });
+
+        function approveSPB(issueid) {
+            let $spinner = $("#loadingSpinnerContainer"); // Ambil elemen spinner
+
+            // Tampilkan spinner di kanan bawah
+            $spinner.fadeIn();
+
+            $.ajax({
+                url: `/issue/${issueid}/approve`,
+                type: "POST",
+                data: {
+                    _token: "{{ csrf_token() }}",
+                    issueid: issueid
+                },
+                success: function(response) {
+                    if (response.success) {
+                        // Update status di UI
+                        $("#xstatus").text("Approved")
+                            .removeClass()
+                            .addClass(
+                                "w-full max-w-32 bg-green-300/30 dark:bg-green-300 text-green-600 flex justify-items-center focus:outline-none pointer-events-none    -none font-semibold px-2 py-0.5 rounded"
+                            );
+
+                        // Tampilkan alert sukses
+                        toastr.success("SPB approved successfully!");
+                        window.location.href = "/issuelist";
+                    } else {
+                        toastr.error(response.message);
+                    }
+                },
+                error: function(xhr) {
+                    console.error(xhr.responseText);
+
+                    if (xhr.status === 403) {
+                        toastr.error("You are not authorized to approve this Issue.");
+                    } else {
+                        toastr.error("Error: Unable to approve Issue.");
+                    }
+                },
+                complete: function() {
+                    // Sembunyikan spinner setelah request selesai
+                    $spinner.fadeOut();
+                }
+            });
+        }
+    </script>
+    <script>
+        $(document).ready(function() {
+            // Saat tombol "Reject" ditekan, tampilkan modal Reject di depan
+            $(document).on("click", "#rejectBtn", function() {
+                $("#rejectReason").val(""); // Reset alasan reject
+                // $("#rejectTaskModal").removeClass("hidden").css("z-index", "60");
+                let issueid = "{{ $iss->issueid }}";
+                checkApproval(issueid, "reject");
+
+            });
+
+            // Saat tombol "Cancel" ditekan, tutup modal Reject
+            $(document).on("click", "#cancelRejectBtn", function() {
+                $("#rejectTaskModal").addClass("hidden");
+            });
+
+            // Saat tombol "Reject" ditekan, proses perubahan status
+            $(document).on("click", "#confirmRejectBtn", function() {
+                let issueid = "{{ $iss->issueid }}"; // Ambil ID tugas dari modal detail
+                let rejectReason = $("#rejectReason").val().trim();
+
+                if (rejectReason === "") {
+                    toastr.error("Please provide a reason for rejection.");
+                    return;
+                }
+
+                let $spinner = $("#loadingSpinnerContainer"); // Ambil elemen spinner        
+                // Tampilkan spinner di kanan bawah
+                $spinner.fadeIn();
+
+                $.ajax({
+                    url: `/issue/${issueid}/reject`,
+                    type: "POST",
+                    data: {
+                        _token: "{{ csrf_token() }}",
+                        docid: issueid,
+                        reason: rejectReason
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            // alert("Task has been rejected successfully.");
+
+                            // Update status di modal Issue
+                            $("#xstatus").text("Rejected")
+                                .removeClass()
+                                .addClass(
+                                    "w-full max-w-32 bg-red-300/30 dark:bg-red-300 text-red-600 flex justify-items-center focus:outline-none pointer-events-none    -none font-semibold px-2 py-0.5 rounded"
+                                );
+                            $spinner.fadeOut();
+
+                            window.location.href = "/issuelist";
+                        } else {
+                            alert("Failed to reject Issue.");
+                        }
+                    },
+                    error: function(xhr) {
+                        console.error(xhr.responseText);
+
+                        if (xhr.status === 403) {
+                            alert("You Can't Rejected!"); // Popup jika user tidak berhak
+                        } else {
+                            alert("Error: Unable to reject Issue status.");
+                        }
+                    },
+                });
+            });
+        });
+    </script>
+    <script>
+        $(document).ready(function() {
+            // Saat tombol "Revise" ditekan, tampilkan modal Revise di depan
+            $(document).on("click", "#reviseBtn", function() {
+                $("#reviseReason").val(""); // Reset alasan revise
+                // $("#reviseTaskModal").removeClass("hidden").css("z-index", "60");
+                let issueid = "{{ $iss->issueid }}";
+                checkApproval(issueid, "revise");
+
+            });
+
+            // Saat tombol "Cancel" ditekan, tutup modal Revise
+            $(document).on("click", "#cancelReviseBtn", function() {
+                $("#reviseTaskModal").addClass("hidden");
+            });
+
+            // Saat tombol "Revise" ditekan, proses perubahan status
+            $(document).on("click", "#confirmReviseBtn", function() {
+                let issueid = "{{ $iss->issueid }}"; // Ambil ID tugas dari modal detail
+                let reviseReason = $("#reviseReason").val().trim();
+
+                if (reviseReason === "") {
+                    toastr.error("Please provide a reason for revise.");
+                    return;
+                }
+                let $spinner = $("#loadingSpinnerContainer"); // Ambil elemen spinner        
+                // Tampilkan spinner di kanan bawah
+                $spinner.fadeIn();
+
+                $.ajax({
+                    url: `/issue/${issueid}/revise`,
+                    type: "POST",
+                    data: {
+                        _token: "{{ csrf_token() }}",
+                        docid: issueid,
+                        reason: reviseReason
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            // alert("Task has been reviseed successfully.");
+
+                            // Update status di modal Issue
+                            $("#xstatus").text("Revised")
+                                .removeClass()
+                                .addClass(
+                                    "w-full max-w-32 bg-red-300/30 dark:bg-red-300 text-red-600 flex justify-items-center focus:outline-none pointer-events-none    -none font-semibold px-2 py-0.5 rounded"
+                                );
+                            $spinner.fadeOut();
+                            window.location.href = "/issuelist";
+                        } else {
+                            alert("Failed to revise Issue.");
+                        }
+                    },
+                    error: function(xhr) {
+                        console.error(xhr.responseText);
+
+                        if (xhr.status === 403) {
+                            alert("You Can't Revised!"); // Popup jika user tidak berhak
+                        } else {
+                            alert("Error: Unable to revise Issue status.");
+                        }
+                    },
+                });
             });
         });
     </script>
 
-    {{-- Approve Issue (optional, sesuaikan route) --}}
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const btn = document.getElementById('submitBtn');
-            if (!btn) return;
-
-            btn.addEventListener('click', function () {
-
-                Swal.fire({
-                    title: 'Approve Issue?',
-                    text: "Data Issue akan diproses ke tahap berikutnya.",
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonColor: '#16a34a',
-                    cancelButtonColor: '#d33',
-                    confirmButtonText: 'Ya, Approve',
-                    cancelButtonText: 'Batal'
-                }).then((result) => {
-                    if (!result.isConfirmed) return;
-
-                    btn.disabled = true;
-                    const originalText = btn.innerHTML;
-                    btn.innerHTML = 'Processing...';
-
-                    fetch("{{ route('issues.approve', ['id' => $iss->id]) }}", {
-                        method: 'POST',
-                        headers: {
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                            'Accept': 'application/json',
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({})
-                    })
-                    .then(async (res) => {
-                        const data = await res.json().catch(() => ({}));
-                        if (!res.ok) throw new Error(data?.message || 'Gagal memproses.');
-
-                        Swal.fire({ icon: 'success', title: 'Berhasil!', text: data.message || 'Issue berhasil di-approve.', timer: 1800, showConfirmButton: false })
-                            .then(() => window.location.reload());
-                    })
-                    .catch((err) => {
-                        Swal.fire({ icon: 'error', title: 'Terjadi Kesalahan', text: err.message || 'Gagal memproses.' });
-                        btn.disabled = false; btn.innerHTML = originalText;
-                    });
-                });
+        function checkApproval(issueid, action) {
+            console.log(issueid, '-', action);
+            $.ajax({
+                url: `/issue/${issueid}/check-approval/${action}`,
+                type: "GET",
+                success: function(response) {
+                    if (response.canPerformAction) {
+                        // Jika user bisa melakukan aksi, tampilkan modal atau langsung proses approval
+                        if (action === "reject") {
+                            $("#rejectReason").val(""); // Reset alasan reject
+                            $("#rejectTaskModal").removeClass("hidden").css("z-index", "60");
+                        } else if (action === "revise") {
+                            $("#reviseReason").val(""); // Reset alasan revise
+                            $("#reviseTaskModal").removeClass("hidden").css("z-index", "60");
+                            // } else if (action === "approve") {
+                            //     approveSPB(issueid); // Jika approve, langsung jalankan proses approval
+                        }
+                    } else {
+                        // Jika user tidak boleh melakukan aksi, tampilkan popup toastr
+                        toastr.error("You are not authorized to " + action + " this Issue.");
+                    }
+                },
+                error: function() {
+                    toastr.error("Error checking approval status.");
+                }
             });
-        });
+        }
     </script>
 
     {{-- Attachment list/upload (doctype IS, refnbr = issueid) --}}
