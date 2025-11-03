@@ -755,7 +755,7 @@
                                     "w-full max-w-32 bg-red-300/30 dark:bg-red-300 text-red-600 flex justify-items-center focus:outline-none pointer-events-none    -none font-semibold px-2 py-0.5 rounded"
                                 );
                             $spinner.fadeOut();
-
+                            toastr.success("SPPB Rejected successfully!");
                             window.location.href = "/sppbs";
                         } else {
                             alert("Failed to reject sppb.");
@@ -822,6 +822,7 @@
                                     "w-full max-w-32 bg-red-300/30 dark:bg-red-300 text-red-600 flex justify-items-center focus:outline-none pointer-events-none    -none font-semibold px-2 py-0.5 rounded"
                                 );
                             $spinner.fadeOut();
+                            toastr.success("SPPB Revised successfully!");
                             window.location.href = "/sppbs";
                         } else {
                             alert("Failed to revise sppb.");
@@ -845,35 +846,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
     <!-- Toastr JS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
-    {{-- <script>
-        function checkApproval(sppbid, action) {
-            console.log(sppbid, '-', action);
-            $.ajax({
-                url: `/sppb/${sppbid}/check-approval/${action}`,
-                type: "GET",
-                success: function(response) {
-                    if (response.canPerformAction) {
-                        // Jika user bisa melakukan aksi, tampilkan modal atau langsung proses approval
-                        if (action === "reject") {
-                            $("#rejectReason").val(""); // Reset alasan reject
-                            $("#rejectTaskModal").removeClass("hidden").css("z-index", "60");
-                        } else if (action === "revise") {
-                            $("#reviseReason").val(""); // Reset alasan revise
-                            $("#reviseTaskModal").removeClass("hidden").css("z-index", "60");
-                            // } else if (action === "approve") {
-                            //     approveSPPB(sppbid); // Jika approve, langsung jalankan proses approval
-                        }
-                    } else {
-                        // Jika user tidak boleh melakukan aksi, tampilkan popup toastr
-                        toastr.error("You are not authorized to " + action + " this sppb.");
-                    }
-                },
-                error: function() {
-                    toastr.error("Error checking approval status.");
-                }
-            });
-        }
-    </script> --}}
 
     <script>
         function checkApproval(sppbid, action) {
@@ -902,8 +874,6 @@
             });
         }
     </script>
-
-
 
     <script>
         $(function () {
@@ -1067,7 +1037,7 @@
 
             return `<span class="${statusClass} inline-block rounded-full px-3 py-1 text-xs font-semibold">${statusText}</span>`;
         }
-        </script>
+    </script>
 
 
 

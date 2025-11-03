@@ -36,6 +36,8 @@ use Illuminate\Support\Facades\Response;
 use App\Models\TrAttachment;
 use Google\Cloud\Storage\StorageClient;
 use App\Models\MsTenant;
+use App\Http\Controllers\ApprovalController;
+use App\Models\TrApproval;
 
 
 class SpptController extends Controller
@@ -171,6 +173,7 @@ class SpptController extends Controller
         $coaIds        = $request->input('coa_id', []); // account_id
         $item_types    = $request->input('item_type', []);
         $item_categories = $request->input('item_category', []);
+        $inventorySubTypes   = $request->input('item_sub_type', []); // untuk Fixed Asset subtype
 
         $purchaseUnits    = $request->input('purchase_unit', []);     // dari hidden purchase_unit[]
         $uomMultDivs      = $request->input('uom_unitmultdiv', []);   // 'M' atau 'D'
@@ -222,19 +225,25 @@ class SpptController extends Controller
         };
 
 
-        // pastikan line approval ada
-        $approvalCount = M_approval::where([
-            ['status', '=', 'A'],
-            ['aprvcpnyid', '=', $request->cpnyid],
-            ['aprvdeptid', '=', $request->departementid],
-            ['aprvdoctype', '=', $doctype],
-        ])->count();
+        // // pastikan line approval ada
+        // $approvalCount = M_approval::where([
+        //     ['status', '=', 'A'],
+        //     ['aprvcpnyid', '=', $request->cpnyid],
+        //     ['aprvdeptid', '=', $request->departementid],
+        //     ['aprvdoctype', '=', $doctype],
+        // ])->count();
 
-        if ($approvalCount === 0) {
-            return response()->json([
-                'message' => 'Approval line belum di-setup, Please contact IT!',
-            ], 422);
-        }
+        // if ($approvalCount === 0) {
+        //     return response()->json([
+        //         'message' => 'Approval line belum di-setup, Please contact IT!',
+        //     ], 422);
+        // }
+
+        // ===== generate TrApproval dari MsApproval sesuai context =====
+        $approvalCtl = app(ApprovalController::class);
+
+        // Pastikan line approval ada (kalau mau validasi awal sebelum simpan detail, panggil loadLines)
+        $approvalCtl->loadLines($doctype, $request->cpnyid, $request->departementid);
 
         DB::beginTransaction();
         try {
@@ -265,7 +274,7 @@ class SpptController extends Controller
 
             // === 1) header dulu (totalqty sementara 0) ===
             $header = new TrSPPT();
-            $header->spptid            = $docid;                // PK string
+            $header->spptid            = $docid;                // PT string
             $header->spptdate          = $dt->toDateString();
             $header->cpny_id           = $request->input('cpnyid');
             $header->department_id     = $request->input('departementid');
@@ -334,6 +343,7 @@ class SpptController extends Controller
                 $detail->uom                      = $uom;
                 $detail->note                     = $notes[$i]   ?? null;
                 $detail->inventory_type                = $item_types[$i] ?? null;
+                $detail->inventory_sub_type       = $inventorySubTypes[$i] ?? null;
                 $detail->inventory_category            = $item_categories[$i] ?? null;
                 $detail->base_uom                 = $baseUom;            // = purchase_unit
                 $detail->base_multiplier          = $rate;               // = uom_unitrate (float)
@@ -366,36 +376,82 @@ class SpptController extends Controller
             $header->totalopenordered = $totalQty;
             $header->save();
 
-            // === 4) copy line approval (M_approval -> T_approval) ===
-            $approvals = M_approval::where([
-                ['status', '=', 'A'],
-                ['aprvcpnyid', '=', $request->cpnyid],
-                ['aprvdeptid', '=', $request->departementid],
-                ['aprvdoctype', '=', $doctype],
-            ])->get();
+            // // === 4) copy line approval (M_approval -> T_approval) ===
+            // $approvals = M_approval::where([
+            //     ['status', '=', 'A'],
+            //     ['aprvcpnyid', '=', $request->cpnyid],
+            //     ['aprvdeptid', '=', $request->departementid],
+            //     ['aprvdoctype', '=', $doctype],
+            // ])->get();
 
-            foreach ($approvals as $a) {
-                T_approval::create([
-                    'docid'          => $docid,
-                    'aprvid'         => $a->aprvid,
-                    'aprvdoctype'    => $a->aprvdoctype,
-                    'aprvcpnyid'     => $a->aprvcpnyid,
-                    'aprvdeptid'     => $a->aprvdeptid,
-                    'aprvusername'   => $a->aprvusername,
-                    'name'           => $a->name,
-                    'aprvdatebefore' => $a->aprvid == 1 ? $datestamp : null,
-                    'aprvtotalday'   => 1,
-                    'status'         => 'P',
-                    'created_user'   => $username,
-                ]);
+            // foreach ($approvals as $a) {
+            //     T_approval::create([
+            //         'docid'          => $docid,
+            //         'aprvid'         => $a->aprvid,
+            //         'aprvdoctype'    => $a->aprvdoctype,
+            //         'aprvcpnyid'     => $a->aprvcpnyid,
+            //         'aprvdeptid'     => $a->aprvdeptid,
+            //         'aprvusername'   => $a->aprvusername,
+            //         'name'           => $a->name,
+            //         'aprvdatebefore' => $a->aprvid == 1 ? $datestamp : null,
+            //         'aprvtotalday'   => 1,
+            //         'status'         => 'P',
+            //         'created_user'   => $username,
+            //     ]);
+            // }
+
+            // $firstApprovalUsernames = optional($approvals->first())->aprvusername; // bisa comma-separated
+            // if ($firstApprovalUsernames) {
+            //     $header->completed_by = $firstApprovalUsernames;
+            //     $header->completed_at = $dt; // atau Carbon::now()
+            //     $header->save();
+            // }
+
+            // 1) Urgent → dari header field is_urgent (boolean atau "1"/"true")
+            $isUrgent = (bool) $request->input('is_urgent', false);
+
+            // 2) Komputer → hanya kategori pada BARIS PERTAMA yang non-empty
+            $firstCategory = null;
+            if (!empty($inventoryCategories)) {
+                foreach ($inventoryCategories as $c) {
+                    if (!empty($c)) { $firstCategory = $c; break; }
+                }
             }
 
-            $firstApprovalUsernames = optional($approvals->first())->aprvusername; // bisa comma-separated
+            // 3) Fixed Asset → minimal ada SATU detail dengan inventory_sub_type = Fixed Asset / FA
+            $hasFixedAssetSubtype = false;
+            foreach ((array)$inventorySubTypes as $sub) {
+                $s = mb_strtolower((string)$sub);
+                if ($s === 'fixed asset' || $s === 'fa') { $hasFixedAssetSubtype = true; break; }
+            }
+
+            // 4) Build context untuk ApprovalController
+            $ctx = [
+                'is_urgent'                => $isUrgent,
+                'first_inventory_category' => $firstCategory,
+                'has_fixed_asset_subtype'  => $hasFixedAssetSubtype,
+                'ignore_nominal'           => true,   // SPPT diminta tidak cek nominal
+                // 'grand_total'           => ...     // tidak dipakai di SPPT
+            ];
+
+            // Generate TrApproval
+            [$firstApprovalUsernames, $linesCount] = $approvalCtl->generateForDocument(
+                $docid,
+                $doctype,
+                $request->cpnyid,
+                $request->departementid,
+                $username,
+                $ctx,
+                $dt
+            );
+
+            // (opsional) simpan hint approver pertama di header seperti sebelumnya
             if ($firstApprovalUsernames) {
-                $header->completed_by = $firstApprovalUsernames;
-                $header->completed_at = $dt; // atau Carbon::now()
+                $header->updated_by = $firstApprovalUsernames;
+                $header->updated_at = $dt;
                 $header->save();
             }
+
 
             // === 5) attachments (opsional) ===
             // if ($request->hasfile('attachments')) {
@@ -458,53 +514,69 @@ class SpptController extends Controller
                 $uploadResult = null; // tidak ada attachment
             }
 
-            // === 6) kirim email ke approver pertama ===
-            $firstApproval = T_approval::where('docid', $docid)
-                ->where('status', 'P')
-                ->orderBy('aprvid')
-                ->first();
+            // // === 6) kirim email ke approver pertama ===
+            // $firstApproval = T_approval::where('docid', $docid)
+            //     ->where('status', 'P')
+            //     ->orderBy('aprvid')
+            //     ->first();
 
-            if ($firstApproval) {
+            // if ($firstApproval) {
 
-                $status = $header->status; // 'P' | 'R' | 'D' | 'A' | 'C'
+            //     $status = $header->status; // 'P' | 'R' | 'D' | 'A' | 'C'
                 
-                $subjectMap = [
-                    'P' => 'Waiting Approval',
-                    'R' => 'Rejected Approval',
-                    'D' => 'Revise Approval',
-                    'A' => 'Approved',
-                    'C' => 'Completed',
-                ];
-                $subjectSuffix = $subjectMap[$status] ?? 'Notification';
+            //     $subjectMap = [
+            //         'P' => 'Waiting Approval',
+            //         'R' => 'Rejected Approval',
+            //         'D' => 'Revise Approval',
+            //         'A' => 'Approved',
+            //         'C' => 'Completed',
+            //     ];
+            //     $subjectSuffix = $subjectMap[$status] ?? 'Notification';
 
-                $eid = Hashids::encode($header->id);
+            //     $eid = Hashids::encode($header->id);
                 
-                $data = [
-                    'docid'    => $firstApproval->docid,
-                    'cpnyid'   => $firstApproval->aprvcpnyid,
-                    'deptname' => $firstApproval->aprvdeptid,
-                    'date'     => $firstApproval->aprvdatebefore,
-                    'name'     => $firstApproval->name,
-                    'createdby'=> $header->created_by,
-                    'info'     => $request->keperluan,
-                    'status'   => $status,
-                    'docname'  => 'SPPT',
-                    'url'      => url('/showsppts/' . $eid),
-                ];
+            //     $data = [
+            //         'docid'    => $firstApproval->docid,
+            //         'cpnyid'   => $firstApproval->aprvcpnyid,
+            //         'deptname' => $firstApproval->aprvdeptid,
+            //         'date'     => $firstApproval->aprvdatebefore,
+            //         'name'     => $firstApproval->name,
+            //         'createdby'=> $header->created_by,
+            //         'info'     => $request->keperluan,
+            //         'status'   => $status,
+            //         'docname'  => 'SPPT',
+            //         'url'      => url('/showsppts/' . $eid),
+            //     ];
                 
-                $approvers = array_filter(array_map('trim', explode(',', (string)$firstApproval->aprvusername)));
-                $emails = User::whereIn('username', $approvers)
-                    ->where('status', 'A')
-                    ->pluck('test_email');
+            //     $approvers = array_filter(array_map('trim', explode(',', (string)$firstApproval->aprvusername)));
+            //     $emails = User::whereIn('username', $approvers)
+            //         ->where('status', 'A')
+            //         ->pluck('test_email');
 
-                foreach ($emails as $email) {
-                    \Mail::send('emails.mailapprovenew', $data, function ($message) use ($email, $data) {
-                        $message->to($email)
-                            ->subject($data['docid'].' - Waiting Approval SPPT')
-                            ->from('digitalserver@pakuwon.com', 'Pakuwon System');
-                    });
-                }
-            }
+            //     foreach ($emails as $email) {
+            //         \Mail::send('emails.mailapprovenew', $data, function ($message) use ($email, $data) {
+            //             $message->to($email)
+            //                 ->subject($data['docid'].' - Waiting Approval SPPT')
+            //                 ->from('digitalserver@pakuwon.com', 'Pakuwon System');
+            //         });
+            //     }
+            // }
+
+            $eid = Hashids::encode($header->id);
+
+            $approvalCtl->notifyFirstApprover(
+                    $docid,
+                    $doctype,
+                    $header->status,                 // 'P' | 'R' | 'D' | 'A' | 'C'
+                    'SPPT',
+                    url('/showsppts/' . $eid),
+                    [
+                        'info'      => $request->keperluan,
+                        'createdby' => $header->created_by,
+                        'date'      => $dt->toDateTimeString(),
+                    ]
+            );
+
 
             DB::commit();
 
@@ -527,14 +599,39 @@ class SpptController extends Controller
         }
     }
    
-    public function editSppt_xxx($hash)
+    public function editSppt($hash)
     {
         $id = Hashids::decode($hash)[0] ?? null;
         abort_if(!$id, 404);
 
         $sppt = TrSPPT::findOrFail($id);
 
-        // Ambil detail + eager load relasi lokasi & sublokasi
+    // ===== Prefill TENANT: pakai MsTenant (unit_id, store_name, floor_id, store_no)
+    if (!empty($sppt->nama_tenant)) {
+        $tenant = \App\Models\MsTenant::select('unit_id','store_name','floor_id','store_no')
+            ->where('unit_id', $sppt->nama_tenant)
+            ->first();
+
+        if ($tenant) {
+            $sppt->tenant_name    = $tenant->store_name; // <-- label yg ditampilkan Select2
+            $sppt->no_unit_tenant = trim(
+                ($tenant->floor_id ? $tenant->floor_id : '') .
+                ($tenant->store_no ? (' - '.$tenant->store_no) : '')
+            );
+        }
+    }
+
+    // ===== (Opsional) Prefill PIC: ambil nama lengkap utk label Select2 PIC
+    if (!empty($sppt->pic_pengawas)) {
+        $pic = \App\Models\User::where('username', $sppt->pic_pengawas)
+            ->first(['username','name as full_name']);
+        if ($pic) {
+            $sppt->pic_name = $pic->full_name;
+        }
+    }
+
+
+        // ===== Detail + eager load lokasi (sudah OK)
         $spptdetail = TrSPPTdetail::with([
                 'location:location_id,location_name',
                 'subLocation:sub_location_id,sub_location_name',
@@ -542,21 +639,16 @@ class SpptController extends Controller
             ->where('spptid', $sppt->spptid)
             ->get()
             ->map(function ($d) {
-                // Sematkan nama ke attribute agar Blade lama tetap jalan
-                $d->location_name      = optional($d->location)->location_name;
-                $d->sub_location_name  = optional($d->subLocation)->sub_location_name;
+                $d->location_name     = optional($d->location)->location_name;
+                $d->sub_location_name = optional($d->subLocation)->sub_location_name;
                 return $d;
             });
 
-        $user   = request()->user();
+        $user      = request()->user();
         $usercpny  = Usercpny::where('username', $user->username)->get();
         $usercpny2 = Usercpny::where('username', $user->username)->first();
         $userdept  = Userdept::where('username', $user->username)->get();
         $userdept2 = Userdept::where('username', $user->username)->first();
-
-        // $attachment = Attachment::where('docid', $sppt->spptid)
-        //     ->where('status', 'A')
-        //     ->get();
 
         $rows = TrAttachment::where('refnbr', $sppt->spptid)
             ->where('status', 'A')
@@ -587,7 +679,7 @@ class SpptController extends Controller
                 \Log::warning('Signed URL gagal', ['path' => $objectPath, 'error' => $e->getMessage()]);
             }
             return (object) [
-                'id'          => $r->id,
+                'id'           => $r->id,
                 'display_name' => $r->attachment_name,
                 'created_by'   => $r->created_by,
                 'created_at'   => $r->created_at,
@@ -603,103 +695,6 @@ class SpptController extends Controller
             'sppt','spptdetail','usercpny','usercpny2','userdept','userdept2','attachments','hash'
         ));
     }
-
-    public function editSppt($hash)
-{
-    $id = Hashids::decode($hash)[0] ?? null;
-    abort_if(!$id, 404);
-
-    $sppt = TrSPPT::findOrFail($id);
-
-   // ===== Prefill TENANT: pakai MsTenant (unit_id, store_name, floor_id, store_no)
-if (!empty($sppt->nama_tenant)) {
-    $tenant = \App\Models\MsTenant::select('unit_id','store_name','floor_id','store_no')
-        ->where('unit_id', $sppt->nama_tenant)
-        ->first();
-
-    if ($tenant) {
-        $sppt->tenant_name    = $tenant->store_name; // <-- label yg ditampilkan Select2
-        $sppt->no_unit_tenant = trim(
-            ($tenant->floor_id ? $tenant->floor_id : '') .
-            ($tenant->store_no ? (' - '.$tenant->store_no) : '')
-        );
-    }
-}
-
-// ===== (Opsional) Prefill PIC: ambil nama lengkap utk label Select2 PIC
-if (!empty($sppt->pic_pengawas)) {
-    $pic = \App\Models\User::where('username', $sppt->pic_pengawas)
-        ->first(['username','name as full_name']);
-    if ($pic) {
-        $sppt->pic_name = $pic->full_name;
-    }
-}
-
-
-    // ===== Detail + eager load lokasi (sudah OK)
-    $spptdetail = TrSPPTdetail::with([
-            'location:location_id,location_name',
-            'subLocation:sub_location_id,sub_location_name',
-        ])
-        ->where('spptid', $sppt->spptid)
-        ->get()
-        ->map(function ($d) {
-            $d->location_name     = optional($d->location)->location_name;
-            $d->sub_location_name = optional($d->subLocation)->sub_location_name;
-            return $d;
-        });
-
-    $user      = request()->user();
-    $usercpny  = Usercpny::where('username', $user->username)->get();
-    $usercpny2 = Usercpny::where('username', $user->username)->first();
-    $userdept  = Userdept::where('username', $user->username)->get();
-    $userdept2 = Userdept::where('username', $user->username)->first();
-
-    $rows = TrAttachment::where('refnbr', $sppt->spptid)
-        ->where('status', 'A')
-        ->orderBy('created_at', 'desc')
-        ->get();
-
-    $config      = config('filesystems.disks.gcs');
-    $keyFilePath = $config['key_file'];
-    if (!Str::startsWith($keyFilePath, ['/','C:\\','D:\\'])) {
-        $keyFilePath = base_path($keyFilePath);
-    }
-    $storage = new StorageClient([
-        'projectId'   => $config['project_id'],
-        'keyFilePath' => $keyFilePath,
-    ]);
-    $bucket = $storage->bucket($config['bucket']);
-
-    $attachments = $rows->map(function ($r) use ($bucket) {
-        $objectPath = rtrim($r->folder, '/').'/'.$r->filename;
-        $object     = $bucket->object($objectPath);
-        $signedUrl  = null;
-        try {
-            $signedUrl = $object->signedUrl(
-                new \DateTimeImmutable('+10 minutes'),
-                ['version' => 'v4']
-            );
-        } catch (\Throwable $e) {
-            \Log::warning('Signed URL gagal', ['path' => $objectPath, 'error' => $e->getMessage()]);
-        }
-        return (object) [
-            'id'           => $r->id,
-            'display_name' => $r->attachment_name,
-            'created_by'   => $r->created_by,
-            'created_at'   => $r->created_at,
-            'url'          => $signedUrl,
-            'folder'       => $r->folder,
-            'filename'     => $r->filename,
-            'extention'    => $r->extention,
-            'size'         => $r->filesize,
-        ];
-    });
-
-    return view('pages.sppts.editsppts', compact(
-        'sppt','spptdetail','usercpny','usercpny2','userdept','userdept2','attachments','hash'
-    ));
-}
 
 
 
@@ -718,6 +713,12 @@ if (!empty($sppt->pic_pengawas)) {
         $doctype   = 'PT';
         $username  = $user->username ?? 'system';
         $fullname  = $user->name ?? 'system';
+
+         // ===== generate TrApproval dari MsApproval sesuai context =====
+        $approvalCtl = app(ApprovalController::class);
+
+        // Pastikan line approval ada (kalau mau validasi awal sebelum simpan detail, panggil loadLines)
+        $approvalCtl->loadLines($doctype, $request->cpnyid, $request->departementid);
 
         // helper: normalisasi angka (tahan "12.000", "1.234,56", "12,5")
         $toFloat = function ($v): ?float {
@@ -778,6 +779,8 @@ if (!empty($sppt->pic_pengawas)) {
         $itemTypes    = array_values($request->input('item_type', []));
         $itemCats     = array_values($request->input('item_category', []));
 
+        $inventorySubTypes   = array_values($request->input('item_sub_type', []));
+
         // arrays UoM tambahan
         $purchaseUnits = array_values($request->input('purchase_unit', []));      // hidden dari UI
         $uomMultDivs   = array_values($request->input('uom_unitmultdiv', []));    // 'M'/'D'
@@ -821,6 +824,7 @@ if (!empty($sppt->pic_pengawas)) {
                     'uom'                      => $displayUom,
                     'note'                     => $notes[$i] ?? null,
                     'inventory_type'                => $itemTypes[$i] ?? null,
+                    'inventory_sub_type'            => $inventorySubTypes[$i] ?? null,
                     'inventory_category'            => $itemCats[$i] ?? null,
 
                     // >>> ini yang ditambahkan <<<
@@ -877,36 +881,82 @@ if (!empty($sppt->pic_pengawas)) {
             $header->totalopenordered = $totalQty;
             $header->save();
 
-            // === regenerasi T_approval (opsional, ikuti logikamu) ===
-            $approvals = M_approval::where([
-                ['status', '=', 'A'],
-                ['aprvcpnyid', '=', $request->cpnyid],
-                ['aprvdeptid', '=', $request->departementid],
-                ['aprvdoctype', '=', $doctype],
-            ])->get();
+            // // === regenerasi T_approval (opsional, ikuti logikamu) ===
+            // $approvals = M_approval::where([
+            //     ['status', '=', 'A'],
+            //     ['aprvcpnyid', '=', $request->cpnyid],
+            //     ['aprvdeptid', '=', $request->departementid],
+            //     ['aprvdoctype', '=', $doctype],
+            // ])->get();
 
-            foreach ($approvals as $a) {
-                T_approval::create([
-                    'docid'          => $header->spptid,
-                    'aprvid'         => $a->aprvid,
-                    'aprvdoctype'    => $a->aprvdoctype,
-                    'aprvcpnyid'     => $a->aprvcpnyid,
-                    'aprvdeptid'     => $a->aprvdeptid,
-                    'aprvusername'   => $a->aprvusername,
-                    'name'           => $a->name,
-                    'aprvdatebefore' => $a->aprvid == 1 ? $datestamp : null,
-                    'aprvtotalday'   => 1,
-                    'status'         => 'P',
-                    'created_user'   => $username,
-                ]);
+            // foreach ($approvals as $a) {
+            //     T_approval::create([
+            //         'docid'          => $header->spptid,
+            //         'aprvid'         => $a->aprvid,
+            //         'aprvdoctype'    => $a->aprvdoctype,
+            //         'aprvcpnyid'     => $a->aprvcpnyid,
+            //         'aprvdeptid'     => $a->aprvdeptid,
+            //         'aprvusername'   => $a->aprvusername,
+            //         'name'           => $a->name,
+            //         'aprvdatebefore' => $a->aprvid == 1 ? $datestamp : null,
+            //         'aprvtotalday'   => 1,
+            //         'status'         => 'P',
+            //         'created_user'   => $username,
+            //     ]);
+            // }
+
+            // $firstApprovalUsernames = optional($approvals->first())->aprvusername;
+            // if ($firstApprovalUsernames) {
+            //     $header->completed_by = $firstApprovalUsernames;
+            //     $header->completed_at = $dt;
+            //     $header->save();
+            // }
+
+             // 1) Urgent → dari header field is_urgent (boolean atau "1"/"true")
+            $isUrgent = (bool) $request->input('is_urgent', false);
+
+            // 2) Komputer → hanya kategori pada BARIS PERTAMA yang non-empty
+            $firstCategory = null;
+            if (!empty($inventoryCategories)) {
+                foreach ($inventoryCategories as $c) {
+                    if (!empty($c)) { $firstCategory = $c; break; }
+                }
             }
 
-            $firstApprovalUsernames = optional($approvals->first())->aprvusername;
+            // 3) Fixed Asset → minimal ada SATU detail dengan inventory_sub_type = Fixed Asset / FA
+            $hasFixedAssetSubtype = false;
+            foreach ((array)$inventorySubTypes as $sub) {
+                $s = mb_strtolower((string)$sub);
+                if ($s === 'fixed asset' || $s === 'fa') { $hasFixedAssetSubtype = true; break; }
+            }
+
+            // 4) Build context untuk ApprovalController
+            $ctx = [
+                'is_urgent'                => $isUrgent,
+                'first_inventory_category' => $firstCategory,
+                'has_fixed_asset_subtype'  => $hasFixedAssetSubtype,
+                'ignore_nominal'           => true,   // SPPT diminta tidak cek nominal
+                // 'grand_total'           => ...     // tidak dipakai di SPPT
+            ];
+
+            // Generate TrApproval
+            [$firstApprovalUsernames, $linesCount] = $approvalCtl->generateForDocument(
+                $header->spptid,
+                $doctype,
+                $request->cpnyid,
+                $request->departementid,
+                $username,
+                $ctx,
+                $dt
+            );
+
+            // (opsional) simpan hint approver pertama di header seperti sebelumnya
             if ($firstApprovalUsernames) {
-                $header->completed_by = $firstApprovalUsernames;
-                $header->completed_at = $dt;
+                $header->updated_by = $firstApprovalUsernames;
+                $header->updated_at = $dt;
                 $header->save();
             }
+
 
             // attachments (tetap)
             // if ($request->hasfile('attachments')) {
@@ -966,52 +1016,68 @@ if (!empty($sppt->pic_pengawas)) {
                 }
             }
 
-            // email approver pertama (tetap)
-            $firstApproval = T_approval::where('docid', $header->spptid)
-                ->where('status', 'P')
-                ->orderBy('aprvid')
-                ->first();
+            // // email approver pertama (tetap)
+            // $firstApproval = T_approval::where('docid', $header->spptid)
+            //     ->where('status', 'P')
+            //     ->orderBy('aprvid')
+            //     ->first();
 
-            if ($firstApproval) {
-                $status = $header->status; // 'P' | 'R' | 'D' | 'A' | 'C'
+            // if ($firstApproval) {
+            //     $status = $header->status; // 'P' | 'R' | 'D' | 'A' | 'C'
 
-                $subjectMap = [
-                    'P' => 'Waiting Approval',
-                    'R' => 'Rejected Approval',
-                    'D' => 'Revise Approval',
-                    'A' => 'Approved',
-                    'C' => 'Completed',
-                ];
-                $subjectSuffix = $subjectMap[$status] ?? 'Notification';
+            //     $subjectMap = [
+            //         'P' => 'Waiting Approval',
+            //         'R' => 'Rejected Approval',
+            //         'D' => 'Revise Approval',
+            //         'A' => 'Approved',
+            //         'C' => 'Completed',
+            //     ];
+            //     $subjectSuffix = $subjectMap[$status] ?? 'Notification';
 
-                $eid = Hashids::encode($header->id);
+            //     $eid = Hashids::encode($header->id);
                 
-                $data = [
-                    'docid'    => $firstApproval->docid,
-                    'cpnyid'   => $firstApproval->aprvcpnyid,
-                    'deptname' => $firstApproval->aprvdeptid,
-                    'date'     => $firstApproval->aprvdatebefore,
-                    'name'     => $firstApproval->name,
-                    'createdby'=> $header->created_by,
-                    'info'     => $request->keperluan,
-                    'status'   => $status,
-                    'docname'  => 'SPPT',
-                    'url'      => url('/showsppts/' . $eid),
-                ];
+            //     $data = [
+            //         'docid'    => $firstApproval->docid,
+            //         'cpnyid'   => $firstApproval->aprvcpnyid,
+            //         'deptname' => $firstApproval->aprvdeptid,
+            //         'date'     => $firstApproval->aprvdatebefore,
+            //         'name'     => $firstApproval->name,
+            //         'createdby'=> $header->created_by,
+            //         'info'     => $request->keperluan,
+            //         'status'   => $status,
+            //         'docname'  => 'SPPT',
+            //         'url'      => url('/showsppts/' . $eid),
+            //     ];
 
-                $approvers = array_filter(array_map('trim', explode(',', (string)$firstApproval->aprvusername)));
-                $emails = User::whereIn('username', $approvers)
-                    ->where('status', 'A')
-                    ->pluck('test_email');
+            //     $approvers = array_filter(array_map('trim', explode(',', (string)$firstApproval->aprvusername)));
+            //     $emails = User::whereIn('username', $approvers)
+            //         ->where('status', 'A')
+            //         ->pluck('test_email');
 
-                foreach ($emails as $email) {
-                    \Mail::send('emails.mailapprovenew', $data, function ($message) use ($email, $data) {
-                        $message->to($email)
-                            ->subject($data['docid'].' - Waiting Approval SPPT')
-                            ->from('digitalserver@pakuwon.com', 'Pakuwon System');
-                    });
-                }
-            }
+            //     foreach ($emails as $email) {
+            //         \Mail::send('emails.mailapprovenew', $data, function ($message) use ($email, $data) {
+            //             $message->to($email)
+            //                 ->subject($data['docid'].' - Waiting Approval SPPT')
+            //                 ->from('digitalserver@pakuwon.com', 'Pakuwon System');
+            //         });
+            //     }
+            // }
+
+            $eid = Hashids::encode($header->id);
+
+            $approvalCtl->notifyFirstApprover(
+                    $header->spptid,
+                    $doctype,
+                    $header->status,                 // 'P' | 'R' | 'D' | 'A' | 'C'
+                    'SPPT',
+                    url('/showsppts/' . $eid),
+                    [
+                        'info'      => $request->keperluan,
+                        'createdby' => $header->created_by,
+                        'date'      => $dt->toDateTimeString(),
+                    ]
+            );
+
 
             DB::commit();
             return response()->json(['message' => 'SPPT updated successfully']);
@@ -1064,11 +1130,11 @@ if (!empty($sppt->pic_pengawas)) {
         ->where('spptid', $sppt->spptid)
         ->get();
         
-        $approval = T_approval::where('docid', $sppt->spptid)
-            ->where('status','<>','X')      
-            ->orderBy('created_at')
-            ->orderBy('aprvid')      
-            ->get();
+        // $approval = T_approval::where('docid', $sppt->spptid)
+        //     ->where('status','<>','X')      
+        //     ->orderBy('created_at')
+        //     ->orderBy('aprvid')      
+        //     ->get();
        
         // $attachment = Attachment::where('docid', $sppt->spptid)    
         //     ->where('status','A')        
@@ -1128,432 +1194,628 @@ if (!empty($sppt->pic_pengawas)) {
             $bq->eid = Hashids::encode($bq->id);
         }
        
-        return view('pages.sppts.showsppts', compact('sppt','approval','attachments','spptdetail','bq','hash'));
+        return view('pages.sppts.showsppts', compact('sppt','attachments','spptdetail','bq','hash'));
     }
    
-    
-
     public function approveSppt(Request $request, $docid)
     {
-        $now  = Carbon::now();
-        $user = $request->user();
+        $user    = $request->user();
+        $doctype = 'PT';
 
-        // $sppt = TrSPPT::where('spptid', $docid)->first();
-        $sppt = TrSPPT::with('creator')
-            ->where('spptid', $docid)
-            ->first();
+        $sppt = TrSPPT::with('creator')->where('spptid', $docid)->first();
+        if (!$sppt) return response()->json(['success'=>false,'message'=>'SPPT not found'],404);
+
+        $eid      = \Vinkla\Hashids\Facades\Hashids::encode($sppt->id);
+        $docUrl   = url('/showsppts/' . $eid);
         $fullname = data_get($sppt, 'creator.name') ?: $sppt->created_by;
 
-        if (!$sppt) {
-            return response()->json(['success' => false, 'message' => 'SPPT not found'], 404);
-        }
+        $result = app(\App\Http\Controllers\ApprovalController::class)->approveStep(
+            $sppt->spptid,
+            $doctype,
+            $user->username,
+            $user->name,
 
-        // pastikan user memang approver aktif (status P) di doc ini
-        $tApproval = T_approval::where('docid', $sppt->spptid)
-            ->where('status', 'P')
-            ->where('aprvusername', 'like', "%{$user->username}%")
-            ->whereNotNull('aprvdatebefore') 
-            ->orderBy('aprvid', 'ASC')
-            ->first();
-
-        if (!$tApproval) {
-            return response()->json(['success' => false, 'message' => "You can't approve!"], 403);
-        }
-
-        DB::beginTransaction();
-        try {
-            // Set current approver -> Approved
-            $tApproval->status         = 'A';
-            $tApproval->aprvdateafter  = $now;
-            $tApproval->aprvusername   = $user->username;
-            $tApproval->name           = $user->name;
-            $tApproval->save();
-
-            // Update header informasi "terakhir diproses"
-            $sppt->completed_by = $user->username;
-            $sppt->completed_at = $now;
-            $sppt->save();
-
-            // Hitung sisa pending setelah approve ini
-            $pendingCount = T_approval::where('docid', $sppt->spptid)
-                ->where('status', 'P')
-                ->count();
-
-            // Pemetaan judul sesuai status
-            $subjectMap = [
-                'P' => 'Waiting Approval',
-                'R' => 'Rejected Approval',
-                'D' => 'Revise Approval',
-                'A' => 'Approved',
-                'C' => 'Completed',
-            ];
-
-            $eid = Hashids::encode($sppt->id);
-
-            if ($pendingCount === 0) {
-                // Tidak ada approver lagi -> dokumen complete
+            // complete: update header/detail + email creator complete
+            function (string $refnbr, \Carbon\Carbon $now) use ($sppt, $fullname, $docUrl) {
                 $sppt->status       = 'C';
-                $sppt->completed_by = $user->username;
+                $sppt->completed_by = $sppt->completed_by ?: auth()->user()->username;
                 $sppt->completed_at = $now;
                 $sppt->save();
 
-                $spptdetail = TrSPPTdetail::where('spptid', $sppt->spptid)                
-                    ->get();
+                TrSPPTdetail::where('spptid', $sppt->spptid)->update(['status' => 'C']);
 
-                foreach ($spptdetail as $d) {
-                    $d->status = 'C'; 
-                    $d->save();
-                }
+                app(\App\Http\Controllers\ApprovalController::class)->notifyRequesterOnStatus(
+                    $sppt->spptid,
+                    'SPPT',
+                    'C',
+                    $sppt->created_by,
+                    $docUrl,
+                    [
+                        'cpnyid'   => $sppt->cpny_id ?? $sppt->cpnyid ?? '',
+                        'deptname' => $sppt->department_id ?? $sppt->departementid ?? '',
+                        'date'     => $sppt->spptdate,
+                        'info'     => $sppt->keperluan,
+                        'fullname' => $fullname,
+                        'name'     => $fullname,
+                        'createdby'=> $fullname, 
+                    ]
+                );
+            },
 
-                // Kirim email ke requester (creator)
-                $status        = 'C';
-                $subjectSuffix = $subjectMap[$status] ?? 'Notification';
-
-                $data = [
-                    'docid'     => $sppt->spptid,
-                    'cpnyid'    => $sppt->cpny_id ?? $sppt->cpnyid ?? '',
-                    'deptname'  => $sppt->department_id ?? $sppt->departementid ?? '',
-                    'date'      => $sppt->spptdate,
-                    'fullname'  => $fullname,  // nama penerima di email
-                    'name'      => $fullname,  // fallback
-                    'createdby' => $fullname,
-                    'docname'   => 'SPPT',
-                    'info'      => $sppt->keperluan,
-                    'status'    => $status,
-                    'url'       => url('/showsppts/' . $eid),
-                ];
-
-                $recipients = User::where('username', $sppt->created_by)
-                    ->where('status', 'A')
-                    ->get();
-
-                foreach ($recipients as $rcp) {
-                    try {
-                        Mail::send('emails.mailapprovenew', $data, function ($message) use ($data, $rcp, $subjectSuffix) {
-                            $to = $rcp->test_email ?? $rcp->email; // pakai field yang memang ada
-                            $message->to($to)
-                                ->subject($data['docid'] . ' - ' . $subjectSuffix . ' SPPT')
-                                ->from('digitalserver@pakuwon.com', 'Pakuwon System');
-                        });
-                    } catch (\Throwable $e) {
-                        Log::error('Failed sending SPPT completion email', ['error' => $e->getMessage()]);
-                    }
-                }
-            } else {
-                // Masih ada approver berikutnya -> cari level berikutnya (P terrendah aprvid)
-                $next = T_approval::where('docid', $sppt->spptid)
-                    ->where('status', 'P')
-                    ->orderBy('aprvid', 'ASC')
-                    ->first();
-
-                if ($next) {
-                    // Stempel "datebefore" untuk approver berikutnya
-                    $next->aprvdatebefore = $now;
-                    $next->save();
-
-                    // Kirim email ke semua username yang ada di kolom aprvusername (dipisah koma)
-                    $status        = 'P';
-                    $subjectSuffix = $subjectMap[$status] ?? 'Notification';
-
-                    $data = [
-                        'docid'     => $next->docid,
-                        'cpnyid'    => $next->aprvcpnyid,
-                        'deptname'  => $next->aprvdeptid,
-                        'date'      => $next->aprvdatebefore,
-                        'fullname'  => $next->name,
-                        'name'      => $next->name,
-                        'createdby' => $sppt->created_by,
-                        'docname'   => 'SPPT',
+            // notify next approver
+            function ($next, \Carbon\Carbon $now) use ($sppt, $docUrl) {
+                app(\App\Http\Controllers\ApprovalController::class)->notifyFirstApprover(
+                    $sppt->spptid,
+                    'PT',
+                    'P',
+                    'SPPT',
+                    $docUrl,
+                    [
                         'info'      => $sppt->keperluan,
-                        'status'    => $status,
-                        'url'       => url('/showsppts/' . $eid),
-                    ];
+                        'createdby' => $sppt->created_by,
+                        'date'      => $now->toDateTimeString(),
+                    ]
+                );
 
-                    $usernames = array_filter(array_map('trim', explode(',', (string) $next->aprvusername)));
-                    if (!empty($usernames)) {
-                        $recipients = User::whereIn('username', $usernames)
-                            ->where('status', 'A')
-                            ->get();
-
-                        foreach ($recipients as $rcp) {
-                            try {
-                                Mail::send('emails.mailapprovenew', $data, function ($message) use ($data, $rcp, $subjectSuffix) {
-                                    $to = $rcp->test_email ?? $rcp->email;
-                                    $message->to($to)
-                                        ->subject($data['docid'] . ' - ' . $subjectSuffix . ' SPPT')
-                                        ->from('digitalserver@pakuwon.com', 'Pakuwon System');
-                                });
-                            } catch (\Throwable $e) {
-                                Log::error('Failed sending SPPT waiting-approval email', ['error' => $e->getMessage()]);
-                            }
-                        }
-                    } else {
-                        Log::warning('Next approver has empty aprvusername list', ['docid' => $sppt->spptid]);
-                    }
-                }
+                // jejak terakhir diproses (optional)
+                $sppt->completed_by = auth()->user()->username;
+                $sppt->completed_at = $now;
+                $sppt->save();
             }
+        );
 
-            DB::commit();
-            return response()->json(['success' => true, 'message' => 'Task approved successfully']);
-        } catch (\Throwable $e) {
-            DB::rollBack();
-            Log::error('Approve SPPT failed', ['error' => $e->getMessage()]);
-            return response()->json(['success' => false, 'message' => 'Approve failed'], 500);
+        if (!$result['ok']) {
+            return response()->json(['success'=>false,'message'=>$result['message'] ?? 'Approve failed'], 403);
         }
+
+        return response()->json(['success'=>true,'message'=>'Task approved successfully']);
     }
-    
+
     public function rejectSppt(Request $request, $docid)
     {
-        $now  = Carbon::now();
-        $user = $request->user();
+        $user    = $request->user();
+        $doctype = 'PT';
 
-        // $sppt = TrSPPT::where('spptid', $docid)->first();
-        $sppt = TrSPPT::with('creator')
-            ->where('spptid', $docid)
-            ->first();
+        $sppt = \App\Models\TrSPPT::with('creator')->where('spptid', $docid)->first();
+        if (!$sppt) return response()->json(['success'=>false,'message'=>'SPPT not found'],404);
+
+        $eid      = \Vinkla\Hashids\Facades\Hashids::encode($sppt->id);
+        $docUrl   = url('/showsppts/' . $eid);
         $fullname = data_get($sppt, 'creator.name') ?: $sppt->created_by;
 
-        if (!$sppt) {
-            return response()->json(['success' => false, 'message' => 'Task not found'], 404);
-        }
+        $result = app(\App\Http\Controllers\ApprovalController::class)->rejectStep(
+            $sppt->spptid,
+            $doctype,
+            $user->username,
+            $user->name,
 
-        // Validasi: user harus approver aktif (status P) pada dokumen ini
-        $tApproval = T_approval::where('docid', $sppt->spptid)
-            ->where('status', 'P')
-            ->where('aprvusername', 'like', "%{$user->username}%")
-            ->whereNotNull('aprvdatebefore') 
-            ->orderBy('aprvid', 'ASC')
-            ->first();
+            function (string $refnbr, \Carbon\Carbon $now) use ($sppt, $fullname, $docUrl) {
+                $sppt->status       = 'R';
+                $sppt->completed_by = auth()->user()->username;
+                $sppt->completed_at = $now;
+                $sppt->save();
 
-        if (!$tApproval) {
-            return response()->json(['success' => false, 'message' => "You can't reject!"], 403);
-        }
+                // optional: tandai detail R
+                // \App\Models\TrSPPTdetail::where('spptid', $sppt->spptid)->update(['status' => 'R']);
 
-        DB::beginTransaction();
-        try {
-            // Tandai approval saat ini sebagai Rejected
-            $tApproval->status        = 'R';
-            $tApproval->aprvdateafter = $now;
-            $tApproval->aprvusername  = $user->username; // catat siapa yang reject
-            $tApproval->name          = $user->name;
-            $tApproval->save();
+                app(\App\Http\Controllers\ApprovalController::class)->notifyRequesterOnStatus(
+                    $sppt->spptid,
+                    'SPPT',
+                    'R',
+                    $sppt->created_by,
+                    $docUrl,
+                    [
+                        'cpnyid'   => $sppt->cpny_id ?? $sppt->cpnyid ?? '',
+                        'deptname' => $sppt->department_id ?? $sppt->departementid ?? '',
+                        'date'     => $now->toDateString(),
+                        'info'     => $sppt->keperluan,
+                        'fullname' => $fullname,
+                        'name'     => $fullname,
+                        'createdby'=> $fullname, 
+                    ]
+                );
 
-            // Update header SPPT
-            $sppt->status       = 'R';
-            $sppt->completed_by = $user->username;
-            $sppt->completed_at = $now;
-            $sppt->save();
-
-            // Batalkan semua approval yang masih pending
-            T_approval::where('docid', $sppt->spptid)
-                ->where('status', 'P')
-                ->update(['status' => 'X']);
-
-            DB::commit();
-        } catch (\Throwable $e) {
-            DB::rollBack();
-            Log::error('Reject SPPT failed', ['docid' => $docid, 'error' => $e->getMessage()]);
-            return response()->json(['success' => false, 'message' => 'Reject failed'], 500);
-        }
-
-        // === Kirim Email ke requester (creator) ===
-        $status = 'R'; // Rejected
-        $subjectMap = [
-            'P' => 'Waiting Approval',
-            'R' => 'Rejected Approval',
-            'D' => 'Revise Approval',
-            'A' => 'Approved',
-            'C' => 'Completed',
-        ];
-        $subjectSuffix = $subjectMap[$status] ?? 'Notification';
-
-        $eid = Hashids::encode($sppt->id);
-
-        $data = [
-            'docid'     => $sppt->spptid,
-            'cpnyid'    => $sppt->cpny_id ?? $sppt->cpnyid ?? '',
-            'deptname'  => $sppt->department_id ?? $sppt->departementid ?? '',
-            'date'      => $now->toDateString(),            // bisa juga pakai $tApproval->aprvdateafter
-            'fullname'  => $fullname,               // view email kita pakai $fullname
-            'name'      => $fullname,               // fallback jika view pakai $name
-            'createdby' => $fullname,
-            'docname'   => 'SPPT',
-            'info'      => $sppt->keperluan,
-            'status'    => $status,
-            'url'       => url('/showsppts/' . $eid),
-        ];
-
-        $recipients = User::where('username', $sppt->created_by)
-            ->where('status', 'A')
-            ->get();
-
-        foreach ($recipients as $rcp) {
-            try {
-                $to = $rcp->test_email ?? $rcp->email; // sesuaikan field yang tersedia
-                Mail::send('emails.mailapprovenew', $data, function ($message) use ($data, $to, $subjectSuffix) {
-                    $message->to($to)
-                        ->subject($data['docid'] . ' - ' . $subjectSuffix . ' SPPT')
-                        ->from('digitalserver@pakuwon.com', 'Pakuwon System');
-                });
-            } catch (\Throwable $e) {
-                Log::error('Failed sending SPPT rejected email', [
-                    'docid' => $data['docid'],
-                    'to'    => $rcp->username,
-                    'error' => $e->getMessage()
-                ]);
+                // simpan komentar (jika ada)
+                try {
+                    app('App\Http\Controllers\SendCommentController')->sendmsg($sppt->id, 'PT', request());
+                } catch (\Throwable $e) {}
             }
+        );
+
+        if (!$result['ok']) {
+            return response()->json(['success'=>false,'message'=>$result['message'] ?? 'Reject failed'], 403);
         }
 
-        // Simpan komentar penolakan (jika ada)
-        try {
-            app('App\Http\Controllers\SendCommentController')
-                ->sendmsg($sppt->id, 'PT', $request);
-        } catch (\Throwable $e) {
-            Log::warning('SendComment after reject failed', [
-                'docid' => $sppt->spptid,
-                'error' => $e->getMessage()
-            ]);
-        }
-
-        return response()->json(['success' => true, 'message' => 'SPPT rejected successfully']);
+        return response()->json(['success'=>true,'message'=>'SPPT rejected successfully']);
     }
 
     public function reviseSppt(Request $request, $docid)
     {
-        $now  = Carbon::now();
-        $user = $request->user();
+        $user    = $request->user();
+        $doctype = 'PT';
 
-        // $sppt = TrSPPT::where('spptid', $docid)->first();
-        $sppt = TrSPPT::with('creator')
-            ->where('spptid', $docid)
-            ->first();
+        $sppt = \App\Models\TrSPPT::with('creator')->where('spptid', $docid)->first();
+        if (!$sppt) return response()->json(['success'=>false,'message'=>'SPPT not found'],404);
+
+        $eid      = \Vinkla\Hashids\Facades\Hashids::encode($sppt->id);
+        $docUrl   = url('/showsppts/' . $eid);
         $fullname = data_get($sppt, 'creator.name') ?: $sppt->created_by;
-            
-        if (!$sppt) {
-            return response()->json(['success' => false, 'message' => 'SPPT not found'], 404);
-        }
 
-        // Pastikan user adalah approver aktif (status P) dokumen ini
-        $tApproval = T_approval::where('docid', $sppt->spptid)
-            ->where('status', 'P')
-            ->where('aprvusername', 'like', "%{$user->username}%")
-            ->whereNotNull('aprvdatebefore') 
-            ->orderBy('aprvid', 'ASC')
-            ->first();
+        $result = app(\App\Http\Controllers\ApprovalController::class)->reviseStep(
+            $sppt->spptid,            // refnbr
+            $doctype,                 // PT
+            $user->username,          // actor
+            $user->name,              // actor
+            function (string $refnbr, \Carbon\Carbon $now) use ($sppt, $fullname, $docUrl) {
+                // === HEADER SPPT -> D ===
+                $sppt->status       = 'D';
+                $sppt->completed_by = auth()->user()->username;
+                $sppt->completed_at = $now;
+                $sppt->save();
 
-        if (!$tApproval) {
-            return response()->json(['success' => false, 'message' => "You can't revise!"], 403);
-        }
+                // (opsional) DETAIL -> D
+                // \App\Models\TrSPPTdetail::where('spptid', $sppt->spptid)->update(['status' => 'D']);
 
-        DB::beginTransaction();
-        try {
-            // Tandai approval saat ini sebagai Revise (D)
-            $tApproval->status        = 'D';
-            $tApproval->aprvdateafter = $now;
-            $tApproval->aprvusername  = $user->username;  // catat siapa yang revise
-            $tApproval->name          = $user->name;
-            $tApproval->save();
+                // === Email ke requester ===
+                app(\App\Http\Controllers\ApprovalController::class)->notifyRequesterOnStatus(
+                    $sppt->spptid,
+                    'SPPT',
+                    'D',
+                    $sppt->created_by,
+                    $docUrl,
+                    [
+                        'cpnyid'   => $sppt->cpny_id ?? $sppt->cpnyid ?? '',
+                        'deptname' => $sppt->department_id ?? $sppt->departementid ?? '',
+                        'date'     => $now->toDateString(),
+                        'info'     => $sppt->keperluan,
+                        'fullname' => $fullname,
+                        'name'     => $fullname,
+                        'createdby'=> $fullname,   // <<< tambahkan ini
+                    ]
+                );
 
-            // Update header SPPT
-            $sppt->status       = 'D';
-            $sppt->completed_by = $user->username;        // mengikuti pola existing
-            $sppt->completed_at = $now;
-            $sppt->save();
 
-            // Batalkan approval lain yang masih pending
-            T_approval::where('docid', $sppt->spptid)
-                ->where('status', 'P')
-                ->update(['status' => 'X']);
-
-            DB::commit();
-        } catch (\Throwable $e) {
-            DB::rollBack();
-            Log::error('Revise SPPT failed', ['docid' => $docid, 'error' => $e->getMessage()]);
-            return response()->json(['success' => false, 'message' => 'Revise failed'], 500);
-        }
-
-        // === Kirim email ke requester (creator) ===
-        $status = 'D'; // Revise
-        $subjectMap = [
-            'P' => 'Waiting Approval',
-            'R' => 'Rejected Approval',
-            'D' => 'Revise Approval',
-            'A' => 'Approved',
-            'C' => 'Completed',
-        ];
-        $subjectSuffix = $subjectMap[$status] ?? 'Notification';
-
-        $eid = Hashids::encode($sppt->id);
-
-        $data = [
-            'docid'     => $sppt->spptid,
-            'cpnyid'    => $sppt->cpny_id ?? $sppt->cpnyid ?? '',
-            'deptname'  => $sppt->department_id ?? $sppt->departementid ?? '',
-            'date'      => $now->toDateString(),          // atau $tApproval->aprvdateafter
-            'fullname'  => $fullname,             // template email pakai $fullname
-            'name'      => $fullname,             // fallback jika view pakai $name
-            'createdby' => $fullname,
-            'docname'   => 'SPPT',
-            'info'      => $sppt->keperluan,
-            'status'    => $status,
-            'url'       => url('/showsppts/' . $eid),
-        ];
-
-        $recipients = User::where('username', $sppt->created_by)
-            ->where('status', 'A')
-            ->get();
-
-        foreach ($recipients as $rcp) {
-            try {
-                $to = $rcp->test_email ?? $rcp->email; // sesuaikan dengan kolom yang ada
-                Mail::send('emails.mailapprovenew', $data, function ($message) use ($data, $to, $subjectSuffix) {
-                    $message->to($to)
-                        ->subject($data['docid'] . ' - ' . $subjectSuffix . ' SPPT')
-                        ->from('digitalserver@pakuwon.com', 'Pakuwon System');
-                });
-            } catch (\Throwable $e) {
-                Log::error('Failed sending SPPT revise email', [
-                    'docid' => $data['docid'],
-                    'to'    => $rcp->username,
-                    'error' => $e->getMessage()
-                ]);
+                // === Simpan komentar (jika ada) ===
+                try {
+                    app('App\Http\Controllers\SendCommentController')->sendmsg($sppt->id, 'PT', request());
+                } catch (\Throwable $e) {}
             }
+        );
+
+        if (!$result['ok']) {
+            return response()->json([
+                'success'=>false,
+                'message'=>$result['message'] ?? 'Revise failed'
+            ], 403);
         }
 
-        // Simpan komentar revisi (jika ada)
-        try {
-            app('App\Http\Controllers\SendCommentController')
-                ->sendmsg($sppt->id, 'PT', $request);
-        } catch (\Throwable $e) {
-            Log::warning('SendComment after revise failed', [
-                'docid' => $sppt->spptid,
-                'error' => $e->getMessage()
-            ]);
-        }
-
-        return response()->json(['success' => true, 'message' => 'SPPT revised successfully']);
+        return response()->json(['success'=>true,'message'=>'SPPT revised successfully']);
     }
+
+
+
+
+    // public function approveSppt(Request $request, $docid)
+    // {
+    //     $now  = Carbon::now();
+    //     $user = $request->user();
+
+    //     // $sppt = TrSPPT::where('spptid', $docid)->first();
+    //     $sppt = TrSPPT::with('creator')
+    //         ->where('spptid', $docid)
+    //         ->first();
+    //     $fullname = data_get($sppt, 'creator.name') ?: $sppt->created_by;
+
+    //     if (!$sppt) {
+    //         return response()->json(['success' => false, 'message' => 'SPPT not found'], 404);
+    //     }
+
+    //     // pastikan user memang approver aktif (status P) di doc ini
+    //     $tApproval = T_approval::where('docid', $sppt->spptid)
+    //         ->where('status', 'P')
+    //         ->where('aprvusername', 'like', "%{$user->username}%")
+    //         ->whereNotNull('aprvdatebefore') 
+    //         ->orderBy('aprvid', 'ASC')
+    //         ->first();
+
+    //     if (!$tApproval) {
+    //         return response()->json(['success' => false, 'message' => "You can't approve!"], 403);
+    //     }
+
+    //     DB::beginTransaction();
+    //     try {
+    //         // Set current approver -> Approved
+    //         $tApproval->status         = 'A';
+    //         $tApproval->aprvdateafter  = $now;
+    //         $tApproval->aprvusername   = $user->username;
+    //         $tApproval->name           = $user->name;
+    //         $tApproval->save();
+
+    //         // Update header informasi "terakhir diproses"
+    //         $sppt->completed_by = $user->username;
+    //         $sppt->completed_at = $now;
+    //         $sppt->save();
+
+    //         // Hitung sisa pending setelah approve ini
+    //         $pendingCount = T_approval::where('docid', $sppt->spptid)
+    //             ->where('status', 'P')
+    //             ->count();
+
+    //         // Pemetaan judul sesuai status
+    //         $subjectMap = [
+    //             'P' => 'Waiting Approval',
+    //             'R' => 'Rejected Approval',
+    //             'D' => 'Revise Approval',
+    //             'A' => 'Approved',
+    //             'C' => 'Completed',
+    //         ];
+
+    //         $eid = Hashids::encode($sppt->id);
+
+    //         if ($pendingCount === 0) {
+    //             // Tidak ada approver lagi -> dokumen complete
+    //             $sppt->status       = 'C';
+    //             $sppt->completed_by = $user->username;
+    //             $sppt->completed_at = $now;
+    //             $sppt->save();
+
+    //             $spptdetail = TrSPPTdetail::where('spptid', $sppt->spptid)                
+    //                 ->get();
+
+    //             foreach ($spptdetail as $d) {
+    //                 $d->status = 'C'; 
+    //                 $d->save();
+    //             }
+
+    //             // Kirim email ke requester (creator)
+    //             $status        = 'C';
+    //             $subjectSuffix = $subjectMap[$status] ?? 'Notification';
+
+    //             $data = [
+    //                 'docid'     => $sppt->spptid,
+    //                 'cpnyid'    => $sppt->cpny_id ?? $sppt->cpnyid ?? '',
+    //                 'deptname'  => $sppt->department_id ?? $sppt->departementid ?? '',
+    //                 'date'      => $sppt->spptdate,
+    //                 'fullname'  => $fullname,  // nama penerima di email
+    //                 'name'      => $fullname,  // fallback
+    //                 'createdby' => $fullname,
+    //                 'docname'   => 'SPPT',
+    //                 'info'      => $sppt->keperluan,
+    //                 'status'    => $status,
+    //                 'url'       => url('/showsppts/' . $eid),
+    //             ];
+
+    //             $recipients = User::where('username', $sppt->created_by)
+    //                 ->where('status', 'A')
+    //                 ->get();
+
+    //             foreach ($recipients as $rcp) {
+    //                 try {
+    //                     Mail::send('emails.mailapprovenew', $data, function ($message) use ($data, $rcp, $subjectSuffix) {
+    //                         $to = $rcp->test_email ?? $rcp->email; // pakai field yang memang ada
+    //                         $message->to($to)
+    //                             ->subject($data['docid'] . ' - ' . $subjectSuffix . ' SPPT')
+    //                             ->from('digitalserver@pakuwon.com', 'Pakuwon System');
+    //                     });
+    //                 } catch (\Throwable $e) {
+    //                     Log::error('Failed sending SPPT completion email', ['error' => $e->getMessage()]);
+    //                 }
+    //             }
+    //         } else {
+    //             // Masih ada approver berikutnya -> cari level berikutnya (P terrendah aprvid)
+    //             $next = T_approval::where('docid', $sppt->spptid)
+    //                 ->where('status', 'P')
+    //                 ->orderBy('aprvid', 'ASC')
+    //                 ->first();
+
+    //             if ($next) {
+    //                 // Stempel "datebefore" untuk approver berikutnya
+    //                 $next->aprvdatebefore = $now;
+    //                 $next->save();
+
+    //                 // Kirim email ke semua username yang ada di kolom aprvusername (dipisah koma)
+    //                 $status        = 'P';
+    //                 $subjectSuffix = $subjectMap[$status] ?? 'Notification';
+
+    //                 $data = [
+    //                     'docid'     => $next->docid,
+    //                     'cpnyid'    => $next->aprvcpnyid,
+    //                     'deptname'  => $next->aprvdeptid,
+    //                     'date'      => $next->aprvdatebefore,
+    //                     'fullname'  => $next->name,
+    //                     'name'      => $next->name,
+    //                     'createdby' => $sppt->created_by,
+    //                     'docname'   => 'SPPT',
+    //                     'info'      => $sppt->keperluan,
+    //                     'status'    => $status,
+    //                     'url'       => url('/showsppts/' . $eid),
+    //                 ];
+
+    //                 $usernames = array_filter(array_map('trim', explode(',', (string) $next->aprvusername)));
+    //                 if (!empty($usernames)) {
+    //                     $recipients = User::whereIn('username', $usernames)
+    //                         ->where('status', 'A')
+    //                         ->get();
+
+    //                     foreach ($recipients as $rcp) {
+    //                         try {
+    //                             Mail::send('emails.mailapprovenew', $data, function ($message) use ($data, $rcp, $subjectSuffix) {
+    //                                 $to = $rcp->test_email ?? $rcp->email;
+    //                                 $message->to($to)
+    //                                     ->subject($data['docid'] . ' - ' . $subjectSuffix . ' SPPT')
+    //                                     ->from('digitalserver@pakuwon.com', 'Pakuwon System');
+    //                             });
+    //                         } catch (\Throwable $e) {
+    //                             Log::error('Failed sending SPPT waiting-approval email', ['error' => $e->getMessage()]);
+    //                         }
+    //                     }
+    //                 } else {
+    //                     Log::warning('Next approver has empty aprvusername list', ['docid' => $sppt->spptid]);
+    //                 }
+    //             }
+    //         }
+
+    //         DB::commit();
+    //         return response()->json(['success' => true, 'message' => 'Task approved successfully']);
+    //     } catch (\Throwable $e) {
+    //         DB::rollBack();
+    //         Log::error('Approve SPPT failed', ['error' => $e->getMessage()]);
+    //         return response()->json(['success' => false, 'message' => 'Approve failed'], 500);
+    //     }
+    // }
+    
+    // public function rejectSppt(Request $request, $docid)
+    // {
+    //     $now  = Carbon::now();
+    //     $user = $request->user();
+
+    //     // $sppt = TrSPPT::where('spptid', $docid)->first();
+    //     $sppt = TrSPPT::with('creator')
+    //         ->where('spptid', $docid)
+    //         ->first();
+    //     $fullname = data_get($sppt, 'creator.name') ?: $sppt->created_by;
+
+    //     if (!$sppt) {
+    //         return response()->json(['success' => false, 'message' => 'Task not found'], 404);
+    //     }
+
+    //     // Validasi: user harus approver aktif (status P) pada dokumen ini
+    //     $tApproval = T_approval::where('docid', $sppt->spptid)
+    //         ->where('status', 'P')
+    //         ->where('aprvusername', 'like', "%{$user->username}%")
+    //         ->whereNotNull('aprvdatebefore') 
+    //         ->orderBy('aprvid', 'ASC')
+    //         ->first();
+
+    //     if (!$tApproval) {
+    //         return response()->json(['success' => false, 'message' => "You can't reject!"], 403);
+    //     }
+
+    //     DB::beginTransaction();
+    //     try {
+    //         // Tandai approval saat ini sebagai Rejected
+    //         $tApproval->status        = 'R';
+    //         $tApproval->aprvdateafter = $now;
+    //         $tApproval->aprvusername  = $user->username; // catat siapa yang reject
+    //         $tApproval->name          = $user->name;
+    //         $tApproval->save();
+
+    //         // Update header SPPT
+    //         $sppt->status       = 'R';
+    //         $sppt->completed_by = $user->username;
+    //         $sppt->completed_at = $now;
+    //         $sppt->save();
+
+    //         // Batalkan semua approval yang masih pending
+    //         T_approval::where('docid', $sppt->spptid)
+    //             ->where('status', 'P')
+    //             ->update(['status' => 'X']);
+
+    //         DB::commit();
+    //     } catch (\Throwable $e) {
+    //         DB::rollBack();
+    //         Log::error('Reject SPPT failed', ['docid' => $docid, 'error' => $e->getMessage()]);
+    //         return response()->json(['success' => false, 'message' => 'Reject failed'], 500);
+    //     }
+
+    //     // === Kirim Email ke requester (creator) ===
+    //     $status = 'R'; // Rejected
+    //     $subjectMap = [
+    //         'P' => 'Waiting Approval',
+    //         'R' => 'Rejected Approval',
+    //         'D' => 'Revise Approval',
+    //         'A' => 'Approved',
+    //         'C' => 'Completed',
+    //     ];
+    //     $subjectSuffix = $subjectMap[$status] ?? 'Notification';
+
+    //     $eid = Hashids::encode($sppt->id);
+
+    //     $data = [
+    //         'docid'     => $sppt->spptid,
+    //         'cpnyid'    => $sppt->cpny_id ?? $sppt->cpnyid ?? '',
+    //         'deptname'  => $sppt->department_id ?? $sppt->departementid ?? '',
+    //         'date'      => $now->toDateString(),            // bisa juga pakai $tApproval->aprvdateafter
+    //         'fullname'  => $fullname,               // view email kita pakai $fullname
+    //         'name'      => $fullname,               // fallback jika view pakai $name
+    //         'createdby' => $fullname,
+    //         'docname'   => 'SPPT',
+    //         'info'      => $sppt->keperluan,
+    //         'status'    => $status,
+    //         'url'       => url('/showsppts/' . $eid),
+    //     ];
+
+    //     $recipients = User::where('username', $sppt->created_by)
+    //         ->where('status', 'A')
+    //         ->get();
+
+    //     foreach ($recipients as $rcp) {
+    //         try {
+    //             $to = $rcp->test_email ?? $rcp->email; // sesuaikan field yang tersedia
+    //             Mail::send('emails.mailapprovenew', $data, function ($message) use ($data, $to, $subjectSuffix) {
+    //                 $message->to($to)
+    //                     ->subject($data['docid'] . ' - ' . $subjectSuffix . ' SPPT')
+    //                     ->from('digitalserver@pakuwon.com', 'Pakuwon System');
+    //             });
+    //         } catch (\Throwable $e) {
+    //             Log::error('Failed sending SPPT rejected email', [
+    //                 'docid' => $data['docid'],
+    //                 'to'    => $rcp->username,
+    //                 'error' => $e->getMessage()
+    //             ]);
+    //         }
+    //     }
+
+    //     // Simpan komentar penolakan (jika ada)
+    //     try {
+    //         app('App\Http\Controllers\SendCommentController')
+    //             ->sendmsg($sppt->id, 'PT', $request);
+    //     } catch (\Throwable $e) {
+    //         Log::warning('SendComment after reject failed', [
+    //             'docid' => $sppt->spptid,
+    //             'error' => $e->getMessage()
+    //         ]);
+    //     }
+
+    //     return response()->json(['success' => true, 'message' => 'SPPT rejected successfully']);
+    // }
+
+    // public function reviseSppt(Request $request, $docid)
+    // {
+    //     $now  = Carbon::now();
+    //     $user = $request->user();
+
+    //     // $sppt = TrSPPT::where('spptid', $docid)->first();
+    //     $sppt = TrSPPT::with('creator')
+    //         ->where('spptid', $docid)
+    //         ->first();
+    //     $fullname = data_get($sppt, 'creator.name') ?: $sppt->created_by;
+            
+    //     if (!$sppt) {
+    //         return response()->json(['success' => false, 'message' => 'SPPT not found'], 404);
+    //     }
+
+    //     // Pastikan user adalah approver aktif (status P) dokumen ini
+    //     $tApproval = T_approval::where('docid', $sppt->spptid)
+    //         ->where('status', 'P')
+    //         ->where('aprvusername', 'like', "%{$user->username}%")
+    //         ->whereNotNull('aprvdatebefore') 
+    //         ->orderBy('aprvid', 'ASC')
+    //         ->first();
+
+    //     if (!$tApproval) {
+    //         return response()->json(['success' => false, 'message' => "You can't revise!"], 403);
+    //     }
+
+    //     DB::beginTransaction();
+    //     try {
+    //         // Tandai approval saat ini sebagai Revise (D)
+    //         $tApproval->status        = 'D';
+    //         $tApproval->aprvdateafter = $now;
+    //         $tApproval->aprvusername  = $user->username;  // catat siapa yang revise
+    //         $tApproval->name          = $user->name;
+    //         $tApproval->save();
+
+    //         // Update header SPPT
+    //         $sppt->status       = 'D';
+    //         $sppt->completed_by = $user->username;        // mengikuti pola existing
+    //         $sppt->completed_at = $now;
+    //         $sppt->save();
+
+    //         // Batalkan approval lain yang masih pending
+    //         T_approval::where('docid', $sppt->spptid)
+    //             ->where('status', 'P')
+    //             ->update(['status' => 'X']);
+
+    //         DB::commit();
+    //     } catch (\Throwable $e) {
+    //         DB::rollBack();
+    //         Log::error('Revise SPPT failed', ['docid' => $docid, 'error' => $e->getMessage()]);
+    //         return response()->json(['success' => false, 'message' => 'Revise failed'], 500);
+    //     }
+
+    //     // === Kirim email ke requester (creator) ===
+    //     $status = 'D'; // Revise
+    //     $subjectMap = [
+    //         'P' => 'Waiting Approval',
+    //         'R' => 'Rejected Approval',
+    //         'D' => 'Revise Approval',
+    //         'A' => 'Approved',
+    //         'C' => 'Completed',
+    //     ];
+    //     $subjectSuffix = $subjectMap[$status] ?? 'Notification';
+
+    //     $eid = Hashids::encode($sppt->id);
+
+    //     $data = [
+    //         'docid'     => $sppt->spptid,
+    //         'cpnyid'    => $sppt->cpny_id ?? $sppt->cpnyid ?? '',
+    //         'deptname'  => $sppt->department_id ?? $sppt->departementid ?? '',
+    //         'date'      => $now->toDateString(),          // atau $tApproval->aprvdateafter
+    //         'fullname'  => $fullname,             // template email pakai $fullname
+    //         'name'      => $fullname,             // fallback jika view pakai $name
+    //         'createdby' => $fullname,
+    //         'docname'   => 'SPPT',
+    //         'info'      => $sppt->keperluan,
+    //         'status'    => $status,
+    //         'url'       => url('/showsppts/' . $eid),
+    //     ];
+
+    //     $recipients = User::where('username', $sppt->created_by)
+    //         ->where('status', 'A')
+    //         ->get();
+
+    //     foreach ($recipients as $rcp) {
+    //         try {
+    //             $to = $rcp->test_email ?? $rcp->email; // sesuaikan dengan kolom yang ada
+    //             Mail::send('emails.mailapprovenew', $data, function ($message) use ($data, $to, $subjectSuffix) {
+    //                 $message->to($to)
+    //                     ->subject($data['docid'] . ' - ' . $subjectSuffix . ' SPPT')
+    //                     ->from('digitalserver@pakuwon.com', 'Pakuwon System');
+    //             });
+    //         } catch (\Throwable $e) {
+    //             Log::error('Failed sending SPPT revise email', [
+    //                 'docid' => $data['docid'],
+    //                 'to'    => $rcp->username,
+    //                 'error' => $e->getMessage()
+    //             ]);
+    //         }
+    //     }
+
+    //     // Simpan komentar revisi (jika ada)
+    //     try {
+    //         app('App\Http\Controllers\SendCommentController')
+    //             ->sendmsg($sppt->id, 'PT', $request);
+    //     } catch (\Throwable $e) {
+    //         Log::warning('SendComment after revise failed', [
+    //             'docid' => $sppt->spptid,
+    //             'error' => $e->getMessage()
+    //         ]);
+    //     }
+
+    //     return response()->json(['success' => true, 'message' => 'SPPT revised successfully']);
+    // }
     
 
-    public function checkApproval($id, $action)
-    {
-        $user = Auth::user(); // Ambil user yang login
-        // dd($action);
-        // Query dasar untuk pengecekan
-        $query = T_approval::where('docid', $id)
-                    ->where('aprvusername', 'like', '%' . $user->username . '%')
-                    ->where('status', 'P');                 
+    // public function checkApproval($id, $action)
+    // {
+    //     $user = Auth::user(); // Ambil user yang login
+    //     // dd($action);
+    //     // Query dasar untuk pengecekan
+    //     $query = T_approval::where('docid', $id)
+    //                 ->where('aprvusername', 'like', '%' . $user->username . '%')
+    //                 ->where('status', 'P');                 
 
-        // Jika aksi adalah reject atau revise, pastikan aprvdatebefore tidak null
-        if (in_array($action, ['reject', 'revise','approve'])) {
-            $query->whereNotNull('aprvdatebefore');
-        }
+    //     // Jika aksi adalah reject atau revise, pastikan aprvdatebefore tidak null
+    //     if (in_array($action, ['reject', 'revise','approve'])) {
+    //         $query->whereNotNull('aprvdatebefore');
+    //     }
 
-        // Cek apakah user bisa melakukan aksi
-        $canPerformAction = $query->exists();
+    //     // Cek apakah user bisa melakukan aksi
+    //     $canPerformAction = $query->exists();
 
-        return response()->json(['canPerformAction' => $canPerformAction]);
-    }
+    //     return response()->json(['canPerformAction' => $canPerformAction]);
+    // }
 
     public function tracking($hash)
     {
@@ -1755,10 +2017,16 @@ if (!empty($sppt->pic_pengawas)) {
             ->get();
 
         // Approval list (non-cancelled)
-        $approval = T_approval::where('docid', $sppt->spptid)
-            ->where('status', '<>', 'X')
-            ->orderBy('aprvid')
-            ->orderBy('created_at')
+        // $approval = T_approval::where('docid', $sppt->spptid)
+        //     ->where('status', '<>', 'X')
+        //     ->orderBy('aprvid')
+        //     ->orderBy('created_at')
+        //     ->get();
+        $approval = TrApproval::query()
+            ->where('refnbr', $sppt->spptid)          // dulu: docid
+            ->where('status', '<>', 'X')           
+            ->orderByRaw('CAST(aprv_leveling AS numeric) ASC')
+            ->orderBy('created_at', 'ASC')            // tie-breaker kalau leveling sama
             ->get();
 
         $approve_count = $approval->count();

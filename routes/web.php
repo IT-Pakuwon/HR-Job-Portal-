@@ -433,7 +433,7 @@ Route::post('/logout', function () {
     Route::get('/editsppbs/{hash}', [SppbController::class, 'editSppb']);
     Route::put('/sppbs/{id}', [SppbController::class, 'updateSppb'])->name('sppbs.update');
     Route::put('/sppbs/remove-attachment/{id}', [SppbController::class, 'removeAttachment']);    
-    Route::get('/sppb/{id}/check-approval/{action}', [SppbController::class, 'checkApproval']);     
+    // Route::get('/sppb/{id}/check-approval/{action}', [SppbController::class, 'checkApproval']);     
     Route::get('/sppbs/{id}/tracking', [SppbController::class, 'tracking'])->name('sppbs.tracking');
     Route::get('/pdf_sppbs/{hash}', [SppbController::class, 'printSppb']);    
 
@@ -448,7 +448,7 @@ Route::post('/logout', function () {
     Route::get('/editsppjs/{hash}', [SppjController::class, 'editSppj']);
     Route::put('/sppjs/{id}', [SppjController::class, 'updateSppj'])->name('sppjs.update');
     Route::put('/sppjs/remove-attachment/{id}', [SppjController::class, 'removeAttachment']);    
-    Route::get('/sppj/{id}/check-approval/{action}', [SppjController::class, 'checkApproval']);     
+    // Route::get('/sppj/{id}/check-approval/{action}', [SppjController::class, 'checkApproval']);     
     Route::get('/sppjs/{id}/tracking', [SppjController::class, 'tracking'])->name('sppjs.tracking');
     Route::get('/showbqsppjs/{hash}', [SppjController::class, 'showBQ']);
     Route::get('/editbqsppjs/{id}', [SppjController::class, 'editBQ'])->name('bqsppj.edit');    

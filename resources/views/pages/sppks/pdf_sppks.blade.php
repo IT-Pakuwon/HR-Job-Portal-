@@ -288,13 +288,13 @@
                             'P' => 'orange',
                             default => 'red',
                         };
-                        $dateStr = $dt2->aprvdateafter
-                            ? \Carbon\Carbon::parse($dt2->aprvdateafter)->format('d M Y H:i')
+                        $dateStr = $dt2->aprv_dateafter
+                            ? \Carbon\Carbon::parse($dt2->aprv_dateafter)->format('d M Y H:i')
                             : '';
                     @endphp
                     <td>
                         <div><span class="sig-num">{{ $idx++ }}.</span><span
-                                class="sig-name">{{ $dt2->name }}</span></div>
+                                class="sig-name">{{ $dt2->aprv_name }}</span></div>
                         <div class="sig-status {{ $color }}">{{ $label }}</div>
                         <div>{{ $dateStr }}</div>
                     </td>

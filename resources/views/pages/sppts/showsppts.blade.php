@@ -379,7 +379,9 @@
                                             <th class="p-3 text-left font-semibold">Status</th>
                                         </tr>
                                     </thead>
-                                    <tbody>
+                                    <tbody id="approval-table-body">                                       
+                                    </tbody>
+                                    {{-- <tbody>
                                         @foreach ($approval as $ap)
                                             <tr
                                                 class="border-b border-gray-100 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700">
@@ -421,7 +423,7 @@
                                                 </td>
                                             </tr>
                                         @endforeach
-                                    </tbody>
+                                    </tbody> --}}
                                 </table>
                             </div>
 
@@ -739,7 +741,7 @@
         const HAS_BQ = @json((bool) $sppt->bqid);
         const BQ_ID = @json($sppt->bqid ?? '');
 
-        function approveSPPJ(spptid) {
+        function approveSPPT(spptid) {
             const $spinner = $("#loadingSpinnerContainer");
             $spinner.fadeIn();
             // return jqXHR supaya bisa .always()
@@ -752,7 +754,7 @@
                 },
                 success: function(res) {
                     if (res.success) {
-                        toastr.success("SPPJ approved successfully!");
+                        toastr.success("SPPT approved successfully!");
                         window.location.href = "/sppts";
                     } else {
                         toastr.error(res.message || "Error: Unable to approve sppt.");
@@ -779,7 +781,7 @@
             if ($btn.data('busy')) return; // cegah double click
             $btn.data('busy', true).prop('disabled', true);
 
-            approveSPPJ("{{ $sppt->spptid }}").always(function() {
+            approveSPPT("{{ $sppt->spptid }}").always(function() {
                 $btn.data('busy', false).prop('disabled', false);
             });
         });
@@ -836,7 +838,7 @@
                                     "w-full max-w-32 bg-red-300/30 dark:bg-red-300 text-red-600 flex justify-items-center focus:outline-none pointer-events-none    -none font-semibold px-2 py-0.5 rounded"
                                 );
                             $spinner.fadeOut();
-
+                            toastr.success("SPPT Rejected successfully!");
                             window.location.href = "/sppts";
                         } else {
                             alert("Failed to reject sppt.");
@@ -903,6 +905,7 @@
                                     "w-full max-w-32 bg-red-300/30 dark:bg-red-300 text-red-600 flex justify-items-center focus:outline-none pointer-events-none    -none font-semibold px-2 py-0.5 rounded"
                                 );
                             $spinner.fadeOut();
+                        toastr.success("SPPT Revised successfully!");
                             window.location.href = "/sppts";
                         } else {
                             alert("Failed to revise sppt.");
@@ -926,7 +929,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
     <!-- Toastr JS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
-    <script>
+    {{-- <script>
         function checkApproval(spptid, action) {
             console.log(spptid, '-', action);
             $.ajax({
@@ -947,6 +950,33 @@
                     } else {
                         // Jika user tidak boleh melakukan aksi, tampilkan popup toastr
                         toastr.error("You are not authorized to " + action + " this sppt.");
+                    }
+                },
+                error: function() {
+                    toastr.error("Error checking approval status.");
+                }
+            });
+        }
+    </script> --}}
+    <script>
+        function checkApproval(spptid, action) {
+            $.ajax({
+                url: `/approval/${spptid}/check/${action}?doctype=PT`,
+                type: "GET",
+                success: function(response) {
+                    if (response.canPerformAction) {
+
+                        if (action === "reject") {
+                            $("#rejectReason").val("");
+                            $("#rejectTaskModal").removeClass("hidden").css("z-index", "60");
+
+                        } else if (action === "revise") {
+                            $("#reviseReason").val("");
+                            $("#reviseTaskModal").removeClass("hidden").css("z-index", "60");
+                        }
+
+                    } else {
+                        toastr.error("You are not authorized to " + action + " this SPPT.");
                     }
                 },
                 error: function() {
@@ -1065,6 +1095,74 @@
         });
     </script>
 
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+
+            const spptid  = "{{ $sppt->spptid }}";   // contoh: PT2501010001
+            const doctype = "PT";
+
+            loadApproval(spptid, doctype);
+        });
+
+        function loadApproval(refnbr, doctype) {
+            fetch(`/approval/${refnbr}/${doctype}`)
+                .then(response => response.json())
+                .then(res => {
+                    const tbody = document.querySelector("#approval-table-body");
+                    tbody.innerHTML = ""; // reset
+
+                    res.data.forEach(row => {
+                        const statusLabel = getStatusLabel(row.status);
+
+                        tbody.innerHTML += `
+                            <tr class="border-b border-gray-100 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700">
+                                <td class="p-3">${row.aprv_leveling}</td>
+                                <td class="p-3">${row.aprv_name}</td>
+                                <td class="p-3">${formatDate(row.aprv_dateafter)}</td>
+                                <td class="p-3">${statusLabel}</td>
+                            </tr>
+                        `;
+                    });
+                })
+                .catch(err => console.error("Approval fetch failed →", err));
+        }
+
+        function formatDate(dateString) {
+            if (!dateString) return "-";
+            const d = new Date(dateString);
+            const options = { year: "numeric", month: "short", day: "numeric" };
+            return d.toLocaleDateString("en-US", options);
+        }
+
+        function getStatusLabel(status) {
+            let statusText = "";
+            let statusClass = "";
+
+            switch (status) {
+                case "P":
+                    statusText = "Waiting Approval";
+                    statusClass = "bg-yellow-500 text-white";
+                    break;
+                case "A":
+                    statusText = "Approved";
+                    statusClass = "bg-green-500 text-white";
+                    break;
+                case "R":
+                    statusText = "Rejected";
+                    statusClass = "bg-red-500 text-white";
+                    break;
+                case "D":
+                    statusText = "Revise";
+                    statusClass = "bg-blue-500 text-white";
+                    break;
+                default:
+                    statusText = "Unknown";
+                    statusClass = "bg-gray-500 text-white";
+            }
+
+            return `<span class="${statusClass} inline-block rounded-full px-3 py-1 text-xs font-semibold">${statusText}</span>`;
+        }
+    </script>
 
 
 
