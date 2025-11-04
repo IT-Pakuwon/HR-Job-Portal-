@@ -47,7 +47,11 @@ use App\Http\Controllers\TrAttachmentController;
 use Illuminate\Support\Facades\Response;
 use App\Models\TrAttachment;
 use Google\Cloud\Storage\StorageClient;
-
+use App\Http\Controllers\ApprovalController;
+use App\Models\TrApproval;   
+use App\Models\MsPurchSetting; 
+use App\Models\TrIMBudget;
+use App\Http\Controllers\IMBudgetController; 
 
 
 class CanvassController extends Controller
@@ -207,8 +211,488 @@ class CanvassController extends Controller
         })->values();
     }
 
-
     public function storeCS(Request $request)
+    {
+        // ==== Ambil input dasar dari form ====
+        $doc          = strtoupper($request->input('doc'));          // SPPB|SPPJ|SPPK|SPPT
+        $srcId        = $request->input('src_id');                   // id sumber doc (numeric PK table sumber)
+        $sppbjktid    = $request->input('sppbjktid');                // nomor doc sumber yg ditaruh di field ini
+        $cpnyId       = $request->input('cpny_id');
+        $deptId       = $request->input('department_id');
+        $bqid         = $request->input('bqid');
+        $userPeminta  = $request->input('user_peminta');
+        $csnote       = $request->input('csnote');
+        $assigndate   = $request->input('assigndate');
+
+        // Dari JS: vendors[] + details[]
+        $vendors = json_decode($request->input('vendors', '[]'), true) ?: [];
+        $details = json_decode($request->input('details', '[]'), true) ?: [];
+
+        $user     = $request->user();
+        $username = $user->username ?? 'system';
+
+        $dt      = \Carbon\Carbon::now();
+        $year    = $dt->year;
+        $month   = str_pad($dt->month, 2, '0', STR_PAD_LEFT);
+
+        $round2 = fn($n) => round((float)$n, 2);
+        $safeSet = function ($model, string $table, string $column, $value) {
+            if (\Illuminate\Support\Facades\Schema::connection('pgsql')->hasColumn($table, $column)) {
+                $model->{$column} = $value;
+            }
+        };
+
+        // ==== Approval (CS hanya cek NOMINAL) ====
+        $doctype       = 'CS';
+        $approvalCtl   = app(\App\Http\Controllers\ApprovalController::class);
+
+        // Validasi line approval tersedia
+        $approvalCtl->loadLines($doctype, $cpnyId, $deptId);
+
+        \DB::connection('pgsql')->beginTransaction();
+        try {
+            // ==== 1) Ambil header & detail sumber (SPPB/J/K/T) ====
+            $srcHeader  = null;
+            $srcDetails = collect();
+            $srcLineKey = null; // nama kolom nomor urut detail di sumber
+
+            switch ($doc) {
+                case 'SPPB':
+                    $srcHeader  = \App\Models\TrSPPB::with(['requestType', 'creator', 'purchaser'])->findOrFail($srcId);
+                    $srcLineKey = 'sppb_no';
+                    $srcDetails = \App\Models\TrSPPBdetail::where('sppbid', $srcHeader->sppbid)->orderBy($srcLineKey)->get();
+                    break;
+                case 'SPPJ':
+                    $srcHeader  = \App\Models\TrSPPJ::with(['requestType', 'creator', 'purchaser'])->findOrFail($srcId);
+                    $srcLineKey = 'sppj_no';
+                    $srcDetails = \App\Models\TrSPPJdetail::where('sppjid', $srcHeader->sppjid)->orderBy($srcLineKey)->get();
+                    break;
+                case 'SPPK':
+                    $srcHeader  = \App\Models\TrSPPK::with(['requestType', 'creator', 'purchaser'])->findOrFail($srcId);
+                    $srcLineKey = 'sppk_no';
+                    $srcDetails = \App\Models\TrSPPKdetail::where('sppkid', $srcHeader->sppkid)->orderBy($srcLineKey)->get();
+                    break;
+                case 'SPPT':
+                    $srcHeader  = \App\Models\TrSPPT::with(['requestType', 'creator', 'purchaser'])->findOrFail($srcId);
+                    $srcLineKey = 'sppt_no';
+                    $srcDetails = \App\Models\TrSPPTdetail::where('spptid', $srcHeader->spptid)->orderBy($srcLineKey)->get();
+                    break;
+                default:
+                    abort(422, 'Invalid doc type');
+            }
+
+            // Index-kan detail sumber untuk matching
+            $srcIndex = [];
+            foreach ($srcDetails as $sd) {
+                $key = strtoupper(trim(($sd->inventoryid ?? ''))) . '|' .
+                    strtoupper(trim(($sd->uom ?? ''))) . '|' .
+                    strtoupper(trim(($sd->inventory_descr ?? '')));
+                $srcIndex[$key] = $sd;
+            }
+
+            // ==== 2) Generate autonbr CS (lock) ====
+            $autonbr = \App\Models\Autonbr::lockForUpdate()
+                ->where('doctype', $doctype)
+                ->where('year',   $year)
+                ->where('month',  $month)
+                ->first();
+
+            if (!$autonbr) {
+                $autonbr = \App\Models\Autonbr::create([
+                    'doctype' => $doctype,
+                    'year'    => $year,
+                    'month'   => $month,
+                    'status'  => 'A',
+                    'number'  => 1,
+                ]);
+                $urutan = 1;
+            } else {
+                $urutan = $autonbr->number + 1;
+                $autonbr->update(['number' => $urutan]);
+            }
+
+            $tglbln = substr($year, 2) . $month; // YYMM
+            $csid   = $doctype . $tglbln . sprintf("%04d", $urutan);
+
+            // ==== 3) Simpan header TrCS ====
+            $cs = new \App\Models\TrCS();
+            $cs->setConnection('pgsql');
+            $cs->csid          = $csid;
+            $cs->csdate        = $dt->toDateString();
+            $cs->cpny_id       = $cpnyId;
+            $cs->sppbjktid     = $sppbjktid;                          // referensi dok sumber
+            $cs->bqid          = $bqid ?: ($srcHeader->bqid ?? null);
+            $cs->department_id = $deptId ?: ($srcHeader->department_id ?? null);
+            $cs->user_peminta  = $userPeminta ?: (optional($srcHeader->creator)->name ?? null);
+            $cs->csnote        = $csnote ?: null;
+            $cs->assigndate    = $assigndate ?: null;
+            $cs->submitdate    = $dt;
+            $cs->status        = 'P';
+            $cs->created_by    = $username;
+
+            // Lengkapi dari header sumber bila kolomnya ada
+            $csTable = $cs->getTable();
+            $safeSet($cs, $csTable, 'budget_perpost', $srcHeader->budget_perpost ?? null);
+            $safeSet($cs, $csTable, 'woid',           $srcHeader->woid           ?? null);
+            $safeSet($cs, $csTable, 'spbid',          $srcHeader->spbid          ?? null);
+
+            // Map maksimal 6 vendor untuk header (basic info & total vendor versi "display")
+            for ($i = 0; $i < min(count($vendors), 6); $i++) {
+                $idx = $i + 1;
+                $v   = $vendors[$i];
+
+                $safeSet($cs, $csTable, "vendorid{$idx}",      $v['vendorid']        ?? null);
+                $safeSet($cs, $csTable, "vendorname{$idx}",    $v['vendorname']      ?? null);
+                $safeSet($cs, $csTable, "vendoralamat{$idx}",  $v['vendoralamat']    ?? null);
+                $safeSet($cs, $csTable, "vendortelp{$idx}",    $v['vendortelp']      ?? null);
+                $safeSet($cs, $csTable, "vendorcp{$idx}",      $v['vendorcp']        ?? null);
+                $safeSet($cs, $csTable, "vendortop{$idx}",     $v['vendortop']       ?? null);
+                $safeSet($cs, $csTable, "vendornote{$idx}",    $v['vendornote']      ?? null);
+
+                // angka ini opsional dari UI; nanti kita hitung ulang dari detail di bawah (selectedByVendor)
+                $safeSet($cs, $csTable, "totalvendor{$idx}",              $round2($v['total']          ?? 0));
+                $safeSet($cs, $csTable, "taxcodevendor{$idx}",            $v['taxcode']                ?? null);
+                $safeSet($cs, $csTable, "ppnvendor{$idx}",                $round2($v['ppn']            ?? 0));
+                $safeSet($cs, $csTable, "pphvendor{$idx}",                $round2($v['pph']            ?? 0));
+                $safeSet($cs, $csTable, "taxvendor{$idx}",                $round2($v['tax']            ?? 0));
+                $safeSet($cs, $csTable, "grandtotalvendor{$idx}",         $round2($v['grand']          ?? 0));
+
+                // kolom “selected” akan DI-ISI ULANG dari akumulasi detail
+                $safeSet($cs, $csTable, "totalselectedvendor{$idx}",      0);
+                $safeSet($cs, $csTable, "taxselectedvendor{$idx}",        0);
+                $safeSet($cs, $csTable, "grandtotalselectedvendor{$idx}", 0);
+            }
+
+            $cs->save();
+
+            // ==== 4) Simpan detail TrCSdetail & hitung grand total selected (untuk approval nominal) ====
+            $lineNo           = 0;
+            $docSelectedGrand = 0.0; // untuk approval nominal
+            // akumulator per vendor slot (1..6) – diisi dari detail yg selected
+            $selectedByVendor = [];
+            for ($i = 1; $i <= 6; $i++) {
+                $selectedByVendor[$i] = ['total' => 0.0, 'tax' => 0.0, 'grand' => 0.0];
+            }
+
+            foreach ($details as $d) {
+                $lineNo++;
+
+                // Cari pasangan di detail sumber (exact match) → fallback by index
+                $matchKey = strtoupper(trim(($d['inventoryid'] ?? ''))) . '|' .
+                            strtoupper(trim(($d['uom'] ?? ''))) . '|' .
+                            strtoupper(trim(($d['inventory_descr'] ?? '')));
+                $src = $srcIndex[$matchKey] ?? ($srcDetails[$lineNo - 1] ?? null);
+
+                $srcRefNo = $src ? ($src->{$srcLineKey} ?? null) : null;
+
+                $det = new \App\Models\TrCSdetail();
+                $det->setConnection('pgsql');
+                $det->csid                 = $csid;
+                $det->sppbjktid            = $sppbjktid;
+                $det->cs_no                = $lineNo;
+                $det->sppbjkt_no           = $srcRefNo;
+
+                // ==== inventory fields (payload > sumber) ====
+                $det->inventory_type       = $d['inventory_type']        ?? ($src->inventory_type ?? null);
+                $det->inventoryid          = $d['inventoryid']           ?? ($src->inventoryid ?? null);
+                $det->inventory_descr      = $d['inventory_descr']       ?? ($src->inventory_descr ?? null);
+
+                // >>> tambah ini supaya tidak null <<<
+                $det->inventory_sub_type   = $d['inventory_sub_type']    ?? ($src->inventory_sub_type ?? null);
+                $det->inventory_category   = $d['inventory_category']    ?? ($src->inventory_category ?? null);
+
+                $det->qty                  = $round2($d['qty']           ?? ($src->qty ?? 0));
+                $det->uom                  = $d['uom']                   ?? ($src->uom ?? null);
+
+                // Konversi UOM dari sumber (jika ada)
+                $det->type_multiplier      = $src->type_multiplier       ?? null;
+                $det->base_multiplier      = isset($src->base_multiplier) ? $round2($src->base_multiplier) : null;
+                $det->base_qty             = isset($src->base_qty)        ? $round2($src->base_qty)        : null;
+                $det->base_uom             = $src->base_uom ?? null;
+
+                // Harga terakhir & note detail
+                $det->inventory_last_price = isset($d['inventory_last_price']) ? $round2($d['inventory_last_price'])
+                                            : (isset($src->inventory_last_price) ? $round2($src->inventory_last_price) : 0);
+                $det->csnote_detail        = $d['csnote_detail'] ?? ($src->note ?? null);
+
+                // Lokasi & budgeting (ambil dari sumber bila ada)
+                $det->location_id               = $src->location_id               ?? null;
+                $det->sub_location_id           = $src->sub_location_id           ?? null;
+                $det->budget_perpost            = $src->budget_perpost            ?? null;
+                $det->budget_cpny_id            = $cpnyId; // tetap perusahaan CS
+                $det->budget_business_unit_id   = $src->budget_business_unit_id   ?? null;
+                $det->budget_department_fin_id  = $src->budget_department_fin_id  ?? null;
+                $det->budget_account_id         = $src->budget_account_id         ?? null;
+                $det->budget_activity_id        = $src->budget_activity_id        ?? null;
+
+                // Map harga per vendor (maks 6) + akumulasi selected per vendor
+                $selectedTotalThisRow = 0.0;
+                $selectedTaxThisRow   = 0.0;
+                $selectedGrandThisRow = 0.0;
+
+                for ($i = 0; $i < min(count($d['vendor'] ?? []), 6); $i++) {
+                    $idx   = $i + 1;
+                    $vrow  = $d['vendor'][$i];
+                    $vid   = $vrow['vendorid'] ?? null;
+                    $price = $round2($vrow['price'] ?? 0);
+                    $total = $round2($vrow['total'] ?? 0);
+                    // tax bisa datang sebagai ppn/pph atau tax; grand bisa datang sebagai grand atau total+tax
+                    $ppn   = $round2($vrow['ppn']   ?? 0);
+                    $pph   = $round2($vrow['pph']   ?? 0);
+                    $tax   = $round2($vrow['tax']   ?? ($ppn + $pph));
+                    $grand = $round2($vrow['grand'] ?? ($total + $tax));
+                    $sel   = !empty($vrow['selected']);
+
+                    $det->{"vendorid{$idx}"}         = $vid;
+                    $det->{"vendorprice{$idx}"}      = $price;
+                    $det->{"vendortotalprice{$idx}"} = $total;
+                    $det->{"vendor{$idx}selected"}   = (bool)$sel;
+
+                    if ($sel) {
+                        $selectedTotalThisRow = $total;
+                        $selectedTaxThisRow   = $tax;
+                        $selectedGrandThisRow = $grand;
+
+                        // akumulasi ke header per vendor slot
+                        $selectedByVendor[$idx]['total'] += $total;
+                        $selectedByVendor[$idx]['tax']   += $tax;
+                        $selectedByVendor[$idx]['grand'] += $grand;
+                    }
+                }
+
+                $docSelectedGrand += $selectedGrandThisRow;
+
+                $det->status     = 'P';
+                $det->created_by = $username;
+                $det->save();
+            }
+
+            // ==== 5) Update ordered/openordered pada dokumen sumber (untuk baris yang selected) ====
+            $addedTotalOrdered = 0.0;
+            foreach ($details as $i => $d) {
+                // ada vendor dipilih?
+                $isSelected = false;
+                foreach (($d['vendor'] ?? []) as $vrow) {
+                    if (!empty($vrow['selected'])) { $isSelected = true; break; }
+                }
+                if (!$isSelected) continue;
+
+                $orderedQty = (float) ($d['qty'] ?? 0);
+                if ($orderedQty <= 0) continue;
+
+                // Temukan detail sumber yg matching
+                $matchKey = strtoupper(trim(($d['inventoryid'] ?? ''))) . '|' .
+                            strtoupper(trim(($d['uom'] ?? ''))) . '|' .
+                            strtoupper(trim(($d['inventory_descr'] ?? '')));
+                $srcDet = $srcIndex[$matchKey] ?? ($srcDetails[$i] ?? null);
+                if (!$srcDet) continue;
+
+                $detTable = $srcDet->getTable();
+                if (\Illuminate\Support\Facades\Schema::connection('pgsql')->hasColumn($detTable, 'ordered')) {
+                    $srcDet->ordered = (float)($srcDet->ordered ?? 0) + $orderedQty;
+                }
+                if (\Illuminate\Support\Facades\Schema::connection('pgsql')->hasColumn($detTable, 'openordered')) {
+                    $srcDet->openordered = max(0, (float)($srcDet->openordered ?? 0) - $orderedQty);
+                }
+                $srcDet->save();
+
+                $addedTotalOrdered += $orderedQty;
+            }
+
+            // Update header sumber
+            $hdrTable = $srcHeader->getTable();
+            if (\Illuminate\Support\Facades\Schema::connection('pgsql')->hasColumn($hdrTable, 'totalordered')) {
+                $srcHeader->totalordered = (float)($srcHeader->totalordered ?? 0) + $addedTotalOrdered;
+            }
+            if (\Illuminate\Support\Facades\Schema::connection('pgsql')->hasColumn($hdrTable, 'totalopenordered')) {
+                $srcHeader->totalopenordered = max(0, (float)($srcHeader->totalopenordered ?? 0) - $addedTotalOrdered);
+            }
+            $srcHeader->save();
+
+            // ==== 6) Budget reserve (per bulan csdate) ====
+            $csDate   = \Carbon\Carbon::parse($cs->csdate);
+            $yearStr  = $csDate->format('Y');     // perpost = YYYY
+            $monthIdx = (int) $csDate->format('m');
+            $periodColBase     = 'period' . str_pad($monthIdx, 2, '0', STR_PAD_LEFT);
+            $periodReserveCol  = $periodColBase . '_reserve';
+
+            // Aggregate budget berdasarkan selected vendor di tiap detail
+            $budgetBuckets = [];
+            foreach ($details as $d) {
+                // total grand/total/tax – gunakan grand jika tersedia
+                $selectedTotal = 0.0;
+                $selectedTax   = 0.0;
+                $selectedGrand = 0.0;
+
+                if (!empty($d['vendor']) && is_array($d['vendor'])) {
+                    foreach ($d['vendor'] as $vrow) {
+                        if (!empty($vrow['selected'])) {
+                            $t  = (float)($vrow['total'] ?? 0);
+                            $ppn= (float)($vrow['ppn']   ?? 0);
+                            $pph= (float)($vrow['pph']   ?? 0);
+                            $tx = (float)($vrow['tax']   ?? ($ppn+$pph));
+                            $gr = (float)($vrow['grand'] ?? ($t+$tx));
+                            $selectedTotal = $t;
+                            $selectedTax   = $tx;
+                            $selectedGrand = $gr;
+                            break;
+                        }
+                    }
+                }
+                if ($selectedGrand <= 0 && $selectedTotal <= 0) continue;
+
+                $bCpny = $d['budget_cpny_id']            ?? $cpnyId;
+                $bBU   = $d['budget_business_unit_id']   ?? null;
+                $bDept = $d['budget_department_fin_id']  ?? null;
+                $bAcc  = $d['budget_account_id']         ?? null;
+                $bAct  = $d['budget_activity_id']        ?? null;
+
+                $key = json_encode([
+                    'perpost'           => $yearStr,
+                    'cpny_id'           => $bCpny,
+                    'business_unit_id'  => $bBU,
+                    'department_fin_id' => $bDept,
+                    'account_id'        => $bAcc,
+                    'activity_id'       => $bAct,
+                ]);
+                $amount = ($selectedGrand > 0) ? $selectedGrand : ($selectedTotal + $selectedTax);
+                $budgetBuckets[$key] = ($budgetBuckets[$key] ?? 0) + (float)$amount;
+            }
+
+            foreach ($budgetBuckets as $keyJson => $amount) {
+                $crit = json_decode($keyJson, true);
+
+                $bd = \App\Models\BudgetDetail::where([
+                        ['perpost', '=', $crit['perpost']],
+                        ['cpny_id', '=', $crit['cpny_id']],
+                    ])
+                    ->when($crit['business_unit_id'],  fn($q,$v)=>$q->where('business_unit_id', $v))
+                    ->when($crit['department_fin_id'], fn($q,$v)=>$q->where('department_fin_id', $v))
+                    ->when($crit['account_id'],        fn($q,$v)=>$q->where('account_id', $v))
+                    ->when($crit['activity_id'],       fn($q,$v)=>$q->where('activity_id', $v))
+                    ->lockForUpdate()
+                    ->first();
+
+                if (!$bd) {
+                    $bd = new \App\Models\BudgetDetail();
+                    $bd->setConnection('pgsql');
+                    $bd->perpost            = $crit['perpost'];
+                    $bd->cpny_id            = $crit['cpny_id'];
+                    $bd->business_unit_id   = $crit['business_unit_id'];
+                    $bd->department_fin_id  = $crit['department_fin_id'];
+                    $bd->account_id         = $crit['account_id'];
+                    $bd->activity_id        = $crit['activity_id'];
+                    $bd->status             = 'A';
+                    $bd->created_by         = $username;
+
+                    for ($m = 1; $m <= 12; $m++) {
+                        $p = 'period' . str_pad($m, 2, '0', STR_PAD_LEFT);
+                        $bd->{$p . '_budget'}  = $bd->{$p . '_budget'}  ?? 0;
+                        $bd->{$p . '_reserve'} = $bd->{$p . '_reserve'} ?? 0;
+                        $bd->{$p . '_used'}    = $bd->{$p . '_used'}    ?? 0;
+                    }
+                }
+
+                $bd->{$periodReserveCol} = (float) ($bd->{$periodReserveCol} ?? 0) + (float) $amount;
+                $bd->updated_by = $username;
+                $bd->save();
+            }
+
+            // ==== 7) Tulis ulang kolom header selected per vendor dari akumulasi detail ====
+            for ($i = 1; $i <= 6; $i++) {
+                $safeSet($cs, $csTable, "totalselectedvendor{$i}",      $round2($selectedByVendor[$i]['total']));
+                $safeSet($cs, $csTable, "taxselectedvendor{$i}",        $round2($selectedByVendor[$i]['tax']));
+                $safeSet($cs, $csTable, "grandtotalselectedvendor{$i}", $round2($selectedByVendor[$i]['grand']));
+            }
+            $cs->save();
+
+            // ==== 8) Generate TrApproval (CS hanya cek NOMINAL) ====
+            // Gunakan grand total TERPILIH pada detail sebagai dasar "Nominal"
+            $ctx = [
+                'ignore_nominal' => false,                 // aktifkan checkNominal()
+                'grand_total'    => (float)$docSelectedGrand,
+            ];
+
+            [$firstApprovalUsernames, $linesCount] = $approvalCtl->generateForDocument(
+                $cs->csid,     // refnbr
+                $doctype,      // CS
+                $cpnyId,
+                $deptId,
+                $username,
+                $ctx,
+                $dt
+            );
+
+            // opsional: simpan hint approver pertama di header
+            if ($firstApprovalUsernames) {
+                $cs->completed_by = $firstApprovalUsernames;
+                $cs->completed_at = $dt;
+                $cs->save();
+            }
+
+            // ==== 9) Attachments (opsional) ====
+            if ($request->hasFile('attachments')) {
+                $meta = [
+                    'refnbr'        => $csid,
+                    'doctype'       => $doctype,
+                    'cpnyid'        => $cpnyId,
+                    'departementid' => $deptId,
+                    'base_folder'   => 'att-purchasing-app/'.strtolower($doctype),
+                    'created_by'    => $user->username,
+                ];
+                $files = (array) $request->file('attachments');
+                try {
+                    $uploader     = app(\App\Http\Controllers\TrAttachmentController::class);
+                    $uploadResult = $uploader->uploadInternal($meta, $files);
+                } catch (\Throwable $e) {
+                    \DB::connection('pgsql')->rollBack();
+                    return response()->json([
+                        'message' => 'Failed to create CS',
+                        'error'   => 'Gagal upload attachment: '.$e->getMessage(),
+                    ], 500);
+                }
+            } else {
+                $uploadResult = null;
+            }
+
+            // ==== 10) Email ke approver pertama (status P) ====
+            $eid = \Vinkla\Hashids\Facades\Hashids::encode($cs->id);
+            $approvalCtl->notifyFirstApprover(
+                $cs->csid,
+                $doctype,
+                $cs->status,                 // 'P'
+                'CS',
+                url('/showcs/' . $eid),
+                [
+                    'info'      => $csnote ?: ($srcHeader->keperluan ?? ''),
+                    'createdby' => $cs->created_by,
+                    'date'      => $dt->toDateTimeString(),
+                ]
+            );
+
+            \DB::connection('pgsql')->commit();
+
+            return response()->json([
+                'message'     => 'CS created successfully',
+                'csid'        => $csid,
+                'grand_total' => $round2($docSelectedGrand), // dasar approval nominal
+                'attachments' => $uploadResult,
+            ]);
+
+        } catch (\Throwable $e) {
+            \DB::connection('pgsql')->rollBack();
+            report($e);
+            return response()->json([
+                'message' => 'Failed to create CS',
+                'error'   => config('app.debug') ? $e->getMessage() : null,
+            ], 500);
+        }
+    }
+
+
+
+
+    public function storeCS_xxx(Request $request)
     {
         // dd($request->all());       
         // ==== Ambil input dasar dari form (hidden + payload JSON) ====
@@ -240,20 +724,26 @@ class CanvassController extends Controller
             }
         };
 
-        // ==== 1) Approval line check (doctype CS) ====
-        $doctype = 'CS';
-        $approvalCount = M_approval::where([
-            ['status', '=', 'A'],
-            ['aprvcpnyid', '=', $cpnyId],
-            ['aprvdeptid', '=', $deptId],
-            ['aprvdoctype', '=', $doctype],
-        ])->count();
+        // // ==== 1) Approval line check (doctype CS) ====
+        // $doctype = 'CS';
+        // $approvalCount = M_approval::where([
+        //     ['status', '=', 'A'],
+        //     ['aprvcpnyid', '=', $cpnyId],
+        //     ['aprvdeptid', '=', $deptId],
+        //     ['aprvdoctype', '=', $doctype],
+        // ])->count();
 
-        if ($approvalCount === 0) {
-            return response()->json([
-                'message' => 'Approval line CS belum di-setup, please contact IT!',
-            ], 422);
-        }
+        // if ($approvalCount === 0) {
+        //     return response()->json([
+        //         'message' => 'Approval line CS belum di-setup, please contact IT!',
+        //     ], 422);
+        // }
+
+        // ===== generate TrApproval dari MsApproval sesuai context =====
+        $approvalCtl = app(ApprovalController::class);
+
+        // Pastikan line approval ada (kalau mau validasi awal sebelum simpan detail, panggil loadLines)
+        $approvalCtl->loadLines($doctype, $request->cpnyid, $request->departementid);
 
         DB::connection('pgsql')->beginTransaction();
         try {
@@ -591,28 +1081,73 @@ class CanvassController extends Controller
 
 
 
-            // ==== 6) Copy line approval ke T_approval ====
-            $approvals = M_approval::where([
-                ['status', '=', 'A'],
-                ['aprvcpnyid', '=', $cpnyId],
-                ['aprvdeptid', '=', $deptId],
-                ['aprvdoctype', '=', $doctype],
-            ])->orderBy('aprvid')->get();
+            // // ==== 6) Copy line approval ke T_approval ====
+            // $approvals = M_approval::where([
+            //     ['status', '=', 'A'],
+            //     ['aprvcpnyid', '=', $cpnyId],
+            //     ['aprvdeptid', '=', $deptId],
+            //     ['aprvdoctype', '=', $doctype],
+            // ])->orderBy('aprvid')->get();
 
-            foreach ($approvals as $a) {
-                T_approval::create([
-                    'docid'          => $csid,
-                    'aprvid'         => $a->aprvid,
-                    'aprvdoctype'    => $a->aprvdoctype,
-                    'aprvcpnyid'     => $a->aprvcpnyid,
-                    'aprvdeptid'     => $a->aprvdeptid,
-                    'aprvusername'   => $a->aprvusername,
-                    'name'           => $a->name,
-                    'aprvdatebefore' => $a->aprvid == 1 ? $datestamp : null,
-                    'aprvtotalday'   => 1,
-                    'status'         => 'P',
-                    'created_by'     => $username,
-                ]);
+            // foreach ($approvals as $a) {
+            //     T_approval::create([
+            //         'docid'          => $csid,
+            //         'aprvid'         => $a->aprvid,
+            //         'aprvdoctype'    => $a->aprvdoctype,
+            //         'aprvcpnyid'     => $a->aprvcpnyid,
+            //         'aprvdeptid'     => $a->aprvdeptid,
+            //         'aprvusername'   => $a->aprvusername,
+            //         'name'           => $a->name,
+            //         'aprvdatebefore' => $a->aprvid == 1 ? $datestamp : null,
+            //         'aprvtotalday'   => 1,
+            //         'status'         => 'P',
+            //         'created_by'     => $username,
+            //     ]);
+            // }
+
+             // 1) Urgent → dari header field is_urgent (boolean atau "1"/"true")
+            $isUrgent = (bool) $request->input('is_urgent', false);
+
+            // 2) Komputer → hanya kategori pada BARIS PERTAMA yang non-empty
+            $firstCategory = null;
+            if (!empty($inventoryCategories)) {
+                foreach ($inventoryCategories as $c) {
+                    if (!empty($c)) { $firstCategory = $c; break; }
+                }
+            }
+
+            // 3) Fixed Asset → minimal ada SATU detail dengan inventory_sub_type = Fixed Asset / FA
+            $hasFixedAssetSubtype = false;
+            foreach ((array)$inventorySubTypes as $sub) {
+                $s = mb_strtolower((string)$sub);
+                if ($s === 'fixed asset' || $s === 'fa') { $hasFixedAssetSubtype = true; break; }
+            }
+
+            // 4) Build context untuk ApprovalController
+            $ctx = [
+                'is_urgent'                => $isUrgent,
+                'first_inventory_category' => $firstCategory,
+                'has_fixed_asset_subtype'  => $hasFixedAssetSubtype,
+                'ignore_nominal'           => true,   // SPPT diminta tidak cek nominal
+                // 'grand_total'           => ...     // tidak dipakai di SPPT
+            ];
+
+            // Generate TrApproval
+            [$firstApprovalUsernames, $linesCount] = $approvalCtl->generateForDocument(
+                $header->spptid,
+                $doctype,
+                $request->cpnyid,
+                $request->departementid,
+                $username,
+                $ctx,
+                $dt
+            );
+
+            // (opsional) simpan hint approver pertama di header seperti sebelumnya
+            if ($firstApprovalUsernames) {
+                $header->completed_by = $firstApprovalUsernames;
+                $header->completed_at = $dt;
+                $header->save();
             }
 
             // ==== 7) Attachments (opsional) ====
@@ -675,51 +1210,66 @@ class CanvassController extends Controller
                 $uploadResult = null; // tidak ada attachment
             }
 
-            // ==== 8) Email ke approver pertama ====
-            $firstApproval = T_approval::where('docid', $csid)
-                ->where('status', 'P')
-                ->orderBy('aprvid')
-                ->first();
+            // // ==== 8) Email ke approver pertama ====
+            // $firstApproval = T_approval::where('docid', $csid)
+            //     ->where('status', 'P')
+            //     ->orderBy('aprvid')
+            //     ->first();
 
-            if ($firstApproval) {
-                $status = $cs->status; // 'P'|'R'|'D'|'A'|'C'
-                $subjectMap = [
-                    'P' => 'Waiting Approval',
-                    'R' => 'Rejected Approval',
-                    'D' => 'Revise Approval',
-                    'A' => 'Approved',
-                    'C' => 'Completed',
-                ];
-                $subjectSuffix = $subjectMap[$status] ?? 'Notification';
+            // if ($firstApproval) {
+            //     $status = $cs->status; // 'P'|'R'|'D'|'A'|'C'
+            //     $subjectMap = [
+            //         'P' => 'Waiting Approval',
+            //         'R' => 'Rejected Approval',
+            //         'D' => 'Revise Approval',
+            //         'A' => 'Approved',
+            //         'C' => 'Completed',
+            //     ];
+            //     $subjectSuffix = $subjectMap[$status] ?? 'Notification';
 
-                $eid = Hashids::encode($cs->id);
+            //     $eid = Hashids::encode($cs->id);
 
-                $data = [
-                    'docid'    => $firstApproval->docid,
-                    'cpnyid'   => $firstApproval->aprvcpnyid,
-                    'deptname' => $firstApproval->aprvdeptid,
-                    'date'     => $firstApproval->aprvdatebefore,
-                    'name'     => $firstApproval->name,
-                    'createdby'=> $cs->created_by,
-                    'info'     => $srcHeader->keperluan,
-                    'status'   => $status,
-                    'docname'  => 'CS',
-                    'url'      => url('/showcs/' . $eid), // sesuaikan route "show"
-                ];
+            //     $data = [
+            //         'docid'    => $firstApproval->docid,
+            //         'cpnyid'   => $firstApproval->aprvcpnyid,
+            //         'deptname' => $firstApproval->aprvdeptid,
+            //         'date'     => $firstApproval->aprvdatebefore,
+            //         'name'     => $firstApproval->name,
+            //         'createdby'=> $cs->created_by,
+            //         'info'     => $srcHeader->keperluan,
+            //         'status'   => $status,
+            //         'docname'  => 'CS',
+            //         'url'      => url('/showcs/' . $eid), // sesuaikan route "show"
+            //     ];
 
-                $approvers = array_filter(array_map('trim', explode(',', (string)$firstApproval->aprvusername)));
-                $emails = User::whereIn('username', $approvers)
-                    ->where('status', 'A')
-                    ->pluck('test_email');
+            //     $approvers = array_filter(array_map('trim', explode(',', (string)$firstApproval->aprvusername)));
+            //     $emails = User::whereIn('username', $approvers)
+            //         ->where('status', 'A')
+            //         ->pluck('test_email');
 
-                foreach ($emails as $email) {
-                    Mail::send('emails.mailapprovenew', $data, function ($message) use ($email, $data, $subjectSuffix) {
-                        $message->to($email)
-                            ->subject($data['docid'] . ' - ' . $subjectSuffix . ' CS')
-                            ->from('digitalserver@pakuwon.com', 'Pakuwon System');
-                    });
-                }
-            }
+            //     foreach ($emails as $email) {
+            //         Mail::send('emails.mailapprovenew', $data, function ($message) use ($email, $data, $subjectSuffix) {
+            //             $message->to($email)
+            //                 ->subject($data['docid'] . ' - ' . $subjectSuffix . ' CS')
+            //                 ->from('digitalserver@pakuwon.com', 'Pakuwon System');
+            //         });
+            //     }
+            // }
+
+            $eid = Hashids::encode($cs->id);
+
+            $approvalCtl->notifyFirstApprover(
+                    $cs->csid,
+                    $doctype,
+                    $cs->status,                 // 'P' | 'R' | 'D' | 'A' | 'C'
+                    'CS',
+                    url('/showcs/' . $eid),
+                    [
+                        'info'      => $request->keperluan,
+                        'createdby' => $cs->created_by,
+                        'date'      => $dt->toDateTimeString(),
+                    ]
+            );
 
             DB::connection('pgsql')->commit();
 
@@ -740,9 +1290,10 @@ class CanvassController extends Controller
         }
     }
 
+
     public function saveCS(Request $request)
     {
-    //    dd($request->all());
+    
         // ==== Ambil input dasar dari form (hidden + payload JSON) ====
         $doc          = strtoupper($request->input('doc'));          // SPPB|SPPJ|SPPK|SPPT
         $srcId        = $request->input('src_id');                   // id sumber doc
@@ -1258,479 +1809,975 @@ class CanvassController extends Controller
         ]);
     }
 
-    
 
     public function approveCS(Request $request, $docid)
     {
-        $now  = Carbon::now();
-        $user = $request->user();
+        $user    = $request->user();
+        $doctype = 'CS';
 
-        // $cs = TrCS::where('csid', $docid)->first();
-        $cs = TrCS::with('creator')
-            ->where('csid', $docid)
-            ->first();
-        $fullname = data_get($cs, 'creator.name') ?: $cs->created_by;
-
-        $prefix = strtoupper(substr((string)$cs->sppbjktid, 0, 2));
-
-        if ($prefix == 'PB') {
-                $srcHeader = TrSPPB::with(['requestType', 'creator', 'purchaser'])->where('sppbid', $cs->sppbjktid)->first();   
-                $potype = 'PO';           
-        } else if ($prefix == 'PJ') {
-                $srcHeader = TrSPPJ::with(['requestType', 'creator', 'purchaser'])->where('sppjid', $cs->sppbjktid)->first();   
-                $potype = 'SPK';            
-        } else if ($prefix == 'PK') {
-                $srcHeader = TrSPPK::with(['requestType', 'creator', 'purchaser'])->where('sppkid', $cs->sppbjktid)->first();     
-                $potype = 'SPK';           
-        } else if ($prefix == 'PT') {
-                $srcHeader = TrSPPT::with(['requestType', 'creator', 'purchaser'])->where('spptid', $cs->sppbjktid)->first();  
-                $potype = 'SPK';            
-        } else {
-            abort(422, 'Invalid doc type');
-        }   
-
+        $cs = TrCS::with('creator')->where('csid', $docid)->first();
         if (!$cs) {
             return response()->json(['success' => false, 'message' => 'CS not found'], 404);
         }
 
-        // pastikan user memang approver aktif (status P) di doc ini
-        $tApproval = T_approval::where('docid', $cs->csid)
-            ->where('status', 'P')
-            ->where('aprvusername', 'like', "%{$user->username}%")
-            ->whereNotNull('aprvdatebefore') 
-            ->orderBy('aprvid', 'ASC')
-            ->first();
+        // Sumber header asal (PB/PJ/PK/PT) → tetap seperti semula
+        $prefix  = strtoupper(substr((string)$cs->sppbjktid, 0, 2));
+        $srcHeader = null;
+        $potype   = null;
 
-        if (!$tApproval) {
-            return response()->json(['success' => false, 'message' => "You can't approve!"], 403);
+        if ($prefix === 'PB') {
+            $srcHeader = TrSPPB::with(['requestType','creator','purchaser'])
+                ->where('sppbid', $cs->sppbjktid)->first();
+            $potype = 'PO';
+        } elseif ($prefix === 'PJ') {
+            $srcHeader = TrSPPJ::with(['requestType','creator','purchaser'])
+                ->where('sppjid', $cs->sppbjktid)->first();
+            $potype = 'SPK';
+        } elseif ($prefix === 'PK') {
+            $srcHeader = TrSPPK::with(['requestType','creator','purchaser'])
+                ->where('sppkid', $cs->sppbjktid)->first();
+            $potype = 'SPK';
+        } elseif ($prefix === 'PT') {
+            $srcHeader = TrSPPT::with(['requestType','creator','purchaser'])
+                ->where('spptid', $cs->sppbjktid)->first();
+            $potype = 'SPK';
+        } else {
+            return response()->json(['success' => false, 'message' => 'Invalid doc type'], 422);
         }
 
-        DB::beginTransaction();
-        try {
-            // Set current approver -> Approved
-            $tApproval->status         = 'A';
-            $tApproval->aprvdateafter  = $now;
-            $tApproval->aprvusername   = $user->username;
-            $tApproval->name           = $user->name;
-            $tApproval->save();
+        $eid      = \Vinkla\Hashids\Facades\Hashids::encode($cs->id);
+        $docUrl   = url('/showcs/' . $eid);
+        $fullname = data_get($cs, 'creator.name') ?: $cs->created_by;
+       
+        // ======== LOGIKA IMBUDGET ========
+        // Ambil level approver saat ini
+        $pending = TrApproval::where('refnbr', $cs->csid)
+            ->where('status', 'P')           
+            ->whereNotNull('aprv_datebefore')           
+            ->orderByRaw("CAST(aprv_leveling AS numeric) ASC")
+            ->first();
+           
+        $currentLevel = (int)($pending->aprv_leveling ?? 0);
 
-            // Update header informasi "terakhir diproses"
-            $cs->completed_by = $user->username;
-            $cs->completed_at = $now;
-            $cs->save();
+        // Threshold setting
+        $threshold = (int) (MsPurchSetting::where('setting_id', 'IMGEN')->value('setting_value_int') ?? 0);
 
-            // Hitung sisa pending setelah approve ini
-            $pendingCount = T_approval::where('docid', $cs->csid)
-                ->where('status', 'P')
-                ->count();
+        $flagIM          = (bool) ($cs->flag_imbudget ?? false);     // kolom di TrCS
+        $existingIM      = $cs->imbudgetid ?? null;                  // kolom di TrCS
+        $statusIM        = $cs->status_imbudget ?? null;             // kolom di TrCS
+        $needGenerateNow = $flagIM && empty($existingIM) && ($currentLevel >= $threshold);
 
-            // Pemetaan judul sesuai status
-            $subjectMap = [
-                'P' => 'Waiting Approval',
-                'R' => 'Rejected Approval',
-                'D' => 'Revise Approval',
-                'A' => 'Approved',
-                'C' => 'Completed',
-            ];
+        // 1) flag=true & sudah punya IM tapi belum Complete → STOP approve
+        if ($flagIM && !empty($existingIM) && $statusIM !== 'C') {
+            return response()->json([
+                'success' => false,
+                'code'    => 'IM_IN_PROGRESS',
+                'message' => 'Tidak bisa approve. Masih On Progress IM.'
+            ], 409);
+        }
 
-            $eid = Hashids::encode($cs->id);
-            // dd($pendingCount);
-            if ($pendingCount === 0) {
-                // Tidak ada approver lagi -> dokumen complete
+        // 2) flag=true & belum punya IM & level >= threshold → perlu konfirmasi SweetAlert
+        if ($needGenerateNow) {
+            if (!$request->boolean('confirm_generate_im')) {
+                // Minta konfirmasi dulu (frontend munculin SweetAlert)
+                return response()->json([
+                    'success' => true,
+                    'need_confirm_generate_im' => true,
+                    'message' => 'Generate IMBudget sekarang?'
+                ]);
+            }
+
+            // User sudah konfirmasi → Generate IM, status H; update CS (imbudgetid + status_imbudget)
+            try {
+                // panggil controller generateIMBudget dengan sumber data dari CS
+                $payload = new Request([
+                    'csid'          => $cs->csid,
+                    'cpnyid'        => $cs->cpny_id ?? $cs->cpnyid,
+                    'departementid' => $cs->department_id ?? $cs->departementid,
+                    'perpost'       => $cs->budget_perpost ?? null,
+                    'user_peminta'  => $cs->user_peminta ?? $user->username,
+                    'sppbjktid'     => $cs->sppbjktid,
+                    'imbudgetnote'  => $cs->csnote ?? $cs->keperluan,
+                ]);
+
+                /** @var IMBudgetController $imCtrl */
+                $imCtrl = app(IMBudgetController::class);
+           
+
+                $resp = $imCtrl->generateIMBudget($payload);
+
+                // Jika generateIMBudget mengembalikan status error, teruskan apa adanya ke frontend
+                if (method_exists($resp, 'getStatusCode') && $resp->getStatusCode() >= 400) {
+                    return $resp; // berisi message/error detail dari generateIMBudget
+                }
+
+                // Ambil data JSON (array) dengan aman
+                $data = $resp->getData(true) ?? [];
+
+                // Robust extract (kalau suatu saat dibungkus di 'data')
+                $imbudgetid = $data['imbudgetid'] ?? ($data['data']['imbudgetid'] ?? null);
+
+                // Kalau tetap tidak ada, lempar pesan yang lebih informatif
+                if (!$imbudgetid) {
+                    $detail = $data['error'] ?? $data['message'] ?? 'Tidak diketahui';
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Gagal generate IMBudget: ' . $detail,
+                    ], 500);
+                }
+
+
+                $imbudgetid = $data['imbudgetid'];
+
+                // set status IM → H (Hold)
+                TrIMBudget::where('imbudgetid', $imbudgetid)->update(['status' => 'H']);
+
+                // update CS: nomor im + status_imbudget = H
+                $cs->imbudgetid     = $imbudgetid;
+                $cs->status_imbudget= 'H';
+                $cs->save();
+                
+                $imb = TrIMBudget::where('imbudgetid', $imbudgetid)->first();
+                // $hash = $imb ? \Vinkla\Hashids\Facades\Hashids::encode($imb->id) : null;
+                $eidCs = \Vinkla\Hashids\Facades\Hashids::encode($cs->id);
+
+                return response()->json([
+                    'success'           => true,
+                    'code'              => 'IM_CREATED_HOLD',
+                    'message'           => "IMBudget berhasil dibuat ($imbudgetid) dan di-HOLD.",
+                    'imbudgetid'        => $imbudgetid,
+                    // 'imbudget_show_url' => $hash ? url('/showimbudgets/' . $hash) : null,
+                    'imbudget_show_url'  => url('/showcs/'.$eidCs), 
+                ]);
+            } catch (\Throwable $e) {
+                \Log::error('Generate IM from approveCS failed', [
+                    'csid' => $cs->csid,
+                    'err'  => $e->getMessage()
+                ]);
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Gagal generate IMBudget: '.$e->getMessage()
+                ], 500);
+            }
+        }
+
+        // 3) flag=true & sudah punya IM & status_imbudget = C → lanjut approve CS
+        // 4) flag=false → lanjut approve CS
+        $result = app(\App\Http\Controllers\ApprovalController::class)->approveStep(
+            $cs->csid,
+            $doctype,
+            $user->username,
+            $user->name,
+
+            // COMPLETE CALLBACK
+            function (string $refnbr, \Carbon\Carbon $now) use ($cs, $fullname, $docUrl, $srcHeader, $potype) {
                 $cs->status       = 'C';
-                $cs->completed_by = $user->username;
+                $cs->completed_by = $cs->completed_by ?: auth()->user()->username;
                 $cs->completed_at = $now;
                 $cs->save();
 
-                $csdetail = TrCSdetail::where('csid', $cs->csid)                
-                    ->get();
+                TrCSdetail::where('csid', $cs->csid)->update(['status' => 'C']);
 
-                foreach ($csdetail as $d) {
-                    $d->status = 'C'; 
-                    $d->save();
+                try {
+                    $this->generatePOFromCS($cs, auth()->user(), $potype);
+                } catch (\Throwable $e) {
+                    \Log::error('generatePOFromCS failed', [
+                        'csid' => $cs->csid,
+                        'error' => $e->getMessage(),
+                    ]);
                 }
 
-                // Kirim email ke requester (creator)
-                $status        = 'C';
-                $subjectSuffix = $subjectMap[$status] ?? 'Notification';
+                app(\App\Http\Controllers\ApprovalController::class)->notifyRequesterOnStatus(
+                    $cs->csid, 'CS', 'C', $cs->created_by, $docUrl, [
+                        'cpnyid'    => $cs->cpny_id ?? $cs->cpnyid ?? '',
+                        'deptname'  => $cs->department_id ?? $cs->departementid ?? '',
+                        'date'      => $cs->csdate,
+                        'info'      => optional($srcHeader)->keperluan ?? $cs->keperluan,
+                        'fullname'  => $fullname,
+                        'name'      => $fullname,
+                        'createdby' => $fullname,
+                    ]
+                );
+            },
 
-                $this->generatePOFromCS($cs, $user, $potype);
-                
-
-                $data = [
-                    'docid'     => $cs->csid,
-                    'cpnyid'    => $cs->cpny_id ?? $cs->cpnyid ?? '',
-                    'deptname'  => $cs->department_id ?? $cs->departementid ?? '',
-                    'date'      => $cs->csdate,
-                    'fullname'  => $fullname,  // nama penerima di email
-                    'name'      => $fullname,  // fallback
-                    'createdby' => $fullname,
-                    'docname'   => 'CS',
-                    'info'      => $srcHeader->keperluan,
-                    'status'    => $status,
-                    'url'       => url('/showcs/' . $eid),
-                ];
-
-                $recipients = User::where('username', $cs->created_by)
-                    ->where('status', 'A')
-                    ->get();
-
-                foreach ($recipients as $rcp) {
-                    try {
-                        Mail::send('emails.mailapprovenew', $data, function ($message) use ($data, $rcp, $subjectSuffix) {
-                            $to = $rcp->test_email ?? $rcp->email; // pakai field yang memang ada
-                            $message->to($to)
-                                ->subject($data['docid'] . ' - ' . $subjectSuffix . ' CS')
-                                ->from('digitalserver@pakuwon.com', 'Pakuwon System');
-                        });
-                    } catch (\Throwable $e) {
-                        Log::error('Failed sending CS completion email', ['error' => $e->getMessage()]);
-                    }
-                }
-            } else {
-                // Masih ada approver berikutnya -> cari level berikutnya (P terrendah aprvid)
-                $next = T_approval::where('docid', $cs->csid)
-                    ->where('status', 'P')
-                    ->orderBy('aprvid', 'ASC')
-                    ->first();
-
-                if ($next) {
-                    // Stempel "datebefore" untuk approver berikutnya
-                    $next->aprvdatebefore = $now;
-                    $next->save();
-
-                    // Kirim email ke semua username yang ada di kolom aprvusername (dipisah koma)
-                    $status        = 'P';
-                    $subjectSuffix = $subjectMap[$status] ?? 'Notification';
-
-                    $data = [
-                        'docid'     => $next->docid,
-                        'cpnyid'    => $next->aprvcpnyid,
-                        'deptname'  => $next->aprvdeptid,
-                        'date'      => $next->aprvdatebefore,
-                        'fullname'  => $next->name,
-                        'name'      => $next->name,
-                        'createdby' => $cs->created_by,
-                        'docname'   => 'CS',
+            // NEXT APPROVER CALLBACK
+            function ($next, \Carbon\Carbon $now) use ($cs, $docUrl) {
+                app(\App\Http\Controllers\ApprovalController::class)->notifyFirstApprover(
+                    $cs->csid, 'CS', 'P', 'CS', $docUrl, [
                         'info'      => $cs->keperluan,
-                        'status'    => $status,
-                        'url'       => url('/showcs/' . $eid),
-                    ];
-
-                    $usernames = array_filter(array_map('trim', explode(',', (string) $next->aprvusername)));
-                    if (!empty($usernames)) {
-                        $recipients = User::whereIn('username', $usernames)
-                            ->where('status', 'A')
-                            ->get();
-
-                        foreach ($recipients as $rcp) {
-                            try {
-                                Mail::send('emails.mailapprovenew', $data, function ($message) use ($data, $rcp, $subjectSuffix) {
-                                    $to = $rcp->test_email ?? $rcp->email;
-                                    $message->to($to)
-                                        ->subject($data['docid'] . ' - ' . $subjectSuffix . ' CS')
-                                        ->from('digitalserver@pakuwon.com', 'Pakuwon System');
-                                });
-                            } catch (\Throwable $e) {
-                                Log::error('Failed sending CS waiting-approval email', ['error' => $e->getMessage()]);
-                            }
-                        }
-                    } else {
-                        Log::warning('Next approver has empty aprvusername list', ['docid' => $cs->csid]);
-                    }
-                }
+                        'createdby' => $cs->created_by,
+                        'date'      => $now->toDateTimeString(),
+                    ]
+                );
+                $cs->completed_by = auth()->user()->username;
+                $cs->completed_at = $now;
+                $cs->save();
             }
+        );
 
-            DB::commit();
-            return response()->json(['success' => true, 'message' => 'Task approved successfully']);
-        } catch (\Throwable $e) {
-            DB::rollBack();
-            Log::error('Approve CS failed', ['error' => $e->getMessage()]);
-            return response()->json(['success' => false, 'message' => 'Approve failed'], 500);
+        if (!($result['ok'] ?? false)) {
+            return response()->json([
+                'success' => false,
+                'message' => $result['message'] ?? 'Approve failed'
+            ], 403);
         }
-    }
-    
-    public function rejectCS(Request $request, $docid)
-    {
-        $now  = Carbon::now();
-        $user = $request->user();
 
-        // $cs = TrCS::where('csid', $docid)->first();
-        $cs = TrCS::with('creator')
-            ->where('csid', $docid)
-            ->first();
+        return response()->json(['success' => true, 'message' => 'Task approved successfully']);
+    }
+
+
+    public function approveCS_xxx(Request $request, $docid)
+    {
+        $user    = $request->user();
+        $doctype = 'CS';
+
+        // Ambil header + relasi creator
+        $cs = TrCS::with('creator')->where('csid', $docid)->first();
+        if (!$cs) {
+            return response()->json(['success' => false, 'message' => 'CS not found'], 404);
+        }
+
+        // Tentukan sumber header asal & tipe dokumen yang akan di-generate (PO/SPK)
+        $prefix  = strtoupper(substr((string)$cs->sppbjktid, 0, 2));
+        $srcHeader = null;
+        $potype   = null;
+
+        if ($prefix === 'PB') {
+            $srcHeader = TrSPPB::with(['requestType','creator','purchaser'])
+                ->where('sppbid', $cs->sppbjktid)->first();
+            $potype = 'PO';
+        } elseif ($prefix === 'PJ') {
+            $srcHeader = TrSPPJ::with(['requestType','creator','purchaser'])
+                ->where('sppjid', $cs->sppbjktid)->first();
+            $potype = 'SPK';
+        } elseif ($prefix === 'PK') {
+            $srcHeader = TrSPPK::with(['requestType','creator','purchaser'])
+                ->where('sppkid', $cs->sppbjktid)->first();
+            $potype = 'SPK';
+        } elseif ($prefix === 'PT') {
+            $srcHeader = TrSPPT::with(['requestType','creator','purchaser'])
+                ->where('spptid', $cs->sppbjktid)->first();
+            $potype = 'SPK';
+        } else {
+            return response()->json(['success' => false, 'message' => 'Invalid doc type'], 422);
+        }
+
+        $eid      = \Vinkla\Hashids\Facades\Hashids::encode($cs->id);
+        $docUrl   = url('/showcs/' . $eid);
         $fullname = data_get($cs, 'creator.name') ?: $cs->created_by;
 
-        $prefix = strtoupper(substr((string)$cs->sppbjktid, 0, 2));
+        // Gunakan engine approval terpusat
+        $result = app(\App\Http\Controllers\ApprovalController::class)->approveStep(
+            $cs->csid,            // refnbr
+            $doctype,             // doctype 'CS'
+            $user->username,      // current approver username
+            $user->name,          // current approver name
 
-        if ($prefix == 'PB') {
-                $srcHeader = TrSPPB::with(['requestType', 'creator', 'purchaser'])->where('sppbid', $cs->sppbjktid)->first();              
-        } else if ($prefix == 'PJ') {
-                $srcHeader = TrSPPJ::with(['requestType', 'creator', 'purchaser'])->where('sppjid', $cs->sppbjktid)->first();               
-        } else if ($prefix == 'PK') {
-                $srcHeader = TrSPPK::with(['requestType', 'creator', 'purchaser'])->where('sppkid', $cs->sppbjktid)->first();                
-        } else if ($prefix == 'PT') {
-                $srcHeader = TrSPPT::with(['requestType', 'creator', 'purchaser'])->where('spptid', $cs->sppbjktid)->first();              
-        } else {
-            abort(422, 'Invalid doc type');
-        }   
+            // === COMPLETE CALLBACK ===
+            function (string $refnbr, \Carbon\Carbon $now) use ($cs, $fullname, $docUrl, $srcHeader, $potype) {
 
-        if (!$cs) {
-            return response()->json(['success' => false, 'message' => 'Task not found'], 404);
-        }
+                // Finalize header
+                $cs->status       = 'C';
+                $cs->completed_by = $cs->completed_by ?: auth()->user()->username;
+                $cs->completed_at = $now;
+                $cs->save();
 
-        // Validasi: user harus approver aktif (status P) pada dokumen ini
-        $tApproval = T_approval::where('docid', $cs->csid)
-            ->where('status', 'P')
-            ->where('aprvusername', 'like', "%{$user->username}%")
-            ->whereNotNull('aprvdatebefore')
-            ->orderBy('aprvid', 'ASC')
-            ->first();
+                // Finalize detail
+                TrCSdetail::where('csid', $cs->csid)->update(['status' => 'C']);
 
-        if (!$tApproval) {
-            return response()->json(['success' => false, 'message' => "You can't reject!"], 403);
-        }
+                // Generate PO/SPK dari CS (sesuai prefix)
+                try {
+                    // $potype: 'PO' atau 'SPK'
+                    $this->generatePOFromCS($cs, auth()->user(), $potype);
+                } catch (\Throwable $e) {
+                    \Log::error('generatePOFromCS failed', [
+                        'csid' => $cs->csid,
+                        'error' => $e->getMessage(),
+                    ]);
+                }
 
-        DB::beginTransaction();
-        try {
-            // Tandai approval saat ini sebagai Rejected
-            $tApproval->status        = 'R';
-            $tApproval->aprvdateafter = $now;
-            $tApproval->aprvusername  = $user->username; // catat siapa yang reject
-            $tApproval->name          = $user->name;
-            $tApproval->save();
+                // Notifikasi ke requester (creator) - status Complete
+                app(\App\Http\Controllers\ApprovalController::class)->notifyRequesterOnStatus(
+                    $cs->csid,
+                    'CS',    // docname untuk email
+                    'C',     // status Complete
+                    $cs->created_by,
+                    $docUrl,
+                    [
+                        'cpnyid'    => $cs->cpny_id ?? $cs->cpnyid ?? '',
+                        'deptname'  => $cs->department_id ?? $cs->departementid ?? '',
+                        'date'      => $cs->csdate,
+                        // Info: ambil dari sumber header bila ada, fallback ke CS
+                        'info'      => optional($srcHeader)->keperluan ?? $cs->keperluan,
+                        'fullname'  => $fullname,
+                        'name'      => $fullname,
+                        'createdby' => $fullname,
+                    ]
+                );
+            },
 
-            // Update header CS
-            $cs->status       = 'R';
-            $cs->completed_by = $user->username;
-            $cs->completed_at = $now;
-            $cs->save();
+            // === NEXT APPROVER CALLBACK ===
+            function ($next, \Carbon\Carbon $now) use ($cs, $docUrl) {
 
-            // Batalkan semua approval yang masih pending
-            T_approval::where('docid', $cs->csid)
-                ->where('status', 'P')
-                ->update(['status' => 'X']);
+                // Notifikasi ke approver berikutnya (status Pending)
+                app(\App\Http\Controllers\ApprovalController::class)->notifyFirstApprover(
+                    $cs->csid, // refnbr
+                    'CS',      // doctype code
+                    'P',       // status Waiting Approval
+                    'CS',      // docname untuk email
+                    $docUrl,
+                    [
+                        'info'      => $cs->keperluan,
+                        'createdby' => $cs->created_by,
+                        'date'      => $now->toDateTimeString(),
+                    ]
+                );
 
-            DB::commit();
-        } catch (\Throwable $e) {
-            DB::rollBack();
-            Log::error('Reject CS failed', ['docid' => $docid, 'error' => $e->getMessage()]);
-            return response()->json(['success' => false, 'message' => 'Reject failed'], 500);
-        }
-
-        // === Kirim Email ke requester (creator) ===
-        $status = 'R'; // Rejected
-        $subjectMap = [
-            'P' => 'Waiting Approval',
-            'R' => 'Rejected Approval',
-            'D' => 'Revise Approval',
-            'A' => 'Approved',
-            'C' => 'Completed',
-        ];
-        $subjectSuffix = $subjectMap[$status] ?? 'Notification';
-
-        $eid = Hashids::encode($cs->id);
-
-        $data = [
-            'docid'     => $cs->csid,
-            'cpnyid'    => $cs->cpny_id ?? $cs->cpnyid ?? '',
-            'deptname'  => $cs->department_id ?? $cs->departementid ?? '',
-            'date'      => $now->toDateString(),            // bisa juga pakai $tApproval->aprvdateafter
-            'fullname'  => $fullname,               // view email kita pakai $fullname
-            'name'      => $fullname,               // fallback jika view pakai $name
-            'createdby' => $fullname,
-            'docname'   => 'CS',
-            'info'      => $srcHeader->keperluan,
-            'status'    => $status,
-            'url'       => url('/showcs/' . $eid),
-        ];
-
-        $recipients = User::where('username', $cs->created_by)
-            ->where('status', 'A')
-            ->get();
-
-        foreach ($recipients as $rcp) {
-            try {
-                $to = $rcp->test_email ?? $rcp->email; // sesuaikan field yang tersedia
-                Mail::send('emails.mailapprovenew', $data, function ($message) use ($data, $to, $subjectSuffix) {
-                    $message->to($to)
-                        ->subject($data['docid'] . ' - ' . $subjectSuffix . ' CS')
-                        ->from('digitalserver@pakuwon.com', 'Pakuwon System');
-                });
-            } catch (\Throwable $e) {
-                Log::error('Failed sending CS rejected email', [
-                    'docid' => $data['docid'],
-                    'to'    => $rcp->username,
-                    'error' => $e->getMessage()
-                ]);
+                // Jejak "terakhir diproses" (optional)
+                $cs->completed_by = auth()->user()->username;
+                $cs->completed_at = $now;
+                $cs->save();
             }
+        );
+
+        if (!($result['ok'] ?? false)) {
+            return response()->json([
+                'success' => false,
+                'message' => $result['message'] ?? 'Approve failed'
+            ], 403);
         }
 
-        // Simpan komentar penolakan (jika ada)
-        try {
-            app('App\Http\Controllers\SendCommentController')
-                ->sendmsg($cs->id, 'CS', $request);
-        } catch (\Throwable $e) {
-            Log::warning('SendComment after reject failed', [
-                'docid' => $cs->csid,
-                'error' => $e->getMessage()
-            ]);
+        return response()->json(['success' => true, 'message' => 'Task approved successfully']);
+    }
+
+    public function rejectCS(Request $request, $docid)
+    {
+        $user    = $request->user();
+        $doctype = 'CS';
+
+        $cs = \App\Models\TrCS::with('creator')->where('csid', $docid)->first();
+        if (!$cs) return response()->json(['success'=>false,'message'=>'CS not found'],404);
+
+        // (opsional) ambil sumber header untuk info keperluan
+        $srcHeader = null;
+        $prefix = strtoupper(substr((string) $cs->sppbjktid, 0, 2));
+        if ($prefix === 'PB') {
+            $srcHeader = \App\Models\TrSPPB::with(['requestType','creator','purchaser'])
+                ->where('sppbid', $cs->sppbjktid)->first();
+        } elseif ($prefix === 'PJ') {
+            $srcHeader = \App\Models\TrSPPJ::with(['requestType','creator','purchaser'])
+                ->where('sppjid', $cs->sppbjktid)->first();
+        } elseif ($prefix === 'PK') {
+            $srcHeader = \App\Models\TrSPPK::with(['requestType','creator','purchaser'])
+                ->where('sppkid', $cs->sppbjktid)->first();
+        } elseif ($prefix === 'PT') {
+            $srcHeader = \App\Models\TrSPPT::with(['requestType','creator','purchaser'])
+                ->where('spptid', $cs->sppbjktid)->first();
         }
 
-        return response()->json(['success' => true, 'message' => 'CS rejected successfully']);
+        $eid      = \Vinkla\Hashids\Facades\Hashids::encode($cs->id);
+        $docUrl   = url('/showcs/' . $eid);
+        $fullname = data_get($cs, 'creator.name') ?: $cs->created_by;
+
+        $result = app(\App\Http\Controllers\ApprovalController::class)->rejectStep(
+            $cs->csid,           // refnbr
+            $doctype,            // CS
+            $user->username,     // actor
+            $user->name,         // actor
+
+            // CALLBACK saat reject benar-benar dieksekusi
+            function (string $refnbr, \Carbon\Carbon $now) use ($cs, $fullname, $docUrl, $srcHeader) {
+                // Header -> R
+                $cs->status       = 'R';
+                $cs->completed_by = auth()->user()->username;
+                $cs->completed_at = $now;
+                $cs->save();
+
+                // (opsional) detail -> R
+                // \App\Models\TrCSdetail::where('csid', $cs->csid)->update(['status' => 'R']);
+
+                // Email requester
+                app(\App\Http\Controllers\ApprovalController::class)->notifyRequesterOnStatus(
+                    $cs->csid,
+                    'CS',
+                    'R',
+                    $cs->created_by,
+                    $docUrl,
+                    [
+                        'cpnyid'    => $cs->cpny_id ?? $cs->cpnyid ?? '',
+                        'deptname'  => $cs->department_id ?? $cs->departementid ?? '',
+                        'date'      => $now->toDateString(),
+                        'info'      => optional($srcHeader)->keperluan ?? $cs->keperluan,
+                        'fullname'  => $fullname,
+                        'name'      => $fullname,
+                        'createdby' => $fullname,
+                    ]
+                );
+
+                // Simpan komentar (jika ada)
+                try {
+                    app('App\Http\Controllers\SendCommentController')->sendmsg($cs->id, 'CS', request());
+                } catch (\Throwable $e) {}
+            }
+        );
+
+        if (!($result['ok'] ?? false)) {
+            return response()->json(['success'=>false,'message'=>$result['message'] ?? 'Reject failed'], 403);
+        }
+
+        return response()->json(['success'=>true,'message'=>'CS rejected successfully']);
     }
 
     public function reviseCS(Request $request, $docid)
     {
-        $now  = Carbon::now();
-        $user = $request->user();
+        $user    = $request->user();
+        $doctype = 'CS';
 
-        // $cs = TrCS::where('csid', $docid)->first();
-        $cs = TrCS::with('creator')
-            ->where('csid', $docid)
-            ->first();
+        $cs = \App\Models\TrCS::with('creator')->where('csid', $docid)->first();
+        if (!$cs) return response()->json(['success'=>false,'message'=>'CS not found'],404);
 
+        // (opsional) ambil sumber header untuk info keperluan
+        $srcHeader = null;
+        $prefix = strtoupper(substr((string) $cs->sppbjktid, 0, 2));
+        if ($prefix === 'PB') {
+            $srcHeader = \App\Models\TrSPPB::with(['requestType','creator','purchaser'])
+                ->where('sppbid', $cs->sppbjktid)->first();
+        } elseif ($prefix === 'PJ') {
+            $srcHeader = \App\Models\TrSPPJ::with(['requestType','creator','purchaser'])
+                ->where('sppjid', $cs->sppbjktid)->first();
+        } elseif ($prefix === 'PK') {
+            $srcHeader = \App\Models\TrSPPK::with(['requestType','creator','purchaser'])
+                ->where('sppkid', $cs->sppbjktid)->first();
+        } elseif ($prefix === 'PT') {
+            $srcHeader = \App\Models\TrSPPT::with(['requestType','creator','purchaser'])
+                ->where('spptid', $cs->sppbjktid)->first();
+        }
+
+        $eid      = \Vinkla\Hashids\Facades\Hashids::encode($cs->id);
+        $docUrl   = url('/showcs/' . $eid);
         $fullname = data_get($cs, 'creator.name') ?: $cs->created_by;
 
-        $prefix = strtoupper(substr((string)$cs->sppbjktid, 0, 2));
+        $result = app(\App\Http\Controllers\ApprovalController::class)->reviseStep(
+            $cs->csid,           // refnbr
+            $doctype,            // CS
+            $user->username,     // actor
+            $user->name,         // actor
 
-        if ($prefix == 'PB') {
-                $srcHeader = TrSPPB::with(['requestType', 'creator', 'purchaser'])->where('sppbid', $cs->sppbjktid)->first();              
-        } else if ($prefix == 'PJ') {
-                $srcHeader = TrSPPJ::with(['requestType', 'creator', 'purchaser'])->where('sppjid', $cs->sppbjktid)->first();               
-        } else if ($prefix == 'PK') {
-                $srcHeader = TrSPPK::with(['requestType', 'creator', 'purchaser'])->where('sppkid', $cs->sppbjktid)->first();                
-        } else if ($prefix == 'PT') {
-                $srcHeader = TrSPPT::with(['requestType', 'creator', 'purchaser'])->where('spptid', $cs->sppbjktid)->first();              
-        } else {
-            abort(422, 'Invalid doc type');
-        }           
-            
-        if (!$cs) {
-            return response()->json(['success' => false, 'message' => 'CS not found'], 404);
-        }
+            // CALLBACK saat revise benar-benar dieksekusi
+            function (string $refnbr, \Carbon\Carbon $now) use ($cs, $fullname, $docUrl, $srcHeader) {
+                // Header -> D
+                $cs->status       = 'D';
+                $cs->completed_by = auth()->user()->username;
+                $cs->completed_at = $now;
+                $cs->save();
 
-        // Pastikan user adalah approver aktif (status P) dokumen ini
-        $tApproval = T_approval::where('docid', $cs->csid)
-            ->where('status', 'P')
-            ->where('aprvusername', 'like', "%{$user->username}%")
-            ->whereNotNull('aprvdatebefore') 
-            ->orderBy('aprvid', 'ASC')
-            ->first();
+                // (opsional) detail -> D
+                // \App\Models\TrCSdetail::where('csid', $cs->csid)->update(['status' => 'D']);
 
-        if (!$tApproval) {
-            return response()->json(['success' => false, 'message' => "You can't revise!"], 403);
-        }
+                // Email requester
+                app(\App\Http\Controllers\ApprovalController::class)->notifyRequesterOnStatus(
+                    $cs->csid,
+                    'CS',
+                    'D',
+                    $cs->created_by,
+                    $docUrl,
+                    [
+                        'cpnyid'    => $cs->cpny_id ?? $cs->cpnyid ?? '',
+                        'deptname'  => $cs->department_id ?? $cs->departementid ?? '',
+                        'date'      => $now->toDateString(),
+                        'info'      => optional($srcHeader)->keperluan ?? $cs->keperluan,
+                        'fullname'  => $fullname,
+                        'name'      => $fullname,
+                        'createdby' => $fullname,
+                    ]
+                );
 
-        DB::beginTransaction();
-        try {
-            // Tandai approval saat ini sebagai Revise (D)
-            $tApproval->status        = 'D';
-            $tApproval->aprvdateafter = $now;
-            $tApproval->aprvusername  = $user->username;  // catat siapa yang revise
-            $tApproval->name          = $user->name;
-            $tApproval->save();
-
-            // Update header CS
-            $cs->status       = 'D';
-            $cs->completed_by = $user->username;        // mengikuti pola existing
-            $cs->completed_at = $now;
-            $cs->save();
-
-            // Batalkan approval lain yang masih pending
-            T_approval::where('docid', $cs->csid)
-                ->where('status', 'P')
-                ->update(['status' => 'X']);
-
-            DB::commit();
-        } catch (\Throwable $e) {
-            DB::rollBack();
-            Log::error('Revise CS failed', ['docid' => $docid, 'error' => $e->getMessage()]);
-            return response()->json(['success' => false, 'message' => 'Revise failed'], 500);
-        }
-
-        // === Kirim email ke requester (creator) ===
-        $status = 'D'; // Revise
-        $subjectMap = [
-            'P' => 'Waiting Approval',
-            'R' => 'Rejected Approval',
-            'D' => 'Revise Approval',
-            'A' => 'Approved',
-            'C' => 'Completed',
-        ];
-        $subjectSuffix = $subjectMap[$status] ?? 'Notification';
-
-        $eid = Hashids::encode($cs->id);
-
-        $data = [
-            'docid'     => $cs->csid,
-            'cpnyid'    => $cs->cpny_id ?? $cs->cpnyid ?? '',
-            'deptname'  => $cs->department_id ?? $cs->departementid ?? '',
-            'date'      => $now->toDateString(),          // atau $tApproval->aprvdateafter
-            'fullname'  => $fullname,             // template email pakai $fullname
-            'name'      => $fullname,             // fallback jika view pakai $name
-            'createdby' => $fullname,
-            'docname'   => 'CS',
-            'info'      => $srcHeader->keperluan,
-            'status'    => $status,
-            'url'       => url('/showcs/' . $eid),
-        ];
-
-        $recipients = User::where('username', $cs->created_by)
-            ->where('status', 'A')
-            ->get();
-
-        foreach ($recipients as $rcp) {
-            try {
-                $to = $rcp->test_email ?? $rcp->email; // sesuaikan dengan kolom yang ada
-                Mail::send('emails.mailapprovenew', $data, function ($message) use ($data, $to, $subjectSuffix) {
-                    $message->to($to)
-                        ->subject($data['docid'] . ' - ' . $subjectSuffix . ' CS')
-                        ->from('digitalserver@pakuwon.com', 'Pakuwon System');
-                });
-            } catch (\Throwable $e) {
-                Log::error('Failed sending CS revise email', [
-                    'docid' => $data['docid'],
-                    'to'    => $rcp->username,
-                    'error' => $e->getMessage()
-                ]);
+                // Simpan komentar (jika ada)
+                try {
+                    app('App\Http\Controllers\SendCommentController')->sendmsg($cs->id, 'CS', request());
+                } catch (\Throwable $e) {}
             }
+        );
+
+        if (!($result['ok'] ?? false)) {
+            return response()->json(['success'=>false,'message'=>$result['message'] ?? 'Revise failed'], 403);
         }
 
-        // Simpan komentar revisi (jika ada)
-        try {
-            app('App\Http\Controllers\SendCommentController')
-                ->sendmsg($cs->id, 'CS', $request);
-        } catch (\Throwable $e) {
-            Log::warning('SendComment after revise failed', [
-                'docid' => $cs->csid,
-                'error' => $e->getMessage()
-            ]);
-        }
-
-        return response()->json(['success' => true, 'message' => 'CS revised successfully']);
+        return response()->json(['success'=>true,'message'=>'CS revised successfully']);
     }
     
 
-    public function checkApproval($id, $action)
-    {
-        $user = Auth::user(); // Ambil user yang login
-        // dd($action);
-        // Query dasar untuk pengecekan
-        $query = T_approval::where('docid', $id)
-                    ->where('aprvusername', 'like', '%' . $user->username . '%')
-                    ->where('status', 'P');                 
+    // public function approveCS_xxx(Request $request, $docid)
+    // {
+    //     $now  = Carbon::now();
+    //     $user = $request->user();
 
-        // Jika aksi adalah reject atau revise, pastikan aprvdatebefore tidak null
-        if (in_array($action, ['reject', 'revise','approve'])) {
-            $query->whereNotNull('aprvdatebefore');
-        }
+    //     // $cs = TrCS::where('csid', $docid)->first();
+    //     $cs = TrCS::with('creator')
+    //         ->where('csid', $docid)
+    //         ->first();
+    //     $fullname = data_get($cs, 'creator.name') ?: $cs->created_by;
 
-        // Cek apakah user bisa melakukan aksi
-        $canPerformAction = $query->exists();
+    //     $prefix = strtoupper(substr((string)$cs->sppbjktid, 0, 2));
 
-        return response()->json(['canPerformAction' => $canPerformAction]);
-    }
+    //     if ($prefix == 'PB') {
+    //             $srcHeader = TrSPPB::with(['requestType', 'creator', 'purchaser'])->where('sppbid', $cs->sppbjktid)->first();   
+    //             $potype = 'PO';           
+    //     } else if ($prefix == 'PJ') {
+    //             $srcHeader = TrSPPJ::with(['requestType', 'creator', 'purchaser'])->where('sppjid', $cs->sppbjktid)->first();   
+    //             $potype = 'SPK';            
+    //     } else if ($prefix == 'PK') {
+    //             $srcHeader = TrSPPK::with(['requestType', 'creator', 'purchaser'])->where('sppkid', $cs->sppbjktid)->first();     
+    //             $potype = 'SPK';           
+    //     } else if ($prefix == 'PT') {
+    //             $srcHeader = TrSPPT::with(['requestType', 'creator', 'purchaser'])->where('spptid', $cs->sppbjktid)->first();  
+    //             $potype = 'SPK';            
+    //     } else {
+    //         abort(422, 'Invalid doc type');
+    //     }   
+
+    //     if (!$cs) {
+    //         return response()->json(['success' => false, 'message' => 'CS not found'], 404);
+    //     }
+
+    //     // pastikan user memang approver aktif (status P) di doc ini
+    //     $tApproval = T_approval::where('docid', $cs->csid)
+    //         ->where('status', 'P')
+    //         ->where('aprvusername', 'like', "%{$user->username}%")
+    //         ->whereNotNull('aprvdatebefore') 
+    //         ->orderBy('aprvid', 'ASC')
+    //         ->first();
+
+    //     if (!$tApproval) {
+    //         return response()->json(['success' => false, 'message' => "You can't approve!"], 403);
+    //     }
+
+    //     DB::beginTransaction();
+    //     try {
+    //         // Set current approver -> Approved
+    //         $tApproval->status         = 'A';
+    //         $tApproval->aprvdateafter  = $now;
+    //         $tApproval->aprvusername   = $user->username;
+    //         $tApproval->name           = $user->name;
+    //         $tApproval->save();
+
+    //         // Update header informasi "terakhir diproses"
+    //         $cs->completed_by = $user->username;
+    //         $cs->completed_at = $now;
+    //         $cs->save();
+
+    //         // Hitung sisa pending setelah approve ini
+    //         $pendingCount = T_approval::where('docid', $cs->csid)
+    //             ->where('status', 'P')
+    //             ->count();
+
+    //         // Pemetaan judul sesuai status
+    //         $subjectMap = [
+    //             'P' => 'Waiting Approval',
+    //             'R' => 'Rejected Approval',
+    //             'D' => 'Revise Approval',
+    //             'A' => 'Approved',
+    //             'C' => 'Completed',
+    //         ];
+
+    //         $eid = Hashids::encode($cs->id);
+    //         // dd($pendingCount);
+    //         if ($pendingCount === 0) {
+    //             // Tidak ada approver lagi -> dokumen complete
+    //             $cs->status       = 'C';
+    //             $cs->completed_by = $user->username;
+    //             $cs->completed_at = $now;
+    //             $cs->save();
+
+    //             $csdetail = TrCSdetail::where('csid', $cs->csid)                
+    //                 ->get();
+
+    //             foreach ($csdetail as $d) {
+    //                 $d->status = 'C'; 
+    //                 $d->save();
+    //             }
+
+    //             // Kirim email ke requester (creator)
+    //             $status        = 'C';
+    //             $subjectSuffix = $subjectMap[$status] ?? 'Notification';
+
+    //             $this->generatePOFromCS($cs, $user, $potype);
+                
+
+    //             $data = [
+    //                 'docid'     => $cs->csid,
+    //                 'cpnyid'    => $cs->cpny_id ?? $cs->cpnyid ?? '',
+    //                 'deptname'  => $cs->department_id ?? $cs->departementid ?? '',
+    //                 'date'      => $cs->csdate,
+    //                 'fullname'  => $fullname,  // nama penerima di email
+    //                 'name'      => $fullname,  // fallback
+    //                 'createdby' => $fullname,
+    //                 'docname'   => 'CS',
+    //                 'info'      => $srcHeader->keperluan,
+    //                 'status'    => $status,
+    //                 'url'       => url('/showcs/' . $eid),
+    //             ];
+
+    //             $recipients = User::where('username', $cs->created_by)
+    //                 ->where('status', 'A')
+    //                 ->get();
+
+    //             foreach ($recipients as $rcp) {
+    //                 try {
+    //                     Mail::send('emails.mailapprovenew', $data, function ($message) use ($data, $rcp, $subjectSuffix) {
+    //                         $to = $rcp->test_email ?? $rcp->email; // pakai field yang memang ada
+    //                         $message->to($to)
+    //                             ->subject($data['docid'] . ' - ' . $subjectSuffix . ' CS')
+    //                             ->from('digitalserver@pakuwon.com', 'Pakuwon System');
+    //                     });
+    //                 } catch (\Throwable $e) {
+    //                     Log::error('Failed sending CS completion email', ['error' => $e->getMessage()]);
+    //                 }
+    //             }
+    //         } else {
+    //             // Masih ada approver berikutnya -> cari level berikutnya (P terrendah aprvid)
+    //             $next = T_approval::where('docid', $cs->csid)
+    //                 ->where('status', 'P')
+    //                 ->orderBy('aprvid', 'ASC')
+    //                 ->first();
+
+    //             if ($next) {
+    //                 // Stempel "datebefore" untuk approver berikutnya
+    //                 $next->aprvdatebefore = $now;
+    //                 $next->save();
+
+    //                 // Kirim email ke semua username yang ada di kolom aprvusername (dipisah koma)
+    //                 $status        = 'P';
+    //                 $subjectSuffix = $subjectMap[$status] ?? 'Notification';
+
+    //                 $data = [
+    //                     'docid'     => $next->docid,
+    //                     'cpnyid'    => $next->aprvcpnyid,
+    //                     'deptname'  => $next->aprvdeptid,
+    //                     'date'      => $next->aprvdatebefore,
+    //                     'fullname'  => $next->name,
+    //                     'name'      => $next->name,
+    //                     'createdby' => $cs->created_by,
+    //                     'docname'   => 'CS',
+    //                     'info'      => $cs->keperluan,
+    //                     'status'    => $status,
+    //                     'url'       => url('/showcs/' . $eid),
+    //                 ];
+
+    //                 $usernames = array_filter(array_map('trim', explode(',', (string) $next->aprvusername)));
+    //                 if (!empty($usernames)) {
+    //                     $recipients = User::whereIn('username', $usernames)
+    //                         ->where('status', 'A')
+    //                         ->get();
+
+    //                     foreach ($recipients as $rcp) {
+    //                         try {
+    //                             Mail::send('emails.mailapprovenew', $data, function ($message) use ($data, $rcp, $subjectSuffix) {
+    //                                 $to = $rcp->test_email ?? $rcp->email;
+    //                                 $message->to($to)
+    //                                     ->subject($data['docid'] . ' - ' . $subjectSuffix . ' CS')
+    //                                     ->from('digitalserver@pakuwon.com', 'Pakuwon System');
+    //                             });
+    //                         } catch (\Throwable $e) {
+    //                             Log::error('Failed sending CS waiting-approval email', ['error' => $e->getMessage()]);
+    //                         }
+    //                     }
+    //                 } else {
+    //                     Log::warning('Next approver has empty aprvusername list', ['docid' => $cs->csid]);
+    //                 }
+    //             }
+    //         }
+
+    //         DB::commit();
+    //         return response()->json(['success' => true, 'message' => 'Task approved successfully']);
+    //     } catch (\Throwable $e) {
+    //         DB::rollBack();
+    //         Log::error('Approve CS failed', ['error' => $e->getMessage()]);
+    //         return response()->json(['success' => false, 'message' => 'Approve failed'], 500);
+    //     }
+    // }
+    
+    // public function rejectCS_xxx(Request $request, $docid)
+    // {
+    //     $now  = Carbon::now();
+    //     $user = $request->user();
+
+    //     // $cs = TrCS::where('csid', $docid)->first();
+    //     $cs = TrCS::with('creator')
+    //         ->where('csid', $docid)
+    //         ->first();
+    //     $fullname = data_get($cs, 'creator.name') ?: $cs->created_by;
+
+    //     $prefix = strtoupper(substr((string)$cs->sppbjktid, 0, 2));
+
+    //     if ($prefix == 'PB') {
+    //             $srcHeader = TrSPPB::with(['requestType', 'creator', 'purchaser'])->where('sppbid', $cs->sppbjktid)->first();              
+    //     } else if ($prefix == 'PJ') {
+    //             $srcHeader = TrSPPJ::with(['requestType', 'creator', 'purchaser'])->where('sppjid', $cs->sppbjktid)->first();               
+    //     } else if ($prefix == 'PK') {
+    //             $srcHeader = TrSPPK::with(['requestType', 'creator', 'purchaser'])->where('sppkid', $cs->sppbjktid)->first();                
+    //     } else if ($prefix == 'PT') {
+    //             $srcHeader = TrSPPT::with(['requestType', 'creator', 'purchaser'])->where('spptid', $cs->sppbjktid)->first();              
+    //     } else {
+    //         abort(422, 'Invalid doc type');
+    //     }   
+
+    //     if (!$cs) {
+    //         return response()->json(['success' => false, 'message' => 'Task not found'], 404);
+    //     }
+
+    //     // Validasi: user harus approver aktif (status P) pada dokumen ini
+    //     $tApproval = T_approval::where('docid', $cs->csid)
+    //         ->where('status', 'P')
+    //         ->where('aprvusername', 'like', "%{$user->username}%")
+    //         ->whereNotNull('aprvdatebefore')
+    //         ->orderBy('aprvid', 'ASC')
+    //         ->first();
+
+    //     if (!$tApproval) {
+    //         return response()->json(['success' => false, 'message' => "You can't reject!"], 403);
+    //     }
+
+    //     DB::beginTransaction();
+    //     try {
+    //         // Tandai approval saat ini sebagai Rejected
+    //         $tApproval->status        = 'R';
+    //         $tApproval->aprvdateafter = $now;
+    //         $tApproval->aprvusername  = $user->username; // catat siapa yang reject
+    //         $tApproval->name          = $user->name;
+    //         $tApproval->save();
+
+    //         // Update header CS
+    //         $cs->status       = 'R';
+    //         $cs->completed_by = $user->username;
+    //         $cs->completed_at = $now;
+    //         $cs->save();
+
+    //         // Batalkan semua approval yang masih pending
+    //         T_approval::where('docid', $cs->csid)
+    //             ->where('status', 'P')
+    //             ->update(['status' => 'X']);
+
+    //         DB::commit();
+    //     } catch (\Throwable $e) {
+    //         DB::rollBack();
+    //         Log::error('Reject CS failed', ['docid' => $docid, 'error' => $e->getMessage()]);
+    //         return response()->json(['success' => false, 'message' => 'Reject failed'], 500);
+    //     }
+
+    //     // === Kirim Email ke requester (creator) ===
+    //     $status = 'R'; // Rejected
+    //     $subjectMap = [
+    //         'P' => 'Waiting Approval',
+    //         'R' => 'Rejected Approval',
+    //         'D' => 'Revise Approval',
+    //         'A' => 'Approved',
+    //         'C' => 'Completed',
+    //     ];
+    //     $subjectSuffix = $subjectMap[$status] ?? 'Notification';
+
+    //     $eid = Hashids::encode($cs->id);
+
+    //     $data = [
+    //         'docid'     => $cs->csid,
+    //         'cpnyid'    => $cs->cpny_id ?? $cs->cpnyid ?? '',
+    //         'deptname'  => $cs->department_id ?? $cs->departementid ?? '',
+    //         'date'      => $now->toDateString(),            // bisa juga pakai $tApproval->aprvdateafter
+    //         'fullname'  => $fullname,               // view email kita pakai $fullname
+    //         'name'      => $fullname,               // fallback jika view pakai $name
+    //         'createdby' => $fullname,
+    //         'docname'   => 'CS',
+    //         'info'      => $srcHeader->keperluan,
+    //         'status'    => $status,
+    //         'url'       => url('/showcs/' . $eid),
+    //     ];
+
+    //     $recipients = User::where('username', $cs->created_by)
+    //         ->where('status', 'A')
+    //         ->get();
+
+    //     foreach ($recipients as $rcp) {
+    //         try {
+    //             $to = $rcp->test_email ?? $rcp->email; // sesuaikan field yang tersedia
+    //             Mail::send('emails.mailapprovenew', $data, function ($message) use ($data, $to, $subjectSuffix) {
+    //                 $message->to($to)
+    //                     ->subject($data['docid'] . ' - ' . $subjectSuffix . ' CS')
+    //                     ->from('digitalserver@pakuwon.com', 'Pakuwon System');
+    //             });
+    //         } catch (\Throwable $e) {
+    //             Log::error('Failed sending CS rejected email', [
+    //                 'docid' => $data['docid'],
+    //                 'to'    => $rcp->username,
+    //                 'error' => $e->getMessage()
+    //             ]);
+    //         }
+    //     }
+
+    //     // Simpan komentar penolakan (jika ada)
+    //     try {
+    //         app('App\Http\Controllers\SendCommentController')
+    //             ->sendmsg($cs->id, 'CS', $request);
+    //     } catch (\Throwable $e) {
+    //         Log::warning('SendComment after reject failed', [
+    //             'docid' => $cs->csid,
+    //             'error' => $e->getMessage()
+    //         ]);
+    //     }
+
+    //     return response()->json(['success' => true, 'message' => 'CS rejected successfully']);
+    // }
+
+    // public function reviseCS_xxx(Request $request, $docid)
+    // {
+    //     $now  = Carbon::now();
+    //     $user = $request->user();
+
+    //     // $cs = TrCS::where('csid', $docid)->first();
+    //     $cs = TrCS::with('creator')
+    //         ->where('csid', $docid)
+    //         ->first();
+
+    //     $fullname = data_get($cs, 'creator.name') ?: $cs->created_by;
+
+    //     $prefix = strtoupper(substr((string)$cs->sppbjktid, 0, 2));
+
+    //     if ($prefix == 'PB') {
+    //             $srcHeader = TrSPPB::with(['requestType', 'creator', 'purchaser'])->where('sppbid', $cs->sppbjktid)->first();              
+    //     } else if ($prefix == 'PJ') {
+    //             $srcHeader = TrSPPJ::with(['requestType', 'creator', 'purchaser'])->where('sppjid', $cs->sppbjktid)->first();               
+    //     } else if ($prefix == 'PK') {
+    //             $srcHeader = TrSPPK::with(['requestType', 'creator', 'purchaser'])->where('sppkid', $cs->sppbjktid)->first();                
+    //     } else if ($prefix == 'PT') {
+    //             $srcHeader = TrSPPT::with(['requestType', 'creator', 'purchaser'])->where('spptid', $cs->sppbjktid)->first();              
+    //     } else {
+    //         abort(422, 'Invalid doc type');
+    //     }           
+            
+    //     if (!$cs) {
+    //         return response()->json(['success' => false, 'message' => 'CS not found'], 404);
+    //     }
+
+    //     // Pastikan user adalah approver aktif (status P) dokumen ini
+    //     $tApproval = T_approval::where('docid', $cs->csid)
+    //         ->where('status', 'P')
+    //         ->where('aprvusername', 'like', "%{$user->username}%")
+    //         ->whereNotNull('aprvdatebefore') 
+    //         ->orderBy('aprvid', 'ASC')
+    //         ->first();
+
+    //     if (!$tApproval) {
+    //         return response()->json(['success' => false, 'message' => "You can't revise!"], 403);
+    //     }
+
+    //     DB::beginTransaction();
+    //     try {
+    //         // Tandai approval saat ini sebagai Revise (D)
+    //         $tApproval->status        = 'D';
+    //         $tApproval->aprvdateafter = $now;
+    //         $tApproval->aprvusername  = $user->username;  // catat siapa yang revise
+    //         $tApproval->name          = $user->name;
+    //         $tApproval->save();
+
+    //         // Update header CS
+    //         $cs->status       = 'D';
+    //         $cs->completed_by = $user->username;        // mengikuti pola existing
+    //         $cs->completed_at = $now;
+    //         $cs->save();
+
+    //         // Batalkan approval lain yang masih pending
+    //         T_approval::where('docid', $cs->csid)
+    //             ->where('status', 'P')
+    //             ->update(['status' => 'X']);
+
+    //         DB::commit();
+    //     } catch (\Throwable $e) {
+    //         DB::rollBack();
+    //         Log::error('Revise CS failed', ['docid' => $docid, 'error' => $e->getMessage()]);
+    //         return response()->json(['success' => false, 'message' => 'Revise failed'], 500);
+    //     }
+
+    //     // === Kirim email ke requester (creator) ===
+    //     $status = 'D'; // Revise
+    //     $subjectMap = [
+    //         'P' => 'Waiting Approval',
+    //         'R' => 'Rejected Approval',
+    //         'D' => 'Revise Approval',
+    //         'A' => 'Approved',
+    //         'C' => 'Completed',
+    //     ];
+    //     $subjectSuffix = $subjectMap[$status] ?? 'Notification';
+
+    //     $eid = Hashids::encode($cs->id);
+
+    //     $data = [
+    //         'docid'     => $cs->csid,
+    //         'cpnyid'    => $cs->cpny_id ?? $cs->cpnyid ?? '',
+    //         'deptname'  => $cs->department_id ?? $cs->departementid ?? '',
+    //         'date'      => $now->toDateString(),          // atau $tApproval->aprvdateafter
+    //         'fullname'  => $fullname,             // template email pakai $fullname
+    //         'name'      => $fullname,             // fallback jika view pakai $name
+    //         'createdby' => $fullname,
+    //         'docname'   => 'CS',
+    //         'info'      => $srcHeader->keperluan,
+    //         'status'    => $status,
+    //         'url'       => url('/showcs/' . $eid),
+    //     ];
+
+    //     $recipients = User::where('username', $cs->created_by)
+    //         ->where('status', 'A')
+    //         ->get();
+
+    //     foreach ($recipients as $rcp) {
+    //         try {
+    //             $to = $rcp->test_email ?? $rcp->email; // sesuaikan dengan kolom yang ada
+    //             Mail::send('emails.mailapprovenew', $data, function ($message) use ($data, $to, $subjectSuffix) {
+    //                 $message->to($to)
+    //                     ->subject($data['docid'] . ' - ' . $subjectSuffix . ' CS')
+    //                     ->from('digitalserver@pakuwon.com', 'Pakuwon System');
+    //             });
+    //         } catch (\Throwable $e) {
+    //             Log::error('Failed sending CS revise email', [
+    //                 'docid' => $data['docid'],
+    //                 'to'    => $rcp->username,
+    //                 'error' => $e->getMessage()
+    //             ]);
+    //         }
+    //     }
+
+    //     // Simpan komentar revisi (jika ada)
+    //     try {
+    //         app('App\Http\Controllers\SendCommentController')
+    //             ->sendmsg($cs->id, 'CS', $request);
+    //     } catch (\Throwable $e) {
+    //         Log::warning('SendComment after revise failed', [
+    //             'docid' => $cs->csid,
+    //             'error' => $e->getMessage()
+    //         ]);
+    //     }
+
+    //     return response()->json(['success' => true, 'message' => 'CS revised successfully']);
+    // }
+    
+
+    // public function checkApproval($id, $action)
+    // {
+    //     $user = Auth::user(); // Ambil user yang login
+    //     // dd($action);
+    //     // Query dasar untuk pengecekan
+    //     $query = T_approval::where('docid', $id)
+    //                 ->where('aprvusername', 'like', '%' . $user->username . '%')
+    //                 ->where('status', 'P');                 
+
+    //     // Jika aksi adalah reject atau revise, pastikan aprvdatebefore tidak null
+    //     if (in_array($action, ['reject', 'revise','approve'])) {
+    //         $query->whereNotNull('aprvdatebefore');
+    //     }
+
+    //     // Cek apakah user bisa melakukan aksi
+    //     $canPerformAction = $query->exists();
+
+    //     return response()->json(['canPerformAction' => $canPerformAction]);
+    // }
 
     public function tracking($hash)
     {

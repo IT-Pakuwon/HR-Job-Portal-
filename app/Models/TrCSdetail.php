@@ -19,52 +19,7 @@ class TrCSdetail extends Model
     // gampangnya: larang mass-assign hanya id
     protected $guarded = ['id'];
 
-    protected $casts = [
-        // // waktu
-        // 'created_at' => 'datetime',
-        // 'updated_at' => 'datetime',       
-
-        // // numerik utama
-        // 'qty'                   => 'decimal:2',
-        // 'base_qty'              => 'decimal:2',
-        // 'inventory_last_price'  => 'decimal:2',
-
-        // // vendor 1
-        // 'vendorprice1'          => 'decimal:2',
-        // 'vendortotalprice1'     => 'decimal:2',
-        // 'vendor1selected'       => 'boolean',
-
-        // // vendor 2
-        // 'vendorprice2'          => 'decimal:2',
-        // 'vendortotalprice2'     => 'decimal:2',
-        // 'vendor2selected'       => 'boolean',
-
-        // // vendor 3
-        // 'vendorprice3'          => 'decimal:2',
-        // 'vendortotalprice3'     => 'decimal:2',
-        // 'vendor3selected'       => 'boolean',
-
-        // // vendor 4
-        // 'vendorprice4'          => 'decimal:2',
-        // 'vendortotalprice4'     => 'decimal:2',
-        // 'vendor4selected'       => 'boolean',
-
-        // // vendor 5
-        // 'vendorprice5'          => 'decimal:2',
-        // 'vendortotalprice5'     => 'decimal:2',
-        // 'vendor5selected'       => 'boolean',
-
-        // // vendor 6
-        // 'vendorprice6'          => 'decimal:2',
-        // 'vendortotalprice6'     => 'decimal:2',
-        // 'vendor6selected'       => 'boolean',
-
-        // // lain-lain
-        // 'budget_perpost'        => 'integer',
-
-        // // pengikat header numerik (kalau dipakai)
-        // 'cs_no'                 => 'integer',
-        // 'sppbjkt_no'               => 'integer',
+    protected $fillable = [       
         'csid' , 'sppbjktid' , 'cs_no' , 'sppbjkt_no' , 'inventory_type' , 'inventory_sub_type' , 'inventory_category',
         'inventoryid' , 'inventory_descr' , 'qty' , 'uom' , 
         'type_multiplier' , 'base_multiplier' , 'base_qty' , 'base_uom' , 'inventory_last_price' , 'csnote_detail' , 
@@ -78,6 +33,55 @@ class TrCSdetail extends Model
         'budget_business_unit_id' , 'budget_department_fin_id' , 'budget_account_id' , 
         'budget_activity_id' , 'budget_activity_descr' , 'ponbr' , 'status' , 
         'created_by' , 'created_at' , 'updated_by' , 'updated_at' , 'deleted_by' , 'deleted_at'
+    ];
+
+    protected $casts = [
+        // waktu
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',       
+
+        // numerik utama
+        'qty'                   => 'decimal:2',
+        'base_qty'              => 'decimal:2',
+        'inventory_last_price'  => 'decimal:2',
+
+        // vendor 1
+        'vendorprice1'          => 'decimal:2',
+        'vendortotalprice1'     => 'decimal:2',
+        'vendor1selected'       => 'boolean',
+
+        // vendor 2
+        'vendorprice2'          => 'decimal:2',
+        'vendortotalprice2'     => 'decimal:2',
+        'vendor2selected'       => 'boolean',
+
+        // vendor 3
+        'vendorprice3'          => 'decimal:2',
+        'vendortotalprice3'     => 'decimal:2',
+        'vendor3selected'       => 'boolean',
+
+        // vendor 4
+        'vendorprice4'          => 'decimal:2',
+        'vendortotalprice4'     => 'decimal:2',
+        'vendor4selected'       => 'boolean',
+
+        // vendor 5
+        'vendorprice5'          => 'decimal:2',
+        'vendortotalprice5'     => 'decimal:2',
+        'vendor5selected'       => 'boolean',
+
+        // vendor 6
+        'vendorprice6'          => 'decimal:2',
+        'vendortotalprice6'     => 'decimal:2',
+        'vendor6selected'       => 'boolean',
+
+        // lain-lain
+        'budget_perpost'        => 'integer',
+
+        // pengikat header numerik (kalau dipakai)
+        'cs_no'                 => 'integer',
+        'sppbjkt_no'               => 'integer',
+      
     ];
 
     /* =========================

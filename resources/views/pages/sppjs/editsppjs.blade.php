@@ -1524,7 +1524,7 @@
             `);
 
             $.ajax({
-                url: "/sppjs/remove-attachment/" + attachmentId,
+                url: "/remove-attachment/" + attachmentId,
                 type: "POST",
                 data: { _method: "PUT", _token: "{{ csrf_token() }}" }
             })

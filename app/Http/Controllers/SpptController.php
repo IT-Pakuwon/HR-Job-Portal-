@@ -44,6 +44,12 @@ class SpptController extends Controller
 {
     public function index()
     {
+        $user = Auth::user();       
+
+        if (!$user) {
+            return redirect()->route('login');
+        }
+
         $all = TrSPPT::count();
         $onProgress = TrSPPT::where('status', 'P')->count();
         $reject = TrSPPT::where('status', 'R')->count();
@@ -447,8 +453,8 @@ class SpptController extends Controller
 
             // (opsional) simpan hint approver pertama di header seperti sebelumnya
             if ($firstApprovalUsernames) {
-                $header->updated_by = $firstApprovalUsernames;
-                $header->updated_at = $dt;
+                $header->completed_by = $firstApprovalUsernames;
+                $header->completed_at = $dt;
                 $header->save();
             }
 
@@ -952,8 +958,8 @@ class SpptController extends Controller
 
             // (opsional) simpan hint approver pertama di header seperti sebelumnya
             if ($firstApprovalUsernames) {
-                $header->updated_by = $firstApprovalUsernames;
-                $header->updated_at = $dt;
+                $header->completed_by = $firstApprovalUsernames;
+                $header->completed_at = $dt;
                 $header->save();
             }
 

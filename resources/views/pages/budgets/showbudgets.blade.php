@@ -300,48 +300,7 @@
                                             <th class="p-3 text-left font-semibold">Status</th>
                                         </tr>
                                     </thead>
-                                    <tbody>
-                                        @foreach ($approval as $ap)
-                                            <tr
-                                                class="border-b border-gray-100 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700">
-                                                <td class="p-3">{{ $ap->aprvid }}</td>
-                                                <td class="p-3">{{ $ap->name }}</td>
-                                                <td class="p-3">
-                                                    {{ \Carbon\Carbon::parse($ap->aprvdatebefore)->format('d M Y') }}
-                                                </td>
-                                                <td class="p-3">
-                                                    @php
-                                                        $statusText = '';
-                                                        $statusClass = '';
-                                                        switch ($ap->status) {
-                                                            case 'P':
-                                                                $statusText = 'Waiting Approval';
-                                                                $statusClass = 'bg-yellow-500 text-white';
-                                                                break;
-                                                            case 'A':
-                                                                $statusText = 'Approved';
-                                                                $statusClass = 'bg-green-500 text-white';
-                                                                break;
-                                                            case 'R':
-                                                                $statusText = 'Rejected';
-                                                                $statusClass = 'bg-red-500 text-white';
-                                                                break;
-                                                            case 'D':
-                                                                $statusText = 'Revise';
-                                                                $statusClass = 'bg-blue-500 text-white';
-                                                                break;
-                                                            default:
-                                                                $statusText = 'Unknown';
-                                                                $statusClass = 'bg-gray-500 text-white';
-                                                        }
-                                                    @endphp
-                                                    <span
-                                                        class="{{ $statusClass }} inline-block rounded-full px-3 py-1 text-xs font-semibold">
-                                                        {{ $statusText }}
-                                                    </span>
-                                                </td>
-                                            </tr>
-                                        @endforeach
+                                    <tbody id="approval-table-body">                                       
                                     </tbody>
                                 </table>
                             </div>
@@ -355,34 +314,7 @@
                                             <th class="p-3 text-left font-semibold">Created By</th>
                                             <th class="p-3 text-left font-semibold">Date</th>
                                         </tr>
-                                    </thead>
-                                    {{-- <tbody>
-                                        @forelse ($attachment as $at)
-                                            @php
-                                                $year = $at->created_at->year;
-                                                $fileUrl = url('/attachments/' . $year . '/' . $at->attachfile);
-                                            @endphp
-                                            <tr
-                                                class="border-b border-gray-100 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700">
-                                                <td class="p-3">
-                                                    <a href="{{ $fileUrl }}" target="_blank"
-                                                        class="flex items-center gap-2 font-medium text-indigo-600 hover:underline dark:text-indigo-400">
-                                                        📎 {{ $at->name }}
-                                                    </a>
-                                                </td>
-                                                <td class="p-3">{{ $at->created_user }}</td>
-                                                <td class="p-3">
-                                                    {{ \Carbon\Carbon::parse($at->created_at)->format('d M Y') }}</td>
-                                            </tr>
-                                        @empty
-                                            <tr>
-                                                <td colspan="3"
-                                                    class="p-4 text-center italic text-gray-500 dark:text-gray-400">
-                                                    No attachments found.
-                                                </td>
-                                            </tr>
-                                        @endforelse
-                                    </tbody> --}}
+                                    </thead>                                    
                                     <tbody id="budgetAttachmentTbody"></tbody> 
                                 </table>
                                 <div class="border-t border-gray-200 p-4 dark:border-gray-700">
@@ -663,104 +595,7 @@
         });
     </script>  
 
-    {{-- <script>
-        $(document).ready(function() {
-            let budget_id = "{{ $budget->budget_id }}"; // Ambil task ID dari PHP ke JavaScript
-            loadComments(budget_id);
-
-            // **Fungsi untuk Memuat Komentar**
-            function loadComments(budget_id) {
-                console.log("Loading comments for Doc ID:", budget_id);
-                let commentList = $('#commentList');
-                commentList.html('<p class="text-gray-500 italic">Loading comments...</p>'); // Loader
-
-                $.ajax({
-                    url: `/budget/${budget_id}/comments`,
-                    type: 'GET',
-                    success: function(response) {
-                        console.log("Comments Loaded:", response);
-                        commentList.empty();
-
-                        if (response.comments.length === 0) {
-                            commentList.append(
-                                '<p class="text-gray-500 italic">No comments yet. Be the first to comment!</p>'
-                            );
-                        } else {
-                            response.comments.forEach(comment => {
-                                // let timeAgo = moment(comment.created_at)
-                                //     .fromNow(); // Format waktu seperti "4 days ago"
-                                let timeAgo = dayjs(comment.created_at).fromNow();
-                                commentList.append(`
-                                        <div class="p-3 bg-gray-100 dark:bg-gray-800 rounded-lg mb-2        -gray-300 dark:   -gray-700">
-                                            <p class="text-sm font-semibold">${comment.username} 
-                                                <span class="text-xs text-gray-500">(${timeAgo})</span>
-                                            </p>
-                                            <p class="text-gray-800 dark:text-gray-200">${comment.message}</p>
-                                        </div>
-                                `);
-                            });
-                        }
-                    },
-                    error: function(xhr) {
-                        console.error("Error fetching comments:", xhr.responseText);
-                        commentList.html('<p class="text-red-500 italic">Failed to load comments.</p>');
-                    }
-                });
-            }
-
-            // **Fungsi untuk Menambahkan Komentar**
-            function addComment() {
-                let input = $('#commentInput').val().trim();
-
-                if (input === "") {
-                    alert("Please enter a comment.");
-                    return;
-                }
-
-                $('#postCommentBtn').prop('disabled', true).text('Posting...🚀'); // Disable button saat proses
-
-                $.ajax({
-                    url: `/budget/${budget_id}/comments`,
-                    type: 'POST',
-                    data: {
-                        budget_id: budget_id,
-                        comment: input,
-                        _token: '{{ csrf_token() }}'
-                    },
-                    success: function(response) {
-                        console.log('Comment added successfully:', response);
-
-                        if (response.status === "success") {
-                            loadComments(budget_id); // **Reload komentar setelah menambahkan**
-                            $('#commentInput').val(''); // Kosongkan input setelah sukses
-                        }
-                    },
-                    error: function(xhr) {
-                        console.error("Error adding comment:", xhr);
-                        alert("Error: " + (xhr.responseJSON ? xhr.responseJSON.message :
-                            "Unknown Error"));
-                    },
-                    complete: function() {
-                        $('#postCommentBtn').prop('disabled', false).text(
-                            'Post 🚀'); // Aktifkan kembali tombol
-                    }
-                });
-            }
-
-            // **Event Listener untuk Tombol "Post"**
-            $('#postCommentBtn').click(function() {
-                addComment();
-            });
-
-            // **Event Listener untuk Enter (Tanpa Shift) di Input**
-            $('#commentInput').keypress(function(event) {
-                if (event.which === 13 && !event.shiftKey) {
-                    event.preventDefault();
-                    addComment();
-                }
-            });
-        });
-    </script> --}}
+    
     <script>
         $(document).on("click", "#approveBtn", function() {
             let budget_id = "{{ $budget->budget_id }}"; // Ambil Task ID dari modal        
@@ -863,7 +698,7 @@
                                     "w-full max-w-32 bg-red-300/30 dark:bg-red-300 text-red-600 flex justify-items-center focus:outline-none pointer-events-none    -none font-semibold px-2 py-0.5 rounded"
                                 );
                             $spinner.fadeOut();
-
+                            toastr.success("Budget Rejected successfully!");
                             window.location.href = "/budgets";
                         } else {
                             alert("Failed to reject budget.");
@@ -930,6 +765,7 @@
                                     "w-full max-w-32 bg-red-300/30 dark:bg-red-300 text-red-600 flex justify-items-center focus:outline-none pointer-events-none    -none font-semibold px-2 py-0.5 rounded"
                                 );
                             $spinner.fadeOut();
+                            toastr.success("Budget Revised successfully!");
                             window.location.href = "/budgets";
                         } else {
                             alert("Failed to revise budget.");
@@ -954,26 +790,24 @@
     <!-- Toastr JS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
     <script>
-        function checkApproval(budget_id, action) {
-            console.log(budget_id, '-', action);
+        function checkApproval(budgetid, action) {
             $.ajax({
-                url: `/budget/${budget_id}/check-approval/${action}`,
+                url: `/approval/${budgetid}/check/${action}?doctype=BD`,
                 type: "GET",
                 success: function(response) {
                     if (response.canPerformAction) {
-                        // Jika user bisa melakukan aksi, tampilkan modal atau langsung proses approval
+
                         if (action === "reject") {
-                            $("#rejectReason").val(""); // Reset alasan reject
+                            $("#rejectReason").val("");
                             $("#rejectTaskModal").removeClass("hidden").css("z-index", "60");
+
                         } else if (action === "revise") {
-                            $("#reviseReason").val(""); // Reset alasan revise
+                            $("#reviseReason").val("");
                             $("#reviseTaskModal").removeClass("hidden").css("z-index", "60");
-                            // } else if (action === "approve") {
-                            // approveBudget(budget_id); // Jika approve, langsung jalankan proses approval
                         }
+
                     } else {
-                        // Jika user tidak boleh melakukan aksi, tampilkan popup toastr
-                        toastr.error("You are not authorized to " + action + " this budget.");
+                        toastr.error("You are not authorized to " + action + " this SPPB.");
                     }
                 },
                 error: function() {
@@ -981,7 +815,7 @@
                 }
             });
         }
-    </script> 
+    </script>
 
     <script>
         $(function () {
@@ -1007,7 +841,7 @@
             rows.forEach(at => {
             const fileName  = at.name || at.display_name || '(no name)';
             const createdBy = at.created_user ?? at.created_by ?? '-';
-            const dateStr   = at.created_at ? dayjs(at.created_at).format('DD MMM YYYY') : '-';
+            const dateStr = at.created_at ? dayjs(at.created_at).format('DD MMM YYYY HH:mm:ss') : '-';
             const linkHtml  = at.url
                 ? `<a href="${at.url}" target="_blank"
                     class="flex items-center gap-2 font-medium text-indigo-600 hover:underline dark:text-indigo-400">📎 ${fileName}</a>`
@@ -1076,6 +910,77 @@
             $('#budgetAttachFiles').val('');
         });
         });
+    </script>
+
+     <script>
+        document.addEventListener("DOMContentLoaded", function () {
+
+            const budgetid  = "{{ $budget->budget_id }}";   // contoh: PB2501010001
+            const doctype = "BD";
+
+            loadApproval(budgetid, doctype);
+        });
+
+        function loadApproval(refnbr, doctype) {
+            fetch(`/approval/${refnbr}/${doctype}`)
+                .then(response => response.json())
+                .then(res => {
+                    const tbody = document.querySelector("#approval-table-body");
+                    tbody.innerHTML = ""; // reset
+
+                    res.data.forEach(row => {
+                        const statusLabel = getStatusLabel(row.status);
+
+                        tbody.innerHTML += `
+                            <tr class="border-b border-gray-100 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700">
+                                <td class="p-3">${row.aprv_leveling}</td>
+                                <td class="p-3">${row.aprv_name}</td>
+                                <td class="p-3">
+                                    ${row.aprv_dateafter ? dayjs(row.aprv_dateafter).format('DD MMM YYYY HH:mm:ss') : ''}
+                                </td>
+                                <td class="p-3">${statusLabel}</td>
+                            </tr>
+                        `;
+                    });
+                })
+                .catch(err => console.error("Approval fetch failed →", err));
+        }
+
+        function formatDate(dateString) {
+            if (!dateString) return "-";
+            const d = new Date(dateString);
+            const options = { year: "numeric", month: "short", day: "numeric" };
+            return d.toLocaleDateString("en-US", options);
+        }
+
+        function getStatusLabel(status) {
+            let statusText = "";
+            let statusClass = "";
+
+            switch (status) {
+                case "P":
+                    statusText = "Waiting Approval";
+                    statusClass = "bg-yellow-500 text-white";
+                    break;
+                case "A":
+                    statusText = "Approved";
+                    statusClass = "bg-green-500 text-white";
+                    break;
+                case "R":
+                    statusText = "Rejected";
+                    statusClass = "bg-red-500 text-white";
+                    break;
+                case "D":
+                    statusText = "Revise";
+                    statusClass = "bg-blue-500 text-white";
+                    break;
+                default:
+                    statusText = "Unknown";
+                    statusClass = "bg-gray-500 text-white";
+            }
+
+            return `<span class="${statusClass} inline-block rounded-full px-3 py-1 text-xs font-semibold">${statusText}</span>`;
+        }
     </script>
 
 

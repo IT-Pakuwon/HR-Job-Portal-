@@ -47,6 +47,8 @@ use App\Http\Controllers\TrAttachmentController;
 use Illuminate\Support\Facades\Response;
 use App\Models\TrAttachment;
 use Google\Cloud\Storage\StorageClient;
+use App\Http\Controllers\ApprovalController;
+use App\Models\TrApproval;
 
 class BudgetController extends Controller
 {
@@ -213,82 +215,75 @@ class BudgetController extends Controller
   
     public function storeBudget(Request $request)
     {
-               
-                   
-        $temp_id = $request->input('temp_id'); 
-        $doctype = 'BD';     
-        $tempData = MsBudgetTemp::where('temp_budget_id', $temp_id)->get();
-        $tempHead = $tempData->first(); // ambil 1 record untuk akses data header
-        // $business_unit = BusinessUnitPG::where('business_unit_id', $tempHead->business_unit_id)->first();
+        $doctype = 'BD';
+
+        // 1) Ambil data temp (header + detail)
+        $tempId   = $request->input('temp_id');
+        $tempData = MsBudgetTemp::where('temp_budget_id', $tempId)->get();
+        $tempHead = $tempData->first();
 
         if (!$tempHead) {
             return response()->json(['message' => 'Tidak ada data budget import ditemukan!'], 422);
         }
 
-        $count_approval = M_approval::where('status', 'A')
-            ->where('aprvcpnyid', $tempHead->cpny_id)
-            ->where('aprvdeptid', $tempHead->department_fin_id)
-            ->where('aprvdoctype', $doctype)
-            ->count();
+        // 2) Siapkan helper
+        $user     = $request->user();
+        $username = $user->username ?? 'system';
 
-        if ($count_approval === 0) {
-            return response()->json([
-                'message' => 'Approval line belum di-setup, Please contact IT!'
-            ], 422);
-        }
+        $dt    = Carbon::now();
+        $year  = $dt->year;
+        $month = str_pad($dt->month, 2, '0', STR_PAD_LEFT);
 
+        // 3) Pastikan approval lines tersedia (pakai cpny & dept dari temp)
+        $approvalCtl = app(ApprovalController::class);
+        $approvalCtl->loadLines($doctype, $tempHead->cpny_id, $tempHead->department_fin_id);
 
         DB::beginTransaction();
         try {
-            $datenow = Carbon::now()->format('Y-m-d');
-            $dt = Carbon::now();
-            $year = $dt->year;
-            $month = str_pad($dt->month, 2, '0', STR_PAD_LEFT);            
-            $datestamp = Carbon::now()->toDateTimeString();
-            $user = request()->user();
-
-            // Generate task ID
+            // 4) Generate autonumber BDYYMMNNNN (lock)
             $autonbr = Autonbr::lockForUpdate()
                 ->where('doctype', $doctype)
                 ->where('year', $year)
                 ->where('month', $month)
-                ->where('status', 'A')
                 ->first();
 
             if (!$autonbr) {
                 $autonbr = Autonbr::create([
                     'doctype' => $doctype,
-                    'year' => $year,
-                    'month' => $month,
-                    'status' => 'A',
-                    'number' => 1
+                    'year'    => $year,
+                    'month'   => $month,
+                    'status'  => 'A',
+                    'number'  => 1,
                 ]);
                 $urutan = 1;
             } else {
                 $urutan = $autonbr->number + 1;
-                $autonbr->number = $urutan;
-                $autonbr->save();
+                $autonbr->update(['number' => $urutan]);
             }
 
-            $tglbln = substr($year, 2) . $month;
-            $docid = $doctype . $tglbln . sprintf("%04d", $urutan);
-         
+            $tglbln = substr($year, 2) . $month; // YYMM
+            $docid  = $doctype . $tglbln . sprintf("%04d", $urutan);
+
+            // 5) Buat header Budget
+            $totalBudget = (float) $tempData->sum('totalbudget');
+
             $budget = Budget::create([
-                'budget_id' => $docid,
-                'budget_date' => $datenow,
-                'perpost' => $tempHead->perpost,
-                'cpny_id' => $tempHead->cpny_id,
-                'business_unit_id' => $tempHead->business_unit_id,  
-                'department_fin_id' => $tempHead->department_fin_id,              
-                'totalbudget' => $tempData->sum('totalbudget'),              
-                'created_by' => $user->username,
-                'status' => 'P'
+                'budget_id'         => $docid,
+                'budget_date'       => $dt->toDateString(),
+                'perpost'           => $tempHead->perpost,             // YYYY
+                'cpny_id'           => $tempHead->cpny_id,
+                'business_unit_id'  => $tempHead->business_unit_id,
+                'department_fin_id' => $tempHead->department_fin_id,
+                'totalbudget'       => $totalBudget,
+                'created_by'        => $username,
+                'status'            => 'P',
             ]);
-                       
+
+            // 6) Buat detail BudgetDetail
             foreach ($tempData as $row) {
                 BudgetDetail::create([
                     'budget_id'          => $docid,
-                    'perpost'            => $row->perpost,
+                    'perpost'            => $row->perpost,            // YYYY
                     'cpny_id'            => $row->cpny_id,
                     'business_unit_id'   => $row->business_unit_id,
                     'department_fin_id'  => $row->department_fin_id,
@@ -313,195 +308,136 @@ class BudgetController extends Controller
                     'period11_budget'    => $row->period11_budget,
                     'period12_budget'    => $row->period12_budget,
 
-                    // ===== NEW: add (default 0)
-                    'period01_budget_add'   => 0,
-                    'period02_budget_add'   => 0,
-                    'period03_budget_add'   => 0,
-                    'period04_budget_add'   => 0,
-                    'period05_budget_add'   => 0,
-                    'period06_budget_add'   => 0,
-                    'period07_budget_add'   => 0,
-                    'period08_budget_add'   => 0,
-                    'period09_budget_add'   => 0,
-                    'period10_budget_add'   => 0,
-                    'period11_budget_add'   => 0,
-                    'period12_budget_add'   => 0,
+                    // add
+                    'period01_budget_add' => 0,
+                    'period02_budget_add' => 0,
+                    'period03_budget_add' => 0,
+                    'period04_budget_add' => 0,
+                    'period05_budget_add' => 0,
+                    'period06_budget_add' => 0,
+                    'period07_budget_add' => 0,
+                    'period08_budget_add' => 0,
+                    'period09_budget_add' => 0,
+                    'period10_budget_add' => 0,
+                    'period11_budget_add' => 0,
+                    'period12_budget_add' => 0,
 
-                    // ===== NEW: reserve (default 0)
-                    'period01_reserve'   => 0,
-                    'period02_reserve'   => 0,
-                    'period03_reserve'   => 0,
-                    'period04_reserve'   => 0,
-                    'period05_reserve'   => 0,
-                    'period06_reserve'   => 0,
-                    'period07_reserve'   => 0,
-                    'period08_reserve'   => 0,
-                    'period09_reserve'   => 0,
-                    'period10_reserve'   => 0,
-                    'period11_reserve'   => 0,
-                    'period12_reserve'   => 0,
+                    // reserve
+                    'period01_reserve'    => 0,
+                    'period02_reserve'    => 0,
+                    'period03_reserve'    => 0,
+                    'period04_reserve'    => 0,
+                    'period05_reserve'    => 0,
+                    'period06_reserve'    => 0,
+                    'period07_reserve'    => 0,
+                    'period08_reserve'    => 0,
+                    'period09_reserve'    => 0,
+                    'period10_reserve'    => 0,
+                    'period11_reserve'    => 0,
+                    'period12_reserve'    => 0,
 
-                    // ===== NEW: used (default 0)
-                    'period01_used'      => 0,
-                    'period02_used'      => 0,
-                    'period03_used'      => 0,
-                    'period04_used'      => 0,
-                    'period05_used'      => 0,
-                    'period06_used'      => 0,
-                    'period07_used'      => 0,
-                    'period08_used'      => 0,
-                    'period09_used'      => 0,
-                    'period10_used'      => 0,
-                    'period11_used'      => 0,
-                    'period12_used'      => 0,
+                    // used
+                    'period01_used'       => 0,
+                    'period02_used'       => 0,
+                    'period03_used'       => 0,
+                    'period04_used'       => 0,
+                    'period05_used'       => 0,
+                    'period06_used'       => 0,
+                    'period07_used'       => 0,
+                    'period08_used'       => 0,
+                    'period09_used'       => 0,
+                    'period10_used'       => 0,
+                    'period11_used'       => 0,
+                    'period12_used'       => 0,
 
-                    'created_by'         => $user->username,
-                    'status'             => 'P',
+                    'created_by'          => $username,
+                    'status'              => 'P',
                 ]);
             }
 
+            // 7) Hapus temp
+            MsBudgetTemp::where('temp_budget_id', $tempId)->delete();
 
-            MsBudgetTemp::where('temp_budget_id', $temp_id)->delete();
-           
-            //read ms_approval
-            $m_approval = M_approval::where('aprvdoctype', $doctype)
-                ->where('aprvcpnyid', $tempHead->cpny_id)
-                ->where('aprvdeptid', $tempHead->department_fin_id)
-                ->where('status', 'A')
-                ->get();
+            // 8) Generate TrApproval (cek NOMINAL saja → pakai grand_total = totalbudget)
+            $ctx = [
+                'ignore_nominal' => false,
+                'grand_total'    => (float) $totalBudget,
+            ];
 
-            //insert trx_approval
-            foreach ($m_approval as $mp) {
-                $aprvdatebefore = ($mp->aprvid == 1) ? $datestamp : null; 
-                T_approval::create([
-                    'docid' => $docid,
-                    'aprvid' => $mp->aprvid,
-                    'aprvdoctype' => $mp->aprvdoctype,
-                    'aprvcpnyid' => $mp->aprvcpnyid,
-                    'aprvdeptid' => $mp->aprvdeptid,
-                    'aprvusername' => $mp->aprvusername,
-                    'name' => $mp->name,
-                    'aprvdatebefore' => $aprvdatebefore,
-                    'aprvtotalday' => 1,
-                    'status' => 'P',
-                    'created_user' => $user->username
-                ]);
-            }            
-            
-            // Simpan Attachments ke attachments          
-            // if ($request->hasfile('attachments')) {
-            //     foreach ($request->file('attachments') as $file) {
-            //         $randomNumber = random_int(10000000, 99999999);
-            //         $filename = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
-                   
-            //         $originalName = str_replace('%', '', $file->getClientOriginalName());
-            //         $ext        = $file->getClientOriginalExtension();
-            //         $attachfile = md5($randomNumber) . '.' . $ext;
+            [$firstApprovalUsernames, $linesCount] = $approvalCtl->generateForDocument(
+                $budget->budget_id,                 // refnbr
+                $doctype,                           // 'BD'
+                $tempHead->cpny_id,
+                $tempHead->department_fin_id,
+                $username,
+                $ctx,
+                $dt
+            );
 
-            //         //attach to folder
-            //         $folder_attach = public_path() . '/attachments/'.$year;
-            //         $config['upload_path'] = $folder_attach;                   
-            //         if(!is_dir($folder_attach))
-            //         {
-            //             mkdir($folder_attach, 0777);
-            //         }
-                    
-            //         $folder_upload = $folder_attach;
-            //         // $folder_upload = public_path() . '/attachments';
-            //         $file->move($folder_upload, $attachfile);
+            // opsional: simpan hint approver pertama (jika kolom ada di budgets)
+            if ($firstApprovalUsernames && \Illuminate\Support\Facades\Schema::hasColumn($budget->getTable(), 'completed_by')) {
+                $budget->completed_by = $firstApprovalUsernames;
+                $budget->completed_at = $dt;
+                $budget->save();
+            }
 
-            //         //insert to table attachments
-            //         $attach = new Attachment();
-            //         $attach->docid = $docid;
-            //         $attach->name = $filename;
-            //         $attach->attachfile = $attachfile;
-            //         $attach->status = 'A';
-            //         $attach->extention = $file->getClientOriginalExtension();
-            //         $attach->created_user = $user->username;
-            //         $attach->save();
-            //     }
-            // }            
-             
-
+            // 9) Attachments (opsional)
             if ($request->hasFile('attachments')) {
                 $meta = [
-                    'refnbr'        => $docid,
+                    'refnbr'        => $budget->budget_id,
                     'doctype'       => $doctype,
                     'cpnyid'        => $tempHead->cpny_id,
-                    'departementid' => $tempHead->department_fin_id,                    
+                    'departementid' => $tempHead->department_fin_id,
                     'base_folder'   => 'att-purchasing-app/'.strtolower($doctype),
-                    'created_by'    => $user->username,
+                    'created_by'    => $username,
                 ];
-
                 $files = (array) $request->file('attachments');
 
                 try {
-                    $uploader = app(TrAttachmentController::class);
+                    $uploader     = app(TrAttachmentController::class);
                     $uploadResult = $uploader->uploadInternal($meta, $files);
-                    // tidak return di sini!
                 } catch (\Throwable $e) {
-                    \DB::rollBack();
+                    DB::rollBack();
                     return response()->json([
-                        'message' => 'Failed to create PB',
+                        'message' => 'Failed to create BD',
                         'error'   => 'Gagal upload attachment: '.$e->getMessage(),
                     ], 500);
                 }
             } else {
-                $uploadResult = null; // tidak ada attachment
+                $uploadResult = null;
             }
 
-            $t_approval_next = T_approval::where('docid', $docid)
-                ->where('status', 'P')
-                ->orderby('aprvid','ASC')
-                ->first();
-
-            $status = 'P'; // 'P' | 'R' | 'D' | 'A' | 'C'
-            
-            $subjectMap = [
-                'P' => 'Waiting Approval',
-                'R' => 'Rejected Approval',
-                'D' => 'Revise Approval',
-                'A' => 'Approved',
-                'C' => 'Completed',
-            ];
-            $subjectSuffix = $subjectMap[$status] ?? 'Notification';
-
-            // $id = $budget->id;
-            $eid = Hashids::encode($budget->id);
-            $data = array(
-                'docid' => $t_approval_next->docid,
-                'cpnyid' => $t_approval_next->aprvcpnyid,
-                'deptname' => $t_approval_next->aprvdeptid,                
-                'date' => $t_approval_next->aprvdatebefore,
-                'name' => $t_approval_next->name,    
-                'createdby'=> $budget->created_by,   
-                'docname'  => 'Budget',
-                'info' => 'Budget Company ' . $tempHead->cpny_id . ' Department ' . $tempHead->department_fin_id . ' ' . $tempHead->perpost,     
-                'status'   => $status, 
-                'url' => url('/showbudgets/' . $eid)
-    
+            // 10) Email approver pertama (status 'P')
+            $eid = \Vinkla\Hashids\Facades\Hashids::encode($budget->id);
+            $approvalCtl->notifyFirstApprover(
+                $budget->budget_id,
+                $doctype,
+                $budget->status,                     // 'P'
+                'Budget',
+                url('/showbudgets/' . $eid),
+                [
+                    'info'      => 'Budget '.$tempHead->cpny_id.' Dept '.$tempHead->department_fin_id.' Perpost '.$tempHead->perpost,
+                    'createdby' => $budget->created_by,
+                    'date'      => $dt->toDateTimeString(),
+                ]
             );
-    
-            $multiapp = explode(',', $t_approval_next->aprvusername);
-    
-            $email_it = User::whereIN('username', $multiapp)
-                ->where('status', 'A')
-                ->get();
-    
-            foreach ($email_it as $emailsit) {
-                Mail::send('emails.mailapprovenew', $data, function ($message) use ($data, $emailsit) {
-                    $message->to($emailsit->test_email)->subject($data['docid'] . ' - Waiting Approval Budgets');
-                    $message->from('digitalserver@pakuwon.com', 'Pakuwon System');
-                });
-            }       
 
             DB::commit();
-            return response()->json(['success' => true, 'budget' => $budget]);
-        } catch (\Exception $e) {
+
+            return response()->json([
+                'success' => true,
+                'budget'  => $budget,
+            ]);
+
+        } catch (\Throwable $e) {
             DB::rollBack();
-            return response()->json(['error' => 'Gagal menyimpan budget', 'message' => $e->getMessage()], 500);
+            return response()->json([
+                'error'   => 'Gagal menyimpan budget',
+                'message' => config('app.debug') ? $e->getMessage() : null,
+            ], 500);
         }
     }
+
     
     public function editBudget($hash)
     {
@@ -524,11 +460,8 @@ class BudgetController extends Controller
             ->get();
         $temp_id  = session('import_temp_id');
         $tempData = $temp_id ? MsBudgetTemp::where('temp_budget_id', $temp_id)->get() : [];
-        // $attachment = Attachment::where('docid', $budget->budget_id)  
-        //     ->where('status','A')         
-        //     ->get();
-
-         $rows = TrAttachment::where('refnbr', $budget->budget_id)
+        
+        $rows = TrAttachment::where('refnbr', $budget->budget_id)
             ->where('status', 'A')
             ->orderBy('created_at', 'desc')
             ->get();
@@ -587,65 +520,51 @@ class BudgetController extends Controller
         $id = Hashids::decode($hash)[0] ?? null;
         abort_if(!$id, 404, 'BD tidak ditemukan.');
 
-        $doctype  = 'BD';
-        $user     = $request->user();
-        $now      = Carbon::now();
-        $datenow  = $now->toDateString();
-        $datestamp= $now->toDateTimeString();
+        $doctype   = 'BD';
+        $user      = $request->user();
+        $username  = $user->username ?? 'system';
+        $now       = Carbon::now();
+        $datenow   = $now->toDateString();
 
-        // ambil budget yang mau diupdate
+        // 1) Ambil header existing
         $budget = Budget::findOrFail($id);
 
-        // ambil temp (opsional)
+        // 2) Ambil temp (opsional)
         $temp_id  = $request->input('temp_id') ?: session('import_temp_id');
         $tempData = $temp_id ? MsBudgetTemp::where('temp_budget_id', $temp_id)->get() : collect();
         $useTemp  = $tempData->isNotEmpty();
         $tempHead = $useTemp ? $tempData->first() : null;
 
-        // header yang dipakai untuk approval/meta
-        // - jika ada import → ambil dari temp
-        // - jika tidak ada import → pakai request (kalau dikirim), atau fallback ke nilai lama
-        $cpnyId   = $useTemp ? $tempHead->cpny_id           : ($request->input('cpny_id')           ?? $budget->cpny_id);
-        $deptId   = $useTemp ? $tempHead->department_fin_id : ($request->input('department_fin_id') ?? $budget->department_fin_id);
-        $buId     = $useTemp ? $tempHead->business_unit_id  : ($request->input('business_unit_id')  ?? $budget->business_unit_id);
-        // Perpost: form-mu tidak ada input perpost; kalau tanpa import, biarkan tetap.
-        $perpost  = $useTemp ? $tempHead->perpost : $budget->perpost;
+        // 3) Header meta yg dipakai
+        $cpnyId  = $useTemp ? $tempHead->cpny_id           : ($request->input('cpny_id')           ?? $budget->cpny_id);
+        $deptId  = $useTemp ? $tempHead->department_fin_id : ($request->input('department_fin_id') ?? $budget->department_fin_id);
+        $buId    = $useTemp ? $tempHead->business_unit_id  : ($request->input('business_unit_id')  ?? $budget->business_unit_id);
+        $perpost = $useTemp ? $tempHead->perpost           : $budget->perpost; // tetap bila tanpa import
 
-        // validasi approval line terhadap header yang dipakai
-        $count_approval = M_approval::where('status', 'A')
-            ->where('aprvcpnyid', $cpnyId)
-            ->where('aprvdeptid', $deptId)
-            ->where('aprvdoctype', $doctype)
-            ->count();
-
-        if ($count_approval === 0) {
-            return response()->json([
-                'message' => 'Approval line belum di-setup, Please contact IT!'
-            ], 422);
-        }
+        // 4) Pastikan line approval ada (pakai cpny/dept yang dipakai dokumen)
+        $approvalCtl = app(ApprovalController::class);
+        $approvalCtl->loadLines($doctype, $cpnyId, $deptId);
 
         DB::beginTransaction();
         try {
-            // totalbudget:
-            // - dengan import → sum dari temp
-            // - tanpa import  → sum dari detail existing
+            // 5) Hitung total budget
             $totalBudget = $useTemp
-                ? $tempData->sum('totalbudget')
-                : BudgetDetail::where('budget_id', $budget->budget_id)->sum('totalbudget');
+                ? (float) $tempData->sum('totalbudget')
+                : (float) BudgetDetail::where('budget_id', $budget->budget_id)->sum('totalbudget');
 
-            // update header
+            // 6) Update header
             $budget->update([
                 'budget_date'       => $datenow,
                 'perpost'           => $perpost,
                 'cpny_id'           => $cpnyId,
-                'business_unit_id'  => $buId,               // simpan ID; kalau butuh nama, ambil terpisah
+                'business_unit_id'  => $buId,
                 'department_fin_id' => $deptId,
                 'totalbudget'       => $totalBudget,
                 'status'            => 'P',
-                'updated_by'        => $user->username,     // jaga created_by tetap milik pembuat awal
+                'updated_by'        => $username,
             ]);
 
-            // kalau ada import → replace detail
+            // 7) Jika ada import → replace detail dengan kolom lengkap (add/reserve/used = 0)
             if ($useTemp) {
                 BudgetDetail::where('budget_id', $budget->budget_id)->delete();
 
@@ -663,6 +582,7 @@ class BudgetController extends Controller
                         'qty_budget'         => $row->qty_budget,
                         'unit_price_budget'  => $row->unit_price_budget,
                         'totalbudget'        => $row->totalbudget,
+
                         'period01_budget'    => $row->period01_budget,
                         'period02_budget'    => $row->period02_budget,
                         'period03_budget'    => $row->period03_budget,
@@ -675,43 +595,57 @@ class BudgetController extends Controller
                         'period10_budget'    => $row->period10_budget,
                         'period11_budget'    => $row->period11_budget,
                         'period12_budget'    => $row->period12_budget,
-                        'created_by'         => $user->username,
+
+                        // add (default 0)
+                        'period01_budget_add' => 0, 'period02_budget_add' => 0, 'period03_budget_add' => 0,
+                        'period04_budget_add' => 0, 'period05_budget_add' => 0, 'period06_budget_add' => 0,
+                        'period07_budget_add' => 0, 'period08_budget_add' => 0, 'period09_budget_add' => 0,
+                        'period10_budget_add' => 0, 'period11_budget_add' => 0, 'period12_budget_add' => 0,
+
+                        // reserve (default 0)
+                        'period01_reserve' => 0, 'period02_reserve' => 0, 'period03_reserve' => 0,
+                        'period04_reserve' => 0, 'period05_reserve' => 0, 'period06_reserve' => 0,
+                        'period07_reserve' => 0, 'period08_reserve' => 0, 'period09_reserve' => 0,
+                        'period10_reserve' => 0, 'period11_reserve' => 0, 'period12_reserve' => 0,
+
+                        // used (default 0)
+                        'period01_used' => 0, 'period02_used' => 0, 'period03_used' => 0,
+                        'period04_used' => 0, 'period05_used' => 0, 'period06_used' => 0,
+                        'period07_used' => 0, 'period08_used' => 0, 'period09_used' => 0,
+                        'period10_used' => 0, 'period11_used' => 0, 'period12_used' => 0,
+
+                        'created_by'         => $username,
                         'status'             => 'P',
                     ]);
                 }
 
-                // bersihkan temp bila sudah dipakai
+                // hapus temp setelah dipakai
                 MsBudgetTemp::where('temp_budget_id', $temp_id)->delete();
             }
 
-            // susun ulang approval (kalau memang prosesnya butuh dibuat ulang setiap submit)
-            $m_approval = M_approval::where('aprvdoctype', $doctype)
-                ->where('aprvcpnyid', $cpnyId)
-                ->where('aprvdeptid', $deptId)
-                ->where('status', 'A')
-                ->get();
+            // 8) Generate TrApproval (cek Nominal saja)
+            $ctx = [
+                'ignore_nominal' => false,
+                'grand_total'    => $totalBudget,
+            ];
+            [$firstApprovalUsernames, $linesCount] = $approvalCtl->generateForDocument(
+                $budget->budget_id,     // refnbr
+                $doctype,               // 'BD'
+                $cpnyId,
+                $deptId,
+                $username,
+                $ctx,
+                $now
+            );
 
-            // hapus draft t_approval lama untuk doc ini (opsional, jika memang logikanya begitu)
-            // T_approval::where('docid', $budget->budget_id)->delete();
-
-            foreach ($m_approval as $mp) {
-                $aprvdatebefore = ($mp->aprvid == 1) ? $datestamp : null;
-                T_approval::create([
-                    'docid'          => $budget->budget_id,
-                    'aprvid'         => $mp->aprvid,
-                    'aprvdoctype'    => $mp->aprvdoctype,
-                    'aprvcpnyid'     => $mp->aprvcpnyid,
-                    'aprvdeptid'     => $mp->aprvdeptid,
-                    'aprvusername'   => $mp->aprvusername,
-                    'name'           => $mp->name,
-                    'aprvdatebefore' => $aprvdatebefore,
-                    'aprvtotalday'   => 1,
-                    'status'         => 'P',
-                    'created_user'   => $user->username,
-                ]);
+            // opsional: simpan hint approver pertama kalau kolom ada
+            if ($firstApprovalUsernames && \Illuminate\Support\Facades\Schema::hasColumn($budget->getTable(), 'completed_by')) {
+                $budget->completed_by = $firstApprovalUsernames;
+                $budget->completed_at = $now;
+                $budget->save();
             }
 
-            // attachments tetap bisa diupload baik ada import maupun tidak
+            // 9) Upload attachments (optional)
             if ($request->hasFile('attachments')) {
                 $meta = [
                     'refnbr'        => $budget->budget_id,
@@ -719,7 +653,7 @@ class BudgetController extends Controller
                     'cpnyid'        => $cpnyId,
                     'departementid' => $deptId,
                     'base_folder'   => 'att-purchasing-app/'.strtolower($doctype),
-                    'created_by'    => $user->username,
+                    'created_by'    => $username,
                 ];
                 $files = (array) $request->file('attachments');
 
@@ -735,39 +669,20 @@ class BudgetController extends Controller
                 }
             }
 
-            // cari approver berikutnya (jika ada) untuk notifikasi
-            $t_approval_next = T_approval::where('docid', $budget->budget_id)
-                ->where('status', 'P')
-                ->orderBy('aprvid', 'ASC')
-                ->first();
-
-            if ($t_approval_next) {
-                $eid  = Hashids::encode($budget->id);
-                $data = [
-                    'docid'     => $t_approval_next->docid,
-                    'cpnyid'    => $t_approval_next->aprvcpnyid,
-                    'deptname'  => $t_approval_next->aprvdeptid,
-                    'date'      => $t_approval_next->aprvdatebefore,
-                    'name'      => $t_approval_next->name,
+            // 10) Notifikasi approver pertama
+            $eid = \Vinkla\Hashids\Facades\Hashids::encode($budget->id);
+            $approvalCtl->notifyFirstApprover(
+                $budget->budget_id,
+                $doctype,
+                $budget->status, // 'P'
+                'Budget',
+                url('/showbudgets/' . $eid),
+                [
+                    'info'      => 'Budget '.$cpnyId.' Dept '.$deptId.' Perpost '.$perpost,
                     'createdby' => $budget->created_by,
-                    'docname'   => 'Budget',
-                    'info'      => 'Budget Company '.$cpnyId.' Department '.$deptId.' '.$perpost,
-                    'status'    => 'P',
-                    'url'       => url('/showbudgets/'.$eid),
-                ];
-
-                $multiapp = explode(',', $t_approval_next->aprvusername);
-                $email_it = User::whereIn('username', $multiapp)
-                    ->where('status', 'A')
-                    ->get();
-
-                foreach ($email_it as $emailsit) {
-                    Mail::send('emails.mailapprovenew', $data, function ($message) use ($data, $emailsit) {
-                        $message->to($emailsit->test_email)->subject($data['docid'].' - Waiting Approval Budgets');
-                        $message->from('digitalserver@pakuwon.com', 'Pakuwon System');
-                    });
-                }
-            }
+                    'date'      => $now->toDateTimeString(),
+                ]
+            );
 
             DB::commit();
             return response()->json(['success' => true, 'budget' => $budget]);
@@ -776,251 +691,12 @@ class BudgetController extends Controller
             DB::rollBack();
             return response()->json([
                 'error'   => 'Gagal menyimpan budget',
-                'message' => $e->getMessage()
+                'message' => config('app.debug') ? $e->getMessage() : null,
             ], 500);
         }
     }
-
-
-
     
-    public function updateBudget_xxx(Request $request, $hash)
-    {
-        // dd($request->all());      
-
-        $id = Hashids::decode($hash)[0] ?? null;
-        abort_if(!$id, 404, 'BD tidak ditemukan.');
-
-        $temp_id = $request->input('temp_id'); 
-        $doctype = 'BD';
-        $tempData = MsBudgetTemp::where('temp_budget_id', $temp_id)->get();
-        $tempHead = $tempData->first(); // ambil 1 record untuk akses data header
-        $business_unit = BusinessUnitPG::where('business_unit_id', $tempHead->business_unit_id)->first();
-
-        if (!$tempHead) {
-            return response()->json(['message' => 'Tidak ada data budget import ditemukan!'], 422);
-        }
-
-        $count_approval = M_approval::where('status', 'A')
-            ->where('aprvcpnyid', $tempHead->cpny_id)
-            ->where('aprvdeptid', $tempHead->department_fin_id)
-            ->where('aprvdoctype', $doctype)
-            ->count();
-
-        if ($count_approval === 0) {
-            return response()->json([
-                'message' => 'Approval line belum di-setup, Please contact IT!'
-            ], 422);
-        }
-
-        DB::beginTransaction();
-        try {
-            $datenow = Carbon::now()->format('Y-m-d');     
-            $dt = Carbon::now();
-            $year = $dt->year;
-            $month = str_pad($dt->month, 2, '0', STR_PAD_LEFT);    
-            $datestamp = Carbon::now()->toDateTimeString();
-            $user = request()->user();
-
-            $budget = Budget::findOrFail($id);
-                       
-            $budget -> update([              
-                'budget_date' => $datenow,
-                'perpost' => $tempHead->perpost,
-                'cpny_id' => $tempHead->cpny_id,
-                'business_unit_id' => $business_unit->business_unit_name,  
-                'department_fin_id' => $tempHead->department_fin_id,              
-                'totalbudget' => $tempData->sum('totalbudget'),              
-                'created_by' => $user->username,
-                'status' => 'P'             
-            ]);
-
-            BudgetDetail::where('budget_id', $budget->budget_id)->delete();
-
-            foreach ($tempData as $row) {
-                BudgetDetail::create([     
-                    'budget_id' => $budget->budget_id,             
-                    'perpost' => $row->perpost,
-                    'cpny_id' => $row->cpny_id,
-                    'business_unit_id' => $row->business_unit_id,
-                    'department_fin_id' => $row->department_fin_id,
-                    'account_id' => $row->account_id,
-                    'activity_id' => $row->activity_id,
-                    'activity_descr' => $row->activity_descr,
-                    'activity_detail' => $row->activity_detail,
-                    'qty_budget'      => $row->qty_budget,
-                    'unit_price_budget' => $row->unit_price_budget,
-                    'totalbudget' => $row->totalbudget,
-                    'period01_budget' => $row->period01_budget,
-                    'period02_budget' => $row->period02_budget,
-                    'period03_budget' => $row->period03_budget,
-                    'period04_budget' => $row->period04_budget,
-                    'period05_budget' => $row->period05_budget,
-                    'period06_budget' => $row->period06_budget,
-                    'period07_budget' => $row->period07_budget,
-                    'period08_budget' => $row->period08_budget,
-                    'period09_budget' => $row->period09_budget,
-                    'period10_budget' => $row->period10_budget,
-                    'period11_budget' => $row->period11_budget,
-                    'period12_budget' => $row->period12_budget,
-                    'created_by' => $user->username,
-                    'status' => 'P'
-                ]);
-            }
-
-            MsBudgetTemp::where('temp_budget_id', $temp_id)->delete();
-
-            //read ms_approval
-             $m_approval = M_approval::where('aprvdoctype', $doctype)
-                ->where('aprvcpnyid', $tempHead->cpny_id)
-                ->where('aprvdeptid', $tempHead->department_fin_id)
-                ->where('status', 'A')
-                ->get();
-
-            //insert trx_approval
-            foreach ($m_approval as $mp) {
-                $aprvdatebefore = ($mp->aprvid == 1) ? $datestamp : null; 
-                T_approval::create([
-                    'docid' => $budget->budget_id,
-                    'aprvid' => $mp->aprvid,
-                    'aprvdoctype' => $mp->aprvdoctype,
-                    'aprvcpnyid' => $mp->aprvcpnyid,
-                    'aprvdeptid' => $mp->aprvdeptid,
-                    'aprvusername' => $mp->aprvusername,
-                    'name' => $mp->name,
-                    'aprvdatebefore' => $aprvdatebefore,
-                    'aprvtotalday' => 1,
-                    'status' => 'P',
-                    'created_user' => $user->username
-                ]);
-            }            
-                   
-          
-
-            // Simpan Attachments ke attachments          
-            // if ($request->hasfile('attachments')) {
-            //     foreach ($request->file('attachments') as $file) {
-            //         $randomNumber = random_int(10000000, 99999999);
-            //         $filename = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
-                   
-            //         $originalName = str_replace('%', '', $file->getClientOriginalName());
-            //         $ext        = $file->getClientOriginalExtension();
-            //         $attachfile = md5($randomNumber) . '.' . $ext;
-
-            //         //attach to folder
-            //         $folder_attach = public_path() . '/attachments/'.$year;
-            //         $config['upload_path'] = $folder_attach;                   
-            //         if(!is_dir($folder_attach))
-            //         {
-            //             mkdir($folder_attach, 0777);
-            //         }
-                    
-            //         $folder_upload = $folder_attach;
-            //         // $folder_upload = public_path() . '/attachments';
-            //         $file->move($folder_upload, $attachfile);
-
-            //         //insert to table attachments
-            //         $attach = new Attachment();
-            //         $attach->docid = $budget->docid;
-            //         $attach->name = $filename;
-            //         $attach->attachfile = $attachfile;
-            //         $attach->status = 'A';
-            //         $attach->extention = $file->getClientOriginalExtension();
-            //         $attach->created_user = $user->username;
-            //         $attach->save();
-            //     }
-            // }
-
-            
-            $uploadResult = null;
-            if ($request->hasFile('attachments')) {
-                $meta = [
-                    'refnbr'        => $budget->budget_id,
-                    'doctype'       => $doctype,
-                    'cpnyid'        => $tempHead->cpny_id,
-                    'departementid' => $tempHead->department_fin_id,
-                    'base_folder'   => 'att-purchasing-app/'.strtolower($doctype),
-                    'created_by'    => $user->username,
-                ];
-                $files = (array) $request->file('attachments');
-
-                try {
-                    $uploader = app(TrAttachmentController::class);
-                    $uploadResult = $uploader->uploadInternal($meta, $files);
-                } catch (\Throwable $e) {
-                    DB::rollBack();
-                    return response()->json([
-                        'message' => 'Failed to update BD',
-                        'error'   => 'Gagal upload attachment: '.$e->getMessage(),
-                    ], 500);
-                }
-            }
-
-            $t_approval_next = T_approval::where('docid', $budget->budget_id)
-                ->where('status', 'P')
-                ->orderby('aprvid','ASC')
-                ->first();
-
-            $status = 'P'; 
-            
-            $subjectMap = [
-                'P' => 'Waiting Approval',
-                'R' => 'Rejected Approval',
-                'D' => 'Revise Approval',
-                'A' => 'Approved',
-                'C' => 'Completed',
-            ];
-            $subjectSuffix = $subjectMap[$status] ?? 'Notification';
-
-            $eid = Hashids::encode($budget->id);
-           
-            $data = array(
-                'docid' => $t_approval_next->docid,
-                'cpnyid' => $t_approval_next->aprvcpnyid,
-                'deptname' => $t_approval_next->aprvdeptid,                
-                'date' => $t_approval_next->aprvdatebefore,
-                'name' => $t_approval_next->name,    
-                'createdby'=> $budget->created_by,   
-                'docname'  => 'Budget',
-                'info' => 'Budget Company ' . $tempHead->cpny_id . ' Department ' . $tempHead->department_fin_id . ' ' . $tempHead->perpost,     
-                'status'   => $status,             
-                'url' => url('/showbudgets/' . $eid)                 
-    
-            );
-    
-            $multiapp = explode(',', $t_approval_next->aprvusername);
-    
-            $email_it = User::whereIN('username', $multiapp)
-                ->where('status', 'A')
-                ->get();
-    
-            foreach ($email_it as $emailsit) {
-                Mail::send('emails.mailapprovenew', $data, function ($message) use ($data, $emailsit) {
-                    $message->to($emailsit->test_email)->subject($data['docid'] . ' - Waiting Approval Budgets');
-                    $message->from('digitalserver@pakuwon.com', 'Pakuwon System');
-                });
-            }
-
-            DB::commit();
-            return response()->json(['success' => true, 'budget' => $budget]);
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return response()->json(['error' => 'Gagal menyimpan budget', 'message' => $e->getMessage()], 500);
-        }
-    }
-
-    public function removeAttachment($id)
-    {
-        try {
-            $attachment = TrAttachment::findOrFail($id);
-            $attachment->update(['status' => 'X']); 
-
-            return response()->json(['success' => true, 'message' => 'Attachment status updated']);
-        } catch (\Exception $e) {
-            return response()->json(['success' => false, 'message' => 'Failed to update attachment status', 'error' => $e->getMessage()], 500);
-        }
-    }
- 
+       
 
     public function showBudget($hash)
     {        
@@ -1096,382 +772,578 @@ class BudgetController extends Controller
 
     public function approveBudget(Request $request, $docid)
     {
-        $now  = Carbon::now();
-        $user = $request->user();
+        $user    = $request->user();
+        $doctype = 'BD';
 
-        // eager load creator jika ada relasinya
-        $budget = Budget::with('creator')   // pastikan relasi creator() ada, atau ganti sesuai relasi Anda
-            ->where('budget_id', $docid)
-            ->first();
+        $budget = Budget::with('creator')->where('budget_id', $docid)->first();
+        if (!$budget) return response()->json(['success'=>false,'message'=>'Budget not found'],404);
 
-        if (!$budget) {
-            return response()->json(['success' => false, 'message' => 'Budget not found'], 404);
-        }
+        $eid      = \Vinkla\Hashids\Facades\Hashids::encode($budget->id);
+        $docUrl   = url('/showbudgets/' . $eid);
+        $fullname = data_get($budget, 'creator.name') ?: $budget->created_by;
 
-        // ambil nama lengkap pembuat dokumen (fallback ke created_by)
-        $fullname = data_get($budget, 'creator.name') ?: ($budget->created_by ?? '');
+        $result = app(\App\Http\Controllers\ApprovalController::class)->approveStep(
+            $budget->budget_id,
+            $doctype,
+            $user->username,
+            $user->name,
 
-        // pastikan user adalah approver aktif (status P) di doc ini
-        $tApproval = T_approval::where('docid', $budget->budget_id)
-            ->where('status', 'P')
-            ->where('aprvusername', 'like', "%{$user->username}%")
-            ->whereNotNull('aprvdatebefore') 
-            ->orderBy('aprvid', 'ASC')
-            ->first();
-
-        if (!$tApproval) {
-            return response()->json(['success' => false, 'message' => "You can't approve!"], 403);
-        }
-
-        DB::beginTransaction();
-        try {
-            // Set current approver -> Approved
-            $tApproval->status         = 'A';
-            $tApproval->aprvdateafter  = $now;
-            $tApproval->aprvusername   = $user->username;
-            $tApproval->name           = $user->name;
-            $tApproval->save();
-
-            // Update header informasi "terakhir diproses"
-            $budget->completed_by = $user->username;
-            $budget->completed_at = $now;
-            $budget->save();
-
-            // Hitung sisa pending setelah approve ini
-            $pendingCount = T_approval::where('docid', $budget->budget_id)
-                ->where('status', 'P')
-                ->count();
-
-            // Pemetaan judul sesuai status
-            $subjectMap = [
-                'P' => 'Waiting Approval',
-                'R' => 'Rejected Approval',
-                'D' => 'Revise Approval',
-                'A' => 'Approved',
-                'C' => 'Completed',
-            ];
-
-            if ($pendingCount === 0) {
-                // Tidak ada approver lagi -> dokumen complete
+            // complete: update header/detail + email creator complete
+            function (string $refnbr, \Carbon\Carbon $now) use ($budget, $fullname, $docUrl) {
                 $budget->status       = 'C';
-                $budget->completed_by = $user->username;
+                $budget->completed_by = $budget->completed_by ?: auth()->user()->username;
                 $budget->completed_at = $now;
                 $budget->save();
 
-                // Close semua detail
-                $details = BudgetDetail::where('budget_id', $budget->budget_id)->get();
-                foreach ($details as $d) {
-                    $d->status = 'C';
-                    $d->save();
-                }
+                Budgetdetail::where('budget_id', $budget->budget_id)->update(['status' => 'C']);
 
-                // Email ke requester (creator)
-                $status        = 'C';
-                $subjectSuffix = $subjectMap[$status] ?? 'Notification';
+                app(\App\Http\Controllers\ApprovalController::class)->notifyRequesterOnStatus(
+                    $budget->budget_id,
+                    'Budget',
+                    'C',
+                    $budget->created_by,
+                    $docUrl,
+                    [
+                        'cpnyid'   => $budget->cpny_id ?? $budget->cpnyid ?? '',
+                        'deptname' => $budget->department_id ?? $budget->departementid ?? '',
+                        'date'     => $budget->budgetdate,
+                        'info'     => $budget->keperluan,
+                        'fullname' => $fullname,
+                        'name'     => $fullname,
+                        'createdby'=> $fullname, 
+                    ]
+                );
+            },
 
-                $eid = Hashids::encode($budget->id);
+            // notify next approver
+            function ($next, \Carbon\Carbon $now) use ($budget, $docUrl) {
+                app(\App\Http\Controllers\ApprovalController::class)->notifyFirstApprover(
+                    $budget->budget_id,
+                    'BD',
+                    'P',
+                    'Budget',
+                    $docUrl,
+                    [
+                        'info'      => $budget->keperluan,
+                        'createdby' => $budget->created_by,
+                        'date'      => $now->toDateTimeString(),
+                    ]
+                );
 
-                $data = [
-                    'docid'     => $budget->budget_id,
-                    'cpnyid'    => $budget->cpny_id ?? '',
-                    'deptname'  => $budget->department_fin_id ?? '',
-                    'date'      => $budget->perpost ?? $now,
-                    'fullname'  => $fullname,  // nama penerima di email
-                    'name'      => $fullname,  // fallback
-                    'createdby' => $fullname,
-                    'docname'   => 'Budget',
-                    'info'      => 'Budget Company ' . ($budget->cpny_id ?? '') . ' Department ' . ($budget->department_fin_id ?? '') . ' ' . ($budget->perpost ?? ''),
-                    'status'    => $status,
-                    'url'       => url('/showbudgets/' . $eid),
-                ];
-
-                // kirim ke pembuat dokumen
-                $recipients = User::where('username', $budget->created_by ?? '')
-                    ->where('status', 'A')
-                    ->get();
-
-                foreach ($recipients as $rcp) {
-                    try {
-                        $to = $rcp->test_email ?? $rcp->email;
-                        if ($to) {
-                            Mail::send('emails.mailapprovenew', $data, function ($message) use ($data, $to, $subjectSuffix) {
-                                $message->to($to)
-                                    ->subject($data['docid'] . ' - ' . $subjectSuffix . ' Budget')
-                                    ->from('digitalserver@pakuwon.com', 'Pakuwon System');
-                            });
-                        }
-                    } catch (\Throwable $e) {
-                        Log::error('Failed sending Budget completion email', ['docid' => $budget->budget_id, 'error' => $e->getMessage()]);
-                    }
-                }
-            } else {
-                // Masih ada approver berikutnya -> cari level berikutnya
-                $next = T_approval::where('docid', $budget->budget_id)
-                    ->where('status', 'P')
-                    ->orderBy('aprvid', 'ASC')
-                    ->first();
-
-                if ($next) {
-                    // Stempel "datebefore" untuk approver berikutnya
-                    $next->aprvdatebefore = $now;
-                    $next->save();
-
-                    // Email ke approver berikutnya
-                    $status        = 'P';
-                    $subjectSuffix = $subjectMap[$status] ?? 'Notification';
-
-                    $data = [
-                        'docid'     => $next->docid,
-                        'cpnyid'    => $next->aprvcpnyid,
-                        'deptname'  => $next->aprvdeptid,
-                        'date'      => $next->aprvdatebefore,
-                        'fullname'  => $next->name,
-                        'name'      => $next->name,
-                        'createdby' => $budget->created_by ?? '',
-                        'docname'   => 'Budget',
-                        'info'      => 'Budget Company ' . ($budget->cpny_id ?? '') . ' Department ' . ($budget->department_fin_id ?? '') . ' ' . ($budget->perpost ?? ''),
-                        'status'    => $status,
-                        'url'       => url('/showbudgets/' . $budget->id),
-                    ];
-
-                    $usernames = array_filter(array_map('trim', explode(',', (string) $next->aprvusername)));
-                    if (!empty($usernames)) {
-                        $recipients = User::whereIn('username', $usernames)
-                            ->where('status', 'A')
-                            ->get();
-
-                        foreach ($recipients as $rcp) {
-                            try {
-                                $to = $rcp->test_email ?? $rcp->email;
-                                if ($to) {
-                                    Mail::send('emails.mailapprovenew', $data, function ($message) use ($data, $to, $subjectSuffix) {
-                                        $message->to($to)
-                                            ->subject($data['docid'] . ' - ' . $subjectSuffix . ' Budget')
-                                            ->from('digitalserver@pakuwon.com', 'Pakuwon System');
-                                    });
-                                }
-                            } catch (\Throwable $e) {
-                                Log::error('Failed sending Budget waiting-approval email', ['docid' => $budget->budget_id, 'error' => $e->getMessage()]);
-                            }
-                        }
-                    } else {
-                        Log::warning('Next approver has empty aprvusername list', ['docid' => $budget->budget_id]);
-                    }
-                }
+                // jejak terakhir diproses (optional)
+                $budget->completed_by = auth()->user()->username;
+                $budget->completed_at = $now;
+                $budget->save();
             }
+        );
 
-            DB::commit();
-            return response()->json(['success' => true, 'message' => 'Task approved successfully']);
-        } catch (\Throwable $e) {
-            DB::rollBack();
-            Log::error('Approve Budget failed', ['docid' => $budget->budget_id, 'error' => $e->getMessage()]);
-            return response()->json(['success' => false, 'message' => 'Approve failed'], 500);
+        if (!$result['ok']) {
+            return response()->json(['success'=>false,'message'=>$result['message'] ?? 'Approve failed'], 403);
         }
-    }
 
+        return response()->json(['success'=>true,'message'=>'Task approved successfully']);
+    }
 
     public function rejectBudget(Request $request, $docid)
     {
-        
-        // dd($request->all());         
-        $datestamp = Carbon::now()->toDateTimeString();       
-        $user = request()->user(); // Ambil user yang login
+        $user    = $request->user();
+        $doctype = 'BD';
 
-        // $budget = Budget::where('budget_id', $docid)->first();  
-        $budget = Budget::with('creator')
-            ->where('budget_id', $docid)
-            ->first();
+        $budget = \App\Models\Budget::with('creator')->where('budget_id', $docid)->first();
+        if (!$budget) return response()->json(['success'=>false,'message'=>'Budget not found'],404);
+
+        $eid      = \Vinkla\Hashids\Facades\Hashids::encode($budget->id);
+        $docUrl   = url('/showbudgets/' . $eid);
         $fullname = data_get($budget, 'creator.name') ?: $budget->created_by;
 
-        
-        if (!$budget) {
-            return response()->json(['success' => false, 'message' => 'Task not found'], 404);
-        }
+        $result = app(\App\Http\Controllers\ApprovalController::class)->rejectStep(
+            $budget->budget_id,
+            $doctype,
+            $user->username,
+            $user->name,
 
-        // Cek apakah user memiliki akses untuk approve
-        $t_approval = T_approval::where('docid', $budget->budget_id)
-            ->where('status', 'P')
-            ->where('aprvusername', 'like', "%" . $user->username . "%")
-            ->whereNotNull('aprvdatebefore') 
-            ->first();
-        // dd($t_approval);
-        if ($t_approval == null) {
-            return response()->json(['success' => false, 'message' => "You Can't Rejected!"], 403);
-        } else {
-            $t_approval->status = 'R';
-            $t_approval->aprvdateafter = $datestamp;           
-            $t_approval->save();
+            function (string $refnbr, \Carbon\Carbon $now) use ($budget, $fullname, $docUrl) {
+                $budget->status       = 'R';
+                $budget->completed_by = auth()->user()->username;
+                $budget->completed_at = $now;
+                $budget->save();
 
-            $budget->status = 'R';
-            $budget->save();
-        }   
-                       
-        $t_aprv_sisa = T_approval::where('docid', '=', $budget->budget_id)
-            ->where('status', '=', 'P')
-            ->get();
+                // optional: tandai detail R
+                // \App\Models\Budgetdetail::where('budget_id', $budget->budget_id)->update(['status' => 'R']);
 
-        foreach ($t_aprv_sisa as $t_aprv) {
-            $t_aprv->status = 'X';
-            $t_aprv->save();
-        }
+                app(\App\Http\Controllers\ApprovalController::class)->notifyRequesterOnStatus(
+                    $budget->budget_id,
+                    'Budget',
+                    'R',
+                    $budget->created_by,
+                    $docUrl,
+                    [
+                        'cpnyid'   => $budget->cpny_id ?? $budget->cpnyid ?? '',
+                        'deptname' => $budget->department_id ?? $budget->departementid ?? '',
+                        'date'     => $now->toDateString(),
+                        'info'     => $budget->keperluan,
+                        'fullname' => $fullname,
+                        'name'     => $fullname,
+                        'createdby'=> $fullname, 
+                    ]
+                );
 
-        $status = 'R'; // Rejected
-        $subjectMap = [
-            'P' => 'Waiting Approval',
-            'R' => 'Rejected Approval',
-            'D' => 'Revise Approval',
-            'A' => 'Approved',
-            'C' => 'Completed',
-        ];
-        $subjectSuffix = $subjectMap[$status] ?? 'Notification';
-
-        $eid = Hashids::encode($budget->id);
-
-        //send email 
-        $data = array(
-            'docid' => $t_approval->docid,
-            'cpnyid' => $t_approval->aprvcpnyid,
-            'deptname' => $t_approval->aprvdeptid,           
-            'date' => $t_approval->aprvdatebefore,
-            'fullname'  => $fullname,               
-            'name'      => $fullname,               
-            'createdby' => $fullname,
-            'docname'   => 'Budget',
-            'status'    => $status,
-            'info' => 'Budget Company ' . $budget->cpny_id . ' Department ' . $budget->department_fin_id . ' ' . $budget->perpost,                 
-            'url' => url('/showbudgets/' . $eid)
-
+                // simpan komentar (jika ada)
+                try {
+                    app('App\Http\Controllers\SendCommentController')->sendmsg($budget->id, 'BD', request());
+                } catch (\Throwable $e) {}
+            }
         );
 
-       
-        $email_it = User::where('username', $budget->created_by)
-                ->where('status', 'A')
-                ->get();
-
-        foreach ($email_it as $emailsit) {
-            Mail::send('emails.mailapprovenew', $data, function ($message) use ($data, $emailsit) {
-
-                $message->to($emailsit->test_email)->subject($data['docid'] . ' - Rejected Budget');
-                $message->from('digitalserver@pakuwon.com', 'Pakuwon System');
-            });
+        if (!$result['ok']) {
+            return response()->json(['success'=>false,'message'=>$result['message'] ?? 'Reject failed'], 403);
         }
 
-        $id = $budget->id;
-        $doctype ='BD';
-        app('App\Http\Controllers\SendCommentController')->sendmsg($id, $doctype, $request);
-
-        return response()->json(['success' => true, 'message' => 'Budget rejected successfully']);
+        return response()->json(['success'=>true,'message'=>'Budget rejected successfully']);
     }
 
     public function reviseBudget(Request $request, $docid)
     {
-        
-        // dd($request->all());         
-        $datestamp = Carbon::now()->toDateTimeString();       
-        $user = request()->user(); // Ambil user yang login
+        $user    = $request->user();
+        $doctype = 'BD';
 
-        // $budget = Budget::where('budget_id', $docid)->first();  
-        $budget = Budget::with('creator')
-            ->where('budget_id', $docid)
-            ->first();
+        $budget = \App\Models\Budget::with('creator')->where('budget_id', $docid)->first();
+        if (!$budget) return response()->json(['success'=>false,'message'=>'Budget not found'],404);
+
+        $eid      = \Vinkla\Hashids\Facades\Hashids::encode($budget->id);
+        $docUrl   = url('/showbudgets/' . $eid);
         $fullname = data_get($budget, 'creator.name') ?: $budget->created_by;
-        
-        
-        if (!$budget) {
-            return response()->json(['success' => false, 'message' => 'Budget not found'], 404);
-        }
 
-        // Cek apakah user memiliki akses untuk approve
-        $t_approval = T_approval::where('docid', $budget->budget_id)
-            ->where('status', 'P')
-            ->where('aprvusername', 'like', "%" . $user->username . "%")
-            ->whereNotNull('aprvdatebefore') 
-            ->first();
-        // dd($t_approval);
-        if ($t_approval == null) {
-            return response()->json(['success' => false, 'message' => "You Can't Revise!"], 403);
-        } else {
-            $t_approval->status = 'D';
-            $t_approval->aprvdateafter = $datestamp;           
-            $t_approval->save();
+        $result = app(\App\Http\Controllers\ApprovalController::class)->reviseStep(
+            $budget->budget_id,            // refnbr
+            $doctype,                 // PT
+            $user->username,          // actor
+            $user->name,              // actor
+            function (string $refnbr, \Carbon\Carbon $now) use ($budget, $fullname, $docUrl) {
+                // === HEADER Budget -> D ===
+                $budget->status       = 'D';
+                $budget->completed_by = auth()->user()->username;
+                $budget->completed_at = $now;
+                $budget->save();
 
-            $budget->status = 'D';
-            $budget->save();
-        }   
-                       
-        $t_aprv_sisa = T_approval::where('docid', '=', $budget->budget_id)
-            ->where('status', '=', 'P')
-            ->get();
+                // (opsional) DETAIL -> D
+                // \App\Models\Budgetdetail::where('budget_id', $budget->budget_id)->update(['status' => 'D']);
 
-        foreach ($t_aprv_sisa as $t_aprv) {
-            $t_aprv->status = 'X';
-            $t_aprv->save();
-        }
+                // === Email ke requester ===
+                app(\App\Http\Controllers\ApprovalController::class)->notifyRequesterOnStatus(
+                    $budget->budget_id,
+                    'Budget',
+                    'D',
+                    $budget->created_by,
+                    $docUrl,
+                    [
+                        'cpnyid'   => $budget->cpny_id ?? $budget->cpnyid ?? '',
+                        'deptname' => $budget->department_id ?? $budget->departementid ?? '',
+                        'date'     => $now->toDateString(),
+                        'info'     => $budget->keperluan,
+                        'fullname' => $fullname,
+                        'name'     => $fullname,
+                        'createdby'=> $fullname,   // <<< tambahkan ini
+                    ]
+                );
 
-        $status = 'D'; // Revise
-        $subjectMap = [
-            'P' => 'Waiting Approval',
-            'R' => 'Rejected Approval',
-            'D' => 'Revise Approval',
-            'A' => 'Approved',
-            'C' => 'Completed',
-        ];
-        $subjectSuffix = $subjectMap[$status] ?? 'Notification';
 
-        $eid = Hashids::encode($budget->id);
-
-        //send email 
-        $data = array(
-            'docid' => $t_approval->docid,
-            'cpnyid' => $t_approval->aprvcpnyid,
-            'deptname' => $t_approval->aprvdeptid,           
-            'date' => $t_approval->aprvdatebefore,
-            'fullname'  => $fullname,             
-            'name'      => $fullname,             
-            'createdby' => $fullname,
-            'docname'   => 'Budget',
-            'status'    => $status,
-            'info' => 'Budget Company ' . $budget->cpny_id . ' Department ' . $budget->department_fin_id . ' ' . $budget->perpost,               
-            'url' => url('/showbudgets/' . $eid)
-
+                // === Simpan komentar (jika ada) ===
+                try {
+                    app('App\Http\Controllers\SendCommentController')->sendmsg($budget->id, 'BD', request());
+                } catch (\Throwable $e) {}
+            }
         );
 
-       
-        $email_it = User::where('username', $budget->created_by)
-                ->where('status', 'A')
-                ->get();
-
-        foreach ($email_it as $emailsit) {
-            Mail::send('emails.mailapprovenew', $data, function ($message) use ($data, $emailsit) {
-
-                $message->to($emailsit->test_email)->subject($data['docid'] . ' - Revise Budget');
-                $message->from('digitalserver@pakuwon.com', 'Pakuwon System');
-            });
+        if (!$result['ok']) {
+            return response()->json([
+                'success'=>false,
+                'message'=>$result['message'] ?? 'Revise failed'
+            ], 403);
         }
 
-        $id = $budget->id;
-        $doctype ='BD';
-        app('App\Http\Controllers\SendCommentController')->sendmsg($id, $doctype, $request);
-
-        return response()->json(['success' => true, 'message' => 'Budget revise successfully']);
+        return response()->json(['success'=>true,'message'=>'Budget revised successfully']);
     }
 
-    public function checkApprovalx($id)
-    {
-        // Ambil user yang sedang login
-        $user = Auth::user();
+
+    // public function approveBudget(Request $request, $docid)
+    // {
+    //     $now  = Carbon::now();
+    //     $user = $request->user();
+
+    //     // eager load creator jika ada relasinya
+    //     $budget = Budget::with('creator')   // pastikan relasi creator() ada, atau ganti sesuai relasi Anda
+    //         ->where('budget_id', $docid)
+    //         ->first();
+
+    //     if (!$budget) {
+    //         return response()->json(['success' => false, 'message' => 'Budget not found'], 404);
+    //     }
+
+    //     // ambil nama lengkap pembuat dokumen (fallback ke created_by)
+    //     $fullname = data_get($budget, 'creator.name') ?: ($budget->created_by ?? '');
+
+    //     // pastikan user adalah approver aktif (status P) di doc ini
+    //     $tApproval = T_approval::where('docid', $budget->budget_id)
+    //         ->where('status', 'P')
+    //         ->where('aprvusername', 'like', "%{$user->username}%")
+    //         ->whereNotNull('aprvdatebefore') 
+    //         ->orderBy('aprvid', 'ASC')
+    //         ->first();
+
+    //     if (!$tApproval) {
+    //         return response()->json(['success' => false, 'message' => "You can't approve!"], 403);
+    //     }
+
+    //     DB::beginTransaction();
+    //     try {
+    //         // Set current approver -> Approved
+    //         $tApproval->status         = 'A';
+    //         $tApproval->aprvdateafter  = $now;
+    //         $tApproval->aprvusername   = $user->username;
+    //         $tApproval->name           = $user->name;
+    //         $tApproval->save();
+
+    //         // Update header informasi "terakhir diproses"
+    //         $budget->completed_by = $user->username;
+    //         $budget->completed_at = $now;
+    //         $budget->save();
+
+    //         // Hitung sisa pending setelah approve ini
+    //         $pendingCount = T_approval::where('docid', $budget->budget_id)
+    //             ->where('status', 'P')
+    //             ->count();
+
+    //         // Pemetaan judul sesuai status
+    //         $subjectMap = [
+    //             'P' => 'Waiting Approval',
+    //             'R' => 'Rejected Approval',
+    //             'D' => 'Revise Approval',
+    //             'A' => 'Approved',
+    //             'C' => 'Completed',
+    //         ];
+
+    //         if ($pendingCount === 0) {
+    //             // Tidak ada approver lagi -> dokumen complete
+    //             $budget->status       = 'C';
+    //             $budget->completed_by = $user->username;
+    //             $budget->completed_at = $now;
+    //             $budget->save();
+
+    //             // Close semua detail
+    //             $details = BudgetDetail::where('budget_id', $budget->budget_id)->get();
+    //             foreach ($details as $d) {
+    //                 $d->status = 'C';
+    //                 $d->save();
+    //             }
+
+    //             // Email ke requester (creator)
+    //             $status        = 'C';
+    //             $subjectSuffix = $subjectMap[$status] ?? 'Notification';
+
+    //             $eid = Hashids::encode($budget->id);
+
+    //             $data = [
+    //                 'docid'     => $budget->budget_id,
+    //                 'cpnyid'    => $budget->cpny_id ?? '',
+    //                 'deptname'  => $budget->department_fin_id ?? '',
+    //                 'date'      => $budget->perpost ?? $now,
+    //                 'fullname'  => $fullname,  // nama penerima di email
+    //                 'name'      => $fullname,  // fallback
+    //                 'createdby' => $fullname,
+    //                 'docname'   => 'Budget',
+    //                 'info'      => 'Budget Company ' . ($budget->cpny_id ?? '') . ' Department ' . ($budget->department_fin_id ?? '') . ' ' . ($budget->perpost ?? ''),
+    //                 'status'    => $status,
+    //                 'url'       => url('/showbudgets/' . $eid),
+    //             ];
+
+    //             // kirim ke pembuat dokumen
+    //             $recipients = User::where('username', $budget->created_by ?? '')
+    //                 ->where('status', 'A')
+    //                 ->get();
+
+    //             foreach ($recipients as $rcp) {
+    //                 try {
+    //                     $to = $rcp->test_email ?? $rcp->email;
+    //                     if ($to) {
+    //                         Mail::send('emails.mailapprovenew', $data, function ($message) use ($data, $to, $subjectSuffix) {
+    //                             $message->to($to)
+    //                                 ->subject($data['docid'] . ' - ' . $subjectSuffix . ' Budget')
+    //                                 ->from('digitalserver@pakuwon.com', 'Pakuwon System');
+    //                         });
+    //                     }
+    //                 } catch (\Throwable $e) {
+    //                     Log::error('Failed sending Budget completion email', ['docid' => $budget->budget_id, 'error' => $e->getMessage()]);
+    //                 }
+    //             }
+    //         } else {
+    //             // Masih ada approver berikutnya -> cari level berikutnya
+    //             $next = T_approval::where('docid', $budget->budget_id)
+    //                 ->where('status', 'P')
+    //                 ->orderBy('aprvid', 'ASC')
+    //                 ->first();
+
+    //             if ($next) {
+    //                 // Stempel "datebefore" untuk approver berikutnya
+    //                 $next->aprvdatebefore = $now;
+    //                 $next->save();
+
+    //                 // Email ke approver berikutnya
+    //                 $status        = 'P';
+    //                 $subjectSuffix = $subjectMap[$status] ?? 'Notification';
+
+    //                 $data = [
+    //                     'docid'     => $next->docid,
+    //                     'cpnyid'    => $next->aprvcpnyid,
+    //                     'deptname'  => $next->aprvdeptid,
+    //                     'date'      => $next->aprvdatebefore,
+    //                     'fullname'  => $next->name,
+    //                     'name'      => $next->name,
+    //                     'createdby' => $budget->created_by ?? '',
+    //                     'docname'   => 'Budget',
+    //                     'info'      => 'Budget Company ' . ($budget->cpny_id ?? '') . ' Department ' . ($budget->department_fin_id ?? '') . ' ' . ($budget->perpost ?? ''),
+    //                     'status'    => $status,
+    //                     'url'       => url('/showbudgets/' . $budget->id),
+    //                 ];
+
+    //                 $usernames = array_filter(array_map('trim', explode(',', (string) $next->aprvusername)));
+    //                 if (!empty($usernames)) {
+    //                     $recipients = User::whereIn('username', $usernames)
+    //                         ->where('status', 'A')
+    //                         ->get();
+
+    //                     foreach ($recipients as $rcp) {
+    //                         try {
+    //                             $to = $rcp->test_email ?? $rcp->email;
+    //                             if ($to) {
+    //                                 Mail::send('emails.mailapprovenew', $data, function ($message) use ($data, $to, $subjectSuffix) {
+    //                                     $message->to($to)
+    //                                         ->subject($data['docid'] . ' - ' . $subjectSuffix . ' Budget')
+    //                                         ->from('digitalserver@pakuwon.com', 'Pakuwon System');
+    //                                 });
+    //                             }
+    //                         } catch (\Throwable $e) {
+    //                             Log::error('Failed sending Budget waiting-approval email', ['docid' => $budget->budget_id, 'error' => $e->getMessage()]);
+    //                         }
+    //                     }
+    //                 } else {
+    //                     Log::warning('Next approver has empty aprvusername list', ['docid' => $budget->budget_id]);
+    //                 }
+    //             }
+    //         }
+
+    //         DB::commit();
+    //         return response()->json(['success' => true, 'message' => 'Task approved successfully']);
+    //     } catch (\Throwable $e) {
+    //         DB::rollBack();
+    //         Log::error('Approve Budget failed', ['docid' => $budget->budget_id, 'error' => $e->getMessage()]);
+    //         return response()->json(['success' => false, 'message' => 'Approve failed'], 500);
+    //     }
+    // }
+
+
+    // public function rejectBudget(Request $request, $docid)
+    // {
         
-        // Cek apakah user login ada di table trx_approval dengan status 'P'
-        $approval = T_approval::where('docid', $id)
-            ->where('aprvusername', 'like', '%' . $user->username . '%')
-            ->where('status', 'P')
-            ->whereNotNull('aprvdatebefore')
-            ->exists();
+    //     // dd($request->all());         
+    //     $datestamp = Carbon::now()->toDateTimeString();       
+    //     $user = request()->user(); // Ambil user yang login
 
-        return response()->json(['canReject' => $approval]);
+    //     // $budget = Budget::where('budget_id', $docid)->first();  
+    //     $budget = Budget::with('creator')
+    //         ->where('budget_id', $docid)
+    //         ->first();
+    //     $fullname = data_get($budget, 'creator.name') ?: $budget->created_by;
+
+        
+    //     if (!$budget) {
+    //         return response()->json(['success' => false, 'message' => 'Task not found'], 404);
+    //     }
+
+    //     // Cek apakah user memiliki akses untuk approve
+    //     $t_approval = T_approval::where('docid', $budget->budget_id)
+    //         ->where('status', 'P')
+    //         ->where('aprvusername', 'like', "%" . $user->username . "%")
+    //         ->whereNotNull('aprvdatebefore') 
+    //         ->first();
+    //     // dd($t_approval);
+    //     if ($t_approval == null) {
+    //         return response()->json(['success' => false, 'message' => "You Can't Rejected!"], 403);
+    //     } else {
+    //         $t_approval->status = 'R';
+    //         $t_approval->aprvdateafter = $datestamp;           
+    //         $t_approval->save();
+
+    //         $budget->status = 'R';
+    //         $budget->save();
+    //     }   
+                       
+    //     $t_aprv_sisa = T_approval::where('docid', '=', $budget->budget_id)
+    //         ->where('status', '=', 'P')
+    //         ->get();
+
+    //     foreach ($t_aprv_sisa as $t_aprv) {
+    //         $t_aprv->status = 'X';
+    //         $t_aprv->save();
+    //     }
+
+    //     $status = 'R'; // Rejected
+    //     $subjectMap = [
+    //         'P' => 'Waiting Approval',
+    //         'R' => 'Rejected Approval',
+    //         'D' => 'Revise Approval',
+    //         'A' => 'Approved',
+    //         'C' => 'Completed',
+    //     ];
+    //     $subjectSuffix = $subjectMap[$status] ?? 'Notification';
+
+    //     $eid = Hashids::encode($budget->id);
+
+    //     //send email 
+    //     $data = array(
+    //         'docid' => $t_approval->docid,
+    //         'cpnyid' => $t_approval->aprvcpnyid,
+    //         'deptname' => $t_approval->aprvdeptid,           
+    //         'date' => $t_approval->aprvdatebefore,
+    //         'fullname'  => $fullname,               
+    //         'name'      => $fullname,               
+    //         'createdby' => $fullname,
+    //         'docname'   => 'Budget',
+    //         'status'    => $status,
+    //         'info' => 'Budget Company ' . $budget->cpny_id . ' Department ' . $budget->department_fin_id . ' ' . $budget->perpost,                 
+    //         'url' => url('/showbudgets/' . $eid)
+
+    //     );
+
+       
+    //     $email_it = User::where('username', $budget->created_by)
+    //             ->where('status', 'A')
+    //             ->get();
+
+    //     foreach ($email_it as $emailsit) {
+    //         Mail::send('emails.mailapprovenew', $data, function ($message) use ($data, $emailsit) {
+
+    //             $message->to($emailsit->test_email)->subject($data['docid'] . ' - Rejected Budget');
+    //             $message->from('digitalserver@pakuwon.com', 'Pakuwon System');
+    //         });
+    //     }
+
+    //     $id = $budget->id;
+    //     $doctype ='BD';
+    //     app('App\Http\Controllers\SendCommentController')->sendmsg($id, $doctype, $request);
+
+    //     return response()->json(['success' => true, 'message' => 'Budget rejected successfully']);
+    // }
+
+    // public function reviseBudget(Request $request, $docid)
+    // {
+        
+    //     // dd($request->all());         
+    //     $datestamp = Carbon::now()->toDateTimeString();       
+    //     $user = request()->user(); // Ambil user yang login
+
+    //     // $budget = Budget::where('budget_id', $docid)->first();  
+    //     $budget = Budget::with('creator')
+    //         ->where('budget_id', $docid)
+    //         ->first();
+    //     $fullname = data_get($budget, 'creator.name') ?: $budget->created_by;
+        
+        
+    //     if (!$budget) {
+    //         return response()->json(['success' => false, 'message' => 'Budget not found'], 404);
+    //     }
+
+    //     // Cek apakah user memiliki akses untuk approve
+    //     $t_approval = T_approval::where('docid', $budget->budget_id)
+    //         ->where('status', 'P')
+    //         ->where('aprvusername', 'like', "%" . $user->username . "%")
+    //         ->whereNotNull('aprvdatebefore') 
+    //         ->first();
+    //     // dd($t_approval);
+    //     if ($t_approval == null) {
+    //         return response()->json(['success' => false, 'message' => "You Can't Revise!"], 403);
+    //     } else {
+    //         $t_approval->status = 'D';
+    //         $t_approval->aprvdateafter = $datestamp;           
+    //         $t_approval->save();
+
+    //         $budget->status = 'D';
+    //         $budget->save();
+    //     }   
+                       
+    //     $t_aprv_sisa = T_approval::where('docid', '=', $budget->budget_id)
+    //         ->where('status', '=', 'P')
+    //         ->get();
+
+    //     foreach ($t_aprv_sisa as $t_aprv) {
+    //         $t_aprv->status = 'X';
+    //         $t_aprv->save();
+    //     }
+
+    //     $status = 'D'; // Revise
+    //     $subjectMap = [
+    //         'P' => 'Waiting Approval',
+    //         'R' => 'Rejected Approval',
+    //         'D' => 'Revise Approval',
+    //         'A' => 'Approved',
+    //         'C' => 'Completed',
+    //     ];
+    //     $subjectSuffix = $subjectMap[$status] ?? 'Notification';
+
+    //     $eid = Hashids::encode($budget->id);
+
+    //     //send email 
+    //     $data = array(
+    //         'docid' => $t_approval->docid,
+    //         'cpnyid' => $t_approval->aprvcpnyid,
+    //         'deptname' => $t_approval->aprvdeptid,           
+    //         'date' => $t_approval->aprvdatebefore,
+    //         'fullname'  => $fullname,             
+    //         'name'      => $fullname,             
+    //         'createdby' => $fullname,
+    //         'docname'   => 'Budget',
+    //         'status'    => $status,
+    //         'info' => 'Budget Company ' . $budget->cpny_id . ' Department ' . $budget->department_fin_id . ' ' . $budget->perpost,               
+    //         'url' => url('/showbudgets/' . $eid)
+
+    //     );
+
+       
+    //     $email_it = User::where('username', $budget->created_by)
+    //             ->where('status', 'A')
+    //             ->get();
+
+    //     foreach ($email_it as $emailsit) {
+    //         Mail::send('emails.mailapprovenew', $data, function ($message) use ($data, $emailsit) {
+
+    //             $message->to($emailsit->test_email)->subject($data['docid'] . ' - Revise Budget');
+    //             $message->from('digitalserver@pakuwon.com', 'Pakuwon System');
+    //         });
+    //     }
+
+    //     $id = $budget->id;
+    //     $doctype ='BD';
+    //     app('App\Http\Controllers\SendCommentController')->sendmsg($id, $doctype, $request);
+
+    //     return response()->json(['success' => true, 'message' => 'Budget revise successfully']);
+    // }
+
+    // public function checkApprovalx($id)
+    // {
+    //     // Ambil user yang sedang login
+    //     $user = Auth::user();
+        
+    //     // Cek apakah user login ada di table trx_approval dengan status 'P'
+    //     $approval = T_approval::where('docid', $id)
+    //         ->where('aprvusername', 'like', '%' . $user->username . '%')
+    //         ->where('status', 'P')
+    //         ->whereNotNull('aprvdatebefore')
+    //         ->exists();
+
+    //     return response()->json(['canReject' => $approval]);
 
 
-    }
+    // }
 
     public function checkApproval($id, $action)
     {

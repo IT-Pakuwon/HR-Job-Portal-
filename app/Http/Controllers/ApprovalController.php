@@ -525,20 +525,25 @@ class ApprovalController extends Controller
             ->where('refnbr', $refnbr)
             ->where('aprv_doctype', $doctype)
             ->where('status', '<>', 'X');
-        $this->orderByLevel($data);
 
-        $data = $data->get([
+        // jika orderByLevel mengembalikan builder, pakai itu; kalau tidak, tetap pakai $data
+        $ordered = $this->orderByLevel($data) ?? $data;
+
+        // tambahkan pengurutan created_at ASC
+        $ordered->orderBy('created_at', 'asc');
+
+        $rows = $ordered->get([
             'aprv_leveling',
             'aprv_name',
             'aprv_datebefore',
             'aprv_dateafter',
-            'status'
+            'status',           
         ]);
 
         return response()->json([
             'refnbr'  => $refnbr,
             'doctype' => $doctype,
-            'data'    => $data,
+            'data'    => $rows,
         ]);
     }
 

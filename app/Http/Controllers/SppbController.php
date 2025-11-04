@@ -38,6 +38,12 @@ class SppbController extends Controller
 {
     public function index()
     {
+        $user = Auth::user();       
+
+        if (!$user) {
+            return redirect()->route('login');
+        }
+
         $all = TrSPPB::count();
         $onProgress = TrSPPB::where('status', 'P')->count();
         $reject = TrSPPB::where('status', 'R')->count();
@@ -441,8 +447,8 @@ class SppbController extends Controller
 
             // (opsional) simpan hint approver pertama di header seperti sebelumnya
             if ($firstApprovalUsernames) {
-                $header->updated_by = $firstApprovalUsernames;
-                $header->updated_at = $dt;
+                $header->completed_by = $firstApprovalUsernames;
+                $header->completed_at = $dt;
                 $header->save();
             }
 
@@ -954,8 +960,8 @@ class SppbController extends Controller
 
             // (opsional) simpan hint approver pertama di header seperti sebelumnya
             if ($firstApprovalUsernames) {
-                $header->updated_by = $firstApprovalUsernames;
-                $header->updated_at = $dt;
+                $header->completed_by = $firstApprovalUsernames;
+                $header->completed_at = $dt;
                 $header->save();
             }
 

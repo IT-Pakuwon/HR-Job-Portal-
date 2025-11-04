@@ -288,12 +288,12 @@
                             'P' => 'orange', 
                             default => 'red' 
                         };
-                        $dateStr = $ap->aprvdateafter 
-                            ? \Carbon\Carbon::parse($ap->aprvdateafter)->format('d M Y H:i') 
+                        $dateStr = $ap->aprv_dateafter 
+                            ? \Carbon\Carbon::parse($ap->aprv_dateafter)->format('d M Y H:i') 
                             : '';
                     @endphp
                     <td>
-                        <div><strong>{{ $idx++ }}. {{ $ap->name }}</strong></div>
+                        <div><strong>{{ $idx++ }}. {{ $ap->aprv_name }}</strong></div>
                         <div class="status {{ $color }}">{{ $label }}</div>
                         <div class="muted">{{ $dateStr }}</div>
                     </td>

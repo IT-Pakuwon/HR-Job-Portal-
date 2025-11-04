@@ -401,7 +401,7 @@
             `);
 
             $.ajax({
-                url: "/receipts/remove-attachment/" + attachmentId, // <— sesuaikan route mu
+                url: "/remove-attachment/" + attachmentId, // <— sesuaikan route mu
                 type: "POST",
                 data: { _method: "PUT", _token: "{{ csrf_token() }}" }
             })

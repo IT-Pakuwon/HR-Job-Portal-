@@ -190,4 +190,16 @@ class TrAttachmentController extends Controller
 
         return response()->json(['success' => true]);
     }
+
+    public function removeAttachment($id)
+    {
+        try {
+            $attachment = TrAttachment::findOrFail($id);
+            $attachment->update(['status' => 'X']); // Update status ke "D" (Deleted)
+
+            return response()->json(['success' => true, 'message' => 'Attachment status updated']);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => 'Failed to update attachment status', 'error' => $e->getMessage()], 500);
+        }
+    }
 }

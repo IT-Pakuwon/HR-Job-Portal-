@@ -32,6 +32,8 @@ use App\Http\Controllers\TrAttachmentController;
 use App\Models\TrAttachment;
 use Illuminate\Support\Str;
 use Google\Cloud\Storage\StorageClient;
+use App\Http\Controllers\ApprovalController;
+use App\Models\TrApproval;
 
 class ReceiptController extends Controller
 {
@@ -84,7 +86,7 @@ class ReceiptController extends Controller
         ]);
     }
     
-    public function storeReceipt(Request $request)
+   public function storeReceipt(Request $request)
     {
         $user     = $request->user();
         $username = $user->username ?? 'system';
@@ -94,17 +96,22 @@ class ReceiptController extends Controller
             return back()->withErrors(['PO number not found.'])->withInput();
         }
 
-        // 1) Ambil PO header (pastikan nama model benar)
+        /** @var TrPO|null $po */
         $po = TrPO::where('ponbr', $ponbr)->first();
         if (!$po) {
             return back()->withErrors(['PO not found.'])->withInput();
         }
 
-        // 2) Ambil detail PO (pastikan nama model benar)
         $poDetails = TrPOdetail::where('ponbr', $ponbr)->get()->keyBy('id');
+        if ($poDetails->isEmpty()) {
+            return back()->withErrors(['PO detail not found.'])->withInput();
+        }
 
-        // 3) Validasi minimal ada qty receipt
         $qtyReceiptInput = (array) $request->input('qty_receipt', []);
+        if (empty($qtyReceiptInput)) {
+            $qtyReceiptInput = (array) $request->input('qty_received', []);
+        }
+
         $hasAnyQty = false;
         foreach ($qtyReceiptInput as $k => $v) {
             $qty = (float) str_replace(',', '.', (string)$v);
@@ -116,32 +123,24 @@ class ReceiptController extends Controller
 
         $siteInput = (array) $request->input('siteid', []);
 
-        // 4) Approval line check (doctype GR)
-        $doctype = 'GR'; // konsisten
-        $cpnyid  = $po->cpny_id ?? ($request->input('cpnyid') ?? null);
+        $doctype = 'GR';
+        $cpnyid  = $po->cpny_id       ?? ($request->input('cpnyid')       ?? null);
         $deptid  = $po->department_id ?? ($request->input('departmentid') ?? null);
 
-        $approvalCount = M_approval::where([
-            ['status', '=', 'A'],
-            ['aprvcpnyid', '=', $cpnyid],
-            ['aprvdeptid', '=', $deptid],
-            ['aprvdoctype', '=', $doctype],
-        ])->count();
+        $approvalCtl = app(ApprovalController::class);
+        $approvalCtl->loadLines($doctype, $cpnyid, $deptid);
 
-        if ($approvalCount === 0) {
-            return response()->json(['message' => 'Approval line belum di-setup, Please contact IT!'], 422);
-        }
-
-        DB::beginTransaction();
-        try {
-            // 5) Autonumber GRYYMM####
+        return DB::connection('pgsql')->transaction(function () use (
+            $request, $username, $ponbr, $poDetails, $po, $qtyReceiptInput, $siteInput,
+            $doctype, $cpnyid, $deptid, $approvalCtl   // <-- tambahkan $approvalCtl di sini
+        ) {
             $now   = \Carbon\Carbon::now();
             $year  = (int) $now->year;
             $month = str_pad($now->month, 2, '0', STR_PAD_LEFT);
 
-            $autonbr = Autonbr::lockForUpdate()
-                ->where('doctype', $doctype)->where('year', $year)->where('month', $month)
-                ->first();
+            $autonbr = Autonbr::where('doctype', $doctype)
+                ->where('year', $year)->where('month', $month)
+                ->lockForUpdate()->first();
 
             if (!$autonbr) {
                 $autonbr = Autonbr::create([
@@ -153,18 +152,16 @@ class ReceiptController extends Controller
                 ]);
                 $urut = 1;
             } else {
-                $urut = ($autonbr->number ?? 0) + 1;
+                $urut = (int)($autonbr->number ?? 0) + 1;
                 $autonbr->update(['number' => $urut]);
             }
-
             $yymm       = substr((string)$year, 2) . $month;
             $receiptnbr = $doctype . $yymm . sprintf('%04d', $urut);
 
-            // 6) Header TrReceipt (receipttype konsisten)
             $header = new TrReceipt();
             $header->receiptnbr        = $receiptnbr;
             $header->receiptdate       = $now->toDateString();
-            $header->receipttype       = 'PR'; // <— PENTING: konsisten untuk approve
+            $header->receipttype       = 'PR';
             $header->ponbr             = $ponbr;
             $header->ref_receiptnbr    = null;
             $header->cpny_id           = $po->cpny_id ?? null;
@@ -181,7 +178,6 @@ class ReceiptController extends Controller
             $header->created_at        = $now;
             $header->save();
 
-            // 7) Detail
             $lineNo = 0;
             $totalQtyReceived = 0.0;
 
@@ -190,56 +186,42 @@ class ReceiptController extends Controller
                 $qtyRec    = (float) str_replace(',', '.', (string)$qtyRecRaw);
                 if ($qtyRec <= 0) continue;
 
-                $siteFromForm = isset($siteInput[$srcId]) ? trim((string)$siteInput[$srcId]) : null;
-
                 $lineNo++;
+                $siteFromForm = isset($siteInput[$srcId]) ? trim((string)$siteInput[$srcId]) : null;
 
                 $det = new TrReceiptdetail();
                 $det->receiptnbr              = $receiptnbr;
                 $det->receipt_no              = $lineNo;
-
                 $det->ponbr                   = $ponbr;
                 $det->po_no                   = $src->po_no ?? null;
-
                 $det->csid                    = $po->csid ?? null;
                 $det->cs_no                   = $src->cs_no ?? null;
                 $det->sppbjktid               = $po->sppbjktid ?? null;
                 $det->sppbjktid_no            = $src->sppbjktid_no ?? null;
-
                 $det->inventory_type          = $src->inventory_type ?? null;
                 $det->inventoryid             = $src->inventoryid;
                 $det->inventory_descr         = $src->inventory_descr;
+                $det->inventory_category      = $src->inventory_category ?? null;
+                $det->inventory_sub_type      = $src->inventory_sub_type ?? null;
                 $det->qtyordered              = (float)($src->qty ?? 0);
                 $det->uom                     = $src->uom;
-
-                // Base
-                $det->type_multiplier         = null;
-                $det->base_multiplier         = 1;
-                $det->base_qty                = $qtyRec;
-                $det->base_uom                = $src->uom;
-
-                // Harga / pajak → ambil dari PO detail (kalau memang mau dicopy)
+                $det->type_multiplier         = $src->type_multiplier   ?? null;
+                $det->base_multiplier         = $src->base_multiplier   ?? 1;
+                $det->base_qty                = $qtyRec * (float)($det->base_multiplier ?: 1);
+                $det->base_uom                = $src->base_uom          ?? $src->uom;
                 $det->unitcost                = $src->unitcost ?? 0;
-                $det->taxcodeid               = $src->taxcodeid ?? null; // <— perbaikan
+                $det->taxcodeid               = $src->taxcodeid ?? null;
                 $det->taxamt                  = $src->taxamt ?? 0;
                 $det->totalcost               = $src->totalcost ?? 0;
-
-                $det->receipttype             = 'PR'; // <— konsisten
+                $det->receipttype             = 'PR';
                 $det->siteid                  = $siteFromForm !== '' ? $siteFromForm : ($src->siteid ?? null);
-
-                // Optional: kalau mau simpan sisa open order, hitung di sisi create
-                $det->qty_open_ordered        = $qtyRec;          // atau null, tergantung desain
-                $det->base_qty_open_ordered   = $qtyRec;
-
+                $det->qty_open_ordered        = $qtyRec;
+                $det->base_qty_open_ordered   = $det->base_qty;
                 $det->qty_received            = $qtyRec;
-                $det->base_qty_received       = $qtyRec;
-
+                $det->base_qty_received       = $det->base_qty;
                 $det->qty_return              = 0;
                 $det->base_qty_return         = 0;
-
                 $det->ref_receiptnbr          = null;
-
-                // Budget fields
                 $det->budget_perpost          = $src->budget_perpost ?? null;
                 $det->budget_cpny_id          = $src->budget_cpny_id ?? null;
                 $det->budget_business_unit_id = $src->budget_business_unit_id ?? null;
@@ -247,7 +229,6 @@ class ReceiptController extends Controller
                 $det->budget_account_id       = $src->budget_account_id ?? null;
                 $det->budget_activity_id      = $src->budget_activity_id ?? null;
                 $det->budget_activity_descr   = $src->budget_activity_descr ?? null;
-
                 $det->status                  = 'P';
                 $det->created_by              = $username;
                 $det->created_at              = $now;
@@ -257,105 +238,74 @@ class ReceiptController extends Controller
             }
 
             if ($totalQtyReceived <= 0) {
-                DB::rollBack();
-                return back()->withErrors(['Qty receipt minimal satu baris harus > 0.'])->withInput();
+                throw new \RuntimeException('Qty receipt minimal satu baris harus > 0.');
             }
 
             $header->totalqty_received = $totalQtyReceived;
             $header->save();
 
-            // 8) Copy line approval (pakai cpnyid & deptid yang sudah dihitung)
-            $datestamp = $now->toDateTimeString(); // <— definisikan
-            $approvals = M_approval::where([
-                ['status', '=', 'A'],
-                ['aprvcpnyid', '=', $cpnyid],
-                ['aprvdeptid', '=', $deptid],
-                ['aprvdoctype', '=', $doctype],
-            ])->get();
+            // === Generate TrApproval (GR tidak cek nominal)
+            $ctx = ['ignore_nominal' => true];
 
-            foreach ($approvals as $a) {
-                T_approval::create([
-                    'docid'          => $receiptnbr,
-                    'aprvid'         => $a->aprvid,
-                    'aprvdoctype'    => $a->aprvdoctype,
-                    'aprvcpnyid'     => $a->aprvcpnyid,
-                    'aprvdeptid'     => $a->aprvdeptid,
-                    'aprvusername'   => $a->aprvusername,
-                    'name'           => $a->name,
-                    'aprvdatebefore' => $a->aprvid == 1 ? $datestamp : null,
-                    'aprvtotalday'   => 1,
-                    'status'         => 'P',
-                    'created_by'     => $username,
-                ]);
+            [$firstApprovalUsernames, $linesCount] = $approvalCtl->generateForDocument(
+                $receiptnbr,
+                $doctype,
+                $cpnyid,
+                $deptid,
+                $username,
+                $ctx,
+                $now
+            );
+
+            if ($firstApprovalUsernames) {
+                $header->completed_by = $firstApprovalUsernames;
+                $header->completed_at = $now; // <-- ganti $dt jadi $now
+                $header->save();
             }
 
-            // 9) Attachments (rapikan meta & error flow)
+            // Attachments
+            $files = [];
             if ($request->hasFile('attachments')) {
-                $meta = [
-                    'refnbr'       => $receiptnbr,
-                    'doctype'      => $doctype,                          // GR
-                    'cpnyid'       => $cpnyid,
-                    'departmentid' => $deptid,                           // <— perbaiki ejaan key
-                    'base_folder'  => 'att-purchasing-app/'.strtolower($doctype),
-                    'created_by'   => $username,
-                ];
                 $files = (array) $request->file('attachments');
-
-                try {
-                    $uploader = app(\App\Http\Controllers\TrAttachmentController::class);
-                    $uploader->uploadInternal($meta, $files);
-                } catch (\Throwable $e) {
-                    throw $e; // biar ketangkap catch luar → rollback & redirect
-                }
+            } elseif ($request->hasFile('attachment')) {
+                $files = (array) $request->file('attachment');
             }
-
-            // 10) Notif approver pertama (opsional)
-            $firstApproval = T_approval::where('docid', $receiptnbr)
-                ->where('status', 'P')->orderBy('aprvid')->first();
-
-            if ($firstApproval) {
-                $status     = $header->status;
-                $subjectMap = ['P'=>'Waiting Approval','R'=>'Rejected Approval','D'=>'Revise Approval','A'=>'Approved','C'=>'Completed'];
-                $eid        = \Vinkla\Hashids\Facades\Hashids::encode($header->id);
-
-                $data = [
-                    'docid'    => $firstApproval->docid,
-                    'cpnyid'   => $firstApproval->aprvcpnyid,
-                    'deptname' => $firstApproval->aprvdeptid,
-                    'date'     => $firstApproval->aprvdatebefore,
-                    'name'     => $firstApproval->name,
-                    'createdby'=> $header->created_by,
-                    'info'     => 'Request from user '.$po->user_peminta,
-                    'status'   => $status,
-                    'docname'  => 'Receipt',
-                    'url'      => url('/showreceipt/' . $eid),
+            if (!empty($files)) {
+                $meta = [
+                    'refnbr'        => $receiptnbr,
+                    'doctype'       => $doctype,
+                    'cpnyid'        => $cpnyid,
+                    'departementid' => $deptid,
+                    'base_folder'   => 'att-purchasing-app/'.strtolower($doctype),
+                    'created_by'    => $username,
                 ];
-
-                $approvers = array_filter(array_map('trim', explode(',', (string)$firstApproval->aprvusername)));
-                $emails = User::whereIn('username', $approvers)
-                            ->where('status', 'A')->pluck('test_email');
-
-                foreach ($emails as $email) {
-                    \Mail::send('emails.mailapprovenew', $data, function ($message) use ($email, $data, $subjectMap, $status) {
-                        $message->to($email)
-                            ->subject($data['docid'].' - '.($subjectMap[$status] ?? 'Notification').' Receipt')
-                            ->from('digitalserver@pakuwon.com', 'Pakuwon System');
-                    });
-                }
+                $uploader = app(\App\Http\Controllers\TrAttachmentController::class);
+                $uploader->uploadInternal($meta, $files);
             }
 
-            DB::commit();
+            // Notifikasi approver pertama
+            $eid = \Vinkla\Hashids\Facades\Hashids::encode($header->id);
+            $approvalCtl->notifyFirstApprover(
+                $receiptnbr,
+                $doctype,
+                $header->status, // 'P'
+                'Receipt',
+                url('/showreceipt/' . $eid),
+                [
+                    'info'      => 'Request from user ' . ($po->user_peminta ?? '-'),
+                    'createdby' => $header->created_by,
+                    'date'      => $now->toDateTimeString(),
+                ]
+            );
 
             return redirect()
-                ->route('receiptlist') // <— samakan
+                ->route('receiptlist')
                 ->with('success', "Receipt {$receiptnbr} created. Total Qty: {$totalQtyReceived}");
-
-        } catch (\Throwable $e) {
-            DB::rollBack();
-            report($e);
-            return back()->withErrors([config('app.debug') ? $e->getMessage() : 'Failed to create Receipt'])->withInput();
-        }
+        }, 3);
     }
+
+
+
 
 
     public function showReceipt($hash)
@@ -535,19 +485,18 @@ class ReceiptController extends Controller
 
     public function updateReceipt(Request $request, $hash)
     {
-        $now      = Carbon::now();
+        $now      = \Carbon\Carbon::now();
         $user     = $request->user();
         $username = $user->username ?? 'system';
 
         // ===== Temukan Receipt by hash (id) atau fallback ke receiptnbr =====
-        $ids = Hashids::decode($hash);
-        if (!empty($ids)) {           
-            $rcp = TrReceipt::find($ids[0]);
+        $ids = \Vinkla\Hashids\Facades\Hashids::decode($hash);
+        if (!empty($ids)) {
+            $rcp = \App\Models\TrReceipt::find($ids[0]);
         } else {
             // fallback: jika {hash} ternyata receiptnbr
-            $rcp = TrReceipt::where('receiptnbr', $hash)->first();
+            $rcp = \App\Models\TrReceipt::where('receiptnbr', $hash)->first();
         }
-
         if (!$rcp) {
             return response()->json(['message' => 'Receipt not found'], 404);
         }
@@ -562,26 +511,25 @@ class ReceiptController extends Controller
         if (!$ponbr) {
             return response()->json(['message' => 'PO number not found on Receipt'], 422);
         }
-       
-        $po = TrPo::where('ponbr', $ponbr)->first();
+
+        // Pastikan nama model konsisten
+        /** @var \App\Models\TrPO|null $po */
+        $po = \App\Models\TrPO::where('ponbr', $ponbr)->first();
         if (!$po) {
             return response()->json(['message' => 'PO header not found'], 422);
         }
 
         // Ambil semua detail PO → untuk matching by (inventoryid|uom)
-        $poDetails    = TrPOdetail::where('ponbr', $ponbr)->get();
-        $poByKey      = $poDetails->keyBy(fn($row) => ($row->inventoryid ?? '').'|'.($row->uom ?? ''));
-        $poByInventory= $poDetails->groupBy('inventoryid');
+        $poDetails     = \App\Models\TrPOdetail::where('ponbr', $ponbr)->get();
+        $poByKey       = $poDetails->keyBy(fn($row) => ($row->inventoryid ?? '').'|'.($row->uom ?? ''));
+        $poByInventory = $poDetails->groupBy('inventoryid');
 
         // ===== Input arrays =====
-        // Form mengirim salah satu:
-        // - receipttype 'receipt' → qty_received[detail_id]
-        // - receipttype 'return'  → qty_return[detail_id]
         $qtyReceivedInput = (array) $request->input('qty_received', []); // key = TrReceiptdetail.id
         $qtyReturnInput   = (array) $request->input('qty_return',   []); // key = TrReceiptdetail.id
         $siteInput        = (array) $request->input('siteid',       []); // key = TrReceiptdetail.id
 
-       $rawType = strtoupper(trim((string)($rcp->receipttype ?? 'PR')));
+        $rawType = strtoupper(trim((string)($rcp->receipttype ?? 'PR')));
         if (in_array($rawType, ['PR', 'RECEIPT', 'RCP'], true)) {
             $type = 'PR';
         } elseif (in_array($rawType, ['RR', 'RETURN', 'RET'], true)) {
@@ -596,16 +544,12 @@ class ReceiptController extends Controller
             return response()->json(['message' => 'Tidak ada qty yang dikirim.'], 422);
         }
 
-        // ===== Ambil detail receipt keyed by id =====       
-        $detailRows = TrReceiptdetail::where('receiptnbr', $rcp->receiptnbr)->get()->keyBy('id');
+        // ===== Ambil detail receipt keyed by id =====
+        $detailRows = \App\Models\TrReceiptdetail::where('receiptnbr', $rcp->receiptnbr)->get()->keyBy('id');
 
         // ===== Validasi per-baris terhadap PO open =====
-        // RULE:
-        //  - tipe 'receipt' : qty_received_new <= openPO + old_qty_received_baris_ini
-        //  - tipe 'return'  : qty_return_new   <= (old_qty_return_baris_ini + qty_received_total_yang_boleh_diretur_di_skenario_mu)
-        //    (untuk sederhana & aman di fase edit, kita batasi: qty_return_new <= old_qty_return + base on-hand receipt baris ini)
-        //    Jika kamu punya kolom akumulasi "maks retur" per item, ganti logika ceiling ini sesuai kebijakanmu.
-        foreach ($payload as $detailId => $v) {          
+        foreach ($payload as $detailId => $v) {
+            /** @var \App\Models\TrReceiptdetail|null $det */
             $det = $detailRows->get((int)$detailId);
             if (!$det) {
                 return response()->json(['message' => "Receipt detail (ID: {$detailId}) tidak ditemukan."], 422);
@@ -640,9 +584,9 @@ class ReceiptController extends Controller
                 }
             } else {
                 // RETURN: batasi ke (old_return + old_received_barismet) sebagai ceiling sederhana
-                $oldRet   = (float)($det->qty_return ?? 0);
-                $oldRec   = (float)($det->qty_received ?? 0);
-                $ceiling  = $oldRet + $oldRec; // longgar; ganti jika punya aturan khusus
+                $oldRet  = (float)($det->qty_return ?? 0);
+                $oldRec  = (float)($det->qty_received ?? 0);
+                $ceiling = $oldRet + $oldRec;
 
                 if ($newQty > $ceiling + 1e-9) {
                     return response()->json([
@@ -657,58 +601,50 @@ class ReceiptController extends Controller
         $cpnyid  = $rcp->cpny_id ?? $rcp->cpnyid ?? null;
         $deptid  = $rcp->department_id ?? $rcp->departementid ?? null;
 
-        $approvalCount = M_approval::where([
-            ['status',      '=', 'A'],
-            ['aprvcpnyid',  '=', $cpnyid],
-            ['aprvdeptid',  '=', $deptid],
-            ['aprvdoctype', '=', $doctype],
-        ])->count();
-
-        if ($approvalCount === 0) {
-            return response()->json(['message' => 'Approval line belum di-setup, hubungi IT.'], 422);
-        }
+        // ===== Approval controller =====
+        $approvalCtl = app(\App\Http\Controllers\ApprovalController::class);
+        $approvalCtl->loadLines($doctype, $cpnyid, $deptid);
 
         // ===== EXEC UPDATE DALAM TRANSAKSI =====
-        return DB::connection('pgsql')->transaction(function () use (
-            $request, $now, $rcp, $detailRows, $qtyReceivedInput, $qtyReturnInput, $siteInput, $doctype, $cpnyid, $deptid, $username, $type
+        return \DB::connection('pgsql')->transaction(function () use (
+            $request, $now, $rcp, $detailRows, $qtyReceivedInput, $qtyReturnInput, $siteInput,
+            $doctype, $cpnyid, $deptid, $username, $type, $approvalCtl
         ) {
-            $receiptnbr = $rcp->receiptnbr;
-
+            $receiptnbr   = $rcp->receiptnbr;
             $totalQtyEdit = 0.0;
 
             foreach ($detailRows as $detId => $det) {
-                // ambil nilai baru jika dikirim; kalau tidak, pakai qty lama
                 if ($type === 'PR') {
                     $qtyNew = array_key_exists($detId, $qtyReceivedInput)
                         ? (float) str_replace(',', '.', (string)$qtyReceivedInput[$detId])
                         : (float) ($det->qty_received ?? 0);
-
                     if ($qtyNew < 0) $qtyNew = 0;
 
                     $det->qty_received      = $qtyNew;
-                    $det->base_qty_received = $qtyNew; // jika base = 1:1; adjust jika ada konversi
-                    // open ordered di baris ini (opsional untuk tampilan)
-                    $det->qty_open_ordered      = $qtyNew;
-                    $det->base_qty_open_ordered = $qtyNew;
+                    // hitung base pakai multiplier yang sudah tersimpan, default 1
+                    $bm = (float)($det->base_multiplier ?: 1);
+                    $det->base_qty_received = $qtyNew * $bm;
 
-                } else { // return
+                    // open ordered tampilkan sisa di baris ini (opsional sesuai desain)
+                    $det->qty_open_ordered      = $qtyNew;
+                    $det->base_qty_open_ordered = $det->base_qty_received;
+                } else {
                     $qtyNew = array_key_exists($detId, $qtyReturnInput)
                         ? (float) str_replace(',', '.', (string)$qtyReturnInput[$detId])
                         : (float) ($det->qty_return ?? 0);
-
                     if ($qtyNew < 0) $qtyNew = 0;
 
                     $det->qty_return      = $qtyNew;
-                    $det->base_qty_return = $qtyNew; // jika base = 1:1
+                    $bm = (float)($det->base_multiplier ?: 1);
+                    $det->base_qty_return = $qtyNew * $bm;
                 }
 
                 // site baru (opsional)
                 if (array_key_exists($detId, $siteInput)) {
-                    $newSite = trim((string)$siteInput[$detId]);
+                    $newSite   = trim((string)$siteInput[$detId]);
                     $det->siteid = $newSite !== '' ? $newSite : $det->siteid;
                 }
 
-                // status detail kembali ke P (menunggu approve setelah revise)
                 $det->status     = 'P';
                 $det->updated_by = $username;
                 $det->updated_at = $now;
@@ -717,49 +653,37 @@ class ReceiptController extends Controller
                 $totalQtyEdit += (float)$qtyNew;
             }
 
-            // Update header: total, status kembali ke P, clear completed
+            // Update header total & reset status
             if ($type === 'PR') {
                 $rcp->totalqty_received = $totalQtyEdit;
             } else {
-                if (\Schema::hasColumn($rcp->getTable(), 'totalqty_return')) {
+                if (\Illuminate\Support\Facades\Schema::hasColumn($rcp->getTable(), 'totalqty_return')) {
                     $rcp->totalqty_return = $totalQtyEdit;
                 }
             }
-
-            $rcp->status        = 'P';     // kembali ke Waiting Approval setelah revise
-            $rcp->completed_by  = null;
-            $rcp->completed_at  = null;
-            $rcp->updated_by    = $username;
-            $rcp->updated_at    = $now;
+            $rcp->status       = 'P';
+            $rcp->completed_by = null;
+            $rcp->completed_at = null;
+            $rcp->updated_by   = $username;
+            $rcp->updated_at   = $now;
             $rcp->save();
 
-            // Reset approval → insert fresh approval lines
-            $datestamp = $now->toDateTimeString();
+            // Generate TrApproval (GR tidak cek nominal)
+            $ctx = ['ignore_nominal' => true];
+            [$firstApprovalUsernames, $linesCount] = $approvalCtl->generateForDocument(
+                $receiptnbr,
+                $doctype,
+                $cpnyid,
+                $deptid,
+                $username,
+                $ctx,
+                $now
+            );
 
-            // (Opsional) bersihkan approval lama pending untuk doc ini
-            T_approval::where('docid', $receiptnbr)->delete();
-
-            $approvals = M_approval::where([
-                ['status',      '=', 'A'],
-                ['aprvcpnyid',  '=', $cpnyid],
-                ['aprvdeptid',  '=', $deptid],
-                ['aprvdoctype', '=', $doctype],
-            ])->orderBy('aprvid')->get();
-
-            foreach ($approvals as $a) {
-                T_approval::create([
-                    'docid'          => $receiptnbr,
-                    'aprvid'         => $a->aprvid,
-                    'aprvdoctype'    => $a->aprvdoctype,
-                    'aprvcpnyid'     => $a->aprvcpnyid,
-                    'aprvdeptid'     => $a->aprvdeptid,
-                    'aprvusername'   => $a->aprvusername,
-                    'name'           => $a->name,
-                    'aprvdatebefore' => $a->aprvid == 1 ? $datestamp : null,
-                    'aprvtotalday'   => 1,
-                    'status'         => 'P',
-                    'created_by'     => $username,
-                ]);
+            if ($firstApprovalUsernames) {
+                $rcp->completed_by = $firstApprovalUsernames;
+                $rcp->completed_at = $now;
+                $rcp->save();
             }
 
             // Attachment baru (opsional)
@@ -777,43 +701,20 @@ class ReceiptController extends Controller
                 $uploader->uploadInternal($meta, $files);
             }
 
-            // Email ke approver pertama
-            $firstApproval = T_approval::where('docid', $receiptnbr)
-                ->where('status', 'P')->orderBy('aprvid')->first();
-
-            if ($firstApproval) {
-                $status     = $rcp->status; // 'P'
-                $subjectMap = ['P'=>'Waiting Approval','R'=>'Rejected Approval','D'=>'Revise Approval','A'=>'Approved','C'=>'Completed'];
-                $eid        = Hashids::encode($rcp->id);
-
-                $data = [
-                    'docid'     => $firstApproval->docid,
-                    'cpnyid'    => $firstApproval->aprvcpnyid,
-                    'deptname'  => $firstApproval->aprvdeptid,
-                    'date'      => $firstApproval->aprvdatebefore,
-                    'name'      => $firstApproval->name,
-                    'createdby' => $rcp->created_by,
+            // Email approver pertama
+            $eid = \Vinkla\Hashids\Facades\Hashids::encode($rcp->id);
+            $approvalCtl->notifyFirstApprover(
+                $receiptnbr,
+                $doctype,
+                $rcp->status, // 'P'
+                'Receipt',
+                url('/showreceipt/' . $eid),
+                [
                     'info'      => 'Revised by user '.$username,
-                    'status'    => $status,
-                    'docname'   => 'Receipt',
-                    'url'       => url('/showreceipt/' . $eid),
-                ];
-
-                $approvers = array_filter(array_map('trim', explode(',', (string)$firstApproval->aprvusername)));
-                $emails    = User::whereIn('username', $approvers)->where('status', 'A')->pluck('test_email');
-
-                foreach ($emails as $email) {
-                    try {
-                        \Mail::send('emails.mailapprovenew', $data, function ($message) use ($email, $data, $subjectMap, $status) {
-                            $message->to($email)
-                                ->subject($data['docid'].' - '.($subjectMap[$status] ?? 'Notification').' '.$data['docname'])
-                                ->from('digitalserver@pakuwon.com', 'Pakuwon System');
-                        });
-                    } catch (\Throwable $e) {
-                        \Log::error('Failed sending Receipt revised waiting-approval email', ['error' => $e->getMessage()]);
-                    }
-                }
-            }
+                    'createdby' => $rcp->created_by,
+                    'date'      => $now->toDateTimeString(),
+                ]
+            );
 
             $label = $type === 'RR' ? 'Total Return' : 'Total Qty';
             return response()->json([
@@ -826,454 +727,611 @@ class ReceiptController extends Controller
 
     public function approveReceipt(Request $request, $docid)
     {
-        $now  = \Carbon\Carbon::now();
-        $user = $request->user();
+        $user    = $request->user();
+        $doctype = 'GR';
 
-        $receipt = TrReceipt::with('creator')
-            ->where('receiptnbr', $docid)
-            ->first();
+        $receipt = TrReceipt::with('creator')->where('receiptnbr', $docid)->first();
+        if (!$receipt) return response()->json(['success'=>false,'message'=>'Receipt not found'],404);
 
-        if (!$receipt) {
-            return response()->json(['success' => false, 'message' => 'Receipt not found'], 404);
-        }
-
+        $eid      = \Vinkla\Hashids\Facades\Hashids::encode($receipt->id);
+        $docUrl   = url('/showreceipts/' . $eid);
         $fullname = data_get($receipt, 'creator.name') ?: $receipt->created_by;
 
-        // pastikan user memang approver aktif
-        $tApproval = T_approval::where('docid', $receipt->receiptnbr)
-            ->where('status', 'P')
-            ->where('aprvusername', 'like', "%{$user->username}%")
-            ->whereNotNull('aprvdatebefore')
-            ->orderBy('aprvid', 'ASC')
-            ->first();
+        $result = app(\App\Http\Controllers\ApprovalController::class)->approveStep(
+            $receipt->receiptnbr,
+            $doctype,
+            $user->username,
+            $user->name,
 
-        if (!$tApproval) {
-            return response()->json(['success' => false, 'message' => "You can't approve!"], 403);
-        }
+            // complete: update header/detail + email creator complete
+            function (string $refnbr, \Carbon\Carbon $now) use ($receipt, $fullname, $docUrl) {
+                $receipt->status       = 'C';
+                $receipt->completed_by = $receipt->completed_by ?: auth()->user()->username;
+                $receipt->completed_at = $now;
+                $receipt->save();
 
-        DB::beginTransaction();
-        try {
-            // Set current approver -> Approved
-            $tApproval->status         = 'A';
-            $tApproval->aprvdateafter  = $now;
-            $tApproval->aprvusername   = $user->username;
-            $tApproval->name           = $user->name;
-            $tApproval->save();
+                TrReceiptdetail::where('receiptnbr', $receipt->receiptnbr)->update(['status' => 'C']);
 
-            // Update "last touched" info (bukan closing)
-            $receipt->completed_by = $user->username;
-            $receipt->completed_at = $now;
-            $receipt->save();
+                app(\App\Http\Controllers\ApprovalController::class)->notifyRequesterOnStatus(
+                    $receipt->receiptnbr,
+                    'Receipt',
+                    'C',
+                    $receipt->created_by,
+                    $docUrl,
+                    [
+                        'cpnyid'   => $receipt->cpny_id ?? $receipt->cpnyid ?? '',
+                        'deptname' => $receipt->department_id ?? $receipt->departementid ?? '',
+                        'date'     => $receipt->receiptdate,
+                        'info'     => $receipt->keperluan,
+                        'fullname' => $fullname,
+                        'name'     => $fullname,
+                        'createdby'=> $fullname, 
+                    ]
+                );
+            },
 
-            // Cek masih ada P?
-            $pendingCount = T_approval::where('docid', $receipt->receiptnbr)
-                ->where('status', 'P')
-                ->count();
-
-            $eid = \Vinkla\Hashids\Facades\Hashids::encode($receipt->id);
-            $subjectMap = [
-                'P' => 'Waiting Approval',
-                'R' => 'Rejected Approval',
-                'D' => 'Revise Approval',
-                'A' => 'Approved',
-                'C' => 'Completed',
-            ];
-
-            if ($pendingCount > 0) {
-                // buka giliran next approver
-                $next = T_approval::where('docid', $receipt->receiptnbr)
-                    ->where('status', 'P')
-                    ->orderBy('aprvid', 'ASC')
-                    ->first();
-
-                if ($next) {
-                    $next->aprvdatebefore = $now;
-                    $next->save();
-
-                    // email next approver(s)
-                    $status        = 'P';
-                    $subjectSuffix = $subjectMap[$status] ?? 'Notification';
-
-                    $data = [
-                        'docid'     => $next->docid,
-                        'cpnyid'    => $next->aprvcpnyid,
-                        'deptname'  => $next->aprvdeptid,
-                        'date'      => $next->aprvdatebefore,
-                        'fullname'  => $next->name,
-                        'name'      => $next->name,
+            // notify next approver
+            function ($next, \Carbon\Carbon $now) use ($receipt, $docUrl) {
+                app(\App\Http\Controllers\ApprovalController::class)->notifyFirstApprover(
+                    $receipt->receiptnbr,
+                    'GR',
+                    'P',
+                    'Receipt',
+                    $docUrl,
+                    [
+                        'info'      => $receipt->keperluan,
                         'createdby' => $receipt->created_by,
-                        'docname'   => 'Receipt',
-                        'info'      => 'Request from user '.$receipt->user_peminta,
-                        'status'    => $status,
-                        'url'       => url('/showreceipt/' . $eid),
-                    ];
+                        'date'      => $now->toDateTimeString(),
+                    ]
+                );
 
-                    $usernames = array_filter(array_map('trim', explode(',', (string) $next->aprvusername)));
-                    if (!empty($usernames)) {
-                        $recipients = User::whereIn('username', $usernames)
-                            ->where('status', 'A')->get();
-
-                        foreach ($recipients as $rcp) {
-                            try {
-                                \Mail::send('emails.mailapprovenew', $data, function ($message) use ($data, $rcp, $subjectSuffix) {
-                                    $to = $rcp->test_email ?? $rcp->email;
-                                    $message->to($to)
-                                        ->subject($data['docid'] . ' - ' . $subjectSuffix . ' Receipt')
-                                        ->from('digitalserver@pakuwon.com', 'Pakuwon System');
-                                });
-                            } catch (\Throwable $e) {
-                                \Log::error('Failed sending Receipt waiting-approval email', ['error' => $e->getMessage()]);
-                            }
-                        }
-                    } else {
-                        \Log::warning('Next approver has empty aprvusername list', ['docid' => $receipt->receiptnbr]);
-                    }
-                }
-
-                DB::commit();
-                return response()->json(['success' => true, 'message' => 'Approved. Forwarded to next approver.']);
+                // jejak terakhir diproses (optional)
+                $receipt->completed_by = auth()->user()->username;
+                $receipt->completed_at = $now;
+                $receipt->save();
             }
+        );
 
-            // ======= FINAL LEVEL: lakukan finalisasi satu pintu =======
-            DB::commit(); // commit dulu approval step, lalu finalize di transaksi terpisah
-
-            $final = $this->finalizeReceiptAndPo($receipt->id, $user->username);
-
-            // Kirim email completion ke creator
-            $status        = 'C';
-            $subjectSuffix = $subjectMap[$status] ?? 'Notification';
-
-            $data = [
-                'docid'     => $receipt->receiptnbr,
-                'cpnyid'    => $receipt->cpny_id ?? $receipt->cpnyid ?? '',
-                'deptname'  => $receipt->department_id ?? $receipt->departementid ?? '',
-                'date'      => $receipt->spbdate,
-                'fullname'  => $fullname,
-                'name'      => $fullname,
-                'createdby' => $fullname,
-                'docname'   => 'Receipt',
-                'info'      => 'Request from user '.$receipt->user_peminta,
-                'status'    => $status,
-                'url'       => url('/showreceipt/' . $eid),
-            ];
-
-            $recipients = User::where('username', $receipt->created_by)
-                ->where('status', 'A')->get();
-
-            foreach ($recipients as $rcp) {
-                try {
-                    \Mail::send('emails.mailapprovenew', $data, function ($message) use ($data, $rcp, $subjectSuffix) {
-                        $to = $rcp->test_email ?? $rcp->email;
-                        $message->to($to)
-                            ->subject($data['docid'] . ' - ' . $subjectSuffix . ' Receipt')
-                            ->from('digitalserver@pakuwon.com', 'Pakuwon System');
-                    });
-                } catch (\Throwable $e) {
-                    \Log::error('Failed sending Receipt completion email', ['error' => $e->getMessage()]);
-                }
-            }
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Task approved and finalized',
-                'data'    => $final
-            ]);
-        } catch (\Throwable $e) {
-            DB::rollBack();
-            \Log::error('Approve Receipt failed', ['error' => $e->getMessage()]);
-            return response()->json(['success' => false, 'message' => 'Approve failed'], 500);
+        if (!$result['ok']) {
+            return response()->json(['success'=>false,'message'=>$result['message'] ?? 'Approve failed'], 403);
         }
+
+        return response()->json(['success'=>true,'message'=>'Task approved successfully']);
     }
 
-    
     public function rejectReceipt(Request $request, $docid)
     {
-        $now  = Carbon::now();
-        $user = $request->user();
+        $user    = $request->user();
+        $doctype = 'GR';
 
-        // $receipt = TrReceipt::where('receiptnbr', $docid)->first();
-        $receipt = TrReceipt::with('creator')
-            ->where('receiptnbr', $docid)
-            ->first();
+        $receipt = \App\Models\TrReceipt::with('creator')->where('receiptnbr', $docid)->first();
+        if (!$receipt) return response()->json(['success'=>false,'message'=>'Receipt not found'],404);
+
+        $eid      = \Vinkla\Hashids\Facades\Hashids::encode($receipt->id);
+        $docUrl   = url('/showreceipts/' . $eid);
         $fullname = data_get($receipt, 'creator.name') ?: $receipt->created_by;
 
-        if (!$receipt) {
-            return response()->json(['success' => false, 'message' => 'Task not found'], 404);
-        }
+        $result = app(\App\Http\Controllers\ApprovalController::class)->rejectStep(
+            $receipt->receiptnbr,
+            $doctype,
+            $user->username,
+            $user->name,
 
-        // Validasi: user harus approver aktif (status P) pada dokumen ini
-        $tApproval = T_approval::where('docid', $receipt->receiptnbr)
-            ->where('status', 'P')
-            ->where('aprvusername', 'like', "%{$user->username}%")
-            ->whereNotNull('aprvdatebefore') 
-            ->orderBy('aprvid', 'ASC')
-            ->first();
+            function (string $refnbr, \Carbon\Carbon $now) use ($receipt, $fullname, $docUrl) {
+                $receipt->status       = 'R';
+                $receipt->completed_by = auth()->user()->username;
+                $receipt->completed_at = $now;
+                $receipt->save();
 
-        if (!$tApproval) {
-            return response()->json(['success' => false, 'message' => "You can't reject!"], 403);
-        }
+                // optional: tandai detail R
+                // \App\Models\TrReceiptdetail::where('receiptnbr', $receipt->receiptnbr)->update(['status' => 'R']);
 
-        DB::beginTransaction();
-        try {
-            // Tandai approval saat ini sebagai Rejected
-            $tApproval->status        = 'R';
-            $tApproval->aprvdateafter = $now;
-            $tApproval->aprvusername  = $user->username; // catat siapa yang reject
-            $tApproval->name          = $user->name;
-            $tApproval->save();
+                app(\App\Http\Controllers\ApprovalController::class)->notifyRequesterOnStatus(
+                    $receipt->receiptnbr,
+                    'Receipt',
+                    'R',
+                    $receipt->created_by,
+                    $docUrl,
+                    [
+                        'cpnyid'   => $receipt->cpny_id ?? $receipt->cpnyid ?? '',
+                        'deptname' => $receipt->department_id ?? $receipt->departementid ?? '',
+                        'date'     => $now->toDateString(),
+                        'info'     => $receipt->keperluan,
+                        'fullname' => $fullname,
+                        'name'     => $fullname,
+                        'createdby'=> $fullname, 
+                    ]
+                );
 
-            // Update header Receipt
-            $receipt->status       = 'R';
-            $receipt->completed_by = $user->username;
-            $receipt->completed_at = $now;
-            $receipt->save();
-
-            // Batalkan semua approval yang masih pending
-            T_approval::where('docid', $receipt->receiptnbr)
-                ->where('status', 'P')
-                ->update(['status' => 'X']);
-
-            DB::commit();
-        } catch (\Throwable $e) {
-            DB::rollBack();
-            Log::error('Reject Receipt failed', ['docid' => $docid, 'error' => $e->getMessage()]);
-            return response()->json(['success' => false, 'message' => 'Reject failed'], 500);
-        }
-
-        // === Kirim Email ke requester (creator) ===
-        $status = 'R'; // Rejected
-        $subjectMap = [
-            'P' => 'Waiting Approval',
-            'R' => 'Rejected Approval',
-            'D' => 'Revise Approval',
-            'A' => 'Approved',
-            'C' => 'Completed',
-        ];
-        $subjectSuffix = $subjectMap[$status] ?? 'Notification';
-        $eid = Hashids::encode($receipt->id);
-
-        $data = [
-            'docid'     => $receipt->receiptnbr,
-            'cpnyid'    => $receipt->cpny_id ?? $receipt->cpnyid ?? '',
-            'deptname'  => $receipt->department_id ?? $receipt->departementid ?? '',
-            'date'      => $now->toDateString(),            // bisa juga pakai $tApproval->aprvdateafter
-            'fullname'  => $fullname,               // view email kita pakai $fullname
-            'name'      => $fullname,               // fallback jika view pakai $name
-            'createdby' => $fullname,
-            'docname'   => 'Receipt',
-            'info'      => 'Request from user '.$receipt->user_peminta,
-            'status'    => $status,
-            'url'       => url('/showreceipt/' . $eid),
-        ];
-
-        $recipients = User::where('username', $receipt->created_by)
-            ->where('status', 'A')
-            ->get();
-
-        foreach ($recipients as $rcp) {
-            try {
-                $to = $rcp->test_email ?? $rcp->email; // sesuaikan field yang tersedia
-                Mail::send('emails.mailapprovenew', $data, function ($message) use ($data, $to, $subjectSuffix) {
-                    $message->to($to)
-                        ->subject($data['docid'] . ' - ' . $subjectSuffix . ' Receipt')
-                        ->from('digitalserver@pakuwon.com', 'Pakuwon System');
-                });
-            } catch (\Throwable $e) {
-                Log::error('Failed sending Receipt rejected email', [
-                    'docid' => $data['docid'],
-                    'to'    => $rcp->username,
-                    'error' => $e->getMessage()
-                ]);
+                // simpan komentar (jika ada)
+                try {
+                    app('App\Http\Controllers\SendCommentController')->sendmsg($receipt->id, 'GR', request());
+                } catch (\Throwable $e) {}
             }
+        );
+
+        if (!$result['ok']) {
+            return response()->json(['success'=>false,'message'=>$result['message'] ?? 'Reject failed'], 403);
         }
 
-        // Simpan komentar penolakan (jika ada)
-        try {
-            app('App\Http\Controllers\SendCommentController')
-                ->sendmsg($receipt->id, 'GR', $request);
-        } catch (\Throwable $e) {
-            Log::warning('SendComment after reject failed', [
-                'docid' => $receipt->receiptnbr,
-                'error' => $e->getMessage()
-            ]);
-        }
-
-        return response()->json(['success' => true, 'message' => 'Receipt rejected successfully']);
+        return response()->json(['success'=>true,'message'=>'Receipt rejected successfully']);
     }
 
     public function reviseReceipt(Request $request, $docid)
     {
-        $now  = Carbon::now();
-        $user = $request->user();
+        $user    = $request->user();
+        $doctype = 'GR';
 
-        // $receipt = TrReceipt::where('receiptnbr', $docid)->first();
-        $receipt = TrReceipt::with('creator')
-            ->where('receiptnbr', $docid)
-            ->first();
+        $receipt = \App\Models\TrReceipt::with('creator')->where('receiptnbr', $docid)->first();
+        if (!$receipt) return response()->json(['success'=>false,'message'=>'Receipt not found'],404);
+
+        $eid      = \Vinkla\Hashids\Facades\Hashids::encode($receipt->id);
+        $docUrl   = url('/showreceipts/' . $eid);
         $fullname = data_get($receipt, 'creator.name') ?: $receipt->created_by;
-            
-        if (!$receipt) {
-            return response()->json(['success' => false, 'message' => 'Receipt not found'], 404);
-        }
 
-        // Pastikan user adalah approver aktif (status P) dokumen ini
-        $tApproval = T_approval::where('docid', $receipt->receiptnbr)
-            ->where('status', 'P')
-            ->where('aprvusername', 'like', "%{$user->username}%")
-            ->whereNotNull('aprvdatebefore')
-            ->orderBy('aprvid', 'ASC')
-            ->first();
+        $result = app(\App\Http\Controllers\ApprovalController::class)->reviseStep(
+            $receipt->receiptnbr,            // refnbr
+            $doctype,                 // PT
+            $user->username,          // actor
+            $user->name,              // actor
+            function (string $refnbr, \Carbon\Carbon $now) use ($receipt, $fullname, $docUrl) {
+                // === HEADER Receipt -> D ===
+                $receipt->status       = 'D';
+                $receipt->completed_by = auth()->user()->username;
+                $receipt->completed_at = $now;
+                $receipt->save();
 
-        if (!$tApproval) {
-            return response()->json(['success' => false, 'message' => "You can't revise!"], 403);
-        }
+                // (opsional) DETAIL -> D
+                // \App\Models\TrReceiptdetail::where('receiptnbr', $receipt->receiptnbr)->update(['status' => 'D']);
 
-        DB::beginTransaction();
-        try {
-            // Tandai approval saat ini sebagai Revise (D)
-            $tApproval->status        = 'D';
-            $tApproval->aprvdateafter = $now;
-            $tApproval->aprvusername  = $user->username;  // catat siapa yang revise
-            $tApproval->name          = $user->name;
-            $tApproval->save();
+                // === Email ke requester ===
+                app(\App\Http\Controllers\ApprovalController::class)->notifyRequesterOnStatus(
+                    $receipt->receiptnbr,
+                    'Receipt',
+                    'D',
+                    $receipt->created_by,
+                    $docUrl,
+                    [
+                        'cpnyid'   => $receipt->cpny_id ?? $receipt->cpnyid ?? '',
+                        'deptname' => $receipt->department_id ?? $receipt->departementid ?? '',
+                        'date'     => $now->toDateString(),
+                        'info'     => $receipt->keperluan,
+                        'fullname' => $fullname,
+                        'name'     => $fullname,
+                        'createdby'=> $fullname,   // <<< tambahkan ini
+                    ]
+                );
 
-            // Update header Receipt
-            $receipt->status       = 'D';
-            $receipt->completed_by = $user->username;        // mengikuti pola existing
-            $receipt->completed_at = $now;
-            $receipt->save();
 
-            // Batalkan approval lain yang masih pending
-            T_approval::where('docid', $receipt->receiptnbr)
-                ->where('status', 'P')
-                ->update(['status' => 'X']);
-
-            DB::commit();
-        } catch (\Throwable $e) {
-            DB::rollBack();
-            Log::error('Revise Receipt failed', ['docid' => $docid, 'error' => $e->getMessage()]);
-            return response()->json(['success' => false, 'message' => 'Revise failed'], 500);
-        }
-
-        // === Kirim email ke requester (creator) ===
-        $status = 'D'; // Revise
-        $subjectMap = [
-            'P' => 'Waiting Approval',
-            'R' => 'Rejected Approval',
-            'D' => 'Revise Approval',
-            'A' => 'Approved',
-            'C' => 'Completed',
-        ];
-        $subjectSuffix = $subjectMap[$status] ?? 'Notification';
-        $eid = Hashids::encode($receipt->id);
-
-        $data = [
-            'docid'     => $receipt->receiptnbr,
-            'cpnyid'    => $receipt->cpny_id ?? $receipt->cpnyid ?? '',
-            'deptname'  => $receipt->department_id ?? $receipt->departementid ?? '',
-            'date'      => $now->toDateString(),          // atau $tApproval->aprvdateafter
-            'fullname'  => $fullname,             // template email pakai $fullname
-            'name'      => $fullname,             // fallback jika view pakai $name
-            'createdby' => $fullname,
-            'docname'   => 'Receipt',
-            'info'      => 'Request from user '.$receipt->user_peminta,
-            'status'    => $status,
-            'url'       => url('/showreceipt/' . $eid),
-        ];
-
-        $recipients = User::where('username', $receipt->created_by)
-            ->where('status', 'A')
-            ->get();
-
-        foreach ($recipients as $rcp) {
-            try {
-                $to = $rcp->test_email ?? $rcp->email; // sesuaikan dengan kolom yang ada
-                Mail::send('emails.mailapprovenew', $data, function ($message) use ($data, $to, $subjectSuffix) {
-                    $message->to($to)
-                        ->subject($data['docid'] . ' - ' . $subjectSuffix . ' Receipt')
-                        ->from('digitalserver@pakuwon.com', 'Pakuwon System');
-                });
-            } catch (\Throwable $e) {
-                Log::error('Failed sending Receipt revise email', [
-                    'docid' => $data['docid'],
-                    'to'    => $rcp->username,
-                    'error' => $e->getMessage()
-                ]);
+                // === Simpan komentar (jika ada) ===
+                try {
+                    app('App\Http\Controllers\SendCommentController')->sendmsg($receipt->id, 'GR', request());
+                } catch (\Throwable $e) {}
             }
+        );
+
+        if (!$result['ok']) {
+            return response()->json([
+                'success'=>false,
+                'message'=>$result['message'] ?? 'Revise failed'
+            ], 403);
         }
 
-        // Simpan komentar revisi (jika ada)
-        try {
-            app('App\Http\Controllers\SendCommentController')
-                ->sendmsg($receipt->id, 'GR', $request);
-        } catch (\Throwable $e) {
-            Log::warning('SendComment after revise failed', [
-                'docid' => $receipt->receiptnbr,
-                'error' => $e->getMessage()
-            ]);
-        }
-
-        return response()->json(['success' => true, 'message' => 'Receipt revised successfully']);
-    }  
-
-    public function checkApproval($id, $action)
-    {
-        $user = Auth::user(); // Ambil user yang login
-        // dd($action);
-        // Query dasar untuk pengecekan
-        $query = T_approval::where('docid', $id)
-                    ->where('aprvusername', 'like', '%' . $user->username . '%')
-                    ->where('status', 'P');                 
-
-        // Jika aksi adalah reject atau revise, pastikan aprvdatebefore tidak null
-        if (in_array($action, ['reject', 'revise','approve'])) {
-            $query->whereNotNull('aprvdatebefore');
-        }
-
-        // Cek apakah user bisa melakukan aksi
-        $canPerformAction = $query->exists();
-
-        return response()->json(['canPerformAction' => $canPerformAction]);
+        return response()->json(['success'=>true,'message'=>'Receipt revised successfully']);
     }
-   
 
-    // public function fetchComments($id)
+    // public function approveReceipt(Request $request, $docid)
     // {
+    //     $now  = \Carbon\Carbon::now();
+    //     $user = $request->user();
+
+    //     $receipt = TrReceipt::with('creator')
+    //         ->where('receiptnbr', $docid)
+    //         ->first();
+
+    //     if (!$receipt) {
+    //         return response()->json(['success' => false, 'message' => 'Receipt not found'], 404);
+    //     }
+
+    //     $fullname = data_get($receipt, 'creator.name') ?: $receipt->created_by;
+
+    //     // pastikan user memang approver aktif
+    //     $tApproval = T_approval::where('docid', $receipt->receiptnbr)
+    //         ->where('status', 'P')
+    //         ->where('aprvusername', 'like', "%{$user->username}%")
+    //         ->whereNotNull('aprvdatebefore')
+    //         ->orderBy('aprvid', 'ASC')
+    //         ->first();
+
+    //     if (!$tApproval) {
+    //         return response()->json(['success' => false, 'message' => "You can't approve!"], 403);
+    //     }
+
+    //     DB::beginTransaction();
+    //     try {
+    //         // Set current approver -> Approved
+    //         $tApproval->status         = 'A';
+    //         $tApproval->aprvdateafter  = $now;
+    //         $tApproval->aprvusername   = $user->username;
+    //         $tApproval->name           = $user->name;
+    //         $tApproval->save();
+
+    //         // Update "last touched" info (bukan closing)
+    //         $receipt->completed_by = $user->username;
+    //         $receipt->completed_at = $now;
+    //         $receipt->save();
+
+    //         // Cek masih ada P?
+    //         $pendingCount = T_approval::where('docid', $receipt->receiptnbr)
+    //             ->where('status', 'P')
+    //             ->count();
+
+    //         $eid = \Vinkla\Hashids\Facades\Hashids::encode($receipt->id);
+    //         $subjectMap = [
+    //             'P' => 'Waiting Approval',
+    //             'R' => 'Rejected Approval',
+    //             'D' => 'Revise Approval',
+    //             'A' => 'Approved',
+    //             'C' => 'Completed',
+    //         ];
+
+    //         if ($pendingCount > 0) {
+    //             // buka giliran next approver
+    //             $next = T_approval::where('docid', $receipt->receiptnbr)
+    //                 ->where('status', 'P')
+    //                 ->orderBy('aprvid', 'ASC')
+    //                 ->first();
+
+    //             if ($next) {
+    //                 $next->aprvdatebefore = $now;
+    //                 $next->save();
+
+    //                 // email next approver(s)
+    //                 $status        = 'P';
+    //                 $subjectSuffix = $subjectMap[$status] ?? 'Notification';
+
+    //                 $data = [
+    //                     'docid'     => $next->docid,
+    //                     'cpnyid'    => $next->aprvcpnyid,
+    //                     'deptname'  => $next->aprvdeptid,
+    //                     'date'      => $next->aprvdatebefore,
+    //                     'fullname'  => $next->name,
+    //                     'name'      => $next->name,
+    //                     'createdby' => $receipt->created_by,
+    //                     'docname'   => 'Receipt',
+    //                     'info'      => 'Request from user '.$receipt->user_peminta,
+    //                     'status'    => $status,
+    //                     'url'       => url('/showreceipt/' . $eid),
+    //                 ];
+
+    //                 $usernames = array_filter(array_map('trim', explode(',', (string) $next->aprvusername)));
+    //                 if (!empty($usernames)) {
+    //                     $recipients = User::whereIn('username', $usernames)
+    //                         ->where('status', 'A')->get();
+
+    //                     foreach ($recipients as $rcp) {
+    //                         try {
+    //                             \Mail::send('emails.mailapprovenew', $data, function ($message) use ($data, $rcp, $subjectSuffix) {
+    //                                 $to = $rcp->test_email ?? $rcp->email;
+    //                                 $message->to($to)
+    //                                     ->subject($data['docid'] . ' - ' . $subjectSuffix . ' Receipt')
+    //                                     ->from('digitalserver@pakuwon.com', 'Pakuwon System');
+    //                             });
+    //                         } catch (\Throwable $e) {
+    //                             \Log::error('Failed sending Receipt waiting-approval email', ['error' => $e->getMessage()]);
+    //                         }
+    //                     }
+    //                 } else {
+    //                     \Log::warning('Next approver has empty aprvusername list', ['docid' => $receipt->receiptnbr]);
+    //                 }
+    //             }
+
+    //             DB::commit();
+    //             return response()->json(['success' => true, 'message' => 'Approved. Forwarded to next approver.']);
+    //         }
+
+    //         // ======= FINAL LEVEL: lakukan finalisasi satu pintu =======
+    //         DB::commit(); // commit dulu approval step, lalu finalize di transaksi terpisah
+
+    //         $final = $this->finalizeReceiptAndPo($receipt->id, $user->username);
+
+    //         // Kirim email completion ke creator
+    //         $status        = 'C';
+    //         $subjectSuffix = $subjectMap[$status] ?? 'Notification';
+
+    //         $data = [
+    //             'docid'     => $receipt->receiptnbr,
+    //             'cpnyid'    => $receipt->cpny_id ?? $receipt->cpnyid ?? '',
+    //             'deptname'  => $receipt->department_id ?? $receipt->departementid ?? '',
+    //             'date'      => $receipt->spbdate,
+    //             'fullname'  => $fullname,
+    //             'name'      => $fullname,
+    //             'createdby' => $fullname,
+    //             'docname'   => 'Receipt',
+    //             'info'      => 'Request from user '.$receipt->user_peminta,
+    //             'status'    => $status,
+    //             'url'       => url('/showreceipt/' . $eid),
+    //         ];
+
+    //         $recipients = User::where('username', $receipt->created_by)
+    //             ->where('status', 'A')->get();
+
+    //         foreach ($recipients as $rcp) {
+    //             try {
+    //                 \Mail::send('emails.mailapprovenew', $data, function ($message) use ($data, $rcp, $subjectSuffix) {
+    //                     $to = $rcp->test_email ?? $rcp->email;
+    //                     $message->to($to)
+    //                         ->subject($data['docid'] . ' - ' . $subjectSuffix . ' Receipt')
+    //                         ->from('digitalserver@pakuwon.com', 'Pakuwon System');
+    //                 });
+    //             } catch (\Throwable $e) {
+    //                 \Log::error('Failed sending Receipt completion email', ['error' => $e->getMessage()]);
+    //             }
+    //         }
+
+    //         return response()->json([
+    //             'success' => true,
+    //             'message' => 'Task approved and finalized',
+    //             'data'    => $final
+    //         ]);
+    //     } catch (\Throwable $e) {
+    //         DB::rollBack();
+    //         \Log::error('Approve Receipt failed', ['error' => $e->getMessage()]);
+    //         return response()->json(['success' => false, 'message' => 'Approve failed'], 500);
+    //     }
+    // }
+
     
-    //     $comments = T_Message::where('docid', $id)
-    //         ->orderBy('created_at', 'desc')
+    // public function rejectReceipt(Request $request, $docid)
+    // {
+    //     $now  = Carbon::now();
+    //     $user = $request->user();
+
+    //     // $receipt = TrReceipt::where('receiptnbr', $docid)->first();
+    //     $receipt = TrReceipt::with('creator')
+    //         ->where('receiptnbr', $docid)
+    //         ->first();
+    //     $fullname = data_get($receipt, 'creator.name') ?: $receipt->created_by;
+
+    //     if (!$receipt) {
+    //         return response()->json(['success' => false, 'message' => 'Task not found'], 404);
+    //     }
+
+    //     // Validasi: user harus approver aktif (status P) pada dokumen ini
+    //     $tApproval = T_approval::where('docid', $receipt->receiptnbr)
+    //         ->where('status', 'P')
+    //         ->where('aprvusername', 'like', "%{$user->username}%")
+    //         ->whereNotNull('aprvdatebefore') 
+    //         ->orderBy('aprvid', 'ASC')
+    //         ->first();
+
+    //     if (!$tApproval) {
+    //         return response()->json(['success' => false, 'message' => "You can't reject!"], 403);
+    //     }
+
+    //     DB::beginTransaction();
+    //     try {
+    //         // Tandai approval saat ini sebagai Rejected
+    //         $tApproval->status        = 'R';
+    //         $tApproval->aprvdateafter = $now;
+    //         $tApproval->aprvusername  = $user->username; // catat siapa yang reject
+    //         $tApproval->name          = $user->name;
+    //         $tApproval->save();
+
+    //         // Update header Receipt
+    //         $receipt->status       = 'R';
+    //         $receipt->completed_by = $user->username;
+    //         $receipt->completed_at = $now;
+    //         $receipt->save();
+
+    //         // Batalkan semua approval yang masih pending
+    //         T_approval::where('docid', $receipt->receiptnbr)
+    //             ->where('status', 'P')
+    //             ->update(['status' => 'X']);
+
+    //         DB::commit();
+    //     } catch (\Throwable $e) {
+    //         DB::rollBack();
+    //         Log::error('Reject Receipt failed', ['docid' => $docid, 'error' => $e->getMessage()]);
+    //         return response()->json(['success' => false, 'message' => 'Reject failed'], 500);
+    //     }
+
+    //     // === Kirim Email ke requester (creator) ===
+    //     $status = 'R'; // Rejected
+    //     $subjectMap = [
+    //         'P' => 'Waiting Approval',
+    //         'R' => 'Rejected Approval',
+    //         'D' => 'Revise Approval',
+    //         'A' => 'Approved',
+    //         'C' => 'Completed',
+    //     ];
+    //     $subjectSuffix = $subjectMap[$status] ?? 'Notification';
+    //     $eid = Hashids::encode($receipt->id);
+
+    //     $data = [
+    //         'docid'     => $receipt->receiptnbr,
+    //         'cpnyid'    => $receipt->cpny_id ?? $receipt->cpnyid ?? '',
+    //         'deptname'  => $receipt->department_id ?? $receipt->departementid ?? '',
+    //         'date'      => $now->toDateString(),            // bisa juga pakai $tApproval->aprvdateafter
+    //         'fullname'  => $fullname,               // view email kita pakai $fullname
+    //         'name'      => $fullname,               // fallback jika view pakai $name
+    //         'createdby' => $fullname,
+    //         'docname'   => 'Receipt',
+    //         'info'      => 'Request from user '.$receipt->user_peminta,
+    //         'status'    => $status,
+    //         'url'       => url('/showreceipt/' . $eid),
+    //     ];
+
+    //     $recipients = User::where('username', $receipt->created_by)
+    //         ->where('status', 'A')
     //         ->get();
 
-    //     return response()->json([
-    //         'status' => 'success',
-    //         'comments' => $comments
-    //     ]);
+    //     foreach ($recipients as $rcp) {
+    //         try {
+    //             $to = $rcp->test_email ?? $rcp->email; // sesuaikan field yang tersedia
+    //             Mail::send('emails.mailapprovenew', $data, function ($message) use ($data, $to, $subjectSuffix) {
+    //                 $message->to($to)
+    //                     ->subject($data['docid'] . ' - ' . $subjectSuffix . ' Receipt')
+    //                     ->from('digitalserver@pakuwon.com', 'Pakuwon System');
+    //             });
+    //         } catch (\Throwable $e) {
+    //             Log::error('Failed sending Receipt rejected email', [
+    //                 'docid' => $data['docid'],
+    //                 'to'    => $rcp->username,
+    //                 'error' => $e->getMessage()
+    //             ]);
+    //         }
+    //     }
+
+    //     // Simpan komentar penolakan (jika ada)
+    //     try {
+    //         app('App\Http\Controllers\SendCommentController')
+    //             ->sendmsg($receipt->id, 'GR', $request);
+    //     } catch (\Throwable $e) {
+    //         Log::warning('SendComment after reject failed', [
+    //             'docid' => $receipt->receiptnbr,
+    //             'error' => $e->getMessage()
+    //         ]);
+    //     }
+
+    //     return response()->json(['success' => true, 'message' => 'Receipt rejected successfully']);
     // }
 
-    // public function storeComment(Request $request, $id)
+    // public function reviseReceipt(Request $request, $docid)
     // {
-    //     $user = Auth::user();
-    //     $request->validate([
-    //         'comment' => 'required|string|max:500',
-    //     ]);
-    //     // dd($id);
-    //     $user = request()->user();
-    //     $comment = new T_Message();
-    //     $comment->docid = $id;
-    //     $comment->doctype = 'PO';
-    //     $comment->username = $user->username; 
-    //     $comment->name = $user->name; 
-    //     $comment->message = $request->comment;
-    //     $comment->status = 'A';
-    //     $comment->created_at = now();
-    //     $comment->save();
+    //     $now  = Carbon::now();
+    //     $user = $request->user();
 
-    //     return response()->json([
-    //         'status' => 'success',
-    //         'message' => 'Comment added successfully!',
-    //         'comment' => $comment
-    //     ]);
+    //     // $receipt = TrReceipt::where('receiptnbr', $docid)->first();
+    //     $receipt = TrReceipt::with('creator')
+    //         ->where('receiptnbr', $docid)
+    //         ->first();
+    //     $fullname = data_get($receipt, 'creator.name') ?: $receipt->created_by;
+            
+    //     if (!$receipt) {
+    //         return response()->json(['success' => false, 'message' => 'Receipt not found'], 404);
+    //     }
+
+    //     // Pastikan user adalah approver aktif (status P) dokumen ini
+    //     $tApproval = T_approval::where('docid', $receipt->receiptnbr)
+    //         ->where('status', 'P')
+    //         ->where('aprvusername', 'like', "%{$user->username}%")
+    //         ->whereNotNull('aprvdatebefore')
+    //         ->orderBy('aprvid', 'ASC')
+    //         ->first();
+
+    //     if (!$tApproval) {
+    //         return response()->json(['success' => false, 'message' => "You can't revise!"], 403);
+    //     }
+
+    //     DB::beginTransaction();
+    //     try {
+    //         // Tandai approval saat ini sebagai Revise (D)
+    //         $tApproval->status        = 'D';
+    //         $tApproval->aprvdateafter = $now;
+    //         $tApproval->aprvusername  = $user->username;  // catat siapa yang revise
+    //         $tApproval->name          = $user->name;
+    //         $tApproval->save();
+
+    //         // Update header Receipt
+    //         $receipt->status       = 'D';
+    //         $receipt->completed_by = $user->username;        // mengikuti pola existing
+    //         $receipt->completed_at = $now;
+    //         $receipt->save();
+
+    //         // Batalkan approval lain yang masih pending
+    //         T_approval::where('docid', $receipt->receiptnbr)
+    //             ->where('status', 'P')
+    //             ->update(['status' => 'X']);
+
+    //         DB::commit();
+    //     } catch (\Throwable $e) {
+    //         DB::rollBack();
+    //         Log::error('Revise Receipt failed', ['docid' => $docid, 'error' => $e->getMessage()]);
+    //         return response()->json(['success' => false, 'message' => 'Revise failed'], 500);
+    //     }
+
+    //     // === Kirim email ke requester (creator) ===
+    //     $status = 'D'; // Revise
+    //     $subjectMap = [
+    //         'P' => 'Waiting Approval',
+    //         'R' => 'Rejected Approval',
+    //         'D' => 'Revise Approval',
+    //         'A' => 'Approved',
+    //         'C' => 'Completed',
+    //     ];
+    //     $subjectSuffix = $subjectMap[$status] ?? 'Notification';
+    //     $eid = Hashids::encode($receipt->id);
+
+    //     $data = [
+    //         'docid'     => $receipt->receiptnbr,
+    //         'cpnyid'    => $receipt->cpny_id ?? $receipt->cpnyid ?? '',
+    //         'deptname'  => $receipt->department_id ?? $receipt->departementid ?? '',
+    //         'date'      => $now->toDateString(),          // atau $tApproval->aprvdateafter
+    //         'fullname'  => $fullname,             // template email pakai $fullname
+    //         'name'      => $fullname,             // fallback jika view pakai $name
+    //         'createdby' => $fullname,
+    //         'docname'   => 'Receipt',
+    //         'info'      => 'Request from user '.$receipt->user_peminta,
+    //         'status'    => $status,
+    //         'url'       => url('/showreceipt/' . $eid),
+    //     ];
+
+    //     $recipients = User::where('username', $receipt->created_by)
+    //         ->where('status', 'A')
+    //         ->get();
+
+    //     foreach ($recipients as $rcp) {
+    //         try {
+    //             $to = $rcp->test_email ?? $rcp->email; // sesuaikan dengan kolom yang ada
+    //             Mail::send('emails.mailapprovenew', $data, function ($message) use ($data, $to, $subjectSuffix) {
+    //                 $message->to($to)
+    //                     ->subject($data['docid'] . ' - ' . $subjectSuffix . ' Receipt')
+    //                     ->from('digitalserver@pakuwon.com', 'Pakuwon System');
+    //             });
+    //         } catch (\Throwable $e) {
+    //             Log::error('Failed sending Receipt revise email', [
+    //                 'docid' => $data['docid'],
+    //                 'to'    => $rcp->username,
+    //                 'error' => $e->getMessage()
+    //             ]);
+    //         }
+    //     }
+
+    //     // Simpan komentar revisi (jika ada)
+    //     try {
+    //         app('App\Http\Controllers\SendCommentController')
+    //             ->sendmsg($receipt->id, 'GR', $request);
+    //     } catch (\Throwable $e) {
+    //         Log::warning('SendComment after revise failed', [
+    //             'docid' => $receipt->receiptnbr,
+    //             'error' => $e->getMessage()
+    //         ]);
+    //     }
+
+    //     return response()->json(['success' => true, 'message' => 'Receipt revised successfully']);
+    // }  
+
+    // public function checkApproval($id, $action)
+    // {
+    //     $user = Auth::user(); // Ambil user yang login
+    //     // dd($action);
+    //     // Query dasar untuk pengecekan
+    //     $query = T_approval::where('docid', $id)
+    //                 ->where('aprvusername', 'like', '%' . $user->username . '%')
+    //                 ->where('status', 'P');                 
+
+    //     // Jika aksi adalah reject atau revise, pastikan aprvdatebefore tidak null
+    //     if (in_array($action, ['reject', 'revise','approve'])) {
+    //         $query->whereNotNull('aprvdatebefore');
+    //     }
+
+    //     // Cek apakah user bisa melakukan aksi
+    //     $canPerformAction = $query->exists();
+
+    //     return response()->json(['canPerformAction' => $canPerformAction]);
     // }
+   
 
     public function uploadAttachments(Request $request, $poid)
     {

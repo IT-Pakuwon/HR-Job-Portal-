@@ -177,19 +177,13 @@
         </tr>
         <tr>
             <td class="meta-label">{{ $doc_type }} Date</td>
-            <td>{{ $sppbdate }}</td>
+            <td>{{ $imbudgetdate }}</td>
             <td class="meta-label">Department</td>
             <td>{{ $department_id }}</td>
-        </tr>
-        @if (!empty($requesttype_name))
-            <tr>
-                <td class="meta-label">Request Type</td>
-                <td colspan="3">{{ $requesttype_name }}</td>
-            </tr>
-        @endif
+        </tr>       
         <tr>
             <td class="meta-label">Keperluan</td>
-            <td colspan="3">{{ $keperluan }}</td>
+            <td colspan="3">{{ $imbudgetnote }}</td>
         </tr>
     </tbody>
 </table>
@@ -197,25 +191,29 @@
 <table style="width:100%; border-collapse:collapse; border:1px solid #000;">
     <thead>
         <tr>
-            <th style="text-align:center; width:15px;">No</th>
-            <th style="text-align:center; width:100px;">InventoryID</th>
-            <th style="text-align:center;">Description</th>
-            <th style="text-align:center; width:20px;">Qty</th>
-            <th style="text-align:center; width:20px;">UoM</th>
-            <th style="text-align:center; width:100px;">Location</th>
-            <th style="text-align:center; width:100px;">Sub Location</th>
+            <th style="text-align:center; width:10px;">No</th>
+            <th style="text-align:center; width:20px;">COA</th>
+            <th style="text-align:center;">Activity</th>
+            <th style="text-align:center; width:100px;">Activity Descr</th>
+            <th style="text-align:center; width:20px;">Amount Expense</th>
+            <th style="text-align:center; width:20px;">Budget Remain</th>
+            <th style="text-align:center; width:20px;">Budget Needed</th>
+            <th style="text-align:center; width:20px;">Budget Requested</th>
+            <th style="text-align:center; width:100px;">Note</th>
         </tr>
     </thead>
     <tbody>
         @forelse($detail as $i => $dt)
             <tr>
-                <td style="text-align:center;">{{ $i + 1 }}</td>
-                <td>{{ $dt->inventoryid }}</td>
-                <td>{{ $dt->inventory_descr }}</td>
-                <td style="text-align:right;">{{ number_format((float) $dt->qty, 2) }}</td>
-                <td style="text-align:center;">{{ $dt->uom }}</td>
-                <td>{{ optional($dt->location)->location_name }}</td>
-                <td>{{ optional($dt->subLocation)->sub_location_name }}</td>
+                <td style="text-align:center;">{{ $i + 1 }}</td>     
+                <td>{{ $dt->budget_account_id }}</td>
+                <td>{{ $dt->budget_activity_id }}</td>
+                <td>{{ $dt->budget_activity_descr }}</td>                                    
+                <td style="text-align:right;">{{ number_format((float) $dt->amount_expense, 2)}}</td>
+                <td style="text-align:right;">{{ number_format((float) $dt->budget_remain, 2)}}</td>
+                <td style="text-align:right;">{{ number_format((float) $dt->budget_needed, 2)}}</td>                                  
+                <td style="text-align:right;">{{ number_format((float) $dt->budget_requested, 2)}}</td>
+                <td>{{ $dt->note }}</td> 
             </tr>
         @empty
             <tr>
@@ -275,13 +273,13 @@
                             'P' => 'orange',
                             default => 'red',
                         };
-                        $dateStr = $dt2->aprvdateafter
-                            ? \Carbon\Carbon::parse($dt2->aprvdateafter)->format('d M Y H:i')
+                        $dateStr = $dt2->aprv_dateafter
+                            ? \Carbon\Carbon::parse($dt2->aprv_dateafter)->format('d M Y H:i')
                             : '';
                     @endphp
                     <td>
                         <div><span class="sig-num">{{ $idx++ }}.</span><span
-                                class="sig-name">{{ $dt2->name }}</span></div>
+                                class="sig-name">{{ $dt2->aprv_name }}</span></div>
                         <div class="sig-status {{ $color }}">{{ $label }}</div>
                         <div>{{ $dateStr }}</div>
                     </td>

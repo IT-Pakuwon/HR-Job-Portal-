@@ -966,7 +966,7 @@
             rows.forEach(at => {
             const fileName  = at.name || at.display_name || '(no name)';
             const createdBy = at.created_user ?? at.created_by ?? '-';
-            const dateStr   = at.created_at ? dayjs(at.created_at).format('DD MMM YYYY') : '-';
+            const dateStr = at.created_at ? dayjs(at.created_at).format('DD MMM YYYY HH:mm:ss') : '-';
             const linkHtml  = at.url
                 ? `<a href="${at.url}" target="_blank"
                     class="flex items-center gap-2 font-medium text-indigo-600 hover:underline dark:text-indigo-400">📎 ${fileName}</a>`
@@ -1072,7 +1072,9 @@
                             <tr class="border-b border-gray-100 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700">
                                 <td class="p-3">${row.aprv_leveling}</td>
                                 <td class="p-3">${row.aprv_name}</td>
-                                <td class="p-3">${formatDate(row.aprv_dateafter)}</td>
+                                <td class="p-3">
+    ${row.aprv_dateafter ? dayjs(row.aprv_dateafter).format('DD MMM YYYY HH:mm:ss') : ''}
+</td>
                                 <td class="p-3">${statusLabel}</td>
                             </tr>
                         `;

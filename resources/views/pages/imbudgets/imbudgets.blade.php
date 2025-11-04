@@ -14,6 +14,12 @@
             border-color: rgb(194 65 12)
         }
 
+        .status-filter[data-status="H,D"].active .status-card {
+            background-color: rgb(253 230 138); /* amber-200 */
+            border-color: rgb(31 41 55);        /* gray-700 (campuran H/D) */
+        }
+
+
         .status-filter[data-status="P"].active .status-card {
             background-color: rgb(191 219 254);
             /* blue-200 */
@@ -43,7 +49,7 @@
         }
     </style>
     <div class="max-w-9xl mx-auto w-full px-4 py-4 sm:px-6 lg:px-8">
-        <div class="grid-col-1 grid gap-6 xl:grid-cols-5 xl:grid-rows-1">
+        <div class="grid-col-1 grid gap-6 xl:grid-cols-6 xl:grid-rows-1">
             {{-- All Status --}}
             <button>
                 <a href="#" class="status-filter group block" data-status="">
@@ -57,6 +63,22 @@
                     </div>
                 </a>
             </button>
+           
+           {{-- Hold/Revise Status --}}
+            <button>
+            <a href="#" class="status-filter group block" data-status="H,D">
+                <div
+                class="status-card flex items-center gap-4 rounded-lg border border-amber-700 bg-amber-200/20 p-3 text-amber-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-amber-100 hover:shadow-lg active:scale-95">
+                <span class="text-xl group-hover:animate-pulse">🛠️</span>
+                <div class="flex flex-grow items-center justify-between">
+                    <p class="text-lg font-medium">Hold/Revise</p>
+                    <p class="text-right text-xl font-extrabold">{{ ($hold ?? 0) + ($revise ?? 0) }}</p>
+                </div>
+                </div>
+            </a>
+            </button>
+
+
 
             {{-- On Progress Status --}}
             <button>
@@ -339,11 +361,7 @@
                 <div
                     class="flex flex-col items-start justify-between gap-4 border-b border-gray-200 p-4 sm:flex-row sm:items-center dark:border-gray-700">
                     {{-- Changed text-3xl to text-xl --}}
-                    <h1 class="text-xl font-extrabold text-gray-700 dark:text-white">IMBudget</h1>     
-                    <a href="{{ url('/testgenerate') }}"
-                        class="inline-flex items-center rounded-xl bg-blue-600 px-6 py-2 text-base font-semibold text-white transition-colors duration-200 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
-                        <i class="fas fa-plus pr-2"></i>TEST GENERATE IM BUDGET
-                    </a>              
+                    <h1 class="text-xl font-extrabold text-gray-700 dark:text-white">IMBudget</h1>                                  
                 </div>
 
                 <div class="overflow-x-auto p-6"> {{-- Padding applied here instead of outer container --}}
@@ -430,6 +448,12 @@
                             colorBorder: 'border-green-600',
                             colorTitle: 'text-green-700'
                         },
+                        H: {
+                            label: 'Hold',
+                            colorDot: 'bg-blue-600',
+                            colorBorder: 'border-blue-600',
+                            colorTitle: 'text-blue-700'
+                        },
                         P: {
                             label: 'Waiting approval / in progress',
                             colorDot: 'bg-yellow-500',
@@ -492,10 +516,6 @@
                     }).join('');
                 }
             </script>
-
-
-
-
 
             <script>
                 // Scroll controls
@@ -600,7 +620,12 @@
                                 const text = data || '-';
 
                                 // jika status Draft & milik current user → link ke edit
-                                if (row.status === 'D' && row.created_by === currentUser) {
+                                if (row.status === 'D' && row.user_peminta === currentUser) {
+                                    url = `/editimbudgets/${encodeURIComponent(row.eid || row.imbudgetid)}`;
+                                    cls = 'inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-sm leading-tight font-medium text-white rounded text-center transition-colors duration-200 bg-yellow-500 hover:bg-yellow-700';
+                                }
+
+                                if (row.status === 'H' && row.user_peminta === currentUser) {
                                     url = `/editimbudgets/${encodeURIComponent(row.eid || row.imbudgetid)}`;
                                     cls = 'inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-sm leading-tight font-medium text-white rounded text-center transition-colors duration-200 bg-yellow-500 hover:bg-yellow-700';
                                 }
@@ -631,10 +656,12 @@
                                 const map = {
                                     'D': { t: 'Revise',     c: 'bg-gray-300/30 text-gray-600'  },
                                     'P': { t: 'On Progress',c: 'bg-blue-300/30 text-blue-600'  },
+                                    'H': { t: 'Hold',       c: 'bg-amber-300/30 text-amber-700'}, // NEW
                                     'C': { t: 'Completed',  c: 'bg-green-300/30 text-green-600'},
                                     'X': { t: 'Cancel',     c: 'bg-red-300/30 text-red-600'    },
                                     'R': { t: 'Rejected',   c: 'bg-red-300/30 text-red-600'    },
                                 };
+
                                 const it = map[data] || { t: data || '-', c: 'bg-gray-300/30 text-gray-600' };
                                 return `<span class="w-32 inline-block ${it.c} font-semibold px-4 py-2 text-center rounded">${it.t}</span>`;
                                 }

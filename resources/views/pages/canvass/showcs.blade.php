@@ -338,7 +338,9 @@
                                             <th class="p-3 text-left font-semibold">Status</th>
                                         </tr>
                                     </thead>
-                                    <tbody>
+                                     <tbody id="approval-table-body">                                       
+                                    </tbody>
+                                    {{-- <tbody>
                                         @foreach ($approval as $ap)
                                             <tr
                                                 class="border-b border-gray-100 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700">
@@ -380,7 +382,7 @@
                                                 </td>
                                             </tr>
                                         @endforeach
-                                    </tbody>
+                                    </tbody> --}}
                                 </table>
                             </div>
                             {{-- Attachment tab --}}
@@ -771,7 +773,7 @@
             
         });
     </script>  
-    <script>
+    {{-- <script>
         $(document).on("click", "#approveBtn", function() {
             let csid = "{{ $cs->csid }}"; // Ambil Task ID dari modal        
             approveCS(csid);
@@ -821,7 +823,101 @@
                 }
             });
         }
+    </script> --}}
+
+    <script>
+        $(document).on("click", "#approveBtn", function() {
+            const csid = "{{ $cs->csid }}";
+            approveCSWithIMCheck(csid);
+        });
+
+        function approveCSWithIMCheck(csid) {
+            const $spinner = $("#loadingSpinnerContainer");
+            $spinner.fadeIn();
+
+            $.ajax({
+                url: `/cs/${encodeURIComponent(csid)}/approve`,
+                type: "POST",
+                data: { _token: "{{ csrf_token() }}" },
+                success: function(res) {
+                    // CASE: perlu konfirmasi generate IM
+                    if (res?.need_confirm_generate_im) {
+                        $spinner.fadeOut();
+                        Swal.fire({
+                            title: 'Generate IMBudget?',
+                            text: res.message || 'Generate IMBudget sekarang dan set status IM = HOLD.',
+                            icon: 'question',
+                            showCancelButton: true,
+                            confirmButtonText: 'Yes, generate',
+                            cancelButtonText: 'No'
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                // kirim ulang dengan konfirmasi
+                                $spinner.fadeIn();
+                                $.ajax({
+                                    url: `/cs/${encodeURIComponent(csid)}/approve`,
+                                    type: "POST",
+                                    data: {
+                                        _token: "{{ csrf_token() }}",
+                                        confirm_generate_im: 1
+                                    },
+                                    success: function(res2) {
+                                        $spinner.fadeOut();
+                                        if (res2?.code === 'IM_CREATED_HOLD') {
+                                            toastr.success(res2.message || 'IMBudget dibuat & di-HOLD.');
+                                            // opsional: arahkan user ke dokumen IM
+                                            if (res2.imbudget_show_url) {
+                                                window.location.href = res2.imbudget_show_url;
+                                            }
+                                        } else if (res2?.success) {
+                                            toastr.success(res2.message || 'Success');
+                                            window.location.href = "/dashboard";
+                                        } else {
+                                            toastr.error(res2?.message || 'Failed');
+                                        }
+                                    },
+                                    error: function(xhr){
+                                        $spinner.fadeOut();
+                                        toastr.error(xhr.responseJSON?.message || 'Gagal generate IMBudget.');
+                                    }
+                                });
+                            }
+                        });
+                        return;
+                    }
+
+                    // CASE: IM masih on progress → blok approve
+                    if (res?.code === 'IM_IN_PROGRESS') {
+                        $spinner.fadeOut();
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Tidak bisa approve',
+                            text: 'Masih On Progress IM.'
+                        });
+                        return;
+                    }
+
+                    // CASE: approve CS normal selesai / next approver
+                    $spinner.fadeOut();
+                    if (res?.success) {
+                        toastr.success(res.message || 'CS approved successfully!');
+                        window.location.href = "/dashboard";
+                    } else {
+                        toastr.error(res?.message || 'Approve failed.');
+                    }
+                },
+                error: function(xhr) {
+                    $spinner.fadeOut();
+                    if (xhr.status === 403) {
+                        toastr.error(xhr.responseJSON?.message || "You are not authorized to approve this CS.");
+                    } else {
+                        toastr.error(xhr.responseJSON?.message || "Error: Unable to approve CS.");
+                    }
+                }
+            });
+        }
     </script>
+
 
 
     <script>
@@ -963,7 +1059,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
     <!-- Toastr JS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
-    <script>
+    {{-- <script>
         function checkApproval(csid, action) {
             console.log(csid, '-', action);
             $.ajax({
@@ -984,6 +1080,34 @@
                     } else {
                         // Jika user tidak boleh melakukan aksi, tampilkan popup toastr
                         toastr.error("You are not authorized to " + action + " this cs.");
+                    }
+                },
+                error: function() {
+                    toastr.error("Error checking approval status.");
+                }
+            });
+        }
+    </script> --}}
+
+    <script>
+        function checkApproval(spptid, action) {
+            $.ajax({
+                url: `/approval/${spptid}/check/${action}?doctype=CS`,
+                type: "GET",
+                success: function(response) {
+                    if (response.canPerformAction) {
+
+                        if (action === "reject") {
+                            $("#rejectReason").val("");
+                            $("#rejectTaskModal").removeClass("hidden").css("z-index", "60");
+
+                        } else if (action === "revise") {
+                            $("#reviseReason").val("");
+                            $("#reviseTaskModal").removeClass("hidden").css("z-index", "60");
+                        }
+
+                    } else {
+                        toastr.error("You are not authorized to " + action + " this SPPT.");
                     }
                 },
                 error: function() {
@@ -1057,7 +1181,7 @@
 
             merged.forEach(at => {
             const fileName = at.name || at.display_name || '(no name)';
-            const dateStr  = at.created_at ? dayjs(at.created_at).format('DD MMM YYYY') : '-';
+            const dateStr = at.created_at ? dayjs(at.created_at).format('DD MMM YYYY HH:mm:ss') : '-';
             const linkHtml = at.url
                 ? `<a href="${at.url}" target="_blank"
                     class="font-medium text-indigo-600 hover:underline dark:text-indigo-400">📎 ${fileName}</a>`
@@ -1129,8 +1253,80 @@
             $('#csAttachFiles').val('');
         });
         });
-        </script>
+    </script>
 
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+
+            const csid  = "{{ $cs->csid }}";   // contoh: PT2501010001
+            const doctype = "CS";
+
+            loadApproval(csid, doctype);
+        });
+
+        function loadApproval(refnbr, doctype) {
+            fetch(`/approval/${refnbr}/${doctype}`)
+                .then(response => response.json())
+                .then(res => {
+                    const tbody = document.querySelector("#approval-table-body");
+                    tbody.innerHTML = ""; // reset
+
+                    res.data.forEach(row => {
+                        const statusLabel = getStatusLabel(row.status);
+
+                        tbody.innerHTML += `
+                            <tr class="border-b border-gray-100 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700">
+                                <td class="p-3">${row.aprv_leveling}</td>
+                                <td class="p-3">${row.aprv_name}</td>
+                                <td class="p-3">
+    ${row.aprv_dateafter ? dayjs(row.aprv_dateafter).format('DD MMM YYYY HH:mm:ss') : ''}
+</td>
+                                <td class="p-3">${statusLabel}</td>
+                            </tr>
+                        `;
+                    });
+                })
+                .catch(err => console.error("Approval fetch failed →", err));
+        }
+
+        function formatDate(dateString) {
+            if (!dateString) return "-";
+            const d = new Date(dateString);
+            const options = { year: "numeric", month: "short", day: "numeric" };
+            return d.toLocaleDateString("en-US", options);
+        }
+
+        function getStatusLabel(status) {
+            let statusText = "";
+            let statusClass = "";
+
+            switch (status) {
+                case "P":
+                    statusText = "Waiting Approval";
+                    statusClass = "bg-yellow-500 text-white";
+                    break;
+                case "A":
+                    statusText = "Approved";
+                    statusClass = "bg-green-500 text-white";
+                    break;
+                case "R":
+                    statusText = "Rejected";
+                    statusClass = "bg-red-500 text-white";
+                    break;
+                case "D":
+                    statusText = "Revise";
+                    statusClass = "bg-blue-500 text-white";
+                    break;
+                default:
+                    statusText = "Unknown";
+                    statusClass = "bg-gray-500 text-white";
+            }
+
+            return `<span class="${statusClass} inline-block rounded-full px-3 py-1 text-xs font-semibold">${statusText}</span>`;
+        }
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 
 

@@ -43,6 +43,12 @@ class SppjController extends Controller
 {
     public function index()
     {
+        $user = Auth::user();       
+
+        if (!$user) {
+            return redirect()->route('login');
+        }
+
         $all = TrSPPJ::count();
         $onProgress = TrSPPJ::where('status', 'P')->count();
         $reject = TrSPPJ::where('status', 'R')->count();
@@ -444,8 +450,8 @@ class SppjController extends Controller
 
             // (opsional) simpan hint approver pertama di header seperti sebelumnya
             if ($firstApprovalUsernames) {
-                $header->updated_by = $firstApprovalUsernames;
-                $header->updated_at = $dt;
+                $header->completed_by = $firstApprovalUsernames;
+                $header->completed_at = $dt;
                 $header->save();
             }
 
@@ -924,8 +930,8 @@ class SppjController extends Controller
 
             // (opsional) simpan hint approver pertama di header seperti sebelumnya
             if ($firstApprovalUsernames) {
-                $header->updated_by = $firstApprovalUsernames;
-                $header->updated_at = $dt;
+                $header->completed_by = $firstApprovalUsernames;
+                $header->completed_at = $dt;
                 $header->save();
             }
              

@@ -825,7 +825,7 @@
                 rows.forEach(at => {
                     const fileName  = at.name || at.display_name || '(no name)';
                     const createdBy = at.created_user ?? at.created_by ?? '-';
-                    const dateStr   = at.created_at ? dayjs(at.created_at).format('DD MMM YYYY') : '-';
+                    const dateStr = at.created_at ? dayjs(at.created_at).format('DD MMM YYYY HH:mm:ss') : '-';
                     const linkHtml  = at.url
                         ? `<a href="${at.url}" target="_blank"
                                 class="flex items-center gap-2 font-medium text-indigo-600 hover:underline dark:text-indigo-400">📎 ${fileName}</a>`

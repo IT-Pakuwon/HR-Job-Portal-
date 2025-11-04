@@ -661,7 +661,7 @@
 
                 if (confirmDelete) {
                     $.ajax({
-                        url: "/csjobs/remove-attachment/" + attachmentId, // Endpoint ke controller
+                        url: "/remove-attachment/" + attachmentId, // Endpoint ke controller
                         type: "POST",
                         data: {
                             _method: "PUT",
