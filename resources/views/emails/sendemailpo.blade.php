@@ -205,6 +205,8 @@ toastr.options = {
 
       if(res.ok && json.success){
         toastr.success('Email terkirim.');
+        const encodedId = @json($eid);
+        window.location.href = `/showpo/${encodedId}`;
       }else{
         toastr.error(json.message || 'Gagal mengirim email.');
       }

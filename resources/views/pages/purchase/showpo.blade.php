@@ -1515,9 +1515,12 @@
                 }
 
 
-                const url = "{{ route('po.viewemail', ['hash' => '__HASH__']) }}".replace('__HASH__',
-                    encodeURIComponent(eid_ponbr))
-                window.open(url, '_blank');
+                // const url = "{{ route('po.viewemail', ['hash' => '__HASH__']) }}".replace('__HASH__',
+                //     encodeURIComponent(eid_ponbr))
+                // window.open(url, '_blank');
+                const url = "{{ route('po.viewemail', ['hash' => '__HASH__']) }}"
+                        .replace('__HASH__', encodeURIComponent(eid_ponbr));
+                window.location.href = url;
             });
         });
     </script>

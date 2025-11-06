@@ -322,7 +322,9 @@
                                             <th class="p-3 text-left font-semibold">Status</th>
                                         </tr>
                                     </thead>
-                                    <tbody>
+                                    <tbody id="approval-table-body">                                       
+                                    </tbody>
+                                    {{-- <tbody>
                                         @foreach ($approval as $ap)
                                             <tr
                                                 class="border-b border-gray-100 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700">
@@ -364,7 +366,7 @@
                                                 </td>
                                             </tr>
                                         @endforeach
-                                    </tbody>
+                                    </tbody> --}}
                                 </table>
                             </div>
                             {{-- Attachment tab --}}
@@ -836,25 +838,23 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
     <script>
         function checkApproval(spbid, action) {
-            console.log(spbid, '-', action);
             $.ajax({
-                url: `/spb/${spbid}/check-approval/${action}`,
+                url: `/approval/${spbid}/check/${action}?doctype=RB`,
                 type: "GET",
                 success: function(response) {
                     if (response.canPerformAction) {
-                        // Jika user bisa melakukan aksi, tampilkan modal atau langsung proses approval
+
                         if (action === "reject") {
-                            $("#rejectReason").val(""); // Reset alasan reject
+                            $("#rejectReason").val("");
                             $("#rejectTaskModal").removeClass("hidden").css("z-index", "60");
+
                         } else if (action === "revise") {
-                            $("#reviseReason").val(""); // Reset alasan revise
+                            $("#reviseReason").val("");
                             $("#reviseTaskModal").removeClass("hidden").css("z-index", "60");
-                            // } else if (action === "approve") {
-                            //     approveSPB(spbid); // Jika approve, langsung jalankan proses approval
                         }
+
                     } else {
-                        // Jika user tidak boleh melakukan aksi, tampilkan popup toastr
-                        toastr.error("You are not authorized to " + action + " this spb.");
+                        toastr.error("You are not authorized to " + action + " this SPB.");
                     }
                 },
                 error: function() {
@@ -863,7 +863,6 @@
             });
         }
     </script>
-
  
     <script>
         $(function () {
@@ -958,6 +957,77 @@
             $('#spbAttachFiles').val('');
         });
         });
+    </script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+
+            const spbid  = "{{ $spb->spbid }}";   // contoh: PB2501010001
+            const doctype = "RB";
+
+            loadApproval(spbid, doctype);
+        });
+
+        function loadApproval(refnbr, doctype) {
+            fetch(`/approval/${refnbr}/${doctype}`)
+                .then(response => response.json())
+                .then(res => {
+                    const tbody = document.querySelector("#approval-table-body");
+                    tbody.innerHTML = ""; // reset
+
+                    res.data.forEach(row => {
+                        const statusLabel = getStatusLabel(row.status);
+
+                        tbody.innerHTML += `
+                            <tr class="border-b border-gray-100 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700">
+                                <td class="p-3">${row.aprv_leveling}</td>
+                                <td class="p-3">${row.aprv_name}</td>
+                                <td class="p-3">
+                                    ${row.aprv_dateafter ? dayjs(row.aprv_dateafter).format('DD MMM YYYY HH:mm:ss') : ''}
+                                </td>
+                                <td class="p-3">${statusLabel}</td>
+                            </tr>
+                        `;
+                    });
+                })
+                .catch(err => console.error("Approval fetch failed →", err));
+        }
+
+        function formatDate(dateString) {
+            if (!dateString) return "-";
+            const d = new Date(dateString);
+            const options = { year: "numeric", month: "short", day: "numeric" };
+            return d.toLocaleDateString("en-US", options);
+        }
+
+        function getStatusLabel(status) {
+            let statusText = "";
+            let statusClass = "";
+
+            switch (status) {
+                case "P":
+                    statusText = "Waiting Approval";
+                    statusClass = "bg-yellow-500 text-white";
+                    break;
+                case "A":
+                    statusText = "Approved";
+                    statusClass = "bg-green-500 text-white";
+                    break;
+                case "R":
+                    statusText = "Rejected";
+                    statusClass = "bg-red-500 text-white";
+                    break;
+                case "D":
+                    statusText = "Revise";
+                    statusClass = "bg-blue-500 text-white";
+                    break;
+                default:
+                    statusText = "Unknown";
+                    statusClass = "bg-gray-500 text-white";
+            }
+
+            return `<span class="${statusClass} inline-block rounded-full px-3 py-1 text-xs font-semibold">${statusText}</span>`;
+        }
     </script>
 
 

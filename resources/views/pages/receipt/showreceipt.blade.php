@@ -898,7 +898,7 @@
         }
     </script>
 
-   <script>
+    <script>
         document.addEventListener('DOMContentLoaded', () => {
         const btn  = document.getElementById('printMenuBtn');
         const menu = document.getElementById('printMenu');

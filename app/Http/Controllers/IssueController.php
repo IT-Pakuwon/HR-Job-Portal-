@@ -27,6 +27,8 @@ use App\Http\Controllers\TrAttachmentController;
 use App\Models\TrAttachment;
 use Illuminate\Support\Str;
 use Google\Cloud\Storage\StorageClient;
+use App\Http\Controllers\ApprovalController;
+use App\Models\TrApproval;
 
 class IssueController extends Controller
 {
@@ -132,22 +134,27 @@ class IssueController extends Controller
         $month   = (int) $now->month;
 
         $cpnyid  = $spb->cpny_id       ?? ($request->input('cpnyid')       ?? null);
-        $deptid  = $spb->department_id ?? ($request->input('departmentid') ?? null);
+        // $deptid  = $spb->department_id ?? ($request->input('departmentid') ?? null);
+        $deptid  = 'WAREHOUSE';
 
-        $approvalCount = M_approval::where([
-            ['status',      '=', 'A'],
-            ['aprvcpnyid',  '=', $cpnyid],
-            ['aprvdeptid',  '=', $deptid],
-            ['aprvdoctype', '=', $doctype],
-        ])->count();
+        // $approvalCount = M_approval::where([
+        //     ['status',      '=', 'A'],
+        //     ['aprvcpnyid',  '=', $cpnyid],
+        //     ['aprvdeptid',  '=', $deptid],
+        //     ['aprvdoctype', '=', $doctype],
+        // ])->count();
 
-        if ($approvalCount === 0) {
-            // pakai redirect agar konsisten dengan flow form
-            return back()->withErrors(['Approval line belum di-setup, hubungi IT.'])->withInput();
-        }
+        // if ($approvalCount === 0) {
+        //     // pakai redirect agar konsisten dengan flow form
+        //     return back()->withErrors(['Approval line belum di-setup, hubungi IT.'])->withInput();
+        // }
+
+        $approvalCtl = app(ApprovalController::class);
+        $approvalCtl->loadLines($doctype, $cpnyid, $deptid);
+        
 
         return \DB::connection('pgsql')->transaction(function () use (
-            $request, $doctype, $now, $year, $month, $spb, $spbid, $spbDetails, $qtyIssueInput, $siteInput, $cpnyid, $deptid, $username
+            $request, $doctype, $now, $year, $month, $spb, $spbid, $spbDetails, $qtyIssueInput, $siteInput, $cpnyid, $deptid, $username, $approvalCtl
         ) {
             // ===== Autonumber (YYMM####) untuk IS =====
             /** @var Autonbr|null $autonbr */
@@ -261,37 +268,57 @@ class IssueController extends Controller
             // Posting Qty akan dilakukan di approveIssue FINAL.
 
             // ===== Generate approval instance (T_approval) =====
-            $datestamp = $now->toDateTimeString();
-            $approvals = M_approval::where([
-                ['status',      '=', 'A'],
-                ['aprvcpnyid',  '=', $cpnyid],
-                ['aprvdeptid',  '=', $deptid],
-                ['aprvdoctype', '=', $doctype],
-            ])->orderBy('aprvid')->get();
+            // $datestamp = $now->toDateTimeString();
+            // $approvals = M_approval::where([
+            //     ['status',      '=', 'A'],
+            //     ['aprvcpnyid',  '=', $cpnyid],
+            //     ['aprvdeptid',  '=', $deptid],
+            //     ['aprvdoctype', '=', $doctype],
+            // ])->orderBy('aprvid')->get();
 
-            foreach ($approvals as $a) {
-                T_approval::create([
-                    'docid'          => $issueid,
-                    'aprvid'         => $a->aprvid,
-                    'aprvdoctype'    => $a->aprvdoctype,
-                    'aprvcpnyid'     => $a->aprvcpnyid,
-                    'aprvdeptid'     => $a->aprvdeptid,
-                    'aprvusername'   => $a->aprvusername,
-                    'name'           => $a->name,
-                    'aprvdatebefore' => $a->aprvid == 1 ? $datestamp : null,
-                    'aprvtotalday'   => 1,
-                    'status'         => 'P',
-                    'created_by'     => $username,
-                ]);
+            // foreach ($approvals as $a) {
+            //     T_approval::create([
+            //         'docid'          => $issueid,
+            //         'aprvid'         => $a->aprvid,
+            //         'aprvdoctype'    => $a->aprvdoctype,
+            //         'aprvcpnyid'     => $a->aprvcpnyid,
+            //         'aprvdeptid'     => $a->aprvdeptid,
+            //         'aprvusername'   => $a->aprvusername,
+            //         'name'           => $a->name,
+            //         'aprvdatebefore' => $a->aprvid == 1 ? $datestamp : null,
+            //         'aprvtotalday'   => 1,
+            //         'status'         => 'P',
+            //         'created_by'     => $username,
+            //     ]);
+            // }
+
+            // === Generate TrApproval (GR tidak cek nominal)
+            $ctx = ['ignore_nominal' => true];
+
+            [$firstApprovalUsernames, $linesCount] = $approvalCtl->generateForDocument(
+                $issueid,
+                $doctype,
+                $cpnyid,
+                $deptid,
+                $username,
+                $ctx,
+                $now
+            );
+
+            if ($firstApprovalUsernames) {
+                $header->completed_by = $firstApprovalUsernames;
+                $header->completed_at = $now; // <-- ganti $dt jadi $now
+                $header->save();
             }
+
 
             // ===== Attachments (opsional) =====
             if ($request->hasFile('attachments')) {
                 $meta = [
                     'refnbr'        => $issueid,
                     'doctype'       => $doctype,
-                    'cpnyid'        => $spb->cpny_id ?? null,
-                    'departementid' => $spb->department_id ?? null,
+                    'cpnyid'        => $cpnyid ?? null,
+                    'departementid' => $deptid ?? null,
                     'base_folder'   => 'att-issue/'.strtolower($doctype),
                     'created_by'    => $username,
                 ];
@@ -301,39 +328,54 @@ class IssueController extends Controller
                 $uploader->uploadInternal($meta, $files);
             }
 
-            // ===== Notif approver pertama (opsional) =====
-            $firstApproval = T_approval::where('docid', $issueid)
-                ->where('status', 'P')->orderBy('aprvid')->first();
+            // // ===== Notif approver pertama (opsional) =====
+            // $firstApproval = T_approval::where('docid', $issueid)
+            //     ->where('status', 'P')->orderBy('aprvid')->first();
 
-            if ($firstApproval) {
-                $status     = $header->status;
-                $subjectMap = ['P'=>'Waiting Approval','R'=>'Rejected Approval','D'=>'Revise Approval','A'=>'Approved','C'=>'Completed'];
-                $eid        = \Vinkla\Hashids\Facades\Hashids::encode($header->id);
+            // if ($firstApproval) {
+            //     $status     = $header->status;
+            //     $subjectMap = ['P'=>'Waiting Approval','R'=>'Rejected Approval','D'=>'Revise Approval','A'=>'Approved','C'=>'Completed'];
+            //     $eid        = \Vinkla\Hashids\Facades\Hashids::encode($header->id);
 
-                $data = [
-                    'docid'     => $firstApproval->docid,
-                    'cpnyid'    => $firstApproval->aprvcpnyid,
-                    'deptname'  => $firstApproval->aprvdeptid,
-                    'date'      => $firstApproval->aprvdatebefore,
-                    'name'      => $firstApproval->name,
+            //     $data = [
+            //         'docid'     => $firstApproval->docid,
+            //         'cpnyid'    => $firstApproval->aprvcpnyid,
+            //         'deptname'  => $firstApproval->aprvdeptid,
+            //         'date'      => $firstApproval->aprvdatebefore,
+            //         'name'      => $firstApproval->name,
+            //         'createdby' => $header->created_by,
+            //         'info'      => 'Request from user '.$header->user_peminta,
+            //         'status'    => $status,
+            //         'docname'   => 'Issue',
+            //         'url'       => url('/showissue/' . $eid),
+            //     ];
+
+            //     $approvers = array_filter(array_map('trim', explode(',', (string)$firstApproval->aprvusername)));
+            //     $emails    = User::whereIn('username', $approvers)->where('status', 'A')->pluck('test_email');
+
+            //     foreach ($emails as $email) {
+            //         \Mail::send('emails.mailapprovenew', $data, function ($message) use ($email, $data, $subjectMap, $status) {
+            //             $message->to($email)
+            //                 ->subject($data['docid'].' - '.($subjectMap[$status] ?? 'Notification').' Issue')
+            //                 ->from('digitalserver@pakuwon.com', 'Pakuwon System');
+            //         });
+            //     }
+            // }
+
+            $eid = \Vinkla\Hashids\Facades\Hashids::encode($header->id);
+            $approvalCtl->notifyFirstApprover(
+                $issueid,
+                $doctype,
+                $header->status, // 'P'
+                'Issue',
+                url('/showissue/' . $eid),
+                [
+                    'info'      => 'Request from user ' . ($po->user_peminta ?? '-'),
                     'createdby' => $header->created_by,
-                    'info'      => 'Request from user '.$header->user_peminta,
-                    'status'    => $status,
-                    'docname'   => 'Issue',
-                    'url'       => url('/showissue/' . $eid),
-                ];
+                    'date'      => $now->toDateTimeString(),
+                ]
+            );
 
-                $approvers = array_filter(array_map('trim', explode(',', (string)$firstApproval->aprvusername)));
-                $emails    = User::whereIn('username', $approvers)->where('status', 'A')->pluck('test_email');
-
-                foreach ($emails as $email) {
-                    \Mail::send('emails.mailapprovenew', $data, function ($message) use ($email, $data, $subjectMap, $status) {
-                        $message->to($email)
-                            ->subject($data['docid'].' - '.($subjectMap[$status] ?? 'Notification').' Issue')
-                            ->from('digitalserver@pakuwon.com', 'Pakuwon System');
-                    });
-                }
-            }
 
             return redirect()
                 ->route('issuelist')
@@ -564,18 +606,14 @@ class IssueController extends Controller
         // ===== Siapkan approval line yg aktif untuk dokumen ini (akan direset) =====
         $doctype = 'IS'; // pertahankan issuetype (IS/RI)
         $cpnyid  = $iss->cpny_id;
-        $deptid  = $iss->department_id;
+        // $deptid  = $iss->department_id;
+        $deptid  = 'WAREHOUSE';
 
-        $approvalCount = M_approval::where([
-            ['status',      '=', 'A'],
-            ['aprvcpnyid',  '=', $cpnyid],
-            ['aprvdeptid',  '=', $deptid],
-            ['aprvdoctype', '=', $doctype],
-        ])->count();
+       
+        // ===== Approval controller =====
+        $approvalCtl = app(\App\Http\Controllers\ApprovalController::class);
+        $approvalCtl->loadLines($doctype, $cpnyid, $deptid);
 
-        if ($approvalCount === 0) {
-            return response()->json(['message' => 'Approval line belum di-setup, hubungi IT.'], 422);
-        }
 
         // ====== EXEC UPDATE DALAM TRANSAKSI ======
         return DB::connection('pgsql')->transaction(function () use (
@@ -632,37 +670,56 @@ class IssueController extends Controller
             $iss->save();
 
             
-            $datestamp = $now->toDateTimeString();
-            $approvals = M_approval::where([
-                ['status',      '=', 'A'],
-                ['aprvcpnyid',  '=', $cpnyid],
-                ['aprvdeptid',  '=', $deptid],
-                ['aprvdoctype', '=', $doctype],
-            ])->orderBy('aprvid')->get();
+            // $datestamp = $now->toDateTimeString();
+            // $approvals = M_approval::where([
+            //     ['status',      '=', 'A'],
+            //     ['aprvcpnyid',  '=', $cpnyid],
+            //     ['aprvdeptid',  '=', $deptid],
+            //     ['aprvdoctype', '=', $doctype],
+            // ])->orderBy('aprvid')->get();
 
-            foreach ($approvals as $a) {
-                T_approval::create([
-                    'docid'          => $issueid,
-                    'aprvid'         => $a->aprvid,
-                    'aprvdoctype'    => $a->aprvdoctype,
-                    'aprvcpnyid'     => $a->aprvcpnyid,
-                    'aprvdeptid'     => $a->aprvdeptid,
-                    'aprvusername'   => $a->aprvusername,
-                    'name'           => $a->name,
-                    'aprvdatebefore' => $a->aprvid == 1 ? $datestamp : null,
-                    'aprvtotalday'   => 1,
-                    'status'         => 'P',
-                    'created_by'     => $username,
-                ]);
+            // foreach ($approvals as $a) {
+            //     T_approval::create([
+            //         'docid'          => $issueid,
+            //         'aprvid'         => $a->aprvid,
+            //         'aprvdoctype'    => $a->aprvdoctype,
+            //         'aprvcpnyid'     => $a->aprvcpnyid,
+            //         'aprvdeptid'     => $a->aprvdeptid,
+            //         'aprvusername'   => $a->aprvusername,
+            //         'name'           => $a->name,
+            //         'aprvdatebefore' => $a->aprvid == 1 ? $datestamp : null,
+            //         'aprvtotalday'   => 1,
+            //         'status'         => 'P',
+            //         'created_by'     => $username,
+            //     ]);
+            // }
+
+            // Generate TrApproval (GR tidak cek nominal)
+            $ctx = ['ignore_nominal' => true];
+            [$firstApprovalUsernames, $linesCount] = $approvalCtl->generateForDocument(
+                $issueid,
+                $doctype,
+                $cpnyid,
+                $deptid,
+                $username,
+                $ctx,
+                $now
+            );
+
+            if ($firstApprovalUsernames) {
+                $iss->completed_by = $firstApprovalUsernames;
+                $iss->completed_at = $now;
+                $iss->save();
             }
+
 
             // === Attachment baru (opsional) ===
             if ($request->hasFile('attachments')) {
                 $meta = [
                     'refnbr'        => $issueid,
                     'doctype'       => $doctype,
-                    'cpnyid'        => $iss->cpny_id ?? null,
-                    'departementid' => $iss->department_id ?? null,
+                    'cpnyid'        => $cpnyid ?? null,
+                    'departementid' => $deptid ?? null,
                     'base_folder'   => 'att-issue/'.strtolower($doctype),
                     'created_by'    => $username,
                 ];
@@ -671,43 +728,58 @@ class IssueController extends Controller
                 $uploader->uploadInternal($meta, $files);
             }
 
-            // === Email ke approver pertama ===
-            $firstApproval = T_approval::where('docid', $issueid)
-                ->where('status', 'P')->orderBy('aprvid')->first();
+            // // === Email ke approver pertama ===
+            // $firstApproval = T_approval::where('docid', $issueid)
+            //     ->where('status', 'P')->orderBy('aprvid')->first();
 
-            if ($firstApproval) {
-                $status     = $iss->status; // 'P'
-                $subjectMap = ['P'=>'Waiting Approval','R'=>'Rejected Approval','D'=>'Revise Approval','A'=>'Approved','C'=>'Completed'];
-                $eid        = Hashids::encode($iss->id);
+            // if ($firstApproval) {
+            //     $status     = $iss->status; // 'P'
+            //     $subjectMap = ['P'=>'Waiting Approval','R'=>'Rejected Approval','D'=>'Revise Approval','A'=>'Approved','C'=>'Completed'];
+            //     $eid        = Hashids::encode($iss->id);
 
-                $data = [
-                    'docid'     => $firstApproval->docid,
-                    'cpnyid'    => $firstApproval->aprvcpnyid,
-                    'deptname'  => $firstApproval->aprvdeptid,
-                    'date'      => $firstApproval->aprvdatebefore,
-                    'name'      => $firstApproval->name,
-                    'createdby' => $iss->created_by,
+            //     $data = [
+            //         'docid'     => $firstApproval->docid,
+            //         'cpnyid'    => $firstApproval->aprvcpnyid,
+            //         'deptname'  => $firstApproval->aprvdeptid,
+            //         'date'      => $firstApproval->aprvdatebefore,
+            //         'name'      => $firstApproval->name,
+            //         'createdby' => $iss->created_by,
+            //         'info'      => 'Revised by user '.$username,
+            //         'status'    => $status,
+            //         'docname'   => 'Issue',
+            //         'url'       => url('/showissue/' . $eid),
+            //     ];
+
+            //     $approvers = array_filter(array_map('trim', explode(',', (string)$firstApproval->aprvusername)));
+            //     $emails    = User::whereIn('username', $approvers)->where('status', 'A')->pluck('test_email');
+
+            //     foreach ($emails as $email) {
+            //         try {
+            //             Mail::send('emails.mailapprovenew', $data, function ($message) use ($email, $data, $subjectMap, $status) {
+            //                 $message->to($email)
+            //                     ->subject($data['docid'].' - '.($subjectMap[$status] ?? 'Notification').' '.$data['docname'])
+            //                     ->from('digitalserver@pakuwon.com', 'Pakuwon System');
+            //             });
+            //         } catch (\Throwable $e) {
+            //             Log::error('Failed sending Issue revised waiting-approval email', ['error' => $e->getMessage()]);
+            //         }
+            //     }
+            // }
+
+            // Email approver pertama
+            $eid = \Vinkla\Hashids\Facades\Hashids::encode($iss->id);
+            $approvalCtl->notifyFirstApprover(
+                $issueid,
+                $doctype,
+                $iss->status, // 'P'
+                'Issue',
+                url('/showissue/' . $eid),
+                [
                     'info'      => 'Revised by user '.$username,
-                    'status'    => $status,
-                    'docname'   => 'Issue',
-                    'url'       => url('/showissue/' . $eid),
-                ];
-
-                $approvers = array_filter(array_map('trim', explode(',', (string)$firstApproval->aprvusername)));
-                $emails    = User::whereIn('username', $approvers)->where('status', 'A')->pluck('test_email');
-
-                foreach ($emails as $email) {
-                    try {
-                        Mail::send('emails.mailapprovenew', $data, function ($message) use ($email, $data, $subjectMap, $status) {
-                            $message->to($email)
-                                ->subject($data['docid'].' - '.($subjectMap[$status] ?? 'Notification').' '.$data['docname'])
-                                ->from('digitalserver@pakuwon.com', 'Pakuwon System');
-                        });
-                    } catch (\Throwable $e) {
-                        Log::error('Failed sending Issue revised waiting-approval email', ['error' => $e->getMessage()]);
-                    }
-                }
-            }
+                    'createdby' => $iss->created_by,
+                    'date'      => $now->toDateTimeString(),
+                ]
+            );
 
             return response()->json([
                 'success' => true,
@@ -802,17 +874,17 @@ class IssueController extends Controller
     }
     
 
-    public function removeAttachment($id)
-    {
-        try {
-            $attachment = TrAttachment::findOrFail($id);
-            $attachment->update(['status' => 'X']); // Update status ke "D" (Deleted)
+    // public function removeAttachment($id)
+    // {
+    //     try {
+    //         $attachment = TrAttachment::findOrFail($id);
+    //         $attachment->update(['status' => 'X']); // Update status ke "D" (Deleted)
 
-            return response()->json(['success' => true, 'message' => 'Attachment status updated']);
-        } catch (\Exception $e) {
-            return response()->json(['success' => false, 'message' => 'Failed to update attachment status', 'error' => $e->getMessage()], 500);
-        }
-    }
+    //         return response()->json(['success' => true, 'message' => 'Attachment status updated']);
+    //     } catch (\Exception $e) {
+    //         return response()->json(['success' => false, 'message' => 'Failed to update attachment status', 'error' => $e->getMessage()], 500);
+    //     }
+    // }
 
     
     public function printIssue(string $hash, Request $request)
@@ -893,482 +965,768 @@ class IssueController extends Controller
 
     public function approveIssue(Request $request, $docid)
     {
-        $now  = Carbon::now();
-        $user = $request->user();
+        $user    = $request->user();
+        $doctype = 'IS';
 
-        $iss = TrIssue::with('creator')->where('issueid', $docid)->first();
-        if (!$iss) {
-            return response()->json(['success' => false, 'message' => 'Issue not found'], 404);
-        }
-        $fullname = data_get($iss, 'creator.name') ?: $iss->created_by;
+        $issue = TrIssue::with('creator')->where('issueid', $docid)->first();
+        if (!$issue) return response()->json(['success'=>false,'message'=>'Issue not found'],404);
 
-        // pastikan user approver aktif
-        $tApproval = T_approval::where('docid', $iss->issueid)
-            ->where('status', 'P')
-            ->where('aprvusername', 'like', "%{$user->username}%")
-            ->whereNotNull('aprvdatebefore')
-            ->orderBy('aprvid', 'ASC')
-            ->first();
-        if (!$tApproval) {
-            return response()->json(['success' => false, 'message' => "You can't approve!"], 403);
-        }
+        $eid      = \Vinkla\Hashids\Facades\Hashids::encode($issue->id);
+        $docUrl   = url('/showissues/' . $eid);
+        $fullname = data_get($issue, 'creator.name') ?: $issue->created_by;
 
-        DB::beginTransaction();
-        try {
-            // approve current level
-            $tApproval->status        = 'A';
-            $tApproval->aprvdateafter = $now;
-            $tApproval->aprvusername  = $user->username;
-            $tApproval->name          = $user->name;
-            $tApproval->save();
+        $result = app(\App\Http\Controllers\ApprovalController::class)->approveStep(
+            $issue->issueid,
+            $doctype,
+            $user->username,
+            $user->name,
 
-            // stamp header
-            $iss->completed_by = $user->username;
-            $iss->completed_at = $now;
-            $iss->save();
+            // ===== COMPLETE CALLBACK =====
+            function (string $refnbr, \Carbon\Carbon $now) use ($issue, $fullname, $docUrl, $user) {
+                DB::transaction(function () use ($issue, $fullname, $docUrl, $now, $user) {
+                    // set header/detail issue complete
+                    $issue->status       = 'C';
+                    $issue->completed_by = $issue->completed_by ?: ($user->username ?? auth()->user()->username);
+                    $issue->completed_at = $now;
+                    $issue->save();
 
-            $pendingCount = T_approval::where('docid', $iss->issueid)->where('status','P')->count();
+                    TrIssuedetail::where('issueid', $issue->issueid)->update(['status' => 'C']);
 
-            $subjectMap = ['P'=>'Waiting Approval','R'=>'Rejected Approval','D'=>'Revise Approval','A'=>'Approved','C'=>'Completed'];
-            $eid = Hashids::encode($iss->id);
+                    // === POSTING KE SPB HANYA DI FINAL ===
+                    // ambil detail issue yang barusan di-approve
+                    $issDetails = TrIssuedetail::where('issueid', $issue->issueid)->get();
+                    // fungsi akan throw exception jika SPB tidak ada → otomatis rollback transaksi approveStep scope ini
+                    $this->applyIssuePostingToSpb($issue, $issDetails, $user, $now);
 
-            if ($pendingCount === 0) {
-                // ===== FINAL APPROVAL =====
-                $iss->status       = 'C';
-                $iss->completed_by = $user->username;
-                $iss->completed_at = $now;
-                $iss->save();
+                    // notifikasi requester: selesai
+                    app(\App\Http\Controllers\ApprovalController::class)->notifyRequesterOnStatus(
+                        $issue->issueid,
+                        'Issue',
+                        'C',
+                        $issue->created_by,
+                        $docUrl,
+                        [
+                            'cpnyid'   => $issue->cpny_id ?? $issue->cpnyid ?? '',
+                            'deptname' => $issue->department_id ?? $issue->departementid ?? '',
+                            'date'     => $issue->issuedate,
+                            'info'     => $issue->keperluan,
+                            'fullname' => $fullname,
+                            'name'     => $fullname,
+                            'createdby'=> $fullname,
+                        ]
+                    );
+                });
+            },
 
-                // close all issue details
-                $issdetails = TrIssuedetail::where('issueid',$iss->issueid)->orderBy('issue_no')->get();
-                foreach ($issdetails as $d) { $d->status = 'C'; $d->save(); }
+            // ===== NOTIFY NEXT APPROVER (kalau belum final) =====
+            function ($next, \Carbon\Carbon $now) use ($issue, $docUrl) {
+                app(\App\Http\Controllers\ApprovalController::class)->notifyFirstApprover(
+                    $issue->issueid,
+                    'IS',
+                    'P',
+                    'Issue',
+                    $docUrl,
+                    [
+                        'info'      => $issue->keperluan,
+                        'createdby' => $issue->created_by,
+                        'date'      => $now->toDateTimeString(),
+                    ]
+                );
 
-                // ====== POSTING KE SPB HANYA DI FINAL ======
-                $spb = TrSPB::where('spbid',$iss->spbid)->lockForUpdate()->first();
-                if (!$spb) {
-                    DB::rollBack();
-                    return response()->json(['success'=>false,'message'=>'SPB terkait tidak ditemukan.'],422);
-                }
-
-                $spbDetailRows = TrSPBdetail::where('spbid',$iss->spbid)->lockForUpdate()->get();
-                $spbByKey       = $spbDetailRows->keyBy(fn($r)=>(($r->inventoryid??'').'|'.($r->uom??'')));
-                $spbByInventory = $spbDetailRows->groupBy('inventoryid');
-                $spbBySpbNo     = $spbDetailRows->keyBy('spb_no'); // opsional kalau ada
-
-                if (strtoupper($iss->issuetype) === 'IS') {
-                    // ===== ISSUE (keluar barang) → open turun, issue_qty naik
-                    foreach ($issdetails as $rd) {
-                        $qty = (float) ($rd->issue_qty ?? $rd->qty ?? 0);
-                        if ($qty <= 0) continue;
-
-                        $spbDet = null;
-                        if (!empty($rd->spb_no) && $spbBySpbNo->has($rd->spb_no)) $spbDet = $spbBySpbNo->get($rd->spb_no);
-                        if (!$spbDet) {
-                            $key = ($rd->inventoryid ?? '').'|'.($rd->uom ?? '');
-                            $spbDet = $spbByKey->get($key);
-                        }
-                        if (!$spbDet) {
-                            $bucket = $spbByInventory->get($rd->inventoryid);
-                            $spbDet = $bucket ? $bucket->first() : null;
-                        }
-                        if (!$spbDet) continue;
-
-                        $spbDet->spb_openqty = max(0, (float)($spbDet->spb_openqty ?? 0) - $qty);
-                        $spbDet->issue_qty   = (float)($spbDet->issue_qty ?? 0) + $qty;
-
-                        $spbDet->status      = ($spbDet->spb_openqty <= 0) ? 'C' : 'P';
-                        $spbDet->updated_by  = $user->username;
-                        $spbDet->updated_at  = $now;
-                        $spbDet->save();
-                    }
-                } elseif (strtoupper($iss->issuetype) === 'RI') {
-                    // ===== RETURN ISSUE (barang kembali) → open naik, issue_qty turun
-                    foreach ($issdetails as $rd) {
-                        // GANTI nama kolom di bawah ini sesuai model detail kamu
-                        $qtyReturn = (float) ($rd->return_qty ?? $rd->qty_return ?? 0);
-                        if ($qtyReturn <= 0) continue;
-
-                        $spbDet = null;
-                        if (!empty($rd->spb_no) && $spbBySpbNo->has($rd->spb_no)) $spbDet = $spbBySpbNo->get($rd->spb_no);
-                        if (!$spbDet) {
-                            $key = ($rd->inventoryid ?? '').'|'.($rd->uom ?? '');
-                            $spbDet = $spbByKey->get($key);
-                        }
-                        if (!$spbDet) {
-                            $bucket = $spbByInventory->get($rd->inventoryid);
-                            $spbDet = $bucket ? $bucket->first() : null;
-                        }
-                        if (!$spbDet) continue;
-
-                        // open naik
-                        $spbDet->spb_openqty = (float)($spbDet->spb_openqty ?? 0) + $qtyReturn;
-                        // issue turun tidak boleh minus
-                        $currentIssued = (float)($spbDet->issue_qty ?? 0);
-                        $spbDet->issue_qty = max(0, $currentIssued - $qtyReturn);
-
-                        // status baris
-                        $spbDet->status      = ($spbDet->spb_openqty <= 0) ? 'C' : 'P';
-                        $spbDet->updated_by  = $user->username;
-                        $spbDet->updated_at  = $now;
-                        $spbDet->save();
-                    }
-                }
-
-                // aggregate header SPB
-                $agg = TrSPBdetail::where('spbid',$iss->spbid)
-                    ->selectRaw('
-                        COALESCE(SUM(issue_qty),0)       AS total_issue,
-                        COALESCE(SUM(spb_openqty),0)     AS total_open,
-                        COALESCE(SUM(spb_completeqty),0) AS total_complete
-                    ')->first();
-
-                if ($agg) {
-                    $spb->totalissueqty     = (float)$agg->total_issue;
-                    $spb->totalspbopenqty   = (float)$agg->total_open;
-                    $spb->totalcompleteqty  = (float)$agg->total_complete;
-                }
-
-                if ((float)($spb->totalspbopenqty ?? 0) <= 0) {
-                    $spb->status       = 'C';
-                    $spb->completed_by = $user->username;
-                    $spb->completed_at = $now;
-                }
-                $spb->updated_by = $user->username;
-                $spb->updated_at = $now;
-                $spb->save();
-
-                // ===== email COMPLETE ke creator
-                $status        = 'C';
-                $subjectSuffix = $subjectMap[$status] ?? 'Notification';
-                $data = [
-                    'docid'     => $iss->issueid,
-                    'cpnyid'    => $iss->cpny_id ?? $iss->cpnyid ?? '',
-                    'deptname'  => $iss->department_id ?? $iss->departementid ?? '',
-                    'date'      => $iss->issuedate ?? $now,
-                    'fullname'  => $fullname,
-                    'name'      => $fullname,
-                    'createdby' => $fullname,
-                    'docname'   => 'Issue',
-                    'info'      => $iss->issuenote ?? $iss->keperluan,
-                    'status'    => $status,
-                    'url'       => url('/showissue/' . $eid),
-                ];
-                $recipients = User::where('username',$iss->created_by)->where('status','A')->get();
-                foreach ($recipients as $rcp) {
-                    try {
-                        Mail::send('emails.mailapprovenew', $data, function ($message) use ($data, $rcp, $subjectSuffix) {
-                            $to = $rcp->test_email ?? $rcp->email;
-                            $message->to($to)
-                                    ->subject($data['docid'].' - '.$subjectSuffix.' Issue')
-                                    ->from('digitalserver@pakuwon.com','Pakuwon System');
-                        });
-                    } catch (\Throwable $e) {
-                        Log::error('Failed sending Issue completion email', ['error'=>$e->getMessage()]);
-                    }
-                }
-            } else {
-                // ===== masih ada approver berikutnya
-                $next = T_approval::where('docid',$iss->issueid)->where('status','P')->orderBy('aprvid','ASC')->first();
-                if ($next) {
-                    $next->aprvdatebefore = $now;
-                    $next->save();
-
-                    $status        = 'P';
-                    $subjectSuffix = $subjectMap[$status] ?? 'Notification';
-                    $data = [
-                        'docid'     => $next->docid,
-                        'cpnyid'    => $next->aprvcpnyid,
-                        'deptname'  => $next->aprvdeptid,
-                        'date'      => $next->aprvdatebefore,
-                        'fullname'  => $next->name,
-                        'name'      => $next->name,
-                        'createdby' => $iss->created_by,
-                        'docname'   => 'Issue',
-                        'info'      => $iss->issuenote ?? $iss->keperluan,
-                        'status'    => $status,
-                        'url'       => url('/showissue/' . $eid),
-                    ];
-                    $usernames = array_filter(array_map('trim', explode(',', (string)$next->aprvusername)));
-                    if (!empty($usernames)) {
-                        $recipients = User::whereIn('username',$usernames)->where('status','A')->get();
-                        foreach ($recipients as $rcp) {
-                            try {
-                                Mail::send('emails.mailapprovenew', $data, function ($message) use ($data, $rcp, $subjectSuffix) {
-                                    $to = $rcp->test_email ?? $rcp->email;
-                                    $message->to($to)
-                                            ->subject($data['docid'].' - '.$subjectSuffix.' Issue')
-                                            ->from('digitalserver@pakuwon.com','Pakuwon System');
-                                });
-                            } catch (\Throwable $e) {
-                                Log::error('Failed sending Issue waiting-approval email', ['error'=>$e->getMessage()]);
-                            }
-                        }
-                    } else {
-                        Log::warning('Next approver has empty aprvusername list', ['docid'=>$iss->issueid]);
-                    }
-                }
+                // jejak
+                $issue->completed_by = auth()->user()->username;
+                $issue->completed_at = $now;
+                $issue->save();
             }
+        );
 
-            DB::commit();
-            return response()->json(['success' => true, 'message' => 'Task approved successfully']);
-        } catch (\Throwable $e) {
-            DB::rollBack();
-            Log::error('Approve Issue failed', ['error'=>$e->getMessage()]);
-            return response()->json(['success' => false, 'message' => 'Approve failed'], 500);
+        if (!$result['ok']) {
+            return response()->json(['success'=>false,'message'=>$result['message'] ?? 'Approve failed'], 403);
         }
+
+        return response()->json(['success'=>true,'message'=>'Task approved successfully']);
     }
 
-    
+
     public function rejectIssue(Request $request, $docid)
     {
-        $now  = Carbon::now();
-        $user = $request->user();
+        $user    = $request->user();
+        $doctype = 'IS';
 
-        // $iss = TrIssue::where('issueid', $docid)->first();
-        $iss = TrIssue::with('creator')
-            ->where('issueid', $docid)
-            ->first();
-        $fullname = data_get($iss, 'creator.name') ?: $iss->created_by;
+        $issue = \App\Models\TrIssue::with('creator')->where('issueid', $docid)->first();
+        if (!$issue) return response()->json(['success'=>false,'message'=>'Issue not found'],404);
 
-        if (!$iss) {
-            return response()->json(['success' => false, 'message' => 'Task not found'], 404);
-        }
+        $eid      = \Vinkla\Hashids\Facades\Hashids::encode($issue->id);
+        $docUrl   = url('/showissues/' . $eid);
+        $fullname = data_get($issue, 'creator.name') ?: $issue->created_by;
 
-        // Validasi: user harus approver aktif (status P) pada dokumen ini
-        $tApproval = T_approval::where('docid', $iss->issueid)
-            ->where('status', 'P')
-            ->where('aprvusername', 'like', "%{$user->username}%")
-            ->whereNotNull('aprvdatebefore') 
-            ->orderBy('aprvid', 'ASC')
-            ->first();
+        $result = app(\App\Http\Controllers\ApprovalController::class)->rejectStep(
+            $issue->issueid,
+            $doctype,
+            $user->username,
+            $user->name,
 
-        if (!$tApproval) {
-            return response()->json(['success' => false, 'message' => "You can't reject!"], 403);
-        }
+            function (string $refnbr, \Carbon\Carbon $now) use ($issue, $fullname, $docUrl) {
+                $issue->status       = 'R';
+                $issue->completed_by = auth()->user()->username;
+                $issue->completed_at = $now;
+                $issue->save();
 
-        DB::beginTransaction();
-        try {
-            // Tandai approval saat ini sebagai Rejected
-            $tApproval->status        = 'R';
-            $tApproval->aprvdateafter = $now;
-            $tApproval->aprvusername  = $user->username; // catat siapa yang reject
-            $tApproval->name          = $user->name;
-            $tApproval->save();
+                // optional: tandai detail R
+                // \App\Models\TrIssuedetail::where('issueid', $issue->issueid)->update(['status' => 'R']);
 
-            // Update header Issue
-            $iss->status       = 'R';
-            $iss->completed_by = $user->username;
-            $iss->completed_at = $now;
-            $iss->save();
+                app(\App\Http\Controllers\ApprovalController::class)->notifyRequesterOnStatus(
+                    $issue->issueid,
+                    'Issue',
+                    'R',
+                    $issue->created_by,
+                    $docUrl,
+                    [
+                        'cpnyid'   => $issue->cpny_id ?? $issue->cpnyid ?? '',
+                        'deptname' => $issue->department_id ?? $issue->departementid ?? '',
+                        'date'     => $now->toDateString(),
+                        'info'     => $issue->keperluan,
+                        'fullname' => $fullname,
+                        'name'     => $fullname,
+                        'createdby'=> $fullname, 
+                    ]
+                );
 
-            // Batalkan semua approval yang masih pending
-            T_approval::where('docid', $iss->issueid)
-                ->where('status', 'P')
-                ->update(['status' => 'X']);
-
-            DB::commit();
-        } catch (\Throwable $e) {
-            DB::rollBack();
-            Log::error('Reject Issue failed', ['docid' => $docid, 'error' => $e->getMessage()]);
-            return response()->json(['success' => false, 'message' => 'Reject failed'], 500);
-        }
-
-        // === Kirim Email ke requester (creator) ===
-        $status = 'R'; // Rejected
-        $subjectMap = [
-            'P' => 'Waiting Approval',
-            'R' => 'Rejected Approval',
-            'D' => 'Revise Approval',
-            'A' => 'Approved',
-            'C' => 'Completed',
-        ];
-        $subjectSuffix = $subjectMap[$status] ?? 'Notification';
-        $eid = Hashids::encode($iss->id);
-
-        $data = [
-            'docid'     => $iss->issueid,
-            'cpnyid'    => $iss->cpny_id ?? $iss->cpnyid ?? '',
-            'deptname'  => $iss->department_id ?? $iss->departementid ?? '',
-            'date'      => $now->toDateString(),            // bisa juga pakai $tApproval->aprvdateafter
-            'fullname'  => $fullname,               // view email kita pakai $fullname
-            'name'      => $fullname,               // fallback jika view pakai $name
-            'createdby' => $fullname,
-            'docname'   => 'Issue',
-            'info'      => $iss->keperluan,
-            'status'    => $status,
-            'url'       => url('/showissue/' . $eid),
-        ];
-
-        $recipients = User::where('username', $iss->created_by)
-            ->where('status', 'A')
-            ->get();
-
-        foreach ($recipients as $rcp) {
-            try {
-                $to = $rcp->test_email ?? $rcp->email; // sesuaikan field yang tersedia
-                Mail::send('emails.mailapprovenew', $data, function ($message) use ($data, $to, $subjectSuffix) {
-                    $message->to($to)
-                        ->subject($data['docid'] . ' - ' . $subjectSuffix . ' Issue')
-                        ->from('digitalserver@pakuwon.com', 'Pakuwon System');
-                });
-            } catch (\Throwable $e) {
-                Log::error('Failed sending Issue rejected email', [
-                    'docid' => $data['docid'],
-                    'to'    => $rcp->username,
-                    'error' => $e->getMessage()
-                ]);
+                // simpan komentar (jika ada)
+                try {
+                    app('App\Http\Controllers\SendCommentController')->sendmsg($issue->id, 'IS', request());
+                } catch (\Throwable $e) {}
             }
+        );
+
+        if (!$result['ok']) {
+            return response()->json(['success'=>false,'message'=>$result['message'] ?? 'Reject failed'], 403);
         }
 
-        // Simpan komentar penolakan (jika ada)
-        try {
-            app('App\Http\Controllers\SendCommentController')
-                ->sendmsg($iss->id, 'IS', $request);
-        } catch (\Throwable $e) {
-            Log::warning('SendComment after reject failed', [
-                'docid' => $iss->issueid,
-                'error' => $e->getMessage()
-            ]);
-        }
-
-        return response()->json(['success' => true, 'message' => 'Issue rejected successfully']);
+        return response()->json(['success'=>true,'message'=>'Issue rejected successfully']);
     }
 
     public function reviseIssue(Request $request, $docid)
     {
-        $now  = Carbon::now();
-        $user = $request->user();
+        $user    = $request->user();
+        $doctype = 'IS';
 
-        // $iss = TrIssue::where('issueid', $docid)->first();
-        $iss = TrIssue::with('creator')
-            ->where('issueid', $docid)
-            ->first();
-        $fullname = data_get($iss, 'creator.name') ?: $iss->created_by;
-            
-        if (!$iss) {
-            return response()->json(['success' => false, 'message' => 'Issue not found'], 404);
-        }
+        $issue = \App\Models\TrIssue::with('creator')->where('issueid', $docid)->first();
+        if (!$issue) return response()->json(['success'=>false,'message'=>'Issue not found'],404);
 
-        // Pastikan user adalah approver aktif (status P) dokumen ini
-        $tApproval = T_approval::where('docid', $iss->issueid)
-            ->where('status', 'P')
-            ->where('aprvusername', 'like', "%{$user->username}%")
-            ->whereNotNull('aprvdatebefore')
-            ->orderBy('aprvid', 'ASC')
-            ->first();
+        $eid      = \Vinkla\Hashids\Facades\Hashids::encode($issue->id);
+        $docUrl   = url('/showissues/' . $eid);
+        $fullname = data_get($issue, 'creator.name') ?: $issue->created_by;
 
-        if (!$tApproval) {
-            return response()->json(['success' => false, 'message' => "You can't revise!"], 403);
-        }
+        $result = app(\App\Http\Controllers\ApprovalController::class)->reviseStep(
+            $issue->issueid,            // refnbr
+            $doctype,                 // PT
+            $user->username,          // actor
+            $user->name,              // actor
+            function (string $refnbr, \Carbon\Carbon $now) use ($issue, $fullname, $docUrl) {
+                // === HEADER Issue -> D ===
+                $issue->status       = 'D';
+                $issue->completed_by = auth()->user()->username;
+                $issue->completed_at = $now;
+                $issue->save();
 
-        DB::beginTransaction();
-        try {
-            // Tandai approval saat ini sebagai Revise (D)
-            $tApproval->status        = 'D';
-            $tApproval->aprvdateafter = $now;
-            $tApproval->aprvusername  = $user->username;  // catat siapa yang revise
-            $tApproval->name          = $user->name;
-            $tApproval->save();
+                // (opsional) DETAIL -> D
+                // \App\Models\TrIssuedetail::where('issueid', $issue->issueid)->update(['status' => 'D']);
 
-            // Update header Issue
-            $iss->status       = 'D';
-            $iss->completed_by = $user->username;        // mengikuti pola existing
-            $iss->completed_at = $now;
-            $iss->save();
+                // === Email ke requester ===
+                app(\App\Http\Controllers\ApprovalController::class)->notifyRequesterOnStatus(
+                    $issue->issueid,
+                    'Issue',
+                    'D',
+                    $issue->created_by,
+                    $docUrl,
+                    [
+                        'cpnyid'   => $issue->cpny_id ?? $issue->cpnyid ?? '',
+                        'deptname' => $issue->department_id ?? $issue->departementid ?? '',
+                        'date'     => $now->toDateString(),
+                        'info'     => $issue->keperluan,
+                        'fullname' => $fullname,
+                        'name'     => $fullname,
+                        'createdby'=> $fullname,   // <<< tambahkan ini
+                    ]
+                );
 
-            // Batalkan approval lain yang masih pending
-            T_approval::where('docid', $iss->issueid)
-                ->where('status', 'P')
-                ->update(['status' => 'X']);
 
-            DB::commit();
-        } catch (\Throwable $e) {
-            DB::rollBack();
-            Log::error('Revise Issue failed', ['docid' => $docid, 'error' => $e->getMessage()]);
-            return response()->json(['success' => false, 'message' => 'Revise failed'], 500);
-        }
-
-        // === Kirim email ke requester (creator) ===
-        $status = 'D'; // Revise
-        $subjectMap = [
-            'P' => 'Waiting Approval',
-            'R' => 'Rejected Approval',
-            'D' => 'Revise Approval',
-            'A' => 'Approved',
-            'C' => 'Completed',
-        ];
-        $subjectSuffix = $subjectMap[$status] ?? 'Notification';
-        $eid = Hashids::encode($iss->id);
-
-        $data = [
-            'docid'     => $iss->issueid,
-            'cpnyid'    => $iss->cpny_id ?? $iss->cpnyid ?? '',
-            'deptname'  => $iss->department_id ?? $iss->departementid ?? '',
-            'date'      => $now->toDateString(),          // atau $tApproval->aprvdateafter
-            'fullname'  => $fullname,             // template email pakai $fullname
-            'name'      => $fullname,             // fallback jika view pakai $name
-            'createdby' => $fullname,
-            'docname'   => 'Issue',
-            'info'      => $iss->keperluan,
-            'status'    => $status,
-            'url'       => url('/showissue/' . $eid),
-        ];
-
-        $recipients = User::where('username', $iss->created_by)
-            ->where('status', 'A')
-            ->get();
-
-        foreach ($recipients as $rcp) {
-            try {
-                $to = $rcp->test_email ?? $rcp->email; // sesuaikan dengan kolom yang ada
-                Mail::send('emails.mailapprovenew', $data, function ($message) use ($data, $to, $subjectSuffix) {
-                    $message->to($to)
-                        ->subject($data['docid'] . ' - ' . $subjectSuffix . ' Issue')
-                        ->from('digitalserver@pakuwon.com', 'Pakuwon System');
-                });
-            } catch (\Throwable $e) {
-                Log::error('Failed sending Issue revise email', [
-                    'docid' => $data['docid'],
-                    'to'    => $rcp->username,
-                    'error' => $e->getMessage()
-                ]);
+                // === Simpan komentar (jika ada) ===
+                try {
+                    app('App\Http\Controllers\SendCommentController')->sendmsg($issue->id, 'IS', request());
+                } catch (\Throwable $e) {}
             }
+        );
+
+        if (!$result['ok']) {
+            return response()->json([
+                'success'=>false,
+                'message'=>$result['message'] ?? 'Revise failed'
+            ], 403);
         }
 
-        // Simpan komentar revisi (jika ada)
-        try {
-            app('App\Http\Controllers\SendCommentController')
-                ->sendmsg($iss->id, 'IS', $request);
-        } catch (\Throwable $e) {
-            Log::warning('SendComment after revise failed', [
-                'docid' => $iss->issueid,
-                'error' => $e->getMessage()
-            ]);
-        }
-
-        return response()->json(['success' => true, 'message' => 'Issue revised successfully']);
+        return response()->json(['success'=>true,'message'=>'Issue revised successfully']);
     }
+
+    protected function applyIssuePostingToSpb(TrIssue $issue, Collection $issueDetails, User $user, Carbon $now): void
+    {
+        // Lock header SPB + detail agar konsisten
+        $spb = TrSPB::where('spbid', $issue->spbid)->lockForUpdate()->first();
+        if (!$spb) {
+            throw new \RuntimeException('SPB terkait tidak ditemukan.');
+        }
+
+        $spbDetailRows = TrSPBdetail::where('spbid', $issue->spbid)->lockForUpdate()->get();
+
+        // index helper
+        $spbByKey       = $spbDetailRows->keyBy(fn($r) => (($r->inventoryid ?? '') . '|' . ($r->uom ?? '')));
+        $spbByInventory = $spbDetailRows->groupBy('inventoryid');
+        $spbBySpbNo     = $spbDetailRows->keyBy('spb_no');
+
+        $isIssue  = strtoupper($issue->issuetype) === 'IS'; // keluar barang
+        $isReturn = strtoupper($issue->issuetype) === 'RI'; // return
+
+        foreach ($issueDetails as $rd) {
+            // sumber qty:
+            $qty = 0.0;
+            if ($isIssue) {
+                $qty = (float) ($rd->issue_qty ?? $rd->qty ?? 0);
+            } elseif ($isReturn) {
+                $qty = (float) ($rd->return_qty ?? $rd->qty_return ?? 0);
+            }
+            if ($qty <= 0) continue;
+
+            // cari pasangan baris SPB
+            $spbDet = null;
+            if (!empty($rd->spb_no) && $spbBySpbNo->has($rd->spb_no)) {
+                $spbDet = $spbBySpbNo->get($rd->spb_no);
+            }
+            if (!$spbDet) {
+                $key = ($rd->inventoryid ?? '') . '|' . ($rd->uom ?? '');
+                $spbDet = $spbByKey->get($key);
+            }
+            if (!$spbDet) {
+                $bucket = $spbByInventory->get($rd->inventoryid);
+                $spbDet = $bucket ? $bucket->first() : null;
+            }
+            if (!$spbDet) continue;
+
+            // update qty open/issue
+            if ($isIssue) {
+                $spbDet->spb_openqty = max(0, (float)($spbDet->spb_openqty ?? 0) - $qty);
+                $spbDet->issue_qty   = (float)($spbDet->issue_qty ?? 0) + $qty;
+            } else { // return
+                $spbDet->spb_openqty = (float)($spbDet->spb_openqty ?? 0) + $qty;
+                $currentIssued       = (float)($spbDet->issue_qty ?? 0);
+                $spbDet->issue_qty   = max(0, $currentIssued - $qty);
+            }
+
+            // status baris
+            $spbDet->status     = ($spbDet->spb_openqty <= 0) ? 'C' : 'P';
+            $spbDet->updated_by = $user->username ?? 'system';
+            $spbDet->updated_at = $now;
+            $spbDet->save();
+        }
+
+        // === Refresh total header SPB ===
+        $agg = TrSPBdetail::where('spbid', $issue->spbid)
+            ->selectRaw('COALESCE(SUM(qty),0)                AS total_qty')
+            ->selectRaw('COALESCE(SUM(spb_openqty),0)        AS total_open')
+            ->selectRaw('COALESCE(SUM(issue_qty),0)          AS total_issue')
+            ->selectRaw('COALESCE(SUM(spb_completeqty),0)    AS total_complete')
+            ->first();
+
+        $spb->totalspbqty      = (float) $agg->total_qty;
+        $spb->totalspbopenqty  = (float) $agg->total_open;
+        $spb->totalissueqty    = (float) $agg->total_issue;
+        $spb->totalcompleteqty = (float) $agg->total_complete;
+
+        // header complete jika semua open = 0
+        $spb->status     = ($spb->totalspbopenqty <= 0) ? 'C' : 'P';
+        $spb->updated_by = $user->username ?? 'system';
+        $spb->updated_at = $now;
+        $spb->save();
+    }
+
+    // public function approveIssue(Request $request, $docid)
+    // {
+    //     $now  = Carbon::now();
+    //     $user = $request->user();
+
+    //     $iss = TrIssue::with('creator')->where('issueid', $docid)->first();
+    //     if (!$iss) {
+    //         return response()->json(['success' => false, 'message' => 'Issue not found'], 404);
+    //     }
+    //     $fullname = data_get($iss, 'creator.name') ?: $iss->created_by;
+
+    //     // pastikan user approver aktif
+    //     $tApproval = T_approval::where('docid', $iss->issueid)
+    //         ->where('status', 'P')
+    //         ->where('aprvusername', 'like', "%{$user->username}%")
+    //         ->whereNotNull('aprvdatebefore')
+    //         ->orderBy('aprvid', 'ASC')
+    //         ->first();
+    //     if (!$tApproval) {
+    //         return response()->json(['success' => false, 'message' => "You can't approve!"], 403);
+    //     }
+
+    //     DB::beginTransaction();
+    //     try {
+    //         // approve current level
+    //         $tApproval->status        = 'A';
+    //         $tApproval->aprvdateafter = $now;
+    //         $tApproval->aprvusername  = $user->username;
+    //         $tApproval->name          = $user->name;
+    //         $tApproval->save();
+
+    //         // stamp header
+    //         $iss->completed_by = $user->username;
+    //         $iss->completed_at = $now;
+    //         $iss->save();
+
+    //         $pendingCount = T_approval::where('docid', $iss->issueid)->where('status','P')->count();
+
+    //         $subjectMap = ['P'=>'Waiting Approval','R'=>'Rejected Approval','D'=>'Revise Approval','A'=>'Approved','C'=>'Completed'];
+    //         $eid = Hashids::encode($iss->id);
+
+    //         if ($pendingCount === 0) {
+    //             // ===== FINAL APPROVAL =====
+    //             $iss->status       = 'C';
+    //             $iss->completed_by = $user->username;
+    //             $iss->completed_at = $now;
+    //             $iss->save();
+
+    //             // close all issue details
+    //             $issdetails = TrIssuedetail::where('issueid',$iss->issueid)->orderBy('issue_no')->get();
+    //             foreach ($issdetails as $d) { $d->status = 'C'; $d->save(); }
+
+    //             // ====== POSTING KE SPB HANYA DI FINAL ======
+    //             $spb = TrSPB::where('spbid',$iss->spbid)->lockForUpdate()->first();
+    //             if (!$spb) {
+    //                 DB::rollBack();
+    //                 return response()->json(['success'=>false,'message'=>'SPB terkait tidak ditemukan.'],422);
+    //             }
+
+    //             $spbDetailRows = TrSPBdetail::where('spbid',$iss->spbid)->lockForUpdate()->get();
+    //             $spbByKey       = $spbDetailRows->keyBy(fn($r)=>(($r->inventoryid??'').'|'.($r->uom??'')));
+    //             $spbByInventory = $spbDetailRows->groupBy('inventoryid');
+    //             $spbBySpbNo     = $spbDetailRows->keyBy('spb_no'); // opsional kalau ada
+
+    //             if (strtoupper($iss->issuetype) === 'IS') {
+    //                 // ===== ISSUE (keluar barang) → open turun, issue_qty naik
+    //                 foreach ($issdetails as $rd) {
+    //                     $qty = (float) ($rd->issue_qty ?? $rd->qty ?? 0);
+    //                     if ($qty <= 0) continue;
+
+    //                     $spbDet = null;
+    //                     if (!empty($rd->spb_no) && $spbBySpbNo->has($rd->spb_no)) $spbDet = $spbBySpbNo->get($rd->spb_no);
+    //                     if (!$spbDet) {
+    //                         $key = ($rd->inventoryid ?? '').'|'.($rd->uom ?? '');
+    //                         $spbDet = $spbByKey->get($key);
+    //                     }
+    //                     if (!$spbDet) {
+    //                         $bucket = $spbByInventory->get($rd->inventoryid);
+    //                         $spbDet = $bucket ? $bucket->first() : null;
+    //                     }
+    //                     if (!$spbDet) continue;
+
+    //                     $spbDet->spb_openqty = max(0, (float)($spbDet->spb_openqty ?? 0) - $qty);
+    //                     $spbDet->issue_qty   = (float)($spbDet->issue_qty ?? 0) + $qty;
+
+    //                     $spbDet->status      = ($spbDet->spb_openqty <= 0) ? 'C' : 'P';
+    //                     $spbDet->updated_by  = $user->username;
+    //                     $spbDet->updated_at  = $now;
+    //                     $spbDet->save();
+    //                 }
+    //             } elseif (strtoupper($iss->issuetype) === 'RI') {
+    //                 // ===== RETURN ISSUE (barang kembali) → open naik, issue_qty turun
+    //                 foreach ($issdetails as $rd) {
+    //                     // GANTI nama kolom di bawah ini sesuai model detail kamu
+    //                     $qtyReturn = (float) ($rd->return_qty ?? $rd->qty_return ?? 0);
+    //                     if ($qtyReturn <= 0) continue;
+
+    //                     $spbDet = null;
+    //                     if (!empty($rd->spb_no) && $spbBySpbNo->has($rd->spb_no)) $spbDet = $spbBySpbNo->get($rd->spb_no);
+    //                     if (!$spbDet) {
+    //                         $key = ($rd->inventoryid ?? '').'|'.($rd->uom ?? '');
+    //                         $spbDet = $spbByKey->get($key);
+    //                     }
+    //                     if (!$spbDet) {
+    //                         $bucket = $spbByInventory->get($rd->inventoryid);
+    //                         $spbDet = $bucket ? $bucket->first() : null;
+    //                     }
+    //                     if (!$spbDet) continue;
+
+    //                     // open naik
+    //                     $spbDet->spb_openqty = (float)($spbDet->spb_openqty ?? 0) + $qtyReturn;
+    //                     // issue turun tidak boleh minus
+    //                     $currentIssued = (float)($spbDet->issue_qty ?? 0);
+    //                     $spbDet->issue_qty = max(0, $currentIssued - $qtyReturn);
+
+    //                     // status baris
+    //                     $spbDet->status      = ($spbDet->spb_openqty <= 0) ? 'C' : 'P';
+    //                     $spbDet->updated_by  = $user->username;
+    //                     $spbDet->updated_at  = $now;
+    //                     $spbDet->save();
+    //                 }
+    //             }
+
+    //             // aggregate header SPB
+    //             $agg = TrSPBdetail::where('spbid',$iss->spbid)
+    //                 ->selectRaw('
+    //                     COALESCE(SUM(issue_qty),0)       AS total_issue,
+    //                     COALESCE(SUM(spb_openqty),0)     AS total_open,
+    //                     COALESCE(SUM(spb_completeqty),0) AS total_complete
+    //                 ')->first();
+
+    //             if ($agg) {
+    //                 $spb->totalissueqty     = (float)$agg->total_issue;
+    //                 $spb->totalspbopenqty   = (float)$agg->total_open;
+    //                 $spb->totalcompleteqty  = (float)$agg->total_complete;
+    //             }
+
+    //             if ((float)($spb->totalspbopenqty ?? 0) <= 0) {
+    //                 $spb->status       = 'C';
+    //                 $spb->completed_by = $user->username;
+    //                 $spb->completed_at = $now;
+    //             }
+    //             $spb->updated_by = $user->username;
+    //             $spb->updated_at = $now;
+    //             $spb->save();
+
+    //             // ===== email COMPLETE ke creator
+    //             $status        = 'C';
+    //             $subjectSuffix = $subjectMap[$status] ?? 'Notification';
+    //             $data = [
+    //                 'docid'     => $iss->issueid,
+    //                 'cpnyid'    => $iss->cpny_id ?? $iss->cpnyid ?? '',
+    //                 'deptname'  => $iss->department_id ?? $iss->departementid ?? '',
+    //                 'date'      => $iss->issuedate ?? $now,
+    //                 'fullname'  => $fullname,
+    //                 'name'      => $fullname,
+    //                 'createdby' => $fullname,
+    //                 'docname'   => 'Issue',
+    //                 'info'      => $iss->issuenote ?? $iss->keperluan,
+    //                 'status'    => $status,
+    //                 'url'       => url('/showissue/' . $eid),
+    //             ];
+    //             $recipients = User::where('username',$iss->created_by)->where('status','A')->get();
+    //             foreach ($recipients as $iss) {
+    //                 try {
+    //                     Mail::send('emails.mailapprovenew', $data, function ($message) use ($data, $iss, $subjectSuffix) {
+    //                         $to = $iss->test_email ?? $iss->email;
+    //                         $message->to($to)
+    //                                 ->subject($data['docid'].' - '.$subjectSuffix.' Issue')
+    //                                 ->from('digitalserver@pakuwon.com','Pakuwon System');
+    //                     });
+    //                 } catch (\Throwable $e) {
+    //                     Log::error('Failed sending Issue completion email', ['error'=>$e->getMessage()]);
+    //                 }
+    //             }
+    //         } else {
+    //             // ===== masih ada approver berikutnya
+    //             $next = T_approval::where('docid',$iss->issueid)->where('status','P')->orderBy('aprvid','ASC')->first();
+    //             if ($next) {
+    //                 $next->aprvdatebefore = $now;
+    //                 $next->save();
+
+    //                 $status        = 'P';
+    //                 $subjectSuffix = $subjectMap[$status] ?? 'Notification';
+    //                 $data = [
+    //                     'docid'     => $next->docid,
+    //                     'cpnyid'    => $next->aprvcpnyid,
+    //                     'deptname'  => $next->aprvdeptid,
+    //                     'date'      => $next->aprvdatebefore,
+    //                     'fullname'  => $next->name,
+    //                     'name'      => $next->name,
+    //                     'createdby' => $iss->created_by,
+    //                     'docname'   => 'Issue',
+    //                     'info'      => $iss->issuenote ?? $iss->keperluan,
+    //                     'status'    => $status,
+    //                     'url'       => url('/showissue/' . $eid),
+    //                 ];
+    //                 $usernames = array_filter(array_map('trim', explode(',', (string)$next->aprvusername)));
+    //                 if (!empty($usernames)) {
+    //                     $recipients = User::whereIn('username',$usernames)->where('status','A')->get();
+    //                     foreach ($recipients as $iss) {
+    //                         try {
+    //                             Mail::send('emails.mailapprovenew', $data, function ($message) use ($data, $iss, $subjectSuffix) {
+    //                                 $to = $iss->test_email ?? $iss->email;
+    //                                 $message->to($to)
+    //                                         ->subject($data['docid'].' - '.$subjectSuffix.' Issue')
+    //                                         ->from('digitalserver@pakuwon.com','Pakuwon System');
+    //                             });
+    //                         } catch (\Throwable $e) {
+    //                             Log::error('Failed sending Issue waiting-approval email', ['error'=>$e->getMessage()]);
+    //                         }
+    //                     }
+    //                 } else {
+    //                     Log::warning('Next approver has empty aprvusername list', ['docid'=>$iss->issueid]);
+    //                 }
+    //             }
+    //         }
+
+    //         DB::commit();
+    //         return response()->json(['success' => true, 'message' => 'Task approved successfully']);
+    //     } catch (\Throwable $e) {
+    //         DB::rollBack();
+    //         Log::error('Approve Issue failed', ['error'=>$e->getMessage()]);
+    //         return response()->json(['success' => false, 'message' => 'Approve failed'], 500);
+    //     }
+    // }
+
+    
+    // public function rejectIssue(Request $request, $docid)
+    // {
+    //     $now  = Carbon::now();
+    //     $user = $request->user();
+
+    //     // $iss = TrIssue::where('issueid', $docid)->first();
+    //     $iss = TrIssue::with('creator')
+    //         ->where('issueid', $docid)
+    //         ->first();
+    //     $fullname = data_get($iss, 'creator.name') ?: $iss->created_by;
+
+    //     if (!$iss) {
+    //         return response()->json(['success' => false, 'message' => 'Task not found'], 404);
+    //     }
+
+    //     // Validasi: user harus approver aktif (status P) pada dokumen ini
+    //     $tApproval = T_approval::where('docid', $iss->issueid)
+    //         ->where('status', 'P')
+    //         ->where('aprvusername', 'like', "%{$user->username}%")
+    //         ->whereNotNull('aprvdatebefore') 
+    //         ->orderBy('aprvid', 'ASC')
+    //         ->first();
+
+    //     if (!$tApproval) {
+    //         return response()->json(['success' => false, 'message' => "You can't reject!"], 403);
+    //     }
+
+    //     DB::beginTransaction();
+    //     try {
+    //         // Tandai approval saat ini sebagai Rejected
+    //         $tApproval->status        = 'R';
+    //         $tApproval->aprvdateafter = $now;
+    //         $tApproval->aprvusername  = $user->username; // catat siapa yang reject
+    //         $tApproval->name          = $user->name;
+    //         $tApproval->save();
+
+    //         // Update header Issue
+    //         $iss->status       = 'R';
+    //         $iss->completed_by = $user->username;
+    //         $iss->completed_at = $now;
+    //         $iss->save();
+
+    //         // Batalkan semua approval yang masih pending
+    //         T_approval::where('docid', $iss->issueid)
+    //             ->where('status', 'P')
+    //             ->update(['status' => 'X']);
+
+    //         DB::commit();
+    //     } catch (\Throwable $e) {
+    //         DB::rollBack();
+    //         Log::error('Reject Issue failed', ['docid' => $docid, 'error' => $e->getMessage()]);
+    //         return response()->json(['success' => false, 'message' => 'Reject failed'], 500);
+    //     }
+
+    //     // === Kirim Email ke requester (creator) ===
+    //     $status = 'R'; // Rejected
+    //     $subjectMap = [
+    //         'P' => 'Waiting Approval',
+    //         'R' => 'Rejected Approval',
+    //         'D' => 'Revise Approval',
+    //         'A' => 'Approved',
+    //         'C' => 'Completed',
+    //     ];
+    //     $subjectSuffix = $subjectMap[$status] ?? 'Notification';
+    //     $eid = Hashids::encode($iss->id);
+
+    //     $data = [
+    //         'docid'     => $iss->issueid,
+    //         'cpnyid'    => $iss->cpny_id ?? $iss->cpnyid ?? '',
+    //         'deptname'  => $iss->department_id ?? $iss->departementid ?? '',
+    //         'date'      => $now->toDateString(),            // bisa juga pakai $tApproval->aprvdateafter
+    //         'fullname'  => $fullname,               // view email kita pakai $fullname
+    //         'name'      => $fullname,               // fallback jika view pakai $name
+    //         'createdby' => $fullname,
+    //         'docname'   => 'Issue',
+    //         'info'      => $iss->keperluan,
+    //         'status'    => $status,
+    //         'url'       => url('/showissue/' . $eid),
+    //     ];
+
+    //     $recipients = User::where('username', $iss->created_by)
+    //         ->where('status', 'A')
+    //         ->get();
+
+    //     foreach ($recipients as $iss) {
+    //         try {
+    //             $to = $iss->test_email ?? $iss->email; // sesuaikan field yang tersedia
+    //             Mail::send('emails.mailapprovenew', $data, function ($message) use ($data, $to, $subjectSuffix) {
+    //                 $message->to($to)
+    //                     ->subject($data['docid'] . ' - ' . $subjectSuffix . ' Issue')
+    //                     ->from('digitalserver@pakuwon.com', 'Pakuwon System');
+    //             });
+    //         } catch (\Throwable $e) {
+    //             Log::error('Failed sending Issue rejected email', [
+    //                 'docid' => $data['docid'],
+    //                 'to'    => $iss->username,
+    //                 'error' => $e->getMessage()
+    //             ]);
+    //         }
+    //     }
+
+    //     // Simpan komentar penolakan (jika ada)
+    //     try {
+    //         app('App\Http\Controllers\SendCommentController')
+    //             ->sendmsg($iss->id, 'IS', $request);
+    //     } catch (\Throwable $e) {
+    //         Log::warning('SendComment after reject failed', [
+    //             'docid' => $iss->issueid,
+    //             'error' => $e->getMessage()
+    //         ]);
+    //     }
+
+    //     return response()->json(['success' => true, 'message' => 'Issue rejected successfully']);
+    // }
+
+    // public function reviseIssue(Request $request, $docid)
+    // {
+    //     $now  = Carbon::now();
+    //     $user = $request->user();
+
+    //     // $iss = TrIssue::where('issueid', $docid)->first();
+    //     $iss = TrIssue::with('creator')
+    //         ->where('issueid', $docid)
+    //         ->first();
+    //     $fullname = data_get($iss, 'creator.name') ?: $iss->created_by;
+            
+    //     if (!$iss) {
+    //         return response()->json(['success' => false, 'message' => 'Issue not found'], 404);
+    //     }
+
+    //     // Pastikan user adalah approver aktif (status P) dokumen ini
+    //     $tApproval = T_approval::where('docid', $iss->issueid)
+    //         ->where('status', 'P')
+    //         ->where('aprvusername', 'like', "%{$user->username}%")
+    //         ->whereNotNull('aprvdatebefore')
+    //         ->orderBy('aprvid', 'ASC')
+    //         ->first();
+
+    //     if (!$tApproval) {
+    //         return response()->json(['success' => false, 'message' => "You can't revise!"], 403);
+    //     }
+
+    //     DB::beginTransaction();
+    //     try {
+    //         // Tandai approval saat ini sebagai Revise (D)
+    //         $tApproval->status        = 'D';
+    //         $tApproval->aprvdateafter = $now;
+    //         $tApproval->aprvusername  = $user->username;  // catat siapa yang revise
+    //         $tApproval->name          = $user->name;
+    //         $tApproval->save();
+
+    //         // Update header Issue
+    //         $iss->status       = 'D';
+    //         $iss->completed_by = $user->username;        // mengikuti pola existing
+    //         $iss->completed_at = $now;
+    //         $iss->save();
+
+    //         // Batalkan approval lain yang masih pending
+    //         T_approval::where('docid', $iss->issueid)
+    //             ->where('status', 'P')
+    //             ->update(['status' => 'X']);
+
+    //         DB::commit();
+    //     } catch (\Throwable $e) {
+    //         DB::rollBack();
+    //         Log::error('Revise Issue failed', ['docid' => $docid, 'error' => $e->getMessage()]);
+    //         return response()->json(['success' => false, 'message' => 'Revise failed'], 500);
+    //     }
+
+    //     // === Kirim email ke requester (creator) ===
+    //     $status = 'D'; // Revise
+    //     $subjectMap = [
+    //         'P' => 'Waiting Approval',
+    //         'R' => 'Rejected Approval',
+    //         'D' => 'Revise Approval',
+    //         'A' => 'Approved',
+    //         'C' => 'Completed',
+    //     ];
+    //     $subjectSuffix = $subjectMap[$status] ?? 'Notification';
+    //     $eid = Hashids::encode($iss->id);
+
+    //     $data = [
+    //         'docid'     => $iss->issueid,
+    //         'cpnyid'    => $iss->cpny_id ?? $iss->cpnyid ?? '',
+    //         'deptname'  => $iss->department_id ?? $iss->departementid ?? '',
+    //         'date'      => $now->toDateString(),          // atau $tApproval->aprvdateafter
+    //         'fullname'  => $fullname,             // template email pakai $fullname
+    //         'name'      => $fullname,             // fallback jika view pakai $name
+    //         'createdby' => $fullname,
+    //         'docname'   => 'Issue',
+    //         'info'      => $iss->keperluan,
+    //         'status'    => $status,
+    //         'url'       => url('/showissue/' . $eid),
+    //     ];
+
+    //     $recipients = User::where('username', $iss->created_by)
+    //         ->where('status', 'A')
+    //         ->get();
+
+    //     foreach ($recipients as $iss) {
+    //         try {
+    //             $to = $iss->test_email ?? $iss->email; // sesuaikan dengan kolom yang ada
+    //             Mail::send('emails.mailapprovenew', $data, function ($message) use ($data, $to, $subjectSuffix) {
+    //                 $message->to($to)
+    //                     ->subject($data['docid'] . ' - ' . $subjectSuffix . ' Issue')
+    //                     ->from('digitalserver@pakuwon.com', 'Pakuwon System');
+    //             });
+    //         } catch (\Throwable $e) {
+    //             Log::error('Failed sending Issue revise email', [
+    //                 'docid' => $data['docid'],
+    //                 'to'    => $iss->username,
+    //                 'error' => $e->getMessage()
+    //             ]);
+    //         }
+    //     }
+
+    //     // Simpan komentar revisi (jika ada)
+    //     try {
+    //         app('App\Http\Controllers\SendCommentController')
+    //             ->sendmsg($iss->id, 'IS', $request);
+    //     } catch (\Throwable $e) {
+    //         Log::warning('SendComment after revise failed', [
+    //             'docid' => $iss->issueid,
+    //             'error' => $e->getMessage()
+    //         ]);
+    //     }
+
+    //     return response()->json(['success' => true, 'message' => 'Issue revised successfully']);
+    // }
     
 
-    public function checkApproval($id, $action)
-    {
-        $user = Auth::user(); // Ambil user yang login
-        // dd($action);
-        // Query dasar untuk pengecekan
-        $query = T_approval::where('docid', $id)
-                    ->where('aprvusername', 'like', '%' . $user->username . '%')
-                    ->where('status', 'P');                 
+    // public function checkApproval($id, $action)
+    // {
+    //     $user = Auth::user(); // Ambil user yang login
+    //     // dd($action);
+    //     // Query dasar untuk pengecekan
+    //     $query = T_approval::where('docid', $id)
+    //                 ->where('aprvusername', 'like', '%' . $user->username . '%')
+    //                 ->where('status', 'P');                 
 
-        // Jika aksi adalah reject atau revise, pastikan aprvdatebefore tidak null
-        if (in_array($action, ['reject', 'revise','approve'])) {
-            $query->whereNotNull('aprvdatebefore');
-        }
+    //     // Jika aksi adalah reject atau revise, pastikan aprvdatebefore tidak null
+    //     if (in_array($action, ['reject', 'revise','approve'])) {
+    //         $query->whereNotNull('aprvdatebefore');
+    //     }
 
-        // Cek apakah user bisa melakukan aksi
-        $canPerformAction = $query->exists();
+    //     // Cek apakah user bisa melakukan aksi
+    //     $canPerformAction = $query->exists();
 
-        return response()->json(['canPerformAction' => $canPerformAction]);
-    }
+    //     return response()->json(['canPerformAction' => $canPerformAction]);
+    // }
 
     public function approveIssue_xxx(Request $request, $id)
     {
@@ -1741,14 +2099,21 @@ class IssueController extends Controller
             return back()->withErrors(['Minimal satu baris Qty Return > 0.'])->withInput();
         }
 
+        $doctype = 'IS';
+        $now   = Carbon::now();
+        $year  = (int)$now->year;
+        $month = str_pad($now->month, 2, '0', STR_PAD_LEFT);
+
+        $cpnyid  = $spb->cpny_id       ?? ($request->input('cpnyid')       ?? null);
+        // $deptid  = $spb->department_id ?? ($request->input('departmentid') ?? null);
+        $deptid  = 'WAREHOUSE';
+
+        $approvalCtl = app(ApprovalController::class);
+        $approvalCtl->loadLines($doctype, $cpnyid, $deptid);
+
         DB::beginTransaction();
         try {
-            // === Autonumber: RTYYMM#### (ubah doctype bila perlu)
-            $doctype = 'IS';
-            $now   = Carbon::now();
-            $year  = (int)$now->year;
-            $month = str_pad($now->month, 2, '0', STR_PAD_LEFT);
-
+            
             $autonbr = Autonbr::lockForUpdate()
                 ->where('doctype', $doctype)->where('year', $year)->where('month', $month)
                 ->first();

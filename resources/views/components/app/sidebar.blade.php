@@ -216,7 +216,10 @@
                     @auth
                         @if (auth()->user()->username === 'rikiparahat' ||
                                 auth()->user()->username === 'bedriamaail' ||
+                                auth()->user()->username === 'sugiartoongkowijoyo' ||
                                 auth()->user()->username === 'ariwibowo' ||
+                                auth()->user()->username === 'junpianto' ||
+                                auth()->user()->username === 'ariewibisono' ||
                                 auth()->user()->username === 'williemhalim')
                             <li class="py-2 pl-4 pr-3 text-xs font-semibold uppercase tracking-wider text-gray-500 last:mb-0"
                                 :class="{ 'lg:block': sidebarExpanded, 'lg:hidden': !sidebarExpanded }">

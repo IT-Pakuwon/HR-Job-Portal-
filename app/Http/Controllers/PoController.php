@@ -757,7 +757,7 @@ class PoController extends Controller
 
         $po = TrPO::where('ponbr', $ponbr)->firstOrFail();
 
-       
+        $eid = Hashids::encode($po->id);
         // $emailfrom = User::where('username', $po->created_by)->value('test_email');
         $user = User::where('username', $po->created_by)
             ->first(['name', 'test_email']);
@@ -799,131 +799,12 @@ class PoController extends Controller
             'purchaser'    => $purchaser,
             'to_email'      => $emailto,
             'initial_html'  => $initial_html,
+            'eid'           => $eid,
         ]);
     }
 
+      
     public function sendNowPO_xxx(Request $req, string $ponbr)
-    {
-        $authUser = Auth::user();
-
-        // 1) Validasi payload dari form compose (To/Cc/Bcc bisa array atau string dipisah koma)
-        $data = $req->validate([
-            'from'    => ['required','email'],
-            'to'      => ['required'],              // array email atau string “a@b.com, c@d.com”
-            'cc'      => ['nullable'],
-            'bcc'     => ['nullable'],
-            'subject' => ['required','string','max:200'],
-            'html'    => ['required','string'],     // body HTML dari Summernote
-        ]);
-
-        
-        // Tentukan display name pengirim
-        $senderName = User::where('test_email', $data['from'])->value('name'); // ganti 'name' bila kolommu 'fullname'
-        if (!$senderName) {
-            // fallback: nama pembuat PO
-            $senderName = User::where('username', $po->created_by)->value('name'); // sesuaikan kolom
-        }
-        if (!$senderName && Auth::check()) {
-            // fallback: nama user yang login
-            $senderName = Auth::user()->name ?? Auth::user()->fullname ?? null;
-        }
-        $senderName = $senderName ?: 'Pakuwon System';
-
-
-        // Normalisasi daftar email
-        // $norm = function ($v) {
-        //     if (!$v) return [];
-        //     if (is_array($v)) return array_values(array_unique(array_filter(array_map('trim',$v))));
-        //     return array_values(array_unique(array_filter(array_map('trim', explode(',', $v)))));
-        // };
-        $norm = function ($v) {
-            if (!$v) return [];
-            if (is_array($v)) return array_values(array_unique(array_filter(array_map('trim',$v))));
-            return array_values(array_unique(array_filter(array_map('trim', preg_split('/[,;]+/', $v)))));
-        };
-
-
-        $to  = $norm($data['to']);
-        $cc  = $norm($data['cc'] ?? []);
-        $bcc = $norm($data['bcc'] ?? []);
-
-        if (empty($to)) {
-            return response()->json(['success'=>false,'message'=>'Field "To" wajib diisi.'], 422);
-        }
-
-        // 2) Ambil header + detail PO
-        $po = TrPO::where('ponbr', $ponbr)->firstOrFail();
-        $podetail = TrPOdetail::where('ponbr', $po->ponbr)->orderBy('cs_no')->get();
-        // Header amount
-        $dpp    = $po->totalamt;
-        $ppn    = $po->taxamt;
-        $grand  = $po->grandtotalamt;
-        $terbilang = ucfirst($this->terbilang($grand)) . ' rupiah';
-
-        $company = CompanyPG::where('cpny_id', $po->cpny_id)->first();
-
-        // tampilkan nama pembuat / pengirim
-        $purchaser = ucwords(strtolower($authUser->name));
-
-        $viewData = [
-            'po'        => $po,
-            'podetail'  => $podetail,
-            'dpp'       => $dpp,
-            'ppn'       => $ppn,
-            'grand'     => $grand,
-            'terbilang' => $terbilang,
-            'company'   => $company,
-            'now'       => Carbon::now(),
-            'purchaser' => $purchaser,
-        ];
-
-        // 3) Siapkan lampiran dari tabel Attachment (public/attachments/{YEAR}/{$attach->attachfile})
-        $attachments = Attachment::where('docid', $po->ponbr)
-            ->where('status', 'A')
-            ->get();
-
-        $filePaths = [];
-        foreach ($attachments as $row) {
-            // ambil tahun dari created_at jika ada, fallback ke tahun sekarang
-            $year = $row->created_at ? Carbon::parse($row->created_at)->year : Carbon::now()->year;
-            $path = public_path("attachments/{$year}/{$row->attachfile}");
-            if (is_file($path)) {
-                $filePaths[] = $path;
-            }
-        }
-
-        // 4) Generate PDF PO/SPK (tanpa stream), lalu attach
-        $view = $po->potype === 'PO' ? 'pages.purchase.pdf_po' : 'pages.purchase.pdf_spk';
-        $pdf  = \PDF::loadView($view, $viewData)->setPaper('A4', 'portrait');
-        $pdfBinary = $pdf->output(); // <- ambil binary untuk attachData
-        $pdfName = ($po->potype === 'PO' ? 'PO' : 'SPK') . "_{$po->ponbr}.pdf";
-
-        // 5) Kirim email (pakai body HTML langsung dari Summernote)
-        //    Laravel 9+: bisa pakai Mail::html(). Jika kamu di versi lebih lama, gunakan Mail::send dengan view sederhana.
-        Mail::html($data['html'], function ($message) use ($data, $to, $cc, $bcc, $pdfBinary, $pdfName, $filePaths, $po, $senderName) {
-            $message->from($data['from'], $senderName);
-            $message->to($to);
-            if (!empty($cc))  $message->cc($cc);
-            if (!empty($bcc)) $message->bcc($bcc);
-            $message->subject($data['subject']);
-
-            // attach PDF hasil render
-            $message->attachData($pdfBinary, $pdfName, ['mime' => 'application/pdf']);
-
-            // attach file-file existing
-            foreach ($filePaths as $path) {
-                $message->attach($path);
-            }
-        });
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Email sudah dikirim beserta lampiran.'
-        ]);
-    }
-
-   
-    public function sendNowPO(Request $req, string $ponbr)
     {
         $authUser = Auth::user();
 
@@ -1047,6 +928,161 @@ class PoController extends Controller
         ]);
     }
 
+    public function sendNowPO(Request $req, string $ponbr) 
+    {
+        $authUser = Auth::user();
+
+        // 1) Validasi payload
+        $data = $req->validate([
+            'from'    => ['required','email'],
+            'to'      => ['required'],
+            'cc'      => ['nullable'],
+            'bcc'     => ['nullable'],
+            'subject' => ['required','string','max:200'],
+            'html'    => ['required','string'],
+        ]);
+
+        // 2) Ambil PO + detail + data untuk view
+        $po       = TrPO::where('ponbr', $ponbr)->firstOrFail();
+        $podetail = TrPOdetail::where('ponbr', $po->ponbr)->orderBy('cs_no')->get();
+
+        $dpp       = $po->totalamt;
+        $ppn       = $po->taxamt;
+        $grand     = $po->grandtotalamt;
+        $terbilang = ucfirst($this->terbilang($grand)) . ' rupiah';
+        $company   = CompanyPG::where('cpny_id', $po->cpny_id)->first();
+
+        $purchaser = ucwords(strtolower($authUser->name));
+
+        $viewData = [
+            'po'        => $po,
+            'podetail'  => $podetail,
+            'dpp'       => $dpp,
+            'ppn'       => $ppn,
+            'grand'     => $grand,
+            'terbilang' => $terbilang,
+            'company'   => $company,
+            'now'       => Carbon::now(),
+            'purchaser' => $purchaser,
+        ];
+
+        // 3) Tentukan display name pengirim
+        $senderName = User::where('test_email', $data['from'])->value('name')
+            ?: User::where('username', $po->created_by)->value('name')
+            ?: (Auth::check() ? (Auth::user()->name ?? Auth::user()->fullname) : null)
+            ?: 'Pakuwon System';
+
+        // 4) Normalisasi daftar email
+        $norm = function ($v) {
+            if (!$v) return [];
+            if (is_array($v)) return array_values(array_unique(array_filter(array_map('trim',$v))));
+            return array_values(array_unique(array_filter(array_map('trim', preg_split('/[,;]+/', $v)))));
+        };
+        $to  = $norm($data['to']);
+        $cc  = $norm($data['cc'] ?? []);
+        $bcc = $norm($data['bcc'] ?? []);
+        if (empty($to)) {
+            return response()->json(['success'=>false,'message'=>'Field "To" wajib diisi.'], 422);
+        }
+
+        // 5) Ambil lampiran dari TrAttachment (GCS)
+        //    refnbr = nomor dokumen (pakai ponbr untuk PO), doctype opsional kalau dipakai
+        $rows = TrAttachment::where('refnbr', $po->ponbr)
+            ->where('status', 'A')
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        // init GCS client sesuai config kamu
+        $config      = config('filesystems.disks.gcs');
+        $keyFilePath = $config['key_file'];
+        if (!Str::startsWith($keyFilePath, ['/', 'C:\\', 'D:\\'])) {
+            $keyFilePath = base_path($keyFilePath);
+        }
+        $storage = new StorageClient([
+            'projectId'   => $config['project_id'],
+            'keyFilePath' => $keyFilePath,
+        ]);
+        $bucket = $storage->bucket($config['bucket']);
+
+        // download lampiran untuk di-attach
+        $gcsAttachments = []; // [ ['data' => binary, 'name' => 'file.ext', 'mime' => 'application/octet-stream'], ... ]
+        foreach ($rows as $r) {
+            $objectPath = rtrim((string)$r->folder, '/').'/'.(string)$r->filename;
+            try {
+                $object = $bucket->object($objectPath);
+                if ($object->exists()) {
+                    // ambil biner
+                    $binary = $object->downloadAsString();
+
+                    // tentukan nama file & mime
+                    $name = $r->attachment_name ?: basename($objectPath);
+                    $mime = $r->mimetype ?? $object->info()['contentType'] ?? 'application/octet-stream';
+
+                    $gcsAttachments[] = [
+                        'data' => $binary,
+                        'name' => $name,
+                        'mime' => $mime,
+                    ];
+                } else {
+                    \Log::warning('GCS object not found', ['path' => $objectPath]);
+                }
+            } catch (\Throwable $e) {
+                \Log::warning('GCS download failed', ['path' => $objectPath, 'error' => $e->getMessage()]);
+            }
+        }
+
+        // 6) Generate PDF + footer
+        $view = $po->potype === 'PO' ? 'pages.purchase.pdf_po' : 'pages.purchase.pdf_spk';
+        $pdf  = PDF::loadView($view, $viewData)->setPaper('A4', 'portrait');
+
+        /** @var \Dompdf\Dompdf $dompdf */
+        $dompdf = $pdf->getDomPDF();
+        $dompdf->render();
+
+        $canvas  = $dompdf->get_canvas();
+        $w       = $canvas->get_width();
+        $h       = $canvas->get_height();
+
+        $metrics = $dompdf->getFontMetrics();
+        $font    = $metrics->get_font('sans-serif', 'normal');
+        $size    = 9;
+
+        $now       = $viewData['now'];
+        $leftTxt   = "Created by: {$purchaser}, Sent by: {$purchaser}, On: " . $now->format('d/m/Y H:i');
+        $rightTpl  = "Page {PAGE_NUM} of {PAGE_COUNT}";
+        $rightW    = $metrics->getTextWidth($rightTpl, $font, $size);
+
+        $y = $h - 28;
+        $x = $canvas->get_width() - $w - 75;
+
+        $canvas->page_text(20, $y, $leftTxt, $font, $size, [0,0,0]);
+        $canvas->page_text($w - $x - $rightW - 20, $y, $rightTpl, $font, $size, [0,0,0]);
+
+        $pdfBinary = $dompdf->output();
+        $pdfName   = ($po->potype === 'PO' ? 'PO' : 'SPK') . "_{$po->ponbr}.pdf";
+
+        // 7) Kirim email
+        Mail::html($data['html'], function ($message) use ($data, $to, $cc, $bcc, $pdfBinary, $pdfName, $gcsAttachments, $senderName) {
+            $message->from($data['from'], $senderName);
+            $message->to($to);
+            if (!empty($cc))  $message->cc($cc);
+            if (!empty($bcc)) $message->bcc($bcc);
+            $message->subject($data['subject']);
+
+            // attach PDF hasil render + footer
+            $message->attachData($pdfBinary, $pdfName, ['mime' => 'application/pdf']);
+
+            // attach file-file dari GCS
+            foreach ($gcsAttachments as $att) {
+                $message->attachData($att['data'], $att['name'], ['mime' => $att['mime'] ?? 'application/octet-stream']);
+            }
+        });
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Email sudah dikirim beserta lampiran PDF & file dari GCS.'
+        ]);
+    }
 
 
     

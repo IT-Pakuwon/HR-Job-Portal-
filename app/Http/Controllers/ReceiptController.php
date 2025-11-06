@@ -125,14 +125,15 @@ class ReceiptController extends Controller
 
         $doctype = 'GR';
         $cpnyid  = $po->cpny_id       ?? ($request->input('cpnyid')       ?? null);
-        $deptid  = $po->department_id ?? ($request->input('departmentid') ?? null);
+        // $deptid  = $po->department_id ?? ($request->input('departmentid') ?? null);
+        $deptid  = 'WAREHOUSE';
 
         $approvalCtl = app(ApprovalController::class);
         $approvalCtl->loadLines($doctype, $cpnyid, $deptid);
 
         return DB::connection('pgsql')->transaction(function () use (
             $request, $username, $ponbr, $poDetails, $po, $qtyReceiptInput, $siteInput,
-            $doctype, $cpnyid, $deptid, $approvalCtl   // <-- tambahkan $approvalCtl di sini
+            $doctype, $cpnyid, $deptid, $approvalCtl   
         ) {
             $now   = \Carbon\Carbon::now();
             $year  = (int) $now->year;
@@ -599,7 +600,8 @@ class ReceiptController extends Controller
         // ===== Cek approval line aktif (doctype GR) =====
         $doctype = 'GR';
         $cpnyid  = $rcp->cpny_id ?? $rcp->cpnyid ?? null;
-        $deptid  = $rcp->department_id ?? $rcp->departementid ?? null;
+        // $deptid  = $rcp->department_id ?? $rcp->departementid ?? null;
+        $deptid  = 'WAREHOUSE';
 
         // ===== Approval controller =====
         $approvalCtl = app(\App\Http\Controllers\ApprovalController::class);
@@ -691,8 +693,8 @@ class ReceiptController extends Controller
                 $meta = [
                     'refnbr'        => $receiptnbr,
                     'doctype'       => $doctype,
-                    'cpnyid'        => $rcp->cpny_id ?? null,
-                    'departementid' => $rcp->department_id ?? null,
+                    'cpnyid'        => $cpnyid ?? null,
+                    'departementid' => $deptid ?? null,
                     'base_folder'   => 'att-purchasing-app/'.strtolower($doctype),
                     'created_by'    => $username,
                 ];
@@ -734,7 +736,8 @@ class ReceiptController extends Controller
         if (!$receipt) return response()->json(['success'=>false,'message'=>'Receipt not found'],404);
 
         $eid      = \Vinkla\Hashids\Facades\Hashids::encode($receipt->id);
-        $docUrl   = url('/showreceipts/' . $eid);
+        // (opsional) samakan route show jika pakai singular:
+        $docUrl   = url('/showreceipt/' . $eid);
         $fullname = data_get($receipt, 'creator.name') ?: $receipt->created_by;
 
         $result = app(\App\Http\Controllers\ApprovalController::class)->approveStep(
@@ -743,15 +746,30 @@ class ReceiptController extends Controller
             $user->username,
             $user->name,
 
-            // complete: update header/detail + email creator complete
-            function (string $refnbr, \Carbon\Carbon $now) use ($receipt, $fullname, $docUrl) {
+            // ==== COMPLETE CALLBACK: dokumen finish (C) ====
+            function (string $refnbr, \Carbon\Carbon $now) use ($receipt, $fullname, $docUrl, $request) {
+                 // 3) >>>> UPDATE PO setelah receipt COMPLETE <<<<
+                try {
+                    // Panggil fungsi updatePO (id = id TrReceipt)
+                    app(static::class)->updatePO($request, $receipt->id);
+                } catch (\Throwable $e) {
+                    \Log::error('approveReceipt: updatePO failed', [
+                        'receiptnbr' => $receipt->receiptnbr,
+                        'id'         => $receipt->id,
+                        'error'      => $e->getMessage(),
+                    ]);
+                    // Tidak melempar ulang agar approval tetap sukses
+                }
+                
+                // 1) Update header & detail ke C
                 $receipt->status       = 'C';
-                $receipt->completed_by = $receipt->completed_by ?: auth()->user()->username;
+                $receipt->completed_by = $receipt->completed_by ?: (auth()->user()->username ?? $receipt->completed_by);
                 $receipt->completed_at = $now;
                 $receipt->save();
 
                 TrReceiptdetail::where('receiptnbr', $receipt->receiptnbr)->update(['status' => 'C']);
 
+                // 2) Notifikasi ke requester (creator)
                 app(\App\Http\Controllers\ApprovalController::class)->notifyRequesterOnStatus(
                     $receipt->receiptnbr,
                     'Receipt',
@@ -765,12 +783,14 @@ class ReceiptController extends Controller
                         'info'     => $receipt->keperluan,
                         'fullname' => $fullname,
                         'name'     => $fullname,
-                        'createdby'=> $fullname, 
+                        'createdby'=> $fullname,
                     ]
                 );
+
+               
             },
 
-            // notify next approver
+            // ==== NEXT APPROVER CALLBACK: lanjut ke approver berikutnya ====
             function ($next, \Carbon\Carbon $now) use ($receipt, $docUrl) {
                 app(\App\Http\Controllers\ApprovalController::class)->notifyFirstApprover(
                     $receipt->receiptnbr,
@@ -785,8 +805,8 @@ class ReceiptController extends Controller
                     ]
                 );
 
-                // jejak terakhir diproses (optional)
-                $receipt->completed_by = auth()->user()->username;
+                // jejak terakhir diproses (opsional)
+                $receipt->completed_by = auth()->user()->username ?? $receipt->completed_by;
                 $receipt->completed_at = $now;
                 $receipt->save();
             }
@@ -798,6 +818,7 @@ class ReceiptController extends Controller
 
         return response()->json(['success'=>true,'message'=>'Task approved successfully']);
     }
+
 
     public function rejectReceipt(Request $request, $docid)
     {
@@ -1505,14 +1526,15 @@ class ReceiptController extends Controller
 
     private function finalizeReceiptAndPo(int $receiptId, string $uname): array
     {
+        
         return DB::connection('pgsql')->transaction(function () use ($receiptId, $uname) {
             $now = \Carbon\Carbon::now();
 
             // Lock header
             $rcp = TrReceipt::where('id', $receiptId)->lockForUpdate()->firstOrFail();
 
-            if ($rcp->status !== 'P') {
-                throw new \RuntimeException('Receipt tidak dalam status PENDING.');
+            if (!in_array($rcp->status, ['P','C'], true)) {
+                throw new \RuntimeException('Receipt tidak dalam status yang dapat difinalisasi.');
             }
 
             // Ambil semua detail receipt
@@ -1761,14 +1783,22 @@ class ReceiptController extends Controller
             return back()->withErrors(['Minimal satu baris Qty Return > 0.'])->withInput();
         }
 
+        // $deptid = $src->department_id;
+        $deptid  = 'WAREHOUSE';
+        $cpnyid = $src->cpny_id;
+
+        $doctype = 'GR';
+        $now   = Carbon::now();
+        $year  = (int)$now->year;
+        $month = str_pad($now->month, 2, '0', STR_PAD_LEFT);
+
+        $approvalCtl = app(ApprovalController::class);
+        $approvalCtl->loadLines($doctype, $cpnyid, $deptid);
+
+
         DB::beginTransaction();
         try {
-            // === Autonumber: RTYYMM#### (ubah doctype bila perlu)
-            $doctype = 'GR';
-            $now   = Carbon::now();
-            $year  = (int)$now->year;
-            $month = str_pad($now->month, 2, '0', STR_PAD_LEFT);
-
+            
             $autonbr = Autonbr::lockForUpdate()
                 ->where('doctype', $doctype)->where('year', $year)->where('month', $month)
                 ->first();
@@ -1893,9 +1923,26 @@ class ReceiptController extends Controller
             // simpan total return di header (pakai kolom totalqty_received sebagai penampung)
             $hdr->totalqty_received = $totalReturn;
             $hdr->save();
-    
-            $deptid = $src->department_id;
-            $cpnyid = $src->cpny_id;
+           
+
+            $ctx = ['ignore_nominal' => true];
+
+            [$firstApprovalUsernames, $linesCount] = $approvalCtl->generateForDocument(
+                $receiptnbr,
+                $doctype,
+                $cpnyid,
+                $deptid,
+                $username,
+                $ctx,
+                $now
+            );
+
+            if ($firstApprovalUsernames) {
+                $hdr->completed_by = $firstApprovalUsernames;
+                $hdr->completed_at = $now; // <-- ganti $dt jadi $now
+                $hdr->save();
+            }   
+           
             
             if ($request->hasFile('attachments')) {
                 $meta = [
@@ -1923,6 +1970,21 @@ class ReceiptController extends Controller
             } else {
                 $uploadResult = null; // tidak ada attachment
             }
+
+            // Notifikasi approver pertama
+            $eid = \Vinkla\Hashids\Facades\Hashids::encode($hdr->id);
+            $approvalCtl->notifyFirstApprover(
+                $receiptnbr,
+                $doctype,
+                $hdr->status, // 'P'
+                'Return',
+                url('/showreceipt/' . $eid),
+                [
+                    'info'      => 'Request from user ' . ($po->user_peminta ?? '-'),
+                    'createdby' => $hdr->created_by,
+                    'date'      => $now->toDateTimeString(),
+                ]
+            );
 
             DB::commit();
 
