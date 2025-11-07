@@ -319,7 +319,7 @@ class IssueController extends Controller
                     'doctype'       => $doctype,
                     'cpnyid'        => $cpnyid ?? null,
                     'departementid' => $deptid ?? null,
-                    'base_folder'   => 'att-issue/'.strtolower($doctype),
+                    'base_folder'   => 'att-purchasing-app/'.strtolower($doctype),
                     'created_by'    => $username,
                 ];
 
@@ -720,7 +720,7 @@ class IssueController extends Controller
                     'doctype'       => $doctype,
                     'cpnyid'        => $cpnyid ?? null,
                     'departementid' => $deptid ?? null,
-                    'base_folder'   => 'att-issue/'.strtolower($doctype),
+                    'base_folder'   => 'att-purchasing-app/'.strtolower($doctype),
                     'created_by'    => $username,
                 ];
                 $files    = (array) $request->file('attachments');

@@ -77,6 +77,10 @@
                                 <th class="border px-4 py-3 text-left font-semibold">Description</th>
                                 <th class="border px-4 py-3 text-left font-semibold">Qty</th>
                                 <th class="border px-4 py-3 text-left font-semibold">UoM</th>
+                                <th class="border px-4 py-3 text-left font-semibold">
+                                    <div>Estimates</div>
+                                    <div class="text-xs text-gray-500 dark:text-gray-400">Material & Jasa</div>
+                                </th>
                                 @foreach ($vendors as $v)
                                     <th class="border px-4 py-3 text-left font-semibold">
                                         <div>{{ $v['name'] }}</div>
@@ -107,11 +111,27 @@
                                             value="{{ number_format((float) $d->qty, 2, '.', '') }}">
                                     </td>
                                     <td class="border px-4 py-3 text-center">{{ $d->uom }}</td>
+                                    <td class="border px-4 py-3 align-top">
+                                        <div class="grid grid-cols-2 gap-3 text-xs">
+                                            <label class="flex flex-col gap-1">
+                                            <span class="font-medium text-gray-600 dark:text-gray-300">Est. Material</span>
+                                            <input type="text" value="{{ $d->est_material_price }}"
+                                                        class="w-full rounded-md border bg-gray-100 px-2 py-1 text-right text-gray-600 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                                        readonly>
+                                            </label>
+                                            <label class="flex flex-col gap-1">
+                                            <span class="font-medium text-gray-600 dark:text-gray-300">Est. Jasa</span>
+                                            <input type="text" value="{{ $d->est_jasa_price }}"
+                                                        class="w-full rounded-md border bg-gray-100 px-2 py-1 text-right text-gray-600 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                                        readonly>
+                                            </label>
+                                        </div>
+                                    </td>
 
                                     @foreach ($vendors as $v)
                                         <td class="border px-4 py-3 align-top">
                                             <div class="grid grid-cols-2 gap-3 text-xs">
-                                                <label class="flex flex-col gap-1">
+                                                {{-- <label class="flex flex-col gap-1">
                                                     <span class="font-medium text-gray-600 dark:text-gray-300">Est.
                                                         Material</span>
                                                     <input type="text" value="{{ $d->est_material_price }}"
@@ -124,7 +144,7 @@
                                                     <input type="text" value="{{ $d->est_jasa_price }}"
                                                         class="w-full rounded-md border bg-gray-100 px-2 py-1 text-right text-gray-600 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                                         readonly>
-                                                </label>
+                                                </label> --}}
                                                 <label class="flex flex-col gap-1">
                                                     <span class="font-medium text-gray-600 dark:text-gray-300">Total
                                                         Material</span>
@@ -149,7 +169,7 @@
                         <!-- FOOTER -->
                         <tfoot class="bg-gray-100 font-medium dark:bg-gray-700">
                             <tr>
-                                <td colspan="5" class="border px-4 py-4 text-right">Grand Total per Vendor</td>
+                                <td colspan="6" class="border px-4 py-4 text-right">Grand Total per Vendor</td>
                                 @foreach ($vendors as $i => $v)
                                     <td class="border px-4 py-4 text-right">
                                         <div class="text-xs text-gray-600 dark:text-gray-300">
@@ -187,6 +207,9 @@
     </div>
 
 
+    <!-- Tambahkan di <head> atau sebelum </body> -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     <script>
         (function() {
             const vendors = @json($vendors);
@@ -220,7 +243,7 @@
                     const rowVendors = [];
                     // kolom vendor mulai index 5
                     vendors.forEach((v, i) => {
-                        const td = tds[5 + i];
+                        const td = tds[6 + i];
                         const mat = toFixed2(td.querySelector('.bq-price-mat').value);
                         const jsa = toFixed2(td.querySelector('.bq-price-jsa').value);
                         rowVendors.push({
@@ -252,14 +275,36 @@
                         body: fd
                     })
                     .then(r => r.json())
+                    // .then(res => {
+                    //     if (res.ok) {
+                    //         alert('BQ saved: ' + res.bqid);
+                    //         window.location.href = "{{ url('/csjobs') }}";
+                    //     } else {
+                    //         alert('Save failed: ' + (res.msg || ''));
+                    //     }
+                    // })
                     .then(res => {
                         if (res.ok) {
-                            alert('BQ saved: ' + res.bqid);
-                            window.location.href = "{{ url('/csjobs') }}";
+                            Swal.fire({
+                                title: '✅ BQ Saved Successfully',
+                                text: 'BQ ID: ' + res.bqid,
+                                icon: 'success',
+                                confirmButtonText: 'OK',
+                                confirmButtonColor: '#4F46E5',
+                            }).then(() => {
+                                window.location.href = "{{ url('/csjobs') }}";
+                            });
+
                         } else {
-                            alert('Save failed: ' + (res.msg || ''));
+                            Swal.fire({
+                                title: '❌ Save Failed',
+                                text: res.msg || 'Unknown error occurred.',
+                                icon: 'error',
+                                confirmButtonText: 'Close'
+                            });
                         }
                     })
+
                     .catch(err => alert('Error: ' + err));
             });
         })();
@@ -268,7 +313,7 @@
         (function() {
             const vendors = @json($vendors);
             const VENDOR_OFFSET =
-                5; // kolom vendor mulai dari index-td ke 5 (0-based): BQ No, Line, Descr, Qty, UoM -> 5
+                6; // kolom vendor mulai dari index-td ke 5 (0-based): BQ No, Line, Descr, Qty, UoM -> 5
             const nf = new Intl.NumberFormat('id-ID', {
                 minimumFractionDigits: 2,
                 maximumFractionDigits: 2

@@ -1195,8 +1195,94 @@ class CareerController extends Controller
         }
     }
 
-
     public function uploadDocument(Request $request)
+    {
+        $user      = $request->user();
+        $now       = Carbon::now();
+        $datestamp = $now->toDateTimeString();
+        $year      = (int) $now->format('Y');
+        $month     = (int) $now->format('m');
+
+        $checklist = Trchecklist::findOrFail($request->checklist_id);
+
+        // Validasi (aktifkan kembali)
+        // $request->validate([
+        //     'checklist_id' => 'required|exists:tr_checklist,id',
+        //     'document'     => 'required|file|mimes:pdf,doc,docx,jpg,jpeg,png|max:5120', // 5MB
+        // ]);
+
+        $originalName = null;
+        $gcsPath      = null;
+
+        if ($request->hasFile('document')) {
+            $file         = $request->file('document');
+            $originalName = str_replace('%', '', $file->getClientOriginalName());
+            $ext          = $file->getClientOriginalExtension();
+            $randomPrefix = md5(random_int(1, 99999999));
+
+            // Folder: att-job-career/{Y}/{m}/{checklist_id}
+            // $ymFolder = sprintf('att-job-career/%d/%02d/%s', $year, $month, $request->applicant_id);
+            $ymFolder = 'att-job-career/' . $year . '/' . $month . '/' . $checklist->applicant_id;
+            $filename = $randomPrefix . '.' . $ext;
+            $gcsPath  = "{$ymFolder}/{$filename}";
+
+            // --- Init GCS dari config disks.gcs ---
+            $config  = config('filesystems.disks.gcs');
+            $storage = new StorageClient([
+                'projectId'   => $config['project_id'],
+                'keyFilePath' => $config['key_file'],
+            ]);
+            $bucket = $storage->bucket($config['bucket']);
+
+            try {
+                $bucket->upload(
+                    fopen($file->getPathname(), 'r'),
+                    [
+                        'name'         => $gcsPath,
+                        'predefinedAcl'=> 'private', // simpan private
+                        'metadata'     => [
+                            'contentType' => $file->getMimeType(),
+                        ],
+                    ]
+                );
+                Log::info('Upload checklist document success', ['checklist_id' => $request->checklist_id, 'gcsPath' => $gcsPath]);
+            } catch (\Throwable $e) {
+                Log::error('Upload checklist document failed', [
+                    'checklist_id' => $request->checklist_id,
+                    'error' => $e->getMessage(),
+                ]);
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Gagal upload dokumen: ' . $e->getMessage(),
+                ], 500);
+            }
+        } else {
+            return response()->json([
+                'success' => false,
+                'message' => 'Tidak ada file yang diunggah.',
+            ], 422);
+        }
+
+        // Simpan ke DB
+        
+        $checklist->checklist_filename   = $originalName; // nama asli user
+        $checklist->checklist_attachfile = $gcsPath;      // path di GCS
+        $checklist->checklist_receive    = 1;
+        $checklist->checklist_by         = $user->username ?? $user->name ?? 'system';
+        $checklist->checklist_at         = $datestamp;
+        $checklist->status               = 'A';
+        $checklist->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Document uploaded',
+            'path'    => $gcsPath,
+            'filename'=> $originalName,
+        ]);
+    }
+
+
+    public function uploadDocument_xxx(Request $request)
     {
         $user = request()->user();
         $datestamp = Carbon::now()->toDateTimeString();
@@ -1215,7 +1301,8 @@ class CareerController extends Controller
             $file = $request->file('document');
             $randomNumber = random_int(10000000, 99999999);
             $originalName = str_replace('%', '', $file->getClientOriginalName());
-            $document = md5($randomNumber) . '-' . $originalName;
+            $ext        = $file->getClientOriginalExtension();
+            $document = md5($randomNumber) . '.' . $ext;
         
             $folder_attach = public_path('/attachments/' . $year);
             if (!is_dir($folder_attach)) {
@@ -2384,7 +2471,23 @@ class CareerController extends Controller
         return response()->json($data);
     }
 
+    public function viewDocument($id)
+    {
+        $row = Trchecklist::findOrFail($id); // koneksi mysql3 dari model
+        abort_if(!$row->checklist_attachfile, 404);
 
+        $config  = config('filesystems.disks.gcs');
+        $storage = new StorageClient([
+            'projectId'   => $config['project_id'],
+            'keyFilePath' => $config['key_file'],
+        ]);
+        $bucket = $storage->bucket($config['bucket']);
+        $object = $bucket->object($row->checklist_attachfile);
+        abort_unless($object->exists(), 404, 'File not found on GCS');
+
+        $url = $object->signedUrl(new \DateTime('+5 minutes'), ['version' => 'v4']);
+        return redirect()->away($url);
+    }
 
 
     

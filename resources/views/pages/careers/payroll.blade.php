@@ -119,10 +119,7 @@
 
                         <div class="flex flex-col">
                             <label for="net_salary"
-                                class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Salary</label>
-                            {{-- <input type="number" name="net_salary" id="net_salary"
-                                class="w-full rounded-lg border border-gray-300 p-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
-                                required> --}}
+                                class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Salary</label>                         
                             <input type="text" name="net_salary" id="net_salary" inputmode="numeric"
                                 class="money-separator w-full rounded-lg border border-gray-300 p-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
                                 placeholder="0" required>
@@ -150,8 +147,9 @@
                                 class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Tgl
                                 Selesai Kerja</label>
                             <input type="date" name="availability_date" id="availability_date"
-                                class="w-full rounded-lg border border-gray-300 p-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
-                                required>
+                            class="w-full rounded-lg border border-gray-300 p-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white bg-gray-100 cursor-not-allowed"
+                            readonly>
+
                         </div>
 
                         
@@ -177,6 +175,7 @@
                                     class="w-full rounded-lg border border-gray-300 p-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white">
                                 <option value="">-- Select Contract Term --</option>
                                 <option value="2">Contract 2 bulan</option>
+                                <option value="3">Contract 3 bulan</option>
                                 <option value="6">Contract 6 bulan</option>
                                 <option value="12">Contract 12 bulan</option>
                             </select>
@@ -1069,4 +1068,94 @@ $(document).on('change', '#employment_status', function () {
 });
 
 </script>
+
+<script>
+  // Kunci total field availability (tanpa mempengaruhi submit)
+  (function lockAvailabilityField() {
+    const $av = $('#availability_date');
+    $av.on('keydown mousedown', function (e) { e.preventDefault(); });
+    // cegah open datepicker
+    $av.on('focus', function(){ this.blur(); });
+  })();
+
+  function pad(n){ return String(n).padStart(2, '0'); }
+
+  function formatDateInput(d) {
+    // yyyy-mm-dd
+    return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+  }
+
+  function parseDateInput(val) {
+    // expects yyyy-mm-dd
+    if (!val) return null;
+    const [y,m,d] = val.split('-').map(Number);
+    if (!y || !m || !d) return null;
+    return new Date(y, m-1, d);
+  }
+
+  function addMonthsKeepDay(date, months) {
+    // JS will auto-handle overflow (contoh 31 Jan + 1 bulan => 2/Mar kalau Feb tidak punya 31)
+    // Ini perilaku yang biasanya diinginkan untuk kontrak (hari dipertahankan sebisa mungkin)
+    const y = date.getFullYear();
+    const m = date.getMonth();
+    const d = date.getDate();
+    return new Date(y, m + months, d);
+  }
+
+  function computeAvailability() {
+    const status = $('#employment_status').val();
+    const term   = parseInt($('#contract_term').val() || '0', 10);
+    const startV = $('#work_start_date').val();
+    const $av    = $('#availability_date');
+
+    if (status === 'PKWT' && term > 0 && startV) {
+      const start = parseDateInput(startV);
+      if (start) {
+        const end = addMonthsKeepDay(start, term);
+        $av.val(formatDateInput(end));
+        return;
+      }
+    }
+    // fallback jika belum lengkap
+    $av.val('');
+  }
+
+  // Hook perubahan
+  $(document).on('change', '#work_start_date', computeAvailability);
+  $(document).on('change', '#contract_term', computeAvailability);
+
+  // Perkuat toggleContractTerm agar sekalian toggle required & hitung end-date
+  const _origToggle = window.toggleContractTerm;
+  window.toggleContractTerm = function(statusVal){
+    // panggil behavior lama
+    if (typeof _origToggle === 'function') _origToggle(statusVal);
+
+    const $av = $('#availability_date');
+
+    if (statusVal === 'PKWT') {
+      // pastikan required untuk PKWT
+      $av.prop('required', true);
+      // hitung saat ini (kalau field sudah terisi)
+      computeAvailability();
+    } else {
+      // non PKWT: kosongkan & tidak wajib
+      $av.val('').prop('required', false);
+    }
+  };
+
+  // Ketika modal dibuka pertama kali atau status berubah
+  $(document).on('change', '#employment_status', function(){
+    toggleContractTerm(this.value);
+    computeAvailability();
+  });
+
+  // Saat tombol Add (modal baru) → pastikan sinkron
+  $('#addPayrollBtn').on('click', function(){
+    setTimeout(() => {
+      toggleContractTerm($('#employment_status').val() || '');
+      computeAvailability();
+    }, 0);
+  });
+</script>
+
 

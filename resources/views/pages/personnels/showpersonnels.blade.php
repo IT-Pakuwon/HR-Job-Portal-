@@ -371,11 +371,13 @@
                                         <tr
                                             class="border-b border-gray-100 transition-colors hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700">
                                             <td class="p-3 text-left text-gray-800 dark:text-gray-200">
-                                                {{ $ap->aprvid }}</td>
+                                            {{ $ap->aprv_leveling }}
+                                            </td>
                                             <td class="p-3 text-left text-gray-800 dark:text-gray-200">
-                                                {{ $ap->name }}</td>
+                                            {{ $ap->aprv_name }}
+                                            </td>
                                             <td class="p-3 text-left text-gray-700 dark:text-gray-300">
-                                                {{ \Carbon\Carbon::parse($ap->aprvdatebefore)->format('d M Y') }}
+                                            {{ $ap->aprv_datebefore ? : '-' }}
                                             </td>
                                             <td class="p-3 text-left">
                                                 @php
@@ -428,31 +430,36 @@
                                 </thead>
                                 <tbody>
                                     @foreach ($attachment as $at)
-                                        @php
-                                            $year = $at->created_at->year;
-                                            $fileUrl = url('/attachments/' . $year . '/' . $at->attachfile);
-                                        @endphp
-                                        <tr
-                                            class="border-b border-gray-100 transition-colors last:border-b-0 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700">
-                                            <td class="p-3">
-                                                <a href="{{ $fileUrl }}" target="_blank"
-                                                    class="flex items-center gap-2 font-medium text-indigo-600 hover:underline dark:text-indigo-400">📎
-                                                    {{ $at->name }}</a>
-                                            </td>
-                                            <td class="p-3 text-gray-800 dark:text-gray-200">
-                                                {{ $at->created_user }}</td>
-                                            <td class="p-3 text-gray-700 dark:text-gray-300">
-                                                {{ \Carbon\Carbon::parse($at->created_at)->format('d M Y') }}
-                                            </td>
+                                        <tr class="border-b border-gray-100 transition-colors last:border-b-0 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700">
+                                        <td class="p-3">
+                                            @if (!empty($at->signed_url))
+                                            <a href="{{ $at->signed_url }}" target="_blank"
+                                                class="flex items-center gap-2 font-medium text-indigo-600 hover:underline dark:text-indigo-400">📎
+                                                {{ $at->attachment_name ?? ($at->filename ?? 'Attachment') }}
+                                            </a>
+                                            @else
+                                            <span class="text-gray-700 dark:text-gray-300">
+                                                {{ $at->attachment_name ?? ($at->filename ?? 'Attachment') }}
+                                            </span>
+                                            @endif
+                                        </td>
+                                        <td class="p-3 text-gray-800 dark:text-gray-200">
+                                            {{ $at->created_by ?? '-' }}
+                                        </td>
+                                        <td class="p-3 text-gray-700 dark:text-gray-300">
+                                            @php
+                                            $dt = $at->attachment_date ?? $at->created_at ?? null;
+                                            @endphp
+                                            {{ $dt ? : '-' }}
+                                        </td>
                                         </tr>
                                     @endforeach
                                     @if ($attachment->isEmpty())
                                         <tr>
-                                            <td colspan="3"
-                                                class="p-4 text-center italic text-gray-500 dark:text-gray-400">
-                                                No attachments found.</td>
+                                        <td colspan="3" class="p-4 text-center italic text-gray-500 dark:text-gray-400">No attachments found.</td>
                                         </tr>
                                     @endif
+
                                 </tbody>
                             </table>
                         </div>

@@ -12,7 +12,7 @@
             <tr>
                 <td class="border px-3 py-2">{{ $p->step_order }}</td>
                 <td class="border px-3 py-2">{{ $p->checklist_descr }}</td>
-                <td class="border px-3 py-2">
+                {{-- <td class="border px-3 py-2">
                     @if ($p->checklist_filename)
                         📁 <a href="{{ asset('attachments/' . $year . '/' . $p->checklist_attachfile) }}" target="_blank"
                             class="text-blue-600 underline">View</a>
@@ -23,13 +23,24 @@
                         data-id="{{ $p->id }}" data-descr="{{ $p->checklist_descr }}">
                         Upload
                     </button>
-                </td>
-                {{-- <td class="border px-3 py-2">
-                    <button class="upload-btn bg-indigo-500 hover:bg-indigo-600 text-white px-3 py-1 rounded text-xs"
-                            data-id="{{ $p->id }}" data-descr="{{ $p->checklist_descr }}">
+                </td>                --}}
+                <td class="border px-3 py-2">
+                    @if ($p->checklist_attachfile)
+                        📁 <a href="{{ route('checklist.view', $p->id) }}" target="_blank" class="text-blue-600 underline">
+                        View
+                        </a>
+                        {{-- @if ($p->checklist_filename)
+                        <span class="ml-2 text-gray-500">({{ $p->checklist_filename }})</span>
+                        @endif --}}
+                    @else
+                        <span class="italic text-gray-400">No document</span>
+                    @endif
+
+                    <button class="upload-btn rounded bg-indigo-500 px-3 py-1 text-xs text-white hover:bg-indigo-600"
+                        data-id="{{ $p->id }}" data-descr="{{ $p->checklist_descr }}">
                         Upload
                     </button>
-                </td> --}}
+                </td>
             </tr>
         @endforeach
     </tbody>
@@ -59,15 +70,47 @@
             $('#uploadModal').removeClass('hidden').addClass('flex');
         });
 
-        // Tutup modal
-        $('#cancelModal').on('click', function() {
-            $('#uploadModal').addClass('hidden').removeClass('flex');
-        });
+        // // Tutup modal
+        // $('#cancelModal').on('click', function() {
+        //     $('#uploadModal').addClass('hidden').removeClass('flex');
+        // });
 
         // Upload form
-        $('#uploadForm').on('submit', function(e) {
+        // $('#uploadForm').on('submit', function(e) {
+        //     e.preventDefault();
+        //     const formData = new FormData(this);
+
+        //     $.ajax({
+        //         url: '{{ route('checklist.upload') }}',
+        //         method: 'POST',
+        //         data: formData,
+        //         processData: false,
+        //         contentType: false,
+        //         success: function(res) {
+        //             if (res.success) {
+        //                 location.reload(); // Refresh untuk update tampilan
+        //             } else {
+        //                 alert(res.message);
+        //             }
+        //         },
+        //         error: function() {
+        //             alert('Upload failed. Try again.');
+        //         }
+        //     });
+        // });
+
+        $('#uploadForm').on('submit', function (e) {
             e.preventDefault();
+
             const formData = new FormData(this);
+            const submitBtn = $('#uploadForm button[type="submit"]');
+            const cancelBtn = $('#cancelModal');
+
+            // Disable tombol dan tampilkan loading
+            submitBtn.prop('disabled', true)
+                .html('<span class="animate-pulse">Uploading...</span>');
+            cancelBtn.prop('disabled', true).addClass('opacity-50 cursor-not-allowed');
+            $('#uploadModal').addClass('pointer-events-none');
 
             $.ajax({
                 url: '{{ route('checklist.upload') }}',
@@ -75,17 +118,52 @@
                 data: formData,
                 processData: false,
                 contentType: false,
-                success: function(res) {
+                success: function (res) {
                     if (res.success) {
-                        location.reload(); // Refresh untuk update tampilan
+                        location.reload();
                     } else {
                         alert(res.message);
                     }
                 },
-                error: function() {
+                error: function () {
                     alert('Upload failed. Try again.');
+                },
+                complete: function () {
+                    // Kembalikan tombol ke kondisi semula
+                    submitBtn.prop('disabled', false).html('Upload');
+                    cancelBtn.prop('disabled', false).removeClass('opacity-50 cursor-not-allowed');
+                    $('#uploadModal').removeClass('pointer-events-none');
+
                 }
             });
         });
+
     });
+</script>
+<script>
+  // Tutup via tombol Cancel
+  $(document).on('click', '#cancelModal', function (e) {
+    e.preventDefault();
+    $('#uploadModal').addClass('hidden').removeClass('flex');
+    const f = document.getElementById('uploadForm');
+    if (f) f.reset();
+  });
+
+  // Tutup dengan klik overlay (area gelap di luar card)
+  $(document).on('click', '#uploadModal', function (e) {
+    if (e.target.id === 'uploadModal') {
+      $('#uploadModal').addClass('hidden').removeClass('flex');
+      const f = document.getElementById('uploadForm');
+      if (f) f.reset();
+    }
+  });
+
+  // Tutup dengan tombol ESC
+  $(document).on('keydown', function (e) {
+    if (e.key === 'Escape') {
+      $('#uploadModal').addClass('hidden').removeClass('flex');
+      const f = document.getElementById('uploadForm');
+      if (f) f.reset();
+    }
+  });
 </script>

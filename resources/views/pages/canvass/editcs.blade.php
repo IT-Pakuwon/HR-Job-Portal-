@@ -411,7 +411,7 @@
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            @foreach ($attachment as $at)
+                                            {{-- @foreach ($attachment as $at)
                                                 @php
                                                     $year = $at->created_at->year;
                                                     $fileUrl = url('/attachments/' . $year . '/' . $at->attachfile);
@@ -429,7 +429,27 @@
                                                         {{ \Carbon\Carbon::parse($at->created_at)->format('d M Y') }}
                                                     </td>
                                                 </tr>
+                                            @endforeach --}}
+                                            @foreach ($attachment as $at)
+                                                <tr class="border-b border-gray-100 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700">
+                                                    <td class="p-3">
+                                                        @if ($at->url)
+                                                            <a href="{{ $at->url }}" target="_blank"
+                                                            class="flex items-center gap-2 font-medium text-indigo-600 hover:underline dark:text-indigo-400">
+                                                                📎 {{ $at->display_name }}
+                                                            </a>
+                                                        @else
+                                                            <span class="flex items-center gap-2 text-gray-500 dark:text-gray-300"
+                                                                title="Signed URL tidak tersedia/expired">
+                                                                📎 {{ $at->display_name }} <em class="text-xs">(no link)</em>
+                                                            </span>
+                                                        @endif
+                                                    </td>
+                                                    <td class="p-3">{{ $at->created_by }}</td>
+                                                    <td class="p-3">{{ \Carbon\Carbon::parse($at->created_at)->format('d M Y') }}</td>
+                                                </tr>
                                             @endforeach
+
                                         </tbody>
                                     </table>
                                 </div>
@@ -454,7 +474,7 @@
                                 </summary>
                                 <div class="flex h-auto flex-col justify-start">
                                     <div id="attachmentsContainer">
-                                        @foreach ($attachmentCS as $attach)
+                                        {{-- @foreach ($attachmentCS as $attach)
                                              @php
                                                 $year = $attach->created_at->year;
                                                 $fileUrl = url('/attachments/' . $year . '/' . $attach->attachfile);
@@ -466,6 +486,23 @@
                                                 <button type="button"
                                                     class="removeAttachment2 mt-4 rounded border border-red-700 bg-red-200/10 px-3 py-3 text-white hover:border-red-700 hover:bg-red-400/30 dark:bg-red-700/30"
                                                     data-id="{{ $attach->id }}">🗑️
+                                                </button>
+                                            </div>
+                                        @endforeach --}}
+                                        @foreach ($attachmentCS as $attach)
+                                            <div class="attachment-row flex items-center gap-2" data-attachid="{{ $attach->id }}">
+                                                @if ($attach->url)
+                                                    <a href="{{ $attach->url }}" target="_blank" class="mt-4 w-full border p-3 text-lg">
+                                                        📎 {{ $attach->display_name }}
+                                                    </a>
+                                                @else
+                                                    <div class="mt-4 w-full border p-3 text-lg text-gray-500 dark:text-gray-300" title="Signed URL tidak tersedia/expired">
+                                                        📎 {{ $attach->display_name }} <em class="text-xs">(no link)</em>
+                                                    </div>
+                                                @endif
+                                                <button type="button"
+                                                        class="removeAttachment2 mt-4 rounded border border-red-700 bg-red-200/10 px-3 py-3 text-white hover:border-red-700 hover:bg-red-400/30 dark:bg-red-700/30"
+                                                        data-id="{{ $attach->id }}">🗑️
                                                 </button>
                                             </div>
                                         @endforeach
@@ -728,6 +765,13 @@
             /* ========== 3) Tambah kolom saat vendor dipilih ========== */
             let vendorCount = 0;
 
+            //vendor TOP
+            const TOPS = @json($tops->map(fn($t) => ['id' => $t->topid, 'name' => $t->top_name]));
+            // siapkan HTML option sekali saja
+            const TOPS_OPTIONS_HTML =
+                '<option value="" disabled selected>Select TOP</option>' +
+                TOPS.map(t => `<option value="${_.escape(String(t.id))}">${_.escape(t.name)}</option>`).join('');
+
             $('#vendorSelect').on('select2:select', function(e) {
                 const pkId = String(e.params.data.id);
                 const v = vendorMaster.find(x => String(x.id) === pkId);
@@ -777,11 +821,13 @@
                 </div>
                 <div class="flex items-center gap-2">
                     <span class="text-xs font-semibold text-gray-600 dark:text-gray-300">Payment Term:</span>
-                    <select name="cara_bayar_${idKey}" class="cara-bayar w-40 rounded-full border border-gray-300 bg-white px-3 py-1 text-xs font-medium shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500/50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200">
-                    <option value="14D">14 Days</option>
-                    <option value="30D">30 Days</option>
-                    <option value="Cash">Cash</option>
+                    <select name="cara_bayar_${idKey}" 
+                    class="cara-bayar w-40 rounded-full border border-gray-300 bg-white px-3 py-1 
+                            text-xs font-medium shadow-sm focus:border-indigo-500 focus:ring 
+                            focus:ring-indigo-500/50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200">
+                    ${TOPS_OPTIONS_HTML}
                     </select>
+
                 </div>
                 </div>
                 <button type="button" class="btn-del absolute top-1 right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-600 text-xs text-white shadow hover:bg-red-700" data-id="${idKey}">✕</button>
@@ -1295,6 +1341,8 @@
                 return;
             }
 
+            if (!validatePaymentTerms()) return;
+
             // ==== VALIDASI: total per-vendor tidak semuanya 0 ====
             let allVendorTotalsZero = true;
             $vendorCols.each(function() {
@@ -1470,6 +1518,8 @@
                 // akan muncul modal mismatch jika gagal
                 return;
             }
+
+            if (!validatePaymentTerms()) return;
 
             // ==== VALIDASI: minimal 1 vendor kolom ====
             const $vendorCols = $('#cvTable thead th[id^="th-vendor-"]');
@@ -1823,14 +1873,60 @@
         };
         })();
     </script>
- <script>
-    function recalcAllVendors() {
-  $('#cvTable thead th[id^="th-vendor-"]').each(function () {
-    const vid = String($(this).data('vendor-id'));
-    recalcSummaryVendor(vid);
-  });
-}
-</script>
+    <script>
+        function recalcAllVendors() {
+        $('#cvTable thead th[id^="th-vendor-"]').each(function () {
+            const vid = String($(this).data('vendor-id'));
+            recalcSummaryVendor(vid);
+        });
+        }
+    </script>
+
+    <script>
+    window.htmlEscape = function (s) {
+        s = String(s ?? '');
+        return s.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+    };
+    </script>
+
+    <script>
+        function validatePaymentTerms() {
+            let ok = true;
+
+            // reset state lama
+            $('#cvTable thead th[id^="th-vendor-"] select.cara-bayar').removeClass('is-invalid');
+
+            $('#cvTable thead th[id^="th-vendor-"]').each(function () {
+            const $th = $(this);
+            const $top = $th.find('select.cara-bayar');
+            const val  = $top.val();
+
+            if (!val) {
+                ok = false;
+                $top.addClass('is-invalid');               // tampilkan border merah
+                // scroll ke kolom vendor yang belum diisi
+                const th = $th.get(0);
+                if (th && th.scrollIntoView) th.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+                // fokuskan ke select agar langsung bisa dipilih
+                setTimeout(() => $top.trigger('focus'), 150);
+                // break dari .each
+                return false;
+            }
+            });
+
+            if (!ok) {
+            toastr.error('Payment Term (TOP) wajib diisi untuk semua vendor.');
+            }
+            return ok;
+        }
+
+        // hilangkan merah ketika user memilih nilai
+        $(document).on('change', 'select.cara-bayar', function () {
+            if ($(this).val()) $(this).removeClass('is-invalid');
+        });
+    </script>
+
+
 
 
     <!-- Toastr CSS -->

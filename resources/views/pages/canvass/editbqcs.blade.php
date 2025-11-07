@@ -170,13 +170,13 @@
                                     <td class="border px-4 py-3">{{ $d->bq_no }}</td>
                                     <td class="border px-4 py-3">{{ $d->bq_line_no }}</td>
                                     <td class="border px-4 py-3">
-                                        <input type="text" class="bq-descr w-full rounded-md border px-2 py-1 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200" value="{{ $d->bq_descr }}">
+                                        <input type="text" class="bq-descr w-full rounded-md border px-2 py-1 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200" value="{{ $d->bq_descr }}" readonly>
                                     </td>
                                     <td class="border px-4 py-3 text-center">
                                         <input type="number" step="0.01" min="0" class="bq-qty w-24 rounded-lg border px-2 py-1 text-right shadow-sm focus:ring-2 focus:ring-indigo-400 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200" value="{{ number_format((float)$d->qty, 2, '.', '') }}">
                                     </td>
                                     <td class="border px-4 py-3 text-center">
-                                        <input type="text" class="bq-uom w-20 rounded-md border px-2 py-1 text-center dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200" value="{{ $d->uom }}">
+                                        <input type="text" class="bq-uom w-20 rounded-md border px-2 py-1 text-center dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200" value="{{ $d->uom }}" readonly>
                                     </td>
 
                                     @foreach ($vendors as $v)
@@ -252,7 +252,7 @@
             </div>
         </div>
     </div>
-
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         function showOverlay(text = 'Processing') {
             const $ov = $('#loadingSpinnerContainer');

@@ -214,6 +214,8 @@ Route::post('/logout', function () {
     Route::get('/createpersonnelsx', [PersonnelController::class, 'createPersonnelx']);
     Route::get('/api/job-parent-info/{parentId}/{departementId}/{deptId}', [PersonnelController::class, 'getParentJobInfo']);
     Route::get('/api/job-parent-info-edit/{parentId}/{departementId}/{deptId}', [PersonnelController::class, 'getJobParentInfoEdit']);
+    Route::get('/attachments/view/{id}', [PersonnelController::class, 'viewAttachment'])->name('attachments.view');
+
 
     Route::get('/tasks', [ProjectTaskController::class, 'index'])->name('tasks');
     Route::get('/tasks/json', [ProjectTaskController::class, 'json'])->name('tasks.json');
@@ -319,7 +321,9 @@ Route::post('/logout', function () {
     Route::post('/onboarding/schedule/update', [CareerController::class, 'updateSchedule'])->name('onboarding.schedule.update');
 
     Route::post('/payrollconfirm/reveal', [CareerController::class, 'revealSalary'])->name('payrollconfirm.reveal');
-    Route::get('/payrollconfirm/{id}', [CareerController::class, 'getPayroll'])->name('payrollconfirm.get');
+    Route::get('/payrollconfirm/{id}', [CareerController::class, 'getPayroll'])->name('payrollconfirm.get');    
+    Route::get('/checklist/{id}/view', [CareerController::class, 'viewDocument'])->name('checklist.view');
+
 
 
 
@@ -401,6 +405,21 @@ Route::post('/logout', function () {
     Route::put('/changestos/{id}', [ChangeStoController::class, 'updateChangesto'])->name('changestos.update');
     Route::put('/changestos/remove-attachment/{id}', [ChangeStoController::class, 'removeAttachment']);    
     Route::get('/changesto/{id}/check-approval/{action}', [ChangeStoController::class, 'checkApproval']);   
+
+    // Route::get('/changestos', [ChangeStoController::class, 'index'])->name('changestos');
+    // Route::get('/changestos/json', [ChangeStoController::class, 'json'])->name('changestos.json');
+    // Route::get('/createchangestos', [ChangeStoController::class, 'createChangesto']);
+    // Route::post('/changestos', [ChangeStoController::class, 'storeChangesto'])->name('changestos.store');
+    // Route::get('/showchangestos/{id}', [ChangeStoController::class, 'showChangesto']);
+    // Route::get('/changesto/{id}/comments', [ChangeStoController::class, 'fetchComments']);
+    // Route::post('/changesto/{id}/comments', [ChangeStoController::class, 'storeComment']);
+    // Route::post('/changesto/{id}/approve', [ChangeStoController::class, 'approveChangesto']);
+    // Route::post('/changesto/{id}/reject', [ChangeStoController::class, 'rejectChangesto']);
+    // Route::post('/changesto/{id}/revise', [ChangeStoController::class, 'reviseChangesto']);
+    // Route::get('/editchangestos/{id}', [ChangeStoController::class, 'editChangesto']);
+    // Route::put('/changestos/{id}', [ChangeStoController::class, 'updateChangesto'])->name('changestos.update');
+    // Route::put('/changestos/remove-attachment/{id}', [ChangeStoController::class, 'removeAttachment']);    
+    // Route::get('/changesto/{id}/check-approval/{action}', [ChangeStoController::class, 'checkApproval']); 
 
     Route::get('/budgets', [BudgetController::class, 'index'])->name('budgets');
     Route::get('/budgets/json', [BudgetController::class, 'json'])->name('budgets.json');
@@ -520,8 +539,7 @@ Route::post('/logout', function () {
     Route::get('/csjobs/sppbjkt-progress/json', [CsJobController::class, 'SppbjktOnProgressJson'])->name('csjobs.sppbjkt.progress.json'); 
     Route::get('/csjobs/counts', [CsJobController::class,'CsJobsCounts'])->name('csjobs.counts');    
     Route::get('/csjobs/entry.json', [CsJobController::class, 'CsJobsEntryJson'])->name('csjobs.entry.json')->middleware('auth');
-    Route::get('/editcs/{eid}', [CsJobController::class, 'editCS'])->name('csjobs.edit');      
-    Route::put('/csjobs/{csid}', [CsJobController::class, 'updateCS'])->name('csjobs.update');
+
     Route::put('/csjobs/remove-attachment/{id}', [CsJobController::class, 'removeAttachment']);
     Route::get('/csjobs/dataset-counts', [CsJobController::class,'CsJobsDatasetCounts'])->name('csjobs.dataset.counts');
     Route::post('/csjobs/complete/{doc}/{eid}', [CsJobController::class, 'CompleteRemainingOpen'])->name('csjobs.complete');
@@ -530,20 +548,7 @@ Route::post('/logout', function () {
     Route::get('/cslist/json', [CsListController::class, 'json'])->name('cslist.json');
 
 
-    Route::get('/changestos', [ChangeStoController::class, 'index'])->name('changestos');
-    Route::get('/changestos/json', [ChangeStoController::class, 'json'])->name('changestos.json');
-    Route::get('/createchangestos', [ChangeStoController::class, 'createChangesto']);
-    Route::post('/changestos', [ChangeStoController::class, 'storeChangesto'])->name('changestos.store');
-    Route::get('/showchangestos/{id}', [ChangeStoController::class, 'showChangesto']);
-    Route::get('/changesto/{id}/comments', [ChangeStoController::class, 'fetchComments']);
-    Route::post('/changesto/{id}/comments', [ChangeStoController::class, 'storeComment']);
-    Route::post('/changesto/{id}/approve', [ChangeStoController::class, 'approveChangesto']);
-    Route::post('/changesto/{id}/reject', [ChangeStoController::class, 'rejectChangesto']);
-    Route::post('/changesto/{id}/revise', [ChangeStoController::class, 'reviseChangesto']);
-    Route::get('/editchangestos/{id}', [ChangeStoController::class, 'editChangesto']);
-    Route::put('/changestos/{id}', [ChangeStoController::class, 'updateChangesto'])->name('changestos.update');
-    Route::put('/changestos/remove-attachment/{id}', [ChangeStoController::class, 'removeAttachment']);    
-    Route::get('/changesto/{id}/check-approval/{action}', [ChangeStoController::class, 'checkApproval']);   
+      
 
     Route::get('/createcs/{doc}/{hash}', [CanvassController::class, 'createCS'])
         ->where(['doc' => 'SPPB|SPPJ|SPPK|SPPT', 'src' => '[0-9]+'])
@@ -551,6 +556,8 @@ Route::post('/logout', function () {
     Route::post('/csstore', [CanvassController::class, 'storeCS'])->name('cs.store');
     Route::post('/cssave', [CanvassController::class, 'saveCS'])->name('cs.save');
     Route::get('/showcs/{hash}', [CanvassController::class, 'showCS']);
+    Route::get('/editcs/{eid}', [CanvassController::class, 'editCS'])->name('csjobs.edit');      
+    Route::put('/csjobs/{csid}', [CanvassController::class, 'updateCS'])->name('csjobs.update');
   
     Route::post('/cs/{id}/approve', [CanvassController::class, 'approveCS']);
     Route::post('/cs/{id}/reject', [CanvassController::class, 'rejectCS']);

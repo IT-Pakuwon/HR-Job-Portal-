@@ -1,10 +1,21 @@
 <!-- Button -->
 {{-- @if ($canAccessSchedule) --}}
-    <button type="button" onclick="openAgendaModal()"
+    {{-- <button type="button" onclick="openAgendaModal()"
         class="inline-flex items-center rounded-xl bg-indigo-600 px-6 py-2 text-base font-semibold text-white transition-colors duration-200 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
         <i class="fas fa-plus pr-2"></i>Create Schedule
-    </button>
+    </button> --}}
 {{-- @endif --}}
+<!-- Toolbar / Header bar -->
+<div class="mb-4 flex items-center justify-between">
+  <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-100">Schedule</h3>
+
+  <button type="button" onclick="openAgendaModal()"
+    class="inline-flex items-center rounded-xl bg-indigo-600 px-6 py-2 text-base font-semibold text-white transition-colors duration-200 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+    <i class="fas fa-plus mr-2"></i>
+    Create Schedule
+  </button>
+</div>
+
 
 
 

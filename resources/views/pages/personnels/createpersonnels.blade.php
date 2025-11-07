@@ -121,16 +121,17 @@
                                     <div class="flex flex-col gap-2">
                                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Job
                                             Level</label>
+                                            <input type="hidden" name="group_grade" id="group_grade">
                                         {{-- <input type="hidden" name="subgrade_id" id="subgrade_id"> --}}
                                         {{-- <input type="text" name="job_level" id="job_level"
                                             class="pointer-events-none w-full rounded-lg border border-gray-300 bg-gray-100 p-2.5 text-gray-700 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                             readonly> --}}
-                                        <select
-                                            class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                        <select class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                             name="subgrade_id" id="subgrade_id" required>
                                             @foreach ($subgradings as $sg)
-                                                <option value="{{ $sg->subgrade_id }}">
-                                                    {{ $sg->subgrade_id }}-{{ $sg->subgrade_name }}</option>
+                                                <option value="{{ $sg->subgrade_id }}" data-group="{{ $sg->group_grade }}">
+                                                    {{ $sg->subgrade_id }} - {{ $sg->subgrade_name }}
+                                                </option>
                                             @endforeach
                                         </select>
                                     </div>
@@ -945,6 +946,24 @@
                 width: '100%',
                 allowClear: true
             });
+        });
+    </script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const subgradeSelect = document.getElementById("subgrade_id");
+            const hiddenGroupInput = document.getElementById("group_grade");
+
+            function updateGroupGrade() {
+                const selected = subgradeSelect.options[subgradeSelect.selectedIndex];
+                hiddenGroupInput.value = selected.dataset.group ?? "";
+            }
+
+            // trigger saat pertama kali load
+            updateGroupGrade();
+
+            // trigger saat pilihan berubah
+            subgradeSelect.addEventListener("change", updateGroupGrade);
         });
     </script>
 

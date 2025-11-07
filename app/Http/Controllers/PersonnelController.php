@@ -36,7 +36,13 @@ use App\Models\Division;
 use App\Models\CompanyAddress;
 use App\Models\StoSubGrading;
 use Vinkla\Hashids\Facades\Hashids;
-
+use App\Models\MsApproval;
+use App\Models\TrApproval;
+use App\Models\TrMessage;
+use Google\Cloud\Storage\StorageClient;
+use App\Models\TrAttachment;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use Mail;
 
 
@@ -104,7 +110,7 @@ class PersonnelController extends Controller
         $skillTags = MJobtag::select('id', 'job_tags')->get(); 
         $division = Division::select('division_id','division_name')->get();
 
-        $subgradings = StoSubGrading::select('subgrade_id','subgrade_name')
+        $subgradings = StoSubGrading::select('subgrade_id','subgrade_name','group_grade')
             ->where('status', 'A')
             ->orderBy('subgrade_id')
             ->get();
@@ -155,16 +161,38 @@ class PersonnelController extends Controller
             'attachments.*' => 'file|max:2048' // Validasi file, max 2MB
         ]);
 
+        $positionCondition = $request->group_grade; 
+
         $doctype = 'PRF';
-        $count_approval = M_approval::where('status', 'A')
-            ->where('aprvcpnyid', $request->cpnyid)
-            ->where('aprvdeptid', $request->departementid)
-            ->where('aprvdoctype', $doctype)
-            ->count();
+        // $count_approval = M_approval::where('status', 'A')
+        //     ->where('aprvcpnyid', $request->cpnyid)
+        //     ->where('aprvdeptid', $request->departementid)
+        //     ->where('aprvdoctype', $doctype)
+        //     ->count();
         
+        // if ($count_approval === 0) {
+        //     return response()->json([
+        //         'message' => 'Approval line belum di-setup, Please contact IT!'
+        //     ], 422);
+        // }
+
+        // cek availability approval line (Normal atau Condition yg cocok)
+        $count_approval = MsApproval::where('status', 'A')
+            ->where('aprv_cpnyid', $request->cpnyid)
+            ->where('aprv_departementid', $request->departementid)
+            ->where('aprv_doctype', $doctype)
+            ->where(function($q) use ($positionCondition) {
+                $q->where('aprv_type', 'Normal')
+                ->orWhere(function($q2) use ($positionCondition) {
+                    $q2->where('aprv_type', 'Condition')
+                        ->where('aprv_condition', $positionCondition);
+                });
+            })
+            ->count();
+           
         if ($count_approval === 0) {
             return response()->json([
-                'message' => 'Approval line belum di-setup, Please contact IT!'
+                'message' => 'Approval line belum di-setup untuk kombinasi ini (Normal/Condition). Please contact IT!'
             ], 422);
         }
 
@@ -243,30 +271,69 @@ class PersonnelController extends Controller
             ]);
 
            
-            //read ms_approval
-            $m_approval = M_approval::where('aprvdoctype', $doctype)
-                ->where('aprvcpnyid', $request->cpnyid)
-                ->where('aprvdeptid', $request->departementid)
-                ->where('status', 'A')
+            // //read ms_approval
+            // $m_approval = M_approval::where('aprvdoctype', $doctype)
+            //     ->where('aprvcpnyid', $request->cpnyid)
+            //     ->where('aprvdeptid', $request->departementid)
+            //     ->where('status', 'A')
+            //     ->get();
+
+            // //insert trx_approval
+            // foreach ($m_approval as $mp) {
+            //     $aprvdatebefore = ($mp->aprvid == 1) ? $datestamp : null; 
+            //     T_approval::create([
+            //         'docid' => $docid,
+            //         'aprvid' => $mp->aprvid,
+            //         'aprvdoctype' => $mp->aprvdoctype,
+            //         'aprvcpnyid' => $mp->aprvcpnyid,
+            //         'aprvdeptid' => $mp->aprvdeptid,
+            //         'aprvusername' => $mp->aprvusername,
+            //         'name' => $mp->name,
+            //         'aprvdatebefore' => $aprvdatebefore,
+            //         'aprvtotalday' => 1,
+            //         'status' => 'P',
+            //         'created_user' => $user->username
+            //     ]);
+            // }            
+
+            $msApprovalLines = MsApproval::where('status', 'A')
+                ->where('aprv_cpnyid', $request->cpnyid)
+                ->where('aprv_departementid', $request->departementid)
+                ->where('aprv_doctype', $doctype)
+                ->where(function($q) use ($positionCondition) {
+                    $q->where('aprv_type', 'Normal')
+                    ->orWhere(function($q2) use ($positionCondition) {
+                        $q2->where('aprv_type', 'Condition')
+                            ->where('aprv_condition', $positionCondition);
+                    });
+                })
+                ->orderBy('aprv_leveling', 'ASC')
                 ->get();
 
-            //insert trx_approval
-            foreach ($m_approval as $mp) {
-                $aprvdatebefore = ($mp->aprvid == 1) ? $datestamp : null; 
-                T_approval::create([
-                    'docid' => $docid,
-                    'aprvid' => $mp->aprvid,
-                    'aprvdoctype' => $mp->aprvdoctype,
-                    'aprvcpnyid' => $mp->aprvcpnyid,
-                    'aprvdeptid' => $mp->aprvdeptid,
-                    'aprvusername' => $mp->aprvusername,
-                    'name' => $mp->name,
-                    'aprvdatebefore' => $aprvdatebefore,
-                    'aprvtotalday' => 1,
-                    'status' => 'P',
-                    'created_user' => $user->username
-                ]);
-            }            
+                // insert tr_approval
+                foreach ($msApprovalLines as $line) {
+                    $isFirstLevel = ((int)$line->aprv_leveling === 1);
+
+                    TrApproval::create([
+                        'refnbr'             => $docid,
+                        'aprv_leveling'      => $line->aprv_leveling,
+                        'aprv_doctype'       => $line->aprv_doctype,
+                        'aprv_cpnyid'        => $line->aprv_cpnyid,
+                        'aprv_departementid' => $line->aprv_departementid,
+                        'aprv_username'      => $line->aprv_username,   // bisa comma-separated
+                        'aprv_name'          => $line->aprv_name,
+                        'aprv_datebefore'    => $isFirstLevel ? $datestamp : null,
+                        'aprv_dateafter'     => null,
+                        'aprv_type'          => $line->aprv_type,       // Normal / Condition
+                        'aprv_condition'     => $line->aprv_condition,  // null / Staff / Manager
+                        'aprv_start_nominal' => $line->aprv_start_nominal,
+                        'aprv_end_nominal'   => $line->aprv_end_nominal,
+                        'status'             => 'P',                    // Pending
+                        'created_by'         => $user->username,
+                        'updated_by'         => null,
+                    ]);
+                }
+
 
             if ($request->has('responsibilities')) {
                 foreach ($request->responsibilities as $index => $responsibility) {
@@ -319,70 +386,143 @@ class PersonnelController extends Controller
 
 
             // Simpan Attachments ke attachments          
-            if ($request->hasfile('attachments')) {
+           // === Upload attachments ke GCS & simpan ke tr_attachment ===
+            if ($request->hasFile('attachments')) {
+                $ymFolder = 'att-job-career/' .strtolower($doctype) . '/' . $year;
+
+                // init GCS
+                $config  = config('filesystems.disks.gcs');
+                $storage = new StorageClient([
+                    'projectId'   => $config['project_id'],
+                    'keyFilePath' => $config['key_file'],
+                ]);
+                $bucket = $storage->bucket($config['bucket']);
+
                 foreach ($request->file('attachments') as $file) {
-                    $randomNumber = random_int(10000000, 99999999);
-                    $filename = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
-                   
-                    $originalName = str_replace('%', '', $file->getClientOriginalName());
-                    $attachfile = md5($randomNumber) . '-' . $originalName;
-
-                    //attach to folder
-                    $folder_attach = public_path() . '/attachments/'.$year;
-                    $config['upload_path'] = $folder_attach;                   
-                    if(!is_dir($folder_attach))
-                    {
-                        mkdir($folder_attach, 0777);
+                    if (!$file->isValid()) {
+                        Log::warning('Attachment invalid', ['name' => $file->getClientOriginalName()]);
+                        continue;
                     }
-                    
-                    $folder_upload = $folder_attach;
-                    // $folder_upload = public_path() . '/attachments';
-                    $file->move($folder_upload, $attachfile);
 
-                    //insert to table attachments
-                    $attach = new Attachment();
-                    $attach->docid = $docid;
-                    $attach->name = $filename;
-                    $attach->attachfile = $attachfile;
-                    $attach->status = 'A';
-                    $attach->extention = $file->getClientOriginalExtension();
-                    $attach->created_user = $user->username;
-                    $attach->save();
+                    $originalName = str_replace('%', '', $file->getClientOriginalName());
+                    $nameOnly     = pathinfo($originalName, PATHINFO_FILENAME); // untuk attachment_name
+                    $ext          = $file->getClientOriginalExtension();
+                    $sizeBytes    = $file->getSize();
+
+                    $randomPrefix = md5(random_int(1, 99999999));
+                    $filename     = $randomPrefix . '.' . $ext;       // nama file di bucket
+                    $gcsPath      = "{$ymFolder}/{$filename}";
+
+                    try {
+                        // upload ke GCS (private)
+                        $bucket->upload(
+                            fopen($file->getPathname(), 'r'),
+                            [
+                                'name'          => $gcsPath,
+                                'predefinedAcl' => 'private',
+                                'metadata'      => ['contentType' => $file->getMimeType()],
+                            ]
+                        );
+
+                        Log::info('Attachment uploaded to GCS', ['docid' => $docid, 'path' => $gcsPath]);
+
+                        // simpan metadata ke tr_attachment (pgsql2)
+                        TrAttachment::create([
+                            'refnbr'          => $docid,
+                            'doctype'         => $doctype,
+                            'attachment_date' => $datestamp,                  // Carbon::now()->toDateTimeString()
+                            'cpnyid'          => $request->cpnyid,
+                            'departementid'   => $request->departementid,
+                            'attachment_name' => $nameOnly,                    // nama file tanpa ekstensi (asli)
+                            'folder'          => $ymFolder,                    // folder di bucket
+                            'filename'        => $filename,                    // nama file di bucket
+                            'filesize'        => $sizeBytes,                   // byte
+                            'extention'       => $ext,
+                            'status'          => 'A',
+                            'created_by'      => $user->username,
+                            'updated_by'      => null,
+                        ]);
+
+                    } catch (\Throwable $e) {
+                        Log::error('Gagal upload attachment ke GCS', [
+                            'docid' => $docid,
+                            'file'  => $originalName,
+                            'err'   => $e->getMessage(),
+                        ]);
+                        return response()->json([
+                            'success' => false,
+                            'message' => 'Gagal upload lampiran: ' . $e->getMessage(),
+                        ], 500);
+                    }
                 }
             }
+
             
 
-            $t_approval_next = T_approval::where('docid', $docid)
+            // $t_approval_next = T_approval::where('docid', $docid)
+            //     ->where('status', 'P')
+            //     ->orderby('aprvid','ASC')
+            //     ->first();
+            // // $id = $task->id;
+            // $eid = Hashids::encode($task->id);
+
+            // $data = array(
+            //     'docid' => $t_approval_next->docid,
+            //     'cpnyid' => $t_approval_next->aprvcpnyid,
+            //     'deptname' => $t_approval_next->aprvdeptid,                
+            //     'date' => $t_approval_next->aprvdatebefore,
+            //     'name' => $t_approval_next->created_user,                          
+            //     'info' => $request->job_title,           
+            //     // 'url' => url('/showpersonnels/') . $eid
+            //     'url' => url('/showvpersonels' .'/' . $eid)
+    
+            // );
+    
+            // $multiapp = explode(',', $t_approval_next->aprvusername);
+    
+            // $email_it = User::whereIN('username', $multiapp)
+            //     ->where('status', 'A')
+            //     ->get();
+    
+            // foreach ($email_it as $emailsit) {
+            //     Mail::send('emails.mailapprove', $data, function ($message) use ($data, $emailsit) {
+            //         $message->to($emailsit->test_email)->subject($data['docid'] . ' - Waiting Approval Personnels');
+            //         $message->from('digitalserver@pakuwon.com', 'Pakuwon System');
+            //     });
+            // }       
+
+            $t_approval_next = TrApproval::where('refnbr', $docid)
                 ->where('status', 'P')
-                ->orderby('aprvid','ASC')
+                ->orderBy('aprv_leveling', 'ASC')
                 ->first();
-            // $id = $task->id;
+
             $eid = Hashids::encode($task->id);
 
-            $data = array(
-                'docid' => $t_approval_next->docid,
-                'cpnyid' => $t_approval_next->aprvcpnyid,
-                'deptname' => $t_approval_next->aprvdeptid,                
-                'date' => $t_approval_next->aprvdatebefore,
-                'name' => $t_approval_next->created_user,                          
-                'info' => $request->job_title,           
-                // 'url' => url('/showpersonnels/') . $eid
-                'url' => url('/showpersonnels/' . $eid)
-    
-            );
-    
-            $multiapp = explode(',', $t_approval_next->aprvusername);
-    
-            $email_it = User::whereIN('username', $multiapp)
+            $data = [
+                'docid'   => $t_approval_next->refnbr,
+                'cpnyid'  => $t_approval_next->aprv_cpnyid,
+                'deptname'=> $t_approval_next->aprv_departementid,
+                'date'    => $t_approval_next->aprv_datebefore,
+                'name'    => $user->username, // atau $t_approval_next->created_by sesuai kebutuhan
+                'info'    => $request->job_title,
+                'url'     => url('/showvpersonels/'.$eid),
+            ];
+
+            // kirim email ke semua approver di level ini (bisa multi username)
+            $multiapp = array_map('trim', explode(',', (string)$t_approval_next->aprv_username));
+
+            $email_it = User::whereIn('username', $multiapp)
                 ->where('status', 'A')
                 ->get();
-    
+
             foreach ($email_it as $emailsit) {
                 Mail::send('emails.mailapprove', $data, function ($message) use ($data, $emailsit) {
-                    $message->to($emailsit->test_email)->subject($data['docid'] . ' - Waiting Approval Personnels');
+                    $message->to($emailsit->test_email)
+                            ->subject($data['docid'].' - Waiting Approval Personnels');
                     $message->from('digitalserver@pakuwon.com', 'Pakuwon System');
                 });
-            }       
+            }
+
 
             DB::commit();
             return response()->json(['success' => true, 'task' => $task]);
@@ -393,52 +533,330 @@ class PersonnelController extends Controller
     }
 
 
-    public function editPersonnel($hash)
+    public function editPersonnel($hash) 
     {
+        $user = Auth::user();       
+        if (!$user) {
+            return redirect()->route('login');
+        }
+
         $id = Hashids::decode($hash)[0] ?? null;
         abort_if(!$id, 404);
 
-
         $personnel = Personnel::findOrFail($id);
         $user = request()->user();
-        $usercpny = Usercpny::where('username', '=', $user->username)
-            ->get();
-        $usercpny2 = Usercpny::where('username', '=', $user->username)
-            ->first();
-        $userdept = Userdept::where('username', '=', $user->username)
-            ->get();
-        $userdept2 = Userdept::where('username', '=', $user->username)
-            ->first();
+
+        $usercpny  = Usercpny::where('username', $user->username)->get();
+        $usercpny2 = Usercpny::where('username', $user->username)->first();
+        $userdept  = Userdept::where('username', $user->username)->get();
+        $userdept2 = Userdept::where('username', $user->username)->first();
         $companies = Company::select('cpnyid')->get();
         $departements = Dept::select('deptname')->get();
         $joblevel = JobLevel::select('title_level')->get();
         $skillTags = MJobtag::select('id', 'job_tags')->get(); 
-        $division = Division::select('division_id','division_name')->get();
+        $division  = Division::select('division_id','division_name')->get();
 
-        $attachment = Attachment::where('docid', $personnel->docid)  
-            ->where('status','A')         
-            ->get();
+        // ⬇⬇ GANTI: Attachment -> TrAttachment (pakai refnbr & kolom baru)
+        $attachment = TrAttachment::where('refnbr', $personnel->docid)
+            ->where('status','A')
+            ->orderByDesc('attachment_date')
+            ->get(['id','attachment_name','filename','folder','extention','created_by','attachment_date']);
 
         $subgradings = StoSubGrading::select('subgrade_id','subgrade_name')
             ->where('status', 'A')
             ->orderBy('subgrade_id')
             ->get();
 
-        $jobres = JobResponsiblities::where('docid', $personnel->docid)           
-            ->get();
-        $jobqua = JobQualification::where('docid', $personnel->docid)           
-            ->get();
+        $jobres = JobResponsiblities::where('docid', $personnel->docid)->get();
+        $jobqua = JobQualification::where('docid', $personnel->docid)->get();
 
-        $selectedTags = TrJobtag::where('docid', $personnel->docid)           
+        $selectedTags = TrJobtag::where('docid', $personnel->docid)
             ->pluck('job_tags')
             ->toArray();
 
-            
+        return view('pages.personnels.editpersonnels', compact(
+            'companies','departements','joblevel','usercpny','usercpny2',
+            'userdept','userdept2','skillTags','division','personnel',
+            'attachment','subgradings','jobres','jobqua','selectedTags','hash'
+        ));
+    }
 
-        return view('pages.personnels.editpersonnels', compact('companies','departements','joblevel','usercpny','usercpny2','userdept','userdept2','skillTags','division','personnel','attachment','subgradings','jobres','jobqua','selectedTags'));
+    public function updatePersonnel(Request $request, $hash)
+    {
+
+        $id = Hashids::decode($hash)[0] ?? null;
+        abort_if(!$id, 404);
+        // Validasi utama
+        $request->validate([
+            'cpnyid'          => 'required|string',
+            'departementid'   => 'required|string',
+            'job_title'       => 'required|string',
+            'subgrade_id'     => 'required|string',
+            'immediate_superior' => 'required|string',
+            'state_position'  => 'required|string',
+            'job_type'        => 'required|string|in:Replacement,New',
+            'reason_vacancy'  => 'required|string',
+            'required'        => 'required|integer|min:1',
+            'actual'          => 'required|integer|min:0',
+            'total_actual'    => 'required|integer|min:0',
+            // 'attachments.*' => 'file|max:20480', // opsional, 20MB
+        ]);
+
+        DB::beginTransaction();
+        try {
+            $datenow   = Carbon::now()->format('Y-m-d');
+            $dt        = Carbon::now();
+            $year      = $dt->year;
+            $month     = str_pad($dt->month, 2, '0', STR_PAD_LEFT);
+            $doctype   = 'PRF';
+            $datestamp = Carbon::now()->toDateTimeString();
+            $user      = $request->user();
+
+            $personnel = Personnel::findOrFail($id);
+
+            // Ambil grading (termasuk group_grade untuk logika approval)
+            $grading = StoSubGrading::where('subgrade_id', $request->subgrade_id)
+                ->where('status', 'A')
+                ->first();
+
+            if (!$grading) {
+                return response()->json([
+                    'error'   => 'Gagal menyimpan personnel',
+                    'message' => 'Subgrading tidak ditemukan/Non-aktif'
+                ], 422);
+            }
+
+            $groupGrade = (string)($grading->group_grade ?? ''); // ex: "Staff" / "Manager"
+
+            // Update header personnel
+            $personnel->update([
+                'cpnyid'             => $request->cpnyid,
+                'departementid'      => $request->departementid,
+                'date'               => $datenow,
+                'locationname'       => $request->siteid ?? null, // simpan ID site
+                'user'               => $user->username,
+                'job_title'          => $request->job_title,
+                'subgrade_id'        => $request->subgrade_id,
+                'job_level'          => $grading->subgrade_name,
+                'immediate_superior' => $request->immediate_superior,
+                'state_position'     => $request->state_position,
+                'job_type'           => $request->job_type,
+                'reason_vacancy'     => $request->reason_vacancy,
+                'required'           => $request->required,
+                'actual'             => $request->actual,
+                'total_actual'       => $request->total_actual,
+                'education'          => $request->education,
+                'experience_start'   => $request->experience_start,
+                'experience_end'     => $request->experience_end,
+                'created_user'       => $user->username,
+                'status'             => $request->status ?? 'P',
+            ]);
+
+            $docid = $personnel->docid;
+
+            // ===== Rebuild Approval Lines (hapus pending lama, build ulang dari master) =====
+            // Ambil baris approval: Normal + Condition yang cocok dengan group_grade
+            $msApproval = MsApproval::where('aprv_doctype', $doctype)
+                ->where('aprv_cpnyid', $request->cpnyid)
+                ->where('aprv_departementid', $request->departementid)
+                ->where('status', 'A')
+                ->where(function ($q) use ($groupGrade) {
+                    $q->where('aprv_type', 'Normal')
+                    ->orWhere(function ($q2) use ($groupGrade) {
+                        $q2->where('aprv_type', 'Condition')
+                            ->where('aprv_condition', $groupGrade);
+                    });
+                })
+                ->orderBy('aprv_leveling', 'asc')
+                ->get();
+
+            if ($msApproval->isEmpty()) {
+                DB::rollBack();
+                return response()->json([
+                    'message' => 'Approval line belum di-setup (Normal/Condition) untuk kombinasi ini. Hubungi IT.'
+                ], 422);
+            }
+
+            // Hapus pending lama agar tidak dobel
+            TrApproval::where('refnbr', $docid)->where('status', 'P')->delete();
+
+            // Sisipkan approval baru
+            foreach ($msApproval as $row) {
+                $isFirstLevel = ((int)$row->aprv_leveling === (int)$msApproval->min('aprv_leveling'));
+                TrApproval::create([
+                    'refnbr'             => $docid,
+                    'aprv_leveling'      => $row->aprv_leveling,
+                    'aprv_doctype'       => $row->aprv_doctype,
+                    'aprv_cpnyid'        => $row->aprv_cpnyid,
+                    'aprv_departementid' => $row->aprv_departementid,
+                    'aprv_username'      => $row->aprv_username,
+                    'aprv_name'          => $row->aprv_name,
+                    'aprv_datebefore'    => $isFirstLevel ? $datestamp : null,
+                    'aprv_type'          => $row->aprv_type,        // Normal / Condition
+                    'aprv_condition'     => $row->aprv_condition,   // Staff / Manager (jika ada)
+                    'status'             => 'P',
+                    'created_by'         => $user->username,
+                ]);
+            }
+
+            // ===== Rebuild Responsibilities =====
+            if ($request->has('responsibilities')) {
+                JobResponsiblities::where('docid', $docid)->delete();
+                foreach ($request->responsibilities as $idx => $responsibility) {
+                    if (trim((string)$responsibility) === '') continue;
+                    JobResponsiblities::create([
+                        'docid'                      => $docid,
+                        'no_job_responsiblities'     => $idx + 1,
+                        'job_responsibilities_descr' => $responsibility,
+                        'created_user'               => $user->username,
+                        'status'                     => 'P',
+                    ]);
+                }
+            }
+
+            // ===== Rebuild Qualification =====
+            if ($request->has('qualification')) {
+                JobQualification::where('docid', $docid)->delete();
+                foreach ($request->qualification as $idx => $qualification) {
+                    if (trim((string)$qualification) === '') continue;
+                    JobQualification::create([
+                        'docid'                    => $docid,
+                        'no_job_qualification'     => $idx + 1,
+                        'job_qualification_descr'  => $qualification,
+                        'created_user'             => $user->username,
+                        'status'                   => 'P',
+                    ]);
+                }
+            }
+
+            // ===== (Opsional) Tags — jika kamu juga mau perbarui di edit =====
+            if ($request->has('tags')) {
+                TrJobtag::where('docid', $docid)->delete();
+                foreach ($request->tags as $tag) {
+                    $t = trim((string)$tag);
+                    if ($t === '') continue;
+
+                    TrJobtag::create([
+                        'docid'        => $docid,
+                        'job_tags'     => $t,
+                        'created_user' => $user->username,
+                        'status'       => 'P',
+                    ]);
+
+                    if (!MJobtag::where('job_tags', $t)->exists()) {
+                        MJobtag::create([
+                            'job_tags'     => $t,
+                            'created_user' => $user->username,
+                            'status'       => 'A',
+                        ]);
+                    }
+                }
+            }
+
+            // ===== Upload Attachment ke GCS + simpan TrAttachment =====
+            if ($request->hasFile('attachments')) {
+                $config = config('filesystems.disks.gcs');
+                $storage = new StorageClient([
+                    'projectId'   => $config['project_id'],
+                    'keyFilePath' => $config['key_file'],
+                ]);
+                $bucket   = $storage->bucket($config['bucket']);
+                $ymFolder = 'att-job-career/' . $doctype . '/' . $year; // ex: att-job-career/PRF/2025
+
+                foreach ($request->file('attachments') as $file) {
+                    if (!$file->isValid()) continue;
+
+                    $originalName = str_replace('%', '', $file->getClientOriginalName());
+                    $ext          = $file->getClientOriginalExtension();
+                    $randomPrefix = md5(random_int(1, 99999999)) . '-' . time();
+                    $newFilename  = $randomPrefix . '.' . $ext;
+                    $objectPath   = "{$ymFolder}/{$newFilename}";
+
+                    try {
+                        $bucket->upload(
+                            fopen($file->getPathname(), 'r'),
+                            [
+                                'name' => $objectPath,
+                                'predefinedAcl' => 'private',
+                            ]
+                        );
+
+                        TrAttachment::create([
+                            'refnbr'         => $docid,
+                            'doctype'        => $doctype,
+                            'attachment_date'=> $datestamp,
+                            'cpnyid'         => $request->cpnyid,
+                            'departementid'  => $request->departementid,
+                            'attachment_name'=> pathinfo($originalName, PATHINFO_FILENAME),
+                            'folder'         => $ymFolder,
+                            'filename'       => $newFilename,
+                            'filesize'       => $file->getSize(),
+                            'extention'      => $ext,
+                            'status'         => 'A',
+                            'created_by'     => $user->username,
+                        ]);
+                    } catch (\Throwable $e) {
+                        Log::error('GCS upload failed (updatePersonnel)', [
+                            'docid'      => $docid,
+                            'objectPath' => $objectPath,
+                            'error'      => $e->getMessage()
+                        ]);
+                        DB::rollBack();
+                        return response()->json([
+                            'error'   => 'Gagal upload attachment',
+                            'message' => $e->getMessage()
+                        ], 500);
+                    }
+                }
+            }
+
+            // ===== Notifikasi ke approver berikutnya =====
+            $next = TrApproval::where('refnbr', $docid)
+                ->where('status', 'P')
+                ->orderBy('aprv_leveling', 'ASC')
+                ->first();
+
+            $eid = Hashids::encode($personnel->id);
+
+            if ($next) {
+                // jika multi user dipisah comma
+                $usernames = array_map('trim', explode(',', $next->aprv_username));
+                $emailTargets = User::whereIn('username', $usernames)
+                    ->where('status', 'A')
+                    ->get();
+
+                $mailData = [
+                    'docid'   => $next->refnbr,
+                    'cpnyid'  => $next->aprv_cpnyid,
+                    'deptname'=> $next->aprv_departementid,
+                    'date'    => $next->aprv_datebefore,
+                    'name'    => $user->username,
+                    'info'    => $request->job_title,
+                    'url'     => url('/showvpersonels/' . $eid),
+                ];
+
+                foreach ($emailTargets as $recipient) {
+                    Mail::send('emails.mailapprove', $mailData, function ($message) use ($mailData, $recipient) {
+                        $message->to($recipient->test_email)
+                            ->subject($mailData['docid'] . ' - Waiting Approval Personnel')
+                            ->from('digitalserver@pakuwon.com', 'Pakuwon System');
+                    });
+                }
+            }
+
+            DB::commit();
+            return response()->json(['success' => true, 'personnel' => $personnel]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'error'   => 'Gagal menyimpan personnel',
+                'message' => $e->getMessage()
+            ], 500);
+        }
     }
     
-    public function updatePersonnel(Request $request, $id)
+    public function updatePersonnel_xxx(Request $request, $id)
     {
         // dd($request->all()); 
         
@@ -600,7 +1018,7 @@ class PersonnelController extends Controller
                 'date' => $t_approval_next->aprvdatebefore,
                 'name' => $t_approval_next->created_user,                          
                 'info' => $request->job_title,           
-                'url' => url('/showpersonnels/') . $eid
+                'url' => url('/showvpersonels' .'/' . $eid)
     
             );
     
@@ -628,7 +1046,7 @@ class PersonnelController extends Controller
     public function removeAttachment($id)
     {
         try {
-            $attachment = Attachment::findOrFail($id);
+            $attachment = TrAttachment::findOrFail($id);
             $attachment->update(['status' => 'X']); // Update status ke "D" (Deleted)
 
             return response()->json(['success' => true, 'message' => 'Attachment status updated']);
@@ -638,44 +1056,75 @@ class PersonnelController extends Controller
     }
  
 
+
+
     public function showPersonnel($hash)
-    {        
+    {
         $id = Hashids::decode($hash)[0] ?? null;
         abort_if(!$id, 404);
 
-        $user = Auth::user();       
-
+        $user = Auth::user();
         if (!$user) {
             return redirect()->route('login');
         }
-        
+
         $personnel = Personnel::findOrFail($id);
-        // $personnel = Personnel::with('departement.subgrading')->findOrFail($id);
-        $approval = T_approval::where('docid', $personnel->docid)
-            ->where('status','<>','X')      
+
+        // === Approval pakai TrApproval (refnbr & aprv_leveling) ===
+        $approval = TrApproval::where('refnbr', $personnel->docid)
+            ->where('status', '<>', 'X')
+            ->orderBy('aprv_leveling')
             ->orderBy('created_at')
-            ->orderBy('aprvid')      
             ->get();
 
-        $jobres = JobResponsiblities::where('docid', $personnel->docid)           
+        // === Detail lain tetap ===
+        $jobres = JobResponsiblities::where('docid', $personnel->docid)->get();
+        $jobqua = JobQualification::where('docid', $personnel->docid)->get();
+        $jobtag = TrJobtag::where('docid', $personnel->docid)->get();
+
+        // === Attachment di GCS + generate Signed URL ===
+        $attachments = TrAttachment::where('refnbr', $personnel->docid)
+            ->where('status', 'A')
+            ->orderBy('created_at', 'asc')
             ->get();
-        $jobqua = JobQualification::where('docid', $personnel->docid)           
-            ->get();
-        $attachment = Attachment::where('docid', $personnel->docid)    
-            ->where('status','A')        
-            ->get();
-        $jobtag = TrJobtag::where('docid', $personnel->docid)           
-            ->get();
-       
-        return view('pages.personnels.showpersonnels', compact('personnel','jobres','jobqua','approval','attachment','jobtag'));
+
+        // Build signed URLs (aman, sementara, private)
+        if ($attachments->isNotEmpty()) {
+            $config  = config('filesystems.disks.gcs');
+            $storage = new StorageClient([
+                'projectId'   => $config['project_id'],
+                'keyFilePath' => $config['key_file'],
+            ]);
+            $bucket = $storage->bucket($config['bucket']);
+
+            foreach ($attachments as $at) {
+                try {
+                    $path   = rtrim($at->folder ?? '', '/').'/'.ltrim($at->filename ?? '', '/');
+                    $object = $bucket->object($path);
+                    // berlaku 10 menit; silakan ubah sesuai kebutuhan
+                    $at->signed_url = $object->signedUrl(new \DateTime('+10 minutes'));
+                } catch (\Throwable $e) {
+                    // kalau gagal generate URL, kosongkan saja supaya link tidak muncul
+                    $at->signed_url = null;
+                }
+            }
+        }
+
+        return view('pages.personnels.showpersonnels', [
+            'personnel'  => $personnel,
+            'jobres'     => $jobres,
+            'jobqua'     => $jobqua,
+            'approval'   => $approval,
+            'attachment' => $attachments,
+            'jobtag'     => $jobtag,
+        ]);
     }
 
-    
-    public function fetchComments($id)
+
+    public function fetchComments($refnbr)
     {
-    
-        $comments = T_Message::where('docid', $id)
-            ->orderBy('created_at', 'desc')
+        $comments = TrMessage::where('refnbr', $refnbr)
+            ->orderBy('message_date', 'desc')
             ->get();
 
         return response()->json([
@@ -683,103 +1132,154 @@ class PersonnelController extends Controller
             'comments' => $comments
         ]);
     }
-    public function storeComment(Request $request, $id)
+
+    public function storeComment(Request $request, $refnbr)
     {
         $request->validate([
             'comment' => 'required|string|max:500',
         ]);
-        // dd($id);
-        $user = request()->user();
-        $comment = new T_Message();
-        $comment->docid = $id;
-        $comment->doctype = 'PRF';
-        $comment->username = $user->username; 
-        $comment->name = $user->name; 
-        $comment->message = $request->comment;
-        $comment->status = 'A';
-        $comment->created_at = now();
-        $comment->save();
+
+        $user = Auth::user();   // ambil user login
+
+        $comment = TrMessage::create([
+            'refnbr'        => $refnbr,
+            'doctype'       => 'PRF',
+            'message_date'  => now(),
+            'cpnyid'        => $user->cpnyid ?? null,
+            'departementid' => $user->departementid ?? null,
+            'username'      => $user->username,
+            'name'          => $user->name,
+            'message'       => $request->comment,
+            'status'        => 'A',
+            'created_by'    => $user->username,
+        ]);
 
         return response()->json([
-            'status' => 'success',
+            'status'  => 'success',
             'message' => 'Comment added successfully!',
             'comment' => $comment
         ]);
     }
 
+
+
+    
+    // public function fetchComments($id)
+    // {
+    
+    //     $comments = T_Message::where('docid', $id)
+    //         ->orderBy('created_at', 'desc')
+    //         ->get();
+
+    //     return response()->json([
+    //         'status' => 'success',
+    //         'comments' => $comments
+    //     ]);
+    // }
+    // public function storeComment(Request $request, $id)
+    // {
+    //     $request->validate([
+    //         'comment' => 'required|string|max:500',
+    //     ]);
+    //     // dd($id);
+    //     $user = request()->user();
+    //     $comment = new T_Message();
+    //     $comment->docid = $id;
+    //     $comment->doctype = 'PRF';
+    //     $comment->username = $user->username; 
+    //     $comment->name = $user->name; 
+    //     $comment->message = $request->comment;
+    //     $comment->status = 'A';
+    //     $comment->created_at = now();
+    //     $comment->save();
+
+    //     return response()->json([
+    //         'status' => 'success',
+    //         'message' => 'Comment added successfully!',
+    //         'comment' => $comment
+    //     ]);
+    // }
+
+
     public function approvePersonnel(Request $request, $docid)
     {
-        $datestamp = Carbon::now()->toDateTimeString();       
-        $user = request()->user(); // Ambil user yang login
-        
-        $personnel = Personnel::where('docid', $docid)->first();   
+        $datestamp = Carbon::now()->toDateTimeString();
+        $user = request()->user();
 
+        $personnel = Personnel::where('docid', $docid)->first();
         if (!$personnel) {
-            return response()->json(['success' => false, 'message' => 'Prf not found'], 404);
-        }        
-
-        $count_approval = T_approval::where('docid', '=', $personnel->docid)
-            ->where('status', '=', 'P')
-            ->count();
-    
-        // Cek apakah user memiliki akses untuk approve
-        $t_approval = T_approval::where('docid', $personnel->docid)
-            ->where('status', 'P')
-            ->where('aprvusername', 'like', "%" . $user->username . "%")
-            ->first();
-        // dd($t_approval);
-        if ($t_approval == null) {
-            return response()->json(['success' => false, 'message' => "You Can't Approve!"], 403);
-        } else {
-            $t_approval->status = 'A';
-            $t_approval->aprvdateafter = $datestamp;
-            $t_approval->aprvusername = $user->username;
-            $t_approval->name = $user->name;
-            $t_approval->save();
-        }   
-
-        if ($count_approval == 1) {
-            $personnel->status = 'C';
-            $personnel->completed_user = $user->username;
-            $personnel->completed_at = $datestamp;
-            $personnel->save();
-            app('App\Http\Controllers\PersonnelController')->insert_jobposting($docid);
+            return response()->json(['success' => false, 'message' => 'PRF not found'], 404);
         }
 
-        $t_approval_next = T_approval::where('docid', $personnel->docid)
+        // Hitung sisa approval yang masih PENDING
+        $countPending = TrApproval::where('refnbr', $personnel->docid)
             ->where('status', 'P')
-            ->orderby('aprvid','ASC')
+            ->count();
+
+        // Ambil baris approval yang sedang menunggu & sesuai user
+        $tApproval = TrApproval::where('refnbr', $personnel->docid)
+            ->where('status', 'P')
+            ->where('aprv_username', 'like', '%'.$user->username.'%')
+            ->orderBy('aprv_leveling')
             ->first();
 
-        $eid = Hashids::encode($personnel->id);
+        if (!$tApproval) {
+            return response()->json(['success' => false, 'message' => "You can't approve!"], 403);
+        }
 
-        if ($count_approval <> 1) {
-            //update datebefore
-            $t_approval_next->aprvdatebefore = $datestamp;
-            $t_approval_next->save();
+        // Approve current level
+        $tApproval->status          = 'A';
+        $tApproval->aprv_dateafter  = $datestamp;
+        $tApproval->aprv_username   = $user->username; // lock who approved
+        $tApproval->aprv_name       = $user->name;
+        $tApproval->save();
 
-            //send email 
-            $data = array(
-                'docid' => $t_approval_next->docid,
-                'cpnyid' => $t_approval_next->aprvcpnyid,
-                'deptname' => $t_approval_next->aprvdeptid,               
-                'date' => $t_approval_next->aprvdatebefore,
-                'name' => $t_approval_next->created_user,
-                'info' => $personnel->job_title,               
-                'url' => url('/showvpersonels/') . $eid
-            );
+        // Jika ini approval terakhir -> close PRF
+        if ($countPending === 1) {
+            $personnel->status         = 'C';
+            $personnel->completed_user = $user->username;
+            $personnel->completed_at   = $datestamp;
+            $personnel->save();
 
-            $multiapp = explode(',', $t_approval_next->aprvusername);
+            // proses lanjutan setelah complete
+            app('App\Http\Controllers\PersonnelController')->insert_jobposting($docid);
 
-            $email_it = User::whereIN('username', $multiapp)
+            return response()->json(['success' => true, 'message' => 'Task approved & completed']);
+        }
+
+        // Masih ada approval berikutnya
+        $tNext = TrApproval::where('refnbr', $personnel->docid)
+            ->where('status', 'P')
+            ->orderBy('aprv_leveling', 'ASC')
+            ->first();
+
+        // Safety check
+        if ($tNext) {
+            $tNext->aprv_datebefore = $datestamp;
+            $tNext->save();
+
+            // Kirim email ke approver berikutnya
+            $eid = \Hashids::encode($personnel->id);
+            $data = [
+                'docid'   => $tNext->refnbr,
+                'cpnyid'  => $tNext->aprv_cpnyid,
+                'deptname'=> $tNext->aprv_departementid,
+                'date'    => $tNext->aprv_datebefore,
+                'name'    => $tNext->created_by ?? $user->username, // fallback
+                'info'    => $personnel->job_title,
+                'url'     => url('/showvpersonels/'.$eid),
+            ];
+
+            $multiapp = explode(',', $tNext->aprv_username);
+            $recipients = User::whereIn('username', $multiapp)
                 ->where('status', 'A')
                 ->get();
 
-            foreach ($email_it as $emailsit) {
-                Mail::send('emails.mailapprove', $data, function ($message) use ($data, $emailsit) {
-
-                    $message->to($emailsit->test_email)->subject($data['docid'] . ' - Waiting Approval Personnel');
-                    $message->from('digitalserver@pakuwon.com', 'Pakuwon System');
+            foreach ($recipients as $rcp) {
+                Mail::send('emails.mailapprove', $data, function ($message) use ($data, $rcp) {
+                    $message->to($rcp->test_email)
+                            ->subject($data['docid'].' - Waiting Approval Personnel')
+                            ->from('digitalserver@pakuwon.com', 'Pakuwon System');
                 });
             }
         }
@@ -789,74 +1289,65 @@ class PersonnelController extends Controller
 
     public function rejectPersonnel(Request $request, $docid)
     {
-        
-        // dd($request->all());         
-        $datestamp = Carbon::now()->toDateTimeString();       
-        $user = request()->user(); // Ambil user yang login
+        $datestamp = Carbon::now()->toDateTimeString();
+        $user = request()->user();
 
-        $personnel = Personnel::where('docid', $docid)->first();  
-        
-        
+        $personnel = Personnel::where('docid', $docid)->first();
         if (!$personnel) {
             return response()->json(['success' => false, 'message' => 'Task not found'], 404);
         }
 
-        // Cek apakah user memiliki akses untuk approve
-        $t_approval = T_approval::where('docid', $personnel->docid)
+        $tApproval = TrApproval::where('refnbr', $personnel->docid)
             ->where('status', 'P')
-            ->where('aprvusername', 'like', "%" . $user->username . "%")
+            ->where('aprv_username', 'like', '%'.$user->username.'%')
+            ->orderBy('aprv_leveling')
             ->first();
-        // dd($t_approval);
-        if ($t_approval == null) {
-            return response()->json(['success' => false, 'message' => "You Can't Rejected!"], 403);
-        } else {
-            $t_approval->status = 'R';
-            $t_approval->aprvdateafter = $datestamp;           
-            $t_approval->save();
 
-            $personnel->status = 'R';
-            $personnel->save();
-        }   
-                       
-        $t_aprv_sisa = T_approval::where('docid', '=', $personnel->docid)
-            ->where('status', '=', 'P')
-            ->get();
-
-        foreach ($t_aprv_sisa as $t_aprv) {
-            $t_aprv->status = 'X';
-            $t_aprv->save();
+        if (!$tApproval) {
+            return response()->json(['success' => false, 'message' => "You can't reject!"], 403);
         }
 
-        $eid = Hashids::encode($personnel->id);
+        // Set current step -> Rejected
+        $tApproval->status         = 'R';
+        $tApproval->aprv_dateafter = $datestamp;
+        $tApproval->save();
 
-        //send email 
-        $data = array(
-            'docid' => $t_approval->docid,
-            'cpnyid' => $t_approval->aprvcpnyid,
-            'deptname' => $t_approval->aprvdeptid,
-            // 'locationname' => $ms_site->site,
-            'date' => $t_approval->aprvdatebefore,
-            'name' => $t_approval->created_user,
-            'info' => $personnel->job_title,               
-            'url' => url('/showvpersonels/') . $eid
+        // Set header -> Rejected
+        $personnel->status = 'R';
+        $personnel->save();
 
-        );
+        // Batalkan semua sisa approval yang masih P
+        TrApproval::where('refnbr', $personnel->docid)
+            ->where('status', 'P')
+            ->update(['status' => 'X']);
 
-       
-        $email_it = User::where('username', $personnel->created_user)
-                ->where('status', 'A')
-                ->get();
+        // Kirim email ke creator
+        $eid  = \Hashids::encode($personnel->id);
+        $data = [
+            'docid'    => $tApproval->refnbr,
+            'cpnyid'   => $tApproval->aprv_cpnyid,
+            'deptname' => $tApproval->aprv_departementid,
+            'date'     => $tApproval->aprv_datebefore,
+            'name'     => $tApproval->created_by ?? $user->username,
+            'info'     => $personnel->job_title,
+            'url'      => url('/showvpersonels/'.$eid),
+        ];
 
-        foreach ($email_it as $emailsit) {
-            Mail::send('emails.mailapprove', $data, function ($message) use ($data, $emailsit) {
+        $creator = User::where('username', $personnel->created_user)
+            ->where('status', 'A')
+            ->get();
 
-                $message->to($emailsit->test_email)->subject($data['docid'] . ' - Rejected Personnel');
-                $message->from('digitalserver@pakuwon.com', 'Pakuwon System');
+        foreach ($creator as $rcp) {
+            Mail::send('emails.mailapprove', $data, function ($message) use ($data, $rcp) {
+                $message->to($rcp->test_email)
+                        ->subject($data['docid'].' - Rejected Personnel')
+                        ->from('digitalserver@pakuwon.com', 'Pakuwon System');
             });
         }
 
+        // Kirim komentar (alasan) via controller existing
         $id = $personnel->id;
-        $doctype ='PRF';
+        $doctype = 'PRF';
         app('App\Http\Controllers\SendCommentController')->sendmsg($id, $doctype, $request);
 
         return response()->json(['success' => true, 'message' => 'Personnel rejected successfully']);
@@ -864,114 +1355,369 @@ class PersonnelController extends Controller
 
     public function revisePersonnel(Request $request, $docid)
     {
-        
-        // dd($request->all());         
-        $datestamp = Carbon::now()->toDateTimeString();       
-        $user = request()->user(); // Ambil user yang login
+        $datestamp = Carbon::now()->toDateTimeString();
+        $user = request()->user();
 
-        $personnel = Personnel::where('docid', $docid)->first();  
-        
-        
+        $personnel = Personnel::where('docid', $docid)->first();
         if (!$personnel) {
             return response()->json(['success' => false, 'message' => 'Personnel not found'], 404);
         }
 
-        // Cek apakah user memiliki akses untuk approve
-        $t_approval = T_approval::where('docid', $personnel->docid)
+        $tApproval = TrApproval::where('refnbr', $personnel->docid)
             ->where('status', 'P')
-            ->where('aprvusername', 'like', "%" . $user->username . "%")
+            ->where('aprv_username', 'like', '%'.$user->username.'%')
+            ->orderBy('aprv_leveling')
             ->first();
-        // dd($t_approval);
-        if ($t_approval == null) {
-            return response()->json(['success' => false, 'message' => "You Can't Revise!"], 403);
-        } else {
-            $t_approval->status = 'D';
-            $t_approval->aprvdateafter = $datestamp;           
-            $t_approval->save();
 
-            $personnel->status = 'D';
-            $personnel->save();
-        }   
-                       
-        $t_aprv_sisa = T_approval::where('docid', '=', $personnel->docid)
-            ->where('status', '=', 'P')
-            ->get();
-
-        foreach ($t_aprv_sisa as $t_aprv) {
-            $t_aprv->status = 'X';
-            $t_aprv->save();
+        if (!$tApproval) {
+            return response()->json(['success' => false, 'message' => "You can't revise!"], 403);
         }
 
-        $eid = Hashids::encode($personnel->id);
-        //send email 
-        $data = array(
-            'docid' => $t_approval->docid,
-            'cpnyid' => $t_approval->aprvcpnyid,
-            'deptname' => $t_approval->aprvdeptid,
-            // 'locationname' => $ms_site->site,
-            'date' => $t_approval->aprvdatebefore,
-            'name' => $t_approval->created_user,
-            'info' => $personnel->job_title,               
-            'url' => url('/showvpersonels/') . $eid
+        // Set current step -> Revise
+        $tApproval->status         = 'D';
+        $tApproval->aprv_dateafter = $datestamp;
+        $tApproval->save();
 
-        );
+        // Header -> Revise
+        $personnel->status = 'D';
+        $personnel->save();
 
-       
-        $email_it = User::where('username', $personnel->created_user)
-                ->where('status', 'A')
-                ->get();
+        // Batalkan semua sisa approval yang masih P
+        TrApproval::where('refnbr', $personnel->docid)
+            ->where('status', 'P')
+            ->update(['status' => 'X']);
 
-        foreach ($email_it as $emailsit) {
-            Mail::send('emails.mailapprove', $data, function ($message) use ($data, $emailsit) {
+        // Email ke creator
+        $eid  = \Hashids::encode($personnel->id);
+        $data = [
+            'docid'    => $tApproval->refnbr,
+            'cpnyid'   => $tApproval->aprv_cpnyid,
+            'deptname' => $tApproval->aprv_departementid,
+            'date'     => $tApproval->aprv_datebefore,
+            'name'     => $tApproval->created_by ?? $user->username,
+            'info'     => $personnel->job_title,
+            'url'      => url('/showvpersonels/'.$eid),
+        ];
 
-                $message->to($emailsit->test_email)->subject($data['docid'] . ' - Revise Personnel');
-                $message->from('digitalserver@pakuwon.com', 'Pakuwon System');
+        $creator = User::where('username', $personnel->created_user)
+            ->where('status', 'A')
+            ->get();
+
+        foreach ($creator as $rcp) {
+            Mail::send('emails.mailapprove', $data, function ($message) use ($data, $rcp) {
+                $message->to($rcp->test_email)
+                        ->subject($data['docid'].' - Revise Personnel')
+                        ->from('digitalserver@pakuwon.com', 'Pakuwon System');
             });
         }
 
+        // Simpan komentar (alasan revisi)
         $id = $personnel->id;
-        $doctype ='PRF';
+        $doctype = 'PRF';
         app('App\Http\Controllers\SendCommentController')->sendmsg($id, $doctype, $request);
 
-        return response()->json(['success' => true, 'message' => 'Personnel revise successfully']);
+        return response()->json(['success' => true, 'message' => 'Personnel revised successfully']);
     }
 
-    public function checkApprovalx($id)
-    {
-        // Ambil user yang sedang login
-        $user = Auth::user();
+
+    // public function approvePersonnel(Request $request, $docid)
+    // {
+    //     $datestamp = Carbon::now()->toDateTimeString();       
+    //     $user = request()->user(); // Ambil user yang login
         
-        // Cek apakah user login ada di table trx_approval dengan status 'P'
-        $approval = T_approval::where('docid', $id)
-            ->where('aprvusername', 'like', '%' . $user->username . '%')
-            ->where('status', 'P')
-            ->whereNotNull('aprvdatebefore')
-            ->exists();
+    //     $personnel = Personnel::where('docid', $docid)->first();   
 
-        return response()->json(['canReject' => $approval]);
+    //     if (!$personnel) {
+    //         return response()->json(['success' => false, 'message' => 'Prf not found'], 404);
+    //     }        
+
+    //     $count_approval = T_approval::where('docid', '=', $personnel->docid)
+    //         ->where('status', '=', 'P')
+    //         ->count();
+    
+    //     // Cek apakah user memiliki akses untuk approve
+    //     $t_approval = T_approval::where('docid', $personnel->docid)
+    //         ->where('status', 'P')
+    //         ->where('aprvusername', 'like', "%" . $user->username . "%")
+    //         ->first();
+    //     // dd($t_approval);
+    //     if ($t_approval == null) {
+    //         return response()->json(['success' => false, 'message' => "You Can't Approve!"], 403);
+    //     } else {
+    //         $t_approval->status = 'A';
+    //         $t_approval->aprvdateafter = $datestamp;
+    //         $t_approval->aprvusername = $user->username;
+    //         $t_approval->name = $user->name;
+    //         $t_approval->save();
+    //     }   
+
+    //     if ($count_approval == 1) {
+    //         $personnel->status = 'C';
+    //         $personnel->completed_user = $user->username;
+    //         $personnel->completed_at = $datestamp;
+    //         $personnel->save();
+    //         app('App\Http\Controllers\PersonnelController')->insert_jobposting($docid);
+    //     }
+
+    //     $t_approval_next = T_approval::where('docid', $personnel->docid)
+    //         ->where('status', 'P')
+    //         ->orderby('aprvid','ASC')
+    //         ->first();
+
+    //     $eid = Hashids::encode($personnel->id);
+
+    //     if ($count_approval <> 1) {
+    //         //update datebefore
+    //         $t_approval_next->aprvdatebefore = $datestamp;
+    //         $t_approval_next->save();
+
+    //         //send email 
+    //         $data = array(
+    //             'docid' => $t_approval_next->docid,
+    //             'cpnyid' => $t_approval_next->aprvcpnyid,
+    //             'deptname' => $t_approval_next->aprvdeptid,               
+    //             'date' => $t_approval_next->aprvdatebefore,
+    //             'name' => $t_approval_next->created_user,
+    //             'info' => $personnel->job_title,               
+    //             'url' => url('/showvpersonels' .'/' . $eid)  
+                
+    //         );
+
+    //         $multiapp = explode(',', $t_approval_next->aprvusername);
+
+    //         $email_it = User::whereIN('username', $multiapp)
+    //             ->where('status', 'A')
+    //             ->get();
+
+    //         foreach ($email_it as $emailsit) {
+    //             Mail::send('emails.mailapprove', $data, function ($message) use ($data, $emailsit) {
+
+    //                 $message->to($emailsit->test_email)->subject($data['docid'] . ' - Waiting Approval Personnel');
+    //                 $message->from('digitalserver@pakuwon.com', 'Pakuwon System');
+    //             });
+    //         }
+    //     }
+
+    //     return response()->json(['success' => true, 'message' => 'Task approved successfully']);
+    // }
+
+    // public function rejectPersonnel(Request $request, $docid)
+    // {
+        
+    //     // dd($request->all());         
+    //     $datestamp = Carbon::now()->toDateTimeString();       
+    //     $user = request()->user(); // Ambil user yang login
+
+    //     $personnel = Personnel::where('docid', $docid)->first();  
+        
+        
+    //     if (!$personnel) {
+    //         return response()->json(['success' => false, 'message' => 'Task not found'], 404);
+    //     }
+
+    //     // Cek apakah user memiliki akses untuk approve
+    //     $t_approval = T_approval::where('docid', $personnel->docid)
+    //         ->where('status', 'P')
+    //         ->where('aprvusername', 'like', "%" . $user->username . "%")
+    //         ->first();
+    //     // dd($t_approval);
+    //     if ($t_approval == null) {
+    //         return response()->json(['success' => false, 'message' => "You Can't Rejected!"], 403);
+    //     } else {
+    //         $t_approval->status = 'R';
+    //         $t_approval->aprvdateafter = $datestamp;           
+    //         $t_approval->save();
+
+    //         $personnel->status = 'R';
+    //         $personnel->save();
+    //     }   
+                       
+    //     $t_aprv_sisa = T_approval::where('docid', '=', $personnel->docid)
+    //         ->where('status', '=', 'P')
+    //         ->get();
+
+    //     foreach ($t_aprv_sisa as $t_aprv) {
+    //         $t_aprv->status = 'X';
+    //         $t_aprv->save();
+    //     }
+
+    //     $eid = Hashids::encode($personnel->id);
+
+    //     //send email 
+    //     $data = array(
+    //         'docid' => $t_approval->docid,
+    //         'cpnyid' => $t_approval->aprvcpnyid,
+    //         'deptname' => $t_approval->aprvdeptid,
+    //         // 'locationname' => $ms_site->site,
+    //         'date' => $t_approval->aprvdatebefore,
+    //         'name' => $t_approval->created_user,
+    //         'info' => $personnel->job_title,               
+    //         'url' => url('/showvpersonels' .'/' . $eid) 
+
+    //     );
+
+       
+    //     $email_it = User::where('username', $personnel->created_user)
+    //             ->where('status', 'A')
+    //             ->get();
+
+    //     foreach ($email_it as $emailsit) {
+    //         Mail::send('emails.mailapprove', $data, function ($message) use ($data, $emailsit) {
+
+    //             $message->to($emailsit->test_email)->subject($data['docid'] . ' - Rejected Personnel');
+    //             $message->from('digitalserver@pakuwon.com', 'Pakuwon System');
+    //         });
+    //     }
+
+    //     $id = $personnel->id;
+    //     $doctype ='PRF';
+    //     app('App\Http\Controllers\SendCommentController')->sendmsg($id, $doctype, $request);
+
+    //     return response()->json(['success' => true, 'message' => 'Personnel rejected successfully']);
+    // }
+
+    // public function revisePersonnel(Request $request, $docid)
+    // {
+        
+    //     // dd($request->all());         
+    //     $datestamp = Carbon::now()->toDateTimeString();       
+    //     $user = request()->user(); // Ambil user yang login
+
+    //     $personnel = Personnel::where('docid', $docid)->first();  
+        
+        
+    //     if (!$personnel) {
+    //         return response()->json(['success' => false, 'message' => 'Personnel not found'], 404);
+    //     }
+
+    //     // Cek apakah user memiliki akses untuk approve
+    //     $t_approval = T_approval::where('docid', $personnel->docid)
+    //         ->where('status', 'P')
+    //         ->where('aprvusername', 'like', "%" . $user->username . "%")
+    //         ->first();
+    //     // dd($t_approval);
+    //     if ($t_approval == null) {
+    //         return response()->json(['success' => false, 'message' => "You Can't Revise!"], 403);
+    //     } else {
+    //         $t_approval->status = 'D';
+    //         $t_approval->aprvdateafter = $datestamp;           
+    //         $t_approval->save();
+
+    //         $personnel->status = 'D';
+    //         $personnel->save();
+    //     }   
+                       
+    //     $t_aprv_sisa = T_approval::where('docid', '=', $personnel->docid)
+    //         ->where('status', '=', 'P')
+    //         ->get();
+
+    //     foreach ($t_aprv_sisa as $t_aprv) {
+    //         $t_aprv->status = 'X';
+    //         $t_aprv->save();
+    //     }
+
+    //     $eid = Hashids::encode($personnel->id);
+    //     //send email 
+    //     $data = array(
+    //         'docid' => $t_approval->docid,
+    //         'cpnyid' => $t_approval->aprvcpnyid,
+    //         'deptname' => $t_approval->aprvdeptid,
+    //         // 'locationname' => $ms_site->site,
+    //         'date' => $t_approval->aprvdatebefore,
+    //         'name' => $t_approval->created_user,
+    //         'info' => $personnel->job_title,               
+    //         'url' => url('/showvpersonels' .'/' . $eid) 
+
+    //     );
+
+       
+    //     $email_it = User::where('username', $personnel->created_user)
+    //             ->where('status', 'A')
+    //             ->get();
+
+    //     foreach ($email_it as $emailsit) {
+    //         Mail::send('emails.mailapprove', $data, function ($message) use ($data, $emailsit) {
+
+    //             $message->to($emailsit->test_email)->subject($data['docid'] . ' - Revise Personnel');
+    //             $message->from('digitalserver@pakuwon.com', 'Pakuwon System');
+    //         });
+    //     }
+
+    //     $id = $personnel->id;
+    //     $doctype ='PRF';
+    //     app('App\Http\Controllers\SendCommentController')->sendmsg($id, $doctype, $request);
+
+    //     return response()->json(['success' => true, 'message' => 'Personnel revise successfully']);
+    // }
+
+    
+
+    // public function checkApproval($id, $action)
+    // {
+    //     $user = Auth::user(); // Ambil user yang login
+    //     // dd($action);
+    //     // Query dasar untuk pengecekan
+    //     $query = T_approval::where('docid', $id)
+    //                 ->where('aprvusername', 'like', '%' . $user->username . '%')
+    //                 ->where('status', 'P');                 
+
+    //     // Jika aksi adalah reject atau revise, pastikan aprvdatebefore tidak null
+    //     if (in_array($action, ['reject', 'revise','approve'])) {
+    //         $query->whereNotNull('aprvdatebefore');
+    //     }
+
+    //     // Cek apakah user bisa melakukan aksi
+    //     $canPerformAction = $query->exists();
+
+    //     return response()->json(['canPerformAction' => $canPerformAction]);
+    // }
 
 
-    }
 
-    public function checkApproval($id, $action)
+    public function checkApproval($refnbr, $action)
     {
-        $user = Auth::user(); // Ambil user yang login
-        // dd($action);
-        // Query dasar untuk pengecekan
-        $query = T_approval::where('docid', $id)
-                    ->where('aprvusername', 'like', '%' . $user->username . '%')
-                    ->where('status', 'P');                 
-
-        // Jika aksi adalah reject atau revise, pastikan aprvdatebefore tidak null
-        if (in_array($action, ['reject', 'revise','approve'])) {
-            $query->whereNotNull('aprvdatebefore');
+        $user = Auth::user();
+        if (!$user) {
+            return response()->json(['canPerformAction' => false]);
         }
 
-        // Cek apakah user bisa melakukan aksi
-        $canPerformAction = $query->exists();
+        // Cek apakah ada pending step yang memuat user ini
+        $qUser = TrApproval::where('refnbr', $refnbr)
+            ->where('status', 'P')
+            ->where('aprv_username', 'like', '%'.$user->username.'%');
+
+        // Untuk approve/reject/revise: harus sudah "dibuka" (aprv_datebefore != null)
+        if (in_array($action, ['approve', 'reject', 'revise'], true)) {
+            $qUser->whereNotNull('aprv_datebefore');
+        }
+
+        $hasPendingForUser = $qUser->exists();
+
+        // Hard guard: user hanya boleh bertindak jika dia berada di step PENDING TERENDAH (next approver)
+        $next = TrApproval::where('refnbr', $refnbr)
+            ->where('status', 'P')
+            ->orderBy('aprv_leveling', 'asc')
+            ->first();
+
+        $onNextLevel = false;
+        if ($next) {
+            // cek username ada di list approver step berikutnya
+            $userIsOnNext = Str::contains(
+                ','.$next->aprv_username.',',
+                ','.$user->username.','
+            );
+
+            // step berikutnya juga harus sudah "dibuka"
+            $opened = !is_null($next->aprv_datebefore);
+
+            $onNextLevel = $userIsOnNext && $opened;
+        }
+
+        $canPerformAction = $hasPendingForUser && $onNextLevel;
 
         return response()->json(['canPerformAction' => $canPerformAction]);
     }
+
 
     public function insert_jobposting($id)
     {
@@ -1406,6 +2152,57 @@ class PersonnelController extends Controller
             'total_actual' => $actual + 1,
         ]);
         
+    }
+
+    
+    public function viewAttachment($id)
+    {
+        $att = TrAttachment::where('id', $id)->where('status','A')->firstOrFail();
+
+        // Normalisasi object path:
+        // 1) Kalau filename sudah mengandung '/', anggap itu full path.
+        // 2) Kalau tidak, gabungkan folder + filename (kalau folder ada).
+        $objectPath = trim((string)$att->filename ?? '', '/');
+        if (!Str::contains($objectPath, '/')) {
+            $folder = trim((string)$att->folder ?? '', '/');
+            if ($folder !== '') {
+                $objectPath = $folder . '/' . $objectPath;
+            }
+        }
+
+        if ($objectPath === '') {
+            abort(404, 'Empty object path');
+        }
+
+        // (Opsional) catat untuk debug cepat
+        Log::info('GCS viewAttachment', [
+            'id' => $att->id,
+            'folder' => $att->folder,
+            'filename' => $att->filename,
+            'objectPath' => $objectPath,
+        ]);
+
+        $config = config('filesystems.disks.gcs');
+        $storage = new StorageClient([
+            'projectId'   => $config['project_id'],
+            'keyFilePath' => $config['key_file'],
+        ]);
+        $bucket = $storage->bucket($config['bucket']);
+        $object = $bucket->object($objectPath);
+
+        if (!$object->exists()) {
+            // Tambahkan log supaya kelihatan path apa yang dicari
+            Log::warning('GCS object not found', ['objectPath' => $objectPath]);
+            abort(404, 'File not found in storage: ' . $objectPath);
+        }
+
+        // Signed URL (V4) 15 menit
+        $url = $object->signedUrl(
+            now()->addMinutes(15),
+            ['version' => 'v4']
+        );
+
+        return redirect()->away($url);
     }
 
 

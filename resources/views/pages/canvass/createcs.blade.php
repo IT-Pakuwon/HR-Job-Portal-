@@ -390,7 +390,7 @@
                                                         @endif
                                                     </td>
                                                     <td class="p-3">{{ $at->created_by }}</td>
-                                                    <td class="p-3">{{ \Carbon\Carbon::parse($at->created_at)->format('d M Y') }}</td>
+                                                    <td class="p-3">{{ $at->created_at }}</td>
                                                 </tr>
                                             @endforeach
                                         </tbody>
@@ -622,6 +622,13 @@
             ================================ */
             let vendorCount = 0;
 
+            //vendor TOP
+            const TOPS = @json($tops->map(fn($t) => ['id' => $t->topid, 'name' => $t->top_name]));
+            // siapkan HTML option sekali saja
+            const TOPS_OPTIONS_HTML =
+                '<option value="" disabled selected>Select TOP</option>' +
+                TOPS.map(t => `<option value="${_.escape(String(t.id))}">${_.escape(t.name)}</option>`).join('');
+
             $('#vendorSelect').on('select2:select', function(e) {
                 const id = Number(e.params.data.id);
                 const vendor = vendorMaster.find(v => Number(v.id) === id);
@@ -679,13 +686,11 @@
                 </div>
                 <div class="flex items-center gap-2">
                     <span class="text-xs font-semibold text-gray-600 dark:text-gray-300">Payment Term:</span>
-                    <select name="cara_bayar_${id}" 
+                   <select name="cara_bayar_${id}" 
                         class="cara-bayar w-40 rounded-full border border-gray-300 bg-white px-3 py-1 
-                            text-xs font-medium shadow-sm focus:border-indigo-500 focus:ring 
-                            focus:ring-indigo-500/50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200">
-                        <option value="14D">14 Days</option>
-                        <option value="30D">30 Days</option>
-                        <option value="Cash">Cash</option>
+                               text-xs font-medium shadow-sm focus:border-indigo-500 focus:ring 
+                               focus:ring-indigo-500/50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200">
+                        ${TOPS_OPTIONS_HTML}
                     </select>
                 </div>
 
@@ -1241,6 +1246,8 @@
                 return;
             }
 
+            if (!validatePaymentTerms()) return;
+
             // Kumpulkan vendor summary (urut sesuai posisi kolom)
             const vendors = [];
             $('#cvTable thead th[id^="th-vendor-"]').each(function(i) {
@@ -1406,6 +1413,8 @@
                 toastr.error('Ada qty yang melebihi qty awal. Periksa kembali.');
                 return;
             }
+
+            if (!validatePaymentTerms()) return;
 
             // ==== NEW: baris yang ada harga > 0 harus pilih vendor ====
             let rowWithoutVendor = false;
@@ -1636,6 +1645,44 @@
         });
         }
     </script>
+
+    <script>
+        function validatePaymentTerms() {
+            let ok = true;
+
+            // reset state lama
+            $('#cvTable thead th[id^="th-vendor-"] select.cara-bayar').removeClass('is-invalid');
+
+            $('#cvTable thead th[id^="th-vendor-"]').each(function () {
+            const $th = $(this);
+            const $top = $th.find('select.cara-bayar');
+            const val  = $top.val();
+
+            if (!val) {
+                ok = false;
+                $top.addClass('is-invalid');               // tampilkan border merah
+                // scroll ke kolom vendor yang belum diisi
+                const th = $th.get(0);
+                if (th && th.scrollIntoView) th.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+                // fokuskan ke select agar langsung bisa dipilih
+                setTimeout(() => $top.trigger('focus'), 150);
+                // break dari .each
+                return false;
+            }
+            });
+
+            if (!ok) {
+            toastr.error('Payment Term (TOP) wajib diisi untuk semua vendor.');
+            }
+            return ok;
+        }
+
+        // hilangkan merah ketika user memilih nilai
+        $(document).on('change', 'select.cara-bayar', function () {
+            if ($(this).val()) $(this).removeClass('is-invalid');
+        });
+    </script>
+
 
 
 

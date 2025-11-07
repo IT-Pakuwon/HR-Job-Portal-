@@ -380,7 +380,7 @@
                     </div>
 
                     <div class="w-full rounded-xl bg-white p-6 shadow-md dark:bg-gray-800">
-                        <details class="group" open>
+                        {{-- <details class="group" open>
                             <summary
                                 class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-xl font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
                                 <span>Attachments</span>
@@ -415,7 +415,42 @@
                                         clip-rule="evenodd" />
                                 </svg> Add Attachment
                             </button>
+                        </details> --}}
+                        <details class="group" open>
+                            <summary class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-xl font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
+                                <span>Attachments</span>
+                                <span class="text-sm font-medium text-gray-500 transition-all group-open:hidden">See details &rarr;</span>
+                                <span class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline">Hide details &darr;</span>
+                            </summary>
+
+                            <div class="flex max-h-[125px] flex-col overflow-y-auto pt-6">
+                                <div id="attachmentsContainer">
+                                @foreach ($attachment as $attach)
+                                    @php
+                                    $fileUrl = route('attachments.view', ['id' => $attach->id]);
+                                    @endphp
+                                    <div class="attachment-row flex items-center gap-2" data-attachid="{{ $attach->id }}">
+                                    <a href="{{ $fileUrl }}" target="_blank" class="mt-4 w-full border p-3 text-lg">
+                                        📎 {{ $attach->attachment_name ?? basename($attach->filename) }}
+                                    </a>
+                                    <button
+                                        type="button"
+                                        class="removeAttachment2 mt-4 rounded border border-red-700 bg-red-200/10 px-3 py-3 text-white hover:border-red-700 hover:bg-red-400/30 dark:bg-red-700/30"
+                                        data-id="{{ $attach->id }}">🗑️
+                                    </button>
+                                    </div>
+                                @endforeach
+                                </div>
+                            </div>
+
+                            <button type="button" id="addAttachment"
+                                class="mt-4 flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 bg-gray-50 px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M10 2a1 1 0 011 1v6h6a1 1 0 110 2h-6v6a1 1 0 11-2 0v-6H3a1 1 0 110-2h6V3a1 1 0 011-1z" clip-rule="evenodd" />
+                                </svg> Add Attachment
+                            </button>
                         </details>
+
 
                         <div class="flex w-full justify-end gap-4 pt-4">
                             <button type="button" id="cancelBtn"
@@ -455,8 +490,9 @@
                 e.preventDefault();
 
                 let formData = new FormData(this);
-                let personnelId = "{{ $personnel->id }}"; // pastikan ID tersedia di view
-                let updateUrl = `/personnels/${personnelId}`;
+                // let personnelId = "{{ $personnel->id }}"; // pastikan ID tersedia di view
+                let personnelHash = @json($hash); 
+                let updateUrl = `/personnels/${personnelHash}`;
 
                 // Tampilkan Loading, Disable Button
                 $('#submitBtn').attr('disabled', true);
