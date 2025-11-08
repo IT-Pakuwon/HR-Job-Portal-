@@ -32,6 +32,5 @@ class TrIMBudgetdetail extends Model
         'budget_remain' , 'budget_needed' , 'budget_requested' , 'note' , 'status' , 'created_by' , 'created_at' , 
         'updated_by' , 'updated_at' , 'deleted_by' , 'deleted_at'
     ];
-
     
 }

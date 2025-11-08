@@ -19,28 +19,17 @@ class TrCS extends Model
     protected $guarded = ['id'];
 
     protected $fillable = [       
-        'csid' , 'csdate' , 'cpny_id' , 'sppbjktid' , 'bqid' , 'department_id' , 'user_peminta' , 'csnote' , 'budget_perpost' , 
-        'woid' , 'spbid' , 'flag_imbudget' , 'imbudgetid' , 'rev_csid' , 'prev_csid' , 
-        'vendorid1' , 'vendorname1' , 'vendoralamat1' , 'vendortelp1' , 'vendorcp1' , 'vendortop1' , 'vendornote1' , 
-        'totalvendor1' , 'taxcodevendor1' , 'ppnvendor1' , 'pphvendor1' , 'taxvendor1' , 'grandtotalvendor1' , 'totalselectedvendor1' , 
-        'taxselectedvendor1' , 'grandtotalselectedvendor1' , 
-        'vendorid2' , 'vendorname2' , 'vendoralamat2' , 'vendortelp2' , 'vendorcp2' , 'vendortop2' , 'vendornote2' , 
-        'totalvendor2' , 'taxcodevendor2' , 'ppnvendor2' , 'pphvendor2' , 'taxvendor2' , 'grandtotalvendor2' , 'totalselectedvendor2' , 
-        'taxselectedvendor2' , 'grandtotalselectedvendor2' , 
-        'vendorid3' , 'vendorname3' , 'vendoralamat3' , 'vendortelp3' , 'vendorcp3' , 'vendortop3' , 'vendornote3' , 
-        'totalvendor3' , 'taxcodevendor3' , 'ppnvendor3' , 'pphvendor3' , 'taxvendor3' , 'grandtotalvendor3' , 'totalselectedvendor3' , 
-        'taxselectedvendor3' , 'grandtotalselectedvendor3' , 
-        'vendorid4' , 'vendorname4' , 'vendoralamat4' , 'vendortelp4' , 'vendorcp4' , 'vendortop4' , 'vendornote4' , 
-        'totalvendor4' , 'taxcodevendor4' , 'ppnvendor4' , 'pphvendor4' , 'taxvendor4' , 'grandtotalvendor4' , 'totalselectedvendor4' , 
-        'taxselectedvendor4' , 'grandtotalselectedvendor4' , 
-        'vendorid5' , 'vendorname5' , 'vendoralamat5' , 'vendortelp5' , 'vendorcp5' , 'vendortop5' , 'vendornote5' , 
-        'totalvendor5' , 'taxcodevendor5' , 'ppnvendor5' , 'pphvendor5' , 'taxvendor5' , 'grandtotalvendor5' , 'totalselectedvendor5' , 
-        'taxselectedvendor5' , 'grandtotalselectedvendor5' , 
-        'vendorid6' , 'vendorname6' , 'vendoralamat6' , 'vendortelp6' , 'vendorcp6' , 'vendortop6' , 'vendornote6' , 
-        'totalvendor6' , 'taxcodevendor6' , 'ppnvendor6' , 'pphvendor6' , 'taxvendor6' , 'grandtotalvendor6' , 'totalselectedvendor6' , 
-        'taxselectedvendor6' , 'grandtotalselectedvendor6' , 
-        'assigndate' , 'submitdate' , 'status' , 'created_by' , 'created_at' , 'updated_by' , 'updated_at' , 
-        'deleted_by' , 'deleted_at' , 'completed_by' , 'completed_at'
+        'csid' , 'csdate' , 'cpny_id' , 'sppbjktid' , 'bqid' , 'department_id' , 'user_peminta' , 'keperluan' , 'csnote' , 
+        'budget_perpost' , 'woid' , 'spbid' , 'flag_imbudget' , 'imbudgetid' , 'status_imbudget' , 'rev_csid' , 
+        'prev_csid' , 'vendorid1' , 'vendorname1' , 'vendoralamat1' , 'vendortelp1' , 'vendorcp1' , 'vendortop1' , 
+        'vendornote1' , 'totalvendor1' , 'taxcodevendor1' , 'ppnvendor1' , 'pphvendor1' , 'taxvendor1' , 'grandtotalvendor1' , 
+        'totalselectedvendor1' , 'taxselectedvendor1' , 'grandtotalselectedvendor1' , 'vendorid2' , 'vendorname2' , 
+        'vendoralamat2' , 'vendortelp2' , 'vendorcp2' , 'vendortop2' , 'vendornote2' , 'totalvendor2' , 'taxcodevendor2' , 
+        'ppnvendor2' , 'pphvendor2' , 'taxvendor2' , 'grandtotalvendor2' , 'totalselectedvendor2' , 'taxselectedvendor2' , 
+        'grandtotalselectedvendor2' , 'vendorid3' , 'vendorname3' , 'vendoralamat3' , 'vendortelp3' , 'vendorcp3' , 'vendortop3' , 
+        'vendornote3' , 'totalvendor3' , 'taxcodevendor3' , 'ppnvendor3' , 'pphvendor3' , 'taxvendor3' , 'grandtotalvendor3' , 
+        'totalselectedvendor3' , 'taxselectedvendor3' , 'grandtotalselectedvendor3' , 'vendorid4' , 'vendorname4' , 'vendoralamat4' , 
+        'vendortelp4' , 'vendorcp4' , 'vendortop4' , 'vendornote4' , 'totalvendor4' , 'taxcodevendor4' , 'ppnvendor4' , 'pphvendor4' , 'taxvendor4' , 'grandtotalvendor4' , 'totalselectedvendor4' , 'taxselectedvendor4' , 'grandtotalselectedvendor4' , 'vendorid5' , 'vendorname5' , 'vendoralamat5' , 'vendortelp5' , 'vendorcp5' , 'vendortop5' , 'vendornote5' , 'totalvendor5' , 'taxcodevendor5' , 'ppnvendor5' , 'pphvendor5' , 'taxvendor5' , 'grandtotalvendor5' , 'totalselectedvendor5' , 'taxselectedvendor5' , 'grandtotalselectedvendor5' , 'vendorid6' , 'vendorname6' , 'vendoralamat6' , 'vendortelp6' , 'vendorcp6' , 'vendortop6' , 'vendornote6' , 'totalvendor6' , 'taxcodevendor6' , 'ppnvendor6' , 'pphvendor6' , 'taxvendor6' , 'grandtotalvendor6' , 'totalselectedvendor6' , 'taxselectedvendor6' , 'grandtotalselectedvendor6' , 'assigndate' , 'submitdate' , 'status' , 'created_by' , 'created_at' , 'updated_by' , 'updated_at' , 'deleted_by' , 'deleted_at' , 'completed_by' , 'completed_at'
     ];
 
     protected $casts = [

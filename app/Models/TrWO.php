@@ -34,10 +34,10 @@ class TrWO extends Model
         // 'status_wo',
         // 'created_by',
         // 'updated_by',
-        // 'completed_by',
+        // 'completed_by',       
         'woid' , 'wodate' , 'cpny_id' , 'department_id' , 'wotype' , 'worktypeid' , 'subworktypeid' , 'worequest' , 
         'picrequester' , 'biaya_wo' , 'location_id' , 'sub_location_id' , 'keperluan' , 'budget_use' , 'budget_perpost' , 
-        'budget_cpny_id' , 'budget_business_unit_id' , 'budget_department_fin_id' , 'budget_account_id' , 'budget_activity_id' , 
+        'budget_cpny_id' , 'budget_business_unit_id' , 'budget_department_fin_id' , 'budget_account_id' , 'budget_activity_id' ,
         'budget_activity_descr' , 'status' , 'pic_department' , 'pic_wo' , 'pic_completed_wo' , 'pic_wo_comment' , 'flag_sppbjkt' , 
         'status_pekerjaan' , 'created_by' , 'created_at' , 'updated_by' , 'updated_at' , 'deleted_by' , 'deleted_at' , 
         'completed_by' , 'completed_at'

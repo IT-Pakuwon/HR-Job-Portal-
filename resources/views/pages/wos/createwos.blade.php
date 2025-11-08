@@ -165,7 +165,6 @@
                                     <option value="">-- choose --</option>
                                 </select>
                             </div>
-
                             <!-- WOREQUEST (MsCategory: doctype=WO, categoryid=worequest) -->
                             <div class="flex flex-col gap-2">
                                 <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">WO Request</label>
@@ -176,21 +175,7 @@
                                 </select>
                             </div>
                         </div>
-                        <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
-                            <div class="flex flex-col gap-2">
-                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Lokasi</label>
-                                <div class="flex gap-2">
-                                <input type="text" id="lokasi_display"
-                                        class="flex-1 rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-gray-600 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
-                                        placeholder="Pilih Location & Sub Location" readonly>
-                                <button type="button" id="btnLokasi"
-                                        class="rounded-lg bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700">Pilih</button>
-                                </div>
-                                <!-- hidden fields to submit -->
-                                <input type="hidden" name="location_id" id="location_id">
-                                <input type="hidden" name="sub_location_id" id="sub_location_id">
-                            </div>
-
+                        <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-2">                      
                             <!-- Jenis pekerjaan (modal trigger) -->
                             <div class="flex flex-col gap-2">
                                 <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Jenis Pekerjaan</label>
@@ -205,6 +190,23 @@
                                 <input type="hidden" name="worktypeid" id="worktypeid">
                                 <input type="hidden" name="subworktypeid" id="subworktypeid">
                             </div>
+                            <div class="flex flex-col gap-2">
+                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Lokasi</label>
+                                <div class="flex gap-2">
+                                <input type="text" id="lokasi_display"
+                                        class="flex-1 rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-gray-600 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                        placeholder="Pilih Location & Sub Location" readonly>
+                                <button type="button" id="btnLokasi"
+                                        class="rounded-lg bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700">Pilih</button>
+                                </div>
+                                <!-- hidden fields to submit -->
+                                <input type="hidden" name="location_id" id="location_id">
+                                <input type="hidden" name="sub_location_id" id="sub_location_id">
+                            </div>
+                            
+                        </div>
+                        
+                        <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
 
                             <!-- PIC REQUESTER -->
                             <div class="flex flex-col gap-2">
@@ -220,6 +222,40 @@
                                 <input type="number" step="0.01" min="0" name="biaya_wo" id="biaya_wo"
                                     class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                     placeholder="0.00">
+                            </div>
+
+                            <!-- Budget -->
+                            <div class="flex flex-col gap-2">
+                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Budget</label>
+                                <select name="wobudget" id="wobudget"
+                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                    required>
+                                    <option value="">-- choose --</option>
+                                    <option value="Internal">Pemberi Kerja</option>
+                                    <option value="External">Penerima Kerja</option>
+
+                                </select>
+                            </div>
+
+                            <!-- PIC REQUESTER -->
+                            <div class="flex flex-col gap-2">
+                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">COA</label>
+                                <div class="flex gap-2">
+                                    <!-- hidden fields to submit -->
+                                    <input type="hidden" name="activity_id" id="activity_id">
+                                    <input type="hidden" name="business_unit_id" id="business_unit_id">
+                                    <input type="hidden" name="department_fin_id" id="department_fin_id">
+                                    <input type="hidden" name="coa_id" id="coa_id">
+                                    <input type="hidden" name="activity_id" id="activity_id">
+                                    <input type="hidden" name="activity_descr" id="activity_descr">     
+
+                                    <input type="text" id="budget_display"
+                                        class="flex-1 rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-gray-600 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                        placeholder="Pilih Budget" readonly>
+                                    <button type="button" id="btnBudget"
+                                        class="rounded-lg bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700">Pilih</button>
+                                </div>
+                               
                             </div>
                         </div>            
                        
@@ -304,6 +340,57 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- ===== Modal Lookup COA ===== -->
+                    <div id="coaModal"
+                        class="fixed inset-0 z-[1000] hidden items-center justify-center bg-black/40 p-4">
+                        <div class="w-full max-w-4xl rounded-xl bg-white p-4 shadow-lg dark:bg-gray-800">
+                            <div class="mb-3 flex items-center justify-between">
+                                <h3 class="text-lg font-bold text-gray-800 dark:text-white">Select COA</h3>
+                                <button type="button" id="closeCoaModal"
+                                    class="rounded px-3 py-1 hover:bg-gray-100 dark:hover:bg-gray-700">✖</button>
+                            </div>
+
+                            <div class="mb-3 flex items-center gap-2 text-sm">
+                                <input id="coaSearch" type="text" placeholder="Search code/name..."
+                                    class="rounded border border-gray-300 bg-white px-3 py-1 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
+                                <button id="coaRefresh" type="button"
+                                    class="rounded border px-3 py-1 hover:bg-gray-100 dark:hover:bg-gray-700">↻</button>
+                                <div class="ml-auto flex items-center gap-3">
+                                    <span>Company: <b id="coaCpnyBadge"></b></span>
+                                    <span>Dept: <b id="coaDeptBadge"></b></span>
+                                    <span>Perpost: <b id="coaPerpostBadge"></b></span>
+                                </div>
+                            </div>
+
+                            <div class="max-h-[60vh] overflow-auto">
+                                <table class="w-full text-left">
+                                    <thead class="sticky top-0 bg-gray-50 text-sm dark:bg-gray-900">
+                                        <tr>
+                                            <th class="border p-2">Account ID</th>
+                                            <th class="border p-2">Activity</th>
+                                            <th class="border p-2">Available Budget</th>
+                                            <th class="w-24 border p-2 text-center">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="coaTableBody" class="text-sm"></tbody>
+                                </table>
+                            </div>
+
+                            <div class="mt-3 flex items-center justify-between text-sm">
+                                <span id="coaCount" class="opacity-80"></span>
+                                <div class="space-x-2">
+                                    <button id="coaPrev" type="button"
+                                        class="rounded border px-3 py-1 disabled:opacity-40">Prev</button>
+                                    <button id="coaNext" type="button"
+                                        class="rounded border px-3 py-1 disabled:opacity-40">Next</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+
+
 
                     {{-- ===== Attachment ===== --}}
                     <div class="w-full rounded-xl bg-white p-6 shadow-md dark:bg-gray-800">
