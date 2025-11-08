@@ -62,6 +62,8 @@ use App\Http\Controllers\IssueController;
 use App\Http\Controllers\IMBudgetController;
 use App\Http\Controllers\SendCommentController;
 use App\Http\Controllers\ApprovalController;
+use App\Http\Controllers\BastListController;
+use App\Http\Controllers\BastController;
 
 
 use App\Http\Controllers\CanvassxController;
@@ -683,6 +685,20 @@ Route::post('/logout', function () {
     Route::get('/pdf_imbudgets/{hash}', [IMBudgetController::class, 'printIMBudget']);
 
     Route::get('/testgenerate', [IMBudgetController::class, 'GenerateIMBudget']);
+
+    Route::get('/bastlist', [BastListController::class, 'index'])->name('bastlist');
+    Route::get('/bastlist/json', [BastListController::class, 'json'])->name('bastlist.json');
+    Route::get('/bast/create', [BastController::class, 'createBast'])->name('bast.create');    
+    Route::post('/bast', [BastController::class, 'storeBast'])->name('bast.store'); 
+    Route::get('/showbast/{hash}', [BastController::class, 'showBast']);     
+    Route::post('/bast/{id}/approve', [BastController::class, 'approveBast']);
+    Route::post('/bast/{id}/reject', [BastController::class, 'rejectBast']);
+    Route::post('/bast/{id}/revise', [BastController::class, 'reviseBast']);
+    // Route::get('/bast/{id}/check-approval/{action}', [BastController::class, 'checkApproval']);    
+    Route::get('/editbasts/{hash}', [BastController::class, 'editBast'])->name('bast.edit');
+    Route::put('/editbasts/{hash}', [BastController::class, 'updateBast'])->name('bast.update');
+    Route::get('/pdf_bast/{hash}', [BastController::class, 'printBast'])->name('basts.print');
+
 
     Route::get('/inventory/list', [MasterController::class, 'InventoryList'])->name('inventory.list');
     Route::get('/request-types/by-doctype', [MasterController::class, 'RequestType'])->name('requesttypes.byDoctype');

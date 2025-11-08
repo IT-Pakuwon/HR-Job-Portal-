@@ -142,7 +142,6 @@ class PoController extends Controller
 
     public function submitPO(Request $req, $ponbr)
     {
-        // dd($req->all());
         $po = TrPO::where('ponbr', $ponbr)->firstOrFail();
 
         if ($po->status !== 'H') {
@@ -157,8 +156,8 @@ class PoController extends Controller
 
         // Validasi dinamis sesuai po type
         if (strtoupper($po->potype ?? '') === 'PO') {
-            $validated = $req->validate([
-                'podeliverydate'   => ['nullable','date'],   // supaya lolos kalau pakai podeliverydate               
+            $req->validate([
+                'podeliverydate' => ['nullable','date'],
             ]);
 
             if (empty($deliveryDate)) {
@@ -167,21 +166,20 @@ class PoController extends Controller
                     'message' => 'The podeliverydate field is required.'
                 ], 422);
             }
-
         } else {
-            $validated = $req->validate([
-                'work_date_from'   => ['required','date'],
-                'work_date_to'     => ['required','date','after_or_equal:work_date_from'],
-                'work_days'        => ['required','integer','min:0'],
-                'work_day_from'    => ['required','string'],
-                'work_day_to'      => ['required','string'],
-                'work_time_from'   => ['required','date_format:H:i'],
-                'work_time_to'     => ['required','date_format:H:i'],
-                'manpower_total'   => ['required','integer','min:0'],
-                'pic_name'         => ['required','string'],
-                'pic_phone'        => ['required','string'],
-                // 'payment_method'   => ['required','string'],
-                'warranty'         => ['required','string'],
+            $req->validate([
+                'work_date_from' => ['required','date'],
+                'work_date_to'   => ['required','date','after_or_equal:work_date_from'],
+                'work_days'      => ['required','integer','min:0'],
+                'work_day_from'  => ['required','string'],
+                'work_day_to'    => ['required','string'],
+                'work_time_from' => ['required','date_format:H:i'],
+                'work_time_to'   => ['required','date_format:H:i'],
+                'manpower_total' => ['required','integer','min:0'],
+                'pic_name'       => ['required','string'],
+                'pic_phone'      => ['required','string'],
+                // 'payment_method' => ['required','string'],
+                'warranty'       => ['required','string'],
             ]);
         }
 
@@ -195,8 +193,10 @@ class PoController extends Controller
                 $po->podeliverydate = $deliveryDate ? Carbon::parse($deliveryDate) : null;
 
                 // (opsional) catat sedikit ringkasan di ponote
-                $po->ponote = trim(($po->ponote ? $po->ponote."\n" : '') .
-                    'Delivery Date: '.Carbon::parse($deliveryDate)->format('d/m/Y'));
+                if ($deliveryDate) {
+                    $po->ponote = trim(($po->ponote ? $po->ponote."\n" : '') .
+                        'Delivery Date: '.Carbon::parse($deliveryDate)->format('d/m/Y'));
+                }
             } else {
                 // simpan field SPK ke kolom yang tersedia di model
                 $po->spkstartworkingdate = $req->input('work_date_from');
@@ -218,10 +218,11 @@ class PoController extends Controller
                 $po->spkpic      = trim($req->input('pic_name').' || HP '.$req->input('pic_phone'));
                 $po->spkwarranty = $req->input('warranty');
 
-                // simpan "cara pembayaran" ke ponote (kolom yang ada)
-                $po = strtoupper($req->input('payment_method'));
-                // $po->ponote = trim(($po->ponote ? $po->ponote."\n" : '') .
-                //     "Cara Pembayaran: {$pm}");
+                // simpan "cara pembayaran" ke ponote (kolom yang ada) — gunakan variabel berbeda!
+                $pm = strtoupper($req->input('payment_method', '')); // <- TIDAK menimpa $po
+                if (!empty($pm)) {
+                    $po->ponote = trim(($po->ponote ? $po->ponote."\n" : '')."Cara Pembayaran: {$pm}");
+                }
             }
 
             // ubah status ke Purchase Order
@@ -234,6 +235,7 @@ class PoController extends Controller
             'message' => 'Submit berhasil. Status berubah menjadi Purchase Order.'
         ]);
     }
+
 
     /** POST /po/{ponbr}/cancel-reuse */
     public function ReusePO(Request $req, $ponbr)

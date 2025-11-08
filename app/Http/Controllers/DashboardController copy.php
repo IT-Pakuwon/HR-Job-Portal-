@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\DataFeed;
 use App\Models\ProjectTask;
-use App\Models\TrApproval;
+use App\Models\T_approval;
 use App\Models\Viewtrxall;
 use App\Models\Agenda;
 use Illuminate\Support\Carbon;
@@ -20,10 +20,87 @@ use App\Models\ViewDasAll;
 use Illuminate\Support\Facades\Log;
 use Vinkla\Hashids\Facades\Hashids;
 
-
 class DashboardController extends Controller
 {
     
+    public function index_xxx()
+    {
+        $dataFeed = new DataFeed();   
+        $user = request()->user();     
+        if (!$user) return redirect()->route('login');
+
+        // Models
+        $trxM = new ViewTrxAll();     // contoh: DB iamsys
+        $appM = new ViewJobApply();   // contoh: DB hrdb
+        $aprM = new T_approval();     // lokasi t_approval (bisa beda DB)
+        $purchM = new ViewtrPurch();
+
+        // Conn + DB names
+        $trxConn = $trxM->getConnectionName() ?: config('database.default');
+        $appConn = $appM->getConnectionName() ?: config('database.default');
+        $aprConn = $aprM->getConnectionName() ?: config('database.default');
+        $purchConn = $purchM->getConnectionName() ?: config('database.default');
+
+        $trxDb = DB::connection($trxConn)->getDatabaseName();
+        $appDb = DB::connection($appConn)->getDatabaseName();
+        $aprDb = DB::connection($aprConn)->getDatabaseName();
+        $purchDb = DB::connection($purchConn)->getDatabaseName();
+
+        // Table names
+        $tblTrx = $trxM->getTable();   // ex: view_trx_all
+        $tblApp = $appM->getTable();   // ex: v_job_apply_with_posting
+        $tblApr = $aprM->getTable();   // ex: t_approval
+        $tblPurch = $purchM->getTable(); 
+
+        // Fully-qualified
+        $tblTrxFQ = "`{$trxDb}`.`{$tblTrx}`";
+        $tblAppFQ = "`{$appDb}`.`{$tblApp}`";
+        $tblAprFQ = "`{$aprDb}`.`{$tblApr}`";
+        $tblPurchFQ = "`{$purchDb}`.`{$tblPurch}`";
+
+        // --- UNION ALL: kolom harus identik di kedua view ---
+        // kalau kamu punya kolom lain, tinggal tambahkan di SELECT keduanya.
+        $unionSql = "
+            SELECT id, docdate, cpnyid, departementid, infohd, url, docid
+            FROM {$tblTrxFQ}
+            UNION ALL
+            SELECT id, docdate, cpnyid, departementid, infohd, url, docid
+            FROM {$tblAppFQ}
+            UNION ALL
+            SELECT id, docdate, cpnyid, departementid, infohd, url, docid
+            FROM {$tblPurchFQ}
+        ";
+        // dd($unionSql);
+        // Jalankan query di koneksi ViewTrxAll (asumsi kedua DB ada di server yang sama)
+        $tr_approval = DB::connection($trxConn)
+            ->table(DB::raw("({$unionSql}) as allv"))
+            ->whereExists(function ($q) use ($user, $tblAprFQ) {
+                $q->select(DB::raw(1))
+                ->from(DB::raw("{$tblAprFQ} as ta"))
+                ->whereColumn('ta.docid', 'allv.docid')
+                ->where('ta.aprvusername', 'like', "%{$user->username}%")
+                ->where('ta.status', 'P')
+                ->whereNotNull('ta.aprvdatebefore');
+            })
+            ->select('allv.id','allv.docdate','allv.cpnyid','allv.departementid','allv.infohd','allv.url','allv.docid')
+            ->get();
+            // dd($tr_approval);
+        $datenow = Carbon::now()->format('Y-m-d');
+
+        $agendas = Agenda::whereDate('startdate', $datenow)
+            ->where(function($q) use ($user) {
+                $q->where('created_user', $user->username)
+                ->orWhereRaw('FIND_IN_SET(?, participant)', [$user->username]);
+            })
+            ->orderBy('startdate', 'asc')
+            ->get();
+
+        $news = News::where('status','C')->orderBy('created_at','desc')->get();
+
+        return view('pages/dashboard/dashboard', compact('dataFeed','tr_approval','agendas','news'));
+    }
+
+
     public function showProfile()
     {
         $user = Auth::user();
@@ -38,6 +115,142 @@ class DashboardController extends Controller
 
         return view('pages.dashboard.waitingapproval', compact('user'));
     }
+   
+    public function Waitingjson_xx(Request $request)
+    {
+        $user = request()->user();
+        if (!$user) {
+            return response()->json(['data' => []], 401);
+        }
+
+       // Models
+        $trxM = new ViewTrxAll();     // contoh: DB iamsys
+        $appM = new ViewJobApply();   // contoh: DB hrdb
+        $aprM = new T_approval();     // lokasi t_approval (bisa beda DB)
+        $purchM = new ViewtrPurch();
+
+
+        // Conn + DB names
+        $trxConn = $trxM->getConnectionName() ?: config('database.default');
+        $appConn = $appM->getConnectionName() ?: config('database.default');
+        $aprConn = $aprM->getConnectionName() ?: config('database.default');
+        $purchConn = $purchM->getConnectionName() ?: config('database.default');
+
+        $trxDb = DB::connection($trxConn)->getDatabaseName();
+        $appDb = DB::connection($appConn)->getDatabaseName();
+        $aprDb = DB::connection($aprConn)->getDatabaseName();
+        $purchDb = DB::connection($purchConn)->getDatabaseName();
+
+        // Table names
+        $tblTrx = $trxM->getTable();   // ex: view_trx_all
+        $tblApp = $appM->getTable();   // ex: v_job_apply_with_posting
+        $tblApr = $aprM->getTable();   // ex: t_approval
+        $tblPurch = $purchM->getTable();
+
+        // Fully-qualified
+        $tblTrxFQ = "`{$trxDb}`.`{$tblTrx}`";
+        $tblAppFQ = "`{$appDb}`.`{$tblApp}`";
+        $tblAprFQ = "`{$aprDb}`.`{$tblApr}`";
+        $tblPurchFQ = "`{$purchDb}`.`{$tblPurch}`";
+
+        // --- UNION ALL: kolom harus identik di kedua view ---
+        // kalau kamu punya kolom lain, tinggal tambahkan di SELECT keduanya.
+        $unionSql = "
+            SELECT id, docdate, cpnyid, departementid, infohd, url, docid
+            FROM {$tblTrxFQ}
+            UNION ALL
+            SELECT id, docdate, cpnyid, departementid, infohd, url, docid
+            FROM {$tblAppFQ}
+            UNION ALL
+            SELECT id, docdate, cpnyid, departementid, infohd, url, docid
+            FROM {$tblPurchFQ}
+        ";
+        // dd($unionSql);
+        // Jalankan query di koneksi ViewTrxAll (asumsi kedua DB ada di server yang sama)
+        $tr_approval = DB::connection($trxConn)
+            ->table(DB::raw("({$unionSql}) as allv"))
+            ->whereExists(function ($q) use ($user, $tblAprFQ) {
+                $q->select(DB::raw(1))
+                ->from(DB::raw("{$tblAprFQ} as ta"))
+                ->whereColumn('ta.docid', 'allv.docid')
+                ->where('ta.aprvusername', 'like', "%{$user->username}%")
+                ->where('ta.status', 'P')
+                ->whereNotNull('ta.aprvdatebefore');
+            })
+            ->select('allv.id','allv.docdate','allv.cpnyid','allv.departementid','allv.infohd','allv.url','allv.docid')
+            ->get();
+
+        return response()->json(['data' => $tr_approval]);
+
+    }
+    
+    public function Approvejson_xxx(Request $request)
+    {
+
+        $user = request()->user();
+        if (!$user) {
+            return response()->json(['data' => []], 401);
+        }
+
+       // Models
+        $trxM = new ViewTrxAll();     // contoh: DB iamsys
+        $appM = new ViewJobApply();   // contoh: DB hrdb
+        $aprM = new T_approval();     // lokasi t_approval (bisa beda DB)
+        $purchM = new ViewtrPurch();
+
+        // Conn + DB names
+        $trxConn = $trxM->getConnectionName() ?: config('database.default');
+        $appConn = $appM->getConnectionName() ?: config('database.default');
+        $aprConn = $aprM->getConnectionName() ?: config('database.default');
+        $purchConn = $purchM->getConnectionName() ?: config('database.default');
+
+        $trxDb = DB::connection($trxConn)->getDatabaseName();
+        $appDb = DB::connection($appConn)->getDatabaseName();
+        $aprDb = DB::connection($aprConn)->getDatabaseName();
+        $purchDb = DB::connection($purchConn)->getDatabaseName();
+
+        // Table names
+        $tblTrx = $trxM->getTable();   // ex: view_trx_all
+        $tblApp = $appM->getTable();   // ex: v_job_apply_with_posting
+        $tblApr = $aprM->getTable();   // ex: t_approval
+        $tblPurch = $purchM->getTable();
+
+        // Fully-qualified
+        $tblTrxFQ = "`{$trxDb}`.`{$tblTrx}`";
+        $tblAppFQ = "`{$appDb}`.`{$tblApp}`";
+        $tblAprFQ = "`{$aprDb}`.`{$tblApr}`";
+        $tblPurchFQ = "`{$purchDb}`.`{$tblPurch}`";
+
+        // --- UNION ALL: kolom harus identik di kedua view ---
+        // kalau kamu punya kolom lain, tinggal tambahkan di SELECT keduanya.
+        $unionSql = "
+            SELECT id, docdate, cpnyid, departementid, infohd, url, docid
+            FROM {$tblTrxFQ}
+            UNION ALL
+            SELECT id, docdate, cpnyid, departementid, infohd, url, docid
+            FROM {$tblAppFQ}
+            UNION ALL
+            SELECT id, docdate, cpnyid, departementid, infohd, url, docid
+            FROM {$tblPurchFQ}
+        ";
+        // dd($unionSql);
+        // Jalankan query di koneksi ViewTrxAll (asumsi kedua DB ada di server yang sama)
+        $tr_approval = DB::connection($trxConn)
+            ->table(DB::raw("({$unionSql}) as allv"))
+            ->whereExists(function ($q) use ($user, $tblAprFQ) {
+                $q->select(DB::raw(1))
+                ->from(DB::raw("{$tblAprFQ} as ta"))
+                ->whereColumn('ta.docid', 'allv.docid')
+                ->where('ta.aprvusername', 'like', "%{$user->username}%")
+                ->where('ta.status', 'A')
+                ->whereNotNull('ta.aprvdatebefore');
+            })
+            ->select('allv.id','allv.docdate','allv.cpnyid','allv.departementid','allv.infohd','allv.url','allv.docid')
+            ->get();
+
+        return response()->json(['data' => $tr_approval]);
+
+    }
 
     // DashboardController.php (potong ganti 3 method ini)
 
@@ -51,7 +264,7 @@ class DashboardController extends Controller
         $trxM   = new ViewTrxAll();   // iamsys (server A)
         $dasM   = new ViewDasAll();   // das_voucher (server A)  <-- TAMBAHAN
         $appM   = new ViewJobApply(); // jobportal (server A/B)
-        $aprM   = new TrApproval();   // das_voucher (server A dengan ViewTrxAll)
+        $aprM   = new T_approval();   // das_voucher (server A dengan ViewTrxAll)
         $purchM = new ViewtrPurch();  // purchasing (server B)
 
         // koneksi & table
@@ -69,10 +282,10 @@ class DashboardController extends Controller
 
         // 1) ambil DOCID pending
         $docids = DB::connection($aprConn)->table($tblApr)
-            ->where('aprv_username', 'like', "%{$user->username}%")
+            ->where('aprvusername', 'like', "%{$user->username}%")
             ->where('status', 'P')
-            ->whereNotNull('aprv_datebefore')
-            ->pluck('refnbr')->unique()->values();
+            ->whereNotNull('aprvdatebefore')
+            ->pluck('docid')->unique()->values();
 
         if ($docids->isEmpty()) {
             $tr_approval = collect();
@@ -146,7 +359,7 @@ class DashboardController extends Controller
         $trxM   = new ViewTrxAll();
         // $dasM   = new ViewDasAll();  // <-- TAMBAHAN
         $appM   = new ViewJobApply();
-        $aprM   = new TrApproval();
+        $aprM   = new T_approval();
         $purchM = new ViewtrPurch();
 
         $trxConn   = $trxM->getConnectionName()   ?: config('database.default');
@@ -162,10 +375,10 @@ class DashboardController extends Controller
         $tblPurch = $purchM->getTable();
 
         $docids = DB::connection($aprConn)->table($tblApr)
-            ->where('aprv_username', 'like', "%{$user->username}%")
+            ->where('aprvusername', 'like', "%{$user->username}%")
             ->where('status', 'P')
-            ->whereNotNull('aprv_datebefore')
-            ->pluck('refnbr')->unique()->values();
+            ->whereNotNull('aprvdatebefore')
+            ->pluck('docid')->unique()->values();
 
         if ($docids->isEmpty()) return response()->json(['data' => []]);
 
@@ -215,7 +428,7 @@ class DashboardController extends Controller
         $trxM   = new ViewTrxAll();
         // $dasM   = new ViewDasAll();  // <-- TAMBAHAN
         $appM   = new ViewJobApply();
-        $aprM   = new TrApproval();
+        $aprM   = new T_approval();
         $purchM = new ViewtrPurch();
 
         $trxConn   = $trxM->getConnectionName()   ?: config('database.default');
@@ -231,10 +444,10 @@ class DashboardController extends Controller
         $tblPurch = $purchM->getTable();
 
         $docids = DB::connection($aprConn)->table($tblApr)
-            ->where('aprv_username', 'like', "%{$user->username}%")
+            ->where('aprvusername', 'like', "%{$user->username}%")
             ->where('status', 'A')
-            ->whereNotNull('aprv_datebefore')
-            ->pluck('refnbr')->unique()->values();
+            ->whereNotNull('aprvdatebefore')
+            ->pluck('docid')->unique()->values();
 
         if ($docids->isEmpty()) return response()->json(['data' => []]);
 

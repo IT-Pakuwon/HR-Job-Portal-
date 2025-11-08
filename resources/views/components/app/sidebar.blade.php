@@ -629,6 +629,23 @@
                                     </div>
                                 </a>
                             </li>
+                            <li
+                                class="bg-linear-to-r @if (in_array(Request::segment(1), ['bastlist', 'showimbudgets', 'editimbudget'])) {{ 'from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]' }} @endif mb-0.5 rounded-lg py-2 pl-4 pr-3 last:mb-0">
+                                <a class="@if (!in_array(Request::segment(1), ['bastlist', 'showimbudgets', 'editimbudget'])) {{ 'hover:text-gray-900 dark:hover:text-white' }} @endif block truncate text-gray-800 transition dark:text-gray-100"
+                                    href="{{ route('bastlist', 'showimbudgets', 'editimbudget') }}">
+                                    <div class="flex items-center">
+                                        <svg class="@if (in_array(Request::segment(1), ['bastlist', 'showimbudgets', 'editimbudget'])) {{ 'text-violet-500' }}@else{{ 'text-gray-400 dark:text-gray-500' }} @endif shrink-0 fill-current"
+                                            viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="none"
+                                            stroke-width="1.5" stroke="currentColor" width="16" height="16">
+                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                d=" M2.25 18.75a60.07 60.07 0 0 1 15.797 2.101c.727.198 1.453-.342
+                                                                                                                                                                                                                                                        1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 0 1 3 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 0 0-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 0 1-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 0 0 3 15h-.75M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm3 0h.008v.008H18V10.5Zm-12 0h.008v.008H6V10.5Z" />
+                                        </svg>
+                                        <span
+                                            class="lg:sidebar-expanded:opacity-100 text-m ml-4 font-medium duration-200 lg:opacity-0 2xl:opacity-100">Bast List</span>
+                                    </div>
+                                </a>
+                            </li>
                         @endif
                     @endauth
                 </ul>
