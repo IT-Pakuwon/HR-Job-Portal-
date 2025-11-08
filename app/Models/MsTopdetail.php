@@ -19,8 +19,12 @@ class MsTopdetail extends Model
         'terms_type',
         'flag_bast',
         'status',
-        'created_by',        
-        'updated_by'
+        'created_by',  
+        'created_at',      
+        'updated_by',
+        'updated_at',
+        'deleted_by',
+        'deleted_at'
     ];
 
     

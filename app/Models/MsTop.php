@@ -18,7 +18,11 @@ class MsTop extends Model
         'is_fastapprove',
         'status',
         'created_by',        
-        'updated_by'
+        'created_at',        
+        'updated_by',
+        'updated_at',
+        'deleted_by',
+        'deleted_at'
     ];
 
     

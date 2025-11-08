@@ -5,14 +5,14 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class MsPurchSetting extends Model
+class MsPenalty extends Model
 {
-
+    // protected $connection = 'mysql2';
     protected $connection = 'pgsql';
-    protected $table = "ms_purch_setting";
-    protected $primaryKey = 'id';
-    protected $fillable = [
-        'setting_id' , 'setting_name' , 'setting_value_string' , 'setting_value_int' , 'status' , 
+    protected $table = "ms_penalty";
+   
+    protected $fillable = [     
+        'penalty_id' , 'min_amount' , 'max_amount' , 'penalty' , 'max_percent_amount' , 'status' , 
         'created_by' , 'created_at' , 'updated_by' , 'updated_at' , 'deleted_by' , 'deleted_at'
-    ];
+    ];    
 }
