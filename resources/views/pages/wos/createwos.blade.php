@@ -175,7 +175,7 @@
                                 </select>
                             </div>
                         </div>
-                        <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-2">                      
+                        <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">                      
                             <!-- Jenis pekerjaan (modal trigger) -->
                             <div class="flex flex-col gap-2">
                                 <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Jenis Pekerjaan</label>
@@ -203,6 +203,19 @@
                                 <input type="hidden" name="location_id" id="location_id">
                                 <input type="hidden" name="sub_location_id" id="sub_location_id">
                             </div>
+                             <div class="flex flex-col gap-2">
+                                <label
+                                    class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Perpost</label>
+                                <select id="perpost" name="perpost"
+                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                    required>
+                                    @php
+                                        $year = \Carbon\Carbon::now()->year;
+                                    @endphp
+                                    <option value="{{ $year }}">{{ $year }}</option>
+                                    <option value="{{ $year + 1 }}">{{ $year + 1 }}</option>
+                                </select>
+                            </div>
                             
                         </div>
                         
@@ -219,10 +232,19 @@
                             <!-- BIAYA WO -->
                             <div class="flex flex-col gap-2">
                                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Biaya WO</label>
-                                <input type="number" step="0.01" min="0" name="biaya_wo" id="biaya_wo"
+                                <input
+                                    type="text"
+                                    inputmode="decimal"
+                                    name="biaya_wo"
+                                    id="biaya_wo"
                                     class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
-                                    placeholder="0.00">
+                                    placeholder="0,00"
+                                    autocomplete="off"
+                                    />
+                                    <small id="biaya_wo_error" class="error-feedback" style="display:none;"></small>
+
                             </div>
+
 
                             <!-- Budget -->
                             <div class="flex flex-col gap-2">
@@ -236,27 +258,26 @@
 
                                 </select>
                             </div>
+                            
+                            <!-- COA (tampilkan hanya saat Budget = Pemberi Kerja / "Internal") -->
+                            <div id="coaGroup" class="flex flex-col gap-2">
+                            <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">COA</label>
+                            <div class="flex gap-2">
+                                <!-- hidden fields to submit -->
+                                <input type="hidden" name="activity_id" id="activity_id">
+                                <input type="hidden" name="business_unit_id" id="business_unit_id">
+                                <input type="hidden" name="department_fin_id" id="department_fin_id">
+                                <input type="hidden" name="coa_id" id="coa_id">
+                                <input type="hidden" name="activity_descr" id="activity_descr">
 
-                            <!-- PIC REQUESTER -->
-                            <div class="flex flex-col gap-2">
-                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">COA</label>
-                                <div class="flex gap-2">
-                                    <!-- hidden fields to submit -->
-                                    <input type="hidden" name="activity_id" id="activity_id">
-                                    <input type="hidden" name="business_unit_id" id="business_unit_id">
-                                    <input type="hidden" name="department_fin_id" id="department_fin_id">
-                                    <input type="hidden" name="coa_id" id="coa_id">
-                                    <input type="hidden" name="activity_id" id="activity_id">
-                                    <input type="hidden" name="activity_descr" id="activity_descr">     
-
-                                    <input type="text" id="budget_display"
-                                        class="flex-1 rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-gray-600 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
-                                        placeholder="Pilih Budget" readonly>
-                                    <button type="button" id="btnBudget"
+                                <input type="text" id="budget_display"
+                                    class="flex-1 rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-gray-600 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                    placeholder="Pilih Budget" readonly>
+                                <button type="button" id="btnBudget"
                                         class="rounded-lg bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700">Pilih</button>
-                                </div>
-                               
                             </div>
+                            </div>
+
                         </div>            
                        
                         <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
@@ -680,6 +701,13 @@
             return;
             }
 
+            const $wobudget = $('#wobudget');
+            const needsCoa = $wobudget.val() === 'Internal';
+            if (needsCoa && !$('#coa_id').val()) {
+            addError($('#budget_display'), 'Silakan pilih COA.');
+            ok = false;
+            }
+
             $('#submitBtn').prop('disabled', true);
             $('#cancelBtn').prop('disabled', true);
             $('#btnText').text('Processing...');
@@ -766,6 +794,335 @@
         });
         });
     </script>
+
+    <script>
+        $(function () {
+            const $wobudget = $('#wobudget');
+            const $coaGroup = $('#coaGroup');
+
+            function clearCoaFields() {
+            $('#coa_id, #activity_id, #business_unit_id, #department_fin_id, #activity_descr').val('');
+            $('#budget_display').val('');
+            }
+
+            function applyBudgetVisibility() {
+            const val = $wobudget.val();
+            if (val === 'Internal') {            // Pemberi Kerja
+                $coaGroup.slideDown(120);
+            } else {                             // External = Penerima Kerja
+                $coaGroup.slideUp(120);
+                clearCoaFields();
+            }
+            }
+
+            // init on load
+            applyBudgetVisibility();
+
+            // on change
+            $wobudget.on('change', applyBudgetVisibility);
+        });
+    </script>
+
+    <script>
+        $(function() {
+            // ===== COA modal state =====
+            const $coaModal   = $('#coaModal');
+            const $coaTbody   = $('#coaTableBody');
+            const $coaCount   = $('#coaCount');
+            const $coaCpny    = $('#coaCpnyBadge');
+            const $coaDept    = $('#coaDeptBadge');
+            const $coaPerpost = $('#coaPerpostBadge');
+
+            const $btnBudget  = $('#btnBudget');
+
+            let coaState = {
+            search: '',
+            page: 1,
+            per_page: 10,
+            total: 0,
+            cpnyid: null,
+            deptid: null,
+            perpost: null,
+            };
+
+            function openCoaModal() {
+            const cpny    = $('select[name="cpnyid"]').val();
+            const dept    = $('select[name="departementid"]').val();
+            const perpost = $('#perpost').val();
+
+            if (!cpny)  { if (window.toastr) toastr.warning('Pilih Company terlebih dahulu.'); return; }
+            if (!dept)  { if (window.toastr) toastr.warning('Pilih Department terlebih dahulu.'); return; }
+
+            coaState.cpnyid  = cpny;
+            coaState.deptid  = dept;
+            coaState.perpost = perpost;
+            coaState.page    = 1;
+            coaState.search  = '';
+
+            $coaCpny.text(coaState.cpnyid);
+            $coaDept.text(coaState.deptid);
+            $coaPerpost.text(coaState.perpost || '');
+            $('#coaSearch').val('');
+
+            $coaModal.removeClass('hidden').addClass('flex');
+            loadCoa();
+            }
+
+            function closeCoaModal() {
+            $coaModal.addClass('hidden').removeClass('flex');
+            }
+
+            // open via button in COA block
+            $btnBudget.on('click', openCoaModal);
+
+            // close modal
+            $('#closeCoaModal').on('click', closeCoaModal);
+            $(document).on('keydown', function(e) {
+            if (e.key === 'Escape' && $coaModal.is(':visible')) closeCoaModal();
+            });
+
+            // Search & refresh
+            $('#coaSearch').on('input', function() {
+            coaState.search = $(this).val().trim();
+            coaState.page = 1;
+            loadCoa();
+            });
+            $('#coaRefresh').on('click', function() {
+            $('#coaSearch').val('');
+            coaState.search = '';
+            coaState.page = 1;
+            loadCoa();
+            });
+
+            // Pagination
+            $('#coaPrev').on('click', function() {
+            if (coaState.page > 1) {
+                coaState.page--;
+                loadCoa();
+            }
+            });
+            $('#coaNext').on('click', function() {
+            const maxPage = Math.ceil(coaState.total / coaState.per_page);
+            if (coaState.page < maxPage) {
+                coaState.page++;
+                loadCoa();
+            }
+            });
+
+            // Load COA from API
+            function loadCoa() {
+            $coaTbody.html('<tr><td colspan="4" class="p-3 text-center">Loading...</td></tr>');
+            $.getJSON("{{ route('coa.byDept') }}", {
+                cpnyid : coaState.cpnyid,
+                deptid : coaState.deptid,
+                perpost: coaState.perpost,
+                search : coaState.search,
+                page   : coaState.page,
+                per_page: coaState.per_page
+            })
+            .done(function(res) {
+                // Expected: { data: [{account_id, activity_id, business_unit_id, department_fin_id, activity_detail, totalbudget}], total }
+                const rows = (res.data || []).map(item => {
+                const id          = item.account_id ?? '';
+                const actId       = item.activity_id ?? '';
+                const buId        = item.business_unit_id ?? '';
+                const deptFinId   = item.department_fin_id ?? '';
+                const actDetail   = item.activity_detail ?? '';
+                const totalbudget = item.totalbudget ?? '';
+
+                // label yang tampil di input display
+                const label = id ? `${id}${actDetail ? ' - ' + actDetail : ''}` : (actDetail || '');
+
+                return `
+                    <tr>
+                    <td class="border p-2">${id}</td>
+                    <td class="border p-2">${actDetail}</td>
+                    <td class="border p-2">${totalbudget}</td>
+                    <td class="border p-2 text-center">
+                        <button type="button" class="chooseCoa rounded border px-2 py-1 hover:bg-gray-100"
+                                data-id="${id}"
+                                data-activity_id="${actId}"
+                                data-business_unit_id="${buId}"
+                                data-department_fin_id="${deptFinId}"
+                                data-activity_descr="${$('<div>').text(actDetail).html()}"
+                                data-label="${$('<div>').text(label).html()}">
+                        Choose
+                        </button>
+                    </td>
+                    </tr>
+                `;
+                }).join('');
+
+                $coaTbody.html(rows || '<tr><td colspan="4" class="p-3 text-center">No data</td></tr>');
+                coaState.total = res.total || 0;
+                const shown = rows ? (res.data || []).length : 0;
+                $coaCount.text(`Showing ${shown} of ${coaState.total} items`);
+
+                const maxPage = Math.ceil((coaState.total || 0) / coaState.per_page) || 1;
+                $('#coaPrev').prop('disabled', coaState.page <= 1);
+                $('#coaNext').prop('disabled', coaState.page >= maxPage);
+            })
+            .fail(function() {
+                $coaTbody.html('<tr><td colspan="4" class="p-3 text-center text-red-600">Failed to load</td></tr>');
+                $coaCount.text('');
+                $('#coaPrev, #coaNext').prop('disabled', true);
+            });
+            }
+
+            // Choose -> isi field by ID (single COA di form)
+            $(document).on('click', '.chooseCoa', function() {
+            const id        = $(this).data('id') || '';
+            const actId     = $(this).data('activity_id') || '';
+            const buId      = $(this).data('business_unit_id') || '';
+            const deptFinId = $(this).data('department_fin_id') || '';
+            const actDescr  = $(this).data('activity_descr') || '';
+            const label     = $(this).data('label') || '';
+
+            $('#coa_id').val(id);
+            $('#activity_id').val(actId);
+            $('#business_unit_id').val(buId);
+            $('#department_fin_id').val(deptFinId);
+            $('#activity_descr').val(actDescr);
+            $('#budget_display').val($('<div>').html(label).text()); // unescape label untuk display
+
+            // bersihkan error jika ada
+            $('#budget_display').removeClass('is-invalid').next('.error-feedback').remove();
+
+            closeCoaModal();
+            });
+
+            // Jika cpny/dept/perpost berubah saat modal terbuka → refresh
+            $('select[name="cpnyid"], select[name="departementid"], #perpost').on('change', function() {
+            if ($coaModal.is(':visible')) {
+                coaState.cpnyid  = $('select[name="cpnyid"]').val();
+                coaState.deptid  = $('select[name="departementid"]').val();
+                coaState.perpost = $('#perpost').val();
+                $coaCpny.text(coaState.cpnyid || '-');
+                $coaDept.text(coaState.deptid || '-');
+                $coaPerpost.text(coaState.perpost || '-');
+                coaState.page = 1;
+                loadCoa();
+            }
+            });
+        });
+    </script>
+
+    <script>
+        $(function () {
+        const $biaya = $("#biaya_wo");
+        const $err   = $("#biaya_wo_error");
+
+        // 1) Matikan semua listener lama yg mungkin nempel & buang maxlength
+        $biaya.off(); 
+        $biaya.removeAttr("maxlength");
+
+        // Helper: format integer -> ribuan id-ID
+        function formatIntID(intDigits) {
+            if (!intDigits) return "0";
+            intDigits = intDigits.replace(/^0+(?!$)/, ""); // trim leading zero berlebih
+            const n = parseInt(intDigits, 10);
+            return isNaN(n) ? "0" : n.toLocaleString("id-ID");
+        }
+
+        // Bersihkan value menjadi: [digits][,digits<=2], TANPA titik ribuan
+        function sanitizeLive(val) {
+            val = (val || "").replace(/[^0-9,]/g, "");   // hanya angka & koma
+            const parts = val.split(",");
+            let intPart = parts[0] || "";
+            let fracPart = parts[1] || "";
+
+            // buang titik apapun yg mungkin tersisa + non-digit
+            intPart = intPart.replace(/\./g, "").replace(/[^0-9]/g, "");
+            fracPart = fracPart.replace(/[^0-9]/g, "");
+
+            // Batasi 2 digit desimal
+            if (fracPart.length > 2) fracPart = fracPart.slice(0, 2);
+
+            return fracPart.length ? `${intPart},${fracPart}` : intPart;
+        }
+
+        // Validasi tampilan (boleh tanpa titik saat ngetik; titik baru saat blur)
+        function isDisplayValid(v) {
+            // valid jika: "123456", "123456,7", "123456,78" ATAU yg sudah terformat "1.234.567,89"
+            return /^[0-9]+(,[0-9]{1,2})?$/.test(v) || /^[0-9]{1,3}(\.[0-9]{3})*(,[0-9]{1,2})?$/.test(v);
+        }
+
+        function showError(msg) {
+            $err.text(msg).show();
+            $biaya.addClass("is-invalid").attr("aria-invalid", "true");
+        }
+        function clearError() {
+            $err.hide().text("");
+            $biaya.removeClass("is-invalid").removeAttr("aria-invalid");
+        }
+
+        // 2) Saat ketik: hanya sanitasi (tanpa format ribuan). Tidak membatasi jumlah digit.
+        $biaya.on("input", function () {
+            const caret = this.selectionStart;
+            const before = $biaya.val();
+            const after  = sanitizeLive(before);
+            if (before !== after) {
+            $biaya.val(after);
+            // coba pertahankan caret kira-kira
+            const delta = before.length - after.length;
+            const newPos = Math.max(0, caret - Math.max(0, delta));
+            this.setSelectionRange(newPos, newPos);
+            }
+            if (!isDisplayValid(after)) {
+            showError("Format tidak valid (contoh: 1.000.000,25)");
+            } else {
+            clearError();
+            }
+        });
+
+        // 3) Saat paste: paksa lewat sanitizer
+        $biaya.on("paste", function (e) {
+            e.preventDefault();
+            const t = (e.originalEvent || e).clipboardData.getData("text/plain") || "";
+            $biaya.val(sanitizeLive(t)).trigger("input");
+        });
+
+        // 4) Saat focus: hilangkan titik ribuan jika ada (biar enak edit)
+        $biaya.on("focus", function () {
+            const v = $biaya.val().replace(/\./g, "");
+            $biaya.val(v);
+            clearError();
+        });
+
+        // 5) Saat blur: baru format ribuan
+        $biaya.on("blur", function () {
+            let v = $biaya.val();
+            if (!v) return;
+            v = sanitizeLive(v);                 // pastikan bersih
+            const hasComma = v.includes(",");
+            let [i, f = ""] = v.split(",");
+            const iFmt = formatIntID(i || "0"); // tambah ribuan
+            const final = hasComma ? `${iFmt},${f}` : iFmt;
+            $biaya.val(final);
+
+            if (!isDisplayValid(final)) {
+            showError("Format tidak valid (contoh: 1.000.000,25)");
+            } else {
+            clearError();
+            }
+        });
+
+        // 6) Cek terakhir sebelum submit
+        $("#woForm").on("submit", function () {
+            const v = $biaya.val().trim();
+            if (v && !isDisplayValid(v)) {
+            showError("Format tidak valid (contoh: 1.000.000,25)");
+            $("html,body").animate({ scrollTop: $biaya.offset().top - 120 }, 300);
+            return false;
+            }
+            return true;
+        });
+        });
+    </script>
+
+
+
+
 
 
  

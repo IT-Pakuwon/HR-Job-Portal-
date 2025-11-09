@@ -226,7 +226,6 @@ class CanvassController extends Controller
 
     public function storeCS(Request $request)
     {
-
         
         // ==== Ambil input dasar dari form ====
         $doc          = strtoupper($request->input('doc'));          // SPPB|SPPJ|SPPK|SPPT
@@ -1252,7 +1251,7 @@ class CanvassController extends Controller
             }
         };
 
-        // 4) Ambil sumber (header+detail) untuk fallback field seperti di storeCS
+        // 4) Ambil sumber (header+detail) untuk fallback field 
         $doc   = strtoupper($request->input('doc'));
         $srcId = $request->input('src_id');
 
@@ -1297,7 +1296,7 @@ class CanvassController extends Controller
         $cpnyId  = $request->input('cpny_id');
         $deptId  = $request->input('department_id');
 
-        // 5) Pastikan line approval tersedia (seperti storeCS)
+        // 5) Pastikan line approval tersedia 
         $approvalCtl = app(\App\Http\Controllers\ApprovalController::class);
         $approvalCtl->loadLines($doctype, $cpnyId, $deptId);
 
@@ -1308,7 +1307,7 @@ class CanvassController extends Controller
             $cs = \App\Models\TrCS::on('pgsql')->lockForUpdate()->where('csid', $csid)->firstOrFail();
             $csTable = $cs->getTable();
 
-            // 7) Update header ala storeCS (tanpa mengubah autonbr)
+            // 7) Update header ala 
             $sppbjktid   = $request->input('sppbjktid');
             $bqid        = $request->input('bqid');
             $userPeminta = $request->input('user_peminta');
@@ -1467,7 +1466,7 @@ class CanvassController extends Controller
             }
             $cs->save();
 
-            // 10) Attachments BARU (ke GCS melalui TrAttachmentController::uploadInternal) — sama seperti storeCS
+            // 10) Attachments BARU (ke GCS melalui TrAttachmentController::uploadInternal) 
             if ($request->hasFile('attachments')) {
                 $meta = [
                     'refnbr'        => $cs->csid,
@@ -1497,13 +1496,13 @@ class CanvassController extends Controller
             if ($action === 'submit') {
                 // 0) Validasi submit server-side (baris berharga > 0 harus punya vendor selected, dst.)
                 $this->validateSubmitServerSide($details);
-                // 3) Ambil sumber (header+detail) persis seperti storeCS
+                // 3) Ambil sumber (header+detail) 
                 [$srcHeader, $srcDetails, $srcLineKey, $srcIndex] = $this->buildSourceForDoc($doc, $srcId);
 
-                // 4) Update ordered/openordered di sumber (blok 5b storeCS)
+                // 4) Update ordered/openordered 
                 $this->updateOrderedOnSource($details, $srcHeader, $srcDetails, $srcIndex, $cpnyId);
 
-                // 5) Reserve budget (blok 5c storeCS)
+                // 5) Reserve budget 
                 $this->reserveBudget($details, $cpnyId, $cs, $username);
 
                 // set status Pending + submitdate

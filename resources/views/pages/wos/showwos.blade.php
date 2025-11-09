@@ -283,8 +283,13 @@
                             <div class="flex items-center gap-2 p-2">
                                 <x-heroicon-o-user class="h-5 w-5 text-gray-400" />
                                 <span class="min-w-32 max-w-32 text-gray-500">Biaya Wo</span>
+                               @php
+                                    $biayaFormatted = is_numeric($wo->biaya_wo ?? null)
+                                        ? number_format((float)$wo->biaya_wo, 2, ',', '.')
+                                        : '-';
+                                @endphp
                                 <span class="break-words font-medium text-gray-900 dark:text-gray-300">
-                                    {{ $wo->biayawo }}
+                                    {{ $biayaFormatted === '-' ? '-' : 'Rp ' . $biayaFormatted }}
                                 </span>
                             </div>
                             <div class="flex items-center gap-2 p-2">
@@ -301,6 +306,18 @@
                                     {{ optional($wo->sublocation)->sub_location_name ?? $wo->sub_location_id }}
                                 </span>
                             </div>
+                            
+                            {{-- Budget --}}
+                            <div class="flex items-center gap-2 p-2">
+                                <x-heroicon-o-banknotes class="h-5 w-5 text-gray-400" />
+                                <span class="min-w-32 max-w-32 text-gray-500">Budget</span>
+                                <span class="break-words font-medium text-gray-900 dark:text-gray-300">
+                                    @php
+                                        $budgetText = $wo->budget_use === 'Internal' ? 'Pemberi Kerja' : ($wo->budget_use === 'External' ? 'Penerima Kerja' : '-');
+                                    @endphp
+                                    {{ $budgetText }}
+                                </span>
+                            </div>                            
 
                             <div class="col-span-1 flex flex-col gap-3 sm:flex-row">
                                
@@ -368,7 +385,9 @@
                                             <th class="p-3 text-left font-semibold">Status</th>
                                         </tr>
                                     </thead>
-                                    <tbody>
+                                    <tbody id="approval-table-body">                                       
+                                    </tbody>
+                                    {{-- <tbody>
                                         @foreach ($approval as $ap)
                                             <tr
                                                 class="border-b border-gray-100 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700">
@@ -410,7 +429,7 @@
                                                 </td>
                                             </tr>
                                         @endforeach
-                                    </tbody>
+                                    </tbody> --}}
                                 </table>
                             </div>
                             {{-- Attachment tab --}}                           
@@ -955,25 +974,23 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
     <script>
         function checkApproval(woid, action) {
-            console.log(woid, '-', action);
             $.ajax({
-                url: `/wo/${woid}/check-approval/${action}`,
+                url: `/approval/${woid}/check/${action}?doctype=WO`,
                 type: "GET",
                 success: function(response) {
                     if (response.canPerformAction) {
-                        // Jika user bisa melakukan aksi, tampilkan modal atau langsung proses approval
+
                         if (action === "reject") {
-                            $("#rejectReason").val(""); // Reset alasan reject
+                            $("#rejectReason").val("");
                             $("#rejectTaskModal").removeClass("hidden").css("z-index", "60");
+
                         } else if (action === "revise") {
-                            $("#reviseReason").val(""); // Reset alasan revise
+                            $("#reviseReason").val("");
                             $("#reviseTaskModal").removeClass("hidden").css("z-index", "60");
-                            // } else if (action === "approve") {
-                            //     approveWO(woid); // Jika approve, langsung jalankan proses approval
                         }
+
                     } else {
-                        // Jika user tidak boleh melakukan aksi, tampilkan popup toastr
-                        toastr.error("You are not authorized to " + action + " this wo.");
+                        toastr.error("You are not authorized to " + action + " this WO.");
                     }
                 },
                 error: function() {
@@ -982,7 +999,6 @@
             });
         }
     </script>
-
     <script>
     (function () {
         const btn = document.getElementById('printMenuBtn');
@@ -1099,6 +1115,75 @@
     </script>
 
 
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
 
+            const woid  = "{{ $wo->woid }}";   // contoh: PB2501010001
+            const doctype = "WO";
+
+            loadApproval(woid, doctype);
+        });
+
+        function loadApproval(refnbr, doctype) {
+            fetch(`/approval/${refnbr}/${doctype}`)
+                .then(response => response.json())
+                .then(res => {
+                    const tbody = document.querySelector("#approval-table-body");
+                    tbody.innerHTML = ""; // reset
+
+                    res.data.forEach(row => {
+                        const statusLabel = getStatusLabel(row.status);
+
+                        tbody.innerHTML += `
+                            <tr class="border-b border-gray-100 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700">
+                                <td class="p-3">${row.aprv_leveling}</td>
+                                <td class="p-3">${row.aprv_name}</td>
+                                <td class="p-3">
+                                    ${row.aprv_dateafter ? dayjs(row.aprv_dateafter).format('DD MMM YYYY HH:mm:ss') : ''}
+                                </td>
+                                <td class="p-3">${statusLabel}</td>
+                            </tr>
+                        `;
+                    });
+                })
+                .catch(err => console.error("Approval fetch failed →", err));
+        }
+
+        function formatDate(dateString) {
+            if (!dateString) return "-";
+            const d = new Date(dateString);
+            const options = { year: "numeric", month: "short", day: "numeric" };
+            return d.toLocaleDateString("en-US", options);
+        }
+
+        function getStatusLabel(status) {
+            let statusText = "";
+            let statusClass = "";
+
+            switch (status) {
+                case "P":
+                    statusText = "Waiting Approval";
+                    statusClass = "bg-yellow-500 text-white";
+                    break;
+                case "A":
+                    statusText = "Approved";
+                    statusClass = "bg-green-500 text-white";
+                    break;
+                case "R":
+                    statusText = "Rejected";
+                    statusClass = "bg-red-500 text-white";
+                    break;
+                case "D":
+                    statusText = "Revise";
+                    statusClass = "bg-blue-500 text-white";
+                    break;
+                default:
+                    statusText = "Unknown";
+                    statusClass = "bg-gray-500 text-white";
+            }
+
+            return `<span class="${statusClass} inline-block rounded-full px-3 py-1 text-xs font-semibold">${statusText}</span>`;
+        }
+    </script>
 
 </x-app-layout>
