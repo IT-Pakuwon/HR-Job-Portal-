@@ -221,7 +221,7 @@
                                                     <th class="req w-28 w-[8%] border p-3">UoM</th>
                                                     <th class="w-[15%] border p-3">Note</th>
                                                     <th class="req border p-3">Location</th>
-                                                    {{-- <th class="req border p-3">Sub Location</th> --}}
+                                                    <th class="req border p-3">Sub Location</th>
                                                     <th class="req w-[10%] border p-3">Coa</th>
                                                     <th class="w-16 border p-3 text-center"></th>
                                                 </tr>
@@ -296,7 +296,7 @@
                                                     </td>
 
                                                     <!-- Location & Sub Location -->
-                                                    {{-- <td class="border p-3">
+                                                    <td class="border p-3">
                                                         <div class="flex items-center gap-2">
                                                             <input type="hidden" name="location_id[]"
                                                                 class="locationIdField">
@@ -319,19 +319,6 @@
                                                             <button type="button"
                                                                 class="openSubLocationModal rounded border border-gray-500 px-1 py-1 hover:bg-gray-100 dark:hover:bg-gray-700"
                                                                 title="Lookup">🔎</button>
-                                                        </div>
-                                                    </td> --}}
-
-                                                    <td class="border p-3">
-                                                        <div class="flex items-center gap-2">
-                                                            <input type="hidden" name="location_id[]"     class="locationIdField">
-                                                            <input type="hidden" name="sub_location_id[]" class="subLocationIdField">
-                                                            <input type="text"  name="location_combo_display[]" 
-                                                                class="locationDisplayField w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0"
-                                                                placeholder="Select location & sub location..." readonly>
-                                                            <button type="button"
-                                                                    class="openLokasiPicker rounded border border-gray-500 px-1 py-1 hover:bg-gray-100 dark:hover:bg-gray-700"
-                                                                    title="Lookup">🔎</button>
                                                         </div>
                                                     </td>
 
@@ -432,7 +419,7 @@
                     </div>
 
                     <!-- ===== Modal Lookup Location ===== -->
-                    {{-- <div id="locationModal"
+                    <div id="locationModal"
                         class="fixed inset-0 z-[1000] hidden items-center justify-center bg-black/40 p-4">
                         <div class="w-full max-w-3xl rounded-xl bg-white p-4 shadow-lg dark:bg-gray-800">
                             <div class="mb-3 flex items-center justify-between">
@@ -473,10 +460,10 @@
                                 </div>
                             </div>
                         </div>
-                    </div> --}}
+                    </div>
 
                     <!-- ===== Modal Lookup Sub Location ===== -->
-                    {{-- <div id="subLocationModal"
+                    <div id="subLocationModal"
                         class="fixed inset-0 z-[1000] hidden items-center justify-center bg-black/40 p-4">
                         <div class="w-full max-w-3xl rounded-xl bg-white p-4 shadow-lg dark:bg-gray-800">
                             <div class="mb-3 flex items-center justify-between">
@@ -517,58 +504,6 @@
                                     <button id="subLocNext" type="button"
                                         class="rounded border px-3 py-1 disabled:opacity-40">Next</button>
                                 </div>
-                            </div>
-                        </div>
-                    </div> --}}
-                    <!-- Modal: Location + Sub Location -->
-                    <div id="modalLokasi" class="fixed inset-0 z-[1000] hidden items-center justify-center bg-black/50 p-4">
-                        <div class="w-full max-w-2xl rounded-2xl bg-white shadow-xl dark:bg-gray-800">
-                            <!-- Header -->
-                            <div class="flex items-center justify-between border-b border-gray-200 px-5 py-4 dark:border-gray-700">
-                            <div class="flex items-center gap-3">
-                                <h3 class="text-lg font-bold text-gray-800 dark:text-gray-100">Pilih Location & Sub Location</h3>
-                                <div class="text-xs text-gray-500 dark:text-gray-400">                            
-                                </div>
-                            </div>
-                            <button type="button" id="closeLokasi"
-                                    class="rounded p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-700 dark:text-gray-300">✖</button>
-                            </div>
-
-                            <!-- Body -->
-                            <div class="px-5 py-5">
-                            <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-                                <!-- Location -->
-                                <div>
-                                <label class="req mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Location</label>
-                                <select id="modal_location_id"
-                                        class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
-                                    <option value="">-- choose --</option>
-                                </select>
-                                <small class="mt-1 block text-xs text-gray-500 dark:text-gray-400">Wajib memilih Location.</small>
-                                </div>
-
-                                <!-- Sub Location -->
-                                <div>
-                                <label class="req mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Sub Location</label>
-                                <select id="modal_sub_location_id"
-                                        class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
-                                    <option value="">-- choose --</option>
-                                </select>
-                                <small class="mt-1 block text-xs text-gray-500 dark:text-gray-400">Wajib memilih sub location.</small>
-                                </div>
-                            </div>
-                            </div>
-
-                            <!-- Footer -->
-                            <div class="flex items-center justify-end gap-3 border-t border-gray-200 px-5 py-4 dark:border-gray-700">
-                            <button type="button" id="cancelLokasi"
-                                    class="rounded-lg border px-4 py-2 text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700">
-                                Cancel
-                            </button>
-                            <button type="button" id="saveLokasi"
-                                    class="rounded-lg bg-indigo-600 px-4 py-2 font-semibold text-white hover:bg-indigo-700">
-                                Save
-                            </button>
                             </div>
                         </div>
                     </div>
@@ -808,8 +743,6 @@
                     const subId = ($row.find('.subLocationIdField').val() || '').trim();
                     const $subN = $row.find('.subLocationNameField');
 
-                    const $locCombo = $row.find('.locationDisplayField');
-
                     const coaId = ($row.find('.coaIdField').val() || '').trim();
                     const $coaN = $row.find('.coaNameField');
 
@@ -990,16 +923,18 @@
                         class="w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0">
                 </td>
 
-                <td class="border p-3">
+                <td class="p-3 border">
                     <div class="flex items-center gap-2">
-                        <input type="hidden" name="location_id[]"     class="locationIdField">
+                        <input type="hidden" name="location_id[]" class="locationIdField">
+                        <input type="text" name="location[]" class="locationNameField w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0" placeholder="Select location..." readonly>
+                        <button type="button" class="openLocationModal rounded border border-gray-500 px-1 py-1 hover:bg-gray-100 dark:hover:bg-gray-700" title="Lookup">🔎</button>
+                    </div>
+                </td>
+                <td class="p-3 border">
+                    <div class="flex items-center gap-2">
                         <input type="hidden" name="sub_location_id[]" class="subLocationIdField">
-                        <input type="text"  name="location_combo_display[]" 
-                            class="locationDisplayField w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0"
-                            placeholder="Select location & sub location..." readonly>
-                        <button type="button"
-                                class="openLokasiPicker rounded border border-gray-500 px-1 py-1 hover:bg-gray-100 dark:hover:bg-gray-700"
-                                title="Lookup">🔎</button>
+                        <input type="text"   name="sub_location[]"    class="subLocationNameField w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0" placeholder="Select sub location..." readonly>
+                        <button type="button" class="openSubLocationModal rounded border border-gray-500 px-1 py-1 hover:bg-gray-100 dark:hover:bg-gray-700" title="Lookup">🔎</button>
                     </div>
                 </td>
              
@@ -1962,108 +1897,6 @@
         });
     </script>
 
-    <script>
-        $(function () {
-        const $lokasiModal = $('#modalLokasi');
-        const $selLoc  = $('#modal_location_id');
-        const $selSub  = $('#modal_sub_location_id');
-        let currentLocRow = null;
-
-        function openLokasiModal(forRow) {
-            currentLocRow = forRow;
-            const cpny = $('select[name="cpnyid"]').val();
-            if (!cpny) { toastr.warning('Pilih Company terlebih dahulu.'); return; }
-
-            $selLoc.empty().append('<option value="">-- choose --</option>');
-            $selSub.empty().append('<option value="">-- choose --</option>');
-
-            $.getJSON(`/wos/ajax/locations/${encodeURIComponent(cpny)}`)
-            .done(function(list){
-                list.forEach(it => $selLoc.append(new Option(it.text, it.value)));
-
-                // preselect jika sudah ada
-                const curLoc = currentLocRow.find('.locationIdField').val();
-                if (curLoc) { $selLoc.val(curLoc).trigger('change'); }
-
-                // ✅ fokuskan ke Location
-                setTimeout(()=> $selLoc.trigger('focus'), 0);
-            })
-            .fail(function(){ toastr.error('Gagal memuat lokasi.'); });
-
-            $lokasiModal.removeClass('hidden').addClass('flex');
-        }
-
-
-        function closeLokasiModal() {
-            $lokasiModal.addClass('hidden').removeClass('flex');
-        }
-
-        // Open modal dari tombol di row
-        $(document).on('click', '.openLokasiPicker', function(){
-            openLokasiModal($(this).closest('tr'));
-        });
-
-        // Close modal
-        $('#closeLokasi, #cancelLokasi').on('click', closeLokasiModal);
-
-        // Ketika location dipilih → load sublocations
-        $selLoc.on('change', function(){
-            const cpny = $('select[name="cpnyid"]').val();
-            const loc  = $(this).val();
-            $selSub.empty().append('<option value="">-- choose --</option>');
-
-            if (!loc) return;
-
-            $.getJSON(`/wos/ajax/sublocations/${encodeURIComponent(cpny)}/${encodeURIComponent(loc)}`)
-            .done(function(list){
-                list.forEach(it => $selSub.append(new Option(it.text, it.value)));
-
-                // preselect jika row sudah punya sub_location_id
-                if (currentLocRow) {
-                const curSub = currentLocRow.find('.subLocationIdField').val();
-                if (curSub) $selSub.val(curSub);
-                }
-            })
-            .fail(function(){
-                toastr.error('Gagal memuat sub location.');
-            });
-        });
-
-        // Save ke row aktif
-        $('#saveLokasi').on('click', function(){
-            const locId   = $selLoc.val();
-            const locText = $('#modal_location_id option:selected').text();
-            const subId   = $selSub.val();
-            const subText = $('#modal_sub_location_id option:selected').text();
-
-            if (!locId || !subId) {
-            toastr.error('Pilih Location dan Sub Location.');
-            return;
-            }
-
-            // Tulis ke hidden + tampilan
-            currentLocRow.find('.locationIdField').val(locId);
-            currentLocRow.find('.subLocationIdField').val(subId);
-            currentLocRow.find('.locationDisplayField').val(`${locText} — ${subText}`);
-
-            // bersihkan error UI jika ada
-            currentLocRow.find('.locationDisplayField').removeClass('is-invalid')
-            .next('.error-feedback').remove();
-
-            closeLokasiModal();
-        });
-
-        // Jika company berubah dan modal terbuka → reload lokasi
-        $('select[name="cpnyid"]').on('change', function(){
-            if ($lokasiModal.is(':visible')) {
-            // reset dan panggil open ulang dengan row yang sama
-            $selLoc.empty().append('<option value="">-- choose --</option>');
-            $selSub.empty().append('<option value="">-- choose --</option>');
-            if (currentLocRow) openLokasiModal(currentLocRow);
-            }
-        });
-        });
-    </script>
 
 
     <!-- Toastr CSS -->

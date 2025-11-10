@@ -24,6 +24,11 @@ use App\Models\TrSPPT;
 use App\Models\TrCS;
 use App\Models\Company;
 use App\Models\Dept;
+use App\Models\MsBASTRating;
+use App\Models\TrBASTRating;
+use App\Models\MsPenalty;
+use App\Models\MsBASTRatingLegend;
+
 
 class BastController extends Controller
 {
@@ -52,6 +57,7 @@ class BastController extends Controller
 
     public function storeBast(Request $request)
     {
+       
         $request->validate([
             'term_eid'      => 'required|string',
             'attachments.*' => 'file|max:10240', // 10MB/file
@@ -153,6 +159,28 @@ class BastController extends Controller
             $term->updated_by = $username;
             $term->updated_at = $datestamp;
             $term->save();
+
+        
+            // === ms_rating ===
+            $ms_bastrating = MsBASTRating::where('status', 'A')
+                ->orderBy('rating_no', 'ASC')
+                ->get();
+
+            foreach ($ms_bastrating as $mrating) {
+                TrBASTRating::create([                    
+                    'bast_id'      => $header->bastid,
+                    'rating_id'    => $mrating->rating_id,
+                    'rating_no'    => $mrating->rating_no,
+                    'rating_name'  => $mrating->rating_name,
+                    'rating_descr' => $mrating->rating_descr,
+                    'rating_score' => 0,
+                    'status'       => $mrating->status ?? 'A',
+                    'created_by'   => $username,
+                    'created_at'   => $dt,    // Carbon yang sudah kamu definisikan
+                    'updated_by'   => $username,
+                    'updated_at'   => $dt,
+                ]);
+            }
 
             // === generate TrApproval ===
             $ctx = [
@@ -330,17 +358,52 @@ class BastController extends Controller
         // Untuk convenience (mis. kirim email dsb)
         $eid_bastid = Hashids::encode($bast->bastid);
 
+        $ratingAvg = is_null($bast->rating_vendor) ? null : (float)$bast->rating_vendor;
+        $ratingLegendName = null;
+
+        if (!is_null($ratingAvg)) {
+            $legend = MsBASTRatingLegend::where('status', 'A')
+                ->where('rating_legend_from', '<=', $ratingAvg)
+                ->where('rating_legend_to', '>=', $ratingAvg)
+                ->orderBy('rating_legend_from', 'asc')
+                ->first();
+
+            $ratingLegendName = $legend->rating_legend_name ?? null;
+        }
+
+        // --- detail rows TrBASTRating + legend name per baris ---
+        $bastRatingRows = TrBASTRating::from('tr_bast_rating as t')
+            ->leftJoin('ms_bast_rating_legend as l', function($join){
+                // Postgres: cocokkan score ke rentang legend; batasi legend aktif
+                // Jika rating_score bertipe integer/decimal, cast tidak wajib;
+                // kalau kolom text, pakai cast numeric.
+                $join->on(DB::raw('t.rating_score::numeric'), '>=', DB::raw('l.rating_legend_from::numeric'))
+                    ->on(DB::raw('t.rating_score::numeric'), '<=', DB::raw('l.rating_legend_to::numeric'))
+                    ->where('l.status', 'A');
+            })
+            ->where('t.bast_id', $bast->bastid)
+            ->orderBy('t.rating_no')
+            ->get([
+                't.id',
+                't.rating_no',
+                't.rating_name',
+                't.rating_score',
+                'l.rating_legend_name'
+            ]);
+
         return view('pages.bast.showbast', [
             'bast'            => $bast,    
             'hash'           => $hash,
             'eid_bastid' => $eid_bastid,
             'poUrl'          => $poUrl,
             'sppbUrl'        => $sppbUrl,
-            'csUrl'          => $csUrl,            
+            'csUrl'          => $csUrl,    
+            'ratingLegendName'  => $ratingLegendName,        
+            'bastRatingRows'    => $bastRatingRows,
         ]);
     }
 
-    public function approveBast(Request $request, $docid)
+    public function approveBast_xxx(Request $request, $docid)
     {
         $user    = $request->user();
         $doctype = 'BA';
@@ -430,6 +493,91 @@ class BastController extends Controller
         ]);
     }
 
+    public function approveBast(Request $request, $docid)
+    {
+        $user    = $request->user();
+        $doctype = 'BA';
+
+        $bast = \App\Models\TrBAST::with('creator')->where('bastid', $docid)->first();
+        if (!$bast) {
+            return response()->json(['success'=>false,'message'=>'BAST not found'],404);
+        }
+
+        // 🔽 inilah kuncinya
+        $ratingScores = $this->extractRatings($request);
+
+        // (opsional) log untuk debugging
+        \Log::info('[approveBast] payload', [
+            'all'           => $request->all(),
+            'rating_scores' => $ratingScores,
+        ]);
+
+        $eid      = \Vinkla\Hashids\Facades\Hashids::encode($bast->id);
+        $docUrl   = url('/showbast/' . $eid);
+        $fullname = data_get($bast, 'creator.name') ?: $bast->created_by;
+
+        return \DB::transaction(function () use ($user, $doctype, $bast, $ratingScores, $docUrl, $fullname) {
+
+            $result = app(\App\Http\Controllers\ApprovalController::class)->approveStep(
+                $bast->bastid,
+                $doctype,
+                $user->username,
+                $user->name,
+
+                // FINAL
+                function (string $refnbr, \Carbon\Carbon $now) use ($bast, $fullname, $docUrl, $ratingScores) {
+                    $this->applyBastApprovalSideEffects($bast, $now, $ratingScores);
+
+                    $bast->status       = 'C';
+                    $bast->completed_by = auth()->user()->username;
+                    $bast->completed_at = $now;
+                    $bast->save();
+
+                    app(\App\Http\Controllers\ApprovalController::class)->notifyRequesterOnStatus(
+                        $bast->bastid, 'BAST', 'C', $bast->created_by, $docUrl, [
+                            'cpnyid'   => $bast->cpny_id ?? '',
+                            'deptname' => $bast->department_id ?? '',
+                            'date'     => $bast->bastdate,
+                            'info'     => $bast->keperluan,
+                            'fullname' => $fullname,
+                            'createdby'=> $fullname,
+                        ]
+                    );
+                },
+
+                // NEXT APPROVER
+                function ($next, \Carbon\Carbon $now) use ($bast, $docUrl, $ratingScores) {
+                    if (isset($next['aprv_leveling']) && $next['aprv_leveling'] === "2.00") {
+                        // efek samping setelah lolos level 1
+                        $this->applyBastApprovalSideEffects($bast, $now, $ratingScores);
+                    }
+
+                    app(\App\Http\Controllers\ApprovalController::class)->notifyFirstApprover(
+                        $bast->bastid, 'BA', 'P', 'BAST', $docUrl, [
+                            'info'      => $bast->keperluan,
+                            'createdby' => $bast->created_by,
+                            'date'      => $now->toDateTimeString(),
+                        ]
+                    );
+
+                    $bast->completed_by = auth()->user()->username;
+                    $bast->completed_at = $now;
+                    $bast->save();
+                }
+            );
+
+            if (!$result['ok']) {
+                \DB::rollBack();
+                return response()->json(['success'=>false,'message'=>$result['message'] ?? 'Approve failed'], 403);
+            }
+
+            return response()->json([
+                'success'       => true,
+                'message'       => 'Task approved successfully',
+                'rating_vendor' => $bast->rating_vendor,
+            ]);
+        });
+    }
 
     public function rejectBast(Request $request, $docid)
     {
@@ -442,6 +590,8 @@ class BastController extends Controller
         $eid      = \Vinkla\Hashids\Facades\Hashids::encode($bast->id);
         $docUrl   = url('/showbast/' . $eid);
         $fullname = data_get($bast, 'creator.name') ?: $bast->created_by;
+        $term = TrPOterm::where('bastid', $bast->bastid)                
+            ->first();
 
         $result = app(\App\Http\Controllers\ApprovalController::class)->rejectStep(
             $bast->bastid,
@@ -449,11 +599,16 @@ class BastController extends Controller
             $user->username,
             $user->name,
 
-            function (string $refnbr, \Carbon\Carbon $now) use ($bast, $fullname, $docUrl) {
+            function (string $refnbr, \Carbon\Carbon $now) use ($bast, $fullname, $docUrl,$term) {
                 $bast->status       = 'R';
                 $bast->completed_by = auth()->user()->username;
                 $bast->completed_at = $now;
-                $bast->save();
+                $bast->save();                
+
+                $term->bastid = '';
+                $term->updated_by = auth()->user()->username;
+                $term->updated_at = $now;
+                $term->save();
 
                 // optional: tandai detail R
                 // \App\Models\TrBASTdetail::where('bastid', $bast->bastid)->update(['status' => 'R']);
@@ -631,7 +786,117 @@ class BastController extends Controller
         return $pdf->stream("pdf_bast_{$bast->bastid}.pdf");
     }
 
-    private function applyBastApprovalSideEffects(TrBAST $bast, ?int $ratingFromReq, Carbon $approveAt): TrBAST
+    private function extractRatings(Request $request): array
+    {
+        // 1) bentuk map langsung: rating_scores = { "<id>": <score>, "RATING01": <score>, "no:1": <score> }
+        $ratingScores = $request->input('rating_scores', []);
+        if (!is_array($ratingScores)) $ratingScores = [];
+
+        // 2) bentuk array: ratings = [ {id, rating_id, rating_no, rating_score/score}, ... ]
+        $ratingsItems = $request->input('ratings', []);
+        if (!is_array($ratingsItems)) $ratingsItems = [];
+
+        // 3) bentuk string json: ratings_json = "[{...}, {...}]"
+        if (empty($ratingsItems)) {
+            $ratingsJsonStr = $request->input('ratings_json');
+            if (is_string($ratingsJsonStr) && $ratingsJsonStr !== '') {
+                $decoded = json_decode($ratingsJsonStr, true);
+                if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                    $ratingsItems = $decoded;
+                }
+            }
+        }
+
+        // Normalisasi -> jadikan associative map unified
+        // Kunci yang didukung: baris id, rating_id, dan "no:<rating_no>"
+        foreach ($ratingsItems as $it) {
+            if (!is_array($it)) continue;
+
+            $score = $it['rating_score'] ?? $it['score'] ?? null;
+            if ($score === null) continue;
+
+            $score = (float)$score;
+            if ($score <= 0) continue;
+
+            if (!empty($it['id'])) {
+                $ratingScores[(string)$it['id']] = $score;
+            }
+            if (!empty($it['rating_id'])) {
+                $ratingScores[(string)$it['rating_id']] = $score;
+            }
+            if (!empty($it['rating_no'])) {
+                $ratingScores['no:'.(string)$it['rating_no']] = $score;
+            }
+        }
+
+        return $ratingScores; // unified map
+    }
+
+    
+
+    private function applyBastApprovalSideEffects(TrBAST $bast, Carbon $approveAt, array $ratingScores = []): TrBAST
+    {
+        // === 1) Update skor per-baris TrBASTRating dari payload slider (1-10)
+        //      Terima kunci berupa row->id ATAU row->rating_id.
+        if (!empty($ratingScores)) {
+            $rows = TrBASTRating::where('bast_id', $bast->bastid)->get();
+
+            foreach ($rows as $row) {
+                // cari score by id
+                $score = null;
+
+                if (array_key_exists($row->id, $ratingScores)) {
+                    $score = $ratingScores[$row->id];
+                } elseif (!is_null($row->rating_id) && array_key_exists($row->rating_id, $ratingScores)) {
+                    $score = $ratingScores[$row->rating_id];
+                }
+
+                if (!is_null($score)) {
+                    // clamp 1..10
+                    $clamped = max(1, min(10, (float)$score));
+                    $row->rating_score = $clamped;
+                    $row->updated_by   = auth()->user()->username ?? 'system';
+                    $row->updated_at   = now('Asia/Jakarta');
+                    $row->save();
+                }
+            }
+        }
+
+        // === 2) Hitung rata-rata terbaru (abaikan null/0)
+        $agg = TrBASTRating::where('bast_id', $bast->bastid)
+            ->whereNotNull('rating_score')
+            ->where('rating_score', '>', 0)
+            ->selectRaw('AVG(rating_score)::numeric as avg_score, COUNT(*) as cnt')
+            ->first();
+
+        $avgScore = $agg && $agg->cnt > 0 ? (float) $agg->avg_score : 0.0;
+
+        // Simpan ke header. (Tetap pakai skala 1-10; kalau mau 1-5 bintang, tinggal dibagi 2.)
+        $bast->rating_vendor = $avgScore > 0 ? round($avgScore, 1) : null;
+
+        // === 3) Handover date = tanggal approve
+        $bast->handoverdate = $approveAt->toDateString();
+
+        // === 4) Days penalty (telat jika approve > enddate)
+        $daysPenalty = 0;
+        if (!empty($bast->enddate)) {
+            $end  = Carbon::parse($bast->enddate)->startOfDay();
+            $appr = $approveAt->copy()->startOfDay();
+            $diff = $end->diffInDays($appr, false);
+            $daysPenalty = $diff > 0 ? $diff : 0;
+        }
+        $bast->days_penalty = $daysPenalty;
+
+        // === 5) Total penalty = days * penalty_per_day
+        $perDay = (float) ($bast->penalty ?? 0); // kolom penalty dianggap tarif/hari
+        $bast->total_penalty = $daysPenalty > 0 ? ($daysPenalty * $perDay) : 0.0;
+
+        $bast->save();
+
+        return $bast;
+    }
+    
+    private function applyBastApprovalSideEffects_xxx(TrBAST $bast, ?int $ratingFromReq, Carbon $approveAt): TrBAST
     {
         // 1) Rating
         if (!is_null($ratingFromReq) && $ratingFromReq > 0 && $ratingFromReq <= 5) {
@@ -660,6 +925,27 @@ class BastController extends Controller
         $bast->save();
 
         return $bast;
+    }
+
+    public function getBastRatings(string $bastid)
+    {
+        // Optional: validasi hak akses lihat BAST di sini
+
+        $rows = TrBASTRating::where('bast_id', $bastid)
+            ->orderBy('rating_no')
+            ->get([
+                'id',
+                'rating_id',
+                'rating_no',
+                'rating_name',
+                'rating_descr',
+                'rating_score',
+            ]);
+
+        return response()->json([
+            'success' => true,
+            'data'    => $rows,
+        ]);
     }
 
 

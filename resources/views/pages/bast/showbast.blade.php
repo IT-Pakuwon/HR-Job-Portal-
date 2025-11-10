@@ -354,30 +354,31 @@
                             </div>
 
                             {{-- Rating Vendor --}}
-                           <div class="flex items-center gap-2 p-2">
+                            <div class="flex items-center gap-2 p-2">
                                 <x-heroicon-o-star class="h-5 w-5 text-gray-400"/>
                                 <span class="min-w-32 max-w-32 text-gray-500">Rating Vendor</span>
 
-                                <span class="flex items-center gap-1">
+                                <span class="flex items-center gap-2 font-medium text-gray-900 dark:text-gray-300">
                                     @php
-                                        $rate = intval($bast->rating_vendor ?? 0); // default 0
+                                        $fmt1 = fn($v) => is_null($v) ? '-' : number_format((float)$v, 1, ',', '.');
                                     @endphp
 
-                                    @for ($i = 1; $i <= 5; $i++)
-                                        @if ($i <= $rate)
-                                            {{-- Star active (yellow) --}}
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
-                                                <path d="M9.049.927L7.09 6.333H1.5l4.724 3.436L3.97 15.5l5.079-3.597L14.129 15.5l-2.255-5.731L16.5 6.333h-5.59L9.049.927z"/>
-                                            </svg>
-                                        @else
-                                            {{-- Star inactive (gray) --}}
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-300 dark:text-gray-600" viewBox="0 0 20 20" fill="currentColor">
-                                                <path d="M9.049.927L7.09 6.333H1.5l4.724 3.436L3.97 15.5l5.079-3.597L14.129 15.5l-2.255-5.731L16.5 6.333h-5.59L9.049.927z"/>
-                                            </svg>
-                                        @endif
-                                    @endfor
+                                    <span class="inline-flex items-center rounded-md bg-indigo-50 px-2 py-0.5 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300">
+                                        {{ $fmt1($bast->rating_vendor) }}
+                                    </span>
+
+                                    @if(!empty($ratingLegendName))
+                                    <span class="inline-flex items-center rounded-md bg-emerald-100 px-2 py-0.5 text-emerald-700 dark:bg-emerald-800/30 dark:text-emerald-300">
+                                        {{ $ratingLegendName }}
+                                    </span>
+                                    @else
+                                    <span class="inline-flex items-center rounded-md bg-gray-100 px-2 py-0.5 text-gray-600 dark:bg-gray-700/40 dark:text-gray-300">
+                                        -
+                                    </span>
+                                    @endif
                                 </span>
                             </div>
+
 
 
                             {{-- SPK PIC --}}
@@ -510,10 +511,65 @@
                         </div>
                     </div>
                 </div>
-            </div>
+            </div>           
+
 
             {{-- Bast Detail table --}}
             <div class="mt-6 grid grid-cols-1 gap-6">
+                
+                 {{-- Vendor Rating Breakdown --}}
+                <div class="rounded-xl bg-white p-4 shadow-sm dark:bg-gray-800">
+                    <div class="mb-4 flex items-center justify-between border-b border-gray-200 pb-3 dark:border-gray-700">
+                        <h3 class="text-base font-semibold text-gray-800 dark:text-gray-100">Vendor Rating Breakdown</h3>
+                    </div>
+
+                    <div class="overflow-auto rounded-lg border border-gray-200 dark:border-gray-700">
+                        <table class="min-w-full text-sm">
+                            <thead class="bg-gray-50 dark:bg-gray-700">
+                                <tr>
+                                    <th class="px-3 py-2 text-left font-semibold text-gray-700 dark:text-gray-200" style="width: 60px;">No</th>
+                                    <th class="px-3 py-2 text-left font-semibold text-gray-700 dark:text-gray-200">Kriteria</th>
+                                    <th class="px-3 py-2 text-right font-semibold text-gray-700 dark:text-gray-200" style="width: 100px;">Score</th>
+                                    <th class="px-3 py-2 text-left font-semibold text-gray-700 dark:text-gray-200" style="width: 220px;">Legend</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
+                                @php
+                                    $fmt1 = fn($v) => is_null($v) ? '-' : number_format((float)$v, 1, ',', '.');
+                                @endphp
+
+                                @forelse ($bastRatingRows as $i => $row)
+                                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/40">
+                                        <td class="px-3 py-2 text-gray-800 dark:text-gray-100">{{ $row->rating_no ?? ($i+1) }}</td>
+                                        <td class="px-3 py-2">
+                                            <div class="font-medium text-gray-900 dark:text-gray-100">
+                                                {{ $row->rating_name ?? '-' }}
+                                            </div>
+                                        </td>
+                                        <td class="px-3 py-2 text-right text-gray-900 dark:text-gray-100">
+                                            {{ $fmt1($row->rating_score) }}
+                                        </td>
+                                        <td class="px-3 py-2">
+                                            @if(!empty($row->rating_legend_name))
+                                                <span class="inline-flex items-center rounded-md bg-emerald-100 px-2 py-0.5 text-emerald-700 dark:bg-emerald-800/30 dark:text-emerald-300">
+                                                    {{ $row->rating_legend_name }}
+                                                </span>
+                                            @else
+                                                <span class="text-gray-500 dark:text-gray-400">-</span>
+                                            @endif
+                                        </td>
+                                    </tr>
+                                @empty
+                                    <tr>
+                                        <td colspan="4" class="px-3 py-4 text-center text-gray-500 dark:text-gray-400">
+                                            No rating rows found.
+                                        </td>
+                                    </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
 
                 {{-- Photo Before (by BQID) --}}
                 <div class="rounded-xl bg-white p-4 shadow-sm dark:bg-gray-800">
@@ -579,7 +635,7 @@
     </div>
 
     {{-- Rating Modal --}}
-    <div id="ratingModal" class="fixed inset-0 z-[3000] hidden items-center justify-center bg-black/50">
+    {{-- <div id="ratingModal" class="fixed inset-0 z-[3000] hidden items-center justify-center bg-black/50">
         <div class="w-full max-w-sm rounded-xl bg-white p-5 shadow-lg dark:bg-gray-800">
             <h3 class="mb-3 text-lg font-semibold text-gray-800 dark:text-gray-100">
             Give Vendor Rating
@@ -587,8 +643,7 @@
 
             <div id="ratingStars" class="mb-4 flex items-center gap-1">
             @for ($i=1; $i<=5; $i++)
-                <button type="button" class="star-btn text-gray-300 dark:text-gray-600" data-value="{{ $i }}" aria-label="Rate {{ $i }}">
-                {{-- solid star (we’ll just toggle classes) --}}
+                <button type="button" class="star-btn text-gray-300 dark:text-gray-600" data-value="{{ $i }}" aria-label="Rate {{ $i }}">               
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" viewBox="0 0 20 20" fill="currentColor">
                     <path d="M9.049.927L7.09 6.333H1.5l4.724 3.436L3.97 15.5l5.079-3.597L14.129 15.5l-2.255-5.731L16.5 6.333h-5.59L9.049.927z"/>
                 </svg>
@@ -607,7 +662,51 @@
             </button>
             </div>
         </div>
+    </div> --}}
+
+    {{-- Rating Modal (TrBASTRating sliders) --}}
+    <div id="ratingModal" class="fixed inset-0 z-[3000] hidden items-center justify-center bg-black/50">
+    <div class="w-full max-w-2xl rounded-xl bg-white p-5 shadow-lg dark:bg-gray-800">
+        <h3 class="mb-4 text-lg font-semibold text-gray-800 dark:text-gray-100">
+        Vendor Rating (1–10 per kriteria)
+        </h3>
+
+        <div class="max-h-[60vh] overflow-y-auto rounded-lg border border-gray-200 dark:border-gray-700">
+        <table class="min-w-full text-sm">
+            <thead class="bg-gray-50 dark:bg-gray-700">
+            <tr>
+                <th class="px-4 py-2 text-left font-semibold text-gray-700 dark:text-gray-200">Kriteria</th>
+                <th class="px-4 py-2 text-center font-semibold text-gray-700 dark:text-gray-200" style="width: 160px;">Score</th>
+                <th class="px-4 py-2 text-center font-semibold text-gray-700 dark:text-gray-200" style="width: 90px;">Value</th>
+            </tr>
+            </thead>
+            <tbody id="ratingTableBody" class="divide-y divide-gray-100 dark:divide-gray-700">
+            <tr>
+                <td colspan="3" class="px-4 py-4 text-center text-gray-500 dark:text-gray-400">Loading ratings…</td>
+            </tr>
+            </tbody>
+        </table>
+        </div>
+
+        <div class="mt-4 flex items-center justify-between">
+        <div class="text-sm text-gray-600 dark:text-gray-300">
+            <span class="font-semibold">Average:</span>
+            <span id="ratingAvg" class="ml-1 inline-block min-w-[28px] text-center">0</span>
+        </div>
+        <div class="flex items-center gap-2">
+            <button id="ratingCancelBtn"
+            class="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
+            Cancel
+            </button>
+            <button id="ratingOkBtn"
+            class="rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700">
+            OK
+            </button>
+        </div>
+        </div>
     </div>
+    </div>
+
 
 
     {{-- Overlay --}}
@@ -729,59 +828,198 @@
     </script>  
     
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    {{-- <script>
-        $(document).on("click", "#approveBtn", function() {
-            let bastid = "{{ $bast->bastid }}"; // Ambil Task ID dari modal        
-            approveBast(bastid);
+    <script>
+        // util modal
+        function openRatingModal() {
+            $('#ratingModal').removeClass('hidden').addClass('flex');
+        }
+        function closeRatingModal() {
+            $('#ratingModal').addClass('hidden').removeClass('flex');
+        }
+
+        // state rating
+        let ratingRows = [];  // [{id, rating_id, rating_no, rating_name, rating_score}, ...]
+        const $ratingTbody = $('#ratingTableBody');
+        const $ratingAvg   = $('#ratingAvg');
+
+        // render tbody dari ratingRows
+        function renderRatingTable() {
+            $ratingTbody.empty();
+
+            if (!ratingRows.length) {
+            $ratingTbody.append(`
+                <tr><td colspan="3" class="px-4 py-4 text-center text-gray-500 dark:text-gray-400">No rating rows found.</td></tr>
+            `);
+            $ratingAvg.text('0');
+            return;
+            }
+
+            ratingRows.forEach((r, idx) => {
+            const val = Number.isFinite(+r.rating_score) ? +r.rating_score : 0;
+            const row = `
+                <tr data-index="${idx}">
+                <td class="px-4 py-3">
+                    <div class="font-medium text-gray-800 dark:text-gray-100">${r.rating_name || '-'}</div>
+                    ${r.rating_descr ? `<div class="mt-0.5 text-xs text-gray-500 dark:text-gray-400">${r.rating_descr}</div>` : ''}
+                </td>
+                <td class="px-4 py-3">
+                    <input
+                    type="range"
+                    min="1" max="10" step="1"
+                    class="w-full"
+                    value="${val}"
+                    data-index="${idx}"
+                    aria-label="Score ${r.rating_name || ''}"
+                    />
+                </td>
+                <td class="px-4 py-3 text-center">
+                    <span class="inline-block min-w-[28px]" data-val="${idx}">${val}</span>
+                </td>
+                </tr>
+            `;
+            $ratingTbody.append(row);
+            });
+
+            recalcAverage();
+        }
+
+        function recalcAverage() {
+            if (!ratingRows.length) { $ratingAvg.text('0'); return; }
+            const sum = ratingRows.reduce((a,b)=> a + (Number(b.rating_score)||0), 0);
+            const avg = (sum / ratingRows.length);
+            $ratingAvg.text(avg.toFixed(1).replace(/\.0$/, ''));
+        }
+
+        // handle slider change (delegation)
+        $(document).on('input change', '#ratingTableBody input[type="range"]', function(){
+            const idx = +$(this).data('index') || 0;
+            const val = +$(this).val();
+            ratingRows[idx].rating_score = val;
+            $(`#ratingTableBody span[data-val="${idx}"]`).text(val);
+            recalcAverage();
         });
 
-        function approveBast(bastid) {
-            let $spinner = $("#loadingSpinnerContainer"); // Ambil elemen spinner
-
-            // Tampilkan spinner di kanan bawah
-            $spinner.fadeIn();
-
-            $.ajax({
-                url: `/bast/${bastid}/approve`,
-                type: "POST",
-                data: {
-                    _token: "{{ csrf_token() }}",
-                    bastid: bastid
-                },
-                success: function(response) {
-                    if (response.success) {
-                        // Update status di UI
-                        $("#xstatus").text("Approved")
-                            .removeClass()
-                            .addClass(
-                                "w-full max-w-32 bg-green-300/30 dark:bg-green-300 text-green-600 flex justify-items-center focus:outline-none pointer-events-none    -none font-semibold px-2 py-0.5 rounded"
-                            );
-
-                        // Tampilkan alert sukses
-                        toastr.success("Bast approved successfully!");
-                        window.location.href = "/bastlist";
-                    } else {
-                        toastr.error(response.message);
-                    }
-                },
-                error: function(xhr) {
-                    console.error(xhr.responseText);
-
-                    if (xhr.status === 403) {
-                        toastr.error("You are not authorized to approve this bast.");
-                    } else {
-                        toastr.error("Error: Unable to approve bast.");
-                    }
-                },
-                complete: function() {
-                    // Sembunyikan spinner setelah request selesai
-                    $spinner.fadeOut();
-                }
+        // load rating rows dari server (TrBASTRating)
+        function loadRatings(bastid) {
+            // Endpoint asumsi: GET /bast/{bastid}/ratings
+            // Response contoh:
+            // { success: true, data: [{ id, rating_id, rating_no, rating_name, rating_descr, rating_score }, ...] }
+            return $.getJSON(`/bast/${encodeURIComponent(bastid)}/ratings`)
+            .then(res => {
+                if (!res || !res.success) throw new Error(res?.message || 'Failed to load ratings');
+                // pastikan score default 0 jika null
+                ratingRows = (res.data || []).map(r => ({
+                id: r.id ?? null,
+                rating_id: r.rating_id ?? null,
+                rating_no: r.rating_no ?? null,
+                rating_name: r.rating_name ?? '',
+                rating_descr: r.rating_descr ?? '',
+                rating_score: Number.isFinite(+r.rating_score) ? +r.rating_score : 0
+                }));
+                renderRatingTable();
+            })
+            .catch(err => {
+                console.error(err);
+                $ratingTbody.html(`<tr><td colspan="3" class="px-4 py-4 text-center text-red-600">Failed to load ratings.</td></tr>`);
             });
         }
-    </script> --}}
 
-    <script>
+        // Approve button -> cek authorize -> buka modal + load ratings
+        $(document).on("click", "#approveBtn", function () {
+            const bastid  = "{{ $bast->bastid }}";
+            const $spinner = $("#loadingSpinnerContainer");
+            $spinner.fadeIn();
+
+            let authorized = false;
+
+            $.ajax({
+            url: `/approval/${encodeURIComponent(bastid)}/check/approve?doctype=BA`,
+            type: "GET"
+            })
+            .done(function(resp){
+            authorized = !!(resp && resp.canPerformAction);
+            if (!authorized) toastr.error("You are not authorized to approve this Bast.");
+            })
+            .fail(function(){
+            toastr.error("Error checking approval status.");
+            })
+            .always(function(){
+            // setelah spinner hilang, kalau authorized → buka modal & load ratings
+            $spinner.fadeOut(150, async function () {
+                if (authorized) {
+                openRatingModal();
+                // tampilkan skeleton sementara
+                $ratingTbody.html(`<tr><td colspan="3" class="px-4 py-4 text-center text-gray-500 dark:text-gray-400">Loading ratings…</td></tr>`);
+                try {
+                    await loadRatings(bastid);
+                } catch(_) { /* error sudah ditangani di loadRatings */ }
+                }
+            });
+            });
+        });
+
+        // Cancel modal
+        $(document).on('click', '#ratingCancelBtn', function(){
+            closeRatingModal();
+        });
+
+        // Submit rating → approve
+        $(document).on('click', '#ratingOkBtn', function(){
+            const bastid  = "{{ $bast->bastid }}";
+
+            if (!ratingRows.length) {
+            toastr.warning('No rating rows to submit.');
+            return;
+            }
+
+            // validasi ringan: semua 1–10
+            const invalid = ratingRows.some(r => !(r.rating_score >= 1 && r.rating_score <= 10));
+            if (invalid) {
+            toastr.warning('Scores must be between 1 and 10.');
+            return;
+            }
+
+            // hitung average utk header.rating_vendor (opsional – backend boleh hitung sendiri)
+            const avg = ratingRows.reduce((a,b)=> a + (+b.rating_score||0), 0) / ratingRows.length;
+
+            const $spinner = $("#loadingSpinnerContainer");
+            $spinner.fadeIn();
+
+            // kirim ke approve: bawa ratings_json + optional rating_vendor
+            $.ajax({
+            url: `/bast/${encodeURIComponent(bastid)}/approve`,
+            type: "POST",
+            data: {
+                _token: "{{ csrf_token() }}",
+                bastid: bastid,
+                rating_vendor: avg.toFixed(2),                 // opsional kalau backend pakai
+                ratings_json: JSON.stringify(ratingRows)       // backend: json_decode($request->ratings_json, true)
+            }
+            })
+            .done(function(response){
+            if (response?.success) {
+                toastr.success("Bast approved successfully!");
+                window.location.href = "/bastlist";
+            } else {
+                toastr.error(response?.message || "Failed to approve Bast.");
+            }
+            })
+            .fail(function(xhr){
+            if (xhr.status === 403) {
+                toastr.error("You are not authorized to approve this bast.");
+            } else {
+                toastr.error(xhr.responseJSON?.message || "Error: Unable to approve bast.");
+            }
+            })
+            .always(function(){
+            $spinner.fadeOut();
+            closeRatingModal();
+            });
+        });
+    </script>
+
+
+    {{-- <script>
         // helper: buka/tutup modal rating
         function openRatingModal() {
             $('#ratingModal').removeClass('hidden').addClass('flex');
@@ -892,7 +1130,7 @@
             closeRatingModal();
             });
         });
-    </script>
+    </script> --}}
 
 
 

@@ -19,7 +19,6 @@ use App\Models\User;
 use App\Models\Site;
 use App\Models\Division;
 use App\Models\TrWO;
-use App\Models\TrWOdetail;
 use App\Models\MsLocationPG;
 use App\Models\MsSubLocationPG;
 use Mail;
@@ -49,7 +48,7 @@ class WoController extends Controller
     }
 
     
-   public function json(Request $request)
+    public function json(Request $request)
     {
         $draw   = (int) $request->input('draw', 1);
         $start  = (int) $request->input('start', 0);
@@ -805,10 +804,10 @@ class WoController extends Controller
     }
 
 
-         public function approveWo(Request $request, $docid)
+    public function approveWo(Request $request, $docid)
     {
         $user    = $request->user();
-        $doctype = 'PB';
+        $doctype = 'WO';
 
         $wo = TrWO::with('creator')->where('woid', $docid)->first();
         if (!$wo) return response()->json(['success'=>false,'message'=>'WO not found'],404);
@@ -826,12 +825,11 @@ class WoController extends Controller
             // complete: update header/detail + email creator complete
             function (string $refnbr, \Carbon\Carbon $now) use ($wo, $fullname, $docUrl) {
                 $wo->status       = 'C';
+                $wo->status_pekerjaan  = 'H';
                 $wo->completed_by = $wo->completed_by ?: auth()->user()->username;
                 $wo->completed_at = $now;
                 $wo->save();
-
-                TrWOdetail::where('woid', $wo->woid)->update(['status' => 'C']);
-
+                
                 app(\App\Http\Controllers\ApprovalController::class)->notifyRequesterOnStatus(
                     $wo->woid,
                     'WO',
@@ -854,7 +852,7 @@ class WoController extends Controller
             function ($next, \Carbon\Carbon $now) use ($wo, $docUrl) {
                 app(\App\Http\Controllers\ApprovalController::class)->notifyFirstApprover(
                     $wo->woid,
-                    'PB',
+                    'WO',
                     'P',
                     'WO',
                     $docUrl,
@@ -882,7 +880,7 @@ class WoController extends Controller
     public function rejectWo(Request $request, $docid)
     {
         $user    = $request->user();
-        $doctype = 'PB';
+        $doctype = 'WO';
 
         $wo = \App\Models\TrWO::with('creator')->where('woid', $docid)->first();
         if (!$wo) return response()->json(['success'=>false,'message'=>'WO not found'],404);
@@ -903,9 +901,7 @@ class WoController extends Controller
                 $wo->completed_at = $now;
                 $wo->save();
 
-                // optional: tandai detail R
-                // \App\Models\TrWOdetail::where('woid', $wo->woid)->update(['status' => 'R']);
-
+                
                 app(\App\Http\Controllers\ApprovalController::class)->notifyRequesterOnStatus(
                     $wo->woid,
                     'WO',
@@ -925,7 +921,7 @@ class WoController extends Controller
 
                 // simpan komentar (jika ada)
                 try {
-                    app('App\Http\Controllers\SendCommentController')->sendmsg($wo->id, 'PB', request());
+                    app('App\Http\Controllers\SendCommentController')->sendmsg($wo->id, 'WO', request());
                 } catch (\Throwable $e) {}
             }
         );
@@ -940,7 +936,7 @@ class WoController extends Controller
     public function reviseWo(Request $request, $docid)
     {
         $user    = $request->user();
-        $doctype = 'PB';
+        $doctype = 'WO';
 
         $wo = \App\Models\TrWO::with('creator')->where('woid', $docid)->first();
         if (!$wo) return response()->json(['success'=>false,'message'=>'WO not found'],404);
@@ -961,9 +957,7 @@ class WoController extends Controller
                 $wo->completed_at = $now;
                 $wo->save();
 
-                // (opsional) DETAIL -> D
-                // \App\Models\TrWOdetail::where('woid', $wo->woid)->update(['status' => 'D']);
-
+               
                 // === Email ke requester ===
                 app(\App\Http\Controllers\ApprovalController::class)->notifyRequesterOnStatus(
                     $wo->woid,
@@ -985,7 +979,7 @@ class WoController extends Controller
 
                 // === Simpan komentar (jika ada) ===
                 try {
-                    app('App\Http\Controllers\SendCommentController')->sendmsg($wo->id, 'PB', request());
+                    app('App\Http\Controllers\SendCommentController')->sendmsg($wo->id, 'WO', request());
                 } catch (\Throwable $e) {}
             }
         );
@@ -1266,7 +1260,7 @@ class WoController extends Controller
     //     // Simpan komentar penolakan (jika ada)
     //     try {
     //         app('App\Http\Controllers\SendCommentController')
-    //             ->sendmsg($wo->id, 'PB', $request);
+    //             ->sendmsg($wo->id, 'WO', $request);
     //     } catch (\Throwable $e) {
     //         Log::warning('SendComment after reject failed', [
     //             'docid' => $wo->woid,
@@ -1381,7 +1375,7 @@ class WoController extends Controller
     //     // Simpan komentar revisi (jika ada)
     //     try {
     //         app('App\Http\Controllers\SendCommentController')
-    //             ->sendmsg($wo->id, 'PB', $request);
+    //             ->sendmsg($wo->id, 'WO', $request);
     //     } catch (\Throwable $e) {
     //         Log::warning('SendComment after revise failed', [
     //             'docid' => $wo->woid,
@@ -1602,6 +1596,213 @@ class WoController extends Controller
         $suffix = $variant === 'tenant' ? '_tenant' : '';
         return $pdf->stream("pdf_wos{$suffix}_{$wo->woid}.pdf");
     }
+
+    public function woJobs()
+    {
+        $user = Auth::user();
+
+        $deptIds = collect([optional($user)->departmentid])->filter();
+        if (method_exists($user, 'departments')) {
+            $deptIds = $deptIds->merge($user->departments()->pluck('department_id'))->filter();
+        }
+        $deptIds = $deptIds->unique()->values();
+
+        $companyIds = collect();
+        $singleCompany = $user->companyid ?? $user->cpny_id ?? null;
+        if (!empty($singleCompany)) $companyIds = collect([$singleCompany]);
+
+        // 🔎 DEBUG: lihat dulu apa yang difilter
+        // dd(['deptIds' => $deptIds, 'companyIds' => $companyIds]);
+
+        if ($deptIds->isEmpty()) {
+            $all = $onProgress = $reject = $completed = $wojobs = 0;
+            return view('pages.wos.wojobs', compact('all', 'onProgress', 'reject', 'wojobs', 'completed'));
+        }
+
+        $base = TrWO::from('tr_wo as wo')
+            ->join('ms_worktype_dept as wtd', fn($j) => $j->on('wtd.worktypeid','=','wo.worktypeid'))
+            ->whereIn('wtd.department_id', $deptIds)
+            ->where('wo.status','C');
+
+        if ($companyIds->isNotEmpty()) {
+            $base->whereIn('wo.cpny_id', $companyIds);
+        }
+
+        // 🔎 DEBUG: lihat SQL dan binding
+        //  $sql = (clone $base)->toSql();
+        //  $bindings = (clone $base)->getBindings();
+        // dd(['sql' => $sql, 'bindings' => $bindings, 'quickCount' => (clone $base)->count()]);
+
+        // Hitung pakai DISTINCT yg eksplisit (aman untuk Postgres)
+        $all        = (clone $base)->selectRaw('COUNT(DISTINCT wo.woid) AS c')->value('c');
+        $onProgress = (clone $base)->where('wo.status_pekerjaan','P')->selectRaw('COUNT(DISTINCT wo.woid) AS c')->value('c');
+        $reject     = (clone $base)->where('wo.status_pekerjaan','R')->selectRaw('COUNT(DISTINCT wo.woid) AS c')->value('c');
+        $completed  = (clone $base)->where('wo.status_pekerjaan','C')->selectRaw('COUNT(DISTINCT wo.woid) AS c')->value('c');
+        $wojobs     = (clone $base)->where('wo.status_pekerjaan','H')->selectRaw('COUNT(DISTINCT wo.woid) AS c')->value('c');
+       
+        return view('pages.wos.wojobs', compact('all', 'onProgress', 'reject', 'wojobs', 'completed'));
+    }
+
+    
+    public function jsonJobs(Request $request)
+    {
+        $draw   = (int) $request->input('draw', 1);
+        $start  = (int) $request->input('start', 0);
+        $length = (int) $request->input('length', 25);
+        $search = trim((string) $request->input('search.value', ''));
+        $jobStatus = (string) $request->query('job_status', ''); // 🔥 hanya ini yang dipakai
+
+        $columns = [
+            0 => 'wo.woid',
+            1 => 'wo.wodate',
+            2 => 'wo.cpny_id',
+            3 => 'wo.department_id',
+            4 => 'wt.worktype_name',
+            5 => 'wo.worequest',
+            6 => 'wo.keperluan',
+            7 => 'wo.status_pekerjaan', // kolom display saja (boleh dipertahankan)
+        ];
+
+        $orderIdx = (int) $request->input('order.0.column', 0);
+        $orderDir = $request->input('order.0.dir', 'asc') === 'asc' ? 'asc' : 'desc';
+        $orderCol = $columns[$orderIdx] ?? 'wo.woid';
+
+        $user = Auth::user();
+
+        // dept user (kamu pakai field 'departmentid' di user)
+        $deptIds = collect([optional($user)->departmentid])->filter();
+        if (method_exists($user, 'departments')) {
+            $deptIds = $deptIds->merge($user->departments()->pluck('department_id'))->filter();
+        }
+        $deptIds = $deptIds->unique()->values();
+
+        // company user -> array
+        $companyIds = collect();
+        $singleCompany = $user->companyid ?? $user->cpny_id ?? null;
+        if (!empty($singleCompany)) $companyIds = collect([$singleCompany]);
+
+        if ($deptIds->isEmpty()) {
+            return response()->json([
+                'draw' => $draw, 'recordsTotal' => 0, 'recordsFiltered' => 0, 'data' => [],
+            ]);
+        }
+
+        $base = TrWO::from('tr_wo as wo')
+            ->leftJoin('ms_worktype as wt', fn($j) => $j->on('wt.worktypeid','=','wo.worktypeid'))
+            ->join('ms_worktype_dept as wtd', fn($j) => $j->on('wtd.worktypeid','=','wo.worktypeid'))
+            ->whereIn('wtd.department_id', $deptIds);
+
+        if ($companyIds->isNotEmpty()) {
+            $base->whereIn('wo.cpny_id', $companyIds);
+        }
+
+        // 🔥 filter berdasar status_pekerjaan (H/P/R/C). Kosong = semua
+        if ($jobStatus !== '') {
+            $base->where('wo.status_pekerjaan', $jobStatus);
+        }
+
+        $recordsTotal = (clone $base)->distinct()->count('wo.woid');
+
+        if ($search !== '') {
+            $base->where(function ($q) use ($search) {
+                $q->where('wo.woid','like',"%{$search}%")
+                ->orWhere('wo.cpny_id','like',"%{$search}%")
+                ->orWhere('wo.department_id','like',"%{$search}%")
+                ->orWhere('wt.worktype_name','like',"%{$search}%")
+                ->orWhere('wo.worequest','like',"%{$search}%")
+                ->orWhere('wo.keperluan','like',"%{$search}%")
+                ->orWhere('wo.status','like',"%{$search}%")                // optional, display
+                ->orWhere('wo.status_pekerjaan','like',"%{$search}%");     // 🔥 ikut searchable
+            });
+        }
+
+        $recordsFiltered = (clone $base)->distinct()->count('wo.woid');
+
+        $data = $base->select(
+                    'wo.id','wo.woid','wo.wodate','wo.cpny_id','wo.department_id',
+                    'wt.worktype_name','wo.worequest','wo.keperluan',
+                    'wo.status',            // dok status (display, optional)
+                    'wo.status_pekerjaan',  // 🔥 kalau mau ditampilkan juga
+                    'wo.created_by'
+                )
+                ->orderBy($orderCol, $orderDir)
+                ->orderBy('wo.woid', 'desc')
+                ->distinct('wo.woid')
+                ->skip($start)->take($length)->get();
+
+        $data->transform(function ($row) {
+            $row->eid = \Vinkla\Hashids\Facades\Hashids::encode($row->id);
+            unset($row->id);
+            return $row;
+        });
+
+        return response()->json([
+            'draw' => $draw, 'recordsTotal' => $recordsTotal,
+            'recordsFiltered' => $recordsFiltered, 'data' => $data,
+        ]);
+    }
+
+    // POST /wo/{woid}/process
+    public function processWo($woid) {
+        $user = auth()->user();
+        $wo = TrWO::where('woid', $woid)->firstOrFail();
+
+        // set pic_wo & pic_department (server-side agar aman)
+        $wo->pic_wo = $user->username;
+        $wo->pic_department = $user->departmentid ?? $user->department_id ?? $wo->pic_department;
+        $wo->save();
+
+        return response()->json(['success' => true]);
+    }
+
+    // POST /wo/{woid}/job-status
+    public function updateJobStatus(Request $req, $woid)
+    {
+        $req->validate([
+            'status_pekerjaan' => 'required|in:P,R,C',
+            'pic_wo_comment'   => 'nullable|string',
+            'flag_sppbjkt'     => 'nullable' // checkbox (akan dinormalisasi)
+        ]);
+
+        $wo = TrWO::where('woid', $woid)->firstOrFail();
+
+        $wo->status_pekerjaan = $req->status_pekerjaan;
+        $wo->pic_wo_comment   = $req->pic_wo_comment;
+
+        // ✅ jika Completed → isi timestamp pic_completed_wo
+        if ($req->status_pekerjaan === 'C') {
+            $wo->pic_completed_wo = now();
+        }
+
+        // ✅ normalisasi flag dari checkbox: true jika "1", 1, true, "true"
+        $flag = filter_var($req->input('flag_sppbjkt'), FILTER_VALIDATE_BOOLEAN) || $req->input('flag_sppbjkt') == 1;
+
+        // === Pilih salah satu sesuai tipe kolom di DB ===
+        // A) Jika kolom boolean / integer(1):
+        // $wo->flag_sppbjkt = $flag ? 1 : 0;
+
+        // B) Jika kolom char/varchar 'Y'/'N' (sering dipakai di projekmu):
+        $wo->flag_sppbjkt = $flag ? 'Y' : 'N';
+
+        $wo->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Job status updated.',
+            'data'    => [
+                'status_pekerjaan' => $wo->status_pekerjaan,
+                'pic_wo_comment'   => $wo->pic_wo_comment,
+                'pic_completed_wo' => $wo->pic_completed_wo,
+                'flag_sppbjkt'     => $wo->flag_sppbjkt,
+            ]
+        ]);
+    }
+
+
+
+
+
+
 
     
 

@@ -1929,7 +1929,7 @@
         });
         });
     </script>
-        <script>
+    <script>
         $(function () {
         const $lokasiModal = $('#modalLokasi');
         const $selLoc  = $('#modal_location_id');

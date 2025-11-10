@@ -631,6 +631,12 @@ Route::post('/logout', function () {
     Route::get('/pdf_wos/{hash}', [WOController::class, 'printWo'])->name('wos.print');
     Route::put('/wos/remove-attachment/{id}', [WOController::class, 'removeAttachment']);
 
+    Route::get('/wojobs', [WoController::class, 'woJobs'])->name('wojobs');
+    Route::get('/wos/jsonJobs', [WoController::class, 'jsonJobs'])->name('wos.jsonJobs');
+    Route::post('/wo/{woid}/process', [WOController::class, 'processWo'])->name('wo.process');
+    Route::post('/wo/{woid}/job-status', [WOController::class, 'updateJobStatus'])->name('wo.jobstatus');
+
+
     Route::get('/spbs', [SpbController::class, 'index'])->name('spbs');
     Route::get('/spbs/json', [SpbController::class, 'json'])->name('spbs.json');
     Route::get('/createspbs', [SpbController::class, 'createSpb']);
@@ -698,6 +704,7 @@ Route::post('/logout', function () {
     Route::get('/editbasts/{hash}', [BastController::class, 'editBast'])->name('bast.edit');
     Route::put('/editbasts/{hash}', [BastController::class, 'updateBast'])->name('bast.update');
     Route::get('/pdf_bast/{hash}', [BastController::class, 'printBast'])->name('basts.print');
+    Route::get('/bast/{bastid}/ratings', [BastController::class, 'getBastRatings'])->name('bast.ratings');
 
 
     Route::get('/inventory/list', [MasterController::class, 'InventoryList'])->name('inventory.list');

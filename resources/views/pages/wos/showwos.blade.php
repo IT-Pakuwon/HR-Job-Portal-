@@ -524,6 +524,57 @@
                 </div>
             </div>
 
+            {{-- === JOB PROCESS (status_pekerjaan + comment) === --}}
+            {{-- form status_pekerjaan + comment (disembunyikan dulu) --}}
+            <div id="jobProcessBox" class="border-b border-gray-200 px-6 py-4 dark:border-gray-700">
+            <button id="btnJobProcess"
+                class="inline-flex items-center gap-2 rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                data-mode="process">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="1.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m6-6H6"/>
+                </svg>
+                <span>Process</span>
+            </button>
+
+            <div id="jobForm" class="mt-4 hidden">
+                <div class="mb-3">
+                <div class="flex items-end gap-4">
+                    <div class="flex-1">
+                    <label for="jobStatusSelect" class="mb-1 block text-sm font-semibold text-gray-700 dark:text-gray-200">
+                        Status Pekerjaan
+                    </label>
+                    <select id="jobStatusSelect"
+                        class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-indigo-500 focus:ring-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
+                        <option value="">-- pilih --</option>
+                        <option value="P">On Progress</option>
+                        <option value="R">Rejected</option>
+                        <option value="C">Completed</option>
+                    </select>
+                    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">P = On Progress, R = Rejected, C = Completed</p>
+                    </div>
+
+                    {{-- Checkbox SPPB JKT --}}
+                    <label class="inline-flex items-center gap-2 select-none mb-1">
+                    <input type="checkbox" id="flagSppbJkt"
+                            class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 dark:border-gray-500" />
+                    <span class="text-sm text-gray-700 dark:text-gray-200">SPPB JKT</span>
+                    </label>
+                </div>
+                </div>
+
+                <div>
+                <label for="jobComment" class="mb-1 block text-sm font-semibold text-gray-700 dark:text-gray-200">Comment</label>
+                <textarea id="jobComment" rows="3"
+                    class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-indigo-500 focus:ring-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
+                    placeholder="Tuliskan catatan untuk pekerjaan ini..."></textarea>
+                </div>
+            </div>
+            </div>
+
+
+
+
 
             
         </div>
@@ -1185,5 +1236,114 @@
             return `<span class="${statusClass} inline-block rounded-full px-3 py-1 text-xs font-semibold">${statusText}</span>`;
         }
     </script>
+
+    <script>
+        (function () {
+        // Safety: pastikan tombol nampak dulu
+        $("#btnJobProcess").removeClass("hidden").show();
+
+        const woid = @json($wo->woid);
+        const csrf = @json(csrf_token());
+
+        // Gunakan nilai boolean yang pasti (bukan string kosong/null yang bikin truthy)
+        const hasProcessorBool = Boolean(@json(!empty($wo->pic_wo)));
+        const initialJobStatus = @json($wo->status_pekerjaan ?? '');
+        const initialComment   = @json($wo->pic_wo_comment ?? '');
+        const initialFlagRaw   = @json($wo->flag_sppbjkt ?? null);
+
+        const $spinner = $("#loadingSpinnerContainer");
+        const $btn     = $("#btnJobProcess");
+        const $form    = $("#jobForm");
+        const $select  = $("#jobStatusSelect");
+        const $comment = $("#jobComment");
+        const $flag    = $("#flagSppbJkt");
+
+        // Normalisasi flag checkbox
+        const initialFlag =
+            initialFlagRaw === true || initialFlagRaw === 1 || initialFlagRaw === '1' ||
+            String(initialFlagRaw).toUpperCase() === 'Y';
+        $flag.prop('checked', !!initialFlag);
+
+        // Log untuk debug cepat di console
+        console.log('[JOB INIT]', { hasProcessorBool, initialJobStatus, initialComment, initialFlagRaw });
+
+        // INITIAL STATE dari pic_wo
+        if (hasProcessorBool) {
+            $form.removeClass('hidden');
+            $btn.attr('data-mode', 'save').find('span').text('Save');
+            if (initialJobStatus) $select.val(initialJobStatus);
+            if (initialComment)   $comment.val(initialComment);
+        } else {
+            $form.addClass('hidden');
+            $btn.attr('data-mode', 'process').find('span').text('Process');
+        }
+
+        $btn.on('click', function () {
+            // const mode = $btn.data('mode');
+            const mode = $btn.attr('data-mode');
+
+            if (mode === 'process') {
+            $spinner.fadeIn();
+            $.ajax({
+                url: `/wo/${woid}/process`,
+                type: 'POST',
+                data: { _token: csrf },
+                success: function (res) {
+                if (!res || !res.success) {
+                    toastr.error(res?.message || 'Failed to start process.');
+                    return;
+                }
+                $form.removeClass('hidden');
+                // $btn.attr('data-mode', 'save').find('span').text('Save');
+                $btn.attr('data-mode', 'save').find('span').text('Save');
+                toastr.success('WO is now being processed.');
+                },
+                error: function (xhr) {
+                toastr.error(xhr.responseJSON?.message || 'Failed to process WO.');
+                },
+                complete: function () { $spinner.fadeOut(); }
+            });
+
+            } else {
+            const jobStatus = ($select.val() || '').trim();
+            const comment   = ($comment.val() || '').trim();
+            const flagVal   = $flag.is(':checked') ? 1 : 0;
+
+            if (!jobStatus) {
+                toastr.warning('Silakan pilih Status Pekerjaan terlebih dahulu.');
+                $select.focus();
+                return;
+            }
+
+            $spinner.fadeIn();
+            $.ajax({
+                url: `/wo/${woid}/job-status`,
+                type: 'POST',
+                data: {
+                _token: csrf,
+                status_pekerjaan: jobStatus,
+                pic_wo_comment: comment,
+                flag_sppbjkt: flagVal
+                },
+                success: function (res) {
+                if (!res || !res.success) {
+                    toastr.error(res?.message || 'Failed to save job status.');
+                    return;
+                }
+                toastr.success('Job status saved.');
+                },
+                error: function (xhr) {
+                toastr.error(xhr.responseJSON?.message || 'Failed to save job status.');
+                },
+                complete: function () { $spinner.fadeOut(); }
+            });
+            }
+        });
+        })();
+    </script>
+
+
+
+
 
 </x-app-layout>
