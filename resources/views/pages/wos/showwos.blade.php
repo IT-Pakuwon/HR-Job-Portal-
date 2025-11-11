@@ -526,51 +526,100 @@
 
             {{-- === JOB PROCESS (status_pekerjaan + comment) === --}}
             {{-- form status_pekerjaan + comment (disembunyikan dulu) --}}
-            <div id="jobProcessBox" class="border-b border-gray-200 px-6 py-4 dark:border-gray-700">
-            <button id="btnJobProcess"
-                class="inline-flex items-center gap-2 rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-                data-mode="process">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none"
-                stroke="currentColor" stroke-width="1.5">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m6-6H6"/>
-                </svg>
-                <span>Process</span>
-            </button>
+            @php
+                $loginUser   = auth()->user();
+                $isProcessor = filled($wo->pic_wo) && strcasecmp($wo->pic_wo, $loginUser->username) === 0;
+            @endphp
 
-            <div id="jobForm" class="mt-4 hidden">
-                <div class="mb-3">
-                <div class="flex items-end gap-4">
-                    <div class="flex-1">
-                    <label for="jobStatusSelect" class="mb-1 block text-sm font-semibold text-gray-700 dark:text-gray-200">
-                        Status Pekerjaan
-                    </label>
-                    <select id="jobStatusSelect"
-                        class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-indigo-500 focus:ring-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
-                        <option value="">-- pilih --</option>
-                        <option value="P">On Progress</option>
-                        <option value="R">Rejected</option>
-                        <option value="C">Completed</option>
-                    </select>
-                    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">P = On Progress, R = Rejected, C = Completed</p>
+            @if ($isProcessor)
+                {{-- ===== EDITABLE (PIC = user login) ===== --}}
+                <div id="jobProcessBox" class="border-b border-gray-200 px-6 py-4 dark:border-gray-700">
+                    <button id="btnJobProcess"
+                        class="inline-flex items-center gap-2 rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                        data-mode="process">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="1.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m6-6H6"/>
+                        </svg>
+                        <span>Process</span>
+                    </button>
+
+                    <div id="jobForm" class="mt-4 hidden">
+                        <div class="mb-3">
+                            <div class="flex items-end gap-4">
+                                <div class="flex-1">
+                                    <label for="jobStatusSelect" class="mb-1 block text-sm font-semibold text-gray-700 dark:text-gray-200">
+                                        Status Pekerjaan
+                                    </label>
+                                    <select id="jobStatusSelect"
+                                            class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-indigo-500 focus:ring-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
+                                        <option value="">-- pilih --</option>
+                                        <option value="P">On Progress</option>
+                                        <option value="R">Rejected</option>
+                                        <option value="C">Completed</option>
+                                    </select>
+                                    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">P = On Progress, R = Rejected, C = Completed</p>
+                                </div>
+
+                                {{-- Checkbox SPPB JKT --}}
+                                <label class="inline-flex items-center gap-2 select-none mb-1">
+                                    <input type="checkbox" id="flagSppbJkt"
+                                        class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 dark:border-gray-500" />
+                                    <span class="text-sm text-gray-700 dark:text-gray-200">SPPB JKT</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label for="jobComment" class="mb-1 block text-sm font-semibold text-gray-700 dark:text-gray-200">Comment</label>
+                            <textarea id="jobComment" rows="3"
+                                class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-indigo-500 focus:ring-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
+                                placeholder="Tuliskan catatan untuk pekerjaan ini..."></textarea>
+                        </div>
+                    </div>
+                </div>
+            @else
+                {{-- ===== READ-ONLY (bukan PIC) ===== --}}
+                <div class="border-b border-gray-200 px-6 py-4 dark:border-gray-700">
+                    <div class="mb-3">
+                        <div class="flex items-end gap-4">
+                            <div class="flex-1">
+                                <label class="mb-1 block text-sm font-semibold text-gray-700 dark:text-gray-200">
+                                    Status Pekerjaan
+                                </label>
+                                <input type="text" readonly
+                                    class="w-full rounded-md border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-700 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300"
+                                    value="@switch($wo->status_pekerjaan)
+                                                @case('P') On Progress @break
+                                                @case('R') Rejected @break
+                                                @case('C') Completed @break
+                                                @default -
+                                            @endswitch">
+                            </div>
+
+                            <label class="inline-flex items-center gap-2 select-none mb-1 opacity-60">
+                                <input type="checkbox" disabled
+                                    class="h-4 w-4 rounded border-gray-300 text-indigo-600 dark:border-gray-500"
+                                    @checked( in_array(Str::upper((string)$wo->flag_sppbjkt), ['1','Y','TRUE']) ) />
+                                <span class="text-sm text-gray-700 dark:text-gray-200">SPPB JKT</span>
+                            </label>
+                        </div>
                     </div>
 
-                    {{-- Checkbox SPPB JKT --}}
-                    <label class="inline-flex items-center gap-2 select-none mb-1">
-                    <input type="checkbox" id="flagSppbJkt"
-                            class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 dark:border-gray-500" />
-                    <span class="text-sm text-gray-700 dark:text-gray-200">SPPB JKT</span>
-                    </label>
-                </div>
-                </div>
+                    <div>
+                        <label class="mb-1 block text-sm font-semibold text-gray-700 dark:text-gray-200">Comment</label>
+                        <textarea rows="3" readonly
+                            class="w-full rounded-md border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-700 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300"
+                        >{{ $wo->pic_wo_comment }}</textarea>
+                    </div>
 
-                <div>
-                <label for="jobComment" class="mb-1 block text-sm font-semibold text-gray-700 dark:text-gray-200">Comment</label>
-                <textarea id="jobComment" rows="3"
-                    class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-indigo-500 focus:ring-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
-                    placeholder="Tuliskan catatan untuk pekerjaan ini..."></textarea>
+                    {{-- Info siapa PIC-nya --}}
+                    <p class="mt-3 text-xs text-gray-500">
+                        PIC: <span class="font-medium">{{ $wo->pic_wo ?: '-' }}</span>
+                    </p>
                 </div>
-            </div>
-            </div>
+            @endif
+
 
 
 

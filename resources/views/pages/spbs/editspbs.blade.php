@@ -185,19 +185,6 @@
                                 <input type="hidden" name="subworktypeid" id="subworktypeid" value="{{ $spb->subworktypeid }}">
                             </div>
 
-                            {{-- WO ID (sebelah Jenis Pekerjaan) --}}
-                            <div class="flex flex-col gap-2">
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">WO ID</label>
-                                <div class="flex items-center gap-2">
-                                    <input type="text" name="woid" id="woid"
-                                        class="flex-1 rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
-                                        placeholder="Pilih WO..." value="{{ $spb->woid }}" readonly>
-                                    <button type="button" id="openWoModal"
-                                        class="rounded border border-gray-500 px-2 py-2 hover:bg-gray-100 dark:hover:bg-gray-700"
-                                        title="Lookup">🔎</button>
-                                </div>
-                            </div>
-
                             {{-- Perpost --}}
                             <div class="flex flex-col gap-2 lg:col-span-1">
                                 <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Perpost</label>
@@ -213,6 +200,21 @@
                                     </option>
                                 </select>
                             </div>
+
+                            {{-- WO ID (sebelah Jenis Pekerjaan) --}}
+                            <div class="flex flex-col gap-2">
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">WO ID</label>
+                                <div class="flex items-center gap-2">
+                                    <input type="text" name="woid" id="woid"
+                                        class="flex-1 rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                        placeholder="Pilih WO..." value="{{ $spb->woid }}" readonly>
+                                    <button type="button" id="openWoModal"
+                                        class="rounded border border-gray-500 px-2 py-2 hover:bg-gray-100 dark:hover:bg-gray-700"
+                                        title="Lookup">🔎</button>
+                                </div>
+                            </div>
+
+                           
                         </div>
 
                         {{-- Description full-width --}}
@@ -2434,7 +2436,7 @@
         });
         });
     </script>
-        <script>
+    <script>
         $(function () {
         const $lokasiModal = $('#modalLokasi');
         const $selLoc  = $('#modal_location_id');

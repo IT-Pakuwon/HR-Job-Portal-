@@ -165,20 +165,89 @@ return [
             'sslmode' => 'prefer',
         ],
 
-        'sqlsrv' => [
+        // 'sqlsrv' => [
+        //     'driver' => 'sqlsrv',
+        //     'url' => env('DATABASE_URL'),
+        //     'host' => env('DB_HOST_1', '127.0.0.1'),
+        //     'port' => env('DB_PORT_1', '1433'),
+        //     'database' => env('DB_DATABASE_1', 'forge'),
+        //     'username' => env('DB_USERNAME_1', 'forge'),
+        //     'password' => env('DB_PASSWORD_1', ''),
+        //     'charset' => 'utf8',
+        //     'prefix' => '',
+        //     'prefix_indexes' => true,
+        //     // 'encrypt' => env('DB_ENCRYPT', 'yes'),
+        //     // 'trust_server_certificate' => env('DB_TRUST_SERVER_CERTIFICATE', 'false'),
+        // ],
+
+        // 'sqlsrv2' => [
+        //     'driver' => 'sqlsrv',
+        //     'url' => env('DATABASE_URL'),
+        //     'host' => env('DB_HOST_2', '127.0.0.1'),
+        //     'port' => env('DB_PORT_2', '1433'),
+        //     'database' => env('DB_DATABASE_2', 'forge'),
+        //     'username' => env('DB_USERNAME_2', 'forge'),
+        //     'password' => env('DB_PASSWORD_2', ''),
+        //     'charset' => 'utf8',
+        //     'prefix' => '',
+        //     'prefix_indexes' => true,
+        // ],        
+
+        // config/database.php
+
+        'sqlsrv5' => [
             'driver' => 'sqlsrv',
-            'url' => env('DATABASE_URL'),
-            'host' => env('DB_HOST', 'localhost'),
-            'port' => env('DB_PORT', '1433'),
-            'database' => env('DB_DATABASE', 'forge'),
-            'username' => env('DB_USERNAME', 'forge'),
-            'password' => env('DB_PASSWORD', ''),
+            'host' => env('DB_HOST_5', '127.0.0.1'),
+            'port' => env('DB_PORT_5', '1433'),
+            'database' => env('DB_DATABASE_5', 'forge'),
+            'username' => env('DB_USERNAME_5', 'forge'),
+            'password' => env('DB_PASSWORD_5', ''),
             'charset' => 'utf8',
             'prefix' => '',
             'prefix_indexes' => true,
-            // 'encrypt' => env('DB_ENCRYPT', 'yes'),
-            // 'trust_server_certificate' => env('DB_TRUST_SERVER_CERTIFICATE', 'false'),
+            'encrypt' => env('DB5_ENCRYPT', true),
+            'trust_server_certificate' => env('DB1_TRUST_SERVER_CERTIFICATE', true),
+
+            // Hanya set atribut yang memang ada di driver
+            'options' => extension_loaded('sqlsrv') ? (function () {
+                $o = [];
+                if (defined('PDO::SQLSRV_ATTR_QUERY_TIMEOUT')) {
+                    // timeout untuk eksekusi query (detik)
+                    $o[PDO::SQLSRV_ATTR_QUERY_TIMEOUT] = (int) env('DB1_QUERY_TIMEOUT', 5);
+                }
+                if (defined('PDO::SQLSRV_ATTR_DIRECT_QUERY')) {
+                    $o[PDO::SQLSRV_ATTR_DIRECT_QUERY] = true;
+                }
+                return $o;
+            })() : [],
         ],
+
+        'sqlsrv6' => [
+            'driver' => 'sqlsrv',
+            'host' => env('DB_HOST_6', '127.0.0.1'),
+            'port' => env('DB_PORT_6', '1433'),
+            'database' => env('DB_DATABASE_6', 'forge'),
+            'username' => env('DB_USERNAME_6', 'forge'),
+            'password' => env('DB_PASSWORD_6', ''),
+            'charset' => 'utf8',
+            'prefix' => '',
+            'prefix_indexes' => true,
+            'encrypt' => env('DB6_ENCRYPT', true),
+            'trust_server_certificate' => env('DB2_TRUST_SERVER_CERTIFICATE', true),
+
+            'options' => extension_loaded('sqlsrv') ? (function () {
+                $o = [];
+                if (defined('PDO::SQLSRV_ATTR_QUERY_TIMEOUT')) {
+                    $o[PDO::SQLSRV_ATTR_QUERY_TIMEOUT] = (int) env('DB2_QUERY_TIMEOUT', 5);
+                }
+                if (defined('PDO::SQLSRV_ATTR_DIRECT_QUERY')) {
+                    $o[PDO::SQLSRV_ATTR_DIRECT_QUERY] = true;
+                }
+                return $o;
+            })() : [],
+        ],
+
+
 
     ],
 

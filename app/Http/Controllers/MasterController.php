@@ -673,6 +673,51 @@ class MasterController extends Controller
 
     public function getWoComplated(Request $request)
     {
+        $status        = $request->input('status', 'C');
+        $worktypeid    = trim($request->input('worktypeid', ''));
+        $subworktypeid = trim($request->input('subworktypeid', ''));
+        $search        = trim($request->input('search', ''));
+        $page          = max((int) $request->input('page', 1), 1);
+        $perPage       = min(max((int) $request->input('per_page', 10), 1), 100);
+
+        $query = TrWO::query()
+            ->select('woid', 'wodate', 'created_by', 'department_id')
+            ->where('status', $status);
+
+        if ($worktypeid !== '') {
+            $query->where('worktypeid', $worktypeid);
+        }
+        if ($subworktypeid !== '') {
+            $query->where('subworktypeid', $subworktypeid);
+        }
+
+        if ($search !== '') {
+            $query->where(function ($q) use ($search) {
+                $q->where('woid', 'ILIKE', "%{$search}%")
+                ->orWhere('created_by', 'ILIKE', "%{$search}%")
+                ->orWhere('department_id', 'ILIKE', "%{$search}%")
+                ->orWhere('wodate', 'ILIKE', "%{$search}%");
+            });
+        }
+
+        $total = $query->count();
+
+        $rows = $query->orderByDesc('wodate')
+            ->offset(($page - 1) * $perPage)
+            ->limit($perPage)
+            ->get();
+
+        return response()->json([
+            'data'      => $rows,
+            'total'     => $total,
+            'page'      => $page,
+            'per_page'  => $perPage,
+        ]);
+    }
+
+
+    public function getWoComplated_xxx(Request $request)
+    {
         $status   = $request->input('status', 'C');
         $dept     = trim($request->input('departementid', ''));
         $search   = trim($request->input('search', ''));
@@ -711,6 +756,17 @@ class MasterController extends Controller
             'per_page'  => $perPage,
         ]);
     }
+
+    // GET /wos/ajax/wo-head/{woid}
+    public function checkBudgetWo($woid)
+    {
+        
+        $wo = TrWO::select('woid','cpny_id','department_id')
+                ->where('woid', $woid)->firstOrFail();
+        // dd($wo);
+        return response()->json($wo);
+    }
+
 
 
 }

@@ -90,6 +90,7 @@ use Illuminate\Support\Facades\Response;
 //     ]);
 // });
 
+
 Route::get('/avatar/{filename}', function($filename){
     return response($filename, 200, [
         'Access-Control-Allow-Origin' => '*',
@@ -720,7 +721,9 @@ Route::post('/logout', function () {
     Route::get('/wos/ajax/locations/{cpny_id}',     [MasterController::class, 'getLocations']);              
     Route::get('/wos/ajax/sublocations/{cpny_id}/{location_id}', [MasterController::class, 'getSubLocations']);
     Route::get('/wos/ajax/wos', [MasterController::class, 'getWoComplated'])->name('wos.ajax.index'); 
+    Route::get('/wos/checkbudgetwo/{woid}', [MasterController::class, 'checkBudgetWo'])->name('wos.checkbudgetwo');
 
+    
     Route::post('/attachments/{doctype}/{refnbr}',  [TrAttachmentController::class, 'uploadAttachments'])->name('attachments.upload');
     Route::get ('/attachments/{doctype}/{refnbr}',  [TrAttachmentController::class, 'listAttachments'])->name('attachments.list');
     Route::delete('/attachments/{id}',               [TrAttachmentController::class, 'deleteAttachment'])->name('attachments.delete');

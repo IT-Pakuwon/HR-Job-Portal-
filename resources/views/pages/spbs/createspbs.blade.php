@@ -185,7 +185,7 @@
                             </div>
                         </div>
                         <!-- WOID (letakkan sebelum Description) -->
-                        <div class="flex flex-col gap-2 lg:col-span-4">
+                        {{-- <div class="flex flex-col gap-2 lg:col-span-4">
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">WO ID</label>
                         <div class="flex items-center gap-2">
                             <input type="text" name="woid" id="woid"
@@ -195,7 +195,20 @@
                                     class="rounded border border-gray-500 px-2 py-2 hover:bg-gray-100 dark:hover:bg-gray-700"
                                     title="Lookup">🔎</button>
                         </div>
+                        </div> --}}
+                        <!-- WOID (letakkan sebelum Description) -->
+                        <div id="woSection" class="flex flex-col gap-2 lg:col-span-4 hidden">
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">WO ID</label>
+                            <div class="flex items-center gap-2">
+                                <input type="text" name="woid" id="woid"
+                                class="flex-1 rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                placeholder="Pilih WO..." readonly>
+                                <button type="button" id="openWoModal"
+                                class="rounded border border-gray-500 px-2 py-2 hover:bg-gray-100 dark:hover:bg-gray-700"
+                                title="Lookup">🔎</button>
+                            </div>
                         </div>
+
 
                         <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
                             <div class="flex flex-col gap-2 lg:col-span-4">
@@ -721,9 +734,10 @@
                             <button id="woRefresh" type="button"
                                     class="rounded border px-3 py-1 hover:bg-gray-100 dark:hover:bg-gray-700">↻</button>
                             <div class="ml-auto flex items-center gap-3">
-                                {{-- <span>Status: <b>C</b></span> --}}
-                                <span>Dept: <b id="woDeptBadge"></b></span>
+                                <span>Worktype: <b id="woWtBadge"></b></span>
+                                <span>Subworktype: <b id="woSwtBadge"></b></span>
                             </div>
+
                             </div>
 
                             <div class="max-h-[60vh] overflow-auto">
@@ -1398,6 +1412,27 @@
             function openCoaModal(forRow) {
                 currentCoaRow = forRow;
 
+                //cek cpnyid dan deptid punya woid
+                resolveCoaContext().then(ctx => {
+                    if (!ctx.cpnyid) { toastr.warning('Company belum ditentukan.'); return; }
+                    if (!ctx.deptid) { toastr.warning('Department belum ditentukan.'); return; }
+
+                    coaState.cpnyid = ctx.cpnyid;
+                    coaState.deptid = ctx.deptid;
+                    coaState.perpost = ctx.perpost;
+                    coaState.page = 1;
+                    coaState.search = '';
+
+                    $coaCpny.text(coaState.cpnyid);
+                    $coaDept.text(coaState.deptid);
+                    $coaPerpost.text(coaState.perpost);
+                    $('#coaSearch').val('');
+
+                    $coaModal.removeClass('hidden').addClass('flex');
+                    loadCoa(); // ← fungsi yang sudah ada di bawah helper
+                });
+
+
                 // baca cpny & dept dari header
                 const cpny = $('select[name="cpnyid"]').val();
                 const dept = $('select[name="departementid"]').val();
@@ -1783,6 +1818,10 @@
             $('#worktypeid').val(wtVal);
             $('#subworktypeid').val(swVal);
             $('#jenis_pekerjaan_display').val(`${wtTxt} — ${swTxt}`);
+
+            $('#woid').val('');
+            toggleWoSection();
+
             closeJenisModal();
 
             // bersihkan error jika ada
@@ -1791,7 +1830,7 @@
         });
     </script>
 
-    <script>
+    {{-- <script>
         $(function() {
         const $woModal = $('#woModal');
         const $woTbody = $('#woTableBody');
@@ -1928,6 +1967,145 @@
             }
         });
         });
+    </script> --}}
+    <script>
+        $(function() {
+        const $woModal = $('#woModal');
+        const $woTbody = $('#woTableBody');
+        const $woCount = $('#woCount');
+        const $woWtBadge  = $('#woWtBadge');   // baru
+        const $woSwtBadge = $('#woSwtBadge');  // baru
+
+        let woState = {
+            search: '',
+            page: 1,
+            per_page: 10,
+            total: 0,
+            status: 'C',
+            worktypeid: null,       // ganti: pakai worktypeid
+            subworktypeid: null,    // ganti: pakai subworktypeid
+        };
+
+        function readJenisPekerjaanFromHeader() {
+            woState.worktypeid    = $('#worktypeid').val() || '';
+            woState.subworktypeid = $('#subworktypeid').val() || '';
+            $woWtBadge.text(woState.worktypeid || '-');
+            $woSwtBadge.text(woState.subworktypeid || '-');
+        }
+
+        function openWoModal() {
+            readJenisPekerjaanFromHeader();
+            $woModal.removeClass('hidden').addClass('flex');
+            loadWo();
+        }
+
+        function closeWoModal() {
+            $woModal.addClass('hidden').removeClass('flex');
+        }
+
+        // open/close
+        $('#openWoModal').on('click', openWoModal);
+        $('#closeWoModal').on('click', closeWoModal);
+        $(document).on('keydown', function(e){
+            if (e.key === 'Escape' && $woModal.is(':visible')) closeWoModal();
+        });
+
+        // search & refresh
+        $('#woSearch').on('input', function(){
+            woState.search = $(this).val().trim();
+            woState.page = 1;
+            loadWo();
+        });
+        $('#woRefresh').on('click', function(){
+            $('#woSearch').val('');
+            woState.search = '';
+            woState.page = 1;
+            loadWo();
+        });
+
+        // pagination
+        $('#woPrev').on('click', function(){
+            if (woState.page > 1) {
+            woState.page--;
+            loadWo();
+            }
+        });
+        $('#woNext').on('click', function(){
+            const maxPage = Math.ceil((woState.total || 0) / woState.per_page) || 1;
+            if (woState.page < maxPage) {
+            woState.page++;
+            loadWo();
+            }
+        });
+
+        // === Load WO list (status='C'), FILTER by worktypeid & subworktypeid ===
+        function loadWo() {
+            $woTbody.html('<tr><td colspan="5" class="p-3 text-center">Loading...</td></tr>');
+
+            $.getJSON(
+            `/wos/ajax/wos`,
+            {
+                status: woState.status,                    // 'C'
+                worktypeid: woState.worktypeid || '',      // <<— kirim worktypeid
+                subworktypeid: woState.subworktypeid || '',// <<— kirim subworktypeid
+                search: woState.search,
+                page: woState.page,
+                per_page: woState.per_page
+            }
+            )
+            .done(function(res){
+            // Expected: { data: [{ woid, wodate, created_by, departement_id }], total, page, per_page }
+            const rows = (res.data || []).map(it => {
+                const woid      = it.woid || '';
+                const wodate    = it.wodate || '';
+                const created_by= it.created_by || '';
+                const dept      = it.departement_id || it.department_id || '';
+                return `
+                <tr>
+                    <td class="border p-2">${woid}</td>
+                    <td class="border p-2">${wodate}</td>
+                    <td class="border p-2">${created_by}</td>
+                    <td class="border p-2">${dept}</td>
+                    <td class="border p-2 text-center">
+                    <button type="button" class="chooseWo rounded border px-2 py-1 hover:bg-gray-100"
+                        data-woid="${$('<div>').text(woid).html()}">Choose</button>
+                    </td>
+                </tr>`;
+            }).join('');
+
+            $woTbody.html(rows || '<tr><td colspan="5" class="p-3 text-center">No data</td></tr>');
+            woState.total = res.total || 0;
+            $woCount.text(`Showing ${rows ? (res.data.length) : 0} of ${woState.total} items`);
+
+            const maxPage = Math.ceil((woState.total || 0) / woState.per_page) || 1;
+            $('#woPrev').prop('disabled', woState.page <= 1);
+            $('#woNext').prop('disabled', woState.page >= maxPage);
+            })
+            .fail(function(){
+            $woTbody.html('<tr><td colspan="5" class="p-3 text-center text-red-600">Failed to load</td></tr>');
+            $woCount.text('');
+            $('#woPrev, #woNext').prop('disabled', true);
+            });
+        }
+
+        // pilih WO → isi input
+        $(document).on('click', '.chooseWo', function(){
+            const woid = $(this).data('woid') || '';
+            $('#woid').val(woid);
+            $('#woid').removeClass('is-invalid').next('.error-feedback').remove();
+            closeWoModal();
+        });
+
+        // jika user mengganti Jenis Pekerjaan dan modal WO sedang terbuka → refresh
+        $('#saveJenisPekerjaan').on('click', function(){
+            if ($woModal.is(':visible')) {
+            readJenisPekerjaanFromHeader();
+            woState.page = 1;
+            loadWo();
+            }
+        });
+        });
+
     </script>
     <script>
         $(function () {
@@ -2035,6 +2213,62 @@
         });
     </script>
 
+    <script>
+        function toggleWoSection() {
+        const wt  = ($('#worktypeid').val() || '').trim();
+        const swt = ($('#subworktypeid').val() || '').trim();
+        if (wt && swt) {
+            $('#woSection').removeClass('hidden').attr('aria-hidden', 'false');
+        } else {
+            $('#woSection').addClass('hidden').attr('aria-hidden', 'true');
+            $('#woid').val(''); // pastikan WO kosong saat disembunyikan
+        }
+        }
+
+        $(function(){
+        // kondisi awal: kalau edit mode sudah ada worktype/subworktype, tampilkan
+        toggleWoSection();
+        });
+
+    </script>
+
+    <script>
+        // ==== Ambil konteks COA dari WO jika ada, else dari form ====
+        function resolveCoaContext() {
+        const woid    = ($('#woid').val() || '').trim();
+        const perpost = $('#perpost').val();
+
+        // jika sudah pilih WO → ambil header WO (cpnyid & deptid) via endpoint detail
+        if (woid) {
+            // Ganti endpoint ini sesuai rute detail WO kamu
+            // Expected response: { woid, cpnyid, departement_id | department_id, ... }
+            return $.getJSON(`/wos/checkbudgetwo/${encodeURIComponent(woid)}`)
+            .then(h => {
+                return {
+                cpnyid: (h.cpny_id || '').toString(),
+                deptid: (h.department_id || '').toString(),
+                perpost: perpost
+                };
+            })
+            .catch(() => {
+                // fallback jika endpoint error
+                return {
+                cpnyid: ($('select[name="cpnyid"]').val() || '').toString(),
+                deptid: ($('select[name="departementid"]').val() || '').toString(),
+                perpost: perpost
+                };
+            });
+        }
+
+        // belum ada WO → pakai header form
+        return $.Deferred().resolve({
+            cpnyid: ($('select[name="cpnyid"]').val() || '').toString(),
+            deptid: ($('select[name="departementid"]').val() || '').toString(),
+            perpost: perpost
+        }).promise();
+        }
+
+    </script>
 
 
 
