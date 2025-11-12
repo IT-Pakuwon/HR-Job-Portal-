@@ -1,7 +1,7 @@
 <x-app-layout>
     <meta name="csrf-token" content="{{ csrf_token() }}">
     {{-- === Styles (fixed CSS typos) === --}}
-   <style>
+    <style>
         /* Overlay full-screen */
         #loadingSpinnerContainer {
             position: fixed;
@@ -120,8 +120,8 @@
             'X' => 'bg-red-100 text-red-700 dark:bg-red-800/30 dark:text-red-300',
             default => 'bg-gray-100 text-gray-700 dark:bg-gray-800/30 dark:text-gray-300',
         };
-        $nf0 = fn($n) => number_format((float)$n, 0, ',', '.');
-        $nf2 = fn($n) => number_format((float)$n, 2, ',', '.');
+        $nf0 = fn($n) => number_format((float) $n, 0, ',', '.');
+        $nf2 = fn($n) => number_format((float) $n, 2, ',', '.');
     @endphp
 
     <div class="max-w-9xl mx-auto px-4 py-4 sm:px-6 lg:px-8">
@@ -167,37 +167,48 @@
                 </button>
             </div>
         </div>
-        
+
 
         <div class="flex w-full flex-col gap-6 xl:flex-col">
             <div class="flex w-full items-stretch gap-6 xl:flex-row">
                 {{-- Left card (Bast Info) --}}
                 <div class="flex flex-1 flex-col rounded-xl bg-white dark:bg-gray-800">
-                    <header class="sticky top-0 z-10 flex items-center justify-between rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
+                    <header
+                        class="sticky top-0 z-10 flex items-center justify-between rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
                         <h1 class="flex items-center gap-2 text-lg font-bold text-gray-800 dark:text-gray-100">
-                            <span class="inline-flex items-center rounded-md bg-purple-100 px-2 py-1 text-sm font-semibold text-purple-700">ID</span>
+                            <span
+                                class="inline-flex items-center rounded-md bg-purple-100 px-2 py-1 text-sm font-semibold text-purple-700">ID</span>
                             {{ $bast->bastid }}
                         </h1>
-                        
-                        <div class="flex items-center gap-3">
-                        <span class="{{ $statusClasses }} inline-flex items-center rounded-full px-4 py-1 text-sm font-semibold transition-colors duration-200">
-                            {{ $statusText }}
-                        </span>
 
-                        <a href="{{ url('/pdf_bast') }}/{{ $hash }}" target="_blank">
-                            <button
-                                class="inline-flex cursor-pointer items-center gap-2 rounded-full bg-indigo-600 px-4 py-1 text-sm font-semibold text-white transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
-                                Print PDF
-                            </button>
-                        </a>
-                        
+                        <div class="flex items-center gap-3">
+                            <span
+                                class="{{ $statusClasses }} inline-flex items-center rounded-full px-4 py-1 text-sm font-semibold transition-colors duration-200">
+                                {{ $statusText }}
+                            </span>
+
+                            <a href="{{ url('/pdf_bast') }}/{{ $hash }}" target="_blank">
+                                <button
+                                    class="inline-flex cursor-pointer items-center gap-2 rounded-full bg-indigo-600 px-4 py-1 text-sm font-semibold text-white transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                                    Print PDF
+                                </button>
+                            </a>
+
                         </div>
                     </header>
 
                     @php
-                        $fmtDate  = function ($v) { return $v ? \Carbon\Carbon::parse($v)->format('d M Y') : '-'; };
-                        $fmtMoney = function ($v) { return (is_null($v) || $v==='') ? '-' : number_format((float)$v, 0, ',', '.'); };
-                        $fmtPct   = function ($v) { return (is_null($v) || $v==='') ? '-' : (rtrim(rtrim(number_format((float)$v, 2, ',', '.'), '0'), ',') . '%'); };
+                        $fmtDate = function ($v) {
+                            return $v ? \Carbon\Carbon::parse($v)->format('d M Y') : '-';
+                        };
+                        $fmtMoney = function ($v) {
+                            return is_null($v) || $v === '' ? '-' : number_format((float) $v, 0, ',', '.');
+                        };
+                        $fmtPct = function ($v) {
+                            return is_null($v) || $v === ''
+                                ? '-'
+                                : rtrim(rtrim(number_format((float) $v, 2, ',', '.'), '0'), ',') . '%';
+                        };
                     @endphp
 
                     <div class="flex flex-1 flex-col overflow-y-auto p-4">
@@ -210,13 +221,14 @@
                                 </span>
                             </div>
 
-                            
+
                             <div class="flex items-center gap-2 p-2">
                                 <x-heroicon-o-hashtag class="h-5 w-5 text-gray-400" />
                                 <span class="min-w-32 max-w-32 text-gray-500">PO Nbr</span>
                                 <span class="break-words font-medium text-gray-900 dark:text-gray-300">
                                     @if ($poUrl)
-                                        <a class="text-indigo-600 hover:underline dark:text-indigo-400" target="_blank" href="{{ $poUrl }}">{{ $bast->ponbr }}</a>
+                                        <a class="text-indigo-600 hover:underline dark:text-indigo-400" target="_blank"
+                                            href="{{ $poUrl }}">{{ $bast->ponbr }}</a>
                                     @else
                                         {{ $bast->ponbr }}
                                     @endif
@@ -226,25 +238,29 @@
                             <div class="flex items-center gap-2 p-2">
                                 <x-heroicon-o-building-office class="h-5 w-5 text-gray-400" />
                                 <span class="min-w-32 max-w-32 text-gray-500">Company</span>
-                                <span class="break-words font-medium text-gray-900 dark:text-gray-300">{{ $bast->cpny_id }}</span>
+                                <span
+                                    class="break-words font-medium text-gray-900 dark:text-gray-300">{{ $bast->cpny_id }}</span>
                             </div>
 
                             <div class="flex items-center gap-2 p-2">
                                 <x-heroicon-o-squares-2x2 class="h-5 w-5 text-gray-400" />
                                 <span class="min-w-32 max-w-32 text-gray-500">Department</span>
-                                <span class="break-words font-medium text-gray-900 dark:text-gray-300">{{ $bast->department_id }}</span>
+                                <span
+                                    class="break-words font-medium text-gray-900 dark:text-gray-300">{{ $bast->department_id }}</span>
                             </div>
 
                             <div class="flex items-center gap-2 p-2">
                                 <x-heroicon-o-user class="h-5 w-5 text-gray-400" />
                                 <span class="min-w-32 max-w-32 text-gray-500">Requester</span>
-                                <span class="break-words font-medium text-gray-900 dark:text-gray-300">{{ $bast->user_peminta }}</span>
+                                <span
+                                    class="break-words font-medium text-gray-900 dark:text-gray-300">{{ $bast->user_peminta }}</span>
                             </div>
 
                             <div class="flex items-center gap-2 p-2">
                                 <x-heroicon-o-building-storefront class="h-5 w-5 text-gray-400" />
                                 <span class="min-w-32 max-w-32 text-gray-500">Vendor</span>
-                                <span class="break-words font-medium text-gray-900 dark:text-gray-300">{{ $bast->vendorname }}</span>
+                                <span
+                                    class="break-words font-medium text-gray-900 dark:text-gray-300">{{ $bast->vendorname }}</span>
                             </div>
 
                             <div class="flex items-center gap-2 p-2">
@@ -252,7 +268,8 @@
                                 <span class="min-w-32 max-w-32 text-gray-500">CS ID</span>
                                 <span class="break-words font-medium text-gray-900 dark:text-gray-300">
                                     @if (!empty($csUrl))
-                                        <a href="{{ $csUrl }}" target="_blank" class="inline-flex items-center gap-1 text-indigo-600 hover:underline dark:text-indigo-400">
+                                        <a href="{{ $csUrl }}" target="_blank"
+                                            class="inline-flex items-center gap-1 text-indigo-600 hover:underline dark:text-indigo-400">
                                             {{ $bast->csid }} <x-heroicon-o-arrow-up-right class="h-4 w-4" />
                                         </a>
                                     @else
@@ -266,7 +283,8 @@
                                 <span class="min-w-32 max-w-32 text-gray-500">SPPB/J/K/T</span>
                                 <span class="break-words font-medium text-gray-900 dark:text-gray-300">
                                     @if (!empty($sppbUrl))
-                                        <a href="{{ $sppbUrl }}" target="_blank" class="inline-flex items-center gap-1 text-indigo-600 hover:underline dark:text-indigo-400">
+                                        <a href="{{ $sppbUrl }}" target="_blank"
+                                            class="inline-flex items-center gap-1 text-indigo-600 hover:underline dark:text-indigo-400">
                                             {{ $bast->sppbjktid }} <x-heroicon-o-arrow-up-right class="h-4 w-4" />
                                         </a>
                                     @else
@@ -277,104 +295,118 @@
 
                             {{-- BQ ID (bqid) --}}
                             <div class="flex items-center gap-2 p-2">
-                                <x-heroicon-o-queue-list class="h-5 w-5 text-gray-400"/>
+                                <x-heroicon-o-queue-list class="h-5 w-5 text-gray-400" />
                                 <span class="min-w-32 max-w-32 text-gray-500">BQ ID</span>
-                                <span class="break-words font-medium text-gray-900 dark:text-gray-300">{{ $bast->bqid ?? '-' }}</span>
+                                <span
+                                    class="break-words font-medium text-gray-900 dark:text-gray-300">{{ $bast->bqid ?? '-' }}</span>
                             </div>
 
                             {{-- Bast Amount --}}
                             <div class="flex items-center gap-2 p-2">
-                                <x-heroicon-o-currency-dollar class="h-5 w-5 text-gray-400"/>
+                                <x-heroicon-o-currency-dollar class="h-5 w-5 text-gray-400" />
                                 <span class="min-w-32 max-w-32 text-gray-500">BAST Amount</span>
-                                <span class="break-words font-medium text-gray-900 dark:text-gray-300">Rp {{ $fmtMoney($bast->bast_amount ?? null) }}</span>
+                                <span class="break-words font-medium text-gray-900 dark:text-gray-300">Rp
+                                    {{ $fmtMoney($bast->bast_amount ?? null) }}</span>
                             </div>
 
                             {{-- Progress % --}}
                             <div class="flex items-center gap-2 p-2">
-                                <x-heroicon-o-chart-bar class="h-5 w-5 text-gray-400"/>
+                                <x-heroicon-o-chart-bar class="h-5 w-5 text-gray-400" />
                                 <span class="min-w-32 max-w-32 text-gray-500">Progress</span>
-                                <span class="break-words font-medium text-gray-900 dark:text-gray-300">{{ $fmtPct($bast->progress_pct ?? null) }}</span>
+                                <span
+                                    class="break-words font-medium text-gray-900 dark:text-gray-300">{{ $fmtPct($bast->progress_pct ?? null) }}</span>
                             </div>
 
                             {{-- Payment % --}}
                             <div class="flex items-center gap-2 p-2">
-                                <x-heroicon-o-banknotes class="h-5 w-5 text-gray-400"/>
+                                <x-heroicon-o-banknotes class="h-5 w-5 text-gray-400" />
                                 <span class="min-w-32 max-w-32 text-gray-500">Payment</span>
-                                <span class="break-words font-medium text-gray-900 dark:text-gray-300">{{ $fmtPct($bast->payment_pct ?? null) }}</span>
+                                <span
+                                    class="break-words font-medium text-gray-900 dark:text-gray-300">{{ $fmtPct($bast->payment_pct ?? null) }}</span>
                             </div>
 
                             {{-- Start Date --}}
                             <div class="flex items-center gap-2 p-2">
-                                <x-heroicon-o-calendar class="h-5 w-5 text-gray-400"/>
+                                <x-heroicon-o-calendar class="h-5 w-5 text-gray-400" />
                                 <span class="min-w-32 max-w-32 text-gray-500">Start Date</span>
-                                <span class="break-words font-medium text-gray-900 dark:text-gray-300">{{ $fmtDate($bast->startdate ?? null) }}</span>
+                                <span
+                                    class="break-words font-medium text-gray-900 dark:text-gray-300">{{ $fmtDate($bast->startdate ?? null) }}</span>
                             </div>
 
                             {{-- End Date --}}
                             <div class="flex items-center gap-2 p-2">
-                                <x-heroicon-o-calendar class="h-5 w-5 text-gray-400"/>
+                                <x-heroicon-o-calendar class="h-5 w-5 text-gray-400" />
                                 <span class="min-w-32 max-w-32 text-gray-500">End Date</span>
-                                <span class="break-words font-medium text-gray-900 dark:text-gray-300">{{ $fmtDate($bast->enddate ?? null) }}</span>
+                                <span
+                                    class="break-words font-medium text-gray-900 dark:text-gray-300">{{ $fmtDate($bast->enddate ?? null) }}</span>
                             </div>
 
                             {{-- Handover Date --}}
                             <div class="flex items-center gap-2 p-2">
-                                <x-heroicon-o-hand-raised class="h-5 w-5 text-gray-400"/>
+                                <x-heroicon-o-hand-raised class="h-5 w-5 text-gray-400" />
                                 <span class="min-w-32 max-w-32 text-gray-500">Handover</span>
-                                <span class="break-words font-medium text-gray-900 dark:text-gray-300">{{ $fmtDate($bast->handoverdate ?? null) }}</span>
+                                <span
+                                    class="break-words font-medium text-gray-900 dark:text-gray-300">{{ $fmtDate($bast->handoverdate ?? null) }}</span>
                             </div>
-                            
+
 
                             {{-- Days Penalty --}}
                             <div class="flex items-center gap-2 p-2">
-                                <x-heroicon-o-clock class="h-5 w-5 text-gray-400"/>
+                                <x-heroicon-o-clock class="h-5 w-5 text-gray-400" />
                                 <span class="min-w-32 max-w-32 text-gray-500">Days Penalty</span>
-                                <span class="break-words font-medium text-gray-900 dark:text-gray-300">{{ $bast->days_penalty ?? '-' }}</span>
+                                <span
+                                    class="break-words font-medium text-gray-900 dark:text-gray-300">{{ $bast->days_penalty ?? '-' }}</span>
                             </div>
 
                             {{-- Penalty --}}
                             <div class="flex items-center gap-2 p-2">
-                                <x-heroicon-o-exclamation-triangle class="h-5 w-5 text-gray-400"/>
+                                <x-heroicon-o-exclamation-triangle class="h-5 w-5 text-gray-400" />
                                 <span class="min-w-32 max-w-32 text-gray-500">Penalty</span>
-                                <span class="break-words font-medium text-gray-900 dark:text-gray-300">Rp {{ $fmtMoney($bast->penalty ?? null) }}</span>
+                                <span class="break-words font-medium text-gray-900 dark:text-gray-300">Rp
+                                    {{ $fmtMoney($bast->penalty ?? null) }}</span>
                             </div>
 
                             {{-- Total Penalty --}}
                             <div class="flex items-center gap-2 p-2">
-                                <x-heroicon-o-exclamation-circle class="h-5 w-5 text-gray-400"/>
+                                <x-heroicon-o-exclamation-circle class="h-5 w-5 text-gray-400" />
                                 <span class="min-w-32 max-w-32 text-gray-500">Total Penalty</span>
-                                <span class="break-words font-medium text-gray-900 dark:text-gray-300">Rp {{ $fmtMoney($bast->total_penalty ?? null) }}</span>
+                                <span class="break-words font-medium text-gray-900 dark:text-gray-300">Rp
+                                    {{ $fmtMoney($bast->total_penalty ?? null) }}</span>
                             </div>
 
                             {{-- Realize Amount --}}
                             <div class="flex items-center gap-2 p-2">
-                                <x-heroicon-o-receipt-percent class="h-5 w-5 text-gray-400"/>
+                                <x-heroicon-o-receipt-percent class="h-5 w-5 text-gray-400" />
                                 <span class="min-w-32 max-w-32 text-gray-500">Realize Amount</span>
-                                <span class="break-words font-medium text-gray-900 dark:text-gray-300">Rp {{ $fmtMoney($bast->realize_amount ?? null) }}</span>
+                                <span class="break-words font-medium text-gray-900 dark:text-gray-300">Rp
+                                    {{ $fmtMoney($bast->realize_amount ?? null) }}</span>
                             </div>
 
                             {{-- Rating Vendor --}}
                             <div class="flex items-center gap-2 p-2">
-                                <x-heroicon-o-star class="h-5 w-5 text-gray-400"/>
+                                <x-heroicon-o-star class="h-5 w-5 text-gray-400" />
                                 <span class="min-w-32 max-w-32 text-gray-500">Rating Vendor</span>
 
                                 <span class="flex items-center gap-2 font-medium text-gray-900 dark:text-gray-300">
                                     @php
-                                        $fmt1 = fn($v) => is_null($v) ? '-' : number_format((float)$v, 1, ',', '.');
+                                        $fmt1 = fn($v) => is_null($v) ? '-' : number_format((float) $v, 1, ',', '.');
                                     @endphp
 
-                                    <span class="inline-flex items-center rounded-md bg-indigo-50 px-2 py-0.5 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300">
+                                    <span
+                                        class="inline-flex items-center rounded-md bg-indigo-50 px-2 py-0.5 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300">
                                         {{ $fmt1($bast->rating_vendor) }}
                                     </span>
 
-                                    @if(!empty($ratingLegendName))
-                                    <span class="inline-flex items-center rounded-md bg-emerald-100 px-2 py-0.5 text-emerald-700 dark:bg-emerald-800/30 dark:text-emerald-300">
-                                        {{ $ratingLegendName }}
-                                    </span>
+                                    @if (!empty($ratingLegendName))
+                                        <span
+                                            class="inline-flex items-center rounded-md bg-emerald-100 px-2 py-0.5 text-emerald-700 dark:bg-emerald-800/30 dark:text-emerald-300">
+                                            {{ $ratingLegendName }}
+                                        </span>
                                     @else
-                                    <span class="inline-flex items-center rounded-md bg-gray-100 px-2 py-0.5 text-gray-600 dark:bg-gray-700/40 dark:text-gray-300">
-                                        -
-                                    </span>
+                                        <span
+                                            class="inline-flex items-center rounded-md bg-gray-100 px-2 py-0.5 text-gray-600 dark:bg-gray-700/40 dark:text-gray-300">
+                                            -
+                                        </span>
                                     @endif
                                 </span>
                             </div>
@@ -383,23 +415,26 @@
 
                             {{-- SPK PIC --}}
                             <div class="flex items-center gap-2 p-2">
-                                <x-heroicon-o-user-circle class="h-5 w-5 text-gray-400"/>
+                                <x-heroicon-o-user-circle class="h-5 w-5 text-gray-400" />
                                 <span class="min-w-32 max-w-32 text-gray-500">SPK PIC</span>
-                                <span class="break-words font-medium text-gray-900 dark:text-gray-300">{{ $bast->spkpic ?? '-' }}</span>
+                                <span
+                                    class="break-words font-medium text-gray-900 dark:text-gray-300">{{ $bast->spkpic ?? '-' }}</span>
                             </div>
 
                             {{-- SPK Warranty --}}
                             <div class="flex items-center gap-2 p-2">
-                                <x-heroicon-o-shield-check class="h-5 w-5 text-gray-400"/>
+                                <x-heroicon-o-shield-check class="h-5 w-5 text-gray-400" />
                                 <span class="min-w-32 max-w-32 text-gray-500">SPK Warranty</span>
-                                <span class="break-words font-medium text-gray-900 dark:text-gray-300">{{ $bast->spkwarranty ?? '-' }}</span>
+                                <span
+                                    class="break-words font-medium text-gray-900 dark:text-gray-300">{{ $bast->spkwarranty ?? '-' }}</span>
                             </div>
 
                             @if (!empty($bast->bastnote))
                                 <div class="flex items-center gap-2 p-2 sm:col-span-2">
                                     <x-heroicon-o-clipboard-document-list class="h-5 w-5 text-gray-400" />
                                     <span class="min-w-32 max-w-32 text-gray-500">Note</span>
-                                    <span class="break-words font-medium text-gray-900 dark:text-gray-300">{{ $bast->bastnote }}</span>
+                                    <span
+                                        class="break-words font-medium text-gray-900 dark:text-gray-300">{{ $bast->bastnote }}</span>
                                 </div>
                             @endif
                         </div>
@@ -407,30 +442,37 @@
                 </div>
 
                 {{-- Right card (Tabs) --}}
-                <div class="flex flex-1 flex-col rounded-xl bg-white dark:bg-gray-800">
-                    <div x-data="{ activeTab: 'attachment' }" class="flex flex-1 flex-col">
-                        <header class="sticky top-0 z-10 flex items-center rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
-                            <nav class="flex flex-grow">
-                                <button @click="activeTab = 'attachment'"
-                                  :class="activeTab === 'attachment' ? 'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400' : 'border-b-2 border-transparent text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-gray-100'"
-                                  class="flex-1 px-4 py-2 text-center text-sm font-medium">Attachment
-                                </button>
-                                <button @click="activeTab = 'approval'"
-                                :class="activeTab === 'approval'
-                                    ?
-                                    'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400' :
-                                    'border-b-2 border-transparent text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-gray-100'"
-                                class="flex-1 px-4 py-2 text-center text-sm font-medium transition-colors duration-200">
-                                Approval Details
-                            </button>
 
-                                <button @click="activeTab = 'comments'"
-                                  :class="activeTab === 'comments' ? 'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400' : 'border-b-2 border-transparent text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-gray-100'"
-                                  class="flex-1 px-4 py-2 text-center text-sm font-medium">Comments</button>
-                            </nav>
-                        </header>
+                <div class="flex flex-col gap-4">
+                    <div class="flex flex-1 flex-col rounded-xl bg-white dark:bg-gray-800">
+                        <div x-data="{ activeTab: 'attachment' }" class="flex flex-1 flex-col">
+                            <header
+                                class="sticky top-0 z-10 flex items-center rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
+                                <nav class="flex flex-grow">
+                                    <button @click="activeTab = 'attachment'"
+                                        :class="activeTab === 'attachment' ?
+                                            'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400' :
+                                            'border-b-2 border-transparent text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-gray-100'"
+                                        class="flex-1 px-4 py-2 text-center text-sm font-medium">Attachment
+                                    </button>
+                                    <button @click="activeTab = 'approval'"
+                                        :class="activeTab === 'approval'
+                                            ?
+                                            'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400' :
+                                            'border-b-2 border-transparent text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-gray-100'"
+                                        class="flex-1 px-4 py-2 text-center text-sm font-medium transition-colors duration-200">
+                                        Approval Details
+                                    </button>
 
-                        <div x-show="activeTab === 'approval'" class="flex-1 p-4 transition-all">
+                                    <button @click="activeTab = 'comments'"
+                                        :class="activeTab === 'comments' ?
+                                            'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400' :
+                                            'border-b-2 border-transparent text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-gray-100'"
+                                        class="flex-1 px-4 py-2 text-center text-sm font-medium">Comments</button>
+                                </nav>
+                            </header>
+
+                            <div x-show="activeTab === 'approval'" class="flex-1 p-4 transition-all">
                                 <table class="w-full text-sm">
                                     <thead>
                                         <tr
@@ -441,161 +483,186 @@
                                             <th class="p-3 text-left font-semibold">Status</th>
                                         </tr>
                                     </thead>
-                                    <tbody id="approval-table-body">                                       
+                                    <tbody id="approval-table-body">
                                     </tbody>
-                                   
+
                                 </table>
                             </div>
 
-                        {{-- Attachment Tab --}}
-                        <div x-show="activeTab === 'attachment'" class="flex h-full flex-1 flex-col transition-all">
-                            <div class="flex-1 overflow-auto rounded-lg">
-                                <table class="w-full text-sm">
-                                    <thead class="text-gray-600 dark:text-gray-300">
-                                        <tr class="border-b border-gray-200 dark:border-gray-700">
-                                            <th class="p-3 text-left font-semibold">Filename</th>
-                                            <th class="p-3 text-left font-semibold">Created By</th>
-                                            <th class="p-3 text-left font-semibold">Date</th>
-                                        </tr>
-                                    </thead>
-                                   
-                                    <tbody id="rcpAttachmentTbody"></tbody>
-                                </table>
-                                <div class="border-t border-gray-200 p-4 dark:border-gray-700">
-                                    <form id="rcpAttachmentUploadForm" enctype="multipart/form-data">
-                                        @csrf
-                                        <div class="flex flex-col gap-3 md:flex-row md:items-center">
-                                        <div class="flex-1">
-                                            <label for="rcpAttachFiles" class="mb-2 block text-sm font-semibold text-gray-800 dark:text-gray-200">
-                                            Upload Attachments
-                                            </label>
-                                            <div class="flex items-center gap-3">
-                                            <input type="hidden" name="cpnyid" value="{{ $bast->cpny_id }}">
-                                            <input type="hidden" name="departementid" value="{{ $bast->department_id }}">
-                                            <input type="file" id="rcpAttachFiles" name="attachments[]" multiple
-                                                    class="block w-full cursor-pointer rounded-md border border-gray-300 bg-white px-2 py-[7px] text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" />
-                                            <button type="button" id="btnUploadSppbAttachment"
-                                                    class="inline-flex h-[36px] items-center justify-center rounded-md bg-indigo-600 px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                                                Upload
-                                            </button>
-                                            <button type="button" id="btnResetSppbAttachment"
-                                                    class="inline-flex h-[36px] items-center justify-center rounded-md border border-gray-300 bg-white px-4 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-400 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">
-                                                Reset
-                                            </button>
+                            {{-- Attachment Tab --}}
+                            <div x-show="activeTab === 'attachment'"
+                                class="flex h-full flex-1 flex-col transition-all">
+                                <div class="flex-1 overflow-auto rounded-lg">
+                                    <table class="w-full text-sm">
+                                        <thead class="text-gray-600 dark:text-gray-300">
+                                            <tr class="border-b border-gray-200 dark:border-gray-700">
+                                                <th class="p-3 text-left font-semibold">Filename</th>
+                                                <th class="p-3 text-left font-semibold">Created By</th>
+                                                <th class="p-3 text-left font-semibold">Date</th>
+                                            </tr>
+                                        </thead>
+
+                                        <tbody id="rcpAttachmentTbody"></tbody>
+                                    </table>
+                                    <div class="border-t border-gray-200 p-4 dark:border-gray-700">
+                                        <form id="rcpAttachmentUploadForm" enctype="multipart/form-data">
+                                            @csrf
+                                            <div class="flex flex-col gap-3 md:flex-row md:items-center">
+                                                <div class="flex-1">
+                                                    <label for="rcpAttachFiles"
+                                                        class="mb-2 block text-sm font-semibold text-gray-800 dark:text-gray-200">
+                                                        Upload Attachments
+                                                    </label>
+                                                    <div class="flex items-center gap-3">
+                                                        <input type="hidden" name="cpnyid"
+                                                            value="{{ $bast->cpny_id }}">
+                                                        <input type="hidden" name="departementid"
+                                                            value="{{ $bast->department_id }}">
+                                                        <input type="file" id="rcpAttachFiles"
+                                                            name="attachments[]" multiple
+                                                            class="block w-full cursor-pointer rounded-md border border-gray-300 bg-white px-2 py-[7px] text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" />
+                                                        <button type="button" id="btnUploadSppbAttachment"
+                                                            class="inline-flex h-[36px] items-center justify-center rounded-md bg-indigo-600 px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                                            Upload
+                                                        </button>
+                                                        <button type="button" id="btnResetSppbAttachment"
+                                                            class="inline-flex h-[36px] items-center justify-center rounded-md border border-gray-300 bg-white px-4 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-400 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">
+                                                            Reset
+                                                        </button>
+                                                    </div>
+                                                    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                                                        Max 10 files, PDF / Image preferred.
+                                                    </p>
+                                                </div>
                                             </div>
-                                            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                                            Max 10 files, PDF / Image preferred.
-                                            </p>
-                                        </div>
-                                        </div>
-                                    </form>
+                                        </form>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
 
-                        {{-- Comments Tab --}}
-                        <div x-show="activeTab === 'comments'" class="flex-1 transition-all">
-                            <div class="flex h-full flex-col">
-                                <div id="commentList" class="custom-scrollbar flex-1 flex-col space-y-4 overflow-y-auto p-4">
-                                    <p class="py-4 text-center italic text-gray-500">Loading comments...</p>
-                                </div>
-                                <div class="flex items-center gap-3 border-t border-gray-200 p-4 dark:border-gray-700">
-                                    <input id="commentInput" type="text" placeholder="Write a comment..."
-                                           class="flex-1 rounded-lg bg-gray-100 p-3 text-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white dark:focus:ring-indigo-400">
-                                    <button id="postCommentBtn" type="button"
-                                        class="rounded-lg bg-indigo-600 px-5 py-3 text-sm font-semibold text-white transition-all duration-200 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
-                                        Post 🚀
-                                    </button>
+                            {{-- Comments Tab --}}
+                            <div x-show="activeTab === 'comments'" class="flex-1 transition-all">
+                                <div class="flex h-full flex-col">
+                                    <div id="commentList"
+                                        class="custom-scrollbar flex-1 flex-col space-y-4 overflow-y-auto p-4">
+                                        <p class="py-4 text-center italic text-gray-500">Loading comments...</p>
+                                    </div>
+                                    <div
+                                        class="flex items-center gap-3 border-t border-gray-200 p-4 dark:border-gray-700">
+                                        <input id="commentInput" type="text" placeholder="Write a comment..."
+                                            class="flex-1 rounded-lg bg-gray-100 p-3 text-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white dark:focus:ring-indigo-400">
+                                        <button id="postCommentBtn" type="button"
+                                            class="rounded-lg bg-indigo-600 px-5 py-3 text-sm font-semibold text-white transition-all duration-200 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                                            Post 🚀
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            </div>           
 
+                    {{-- Vendor Rating Breakdown --}}
+                    <div>
+                        <header
+                            class="sticky top-0 z-10 flex items-center rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
+                            <h3 class="text-base font-semibold text-gray-800 dark:text-gray-100">Vendor Rating
+                                Breakdown
+                            </h3>
+                        </header>
 
-            {{-- Bast Detail table --}}
-            <div class="mt-6 grid grid-cols-1 gap-6">
-                
-                 {{-- Vendor Rating Breakdown --}}
-                <div class="rounded-xl bg-white p-4 shadow-sm dark:bg-gray-800">
-                    <div class="mb-4 flex items-center justify-between border-b border-gray-200 pb-3 dark:border-gray-700">
-                        <h3 class="text-base font-semibold text-gray-800 dark:text-gray-100">Vendor Rating Breakdown</h3>
-                    </div>
-
-                    <div class="overflow-auto rounded-lg border border-gray-200 dark:border-gray-700">
-                        <table class="min-w-full text-sm">
-                            <thead class="bg-gray-50 dark:bg-gray-700">
-                                <tr>
-                                    <th class="px-3 py-2 text-left font-semibold text-gray-700 dark:text-gray-200" style="width: 60px;">No</th>
-                                    <th class="px-3 py-2 text-left font-semibold text-gray-700 dark:text-gray-200">Kriteria</th>
-                                    <th class="px-3 py-2 text-right font-semibold text-gray-700 dark:text-gray-200" style="width: 100px;">Score</th>
-                                    <th class="px-3 py-2 text-left font-semibold text-gray-700 dark:text-gray-200" style="width: 220px;">Legend</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
-                                @php
-                                    $fmt1 = fn($v) => is_null($v) ? '-' : number_format((float)$v, 1, ',', '.');
-                                @endphp
-
-                                @forelse ($bastRatingRows as $i => $row)
-                                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/40">
-                                        <td class="px-3 py-2 text-gray-800 dark:text-gray-100">{{ $row->rating_no ?? ($i+1) }}</td>
-                                        <td class="px-3 py-2">
-                                            <div class="font-medium text-gray-900 dark:text-gray-100">
-                                                {{ $row->rating_name ?? '-' }}
-                                            </div>
-                                        </td>
-                                        <td class="px-3 py-2 text-right text-gray-900 dark:text-gray-100">
-                                            {{ $fmt1($row->rating_score) }}
-                                        </td>
-                                        <td class="px-3 py-2">
-                                            @if(!empty($row->rating_legend_name))
-                                                <span class="inline-flex items-center rounded-md bg-emerald-100 px-2 py-0.5 text-emerald-700 dark:bg-emerald-800/30 dark:text-emerald-300">
-                                                    {{ $row->rating_legend_name }}
-                                                </span>
-                                            @else
-                                                <span class="text-gray-500 dark:text-gray-400">-</span>
-                                            @endif
-                                        </td>
-                                    </tr>
-                                @empty
+                        <div class="overflow-auto rounded-b-xl bg-white">
+                            <table class="min-w-full text-sm">
+                                <thead class="bg-gray-50 dark:bg-gray-700">
                                     <tr>
-                                        <td colspan="4" class="px-3 py-4 text-center text-gray-500 dark:text-gray-400">
-                                            No rating rows found.
-                                        </td>
+                                        <th class="px-3 py-2 text-left font-semibold text-gray-700 dark:text-gray-200"
+                                            style="width: 60px;">No</th>
+                                        <th class="px-3 py-2 text-left font-semibold text-gray-700 dark:text-gray-200">
+                                            Kriteria</th>
+                                        <th class="px-3 py-2 text-right font-semibold text-gray-700 dark:text-gray-200"
+                                            style="width: 100px;">Score</th>
+                                        <th class="px-3 py-2 text-left font-semibold text-gray-700 dark:text-gray-200"
+                                            style="width: 220px;">Legend</th>
                                     </tr>
-                                @endforelse
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+                                </thead>
+                                <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
+                                    @php
+                                        $fmt1 = fn($v) => is_null($v) ? '-' : number_format((float) $v, 1, ',', '.');
+                                    @endphp
 
-                {{-- Photo Before (by BQID) --}}
-                <div class="rounded-xl bg-white p-4 shadow-sm dark:bg-gray-800">
-                    <div class="mb-4 flex items-center justify-between border-b border-gray-200 pb-3 dark:border-gray-700">
-                        <h3 class="text-base font-semibold text-gray-800 dark:text-gray-100">Photo Before</h3>
-                    </div>
-
-                    <div id="photoBeforeGrid" class="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
-                        <p class="col-span-full py-6 text-center italic text-gray-500 dark:text-gray-400">Loading...</p>
-                    </div>
-                </div>
-
-                {{-- Photo After (by BASTID) --}}
-                <div class="rounded-xl bg-white p-4 shadow-sm dark:bg-gray-800">
-                    <div class="mb-4 flex items-center justify-between border-b border-gray-200 pb-3 dark:border-gray-700">
-                        <h3 class="text-base font-semibold text-gray-800 dark:text-gray-100">Photo After</h3>
-                    </div>
-
-                    <div id="photoAfterGrid" class="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
-                        <p class="col-span-full py-6 text-center italic text-gray-500 dark:text-gray-400">Loading...</p>
+                                    @forelse ($bastRatingRows as $i => $row)
+                                        <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/40">
+                                            <td class="px-3 py-2 text-gray-800 dark:text-gray-100">
+                                                {{ $row->rating_no ?? $i + 1 }}</td>
+                                            <td class="px-3 py-2">
+                                                <div class="font-medium text-gray-900 dark:text-gray-100">
+                                                    {{ $row->rating_name ?? '-' }}
+                                                </div>
+                                            </td>
+                                            <td class="px-3 py-2 text-right text-gray-900 dark:text-gray-100">
+                                                {{ $fmt1($row->rating_score) }}
+                                            </td>
+                                            <td class="px-3 py-2">
+                                                @if (!empty($row->rating_legend_name))
+                                                    <span
+                                                        class="inline-flex items-center rounded-md bg-emerald-100 px-2 py-0.5 text-emerald-700 dark:bg-emerald-800/30 dark:text-emerald-300">
+                                                        {{ $row->rating_legend_name }}
+                                                    </span>
+                                                @else
+                                                    <span class="text-gray-500 dark:text-gray-400">-</span>
+                                                @endif
+                                            </td>
+                                        </tr>
+                                    @empty
+                                        <tr>
+                                            <td colspan="4"
+                                                class="px-3 py-4 text-center text-gray-500 dark:text-gray-400">
+                                                No rating rows found.
+                                            </td>
+                                        </tr>
+                                    @endforelse
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
 
             </div>
 
-           
+
+            {{-- Bast Detail table --}}
+            <div class="flex flex-row gap-4">
+
+                {{-- Photo Before (by BQID) --}}
+                <div class="flex-1 rounded-xl bg-white dark:bg-gray-800">
+                    <header
+                        class="flex items-center rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
+                        <h2 class="text-lg font-semibold text-gray-800 dark:text-gray-100">📸 Photo Before</h3>
+                    </header>
+
+                    <div id="photoBeforeGrid"
+                        class="grid grid-cols-2 gap-3 px-4 py-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
+                        <p class="col-span-full py-6 text-center italic text-gray-500 dark:text-gray-400">Loading...
+                        </p>
+                    </div>
+                </div>
+
+                {{-- Photo After (by BASTID) --}}
+                <div class="flex-1 rounded-xl bg-white dark:bg-gray-800">
+                    <header
+                        class="flex items-center rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
+                        <h2 class="text-lg font-semibold text-gray-800 dark:text-gray-100">📸 Photo After</h3>
+                    </header>
+
+                    <div id="photoAfterGrid"
+                        class="grid grid-cols-2 gap-3 px-4 py-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
+                        <p class="col-span-full py-6 text-center italic text-gray-500 dark:text-gray-400">Loading...
+                        </p>
+                    </div>
+                </div>
+
+            </div>
+
+
         </div>
     </div>
 
@@ -604,7 +671,6 @@
             <h2 class="mb-4 text-xl font-semibold text-gray-800 dark:text-white">Reject</h2>
             <textarea id="rejectReason" class="mt-2 w-full rounded-lg p-3 focus:outline-none dark:bg-gray-800 dark:text-white"
                 placeholder="Enter rejection reason..."></textarea>
-
             <div class="mt-4 flex justify-between">
                 <button id="cancelRejectBtn" class="rounded-lg bg-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-400">
                     Cancel
@@ -620,7 +686,6 @@
             <h2 class="mb-4 text-xl font-semibold text-gray-800 dark:text-white">Revise Task</h2>
             <textarea id="reviseReason" class="mt-2 w-full rounded-lg p-3 focus:outline-none dark:bg-gray-800 dark:text-white"
                 placeholder="Enter revise reason..."></textarea>
-
             <div class="mt-4 flex justify-between">
                 <button id="cancelReviseBtn" class="rounded-lg bg-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-400">
                     Cancel
@@ -629,7 +694,6 @@
                     class="inline-flex items-center gap-1 rounded-md bg-gray-500 px-3 py-2 text-sm font-medium text-gray-100 transition-colors hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:bg-gray-100 dark:bg-gray-700/30 dark:text-gray-300 dark:hover:bg-gray-600/50">
                     Revise
                 </button>
-
             </div>
         </div>
     </div>
@@ -642,7 +706,7 @@
             </h3>
 
             <div id="ratingStars" class="mb-4 flex items-center gap-1">
-            @for ($i=1; $i<=5; $i++)
+            @for ($i = 1; $i <= 5; $i++)
                 <button type="button" class="star-btn text-gray-300 dark:text-gray-600" data-value="{{ $i }}" aria-label="Rate {{ $i }}">               
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" viewBox="0 0 20 20" fill="currentColor">
                     <path d="M9.049.927L7.09 6.333H1.5l4.724 3.436L3.97 15.5l5.079-3.597L14.129 15.5l-2.255-5.731L16.5 6.333h-5.59L9.049.927z"/>
@@ -666,45 +730,49 @@
 
     {{-- Rating Modal (TrBASTRating sliders) --}}
     <div id="ratingModal" class="fixed inset-0 z-[3000] hidden items-center justify-center bg-black/50">
-    <div class="w-full max-w-2xl rounded-xl bg-white p-5 shadow-lg dark:bg-gray-800">
-        <h3 class="mb-4 text-lg font-semibold text-gray-800 dark:text-gray-100">
-        Vendor Rating (1–10 per kriteria)
-        </h3>
+        <div class="w-full max-w-2xl rounded-xl bg-white p-5 shadow-lg dark:bg-gray-800">
+            <h3 class="mb-4 text-lg font-semibold text-gray-800 dark:text-gray-100">
+                Vendor Rating (1–10 per kriteria)
+            </h3>
 
-        <div class="max-h-[60vh] overflow-y-auto rounded-lg border border-gray-200 dark:border-gray-700">
-        <table class="min-w-full text-sm">
-            <thead class="bg-gray-50 dark:bg-gray-700">
-            <tr>
-                <th class="px-4 py-2 text-left font-semibold text-gray-700 dark:text-gray-200">Kriteria</th>
-                <th class="px-4 py-2 text-center font-semibold text-gray-700 dark:text-gray-200" style="width: 160px;">Score</th>
-                <th class="px-4 py-2 text-center font-semibold text-gray-700 dark:text-gray-200" style="width: 90px;">Value</th>
-            </tr>
-            </thead>
-            <tbody id="ratingTableBody" class="divide-y divide-gray-100 dark:divide-gray-700">
-            <tr>
-                <td colspan="3" class="px-4 py-4 text-center text-gray-500 dark:text-gray-400">Loading ratings…</td>
-            </tr>
-            </tbody>
-        </table>
-        </div>
+            <div class="max-h-[60vh] overflow-y-auto rounded-lg border border-gray-200 dark:border-gray-700">
+                <table class="min-w-full text-sm">
+                    <thead class="bg-gray-50 dark:bg-gray-700">
+                        <tr>
+                            <th class="px-4 py-2 text-left font-semibold text-gray-700 dark:text-gray-200">Kriteria
+                            </th>
+                            <th class="px-4 py-2 text-center font-semibold text-gray-700 dark:text-gray-200"
+                                style="width: 160px;">Score</th>
+                            <th class="px-4 py-2 text-center font-semibold text-gray-700 dark:text-gray-200"
+                                style="width: 90px;">Value</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ratingTableBody" class="divide-y divide-gray-100 dark:divide-gray-700">
+                        <tr>
+                            <td colspan="3" class="px-4 py-4 text-center text-gray-500 dark:text-gray-400">Loading
+                                ratings…</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
 
-        <div class="mt-4 flex items-center justify-between">
-        <div class="text-sm text-gray-600 dark:text-gray-300">
-            <span class="font-semibold">Average:</span>
-            <span id="ratingAvg" class="ml-1 inline-block min-w-[28px] text-center">0</span>
+            <div class="mt-4 flex items-center justify-between">
+                <div class="text-sm text-gray-600 dark:text-gray-300">
+                    <span class="font-semibold">Average:</span>
+                    <span id="ratingAvg" class="ml-1 inline-block min-w-[28px] text-center">0</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button id="ratingCancelBtn"
+                        class="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
+                        Cancel
+                    </button>
+                    <button id="ratingOkBtn"
+                        class="rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700">
+                        OK
+                    </button>
+                </div>
+            </div>
         </div>
-        <div class="flex items-center gap-2">
-            <button id="ratingCancelBtn"
-            class="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
-            Cancel
-            </button>
-            <button id="ratingOkBtn"
-            class="rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700">
-            OK
-            </button>
-        </div>
-        </div>
-    </div>
     </div>
 
 
@@ -713,14 +781,15 @@
     <div id="loadingSpinnerContainer" role="status" aria-live="polite" aria-label="Loading">
         <div class="loading-card">
             <div class="loading-spinner"></div>
-            <div class="loading-text">Processing<span class="loading-ellipsis"><span>.</span><span>.</span><span>.</span></span></div>
+            <div class="loading-text">Processing<span
+                    class="loading-ellipsis"><span>.</span><span>.</span><span>.</span></span></div>
         </div>
     </div>
 
     {{-- dayjs & toastr --}}
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dayjs/1.11.10/dayjs.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dayjs/1.11.10/plugin/relativeTime.min.js"></script>
-   
+
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 
@@ -736,8 +805,8 @@
     {{-- Comments --}}
     <script>
         $(document).ready(function() {
-            const bastid  = "{{ $bast->bastid }}";
-            const doctype = "BA"; 
+            const bastid = "{{ $bast->bastid }}";
+            const doctype = "BA";
 
             loadComments(bastid, doctype);
 
@@ -752,7 +821,9 @@
                         commentList.empty();
 
                         if (!response.comments || response.comments.length === 0) {
-                            commentList.append('<p class="text-gray-500 italic">No comments yet. Be the first to comment!</p>');
+                            commentList.append(
+                                '<p class="text-gray-500 italic">No comments yet. Be the first to comment!</p>'
+                            );
                             return;
                         }
 
@@ -803,7 +874,8 @@
                     },
                     error: function(xhr) {
                         console.error("Error adding comment:", xhr);
-                        alert("Error: " + (xhr.responseJSON ? xhr.responseJSON.message : "Unknown Error"));
+                        alert("Error: " + (xhr.responseJSON ? xhr.responseJSON.message :
+                            "Unknown Error"));
                     },
                     complete: function() {
                         $('#postCommentBtn').prop('disabled', false).text('Post 🚀');
@@ -823,40 +895,41 @@
                 }
             });
 
-            
+
         });
-    </script>  
-    
+    </script>
+
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         // util modal
         function openRatingModal() {
             $('#ratingModal').removeClass('hidden').addClass('flex');
         }
+
         function closeRatingModal() {
             $('#ratingModal').addClass('hidden').removeClass('flex');
         }
 
         // state rating
-        let ratingRows = [];  // [{id, rating_id, rating_no, rating_name, rating_score}, ...]
+        let ratingRows = []; // [{id, rating_id, rating_no, rating_name, rating_score}, ...]
         const $ratingTbody = $('#ratingTableBody');
-        const $ratingAvg   = $('#ratingAvg');
+        const $ratingAvg = $('#ratingAvg');
 
         // render tbody dari ratingRows
         function renderRatingTable() {
             $ratingTbody.empty();
 
             if (!ratingRows.length) {
-            $ratingTbody.append(`
+                $ratingTbody.append(`
                 <tr><td colspan="3" class="px-4 py-4 text-center text-gray-500 dark:text-gray-400">No rating rows found.</td></tr>
             `);
-            $ratingAvg.text('0');
-            return;
+                $ratingAvg.text('0');
+                return;
             }
 
             ratingRows.forEach((r, idx) => {
-            const val = Number.isFinite(+r.rating_score) ? +r.rating_score : 0;
-            const row = `
+                const val = Number.isFinite(+r.rating_score) ? +r.rating_score : 0;
+                const row = `
                 <tr data-index="${idx}">
                 <td class="px-4 py-3">
                     <div class="font-medium text-gray-800 dark:text-gray-100">${r.rating_name || '-'}</div>
@@ -877,21 +950,24 @@
                 </td>
                 </tr>
             `;
-            $ratingTbody.append(row);
+                $ratingTbody.append(row);
             });
 
             recalcAverage();
         }
 
         function recalcAverage() {
-            if (!ratingRows.length) { $ratingAvg.text('0'); return; }
-            const sum = ratingRows.reduce((a,b)=> a + (Number(b.rating_score)||0), 0);
+            if (!ratingRows.length) {
+                $ratingAvg.text('0');
+                return;
+            }
+            const sum = ratingRows.reduce((a, b) => a + (Number(b.rating_score) || 0), 0);
             const avg = (sum / ratingRows.length);
             $ratingAvg.text(avg.toFixed(1).replace(/\.0$/, ''));
         }
 
         // handle slider change (delegation)
-        $(document).on('input change', '#ratingTableBody input[type="range"]', function(){
+        $(document).on('input change', '#ratingTableBody input[type="range"]', function() {
             const idx = +$(this).data('index') || 0;
             const val = +$(this).val();
             ratingRows[idx].rating_score = val;
@@ -905,116 +981,123 @@
             // Response contoh:
             // { success: true, data: [{ id, rating_id, rating_no, rating_name, rating_descr, rating_score }, ...] }
             return $.getJSON(`/bast/${encodeURIComponent(bastid)}/ratings`)
-            .then(res => {
-                if (!res || !res.success) throw new Error(res?.message || 'Failed to load ratings');
-                // pastikan score default 0 jika null
-                ratingRows = (res.data || []).map(r => ({
-                id: r.id ?? null,
-                rating_id: r.rating_id ?? null,
-                rating_no: r.rating_no ?? null,
-                rating_name: r.rating_name ?? '',
-                rating_descr: r.rating_descr ?? '',
-                rating_score: Number.isFinite(+r.rating_score) ? +r.rating_score : 0
-                }));
-                renderRatingTable();
-            })
-            .catch(err => {
-                console.error(err);
-                $ratingTbody.html(`<tr><td colspan="3" class="px-4 py-4 text-center text-red-600">Failed to load ratings.</td></tr>`);
-            });
+                .then(res => {
+                    if (!res || !res.success) throw new Error(res?.message || 'Failed to load ratings');
+                    // pastikan score default 0 jika null
+                    ratingRows = (res.data || []).map(r => ({
+                        id: r.id ?? null,
+                        rating_id: r.rating_id ?? null,
+                        rating_no: r.rating_no ?? null,
+                        rating_name: r.rating_name ?? '',
+                        rating_descr: r.rating_descr ?? '',
+                        rating_score: Number.isFinite(+r.rating_score) ? +r.rating_score : 0
+                    }));
+                    renderRatingTable();
+                })
+                .catch(err => {
+                    console.error(err);
+                    $ratingTbody.html(
+                        `<tr><td colspan="3" class="px-4 py-4 text-center text-red-600">Failed to load ratings.</td></tr>`
+                    );
+                });
         }
 
         // Approve button -> cek authorize -> buka modal + load ratings
-        $(document).on("click", "#approveBtn", function () {
-            const bastid  = "{{ $bast->bastid }}";
+        $(document).on("click", "#approveBtn", function() {
+            const bastid = "{{ $bast->bastid }}";
             const $spinner = $("#loadingSpinnerContainer");
             $spinner.fadeIn();
 
             let authorized = false;
 
             $.ajax({
-            url: `/approval/${encodeURIComponent(bastid)}/check/approve?doctype=BA`,
-            type: "GET"
-            })
-            .done(function(resp){
-            authorized = !!(resp && resp.canPerformAction);
-            if (!authorized) toastr.error("You are not authorized to approve this Bast.");
-            })
-            .fail(function(){
-            toastr.error("Error checking approval status.");
-            })
-            .always(function(){
-            // setelah spinner hilang, kalau authorized → buka modal & load ratings
-            $spinner.fadeOut(150, async function () {
-                if (authorized) {
-                openRatingModal();
-                // tampilkan skeleton sementara
-                $ratingTbody.html(`<tr><td colspan="3" class="px-4 py-4 text-center text-gray-500 dark:text-gray-400">Loading ratings…</td></tr>`);
-                try {
-                    await loadRatings(bastid);
-                } catch(_) { /* error sudah ditangani di loadRatings */ }
-                }
-            });
-            });
+                    url: `/approval/${encodeURIComponent(bastid)}/check/approve?doctype=BA`,
+                    type: "GET"
+                })
+                .done(function(resp) {
+                    authorized = !!(resp && resp.canPerformAction);
+                    if (!authorized) toastr.error("You are not authorized to approve this Bast.");
+                })
+                .fail(function() {
+                    toastr.error("Error checking approval status.");
+                })
+                .always(function() {
+                    // setelah spinner hilang, kalau authorized → buka modal & load ratings
+                    $spinner.fadeOut(150, async function() {
+                        if (authorized) {
+                            openRatingModal();
+                            // tampilkan skeleton sementara
+                            $ratingTbody.html(
+                                `<tr><td colspan="3" class="px-4 py-4 text-center text-gray-500 dark:text-gray-400">Loading ratings…</td></tr>`
+                            );
+                            try {
+                                await loadRatings(bastid);
+                            } catch (_) {
+                                /* error sudah ditangani di loadRatings */
+                            }
+                        }
+                    });
+                });
         });
 
         // Cancel modal
-        $(document).on('click', '#ratingCancelBtn', function(){
+        $(document).on('click', '#ratingCancelBtn', function() {
             closeRatingModal();
         });
 
         // Submit rating → approve
-        $(document).on('click', '#ratingOkBtn', function(){
-            const bastid  = "{{ $bast->bastid }}";
+        $(document).on('click', '#ratingOkBtn', function() {
+            const bastid = "{{ $bast->bastid }}";
 
             if (!ratingRows.length) {
-            toastr.warning('No rating rows to submit.');
-            return;
+                toastr.warning('No rating rows to submit.');
+                return;
             }
 
             // validasi ringan: semua 1–10
             const invalid = ratingRows.some(r => !(r.rating_score >= 1 && r.rating_score <= 10));
             if (invalid) {
-            toastr.warning('Scores must be between 1 and 10.');
-            return;
+                toastr.warning('Scores must be between 1 and 10.');
+                return;
             }
 
             // hitung average utk header.rating_vendor (opsional – backend boleh hitung sendiri)
-            const avg = ratingRows.reduce((a,b)=> a + (+b.rating_score||0), 0) / ratingRows.length;
+            const avg = ratingRows.reduce((a, b) => a + (+b.rating_score || 0), 0) / ratingRows.length;
 
             const $spinner = $("#loadingSpinnerContainer");
             $spinner.fadeIn();
 
             // kirim ke approve: bawa ratings_json + optional rating_vendor
             $.ajax({
-            url: `/bast/${encodeURIComponent(bastid)}/approve`,
-            type: "POST",
-            data: {
-                _token: "{{ csrf_token() }}",
-                bastid: bastid,
-                rating_vendor: avg.toFixed(2),                 // opsional kalau backend pakai
-                ratings_json: JSON.stringify(ratingRows)       // backend: json_decode($request->ratings_json, true)
-            }
-            })
-            .done(function(response){
-            if (response?.success) {
-                toastr.success("Bast approved successfully!");
-                window.location.href = "/bastlist";
-            } else {
-                toastr.error(response?.message || "Failed to approve Bast.");
-            }
-            })
-            .fail(function(xhr){
-            if (xhr.status === 403) {
-                toastr.error("You are not authorized to approve this bast.");
-            } else {
-                toastr.error(xhr.responseJSON?.message || "Error: Unable to approve bast.");
-            }
-            })
-            .always(function(){
-            $spinner.fadeOut();
-            closeRatingModal();
-            });
+                    url: `/bast/${encodeURIComponent(bastid)}/approve`,
+                    type: "POST",
+                    data: {
+                        _token: "{{ csrf_token() }}",
+                        bastid: bastid,
+                        rating_vendor: avg.toFixed(2), // opsional kalau backend pakai
+                        ratings_json: JSON.stringify(
+                            ratingRows) // backend: json_decode($request->ratings_json, true)
+                    }
+                })
+                .done(function(response) {
+                    if (response?.success) {
+                        toastr.success("Bast approved successfully!");
+                        window.location.href = "/bastlist";
+                    } else {
+                        toastr.error(response?.message || "Failed to approve Bast.");
+                    }
+                })
+                .fail(function(xhr) {
+                    if (xhr.status === 403) {
+                        toastr.error("You are not authorized to approve this bast.");
+                    } else {
+                        toastr.error(xhr.responseJSON?.message || "Error: Unable to approve bast.");
+                    }
+                })
+                .always(function() {
+                    $spinner.fadeOut();
+                    closeRatingModal();
+                });
         });
     </script>
 
@@ -1298,108 +1381,111 @@
         }
     </script>
 
-    
-    
+
+
 
     <script>
-        $(function () {
-        const listUrl   = @json(route('attachments.list',   ['doctype' => "BA", 'refnbr' => $bast->bastid]));
-        const uploadUrl = @json(route('attachments.upload', ['doctype' => "BA", 'refnbr' => $bast->bastid]));
+        $(function() {
+            const listUrl = @json(route('attachments.list', ['doctype' => 'BA', 'refnbr' => $bast->bastid]));
+            const uploadUrl = @json(route('attachments.upload', ['doctype' => 'BA', 'refnbr' => $bast->bastid]));
 
-        function $tbody() { return $('#rcpAttachmentTbody'); } // <tbody id="rcpAttachmentTbody">
+            function $tbody() {
+                return $('#rcpAttachmentTbody');
+            } // <tbody id="rcpAttachmentTbody">
 
-        function renderSppbAttachmentRows(rows){
-            const $tb = $tbody().empty();
+            function renderSppbAttachmentRows(rows) {
+                const $tb = $tbody().empty();
 
-            if (!rows || !rows.length) {
-            $tb.append(`
+                if (!rows || !rows.length) {
+                    $tb.append(`
                 <tr>
                 <td colspan="3" class="p-4 text-center italic text-gray-500 dark:text-gray-400">
                     No attachments found.
                 </td>
                 </tr>
             `);
-            return;
-            }
+                    return;
+                }
 
-            rows.forEach(at => {
-            const fileName  = at.name || at.display_name || '(no name)';
-            const createdBy = at.created_user ?? at.created_by ?? '-';
-            const dateStr = at.created_at ? dayjs(at.created_at).format('DD MMM YYYY HH:mm:ss') : '-';
-            const linkHtml  = at.url
-                ? `<a href="${at.url}" target="_blank"
-                    class="flex items-center gap-2 font-medium text-indigo-600 hover:underline dark:text-indigo-400">📎 ${fileName}</a>`
-                : `<span class="text-gray-700 dark:text-gray-300">📎 ${fileName}</span>
+                rows.forEach(at => {
+                    const fileName = at.name || at.display_name || '(no name)';
+                    const createdBy = at.created_user ?? at.created_by ?? '-';
+                    const dateStr = at.created_at ? dayjs(at.created_at).format('DD MMM YYYY HH:mm:ss') :
+                        '-';
+                    const linkHtml = at.url ?
+                        `<a href="${at.url}" target="_blank"
+                    class="flex items-center gap-2 font-medium text-indigo-600 hover:underline dark:text-indigo-400">📎 ${fileName}</a>` :
+                        `<span class="text-gray-700 dark:text-gray-300">📎 ${fileName}</span>
                 <span class="ml-2 text-xs text-red-500">(link unavailable)</span>`;
 
-            $tb.append(`
+                    $tb.append(`
                 <tr class="border-b border-gray-100 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700">
                 <td class="p-3">${linkHtml}</td>
                 <td class="p-3">${createdBy}</td>
                 <td class="p-3">${dateStr}</td>
                 </tr>
             `);
-            });
-        }
-
-        function refreshSppbAttachments(){
-            $.get(listUrl)
-            .done(res => {
-                if (res.success) renderSppbAttachmentRows(res.attachments);
-                else toastr.error(res.message || 'Failed to load attachments.');
-            })
-            .fail(() => toastr.error('Failed to load attachments.'));
-        }
-
-        // optional: load saat tab dibuka / page load
-        refreshSppbAttachments();
-
-        $('#btnUploadSppbAttachment').on('click', function(){
-            const $form = $('#rcpAttachmentUploadForm')[0];
-            const files = $('#rcpAttachFiles')[0].files;
-
-            if (!files || !files.length) {
-            toastr.warning('Please choose at least one file.');
-            return;
+                });
             }
 
-            const fd = new FormData($form);
-            if (typeof showOverlay === 'function') showOverlay('Uploading');
+            function refreshSppbAttachments() {
+                $.get(listUrl)
+                    .done(res => {
+                        if (res.success) renderSppbAttachmentRows(res.attachments);
+                        else toastr.error(res.message || 'Failed to load attachments.');
+                    })
+                    .fail(() => toastr.error('Failed to load attachments.'));
+            }
 
-            $.ajax({
-            url: uploadUrl,
-            method: 'POST',
-            data: fd,
-            processData: false,
-            contentType: false,
-            success: function(res){
-                if (typeof hideOverlay === 'function') hideOverlay();
-                if (!res || !res.success) {
-                toastr.error(res?.message || 'Upload failed.');
-                return;
+            // optional: load saat tab dibuka / page load
+            refreshSppbAttachments();
+
+            $('#btnUploadSppbAttachment').on('click', function() {
+                const $form = $('#rcpAttachmentUploadForm')[0];
+                const files = $('#rcpAttachFiles')[0].files;
+
+                if (!files || !files.length) {
+                    toastr.warning('Please choose at least one file.');
+                    return;
                 }
-                toastr.success('Upload success.');
-                $('#rcpAttachFiles').val('');
-                // back-end sudah mengembalikan list terbaru
-                renderSppbAttachmentRows(res.attachments || []);
-            },
-            error: function(xhr){
-                if (typeof hideOverlay === 'function') hideOverlay();
-                toastr.error(xhr.responseJSON?.message || 'Upload failed.');
-            }
-            });
-        });
 
-        $('#btnResetSppbAttachment').on('click', function(){
-            $('#rcpAttachFiles').val('');
-        });
+                const fd = new FormData($form);
+                if (typeof showOverlay === 'function') showOverlay('Uploading');
+
+                $.ajax({
+                    url: uploadUrl,
+                    method: 'POST',
+                    data: fd,
+                    processData: false,
+                    contentType: false,
+                    success: function(res) {
+                        if (typeof hideOverlay === 'function') hideOverlay();
+                        if (!res || !res.success) {
+                            toastr.error(res?.message || 'Upload failed.');
+                            return;
+                        }
+                        toastr.success('Upload success.');
+                        $('#rcpAttachFiles').val('');
+                        // back-end sudah mengembalikan list terbaru
+                        renderSppbAttachmentRows(res.attachments || []);
+                    },
+                    error: function(xhr) {
+                        if (typeof hideOverlay === 'function') hideOverlay();
+                        toastr.error(xhr.responseJSON?.message || 'Upload failed.');
+                    }
+                });
+            });
+
+            $('#btnResetSppbAttachment').on('click', function() {
+                $('#rcpAttachFiles').val('');
+            });
         });
     </script>
 
     <script>
-        document.addEventListener("DOMContentLoaded", function () {
+        document.addEventListener("DOMContentLoaded", function() {
 
-            const bastid  = "{{ $bast->bastid }}";   // contoh: PB2501010001
+            const bastid = "{{ $bast->bastid }}"; // contoh: PB2501010001
             const doctype = "BA";
 
             loadApproval(bastid, doctype);
@@ -1433,7 +1519,11 @@
         function formatDate(dateString) {
             if (!dateString) return "-";
             const d = new Date(dateString);
-            const options = { year: "numeric", month: "short", day: "numeric" };
+            const options = {
+                year: "numeric",
+                month: "short",
+                day: "numeric"
+            };
             return d.toLocaleDateString("en-US", options);
         }
 
@@ -1468,25 +1558,25 @@
     </script>
 
     <script>
-        $(function () {
+        $(function() {
             // URL list
             const beforeUrl = @json(route('attachments.list', ['doctype' => 'BQ', 'refnbr' => $bast->bqid]));
-            const afterUrl  = @json(route('attachments.list', ['doctype' => 'BQ', 'refnbr' => $bast->bastid]));
+            const afterUrl = @json(route('attachments.list', ['doctype' => 'BQ', 'refnbr' => $bast->bastid]));
 
             const $before = $('#photoBeforeGrid');
-            const $after  = $('#photoAfterGrid');
+            const $after = $('#photoAfterGrid');
 
             function cardTpl(at) {
-                const name    = at.name || at.display_name || '(no name)';
-                const by      = at.created_user ?? at.created_by ?? '-';
+                const name = at.name || at.display_name || '(no name)';
+                const by = at.created_user ?? at.created_by ?? '-';
                 const dateStr = at.created_at ? dayjs(at.created_at).format("DD MMM 'YY") : '-';
-                const ext     = (at.extention || '').toLowerCase();
-                const href    = at.url || '#';
-                const isImg   = ['jpg','jpeg','png','gif','webp','bmp','svg','avif'].includes(ext);
+                const ext = (at.extention || '').toLowerCase();
+                const href = at.url || '#';
+                const isImg = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'svg', 'avif'].includes(ext);
 
-                const thumb = isImg && at.url
-                    ? `<img src="${href}" alt="${name}" class="h-full w-full object-cover transition group-hover:scale-105" loading="lazy" referrerpolicy="no-referrer">`
-                    : `<div class="flex h-full w-full items-center justify-center bg-gray-100 dark:bg-gray-700">
+                const thumb = isImg && at.url ?
+                    `<img src="${href}" alt="${name}" class="h-full w-full object-cover transition group-hover:scale-105" loading="lazy" referrerpolicy="no-referrer">` :
+                    `<div class="flex h-full w-full items-center justify-center bg-gray-100 dark:bg-gray-700">
                         <span class="text-2xl">${ ext === 'pdf' ? '📕' : '📄' }</span>
                     </div>`;
 
@@ -1523,13 +1613,16 @@
 
             function refreshBefore() {
                 $.get(beforeUrl)
-                .done(res => res?.success ? renderGrid($before, res.attachments) : toastr.error(res?.message || 'Failed to load Photo Before.'))
-                .fail(() => toastr.error('Failed to load Photo Before.'));
+                    .done(res => res?.success ? renderGrid($before, res.attachments) : toastr.error(res?.message ||
+                        'Failed to load Photo Before.'))
+                    .fail(() => toastr.error('Failed to load Photo Before.'));
             }
+
             function refreshAfter() {
                 $.get(afterUrl)
-                .done(res => res?.success ? renderGrid($after, res.attachments) : toastr.error(res?.message || 'Failed to load Photo After.'))
-                .fail(() => toastr.error('Failed to load Photo After.'));
+                    .done(res => res?.success ? renderGrid($after, res.attachments) : toastr.error(res?.message ||
+                        'Failed to load Photo After.'))
+                    .fail(() => toastr.error('Failed to load Photo After.'));
             }
 
             // initial load
