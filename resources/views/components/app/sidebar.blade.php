@@ -622,11 +622,11 @@
                                 </div>
                             </li>
                             <li
-                                class="bg-linear-to-r @if (in_array(Request::segment(1), ['imbudgets', 'showimbudgets', 'editimbudget'])) {{ 'from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]' }} @endif mb-0.5 rounded-lg py-2 pl-4 pr-3 last:mb-0">
-                                <a class="@if (!in_array(Request::segment(1), ['imbudgets', 'showimbudgets', 'editimbudget'])) {{ 'hover:text-gray-900 dark:hover:text-white' }} @endif block truncate text-gray-800 transition dark:text-gray-100"
-                                    href="{{ route('imbudgets', 'showimbudgets', 'editimbudget') }}">
+                                class="bg-linear-to-r @if (in_array(Request::segment(1), ['imbudgets'])) {{ 'from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]' }} @endif mb-0.5 rounded-lg py-2 pl-4 pr-3 last:mb-0">
+                                <a class="@if (!in_array(Request::segment(1), ['imbudgets'])) {{ 'hover:text-gray-900 dark:hover:text-white' }} @endif block truncate text-gray-800 transition dark:text-gray-100"
+                                    href="{{ route('imbudgets') }}">
                                     <div class="flex items-center">
-                                        <svg class="@if (in_array(Request::segment(1), ['imbudgets', 'showimbudgets', 'editimbudget'])) {{ 'text-violet-500' }}@else{{ 'text-gray-400 dark:text-gray-500' }} @endif shrink-0 fill-current"
+                                        <svg class="@if (in_array(Request::segment(1), ['imbudgets'])) {{ 'text-violet-500' }}@else{{ 'text-gray-400 dark:text-gray-500' }} @endif shrink-0 fill-current"
                                             viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="none"
                                             stroke-width="1.5" stroke="currentColor" width="16" height="16">
                                             <path stroke-linecap="round" stroke-linejoin="round"
@@ -639,11 +639,11 @@
                                 </a>
                             </li>
                             <li
-                                class="bg-linear-to-r @if (in_array(Request::segment(1), ['bastlist', 'showimbudgets', 'editimbudget'])) {{ 'from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]' }} @endif mb-0.5 rounded-lg py-2 pl-4 pr-3 last:mb-0">
-                                <a class="@if (!in_array(Request::segment(1), ['bastlist', 'showimbudgets', 'editimbudget'])) {{ 'hover:text-gray-900 dark:hover:text-white' }} @endif block truncate text-gray-800 transition dark:text-gray-100"
-                                    href="{{ route('bastlist', 'showimbudgets', 'editimbudget') }}">
+                                class="bg-linear-to-r @if (in_array(Request::segment(1), ['bastlist'])) {{ 'from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]' }} @endif mb-0.5 rounded-lg py-2 pl-4 pr-3 last:mb-0">
+                                <a class="@if (!in_array(Request::segment(1), ['bastlist'])) {{ 'hover:text-gray-900 dark:hover:text-white' }} @endif block truncate text-gray-800 transition dark:text-gray-100"
+                                    href="{{ route('bastlist') }}">
                                     <div class="flex items-center">
-                                        <svg class="@if (in_array(Request::segment(1), ['bastlist', 'showimbudgets', 'editimbudget'])) {{ 'text-violet-500' }}@else{{ 'text-gray-400 dark:text-gray-500' }} @endif shrink-0 fill-current"
+                                        <svg class="@if (in_array(Request::segment(1), ['bastlist'])) {{ 'text-violet-500' }}@else{{ 'text-gray-400 dark:text-gray-500' }} @endif shrink-0 fill-current"
                                             viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="none"
                                             stroke-width="1.5" stroke="currentColor" width="16" height="16">
                                             <path stroke-linecap="round" stroke-linejoin="round"

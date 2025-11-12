@@ -714,14 +714,17 @@ Route::post('/logout', function () {
     Route::get('/sublocations/by-location', [MasterController::class, 'SubLocation'])->name('sublocations.byLocation');
     Route::get('/departments/{cpny_id}', [MasterController::class, 'DepartmentFin'])->name('finance.departments.byCompany');
     Route::get('/coa/by-dept', [MasterController::class, 'CoaBudget'])->name('coa.byDept');   
+    Route::get('/coa/by-wo',   [MasterController::class, 'CoaBudgetWo'])->name('coa.byWo');
     Route::get('/uom/by-inventory', [MasterController::class, 'UomInventory'])->name('uom.byInventory');
     Route::get('/wos/ajax/categories/{categoryid}', [MasterController::class, 'getCategories']);             
     Route::get('/wos/ajax/worktypes',               [MasterController::class, 'getWorktypes']);              
     Route::get('/wos/ajax/subworktypes/{worktypeid}', [MasterController::class, 'getSubWorktypes']);         
     Route::get('/wos/ajax/locations/{cpny_id}',     [MasterController::class, 'getLocations']);              
     Route::get('/wos/ajax/sublocations/{cpny_id}/{location_id}', [MasterController::class, 'getSubLocations']);
-    Route::get('/wos/ajax/wos', [MasterController::class, 'getWoComplated'])->name('wos.ajax.index'); 
-    Route::get('/wos/checkbudgetwo/{woid}', [MasterController::class, 'checkBudgetWo'])->name('wos.checkbudgetwo');
+    Route::get('/wos/ajax/wos', [MasterController::class, 'getWoComplated'])->name('wos.ajax.index');     
+    Route::get('/inventory/by-worktype', [MasterController::class, 'InventoryByWorktype'])->name('inventory.byWorktype');
+        
+
 
     
     Route::post('/attachments/{doctype}/{refnbr}',  [TrAttachmentController::class, 'uploadAttachments'])->name('attachments.upload');

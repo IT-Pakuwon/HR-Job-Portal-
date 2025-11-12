@@ -677,7 +677,7 @@
                             <div class="mb-3 flex border-b border-gray-200 dark:border-gray-700">                                
                                 <button type="button"
                                     class="invTab border-b-2 border-transparent px-4 py-2 font-semibold"
-                                    data-type="jasa">Jasa</button>
+                                    data-type="se">Jasa</button>
                                 <div class="ml-auto flex items-center gap-2">
                                     <input id="invSearch" type="text" placeholder="Search..."
                                         class="rounded border border-gray-300 bg-white px-3 py-1 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
@@ -1408,7 +1408,7 @@
             const $invCount = $('#invCount');
 
             let invState = {
-                type: 'jasa', // 'stock' | 'jasa'
+                type: 'se', //  'jasa'
                 search: '',
                 page: 1,
                 per_page: 10,

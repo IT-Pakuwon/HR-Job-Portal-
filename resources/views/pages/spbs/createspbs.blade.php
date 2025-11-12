@@ -183,19 +183,7 @@
                                     <option value="{{ $year + 1 }}">{{ $year + 1 }}</option>
                                 </select>
                             </div>
-                        </div>
-                        <!-- WOID (letakkan sebelum Description) -->
-                        {{-- <div class="flex flex-col gap-2 lg:col-span-4">
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">WO ID</label>
-                        <div class="flex items-center gap-2">
-                            <input type="text" name="woid" id="woid"
-                                class="flex-1 rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
-                                placeholder="Pilih WO..." readonly>
-                            <button type="button" id="openWoModal"
-                                    class="rounded border border-gray-500 px-2 py-2 hover:bg-gray-100 dark:hover:bg-gray-700"
-                                    title="Lookup">🔎</button>
-                        </div>
-                        </div> --}}
+                        </div>                        
                         <!-- WOID (letakkan sebelum Description) -->
                         <div id="woSection" class="flex flex-col gap-2 lg:col-span-4 hidden">
                             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">WO ID</label>
@@ -266,6 +254,8 @@
                                                                 class="prodItemCategoryField">
                                                             <input type="hidden" name="purchase_unit[]"
                                                                 class="purchaseUnitField">
+                                                            <input type="hidden" name="inv_stock[]" class="invStockField">
+                                                            <input type="hidden" name="inv_cost[]"  class="invCostField">
                                                             <input type="text" name="product_name[]"
                                                                 class="productNameField w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0"
                                                                 placeholder="Select product..." readonly>
@@ -308,33 +298,7 @@
                                                         <input type="text" name="note[]" placeholder="Note"
                                                             class="w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0">
                                                     </td>
-
-                                                    <!-- Location & Sub Location -->
-                                                    {{-- <td class="border p-3">
-                                                        <div class="flex items-center gap-2">
-                                                            <input type="hidden" name="location_id[]"
-                                                                class="locationIdField">
-                                                            <input type="text" name="location[]"
-                                                                class="locationNameField w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0"
-                                                                placeholder="Select location..." readonly>
-                                                            <button type="button"
-                                                                class="openLocationModal rounded border border-gray-500 px-1 py-1 hover:bg-gray-100 dark:hover:bg-gray-700"
-                                                                title="Lookup">🔎</button>
-                                                        </div>
-                                                    </td>
-
-                                                    <td class="border p-3">
-                                                        <div class="flex items-center gap-2">
-                                                            <input type="hidden" name="sub_location_id[]"
-                                                                class="subLocationIdField">
-                                                            <input type="text" name="sub_location[]"
-                                                                class="subLocationNameField w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0"
-                                                                placeholder="Select sub location..." readonly>
-                                                            <button type="button"
-                                                                class="openSubLocationModal rounded border border-gray-500 px-1 py-1 hover:bg-gray-100 dark:hover:bg-gray-700"
-                                                                title="Lookup">🔎</button>
-                                                        </div>
-                                                    </td> --}}
+                                                  
                                                     <td class="border p-3">
                                                         <div class="flex items-center gap-2">
                                                             <input type="hidden" name="location_id[]"     class="locationIdField">
@@ -406,10 +370,7 @@
                             <div class="mb-3 flex border-b border-gray-200 dark:border-gray-700">
                                 <button type="button"
                                     class="invTab border-b-2 border-indigo-600 px-4 py-2 font-semibold"
-                                    data-type="stock">Stock</button>
-                                <button type="button"
-                                    class="invTab border-b-2 border-transparent px-4 py-2 font-semibold"
-                                    data-type="nonstock">Non-Stock</button>
+                                    data-type="gi">Stock</button>                                
                                 <div class="ml-auto flex items-center gap-2">
                                     <input id="invSearch" type="text" placeholder="Search..."
                                         class="rounded border border-gray-300 bg-white px-3 py-1 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
@@ -425,6 +386,9 @@
                                             <th class="border p-2">Inventory ID</th>
                                             <th class="border p-2">Description</th>
                                             <th class="border p-2">UoM</th>
+                                            <th class="border p-2">SiteID</th>
+                                            <th class="border p-2">Stock</th>  
+                                            <th class="border p-2">Cost</th>   
                                             <th class="w-24 border p-2 text-center">Action</th>
                                         </tr>
                                     </thead>
@@ -445,96 +409,7 @@
                         </div>
                     </div>
 
-                    <!-- ===== Modal Lookup Location ===== -->
-                    <div id="locationModal"
-                        class="fixed inset-0 z-[1000] hidden items-center justify-center bg-black/40 p-4">
-                        <div class="w-full max-w-3xl rounded-xl bg-white p-4 shadow-lg dark:bg-gray-800">
-                            <div class="mb-3 flex items-center justify-between">
-                                <h3 class="text-lg font-bold text-gray-800 dark:text-white">Select Location</h3>
-                                <button type="button" id="closeLocationModal"
-                                    class="rounded px-3 py-1 hover:bg-gray-100 dark:hover:bg-gray-700">✖</button>
-                            </div>
-
-                            <div class="mb-3 flex items-center gap-2">
-                                <input id="locSearch" type="text" placeholder="Search..."
-                                    class="rounded border border-gray-300 bg-white px-3 py-1 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
-                                <button id="locRefresh" type="button"
-                                    class="rounded border px-3 py-1 hover:bg-gray-100 dark:hover:bg-gray-700">↻</button>
-                                <div class="ml-auto text-sm opacity-80">Company: <span id="locCpnyBadge"
-                                        class="font-semibold"></span></div>
-                            </div>
-
-                            <div class="max-h-[60vh] overflow-auto">
-                                <table class="w-full text-left">
-                                    <thead class="sticky top-0 bg-gray-50 text-sm dark:bg-gray-900">
-                                        <tr>
-                                            <th class="border p-2">Location ID</th>
-                                            <th class="border p-2">Location Name</th>
-                                            <th class="w-24 border p-2 text-center">Action</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="locTableBody" class="text-sm"></tbody>
-                                </table>
-                            </div>
-
-                            <div class="mt-3 flex items-center justify-between text-sm">
-                                <span id="locCount" class="opacity-80"></span>
-                                <div class="space-x-2">
-                                    <button id="locPrev" type="button"
-                                        class="rounded border px-3 py-1 disabled:opacity-40">Prev</button>
-                                    <button id="locNext" type="button"
-                                        class="rounded border px-3 py-1 disabled:opacity-40">Next</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- ===== Modal Lookup Sub Location ===== -->
-                    <div id="subLocationModal"
-                        class="fixed inset-0 z-[1000] hidden items-center justify-center bg-black/40 p-4">
-                        <div class="w-full max-w-3xl rounded-xl bg-white p-4 shadow-lg dark:bg-gray-800">
-                            <div class="mb-3 flex items-center justify-between">
-                                <h3 class="text-lg font-bold text-gray-800 dark:text-white">Select Sub Location</h3>
-                                <button type="button" id="closeSubLocationModal"
-                                    class="rounded px-3 py-1 hover:bg-gray-100 dark:hover:bg-gray-700">✖</button>
-                            </div>
-
-                            <div class="mb-3 flex items-center gap-2 text-sm">
-                                <input id="subLocSearch" type="text" placeholder="Search..."
-                                    class="rounded border border-gray-300 bg-white px-3 py-1 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
-                                <button id="subLocRefresh" type="button"
-                                    class="rounded border px-3 py-1 hover:bg-gray-100 dark:hover:bg-gray-700">↻</button>
-                                <div class="ml-auto flex items-center gap-3">
-                                    <span>Company: <b id="subLocCpnyBadge"></b></span>
-                                    <span>Location: <b id="subLocParentBadge"></b></span>
-                                </div>
-                            </div>
-
-                            <div class="max-h-[60vh] overflow-auto">
-                                <table class="w-full text-left">
-                                    <thead class="sticky top-0 bg-gray-50 text-sm dark:bg-gray-900">
-                                        <tr>
-                                            <th class="border p-2">Sub Location ID</th>
-                                            <th class="border p-2">Sub Location Name</th>
-                                            <th class="w-24 border p-2 text-center">Action</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="subLocTableBody" class="text-sm"></tbody>
-                                </table>
-                            </div>
-
-                            <div class="mt-3 flex items-center justify-between text-sm">
-                                <span id="subLocCount" class="opacity-80"></span>
-                                <div class="space-x-2">
-                                    <button id="subLocPrev" type="button"
-                                        class="rounded border px-3 py-1 disabled:opacity-40">Prev</button>
-                                    <button id="subLocNext" type="button"
-                                        class="rounded border px-3 py-1 disabled:opacity-40">Next</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
+                                       
                     <!-- Modal: Location + Sub Location -->
                     <div id="modalLokasi" class="fixed inset-0 z-[1000] hidden items-center justify-center bg-black/50 p-4">
                     <div class="w-full max-w-2xl rounded-2xl bg-white shadow-xl dark:bg-gray-800">
@@ -587,8 +462,6 @@
                         </div>
                     </div>
                     </div>
-
-
 
                     <!-- ===== Modal Lookup COA ===== -->
                     <div id="coaModal"
@@ -764,7 +637,6 @@
                             </div>
                         </div>
                     </div>
-
 
                     {{-- ===== Attachment ===== --}}
                     <div class="w-full rounded-xl bg-white p-6 shadow-md dark:bg-gray-800">
@@ -1019,8 +891,18 @@
         });
     </script>
 
+    <script>
+        function formatNumber(num, isCost = false) {
+            if (num === null || num === undefined || num === '') return '';
 
+            num = parseFloat(num);
 
+            return new Intl.NumberFormat('id-ID', {
+                minimumFractionDigits: isCost ? 2 : 0,
+                maximumFractionDigits: isCost ? 2 : 0
+            }).format(num);
+        }
+    </script>
     <script>
         // ===== SPB Detail =====
         $(function() {
@@ -1052,6 +934,9 @@
                     <input type="hidden" name="item_type[]"     class="prodItemTypeField">
                     <input type="hidden" name="item_category[]" class="prodItemCategoryField">
                     <input type="hidden" name="purchase_unit[]" class="purchaseUnitField">
+                    <input type="hidden" name="inv_stock[]" class="invStockField">
+                    <input type="hidden" name="inv_cost[]"  class="invCostField">
+                    <input type="hidden" name="siteid[]"  class="siteIdField">
                     <input type="text" name="product_name[]" class="productNameField w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0" placeholder="Select product..." readonly>
                     <button type="button" class="openInventoryModal rounded border border-gray-500 px-1 py-1 hover:bg-gray-100 dark:hover:bg-gray-700" title="Lookup">🔎</button>
                 </div>
@@ -1130,7 +1015,7 @@
             const $invCount = $('#invCount');
 
             let invState = {
-                type: 'stock', // 'stock' | 'nonstock'
+                type: 'gi', // 'stock' 
                 search: '',
                 page: 1,
                 per_page: 10,
@@ -1159,7 +1044,7 @@
             $('.invTab').on('click', function() {
                 $('.invTab').removeClass('border-indigo-600').addClass('border-transparent');
                 $(this).addClass('border-indigo-600').removeClass('border-transparent');
-                invState.type = $(this).data('type'); // 'stock' atau 'nonstock'
+                invState.type = $(this).data('type'); // 'stock' 
                 invState.page = 1;
                 loadInventory();
             });
@@ -1191,53 +1076,60 @@
                     loadInventory();
                 }
             });
-
-            // Load Inventory from API
+           
+            // === di fungsi loadInventory() pada view ===
             function loadInventory() {
-                $tbody.html(`<tr><td colspan="4" class="p-3 text-center">Loading...</td></tr>`);
-                $.getJSON("{{ route('inventory.list') }}", {
-                        type: invState.type, // 'stock' | 'nonstock'
-                        search: invState.search,
-                        page: invState.page,
-                        per_page: invState.per_page
-                    })
-                    .done(function(res) {
-                        // Expected format:
-                        // { data: [{inventoryid, inventory_descr, stock_unit}], total: 123, page:1, per_page:10 }
-                        const rows = (res.data || []).map(item => `
-                <tr>
-                    <td class="border p-2">${item.inventoryid}</td>
-                    <td class="border p-2">${item.inventory_descr}</td>
-                    <td class="border p-2">${item.stock_unit || ''}</td>
-                    <td class="border p-2 text-center">
-                    <button type="button" class="chooseInventory rounded border px-2 py-1 hover:bg-gray-100"
-                        data-id="${item.inventoryid}"
-                        data-name="${$('<div>').text(item.inventory_descr).html()}"
-                        data-stock_unit="${item.stock_unit || ''}"                        
-                        data-item_type="${$('<div>').text(item.item_type || '').html()}"         
-                        data-purchase_unit="${item.purchase_unit || item.purchaseunit || ''}"
-                        data-item_category="${$('<div>').text(item.item_category || '').html()}">
-                        Choose
-                    </button>
-                    </td>
-                </tr>
-                `).join('');
+                $tbody.html(`<tr><td colspan="7" class="p-3 text-center">Loading...</td></tr>`);
 
-                        $tbody.html(rows || `<tr><td colspan="4" class="p-3 text-center">No data</td></tr>`);
-                        invState.total = res.total || 0;
-                        $invCount.text(`Showing ${rows ? (res.data.length) : 0} of ${invState.total} items`);
-                        // toggle prev/next disabled
-                        const maxPage = Math.ceil((invState.total || 0) / invState.per_page) || 1;
-                        $('#invPrev').prop('disabled', invState.page <= 1);
-                        $('#invNext').prop('disabled', invState.page >= maxPage);
-                    })
-                    .fail(function() {
-                        $tbody.html(
-                            `<tr><td colspan="4" class="p-3 text-center text-red-600">Failed to load inventory</td></tr>`
-                        );
-                        $invCount.text('');
-                        $('#invPrev, #invNext').prop('disabled', true);
-                    });
+                $.getJSON("{{ route('inventory.byWorktype') }}", {
+                    type: (invState.type || 'gi'),                // 'stock' | 'nonstock' (backend akan strtoupper)
+                    search: invState.search,
+                    page: invState.page,
+                    per_page: invState.per_page,
+                    worktypeid: ($('#worktypeid').val() || '').trim(), // <-- kirim worktypeid
+                    cpnyid: ($('select[name="cpnyid"]').val() || '').trim()
+                })
+                .done(function(res) {
+                    console.log('inventory.byWorktype result sample:', res.data?.[0]);
+                    const rows = (res.data || []).map(item => `
+                        <tr>
+                            <td class="border p-2">${item.inventoryid}</td>
+                            <td class="border p-2">${item.inventory_descr}</td>
+                            <td class="border p-2">${item.stock_unit || ''}</td>
+                            <td class="border p-2">${item.siteid || ''}</td>
+                            <td class="border p-2">${formatNumber(item.stock)}</td>
+                            <td class="border p-2">${formatNumber(item.cost, true)}</td>      
+                            <td class="border p-2 text-center">
+                            <button type="button" class="chooseInventory rounded border px-2 py-1 hover:bg-gray-100"
+                                data-id="${item.inventoryid}"
+                                data-name="${$('<div>').text(item.inventory_descr).html()}"
+                                data-stock_unit="${item.stock_unit || ''}"
+                                data-item_type="${$('<div>').text(item.item_type || '').html()}"
+                                data-purchase_unit="${item.purchase_unit || item.purchaseunit || ''}"
+                                data-item_category="${$('<div>').text(item.item_category || '').html()}"
+                                data-siteid="${item.siteid ?? ''}"
+                                data-stock="${item.stock ?? ''}"                
+                                data-cost="${item.cost ?? ''}">                  
+                                Choose
+                            </button>
+                            </td>
+                        </tr>
+                    `).join('');
+
+
+                    $tbody.html(rows || `<tr><td colspan="7" class="p-3 text-center">No data</td></tr>`);
+                    invState.total = res.total || 0;
+                    $invCount.text(`Showing ${rows ? (res.data.length) : 0} of ${invState.total} items`);
+
+                    const maxPage = Math.ceil((invState.total || 0) / invState.per_page) || 1;
+                    $('#invPrev').prop('disabled', invState.page <= 1);
+                    $('#invNext').prop('disabled', invState.page >= maxPage);
+                })
+                .fail(function() {
+                    $tbody.html(`<tr><td colspan="7" class="p-3 text-center text-red-600">Failed to load inventory</td></tr>`);
+                    $invCount.text('');
+                    $('#invPrev, #invNext').prop('disabled', true);
+                });
             }
 
             // Choose Inventory -> fill current row
@@ -1253,6 +1145,10 @@
                 const item_type = $(this).data('item_type') || '';
                 const item_category = $(this).data('item_category') || '';
                 const purchase_unit = $(this).data('purchase_unit') || '';
+                const stock = $(this).data('stock') || '';
+                const cost  = $(this).data('cost') || '';
+                const siteid  = $(this).data('siteid') || '';
+
 
                 currentRow.find('.inventoryIdField').val(id);
                 currentRow.find('.productNameField').val(name);
@@ -1263,6 +1159,10 @@
                 currentRow.find('.prodItemTypeField').val(item_type);
                 currentRow.find('.prodItemCategoryField').val(item_category);
 
+                currentRow.find('.invStockField').val(stock);
+                currentRow.find('.invCostField').val(cost);
+                currentRow.find('.invCostField').val(siteid);
+
                 currentRow.find('.coaIdField').val('');
                 currentRow.find('.coaNameField').val('');
 
@@ -1270,17 +1170,13 @@
                 currentRow.find('.productNameField').removeClass('is-invalid').next('.error-feedback')
                     .remove();
                 currentRow.find('.stock_unitField').removeClass('is-invalid').next('.error-feedback')
-                    .remove();
-
-
-          
+                    .remove();          
 
                 closeModal();
             });
 
         });
     </script>
-
 
     <script>
         // ===== Attachment =====
@@ -1352,9 +1248,6 @@
 
             // initial load sekali saja (tidak tergantung company)
             loadRequestTypes();
-
-            // Tidak perlu lagi listen perubahan company:
-            // $('select[name="cpnyid"]').on('change', ...) — DIHAPUS
         });
     </script>
 
@@ -1387,18 +1280,18 @@
             this.value = this.value.replace('.', ',').replace(/[^0-9,]/g, '');
         });
     </script>
-
+    
     <script>
-        $(function() {
-            // ===== COA modal state =====
-            const $coaModal = $('#coaModal');
-            const $coaTbody = $('#coaTableBody');
-            const $coaCount = $('#coaCount');
-            const $coaCpny = $('#coaCpnyBadge');
-            const $coaDept = $('#coaDeptBadge');
+        $(function () {
+
+            const $coaModal   = $('#coaModal');
+            const $coaTbody   = $('#coaTableBody');
+            const $coaCount   = $('#coaCount');
+            const $coaCpny    = $('#coaCpnyBadge');
+            const $coaDept    = $('#coaDeptBadge');
             const $coaPerpost = $('#coaPerpostBadge');
 
-            let currentCoaRow = null; // row penerima data
+            let currentCoaRow = null;
             let coaState = {
                 search: '',
                 page: 1,
@@ -1407,94 +1300,125 @@
                 cpnyid: null,
                 deptid: null,
                 perpost: null,
+                woid: null, // <= indikator apakah by WO atau by Dept
             };
 
+            // ===================================================
+            // OPEN MODAL
+            // ===================================================
             function openCoaModal(forRow) {
                 currentCoaRow = forRow;
 
-                //cek cpnyid dan deptid punya woid
-                resolveCoaContext().then(ctx => {
-                    if (!ctx.cpnyid) { toastr.warning('Company belum ditentukan.'); return; }
-                    if (!ctx.deptid) { toastr.warning('Department belum ditentukan.'); return; }
-
-                    coaState.cpnyid = ctx.cpnyid;
-                    coaState.deptid = ctx.deptid;
-                    coaState.perpost = ctx.perpost;
-                    coaState.page = 1;
-                    coaState.search = '';
-
-                    $coaCpny.text(coaState.cpnyid);
-                    $coaDept.text(coaState.deptid);
-                    $coaPerpost.text(coaState.perpost);
-                    $('#coaSearch').val('');
-
-                    $coaModal.removeClass('hidden').addClass('flex');
-                    loadCoa(); // ← fungsi yang sudah ada di bawah helper
-                });
-
-
-                // baca cpny & dept dari header
+                const woid = ($('#woid').val() || '').trim();
                 const cpny = $('select[name="cpnyid"]').val();
                 const dept = $('select[name="departementid"]').val();
                 const perpost = $('#perpost').val();
 
-                if (!cpny) {
-                    if (window.toastr) toastr.warning('Pilih Company terlebih dahulu.');
-                    return;
-                }
-                if (!dept) {
-                    if (window.toastr) toastr.warning('Pilih Department terlebih dahulu.');
-                    return;
+                if (woid) {
+                    // ==== Mode pakai WO ====
+                    coaState.woid = woid;
+                    coaState.cpnyid = null;
+                    coaState.deptid = null;
+                    coaState.perpost = null;
+                } else {
+                    // ==== Mode pakai cpnyid + deptid biasa ====
+                    if (!cpny) { toastr.warning('Pilih Company terlebih dahulu.'); return; }
+                    if (!dept) { toastr.warning('Pilih Department terlebih dahulu.'); return; }
+
+                    coaState.woid = null;
+                    coaState.cpnyid = cpny;
+                    coaState.deptid = dept;
+                    coaState.perpost = perpost;
                 }
 
-                coaState.cpnyid = cpny;
-                coaState.deptid = dept;
-                coaState.perpost = perpost;
-                coaState.page = 1;
                 coaState.search = '';
+                coaState.page = 1;
 
-                $coaCpny.text(coaState.cpnyid);
-                $coaDept.text(coaState.deptid);
-                $coaPerpost.text(coaState.perpost);
+                // set label badge awal (nanti byWO akan override dari response.meta)
+                $coaCpny.text(coaState.cpnyid || '-');
+                $coaDept.text(coaState.deptid || '-');
+                $coaPerpost.text(coaState.perpost || '-');
                 $('#coaSearch').val('');
 
                 $coaModal.removeClass('hidden').addClass('flex');
                 loadCoa();
             }
 
-            function closeCoaModal() {
-                $coaModal.addClass('hidden').removeClass('flex');
-            }
-
-            $(document).on('click', '.openCoaModal', function() {
+            $(document).on('click', '.openCoaModal', function () {
                 openCoaModal($(this).closest('tr'));
             });
-            $('#closeCoaModal').on('click', closeCoaModal);
-            $(document).on('keydown', function(e) {
-                if (e.key === 'Escape' && $coaModal.is(':visible')) closeCoaModal();
+
+            $('#closeCoaModal').on('click', function () {
+                $coaModal.addClass('hidden').removeClass('flex');
             });
 
-            // Search & refresh
-            $('#coaSearch').on('input', function() {
-                coaState.search = $(this).val().trim();
-                coaState.page = 1;
-                loadCoa();
-            });
-            $('#coaRefresh').on('click', function() {
-                $('#coaSearch').val('');
-                coaState.search = '';
-                coaState.page = 1;
-                loadCoa();
-            });
+            // ===================================================
+            // LOAD COA (BY WO atau BY DEPT)
+            // ===================================================
+            function loadCoa() {
+
+                $coaTbody.html('<tr><td colspan="4" class="p-3 text-center">Loading...</td></tr>');
+
+                const url = coaState.woid
+                    ? "{{ route('coa.byWo') }}"   // <-- kalau punya WO, by WO
+                    : "{{ route('coa.byDept') }}"; // <-- default by Dept
+
+                const params = coaState.woid
+                    ? { woid: coaState.woid, search: coaState.search, page: coaState.page, per_page: coaState.per_page }
+                    : { cpnyid: coaState.cpnyid, deptid: coaState.deptid, perpost: coaState.perpost, search: coaState.search, page: coaState.page, per_page: coaState.per_page };
+
+                $.getJSON(url, params)
+                    .done(function (res) {
+
+                        // kalau by WO, backend kirim meta → update badge
+                        if (res.meta) {
+                            $coaCpny.text(res.meta.cpnyid ?? '-');
+                            $coaDept.text(res.meta.deptid ?? '-');
+                            $coaPerpost.text(res.meta.perpost ?? '-');
+                        }
+
+                        const data = res.data || [];
+                        coaState.total = res.total || 0;
+
+                        const rows = data.map(item => `
+                            <tr>
+                                <td class="border p-2">${item.account_id ?? ''}</td>
+                                <td class="border p-2">${item.activity_detail ?? ''}</td>
+                                <td class="border p-2">${item.totalbudget ?? ''}</td>
+                                <td class="border p-2 text-center">
+                                    <button type="button" class="chooseCoa rounded border px-2 py-1 hover:bg-gray-100"
+                                        data-id="${item.account_id}"
+                                        data-activity_id="${item.activity_id}"
+                                        data-business_unit_id="${item.business_unit_id}"
+                                        data-department_fin_id="${item.department_fin_id}"
+                                        data-label="${item.account_id}">
+                                        Choose
+                                    </button>
+                                </td>
+                            </tr>
+                        `).join('');
+
+                        $coaTbody.html(rows || '<tr><td colspan="4" class="p-3 text-center">No data</td></tr>');
+                        $coaCount.text(`Showing ${data.length} of ${coaState.total} items`);
+
+                        const maxPage = Math.ceil(coaState.total / coaState.per_page);
+                        $('#coaPrev').prop('disabled', coaState.page <= 1);
+                        $('#coaNext').prop('disabled', coaState.page >= maxPage);
+                    })
+                    .fail(function () {
+                        $coaTbody.html('<tr><td colspan="4" class="p-3 text-center text-red-600">Failed to load</td></tr>');
+                        $coaCount.text('');
+                    });
+            }
 
             // Pagination
-            $('#coaPrev').on('click', function() {
+            $('#coaPrev').on('click', function () {
                 if (coaState.page > 1) {
                     coaState.page--;
                     loadCoa();
                 }
             });
-            $('#coaNext').on('click', function() {
+            $('#coaNext').on('click', function () {
                 const maxPage = Math.ceil(coaState.total / coaState.per_page);
                 if (coaState.page < maxPage) {
                     coaState.page++;
@@ -1502,102 +1426,44 @@
                 }
             });
 
-            // Load COA from API
-            function loadCoa() {
-                $coaTbody.html('<tr><td colspan="4" class="p-3 text-center">Loading...</td></tr>');
-                $.getJSON("{{ route('coa.byDept') }}", {
-                        cpnyid: coaState.cpnyid,
-                        deptid: coaState.deptid,
-                        perpost: coaState.perpost,
-                        search: coaState.search,
-                        page: coaState.page,
-                        per_page: coaState.per_page
-                    })
-                    .done(function(res) {
-                        // Expected: { data: [{account_id, activity_detail, totalbudget}], total, ... }
-                        const rows = (res.data || []).map(item => {
-                            const id = item.account_id ?? '';
-                            const actId = item.activity_id ?? '';
-                            const buId = item.business_unit_id ?? '';
-                            const deptFinId = item.department_fin_id ?? '';
-                            const actDetail = item.activity_detail ?? '';
-                            const totalbudget = item.totalbudget ?? '';
-                            const label = id; // atau `${id} - ${actDetail}`
+            // Search
+            $('#coaSearch').on('input', function () {
+                coaState.search = $(this).val().trim();
+                coaState.page = 1;
+                loadCoa();
+            });
 
-                            return `
-                    <tr>
-                    <td class="border p-2">${id}</td>
-                    <td class="border p-2">${actDetail}</td>
-                    <td class="border p-2">${totalbudget}</td>
-                    <td class="border p-2 text-center">
-                        <button type="button" class="chooseCoa rounded border px-2 py-1 hover:bg-gray-100"
-                        data-id="${id}"
-                        data-activity_id="${actId}"
-                        data-business_unit_id="${buId}"
-                        data-department_fin_id="${deptFinId}"
-                        data-label="${$('<div>').text(label).html()}">
-                        Choose
-                        </button>
-                    </td>
-                    </tr>
-                `;
-                        }).join('');
+            $('#coaRefresh').on('click', function () {
+                coaState.search = '';
+                coaState.page = 1;
+                $('#coaSearch').val('');
+                loadCoa();
+            });
 
+            // ===================================================
+            // CHOOSE BUTTON → assign value ke row
+            // ===================================================
+            $(document).on('click', '.chooseCoa', function () {
 
-                        $coaTbody.html(rows || '<tr><td colspan="4" class="p-3 text-center">No data</td></tr>');
-                        coaState.total = res.total || 0;
-                        $coaCount.text(`Showing ${rows ? (res.data.length) : 0} of ${coaState.total} items`);
-
-                        const maxPage = Math.ceil((coaState.total || 0) / coaState.per_page) || 1;
-                        $('#coaPrev').prop('disabled', coaState.page <= 1);
-                        $('#coaNext').prop('disabled', coaState.page >= maxPage);
-                    })
-                    .fail(function() {
-                        $coaTbody.html(
-                            '<tr><td colspan="4" class="p-3 text-center text-red-600">Failed to load</td></tr>'
-                        );
-                        $coaCount.text('');
-                        $('#coaPrev, #coaNext').prop('disabled', true);
-                    });
-            }
-
-            // Choose -> isi row
-            $(document).on('click', '.chooseCoa', function() {
                 if (!currentCoaRow) return;
-                const id = $(this).data('id');
-                const actId = $(this).data('activity_id');
-                const label = $(this).data('label');
-                const buId = $(this).data('business_unit_id');
-                const deptFinId = $(this).data('department_fin_id');
 
-                currentCoaRow.find('.coaIdField').val(id);
-                currentCoaRow.find('.activityIdField').val(actId); // ⬅️ simpan activity_id hidden
-                currentCoaRow.find('.coaNameField').val(label);
-                currentCoaRow.find('.businessUnitIdField').val(buId);
-                currentCoaRow.find('.departmentFinIdField').val(deptFinId);
+                currentCoaRow.find('.coaIdField').val($(this).data('id'));
+                currentCoaRow.find('.activityIdField').val($(this).data('activity_id'));
+                currentCoaRow.find('.businessUnitIdField').val($(this).data('business_unit_id'));
+                currentCoaRow.find('.departmentFinIdField').val($(this).data('department_fin_id'));
+                currentCoaRow.find('.coaNameField').val($(this).data('label'));
 
-                currentCoaRow.find('.coaNameField').removeClass('is-invalid').next('.error-feedback')
-                    .remove();
+                currentCoaRow.find('.coaNameField')
+                    .removeClass('is-invalid')
+                    .next('.error-feedback').remove();
 
-                closeCoaModal();
+                $coaModal.addClass('hidden').removeClass('flex');
             });
 
-
-            // Jika company/department berubah saat modal terbuka → refresh
-            $('select[name="cpnyid"], select[name="departementid"], #perpost').on('change', function() {
-                if ($coaModal.is(':visible')) {
-                    coaState.cpnyid = $('select[name="cpnyid"]').val();
-                    coaState.deptid = $('select[name="departementid"]').val();
-                    coaState.perpost = $('#perpost').val();
-                    $coaCpny.text(coaState.cpnyid || '-');
-                    $coaDept.text(coaState.deptid || '-');
-                    $coaPerpost.text(coaState.perpost || '-');
-                    coaState.page = 1;
-                    loadCoa();
-                }
-            });
         });
     </script>
+
+
 
     <script>
         $(function() {
@@ -2231,46 +2097,6 @@
         });
 
     </script>
-
-    <script>
-        // ==== Ambil konteks COA dari WO jika ada, else dari form ====
-        function resolveCoaContext() {
-        const woid    = ($('#woid').val() || '').trim();
-        const perpost = $('#perpost').val();
-
-        // jika sudah pilih WO → ambil header WO (cpnyid & deptid) via endpoint detail
-        if (woid) {
-            // Ganti endpoint ini sesuai rute detail WO kamu
-            // Expected response: { woid, cpnyid, departement_id | department_id, ... }
-            return $.getJSON(`/wos/checkbudgetwo/${encodeURIComponent(woid)}`)
-            .then(h => {
-                return {
-                cpnyid: (h.cpny_id || '').toString(),
-                deptid: (h.department_id || '').toString(),
-                perpost: perpost
-                };
-            })
-            .catch(() => {
-                // fallback jika endpoint error
-                return {
-                cpnyid: ($('select[name="cpnyid"]').val() || '').toString(),
-                deptid: ($('select[name="departementid"]').val() || '').toString(),
-                perpost: perpost
-                };
-            });
-        }
-
-        // belum ada WO → pakai header form
-        return $.Deferred().resolve({
-            cpnyid: ($('select[name="cpnyid"]').val() || '').toString(),
-            deptid: ($('select[name="departementid"]').val() || '').toString(),
-            perpost: perpost
-        }).promise();
-        }
-
-    </script>
-
-
 
 
     <!-- Toastr CSS -->
