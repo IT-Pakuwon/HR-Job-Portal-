@@ -780,10 +780,90 @@ class BastController extends Controller
             ])
         );
 
+        // // Portrait jika <= 5 approver, else landscape
+        // $pdf->setPaper('A4', ($approve_count <= 5) ? 'portrait' : 'landscape');
+
+        return $pdf->stream("pdf_bast_{$bast->bastid}.pdf");
+    }
+
+
+    public function printBastVendor($hash)
+    {
+        $id = Hashids::decode($hash)[0] ?? null;
+        abort_if(!$id, 404);
+
+        $authUser = Auth::user();
+        if (!$authUser) {
+            return redirect()->route('login');
+        }
+
+        // Ambil BAST + relasi yang dibutuhkan
+        $bast = TrBAST::findOrFail($id);
+      
+        $approval = TrApproval::query()
+            ->where('refnbr', $bast->bastid)          // dulu: docid
+            ->where('status', '<>', 'X')           
+            ->orderByRaw('CAST(aprv_leveling AS numeric) ASC')
+            ->orderBy('created_at', 'ASC')            // tie-breaker kalau leveling sama
+            ->get();
+
+        $approve_count = $approval->count();
+
+        // Company (handle null)
+        $company = Company::where('cpnyid', $bast->cpny_id)->first();
+
+        // Mapping status dokumen
+        switch ($bast->status) {
+            case 'R':
+                $status_doc = 'Rejected';
+                break;
+            case 'C':
+                $status_doc = 'Completed';
+                break;
+            case 'D':
+                $status_doc = 'Hold';
+                break;
+            case 'X':
+                $status_doc = 'Cancel';
+                break;
+            default:
+                $status_doc = 'On Progress';
+                break;
+        }
+
+        $data = [
+            'title'               => 'Berita Acara Serah Terima',
+            'doc_type'            => 'BAST',
+            'docid'               => $bast->bastid,
+            'department_id'       => $bast->department_id,
+            'cpnyname'            => optional($company)->cpnyname,
+            'parent'              => optional($company)->parent,
+            'project'             => optional($company)->project,
+            // identitas & tanggal
+            'created_by_username' => $bast->created_by,
+            'created_by_name'     => ucwords(strtolower(optional($bast->creator)->name)),
+            'created_at_fmt'      => optional($bast->created_at)->format('d F Y'),
+            'req_date_fmt'        => optional($bast->created_at)->format('d M Y H:i'),
+            'bastdate'            => \Carbon\Carbon::parse($bast->bastdate)->format('d F Y'),
+            // konten
+            'keperluan'           => $bast->keperluan,
+            'status_doc'          => $status_doc,
+            'requesttype_name'    => optional($bast->requestType)->requesttype_name,
+        ];
+
+        // Kirim ke view
+        $pdf = \PDF::loadView(
+            'pages.bast.pdf_bast_vendor',
+            array_merge($data, [                
+                'approval'       => $approval,
+                'approve_count'  => $approve_count,
+            ])
+        );
+
         // Portrait jika <= 5 approver, else landscape
         $pdf->setPaper('A4', ($approve_count <= 5) ? 'portrait' : 'landscape');
 
-        return $pdf->stream("pdf_bast_{$bast->bastid}.pdf");
+        return $pdf->stream("pdf_bast_vendor_{$bast->bastid}.pdf");
     }
 
     private function extractRatings(Request $request): array

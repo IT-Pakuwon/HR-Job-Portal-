@@ -705,6 +705,8 @@ Route::post('/logout', function () {
     Route::get('/editbasts/{hash}', [BastController::class, 'editBast'])->name('bast.edit');
     Route::put('/editbasts/{hash}', [BastController::class, 'updateBast'])->name('bast.update');
     Route::get('/pdf_bast/{hash}', [BastController::class, 'printBast'])->name('basts.print');
+    Route::get('/pdf_bast_vendor/{hash}', [BastController::class, 'printBastVendor'])->name('basts.printvendor');
+
     Route::get('/bast/{bastid}/ratings', [BastController::class, 'getBastRatings'])->name('bast.ratings');
 
 
