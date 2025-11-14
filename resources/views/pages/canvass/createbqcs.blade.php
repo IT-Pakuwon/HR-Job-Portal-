@@ -152,7 +152,7 @@
                                                         readonly>
                                                 </label> --}}
                                                     <label class="flex flex-col gap-1">
-                                                        <span class="font-medium text-gray-600 dark:text-gray-300">Harga
+                                                        <span class="font-medium text-gray-600 dark:text-gray-300">Total
                                                             Material</span>
                                                         <input type="number" step="0.01" min="0"
                                                             value="0.00"
@@ -160,7 +160,7 @@
                                                             placeholder="0,00">
                                                     </label>
                                                     <label class="flex flex-col gap-1">
-                                                        <span class="font-medium text-gray-600 dark:text-gray-300">Harga
+                                                        <span class="font-medium text-gray-600 dark:text-gray-300">Total
                                                             Jasa</span>
                                                         <input type="number" step="0.01" min="0"
                                                             value="0.00"
@@ -181,15 +181,15 @@
                                     @foreach ($vendors as $i => $v)
                                         <td class="border px-4 py-4 text-right">
                                             <div class="text-xs text-gray-600 dark:text-gray-300">
-                                                Harga Total Material : <span class="sum-mat font-semibold"
+                                                Material: <span class="sum-mat font-semibold"
                                                     data-vendor="{{ $i + 1 }}">0</span>
                                             </div>
                                             <div class="text-xs text-gray-600 dark:text-gray-300">
-                                                Harga Total Jasa : <span class="sum-jsa font-semibold"
+                                                Jasa: <span class="sum-jsa font-semibold"
                                                     data-vendor="{{ $i + 1 }}">0</span>
                                             </div>
                                             <div class="mt-1 font-bold text-indigo-600 dark:text-indigo-400">
-                                                Grand Total : <span class="sum-grand"
+                                                Grand: <span class="sum-grand"
                                                     data-vendor="{{ $i + 1 }}">0</span>
                                             </div>
                                         </td>
