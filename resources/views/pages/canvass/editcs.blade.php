@@ -198,9 +198,6 @@
         }
     </style>
 
-
-
-
     <div class="max-w-9xl mx-auto w-full px-4 py-4 sm:px-6 lg:px-8">
         <div class="grid grid-cols-1 gap-8 lg:grid-cols-2 lg:grid-rows-[minmax(0,auto)_1fr]">
             <div class="flex flex-col gap-8 lg:col-span-2 lg:row-span-1">
@@ -605,15 +602,15 @@
                 <button id="bqcsMismatchClose" class="rounded px-2 py-1 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700">✖</button>
                 </div>
                 <p class="mb-3 text-sm text-gray-700 dark:text-gray-300">
-                Terdapat vendor dengan nilai berbeda antara <b>(BQ: Grand Material + Grand Jasa)</b> dan <b>(CS: Total Vendor)</b>. Periksa tabel di bawah ini:
+                Terdapat vendor dengan nilai berbeda antara <b>(BQ: Total BQ)</b> dan <b>(CS: Total CS)</b>. Periksa tabel di bawah ini:
                 </p>
                 <div class="max-h-[60vh] overflow-auto">
                 <table class="min-w-full divide-y divide-gray-200 text-sm dark:divide-gray-700">
                     <thead class="bg-gray-50 dark:bg-gray-700">
                     <tr>
                         <th class="px-3 py-2 text-left font-semibold">Vendor</th>
-                        <th class="px-3 py-2 text-right font-semibold">BQ Grand (Mat+Jasa)</th>
-                        <th class="px-3 py-2 text-right font-semibold">CS Total Vendor</th>
+                        <th class="px-3 py-2 text-right font-semibold">Total BQ </th>
+                        <th class="px-3 py-2 text-right font-semibold">Total CS</th>
                         <th class="px-3 py-2 text-right font-semibold">Selisih</th>
                     </tr>
                     </thead>

@@ -1222,6 +1222,7 @@ class CanvassController extends Controller
         // 1) Validasi payload dasar
         $request->validate([
             'doc'             => 'required|string',     // SPPB|SPPJ|SPPK|SPPT
+            'src_id'          => 'nullable',            // penting saat submit (untuk ordered/budget)
             'sppbjktid'       => 'nullable|string',
             'cpny_id'         => 'required|string',
             'department_id'   => 'required|string',
@@ -1229,8 +1230,8 @@ class CanvassController extends Controller
             'user_peminta'    => 'nullable|string',
             'csnote'          => 'nullable|string',
             'assigndate'      => 'nullable|string',
-            'vendors'         => 'required|string', // JSON
-            'details'         => 'required|string', // JSON
+            'vendors'         => 'required|string', // JSON array
+            'details'         => 'required|string', // JSON array
             'action'          => 'nullable|in:save,submit',
         ]);
 
@@ -1242,137 +1243,124 @@ class CanvassController extends Controller
         $user      = $request->user();
         $username  = $user->username ?? 'system';
         $dt        = \Carbon\Carbon::now();
-        $year      = $dt->year;
-        $month     = str_pad($dt->month, 2, '0', STR_PAD_LEFT);
 
         $round2 = fn($n) => round((float)$n, 2);
         $safeSet = function ($model, string $table, string $column, $value) {
-            if (\Schema::connection('pgsql')->hasColumn($table, $column)) {
+            if (\Illuminate\Support\Facades\Schema::connection('pgsql')->hasColumn($table, $column)) {
                 $model->{$column} = $value;
             }
         };
 
-        // 4) Ambil sumber (header+detail) untuk fallback field 
-        $doc   = strtoupper($request->input('doc'));
-        $srcId = $request->input('src_id');
-
-        $srcHeader = null;
-        $srcDetails = collect();
-        $srcLineKey = null;
-        switch ($doc) {
-            case 'SPPB':
-                $srcHeader  = \App\Models\TrSPPB::with(['requestType', 'creator', 'purchaser'])->findOrFail($srcId);
-                $srcLineKey = 'sppb_no';
-                $srcDetails = \App\Models\TrSPPBdetail::where('sppbid', $srcHeader->sppbid)->orderBy($srcLineKey)->get();
-                break;
-            case 'SPPJ':
-                $srcHeader  = \App\Models\TrSPPJ::with(['requestType', 'creator', 'purchaser'])->findOrFail($srcId);
-                $srcLineKey = 'sppj_no';
-                $srcDetails = \App\Models\TrSPPJdetail::where('sppjid', $srcHeader->sppjid)->orderBy($srcLineKey)->get();
-                break;
-            case 'SPPK':
-                $srcHeader  = \App\Models\TrSPPK::with(['requestType', 'creator', 'purchaser'])->findOrFail($srcId);
-                $srcLineKey = 'sppk_no';
-                $srcDetails = \App\Models\TrSPPKdetail::where('sppkid', $srcHeader->sppkid)->orderBy($srcLineKey)->get();
-                break;
-            case 'SPPT':
-                $srcHeader  = \App\Models\TrSPPT::with(['requestType', 'creator', 'purchaser'])->findOrFail($srcId);
-                $srcLineKey = 'sppt_no';
-                $srcDetails = \App\Models\TrSPPTdetail::where('spptid', $srcHeader->spptid)->orderBy($srcLineKey)->get();
-                break;
-            default:
-                abort(422, 'Invalid doc type');
-        }
-
-        // index-kan detail sumber: inventoryid|uom|inventory_descr
-        $srcIndex = [];
-        foreach ($srcDetails as $sd) {
-            $key = strtoupper(trim(($sd->inventoryid ?? ''))) . '|' .
-                strtoupper(trim(($sd->uom ?? ''))) . '|' .
-                strtoupper(trim(($sd->inventory_descr ?? '')));
-            $srcIndex[$key] = $sd;
-        }
-
         $doctype = 'CS';
+        $doc     = strtoupper($request->input('doc'));
+        $srcId   = $request->input('src_id');
         $cpnyId  = $request->input('cpny_id');
         $deptId  = $request->input('department_id');
 
-        // 5) Pastikan line approval tersedia 
+        // 4) Pastikan line approval tersedia
         $approvalCtl = app(\App\Http\Controllers\ApprovalController::class);
         $approvalCtl->loadLines($doctype, $cpnyId, $deptId);
 
         \DB::connection('pgsql')->beginTransaction();
         try {
-            // 6) Lock header CS
+            // 5) Lock header CS
             /** @var \App\Models\TrCS $cs */
             $cs = \App\Models\TrCS::on('pgsql')->lockForUpdate()->where('csid', $csid)->firstOrFail();
             $csTable = $cs->getTable();
 
-            // 7) Update header ala 
-            $sppbjktid   = $request->input('sppbjktid');
-            $bqid        = $request->input('bqid');
-            $userPeminta = $request->input('user_peminta');
-            $csnote      = $request->input('csnote');
-            $assigndate  = $request->input('assigndate');
+            // 6) Ambil sumber (header+detail) untuk fallback field tampilan
+            // (Tetap lakukan di sini agar header terisi wajar meski action=save)
+            $srcHeader  = null; $srcDetails = collect(); $srcLineKey = null;
+            switch ($doc) {
+                case 'SPPB':
+                    $srcHeader  = \App\Models\TrSPPB::with(['requestType','creator','purchaser'])->find($srcId);
+                    $srcLineKey = 'sppb_no';
+                    $srcDetails = $srcHeader ? \App\Models\TrSPPBdetail::where('sppbid', $srcHeader->sppbid)->orderBy($srcLineKey)->get() : collect();
+                    break;
+                case 'SPPJ':
+                    $srcHeader  = \App\Models\TrSPPJ::with(['requestType','creator','purchaser'])->find($srcId);
+                    $srcLineKey = 'sppj_no';
+                    $srcDetails = $srcHeader ? \App\Models\TrSPPJdetail::where('sppjid', $srcHeader->sppjid)->orderBy($srcLineKey)->get() : collect();
+                    break;
+                case 'SPPK':
+                    $srcHeader  = \App\Models\TrSPPK::with(['requestType','creator','purchaser'])->find($srcId);
+                    $srcLineKey = 'sppk_no';
+                    $srcDetails = $srcHeader ? \App\Models\TrSPPKdetail::where('sppkid', $srcHeader->sppkid)->orderBy($srcLineKey)->get() : collect();
+                    break;
+                case 'SPPT':
+                    $srcHeader  = \App\Models\TrSPPT::with(['requestType','creator','purchaser'])->find($srcId);
+                    $srcLineKey = 'sppt_no';
+                    $srcDetails = $srcHeader ? \App\Models\TrSPPTdetail::where('spptid', $srcHeader->spptid)->orderBy($srcLineKey)->get() : collect();
+                    break;
+                default:
+                    abort(422, 'Invalid doc type');
+            }
 
-            $cs->sppbjktid     = $sppbjktid;
+            // index detail sumber → untuk fallback field detail
+            $srcIndex = [];
+            foreach ($srcDetails as $sd) {
+                $key = strtoupper(trim(($sd->inventoryid ?? ''))) . '|' .
+                    strtoupper(trim(($sd->uom ?? ''))) . '|' .
+                    strtoupper(trim(($sd->inventory_descr ?? '')));
+                $srcIndex[$key] = $sd;
+            }
+
+            // 7) Update HEADER TrCS (termasuk kolom vendor*)
+            $cs->sppbjktid     = $request->input('sppbjktid');
             $cs->cpny_id       = $cpnyId;
-            $cs->bqid          = $bqid ?: ($srcHeader->bqid ?? $cs->bqid);
+            $cs->bqid          = $request->input('bqid') ?: ($srcHeader->bqid ?? $cs->bqid);
             $cs->department_id = $deptId ?: ($srcHeader->department_id ?? $cs->department_id);
-            $cs->user_peminta  = $userPeminta ?: (optional($srcHeader->creator)->name ?? $cs->user_peminta);
-            $cs->csnote        = $csnote ?: null;
-            $cs->assigndate    = $assigndate ?: null;
+            $cs->user_peminta  = $request->input('user_peminta') ?: (optional($srcHeader->creator)->name ?? $cs->user_peminta);
+            $cs->csnote        = $request->input('csnote') ?: null;
+            $cs->assigndate    = $request->input('assigndate') ?: null;
 
             // lengkapi dari sumber jika kolom ada
             $safeSet($cs, $csTable, 'budget_perpost', $srcHeader->budget_perpost ?? null);
             $safeSet($cs, $csTable, 'woid',           $srcHeader->woid           ?? null);
             $safeSet($cs, $csTable, 'spbid',          $srcHeader->spbid          ?? null);
 
-            // vendor header (kolom display & kolom selected akan kita isi ulang)
-            for ($i = 0; $i < min(count($vendors), 6); $i++) {
-                $idx = $i + 1;
-                $v   = $vendors[$i];
+            // Tulis ulang vendor header (display) & reset kolom selected; juga clear slot yang tidak terpakai
+            for ($slot = 1; $slot <= 6; $slot++) {
+                $v = $vendors[$slot-1] ?? null;
 
-                $safeSet($cs, $csTable, "vendorid{$idx}",      $v['vendorid']     ?? null);
-                $safeSet($cs, $csTable, "vendorname{$idx}",    $v['vendorname']   ?? null);
-                $safeSet($cs, $csTable, "vendoralamat{$idx}",  $v['vendoralamat'] ?? null);
-                $safeSet($cs, $csTable, "vendortelp{$idx}",    $v['vendortelp']   ?? null);
-                $safeSet($cs, $csTable, "vendorcp{$idx}",      $v['vendorcp']     ?? null);
-                $safeSet($cs, $csTable, "vendortop{$idx}",     $v['vendortop']    ?? null);
-                $safeSet($cs, $csTable, "vendornote{$idx}",    $v['vendornote']   ?? null);
+                $safeSet($cs, $csTable, "vendorid{$slot}",      $v['vendorid']     ?? null);
+                $safeSet($cs, $csTable, "vendorname{$slot}",    $v['vendorname']   ?? null);
+                $safeSet($cs, $csTable, "vendoralamat{$slot}",  $v['vendoralamat'] ?? null);
+                $safeSet($cs, $csTable, "vendortelp{$slot}",    $v['vendortelp']   ?? null);
+                $safeSet($cs, $csTable, "vendorcp{$slot}",      $v['vendorcp']     ?? null);
+                $safeSet($cs, $csTable, "vendortop{$slot}",     $v['vendortop']    ?? null);
+                $safeSet($cs, $csTable, "vendornote{$slot}",    $v['vendornote']   ?? null);
 
-                $safeSet($cs, $csTable, "totalvendor{$idx}",              $round2($v['total']    ?? 0));
-                $safeSet($cs, $csTable, "taxcodevendor{$idx}",            $v['taxcode']          ?? null);
-                $safeSet($cs, $csTable, "ppnvendor{$idx}",                $round2($v['ppn']      ?? 0));
-                $safeSet($cs, $csTable, "pphvendor{$idx}",                $round2($v['pph']      ?? 0));
-                $safeSet($cs, $csTable, "taxvendor{$idx}",                $round2($v['tax']      ?? 0));
-                $safeSet($cs, $csTable, "grandtotalvendor{$idx}",         $round2($v['grand']    ?? 0));
+                $safeSet($cs, $csTable, "totalvendor{$slot}",              $round2($v['total'] ?? 0));
+                $safeSet($cs, $csTable, "taxcodevendor{$slot}",            $v['taxcode']   ?? null);
+                $safeSet($cs, $csTable, "ppnvendor{$slot}",                $round2($v['ppn']   ?? 0));
+                $safeSet($cs, $csTable, "pphvendor{$slot}",                $round2($v['pph']   ?? 0));
+                $safeSet($cs, $csTable, "taxvendor{$slot}",                $round2($v['tax']   ?? 0));
+                $safeSet($cs, $csTable, "grandtotalvendor{$slot}",         $round2($v['grand'] ?? 0));
 
-                // reset kolom selected; nanti diisi dari detail
-                $safeSet($cs, $csTable, "totalselectedvendor{$idx}",      0);
-                $safeSet($cs, $csTable, "taxselectedvendor{$idx}",        0);
-                $safeSet($cs, $csTable, "grandtotalselectedvendor{$idx}", 0);
+                // reset kolom selected; akan diisi ulang setelah replace detail
+                $safeSet($cs, $csTable, "totalselectedvendor{$slot}",      0);
+                $safeSet($cs, $csTable, "taxselectedvendor{$slot}",        0);
+                $safeSet($cs, $csTable, "grandtotalselectedvendor{$slot}", 0);
             }
 
-            // status & audit
-            $cs->status = $cs->status ?: 'H';
-            if (\Schema::connection('pgsql')->hasColumn($csTable, 'updated_by')) {
+            // status & audit (biarkan status lama jika belum submit)
+            if (\Illuminate\Support\Facades\Schema::connection('pgsql')->hasColumn($csTable, 'updated_by')) {
                 $cs->updated_by = $username;
             }
             $cs->save();
 
-            // 8) Replace semua detail, sambil hitung selectedByVendor & grand total selected (untuk approval nominal)
+            // 8) Replace DETAIL TrCSdetail & akumulasi ke header
             \App\Models\TrCSdetail::on('pgsql')->where('csid', $csid)->delete();
 
             $lineNo           = 0;
             $docSelectedGrand = 0.0;
             $selectedByVendor = [];
-            for ($i = 1; $i <= 6; $i++) $selectedByVendor[$i] = ['total' => 0.0, 'tax' => 0.0, 'grand' => 0.0];
+            for ($i = 1; $i <= 6; $i++) $selectedByVendor[$i] = ['total'=>0.0,'tax'=>0.0,'grand'=>0.0];
 
             foreach ($details as $d) {
                 $lineNo++;
 
-                // match ke sumber
                 $matchKey = strtoupper(trim(($d['inventoryid'] ?? ''))) . '|' .
                             strtoupper(trim(($d['uom'] ?? ''))) . '|' .
                             strtoupper(trim(($d['inventory_descr'] ?? '')));
@@ -1383,30 +1371,29 @@ class CanvassController extends Controller
                 $det->setConnection('pgsql');
 
                 $det->csid          = $csid;
-                $det->sppbjktid     = $sppbjktid;
+                $det->sppbjktid     = $request->input('sppbjktid');
                 $det->cs_no         = $lineNo;
                 $det->sppbjkt_no    = $srcRefNo;
 
-                // inventory fields (payload > sumber)
+                // inventory fields (payload > sumber) – jangan biarkan null critical fields
                 $det->inventory_type     = $d['inventory_type']     ?? ($src->inventory_type ?? null);
                 $det->inventoryid        = $d['inventoryid']        ?? ($src->inventoryid ?? null);
                 $det->inventory_descr    = $d['inventory_descr']    ?? ($src->inventory_descr ?? null);
-                // penting: jangan null
                 $det->inventory_sub_type = $d['inventory_sub_type'] ?? ($src->inventory_sub_type ?? null);
                 $det->inventory_category = $d['inventory_category'] ?? ($src->inventory_category ?? null);
 
-                $det->qty               = $round2($d['qty'] ?? ($src->qty ?? 0));
-                $det->uom               = $d['uom'] ?? ($src->uom ?? null);
+                $det->qty   = $round2($d['qty'] ?? ($src->qty ?? 0));
+                $det->uom   = $d['uom'] ?? ($src->uom ?? null);
 
                 // konversi dari sumber (jika ada)
-                $det->type_multiplier   = $src->type_multiplier     ?? null;
-                $det->base_multiplier   = isset($src->base_multiplier) ? $round2($src->base_multiplier) : null;
-                $det->base_qty          = isset($src->base_qty)        ? $round2($src->base_qty)        : null;
-                $det->base_uom          = $src->base_uom ?? null;
+                $det->type_multiplier = $src->type_multiplier ?? null;
+                $det->base_multiplier = isset($src->base_multiplier) ? $round2($src->base_multiplier) : null;
+                $det->base_qty        = isset($src->base_qty)        ? $round2($src->base_qty)        : null;
+                $det->base_uom        = $src->base_uom ?? null;
 
                 // harga terakhir & note
                 $det->inventory_last_price = isset($d['inventory_last_price']) ? $round2($d['inventory_last_price'])
-                                            : (isset($src->inventory_last_price) ? $round2($src->inventory_last_price) : 0);
+                                        : (isset($src->inventory_last_price) ? $round2($src->inventory_last_price) : 0);
                 $det->csnote_detail        = $d['csnote_detail'] ?? ($src->note ?? null);
 
                 // lokasi & budgeting
@@ -1419,13 +1406,10 @@ class CanvassController extends Controller
                 $det->budget_account_id         = $src->budget_account_id         ?? null;
                 $det->budget_activity_id        = $src->budget_activity_id        ?? null;
 
-                // vendor harga + akumulasi selected
-                $selectedTotalThisRow = 0.0;
-                $selectedTaxThisRow   = 0.0;
+                // harga vendor + akumulasi selected
                 $selectedGrandThisRow = 0.0;
-
                 for ($i = 0; $i < min(count($d['vendor'] ?? []), 6); $i++) {
-                    $idx   = $i + 1;
+                    $slot  = $i + 1;
                     $vrow  = $d['vendor'][$i];
                     $vid   = $vrow['vendorid'] ?? null;
                     $price = $round2($vrow['price'] ?? 0);
@@ -1436,42 +1420,40 @@ class CanvassController extends Controller
                     $grand = $round2($vrow['grand'] ?? ($total + $tax));
                     $sel   = !empty($vrow['selected']);
 
-                    $det->{"vendorid{$idx}"}         = $vid;
-                    $det->{"vendorprice{$idx}"}      = $price;
-                    $det->{"vendortotalprice{$idx}"} = $total;
-                    $det->{"vendor{$idx}selected"}   = (bool)$sel;
+                    $det->{"vendorid{$slot}"}         = $vid;
+                    $det->{"vendorprice{$slot}"}      = $price;
+                    $det->{"vendortotalprice{$slot}"} = $total;
+                    $det->{"vendor{$slot}selected"}   = (bool)$sel;
 
                     if ($sel) {
-                        $selectedTotalThisRow = $total;
-                        $selectedTaxThisRow   = $tax;
                         $selectedGrandThisRow = $grand;
-
-                        $selectedByVendor[$idx]['total'] += $total;
-                        $selectedByVendor[$idx]['tax']   += $tax;
-                        $selectedByVendor[$idx]['grand'] += $grand;
+                        $selectedByVendor[$slot]['total'] += $total;
+                        $selectedByVendor[$slot]['tax']   += $tax;
+                        $selectedByVendor[$slot]['grand'] += $grand;
                     }
                 }
 
                 $docSelectedGrand += $selectedGrandThisRow;
 
-                $det->status     = 'H';          // masih draft sampai submit
+                // status detail: draft saat save, pending saat submit (akan di-set di bawah bila submit)
+                $det->status     = 'H';
                 $det->created_by = $username;
                 $det->save();
             }
 
             // 9) Tulis ulang kolom header selected per vendor dari akumulasi detail
-            for ($i = 1; $i <= 6; $i++) {
-                $safeSet($cs, $csTable, "totalselectedvendor{$i}",      $round2($selectedByVendor[$i]['total']));
-                $safeSet($cs, $csTable, "taxselectedvendor{$i}",        $round2($selectedByVendor[$i]['tax']));
-                $safeSet($cs, $csTable, "grandtotalselectedvendor{$i}", $round2($selectedByVendor[$i]['grand']));
+            for ($slot = 1; $slot <= 6; $slot++) {
+                $safeSet($cs, $csTable, "totalselectedvendor{$slot}",      $round2($selectedByVendor[$slot]['total']));
+                $safeSet($cs, $csTable, "taxselectedvendor{$slot}",        $round2($selectedByVendor[$slot]['tax']));
+                $safeSet($cs, $csTable, "grandtotalselectedvendor{$slot}", $round2($selectedByVendor[$slot]['grand']));
             }
             $cs->save();
 
-            // 10) Attachments BARU (ke GCS melalui TrAttachmentController::uploadInternal) 
+            // 10) Attachments BARU (GCS)
             if ($request->hasFile('attachments')) {
                 $meta = [
                     'refnbr'        => $cs->csid,
-                    'doctype'       => $doctype,              // 'CS'
+                    'doctype'       => $doctype,
                     'cpnyid'        => $cpnyId,
                     'departementid' => $deptId,
                     'base_folder'   => 'att-purchasing-app/'.strtolower($doctype),
@@ -1490,33 +1472,34 @@ class CanvassController extends Controller
                 }
             }
 
-            // 11) Jika aksi = submit → set Pending, generate approval (cek NOMINAL), dan email approver pertama
+            // 11) SAVE vs SUBMIT
             $action = strtolower($request->input('action', 'save'));
             if (!in_array($action, ['save','submit'], true)) $action = 'save';
 
             if ($action === 'submit') {
-                // 0) Validasi submit server-side (baris berharga > 0 harus punya vendor selected, dst.)
+                // (a) Validasi submit server-side
                 $this->validateSubmitServerSide($details);
-                // 3) Ambil sumber (header+detail) 
-                [$srcHeader, $srcDetails, $srcLineKey, $srcIndex] = $this->buildSourceForDoc($doc, $srcId);
 
-                // 4) Update ordered/openordered 
-                $this->updateOrderedOnSource($details, $srcHeader, $srcDetails, $srcIndex, $cpnyId);
+                // (b) Ambil sumber (helper private milikmu), dan update ordered
+                [$srcHeader2, $srcDetails2, $srcLineKey2, $srcIndex2] = $this->buildSourceForDoc($doc, $srcId);
+                $this->updateOrderedOnSource($details, $srcHeader2, $srcDetails2, $srcIndex2, $cpnyId);
 
-                // 5) Reserve budget 
+                // (c) Reserve budget
                 $this->reserveBudget($details, $cpnyId, $cs, $username);
 
-                // set status Pending + submitdate
+                // (d) Set status header & detail = Pending, set submitdate
                 $cs->status = 'P';
-                if (\Schema::connection('pgsql')->hasColumn($csTable, 'submitdate')) {
+                if (\Illuminate\Support\Facades\Schema::connection('pgsql')->hasColumn($csTable, 'submitdate')) {
                     $cs->submitdate = $dt;
                 }
-                if (\Schema::connection('pgsql')->hasColumn($csTable, 'updated_by')) {
+                if (\Illuminate\Support\Facades\Schema::connection('pgsql')->hasColumn($csTable, 'updated_by')) {
                     $cs->updated_by = $username;
                 }
                 $cs->save();
 
-                // generate TrApproval (HANYA cek nominal) dengan grand total TERPILIH
+                \App\Models\TrCSdetail::on('pgsql')->where('csid', $csid)->update(['status' => 'P']);
+
+                // (e) Generate TrApproval (cek nominal) + email approver pertama
                 $ctx = [
                     'ignore_nominal' => false,
                     'grand_total'    => (float) $docSelectedGrand,
@@ -1532,27 +1515,34 @@ class CanvassController extends Controller
                     $dt
                 );
 
-                // simpan hint approver pertama (opsional)
                 if ($firstApprovalUsernames) {
                     $cs->completed_by = $firstApprovalUsernames;
                     $cs->completed_at = $dt;
                     $cs->save();
                 }
 
-                // email approver pertama
                 $eid = \Vinkla\Hashids\Facades\Hashids::encode($cs->id);
                 $approvalCtl->notifyFirstApprover(
                     $cs->csid,
                     $doctype,
-                    $cs->status,                  // 'P'
+                    $cs->status,  // 'P'
                     'CS',
                     url('/showcs/' . $eid),
                     [
-                        'info'      => $cs->csnote ?: ($srcHeader->keperluan ?? ''),
+                        'info'      => $cs->csnote ?: ($srcHeader2->keperluan ?? $srcHeader->keperluan ?? ''),
                         'createdby' => $cs->created_by,
                         'date'      => $dt->toDateTimeString(),
                     ]
                 );
+            } else {
+                // Pastikan status minimal draft jika belum pernah di-set
+                if (!$cs->status || $cs->status === 'H') {
+                    $cs->status = 'H';
+                    if (\Illuminate\Support\Facades\Schema::connection('pgsql')->hasColumn($csTable, 'updated_by')) {
+                        $cs->updated_by = $username;
+                    }
+                    $cs->save();
+                }
             }
 
             \DB::connection('pgsql')->commit();
@@ -1561,7 +1551,9 @@ class CanvassController extends Controller
                 'ok'           => true,
                 'message'      => $action === 'submit' ? 'CS berhasil diupdate & diajukan' : 'CS berhasil diupdate',
                 'csid'         => $cs->csid,
-                'grand_total'  => $round2($docSelectedGrand),   // dasar approval nominal
+                'grand_total'  => $round2($docSelectedGrand), // dasar approval nominal
+                'status'       => $cs->status,
+                'submitdate'   => optional($cs->submitdate)->toDateTimeString(),
             ]);
 
         } catch (\Throwable $e) {
@@ -1573,6 +1565,7 @@ class CanvassController extends Controller
             ], 500);
         }
     }
+
 
 
     public function showCS($hash)

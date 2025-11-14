@@ -62,82 +62,76 @@
             </div>
 
             <!-- BQ Details -->
-            <div class="flex w-full flex-col rounded-2xl bg-white shadow-md dark:bg-gray-800">
-                <div class="p-4">
-                    <div
-                        class="border-b border-gray-200 pb-4 text-lg font-bold text-gray-800 dark:border-gray-700 dark:text-white">
-                        BQ Detail
-                    </div>
-                    <div class="mt-4 overflow-x-auto">
-                        <table class="w-max table-auto border text-sm text-gray-700 dark:text-gray-200">
-                            <!-- HEADER -->
-                            <thead
-                                class="bg-gray-100 text-gray-900 dark:border-gray-700 dark:bg-gray-700 dark:text-gray-100">
-                                <tr>
-                                    <th class="border px-4 py-3 text-left font-semibold">No</th>
-                                    <th class="border px-4 py-3 text-left font-semibold">Line</th>
-                                    <th class="border px-4 py-3 text-left font-semibold">Description</th>
-                                    <th class="w-20 border px-3 py-2 text-center">Qty</th>
-                                    <th class="w-20 border px-3 py-2 text-center">UoM</th>
+            <div class="w-full rounded-xl bg-white shadow-md dark:bg-gray-800">
+                <div class="border-b border-gray-200 p-5 dark:border-gray-700">
+                    <h3 class="text-lg font-semibold text-gray-800 dark:text-white">BQ Details</h3>
+                </div>
+                <div class="overflow-x-auto p-5">
+                    <table class="w-full text-sm">
+                        <!-- HEADER -->
+                        <thead
+                            class="bg-gray-100 text-gray-900 dark:border-gray-700 dark:bg-gray-700 dark:text-gray-100">
+                            <tr>
+                                <th class="border px-4 py-3 text-left font-semibold">No</th>
+                                <th class="border px-4 py-3 text-left font-semibold">Line</th>
+                                <th class="border px-4 py-3 text-left font-semibold">Description</th>
+                                <th class="border px-4 py-3 text-left font-semibold">Qty</th>
+                                <th class="border px-4 py-3 text-left font-semibold">UoM</th>
+                                <th class="border px-4 py-3 text-left font-semibold">
+                                    <div>Estimates</div>
+                                    <div class="text-xs text-gray-500 dark:text-gray-400">Material & Jasa</div>
+                                </th>
+                                @foreach ($vendors as $v)
                                     <th class="border px-4 py-3 text-left font-semibold">
-                                        <div>Estimates</div>
-                                        <div class="text-xs text-gray-500 dark:text-gray-400">Material & Jasa</div>
+                                        <div>{{ $v['name'] }}</div>
+                                        <div class="text-xs text-gray-500 dark:text-gray-400">✉️ {{ $v['cp'] ?? '-' }}
+                                        </div>
+                                        <div class="text-xs text-gray-500 dark:text-gray-400">☎️
+                                            {{ $v['telp'] ?? '-' }}</div>
+                                        <div class="text-xs text-gray-500 dark:text-gray-400">🏠
+                                            {{ $v['addr'] ?? '-' }}</div>
+                                        <div class="mt-1 text-xs font-medium text-gray-500 dark:text-gray-400">Material
+                                            / Jasa</div>
                                     </th>
-                                    @foreach ($vendors as $v)
-                                        <th class="border px-4 py-3 text-left font-semibold">
-                                            <div>{{ $v['name'] }}</div>
-                                            <div class="text-xs text-gray-500 dark:text-gray-400">✉️
-                                                {{ $v['cp'] ?? '-' }}
-                                            </div>
-                                            <div class="text-xs text-gray-500 dark:text-gray-400">☎️
-                                                {{ $v['telp'] ?? '-' }}</div>
-                                            <div class="text-xs text-gray-500 dark:text-gray-400">🏠
-                                                {{ $v['addr'] ?? '-' }}</div>
-                                            <div class="mt-1 text-xs font-medium text-gray-500 dark:text-gray-400">
-                                                Material
-                                                / Jasa</div>
-                                        </th>
-                                    @endforeach
-                                </tr>
-                            </thead>
+                                @endforeach
+                            </tr>
+                        </thead>
 
-                            <!-- BODY -->
-                            <tbody>
-                                @foreach ($bqDetails as $d)
-                                    <tr
-                                        class="transition odd:bg-white even:bg-gray-50 hover:bg-gray-100 dark:odd:bg-gray-900 dark:even:bg-gray-800 dark:hover:bg-gray-700">
-                                        <td class="border px-4 py-3">{{ $d->bq_no }}</td>
-                                        <td class="border px-4 py-3">{{ $d->bq_line_no }}</td>
-                                        <td class="border px-4 py-3">{{ $d->bq_descr }}</td>
-                                        <td class="border px-4 py-3 text-center">
-                                            <input type="number" step="0.01" min="0"
-                                                class="bq-qty w-24 rounded-lg border px-2 py-1 text-right shadow-sm focus:ring-2 focus:ring-indigo-400 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200"
-                                                value="{{ number_format((float) $d->qty, 2, '.', '') }}">
-                                        </td>
-                                        <td class="border px-4 py-3 text-center">{{ $d->uom }}</td>
+                        <!-- BODY -->
+                        <tbody>
+                            @foreach ($bqDetails as $d)
+                                <tr
+                                    class="transition odd:bg-white even:bg-gray-50 hover:bg-gray-100 dark:odd:bg-gray-900 dark:even:bg-gray-800 dark:hover:bg-gray-700">
+                                    <td class="border px-4 py-3">{{ $d->bq_no }}</td>
+                                    <td class="border px-4 py-3">{{ $d->bq_line_no }}</td>
+                                    <td class="border px-4 py-3">{{ $d->bq_descr }}</td>
+                                    <td class="border px-4 py-3 text-center">
+                                        <input type="number" step="0.01" min="0"
+                                            class="bq-qty w-24 rounded-lg border px-2 py-1 text-right shadow-sm focus:ring-2 focus:ring-indigo-400 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200"
+                                            value="{{ number_format((float) $d->qty, 2, '.', '') }}">
+                                    </td>
+                                    <td class="border px-4 py-3 text-center">{{ $d->uom }}</td>
+                                    <td class="border px-4 py-3 align-top">
+                                        <div class="grid grid-cols-2 gap-3 text-xs">
+                                            <label class="flex flex-col gap-1">
+                                            <span class="font-medium text-gray-600 dark:text-gray-300">Est. Material</span>
+                                            <input type="text" value="{{ $d->est_material_price }}"
+                                                        class="w-full rounded-md border bg-gray-100 px-2 py-1 text-right text-gray-600 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                                        readonly>
+                                            </label>
+                                            <label class="flex flex-col gap-1">
+                                            <span class="font-medium text-gray-600 dark:text-gray-300">Est. Jasa</span>
+                                            <input type="text" value="{{ $d->est_jasa_price }}"
+                                                        class="w-full rounded-md border bg-gray-100 px-2 py-1 text-right text-gray-600 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                                        readonly>
+                                            </label>
+                                        </div>
+                                    </td>
+
+                                    @foreach ($vendors as $v)
                                         <td class="border px-4 py-3 align-top">
                                             <div class="grid grid-cols-2 gap-3 text-xs">
-                                                <label class="flex flex-col gap-1">
-                                                    <span class="font-medium text-gray-600 dark:text-gray-300">Est.
-                                                        Material</span>
-                                                    <input type="text" value="{{ $d->est_material_price }}"
-                                                        class="w-full rounded-md border bg-gray-100 px-2 py-1 text-right text-gray-600 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
-                                                        readonly>
-                                                </label>
-                                                <label class="flex flex-col gap-1">
-                                                    <span class="font-medium text-gray-600 dark:text-gray-300">Est.
-                                                        Jasa</span>
-                                                    <input type="text" value="{{ $d->est_jasa_price }}"
-                                                        class="w-full rounded-md border bg-gray-100 px-2 py-1 text-right text-gray-600 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
-                                                        readonly>
-                                                </label>
-                                            </div>
-                                        </td>
-
-                                        @foreach ($vendors as $v)
-                                            <td class="border px-4 py-3 align-top">
-                                                <div class="grid grid-cols-2 gap-3 text-xs">
-                                                    {{-- <label class="flex flex-col gap-1">
+                                                {{-- <label class="flex flex-col gap-1">
                                                     <span class="font-medium text-gray-600 dark:text-gray-300">Est.
                                                         Material</span>
                                                     <input type="text" value="{{ $d->est_material_price }}"
@@ -151,66 +145,62 @@
                                                         class="w-full rounded-md border bg-gray-100 px-2 py-1 text-right text-gray-600 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                                         readonly>
                                                 </label> --}}
-                                                    <label class="flex flex-col gap-1">
-                                                        <span class="font-medium text-gray-600 dark:text-gray-300">Harga
-                                                            Material</span>
-                                                        <input type="number" step="0.01" min="0"
-                                                            value="0.00"
-                                                            class="bq-price-mat w-full rounded-md border px-2 py-1 text-right shadow-sm focus:ring-2 focus:ring-indigo-400 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200"
-                                                            placeholder="0,00">
-                                                    </label>
-                                                    <label class="flex flex-col gap-1">
-                                                        <span class="font-medium text-gray-600 dark:text-gray-300">Harga
-                                                            Jasa</span>
-                                                        <input type="number" step="0.01" min="0"
-                                                            value="0.00"
-                                                            class="bq-price-jsa w-full rounded-md border border-gray-400 px-2 py-1 text-right shadow-sm focus:ring-2 focus:ring-indigo-400 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200"
-                                                            placeholder="0,00">
-                                                    </label>
-                                                </div>
-                                            </td>
-                                        @endforeach
-                                    </tr>
-                                @endforeach
-                            </tbody>
-
-                            <!-- FOOTER -->
-                            <tfoot class="bg-gray-100 font-medium dark:bg-gray-700">
-                                <tr>
-                                    <td colspan="6" class="border px-4 py-4 text-right">Grand Total per Vendor</td>
-                                    @foreach ($vendors as $i => $v)
-                                        <td class="border px-4 py-4 text-right">
-                                            <div class="text-xs text-gray-600 dark:text-gray-300">
-                                                Harga Total Material : <span class="sum-mat font-semibold"
-                                                    data-vendor="{{ $i + 1 }}">0</span>
-                                            </div>
-                                            <div class="text-xs text-gray-600 dark:text-gray-300">
-                                                Harga Total Jasa : <span class="sum-jsa font-semibold"
-                                                    data-vendor="{{ $i + 1 }}">0</span>
-                                            </div>
-                                            <div class="mt-1 font-bold text-indigo-600 dark:text-indigo-400">
-                                                Grand Total : <span class="sum-grand"
-                                                    data-vendor="{{ $i + 1 }}">0</span>
+                                                <label class="flex flex-col gap-1">
+                                                    <span class="font-medium text-gray-600 dark:text-gray-300">Harga
+                                                        Material</span>
+                                                    <input type="number" step="0.01" min="0" value="0.00"
+                                                        class="bq-price-mat w-full rounded-md border px-2 py-1 text-right shadow-sm focus:ring-2 focus:ring-indigo-400 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200"
+                                                        placeholder="0,00">
+                                                </label>
+                                                <label class="flex flex-col gap-1">
+                                                    <span class="font-medium text-gray-600 dark:text-gray-300">Harga
+                                                        Jasa</span>
+                                                    <input type="number" step="0.01" min="0" value="0.00"
+                                                        class="bq-price-jsa w-full rounded-md border border-gray-400 px-2 py-1 text-right shadow-sm focus:ring-2 focus:ring-indigo-400 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200"
+                                                        placeholder="0,00">
+                                                </label>
                                             </div>
                                         </td>
                                     @endforeach
                                 </tr>
-                            </tfoot>
-                        </table>
-                    </div>
+                            @endforeach
+                        </tbody>
 
-                    <!-- Action Buttons -->
-                    <div
-                        class="flex justify-end gap-3 rounded-b-xl border-t border-gray-200 p-4 dark:border-gray-700 dark:bg-gray-700/40">
-                        <a href="{{ url()->previous() }}"
-                            class="rounded-lg bg-gray-200 px-4 py-2 text-gray-700 transition hover:bg-gray-300 dark:bg-gray-600 dark:text-gray-200 dark:hover:bg-gray-500">
-                            Cancel
-                        </a>
-                        <button type="button" id="btnSaveBQ"
-                            class="rounded-lg bg-indigo-600 px-5 py-2 text-white shadow hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-400">
-                            Save BQ
-                        </button>
-                    </div>
+                        <!-- FOOTER -->
+                        <tfoot class="bg-gray-100 font-medium dark:bg-gray-700">
+                            <tr>
+                                <td colspan="6" class="border px-4 py-4 text-right">Grand Total per Vendor</td>
+                                @foreach ($vendors as $i => $v)
+                                    <td class="border px-4 py-4 text-right">
+                                        <div class="text-xs text-gray-600 dark:text-gray-300">
+                                            Harga Total Material: <span class="sum-mat font-semibold"
+                                                data-vendor="{{ $i + 1 }}">0</span>
+                                        </div>
+                                        <div class="text-xs text-gray-600 dark:text-gray-300">
+                                            Harga Total Jasa: <span class="sum-jsa font-semibold"
+                                                data-vendor="{{ $i + 1 }}">0</span>
+                                        </div>
+                                        <div class="mt-1 font-bold text-indigo-600 dark:text-indigo-400">
+                                            Grand Total : <span class="sum-grand" data-vendor="{{ $i + 1 }}">0</span>
+                                        </div>
+                                    </td>
+                                @endforeach
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+
+                <!-- Action Buttons -->
+                <div
+                    class="flex justify-end gap-3 rounded-b-xl border-t border-gray-200 p-4 dark:border-gray-700 dark:bg-gray-700/40">
+                    <a href="{{ url()->previous() }}"
+                        class="rounded-lg bg-gray-200 px-4 py-2 text-gray-700 transition hover:bg-gray-300 dark:bg-gray-600 dark:text-gray-200 dark:hover:bg-gray-500">
+                        Cancel
+                    </a>
+                    <button type="button" id="btnSaveBQ"
+                        class="rounded-lg bg-indigo-600 px-5 py-2 text-white shadow hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-400">
+                        Save BQ
+                    </button>
                 </div>
             </div>
         </form>

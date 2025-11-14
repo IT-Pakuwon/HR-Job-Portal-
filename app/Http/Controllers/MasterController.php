@@ -107,7 +107,7 @@ class MasterController extends Controller
         ]);
     }
 
-    public function InventoryByWorktype(Request $request)
+    public function InventoryByWorktype_zzz(Request $request)
 {
     $worktypeid = trim($request->get('worktypeid', ''));
     $cpnyid     = strtoupper(trim($request->get('cpnyid', '')));
@@ -259,7 +259,7 @@ class MasterController extends Controller
 }
 
 
-    public function InventoryByWorktype_zzz(Request $request)
+    public function InventoryByWorktype(Request $request)
     {
         $worktypeid = trim($request->get('worktypeid', ''));
         $cpnyid     = strtoupper(trim($request->get('cpnyid', '')));
@@ -377,6 +377,7 @@ class MasterController extends Controller
             ->selectRaw("
                 invtid,
                 cpnyid,
+                siteid,                       
                 CAST(stock AS float) AS stock,
                 CAST(cost  AS float) AS cost
             ")
@@ -384,29 +385,51 @@ class MasterController extends Controller
             ->when($cpnyid !== '', fn($q) => $q->where('cpnyid', $cpnyid))
             ->get();
 
-        // --- Build map: key = UPPER(TRIM(invtid)) ---
-        $awMap = $awRows->keyBy(function ($r) {
+
+                // --- GroupBy: key = UPPER(TRIM(invtid)) → bisa >1 row per invtid ---
+        $awGroups = $awRows->groupBy(function ($r) {
             return strtoupper(trim((string)$r->invtid));
         });
 
-        // --- Merge ke hasil PG dengan normalisasi yang sama ---
-        $rows = $rows->map(function ($r) use ($awMap) {
-            $key = strtoupper(trim((string)$r->inventoryid));
-            $aw  = $awMap->get($key);
-            $r->stock = $aw->stock ?? null;
-            $r->cost  = $aw->cost  ?? null;
-            return $r;
-        });
+        // --- Fan-out: 1 inventoryid PG bisa jadi beberapa baris (per siteid) ---
+        $expanded = collect();
 
-        // (opsional) log yang benar-benar membandingkan key hasil normalisasi
-        if (config('app.debug')) {
-            $pgKeys = $rows->pluck('inventoryid')->map(fn($v) => strtoupper(trim((string)$v)))->values();
-            $missing = $pgKeys->reject(fn($k) => $awMap->has($k))->values();
-            \Log::info('[INV-BY-WORKTYPE-NORM] pgKeys='.json_encode($pgKeys->take(10)).
-                    ' awKeys='.json_encode($awMap->keys()->take(10)).
-                    ' missing='.json_encode($missing->take(10)));
+        foreach ($rows as $r) {
+            $key   = strtoupper(trim((string)$r->inventoryid));
+            $group = $awGroups->get($key);
+
+            // kalau tidak ada data stok → tetap keluarkan 1 baris (siteid/stock/cost null)
+            if (!$group || $group->isEmpty()) {
+                $clone = clone $r;
+                $clone->stock  = null;
+                $clone->cost   = null;
+                $clone->siteid = null;
+                $expanded->push($clone);
+                continue;
+            }
+
+            // ada beberapa baris di SQL Server (beda siteid) → keluarkan semua
+            foreach ($group as $aw) {
+                $clone = clone $r;
+                $clone->stock  = $aw->stock;
+                $clone->cost   = $aw->cost;
+                $clone->siteid = $aw->siteid;
+                $expanded->push($clone);
+            }
         }
 
+        $rows = $expanded;
+
+                // (opsional) log yang benar-benar membandingkan key hasil normalisasi
+        if (config('app.debug')) {
+            $pgKeys = $rows->pluck('inventoryid')->map(fn($v) => strtoupper(trim((string)$v)))->unique()->values();
+            $awKeys = $awGroups->keys()->values();
+            $missing = $pgKeys->reject(fn($k) => $awKeys->contains($k))->values();
+
+            \Log::info('[INV-BY-WORKTYPE-NORM] pgKeys='.json_encode($pgKeys->take(10)).
+                ' awKeys='.json_encode($awKeys->take(10)).
+                ' missing='.json_encode($missing->take(10)));
+        }
 
         return response()->json([
             'data'     => $rows,

@@ -1102,11 +1102,11 @@ class SppbController extends Controller
         ->where('sppbid', $sppb->sppbid)
         ->get();
         
-        $approval = T_approval::where('docid', $sppb->sppbid)
-            ->where('status','<>','X')      
-            ->orderBy('created_at')
-            ->orderBy('aprvid')      
-            ->get();
+        // $approval = T_approval::where('docid', $sppb->sppbid)
+        //     ->where('status','<>','X')      
+        //     ->orderBy('created_at')
+        //     ->orderBy('aprvid')      
+        //     ->get();
        
         // $attachment = Attachment::where('docid', $sppb->sppbid)    
         //     ->where('status','A')        
@@ -1161,7 +1161,7 @@ class SppbController extends Controller
         });
         
        
-        return view('pages.sppbs.showsppbs', compact('sppb','approval','attachments','sppbdetail','hash'));
+        return view('pages.sppbs.showsppbs', compact('sppb','attachments','sppbdetail','hash'));
     }
       
     public function approveSppb(Request $request, $docid)
