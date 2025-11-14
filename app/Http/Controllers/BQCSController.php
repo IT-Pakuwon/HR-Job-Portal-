@@ -386,5 +386,93 @@ class BQCSController extends Controller
         });
     }
 
+    public function showBQCS($hash)
+    {
+        $id = Hashids::decode($hash)[0] ?? null;
+        abort_if(!$id, 404);
+
+        // 1) Ambil header BQ
+        $bq = TrBQCS::on('pgsql')->findOrFail($id);
+
+        // 2) Ambil CS (vendor master untuk BQ ini)
+        $cs = TrCS::on('pgsql')
+            ->where('bqid', $bq->bqid)
+            ->where('csid', $bq->csid)
+            ->first();
+
+        abort_if(!$cs, 404, 'CS untuk BQ ini tidak ditemukan (bqid & csid tidak cocok).');
+
+        // --- siapkan array vendor dari CS (1..6) ---
+        $csVendors = [];
+        for ($i = 1; $i <= 6; $i++) {
+            $csVendors[$i] = [
+                'id'   => $cs->{"vendorid{$i}"} ?? null,
+                'name' => $cs->{"vendorname{$i}"} ?? null,
+                'addr' => $cs->{"vendoralamat{$i}"} ?? null,
+                'cp'   => $cs->{"vendorcp{$i}"} ?? null,
+                'telp' => $cs->{"vendortelp{$i}"} ?? null,
+                'top'  => $cs->{"vendortop{$i}"} ?? null,
+            ];
+        }
+
+        // 3) SINKRONISASI vendor dari CS → BQ header & detail (transaksi)
+        DB::connection('pgsql')->transaction(function () use ($bq, $csVendors) {
+            $now  = Carbon::now();
+            $user = Auth::user();
+            $u    = isset($user) && isset($user->username) ? $user->username : 'system';
+
+            // 3a) Update header BQ: vendorid1..6 mengikuti CS (nama/alamat/cp/telp/top memang tidak ada di tabel BQ header)
+            for ($i = 1; $i <= 6; $i++) {
+                $bq->{"vendorid{$i}"} = $csVendors[$i]['id']; // bisa null kalau tak diisi
+            }
+            $bq->updated_by = $u;
+            $bq->updated_at = $now;
+            $bq->save();
+
+            // 3b) Update semua detail BQ: vendorid1..6 mengikuti CS
+            TrBQCSDetail::on('pgsql')
+                ->where('bqid', $bq->bqid)
+                ->update([
+                    'vendorid1' => $csVendors[1]['id'],
+                    'vendorid2' => $csVendors[2]['id'],
+                    'vendorid3' => $csVendors[3]['id'],
+                    'vendorid4' => $csVendors[4]['id'],
+                    'vendorid5' => $csVendors[5]['id'],
+                    'vendorid6' => $csVendors[6]['id'],
+                    // kolom harga/totals tidak diubah
+                ]);
+        });
+
+        // 4) Ambil ulang detail setelah sinkron (kalau perlu)
+        $details = TrBQCSDetail::on('pgsql')
+            ->where('bqid', $bq->bqid)
+            ->orderBy('bq_no')
+            ->orderBy('bq_line_no')
+            ->get();
+
+        // 5) Vendor untuk tampilan: SELALU dari CS supaya name/addr/cp/telp/top tampil
+        $vendors = [];
+        for ($i = 1; $i <= 6; $i++) {
+            $vid = $csVendors[$i]['id'];
+            $vnm = $csVendors[$i]['name'];
+            if (!filled($vid) && !filled($vnm)) continue;
+
+            $vendors[] = [
+                'idx'  => $i,
+                'id'   => $vid,
+                'name' => $vnm,
+                'addr' => $csVendors[$i]['addr'],
+                'cp'   => $csVendors[$i]['cp'],
+                'telp' => $csVendors[$i]['telp'],
+                'top'  => $csVendors[$i]['top'],
+            ];
+        }
+
+        $hash_id = $hash;
+        $cs_eid = Hashids::encode($cs->id);
+
+        return view('pages.canvass.showbqcs', compact('bq', 'details', 'vendors', 'hash_id','cs','cs_eid'));
+    }
+
 
 }

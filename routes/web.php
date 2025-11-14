@@ -576,6 +576,7 @@ Route::post('/logout', function () {
     Route::get('/bqcs/edit/{hash}', [BQCSController::class, 'EditBQCS'])->name('bqcs.edit');
     // Route::post('/bqcs/update/{hash}', [BQCSController::class, 'updateBQCS'])->name('bqcs.update');
     Route::put('bqcs/update/{hash}', [BQCSController::class, 'updateBQCS'])->name('bqcs.update');
+    Route::get('/bqcs/show/{hash}', [BQCSController::class, 'showBQCS'])->name('bqcs.show');
 
 
 
