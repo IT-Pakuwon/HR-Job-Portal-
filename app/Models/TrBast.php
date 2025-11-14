@@ -46,8 +46,8 @@ class TrBast extends Model
         'bastid' , 'bastdate' , 'ponbr' , 'cpny_id' , 'csid' , 'sppbjktid' , 'bqid' , 'department_id' , 'user_peminta' , 
         'keperluan' , 'order_term' , 'terms_id' , 'topid' , 'payment_pct' , 'progress_pct' , 'vendorid' , 'vendorname' , 
         'startdate' , 'enddate' , 'handoverdate' , 'bast_amount' , 'days_penalty' , 'penalty' , 'total_penalty' , 'realize_amount' , 
-        'rating_vendor' , 'spkpic' , 'spkwarranty' , 'status' , 'created_by' , 'created_at' , 'updated_by' , 'updated_at' , 
-        'deleted_by' , 'deleted_at' , 'completed_by' , 'completed_at'
+        'rating_vendor' , 'location_id', 'sub_location_id', 'spkpic' , 'spkwarranty' , 'status' , 'created_by' , 
+        'created_at' , 'updated_by' , 'updated_at' , 'deleted_by' , 'deleted_at' , 'completed_by' , 'completed_at'
     ];
  
 
