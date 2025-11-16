@@ -14,6 +14,7 @@ class MsTopdetail extends Model
         'topid',
         'top_type',
         'terms_name',
+        'order_term',
         'payment_pct',
         'progress_pct',
         'terms_type',

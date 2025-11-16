@@ -670,17 +670,17 @@ class MasterController extends Controller
         if ($search !== '') {
             $budgetDetail->where(function ($w) use ($search) {
                 $w->where('account_id',     'ilike', "%{$search}%")
-                ->orWhere('activity_detail','ilike', "%{$search}%")
+                ->orWhere('activity_descr','ilike', "%{$search}%")
                 ->orWhere('totalbudget',  'ilike', "%{$search}%");
             });
         }
 
         $total = (clone $budgetDetail)->count();
 
-        $rows = $budgetDetail->orderBy('activity_detail')
+        $rows = $budgetDetail->orderBy('activity_descr')
             ->offset(($page - 1) * $perPage)
             ->limit($perPage)
-            ->get(['account_id', 'activity_id', 'activity_detail', 'totalbudget','business_unit_id','department_fin_id']);
+            ->get(['account_id', 'activity_id', 'activity_descr', 'totalbudget','business_unit_id','department_fin_id']);
 
         return response()->json([
             'data'     => $rows,
@@ -1257,6 +1257,64 @@ class MasterController extends Controller
             'per_page'  => $perPage,
         ]);
     }
+
+    public function completedWo(Request $request)
+    {
+        $cpnyid   = $request->get('cpnyid');
+        $deptid   = $request->get('deptid');
+        $perpost  = $request->get('perpost'); // kalau mau dipakai nanti
+        $search   = trim($request->get('search', ''));
+        $page     = max((int) $request->get('page', 1), 1);
+        $perPage  = max((int) $request->get('per_page', 10), 1);
+
+        // Kalau wajib company + dept, sama kayak CoaBudget
+        if (!$cpnyid || !$deptid) {
+            return response()->json([
+                'data' => [],
+                'total' => 0,
+                'page' => $page,
+                'per_page' => $perPage,
+            ]);
+        }
+
+        $woQuery = TrWo::query()
+            ->where('status', 'C')
+            // sesuaikan nama kolom dengan struktur table TrWo
+            ->where('cpny_id', $cpnyid)
+            ->where('department_id', $deptid);
+            // ->when($perpost, fn($q) => $q->where('perpost', $perpost)); // kalau TrWo punya perpost
+
+        if ($search !== '') {
+            $woQuery->where(function ($q) use ($search) {
+                $q->where('woid', 'ilike', "%{$search}%")
+                ->orWhere('created_by', 'ilike', "%{$search}%");
+            });
+        }
+
+        $total = (clone $woQuery)->count();
+
+        $rows = $woQuery->orderByDesc('wodate')
+            ->offset(($page - 1) * $perPage)
+            ->limit($perPage)
+            ->get(['woid', 'wodate', 'created_by']);
+
+        $rows = $rows->map(function ($row) {
+            return [
+                'woid'       => $row->woid,
+                'wodate'     => $row->wodate,
+                'created_by' => $row->created_by,
+            ];
+        });
+
+        return response()->json([
+            'data'     => $rows,
+            'total'    => $total,
+            'page'     => $page,
+            'per_page' => $perPage,
+        ]);
+    }
+
+
 
     
     

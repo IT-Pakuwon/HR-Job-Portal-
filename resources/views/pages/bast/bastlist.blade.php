@@ -365,21 +365,21 @@
                             return `
                                 <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Action</th>
                                 <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">PO Nbr</th>
-                                <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">Company</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Company</th>
                                 <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Vendor</th>
                                 <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Terms</th>
-                                <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">Progress %</th>
-                                <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">Payment %</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Progress %</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Payment %</th>
                                 <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Created By</th>
                             `;
                         }
                         // TrBast scopes
                         return `
                             <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Bast ID</th>
-                            <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">Bast Date</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Bast Date</th>
                             <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">PO Nbr</th>
                             <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">SPPB/J/K/T</th>
-                            <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">Company</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Company</th>
                             <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Created By</th>
                         `;
                     }
@@ -389,21 +389,29 @@
                             return [
                                 { data: null, orderable:false, searchable:false, render: (_v,t,row)=>renderPlusCreate(row) },
                                 { data: 'ponbr', render: (_v,_t,row)=>renderPoLink(row) },
-                                { data: 'cpny_id', className:'text-center' },
+                                { data: 'cpny_id', className:'text-left' },
                                 { data: 'vendorname' },
                                 { data: 'terms_name' },
-                                { data: 'progress_pct', className:'text-center' },
-                                { data: 'payment_pct', className:'text-center' },
+                                { data: 'progress_pct', className:'text-left' },
+                                { data: 'payment_pct', className:'text-left' },
                                 { data: 'created_by' },
                             ];
                         }
                         // TrBast scopes
+                        // return [
+                        //     { data: 'bastid',  render: (_v,_t,row)=>renderBastLink(row) },
+                        //     { data: 'bastdate', render: (_v,_t,row)=>row.bastdate_fmt ?? '', className:'text-center' },
+                        //     { data: 'ponbr', render: (_v,_t,row)=>renderPoLink(row) },
+                        //     { data: 'sppbjktid', render: (_v,_t,row)=>renderSppbLink(row) },
+                        //     { data: 'cpny_id', className:'text-center' },
+                        //     { data: 'created_by' },
+                        // ];
                         return [
                             { data: 'bastid',  render: (_v,_t,row)=>renderBastLink(row) },
-                            { data: 'bastdate', render: (_v,_t,row)=>row.bastdate_fmt ?? '', className:'text-center' },
-                            { data: 'ponbr', render: (_v,_t,row)=>renderPoLink(row) },
-                            { data: 'sppbjktid', render: (_v,_t,row)=>renderSppbLink(row) },
-                            { data: 'cpny_id', className:'text-center' },
+                            { data: 'bastdate', render: (_v,_t,row)=>row.bastdate_fmt ?? '', className:'text-left' },
+                            { data: 'ponbr', className:'text-left' },
+                            { data: 'sppbjktid', className:'text-left' },
+                            { data: 'cpny_id', className:'text-left' },
                             { data: 'created_by' },
                         ];
                     }

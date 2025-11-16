@@ -176,6 +176,7 @@ class SpptController extends Controller
         $activityIds   = $request->input('activity_id', []);
         $busUnitIds    = $request->input('business_unit_id', []);
         $deptFinIds    = $request->input('department_fin_id', []);
+        $actDescrs     = $request->input('activity_descr', []);
         $coaIds        = $request->input('coa_id', []); // account_id
         $item_types    = $request->input('item_type', []);
         $item_categories = $request->input('item_category', []);
@@ -293,6 +294,7 @@ class SpptController extends Controller
             $header->keperluan         = $request->input('keperluan');
             $header->budget_perpost    = $request->input('perpost');
             $header->woid              = $request->input('woid');
+            $header->is_urgent         = $request->input('is_urgent');
             $header->bqid              = '';
             $header->totalopenordered  = 0;
             $header->totalqty          = 0;
@@ -358,6 +360,7 @@ class SpptController extends Controller
                 $detail->budget_cpny_id           = $request->cpnyid;
                 $detail->budget_business_unit_id  = $busUnitIds[$i]     ?? null;
                 $detail->budget_department_fin_id = $deptFinIds[$i] ?? null;
+                $detail->budget_activity_descr    = $actDescrs[$i] ?? null;
                 $detail->budget_account_id        = $coaIds[$i]         ?? null;
                 $detail->budget_activity_id       = $activityIds[$i]   ?? null;               
                 $detail->location_id              = $locationIds[$i]  ?? null;
@@ -764,7 +767,8 @@ class SpptController extends Controller
         $header->beban          = $request->beban;
         $header->keperluan      = $request->keperluan;
         $header->budget_perpost = $request->perpost;   
-        $header->woid           = $request->woid;        
+        $header->woid           = $request->woid;  
+        $header->is_urgent      = $request->is_urgent;      
         $header->status         = 'P';
         $header->updated_by     = $username;
         $header->save();
@@ -781,6 +785,7 @@ class SpptController extends Controller
         $actIds       = array_values($request->input('activity_id', []));
         $buIds        = array_values($request->input('business_unit_id', []));
         $deptFinIds   = array_values($request->input('department_fin_id', []));
+        $actDescrs    = array_values($request->input('activity_descr', []));
         $coaIds       = array_values($request->input('coa_id', []));
         $itemTypes    = array_values($request->input('item_type', []));
         $itemCats     = array_values($request->input('item_category', []));
@@ -842,6 +847,7 @@ class SpptController extends Controller
                     'budget_cpny_id'           => $request->cpnyid,
                     'budget_business_unit_id'  => $buIds[$i] ?? null,
                     'budget_department_fin_id' => $deptFinIds[$i] ?? null,
+                    'budget_activity_descr'    => $actDescrs[$i] ?? null,
                     'budget_account_id'        => $coaIds[$i] ?? null,
                     'budget_activity_id'       => $actIds[$i] ?? null,
                     'openordered'              => $qty,

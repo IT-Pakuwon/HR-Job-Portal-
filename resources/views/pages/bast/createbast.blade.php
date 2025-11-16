@@ -129,8 +129,20 @@
                                 <input type="text" value="{{ $term->terms_type }}" readonly
                                        class="mt-1 w-full rounded-lg border border-gray-300 bg-gray-50 p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200"/>
                             </div>
-                            {{-- 2 kolom kosong untuk keseimbangan layout (opsional ganti field lain jika ada) --}}
-                            <div></div>
+                            <div class="flex flex-col gap-2 lg:col-span-2">
+                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Location</label>
+                                <div class="flex gap-2">
+                                <input type="text" id="lokasi_display"
+                                        class="flex-1 rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-gray-600 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                        placeholder="Pilih Location & Sub Location" readonly>
+                                <button type="button" id="btnLokasi"
+                                        class="rounded-lg bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700">Pilih</button>
+                                </div>
+                                <!-- hidden fields to submit -->
+                                <input type="hidden" name="location_id" id="location_id">
+                                <input type="hidden" name="sub_location_id" id="sub_location_id">
+                            </div>
+                            
                             <div></div>
                         </div>
                     </div>
@@ -186,6 +198,40 @@
                         </div>
                     </div>
 
+                    <!-- Modal Lokasi -->
+                    <div id="modalLokasi" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50">
+                        <div class="w-[95vw] max-w-2xl rounded-2xl bg-white p-6 dark:bg-gray-800">
+                            <div class="mb-4 flex items-center justify-between">
+                            <h3 class="text-lg font-semibold text-gray-800 dark:text-white">Pilih Lokasi</h3>
+                            <button type="button" id="closeLokasi" class="text-2xl leading-none text-gray-400 hover:text-gray-600">×</button>
+                            </div>
+
+                            <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                            <!-- Kiri: Location -->
+                            <div>
+                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Location</label>
+                                <select id="modal_location_id"
+                                        class="mt-1 w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
+                                <option value="">-- choose --</option>
+                                </select>
+                            </div>
+
+                            <!-- Kanan: Sub Location (dependent) -->
+                            <div>
+                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Sub Location</label>
+                                <select id="modal_sub_location_id"
+                                        class="mt-1 w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
+                                <option value="">-- choose --</option>
+                                </select>
+                            </div>
+                            </div>
+
+                            <div class="mt-6 flex justify-end gap-3">
+                            <button type="button" id="cancelLokasi" class="rounded-lg border px-4 py-2 hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700">Cancel</button>
+                            <button type="button" id="saveLokasi" class="rounded-lg bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700">Save</button>
+                            </div>
+                        </div>
+                    </div>
 
                     {{-- ===== Attachments ===== --}}
                     <div class="w-full rounded-xl bg-white p-6 shadow-md dark:bg-gray-800">
@@ -480,6 +526,82 @@
             }
             })();
         </script>
+
+        <script>
+            $(function () {
+
+                // cpny langsung dari Blade, tidak pakai select lagi
+                const cpny = "{{ $term->cpny_id }}";
+
+                function openLokasiModal(){ 
+                    $('#modalLokasi').removeClass('hidden').addClass('flex'); 
+                }
+
+                function closeLokasiModal(){ 
+                    $('#modalLokasi').addClass('hidden').removeClass('flex'); 
+                }
+
+                // buka modal & load locations berdasarkan company
+                $('#btnLokasi').on('click', function(){
+                    // reset
+                    $('#modal_location_id')
+                        .empty()
+                        .append('<option value="">-- choose --</option>');
+
+                    $('#modal_sub_location_id')
+                        .empty()
+                        .append('<option value="">-- choose --</option>');
+
+                    // load locations tanpa cek cpny karena sudah fix dari Blade
+                    $.getJSON(`/wos/ajax/locations/${encodeURIComponent(cpny)}`, function(list){
+                        list.forEach(it => 
+                            $('#modal_location_id').append(
+                                new Option(it.text, it.value)
+                            )
+                        );
+                        openLokasiModal();
+                    });
+                });
+
+                $('#closeLokasi, #cancelLokasi').on('click', closeLokasiModal);
+
+                // ketika pilih location -> load sub locations
+                $('#modal_location_id').on('change', function(){
+                    const loc = $(this).val();
+                    const $sub = $('#modal_sub_location_id');
+
+                    $sub.empty().append('<option value="">-- choose --</option>');
+
+                    if (!loc) return;
+
+                    $.getJSON(`/wos/ajax/sublocations/${encodeURIComponent(cpny)}/${encodeURIComponent(loc)}`, function(list){
+                        list.forEach(it => 
+                            $sub.append(new Option(it.text, it.value))
+                        );
+                    });
+                });
+
+                // simpan pilihan -> tulis ke hidden & display
+                $('#saveLokasi').on('click', function(){
+                    const locVal = $('#modal_location_id').val();
+                    const locTxt = $('#modal_location_id option:selected').text();
+                    const subVal = $('#modal_sub_location_id').val();
+                    const subTxt = $('#modal_sub_location_id option:selected').text();
+
+                    if (!locVal || !subVal) {
+                        toastr.error('Pilih Location dan Sub Location.');
+                        return;
+                    }
+
+                    $('#location_id').val(locVal);
+                    $('#sub_location_id').val(subVal);
+                    $('#lokasi_display').val(`${locTxt} — ${subTxt}`);
+                    closeLokasiModal();
+                });
+
+            });
+            </script>
+
 
 
     {{-- Toastr CDN --}}

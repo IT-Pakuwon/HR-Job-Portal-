@@ -921,13 +921,13 @@
                 per_page: coaState.per_page
             })
             .done(function(res) {
-                // Expected: { data: [{account_id, activity_id, business_unit_id, department_fin_id, activity_detail, totalbudget}], total }
+                // Expected: { data: [{account_id, activity_id, business_unit_id, department_fin_id, activity_descr, totalbudget}], total }
                 const rows = (res.data || []).map(item => {
                 const id          = item.account_id ?? '';
                 const actId       = item.activity_id ?? '';
                 const buId        = item.business_unit_id ?? '';
                 const deptFinId   = item.department_fin_id ?? '';
-                const actDetail   = item.activity_detail ?? '';
+                const actDetail   = item.activity_descr ?? '';
                 const totalbudget = item.totalbudget ?? '';
 
                 // label yang tampil di input display

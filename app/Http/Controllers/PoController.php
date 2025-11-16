@@ -28,6 +28,8 @@ use Illuminate\Support\Facades\Response;
 use App\Models\TrAttachment;
 use Google\Cloud\Storage\StorageClient;
 use Illuminate\Support\Str;
+use App\Models\MsTopdetail;
+use App\Models\TrPOterm;
 
 
 class PoController extends Controller
@@ -228,6 +230,8 @@ class PoController extends Controller
             // ubah status ke Purchase Order
             $po->status = 'P';
             $po->save();
+
+            $this->syncPoTermsFromTop($po);
         });
 
         return response()->json([
@@ -1084,6 +1088,70 @@ class PoController extends Controller
             'success' => true,
             'message' => 'Email sudah dikirim beserta lampiran PDF & file dari GCS.'
         ]);
+    }
+
+    private function syncPoTermsFromTop(TrPO $po): void
+    {
+        $topId = $po->vendortop ?? null;
+
+        $topDetails = MsTopdetail::where('topid', $topId)
+            ->where('status', 'A')
+            ->orderBy('order_term')
+            ->get();
+
+        if ($topDetails->isEmpty()) {
+            return;
+        }
+
+        $username = Auth::user()->username ?? 'system';
+
+        foreach ($topDetails as $detail) {
+
+            // hitung bastamount = payment_pct% * total PO
+            $poTotal    = $po->grandtotalamt ?? 0;
+            $pct        = floatval($detail->payment_pct ?? 0);
+            $bastAmount = $poTotal * ($pct / 100);
+
+            TrPOterm::create([
+                // ===== Header PO =====
+                'ponbr'         => $po->ponbr,
+                'cpny_id'       => $po->cpny_id,
+                'csid'          => $po->csid ?? null,
+                'sppbjktid'     => $po->sppbjktid ?? null,
+                'bqid'          => $po->bqid ?? null,
+                'department_id' => $po->department_id ?? null,
+                'user_peminta'  => $po->user_peminta ?? null,
+                'keperluan'     => $po->keperluan ?? null,
+                'vendorid'      => $po->vendorid ?? null,
+                'vendorname'    => $po->vendorname ?? null,
+
+                // ===== Term dari MsTopdetail =====
+                'order_term'    => $detail->order_term,
+                'terms_id'      => $detail->terms_id,
+                'topid'         => $detail->topid,
+                'top_type'      => $detail->top_type,
+                'terms_name'    => $detail->terms_name,
+                'payment_pct'   => $pct,
+                'progress_pct'  => $detail->progress_pct ?? 0,
+                'terms_type'    => $detail->terms_type,
+                'flag_bast'     => $detail->flag_bast,
+
+                // ===== Nominal =====
+                'poamount'      => $poTotal,
+                'bastamount'    => $bastAmount,   
+                'penalty'       => 0,
+                'dayslate'      => 0,
+                'realizeamount' => 0,
+
+                // ===== Status & audit =====
+                'rfcaid'        => null,
+                'calrid'        => null,
+                'bastid'        => null,
+                'status'        => 'A',
+                'created_by'    => $username,
+                'updated_by'    => $username,
+            ]);
+        }
     }
 
 

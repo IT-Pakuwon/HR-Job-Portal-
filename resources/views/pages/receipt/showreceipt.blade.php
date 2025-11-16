@@ -1,7 +1,7 @@
 <x-app-layout>
     <meta name="csrf-token" content="{{ csrf_token() }}">
     {{-- === Styles (fixed CSS typos) === --}}
-   <style>
+    <style>
         /* Overlay full-screen */
         #loadingSpinnerContainer {
             position: fixed;
@@ -191,38 +191,38 @@
                             </a>
                         </div> --}}
                         <div class="flex items-center gap-3">
-                        <span class="{{ $statusClasses }} inline-flex items-center rounded-full px-4 py-1 text-sm font-semibold transition-colors duration-200">
-                            {{ $statusText }}
-                        </span>
+                            <span class="{{ $statusClasses }} inline-flex items-center rounded-full px-4 py-1 text-sm font-semibold transition-colors duration-200">
+                                {{ $statusText }}
+                            </span>
 
-                        {{-- Dropdown Print --}}
-                        <div class="relative">
-                            <button id="printMenuBtn"
-                            class="inline-flex cursor-pointer items-center gap-2 rounded-full bg-indigo-600 px-4 py-1 text-sm font-semibold text-white transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-                            aria-haspopup="true" aria-expanded="false">
-                            Print PDF
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 9l-7 7-7-7"/>
-                            </svg>
-                            </button>
+                            {{-- Dropdown Print --}}
+                            <div class="relative">
+                                <button id="printMenuBtn"
+                                class="inline-flex cursor-pointer items-center gap-2 rounded-full bg-indigo-600 px-4 py-1 text-sm font-semibold text-white transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                                aria-haspopup="true" aria-expanded="false">
+                                Print PDF
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 9l-7 7-7-7"/>
+                                </svg>
+                                </button>
 
-                            <div id="printMenu"
-                            class="absolute right-0 z-20 mt-2 hidden w-56 overflow-hidden rounded-md border border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-gray-800"
-                            role="menu" aria-labelledby="printMenuBtn">
-                            <a href="{{ route('receipts.print', ['hash' => $hash]) }}?type=sttb"
-                                target="_blank"
-                                class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700"
-                                role="menuitem">
-                                Print STTB
-                            </a>
-                            <a href="{{ route('receipts.print', ['hash' => $hash]) }}?type=bpg"
-                                target="_blank"
-                                class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700"
-                                role="menuitem">
-                                Print BPG Non Stock
-                            </a>
+                                <div id="printMenu"
+                                class="absolute right-0 z-20 mt-2 hidden w-56 overflow-hidden rounded-md border border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-gray-800"
+                                role="menu" aria-labelledby="printMenuBtn">
+                                <a href="{{ route('receipts.print', ['hash' => $hash]) }}?type=sttb"
+                                    target="_blank"
+                                    class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700"
+                                    role="menuitem">
+                                    Print STTB
+                                </a>
+                                <a href="{{ route('receipts.print', ['hash' => $hash]) }}?type=bpg"
+                                    target="_blank"
+                                    class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700"
+                                    role="menuitem">
+                                    Print BPG Non Stock
+                                </a>
+                                </div>
                             </div>
-                        </div>
                         </div>
                     </header>
 

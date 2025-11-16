@@ -329,13 +329,61 @@
 
 
                         {{-- Description --}}
-                        <div class="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
-                            <div class="flex flex-col gap-2 lg:col-span-4">
-                                <label for="keperluan"
-                                    class="block text-sm font-medium text-gray-700 dark:text-gray-300">Description</label>
-                                <textarea name="keperluan" id="keperluan" rows="3"
-                                    class="w-full rounded-lg border border-gray-300 bg-white p-3 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">{{ old('keperluan', $sppt->keperluan) }}</textarea>
+                        <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">                            
+                            <div class="flex flex-col gap-2">
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    SPPT Emergency
+                                </label>
+                                <div class="mt-2 flex items-center gap-2">
+                                    <input
+                                        type="checkbox"
+                                        id="is_urgent"
+                                        name="is_urgent"
+                                        value="1"
+                                        class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                                        {{ old('is_urgent', $sppt->is_urgent ?? 0) ? 'checked' : '' }}>
+                                    <label for="is_urgent"
+                                        class="text-sm text-gray-700 dark:text-gray-300">
+                                        Tandai sebagai emergency
+                                    </label>
+                                </div>
                             </div>
+                            <div class="flex flex-col gap-2">
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    WO ID
+                                </label>
+                                <div class="flex">
+                                    <input
+                                        type="text"
+                                        name="woid"
+                                        id="woid"
+                                        value="{{ old('woid', $sppt->woid ?? '') }}"
+                                        class="w-full rounded-l-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                        readonly>
+
+                                    <button type="button"
+                                            id="btnSearchWo"
+                                            class="inline-flex items-center rounded-r-lg border border-l-0 border-gray-300 bg-gray-100 px-3 text-gray-600 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-600 dark:text-gray-200">
+                                        <svg xmlns="http://www.w3.org/2000/svg"
+                                            class="h-5 w-5"
+                                            viewBox="0 0 20 20"
+                                            fill="currentColor">
+                                            <path fill-rule="evenodd"
+                                                d="M8.5 3a5.5 5.5 0 014.384 8.832l3.147 3.147a.75.75 0 11-1.06 1.06l-3.147-3.146A5.5 5.5 0 118.5 3zm0 1.5a4 4 0 100 8 4 4 0 000-8z"
+                                                clip-rule="evenodd" />
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>                         
+                            <div class="flex flex-col gap-2 lg:col-span-2" >
+                                <label for="keperluan"
+                                    class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    Description
+                                </label>
+                                <textarea name="keperluan" id="keperluan"
+                                    class="w-full rounded-lg border border-gray-300 bg-white p-3 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                    rows="3">{{ old('keperluan', $sppt->keperluan) }}</textarea>
+                            </div>          
                         </div>
                     </div>
 
@@ -513,15 +561,10 @@
                                                         {{-- COA + hidden budget fields --}}
                                                         <td class="border p-3">
                                                             <div class="flex items-center gap-2">
-                                                                <input type="hidden" name="activity_id[]"
-                                                                    class="activityIdField"
-                                                                    value="{{ $d->budget_activity_id }}">
-                                                                <input type="hidden" name="business_unit_id[]"
-                                                                    class="businessUnitIdField"
-                                                                    value="{{ $d->budget_business_unit_id }}">
-                                                                <input type="hidden" name="department_fin_id[]"
-                                                                    class="departmentFinIdField"
-                                                                    value="{{ $d->budget_department_fin_id }}">
+                                                                <input type="hidden" name="activity_id[]" class="activityIdField" value="{{ $d->budget_activity_id }}">
+                                                                <input type="hidden" name="business_unit_id[]" class="businessUnitIdField" value="{{ $d->budget_business_unit_id }}">
+                                                                <input type="hidden" name="department_fin_id[]" class="departmentFinIdField" value="{{ $d->budget_department_fin_id }}">
+                                                                <input type="hidden" name="activity_descr[]"  class="actDescrField" value="{{ $d->budget_activity_descr }}">
                                                                 <input type="hidden" name="coa_id[]"
                                                                     class="coaIdField"
                                                                     value="{{ $d->budget_account_id }}">
@@ -619,14 +662,11 @@
                                                         </td>
                                                         <td class="border p-3">
                                                             <div class="flex items-center gap-2">
-                                                                <input type="hidden" name="activity_id[]"
-                                                                    class="activityIdField">
-                                                                <input type="hidden" name="business_unit_id[]"
-                                                                    class="businessUnitIdField">
-                                                                <input type="hidden" name="department_fin_id[]"
-                                                                    class="departmentFinIdField">
-                                                                <input type="hidden" name="coa_id[]"
-                                                                    class="coaIdField">
+                                                                <input type="hidden" name="activity_id[]" class="activityIdField">
+                                                                <input type="hidden" name="business_unit_id[]" class="businessUnitIdField">
+                                                                <input type="hidden" name="department_fin_id[]" class="departmentFinIdField">
+                                                                <input type="hidden" name="activity_descr[]"  class="actDescrField">
+                                                                <input type="hidden" name="coa_id[]" class="coaIdField">
                                                                 <input type="text" name="coa[]"
                                                                     class="coaNameField w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0"
                                                                     placeholder="Select COA..." readonly>
@@ -951,6 +991,54 @@
                         </div>
                     </div>
 
+                    {{-- MODAL PILIH WO --}}                    
+                    <div id="woModal"
+                        class="fixed inset-0 z-[1000] hidden items-center justify-center bg-black/40 p-4">
+                        <div class="w-full max-w-4xl rounded-xl bg-white p-4 shadow-lg dark:bg-gray-800">
+                            <div class="mb-3 flex items-center justify-between">
+                                <h3 class="text-lg font-bold text-gray-800 dark:text-white">Select Work Order</h3>
+                                <button type="button" id="closeWoModal"
+                                    class="rounded px-3 py-1 hover:bg-gray-100 dark:hover:bg-gray-700">✖</button>
+                            </div>
+
+                            <div class="mb-3 flex items-center gap-2 text-sm">
+                                <input id="woSearch" type="text" placeholder="Search WO ID / Created By..."
+                                    class="rounded border border-gray-300 bg-white px-3 py-1 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
+                                <button id="woRefresh" type="button"
+                                    class="rounded border px-3 py-1 hover:bg-gray-100 dark:hover:bg-gray-700">↻</button>
+                                <div class="ml-auto flex flex-wrap items-center gap-3">
+                                    <span>Company: <b id="woCpnyBadge"></b></span>
+                                    <span>Dept: <b id="woDeptBadge"></b></span>
+                                    <span>Perpost: <b id="woPerpostBadge"></b></span>
+                                </div>
+                            </div>
+
+                            <div class="max-h-[60vh] overflow-auto">
+                                <table class="w-full text-left text-sm">
+                                    <thead class="sticky top-0 bg-gray-50 dark:bg-gray-900">
+                                        <tr>
+                                            <th class="border p-2">WO ID</th>
+                                            <th class="border p-2">WO Date</th>
+                                            <th class="border p-2">Created By</th>
+                                            <th class="w-24 border p-2 text-center">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="woTableBody" class="text-sm"></tbody>
+                                </table>
+                            </div>
+
+                            <div class="mt-3 flex items-center justify-between text-sm">
+                                <span id="woCount" class="opacity-80"></span>
+                                <div class="space-x-2">
+                                    <button id="woPrev" type="button"
+                                        class="rounded border px-3 py-1 disabled:opacity-40">Prev</button>
+                                    <button id="woNext" type="button"
+                                        class="rounded border px-3 py-1 disabled:opacity-40">Next</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     {{-- ===== Attachments (optional ditampilkan sesuai kebutuhan) ===== --}}
                     <div class="w-full rounded-xl bg-white p-6 dark:bg-gray-800">
                         <details class="group" open>
@@ -1183,6 +1271,7 @@
                             <input type="hidden" name="activity_id[]" class="activityIdField">
                             <input type="hidden" name="business_unit_id[]" class="businessUnitIdField">
                             <input type="hidden" name="department_fin_id[]" class="departmentFinIdField">
+                            <input type="hidden" name="activity_descr[]"  class="actDescrField">
                             <input type="hidden" name="coa_id[]" class="coaIdField">
                             <input type="text" name="coa[]" class="coaNameField w-full border-none bg-transparent p-2" placeholder="Select COA..." readonly>
                             <button type="button" class="openCoaModal rounded border border-gray-500 px-1 py-1">🔎</button>
@@ -2113,14 +2202,14 @@
                             const actId = item.activity_id ?? '';
                             const buId = item.business_unit_id ?? '';
                             const deptFinId = item.department_fin_id ?? '';
-                            const actDetail = item.activity_detail ?? '';
+                            const actDescr = item.activity_descr ?? '';
                             const totalbudget = item.totalbudget ?? '';
                             const label = id; // atau `${id} - ${actDetail}`
 
                             return `
                     <tr>
                     <td class="border p-2">${id}</td>
-                    <td class="border p-2">${actDetail}</td>
+                    <td class="border p-2">${actDescr}</td>
                     <td class="border p-2">${totalbudget}</td>
                     <td class="border p-2 text-center">
                         <button type="button" class="chooseCoa rounded border px-2 py-1 hover:bg-gray-100"
@@ -2128,6 +2217,7 @@
                         data-activity_id="${actId}"
                         data-business_unit_id="${buId}"
                         data-department_fin_id="${deptFinId}"
+                        data-activity_descr="${actDescr}"
                         data-label="${$('<div>').text(label).html()}">
                         Choose
                         </button>
@@ -2162,12 +2252,14 @@
                 const label = $(this).data('label');
                 const buId = $(this).data('business_unit_id');
                 const deptFinId = $(this).data('department_fin_id');
+                const actDescr = $(this).data('activity_descr');
 
                 currentCoaRow.find('.coaIdField').val(id);
                 currentCoaRow.find('.activityIdField').val(actId); // ⬅️ simpan activity_id hidden
                 currentCoaRow.find('.coaNameField').val(label);
                 currentCoaRow.find('.businessUnitIdField').val(buId);
                 currentCoaRow.find('.departmentFinIdField').val(deptFinId);
+                currentCoaRow.find('.actDescrField').val(actDescr);
 
                 closeCoaModal();
             });
@@ -2785,6 +2877,176 @@
         });
     </script>
 
+    <script>
+        $(function () {
+            // ===== WO modal state =====
+            const $woModal = $('#woModal');
+            const $woTbody = $('#woTableBody');
+            const $woCount = $('#woCount');
+            const $woCpny = $('#woCpnyBadge');
+            const $woDept = $('#woDeptBadge');
+            const $woPerpost = $('#woPerpostBadge');
+
+            let woState = {
+                search: '',
+                page: 1,
+                per_page: 10,
+                total: 0,
+                cpnyid: null,
+                deptid: null,
+                perpost: null,
+            };
+
+            function openWoModal() {
+                // baca cpny, dept, perpost dari header form
+                const cpny = $('select[name="cpnyid"]').val();
+                const dept = $('select[name="departementid"]').val();
+                const perpost = $('#perpost').val();
+
+                if (!cpny) {
+                    if (window.toastr) toastr.warning('Pilih Company terlebih dahulu.');
+                    return;
+                }
+                if (!dept) {
+                    if (window.toastr) toastr.warning('Pilih Department terlebih dahulu.');
+                    return;
+                }
+
+                woState.cpnyid = cpny;
+                woState.deptid = dept;
+                woState.perpost = perpost;
+                woState.page = 1;
+                woState.search = '';
+
+                $woCpny.text(woState.cpnyid);
+                $woDept.text(woState.deptid);
+                $woPerpost.text(woState.perpost || '-');
+                $('#woSearch').val('');
+
+                $woModal.removeClass('hidden').addClass('flex');
+                loadWo();
+            }
+
+            function closeWoModal() {
+                $woModal.addClass('hidden').removeClass('flex');
+            }
+
+            // Buka modal dari tombol kaca pembesar
+            $('#btnSearchWo').on('click', function () {
+                openWoModal();
+            });
+
+            $('#closeWoModal').on('click', closeWoModal);
+            $(document).on('keydown', function (e) {
+                if (e.key === 'Escape' && $woModal.is(':visible')) closeWoModal();
+            });
+
+            // Search auto saat diketik
+            $('#woSearch').on('input', function () {
+                woState.search = $(this).val().trim();
+                woState.page = 1;
+                loadWo();
+            });
+
+            // Refresh (reset search)
+            $('#woRefresh').on('click', function () {
+                $('#woSearch').val('');
+                woState.search = '';
+                woState.page = 1;
+                loadWo();
+            });
+
+            // Pagination
+            $('#woPrev').on('click', function () {
+                if (woState.page > 1) {
+                    woState.page--;
+                    loadWo();
+                }
+            });
+
+            $('#woNext').on('click', function () {
+                const maxPage = Math.ceil(woState.total / woState.per_page) || 1;
+                if (woState.page < maxPage) {
+                    woState.page++;
+                    loadWo();
+                }
+            });
+
+            // Load WO dari API
+            function loadWo() {
+                $woTbody.html('<tr><td colspan="4" class="p-3 text-center">Loading...</td></tr>');
+                $.getJSON("{{ route('wos.ajax.completed-wo') }}", {
+                    cpnyid: woState.cpnyid,
+                    deptid: woState.deptid,
+                    perpost: woState.perpost,
+                    search: woState.search,
+                    page: woState.page,
+                    per_page: woState.per_page
+                })
+                    .done(function (res) {
+                        const rowsArr = (res.data || []).map(item => {
+                            const woid = item.woid ?? '';
+                            const wodate = item.wodate ?? '';
+                            const created_by = item.created_by ?? '';
+
+                            return `
+                                <tr>
+                                    <td class="border p-2">${woid}</td>
+                                    <td class="border p-2">${wodate}</td>
+                                    <td class="border p-2">${created_by}</td>
+                                    <td class="border p-2 text-center">
+                                        <button type="button"
+                                                class="chooseWo rounded border px-2 py-1 hover:bg-gray-100 dark:hover:bg-gray-700"
+                                                data-woid="${woid}">
+                                            Choose
+                                        </button>
+                                    </td>
+                                </tr>
+                            `;
+                        });
+
+                        const rowsHtml = rowsArr.join('');
+                        $woTbody.html(rowsHtml || '<tr><td colspan="4" class="p-3 text-center">No data</td></tr>');
+
+                        woState.total = res.total || 0;
+                        const showing = rowsArr.length;
+                        $woCount.text(`Showing ${showing} of ${woState.total} items`);
+
+                        const maxPage = Math.ceil((woState.total || 0) / woState.per_page) || 1;
+                        $('#woPrev').prop('disabled', woState.page <= 1);
+                        $('#woNext').prop('disabled', woState.page >= maxPage);
+                    })
+                    .fail(function () {
+                        $woTbody.html(
+                            '<tr><td colspan="4" class="p-3 text-center text-red-600">Failed to load</td></tr>'
+                        );
+                        $woCount.text('');
+                        $('#woPrev, #woNext').prop('disabled', true);
+                    });
+            }
+
+            // Choose -> isi input woid di form utama
+            $(document).on('click', '.chooseWo', function () {
+                const woid = $(this).data('woid');
+                $('#woid').val(woid);
+                closeWoModal();
+            });
+
+            // Jika company/department/perpost berubah saat modal terbuka → refresh
+            $('select[name="cpnyid"], select[name="departementid"], #perpost').on('change', function () {
+                if ($woModal.is(':visible')) {
+                    woState.cpnyid = $('select[name="cpnyid"]').val();
+                    woState.deptid = $('select[name="departementid"]').val();
+                    woState.perpost = $('#perpost').val();
+                    $woCpny.text(woState.cpnyid || '-');
+                    $woDept.text(woState.deptid || '-');
+                    $woPerpost.text(woState.perpost || '-');
+                    woState.page = 1;
+                    loadWo();
+                }
+            });
+        });
+    </script>
 
     <!-- Toastr CSS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">

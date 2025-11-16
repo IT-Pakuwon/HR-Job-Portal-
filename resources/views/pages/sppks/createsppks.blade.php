@@ -273,14 +273,32 @@
                             </div>
                         </div>
 
-                        <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
-                            <div class="flex flex-col gap-2 lg:col-span-4">
+                        <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">                            
+                            <div class="flex flex-col gap-2">
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    SPPK Emergency
+                                </label>
+                                <div class="mt-2 flex items-center gap-2">
+                                    <input type="checkbox"
+                                        id="is_urgent"
+                                        name="is_urgent"
+                                        value="1"
+                                        class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
+                                    <label for="is_urgent"
+                                        class="text-sm text-gray-700 dark:text-gray-300">
+                                        Tandai sebagai emergency
+                                    </label>
+                                </div>
+                            </div>                                           
+                            <div class="flex flex-col gap-2 lg:col-span-3" >
                                 <label for="keperluan"
-                                    class="block text-sm font-medium text-gray-700 dark:text-gray-300">Description</label>
+                                    class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    Description
+                                </label>
                                 <textarea name="keperluan" id="keperluan"
                                     class="w-full rounded-lg border border-gray-300 bg-white p-3 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                     rows="3"></textarea>
-                            </div>
+                            </div>          
                         </div>
 
                     </div>
@@ -417,12 +435,10 @@
                                                     <!-- Coa (lookup modal) -->
                                                     <td class="border p-3">
                                                         <div class="flex items-center gap-2">
-                                                            <input type="hidden" name="activity_id[]"
-                                                                class="activityIdField">
-                                                            <input type="hidden" name="business_unit_id[]"
-                                                                class="businessUnitIdField">
-                                                            <input type="hidden" name="department_fin_id[]"
-                                                                class="departmentFinIdField">
+                                                            <input type="hidden" name="activity_id[]" class="activityIdField">
+                                                            <input type="hidden" name="business_unit_id[]" class="businessUnitIdField">
+                                                            <input type="hidden" name="department_fin_id[]" class="departmentFinIdField">
+                                                            <input type="hidden" name="activity_descr[]"  class="actDescrField">
                                                             <input type="hidden" name="coa_id[]" class="coaIdField">
                                                             <input type="text" name="coa[]"
                                                                 class="coaNameField w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0"
@@ -1082,7 +1098,8 @@
                     <div class="flex items-center gap-2">
                         <input type="hidden" name="activity_id[]" class="activityIdField">
                         <input type="hidden" name="business_unit_id[]"   class="businessUnitIdField">
-                        <input type="hidden" name="department_fin_id[]"  class="departmentFinIdField">                      
+                        <input type="hidden" name="department_fin_id[]"  class="departmentFinIdField">           
+                        <input type="hidden" name="activity_descr[]"  class="actDescrField">           
                         <input type="hidden" name="coa_id[]" class="coaIdField">
                         <input type="text"   name="coa[]"    class="coaNameField w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0" placeholder="Select COA..." readonly>
                         <button type="button" class="openCoaModal rounded border border-gray-500 px-1 py-1 hover:bg-gray-100 dark:hover:bg-gray-700" title="Lookup">🔎</button>
@@ -1800,14 +1817,14 @@
                             const actId = item.activity_id ?? '';
                             const buId = item.business_unit_id ?? '';
                             const deptFinId = item.department_fin_id ?? '';
-                            const actDetail = item.activity_detail ?? '';
+                            const actDescr = item.activity_descr ?? '';
                             const totalbudget = item.totalbudget ?? '';
                             const label = id; // atau `${id} - ${actDetail}`
 
                             return `
                     <tr>
                     <td class="border p-2">${id}</td>
-                    <td class="border p-2">${actDetail}</td>
+                    <td class="border p-2">${actDescr}</td>
                     <td class="border p-2">${totalbudget}</td>
                     <td class="border p-2 text-center">
                         <button type="button" class="chooseCoa rounded border px-2 py-1 hover:bg-gray-100"
@@ -1815,6 +1832,7 @@
                         data-activity_id="${actId}"
                         data-business_unit_id="${buId}"
                         data-department_fin_id="${deptFinId}"
+                        data-activity_descr="${actDescr}"
                         data-label="${$('<div>').text(label).html()}">
                         Choose
                         </button>
@@ -1849,12 +1867,14 @@
                 const label = $(this).data('label');
                 const buId = $(this).data('business_unit_id');
                 const deptFinId = $(this).data('department_fin_id');
+                const actDescr = $(this).data('activity_descr');
 
                 currentCoaRow.find('.coaIdField').val(id);
                 currentCoaRow.find('.activityIdField').val(actId); // ⬅️ simpan activity_id hidden
                 currentCoaRow.find('.coaNameField').val(label);
                 currentCoaRow.find('.businessUnitIdField').val(buId);
                 currentCoaRow.find('.departmentFinIdField').val(deptFinId);
+                currentCoaRow.find('.actDescrField').val(actDescr);
 
                 currentCoaRow.find('.coaNameField').removeClass('is-invalid').next('.error-feedback')
                     .remove();

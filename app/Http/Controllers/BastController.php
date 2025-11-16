@@ -60,6 +60,8 @@ class BastController extends Controller
        
         $request->validate([
             'term_eid'      => 'required|string',
+            'location_id'     => 'required','string',
+            'sub_location_id' => 'required','string',
             'attachments.*' => 'file|max:10240', // 10MB/file
         ]);
 
@@ -144,6 +146,9 @@ class BastController extends Controller
                 'payment_pct'   => $term->payment_pct,
                 'vendorid'      => $term->vendorid,
                 'vendorname'    => $term->vendorname,
+
+                'location_id'     => $request->location_id,
+                'sub_location_id' => $request->sub_location_id,                
 
                 'startdate'     => $po->spkstartworkingdate,
                 'enddate'       => $po->spkendtworkingdate,

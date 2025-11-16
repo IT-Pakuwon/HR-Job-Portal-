@@ -526,10 +526,30 @@
 
             {{-- === JOB PROCESS (status_pekerjaan + comment) === --}}
             {{-- form status_pekerjaan + comment (disembunyikan dulu) --}}
-            @php
-                $loginUser   = auth()->user();
-                $isProcessor = filled($wo->pic_wo) && strcasecmp($wo->pic_wo, $loginUser->username) === 0;
-            @endphp
+           @php
+            $loginUser = auth()->user();
+
+            // Ambil semua departemen yang terkait dengan worktype ini
+            $cek_dept = \App\Models\MsWorktypeDept::where('worktypeid', $wo->worktypeid)->get();
+
+            // Department user login
+            $userDept = $loginUser->departmentid ?? null;
+
+            // Apakah department user ada di daftar departemen worktype?
+            $deptMatch = $cek_dept->contains('department_id', $userDept);
+
+            // Cek PIC WO
+            $loginUsername = strtolower(trim($loginUser->username));
+            $pic           = strtolower(trim($wo->pic_wo ?? ''));
+
+            // User boleh proses jika:
+            // 1. Department user termasuk list department worktype
+            // 2. PIC WO = user login
+            $isProcessor = $deptMatch || ($pic === $loginUsername);
+        @endphp
+
+
+
 
             @if ($isProcessor)
                 {{-- ===== EDITABLE (PIC = user login) ===== --}}

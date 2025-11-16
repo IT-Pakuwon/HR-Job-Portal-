@@ -32,6 +32,8 @@ use Illuminate\Support\Str;
 use Google\Cloud\Storage\StorageClient;
 use App\Http\Controllers\ApprovalController;
 use App\Models\TrApproval;
+use App\Models\MsWorktypeDept;
+
 
 
 class WoController extends Controller
@@ -800,7 +802,12 @@ class WoController extends Controller
             ];
         });
 
-        return view('pages.wos.showwos', compact('wo', 'approval', 'attachments', 'hash'));
+        
+        $cek_dept = MsWorktypeDept::where('worktypeid', $wo->worktypeid)           
+            ->first();
+            
+
+        return view('pages.wos.showwos', compact('wo', 'approval', 'attachments', 'hash','cek_dept'));
     }
 
 

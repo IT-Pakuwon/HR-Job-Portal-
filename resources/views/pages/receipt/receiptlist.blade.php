@@ -383,10 +383,10 @@
                             return `
                                 <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Action</th>
                                 <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">PO Nbr</th>
-                                <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">PO Date</th>
-                                <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">Company</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">PO Date</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Company</th>
                                 <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Vendor</th>
-                                <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">Delivery Date</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Delivery Date</th>
                                 <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Created By</th>
                             `;
                         }
@@ -394,21 +394,21 @@
                             return `
                             <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Action</th>
                             <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Receipt Nbr</th>
-                            <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">Receipt Date</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Receipt Date</th>
                             <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">PO Nbr</th>
                             <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">SPPB/J/K/T</th>
-                            <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">Company</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Company</th>
                             <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Created By</th>
                             `;
                         }
                         // TrReceipt scopes (tanpa kolom "+")
                         return `
                             <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Receipt Nbr</th>
-                            <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">Receipt Date</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Receipt Date</th>
                             <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Receipt Type</th>
                             <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">PO Nbr</th>
                             <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">SPPB/J/K/T</th>
-                            <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">Company</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Company</th>
                             <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Created By</th>
                         `;
                     }
@@ -420,10 +420,10 @@
                                 return [
                                 { data: null, orderable:false, searchable:false, render: (_v,t,row)=>renderPlusCreate(row) },
                                 { data: 'ponbr', render: (_v,_t,row)=>renderPoLink(row) },
-                                { data: 'podate', render: (_v,_t,row)=>row.podate_fmt ?? '', className:'text-center' },
-                                { data: 'cpny_id', className:'text-center' },
+                                { data: 'podate', render: (_v,_t,row)=>row.podate_fmt ?? '', className:'text-left' },
+                                { data: 'cpny_id', className:'text-left' },
                                 { data: 'vendorname' },
-                                { data: 'podeliverydate', render: (_v,_t,row)=>row.podelivery_fmt ?? '', className:'text-center' },
+                                { data: 'podeliverydate', render: (_v,_t,row)=>row.podelivery_fmt ?? '', className:'text-left' },
                                 { data: 'created_by' },
                                 ];
                             }
@@ -431,10 +431,10 @@
                                 return [
                                 { data: null, orderable:false, searchable:false, render: (_v,t,row)=>renderPlusReturn(row) },
                                 { data: 'receiptnbr', render: (_v,_t,row)=>renderReceiptLink(row) },
-                                { data: 'receiptdate', render: (_v,_t,row)=>row.receiptdate_fmt ?? '', className:'text-center' },
-                                { data: 'ponbr', render: (_v,_t,row)=>renderPoLink(row) },
-                                { data: 'sppbjktid', render: (_v,_t,row)=>renderSppbLink(row) },
-                                { data: 'cpny_id', className:'text-center' },
+                                { data: 'receiptdate', render: (_v,_t,row)=>row.receiptdate_fmt ?? '', className:'text-left' },
+                                { data: 'ponbr', className:'text-left' },
+                                { data: 'sppbjktid', className:'text-left' },
+                                { data: 'cpny_id', className:'text-left' },
                                 { data: 'created_by' },
                                 ];
                             }
@@ -446,20 +446,22 @@
                             {
                                 data: 'receiptdate',
                                 render: (_v, _t, row) => row.receiptdate_fmt ?? '',
-                                className: 'text-center'
+                                className: 'text-left'
                             },
                             { data: 'receipttype' },
                             {
                                 data: 'ponbr',
-                                render: (_v, _t, row) => renderPoLink(row)
+                                className: 'text-left'
+                                // render: (_v, _t, row) => renderPoLink(row)
                             },
                             {
                                 data: 'sppbjktid',
-                                render: (_v, _t, row) => renderSppbLink(row)
+                                className: 'text-left'
+                                // render: (_v, _t, row) => renderSppbLink(row)
                             },
                             {
                                 data: 'cpny_id',
-                                className: 'text-center'
+                                className: 'text-left'
                             },
                             {
                                 data: 'created_by'

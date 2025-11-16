@@ -187,7 +187,7 @@
                                 {{ $statusText }}
                             </span>
 
-                            <a href="{{ url('/pdf_bast') }}/{{ $hash }}" target="_blank">
+                            {{-- <a href="{{ url('/pdf_bast') }}/{{ $hash }}" target="_blank">
                                 <button
                                     class="inline-flex cursor-pointer items-center gap-2 rounded-full bg-indigo-600 px-4 py-1 text-sm font-semibold text-white transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
                                     Print PDF
@@ -199,7 +199,35 @@
                                     class="inline-flex cursor-pointer items-center gap-2 rounded-full bg-indigo-600 px-4 py-1 text-sm font-semibold text-white transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
                                     Print PDF Vendor
                                 </button>
-                            </a>
+                            </a> --}}
+                            {{-- Dropdown Print --}}
+                            <div class="relative">
+                                <button id="printMenuBtn"
+                                class="inline-flex cursor-pointer items-center gap-2 rounded-full bg-indigo-600 px-4 py-1 text-sm font-semibold text-white transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                                aria-haspopup="true" aria-expanded="false">
+                                Print PDF
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 9l-7 7-7-7"/>
+                                </svg>
+                                </button>
+
+                                <div id="printMenu"
+                                class="absolute right-0 z-20 mt-2 hidden w-56 overflow-hidden rounded-md border border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-gray-800"
+                                role="menu" aria-labelledby="printMenuBtn">
+                                <a href="{{ url('/pdf_bast') }}/{{ $hash }}"
+                                    target="_blank"
+                                    class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700"
+                                    role="menuitem">
+                                    Print BAST
+                                </a>
+                                <a href="{{ url('/pdf_bast_vendor') }}/{{ $hash }}"
+                                    target="_blank"
+                                    class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700"
+                                    role="menuitem">
+                                    Print BAST Vendor
+                                </a>
+                                </div>
+                            </div>
 
                         </div>
                     </header>
@@ -945,7 +973,7 @@
                 <td class="px-4 py-3">
                     <input
                     type="range"
-                    min="1" max="10" step="1"
+                    min="1" max="5" step="1"
                     class="w-full"
                     value="${val}"
                     data-index="${idx}"
@@ -1635,6 +1663,25 @@
             // initial load
             refreshBefore();
             refreshAfter();
+        });
+    </script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+        const btn  = document.getElementById('printMenuBtn');
+        const menu = document.getElementById('printMenu');
+
+        const open  = () => { menu.classList.remove('hidden'); btn.setAttribute('aria-expanded','true'); };
+        const close = () => { menu.classList.add('hidden');  btn.setAttribute('aria-expanded','false'); };
+
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            menu.classList.contains('hidden') ? open() : close();
+        });
+        document.addEventListener('click', (e) => {
+            if (!menu.classList.contains('hidden') && !menu.contains(e.target) && e.target !== btn) close();
+        });
+        document.addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
         });
     </script>
 
