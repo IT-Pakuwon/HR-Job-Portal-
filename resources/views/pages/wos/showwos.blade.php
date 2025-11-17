@@ -143,10 +143,10 @@
                 </button>
             </div>
         </div>
-        <div class="flex w-full flex-col gap-6 xl:flex-col">
-            <div class="flex w-full items-stretch gap-6 xl:flex-row">
+        <div class="flex w-full flex-col gap-6 overflow-hidden sm:col-span-1 lg:row-span-1 xl:row-span-1 xl:flex-col">
+            <div class="flex flex-col gap-6 sm:w-1/2 md:w-full xl:flex-row">
                 {{-- Left card (WO Info) --}}
-                <div class="flex flex-1 flex-col rounded-xl bg-white dark:bg-gray-800">
+                <div class="rounded-xl bg-white duration-300 sm:w-1/2 md:w-full dark:bg-gray-800">
                     <header
                         class="sticky top-0 z-10 flex items-center justify-between rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
                         <h1 class="flex items-center gap-2 text-lg font-bold text-gray-800 dark:text-gray-100">
@@ -177,34 +177,36 @@
                         @endphp
 
                         <div class="flex items-center gap-3">
-                        <span class="{{ $statusClasses }} inline-flex items-center rounded-full px-4 py-1 text-sm font-semibold transition-colors duration-200">
-                            {{ $statusText }}
-                        </span>
+                            <span
+                                class="{{ $statusClasses }} inline-flex items-center rounded-full px-4 py-1 text-sm font-semibold transition-colors duration-200">
+                                {{ $statusText }}
+                            </span>
 
-                        {{-- Dropdown Print --}}
-                        <div class="relative">
-                            <button id="printMenuBtn"
-                            class="inline-flex cursor-pointer items-center gap-2 rounded-full bg-indigo-600 px-4 py-1 text-sm font-semibold text-white transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
-                            Print PDF
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 9l-7 7-7-7"/>
-                            </svg>
-                            </button>
+                            {{-- Dropdown Print --}}
+                            <div class="relative">
+                                <button id="printMenuBtn"
+                                    class="inline-flex cursor-pointer items-center gap-2 rounded-full bg-indigo-600 px-4 py-1 text-sm font-semibold text-white transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                                    Print PDF
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"
+                                        viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                            d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                </button>
 
-                            <div id="printMenu"
-                            class="absolute right-0 z-20 mt-2 hidden w-48 overflow-hidden rounded-md border border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-gray-800">
-                            <a href="{{ route('wos.print', ['hash' => $hash]) }}?variant=default"
-                                target="_blank"
-                                class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700">
-                                Print WO
-                            </a>
-                            <a href="{{ route('wos.print', ['hash' => $hash]) }}?variant=tenant"
-                                target="_blank"
-                                class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700">
-                                Print WO Tenant
-                            </a>
+                                <div id="printMenu"
+                                    class="absolute right-0 z-20 mt-2 hidden w-48 overflow-hidden rounded-md border border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-gray-800">
+                                    <a href="{{ route('wos.print', ['hash' => $hash]) }}?variant=default"
+                                        target="_blank"
+                                        class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700">
+                                        Print WO
+                                    </a>
+                                    <a href="{{ route('wos.print', ['hash' => $hash]) }}?variant=tenant" target="_blank"
+                                        class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700">
+                                        Print WO Tenant
+                                    </a>
+                                </div>
                             </div>
-                        </div>
                         </div>
 
                     </header>
@@ -283,9 +285,9 @@
                             <div class="flex items-center gap-2 p-2">
                                 <x-heroicon-o-user class="h-5 w-5 text-gray-400" />
                                 <span class="min-w-32 max-w-32 text-gray-500">Biaya Wo</span>
-                               @php
+                                @php
                                     $biayaFormatted = is_numeric($wo->biaya_wo ?? null)
-                                        ? number_format((float)$wo->biaya_wo, 2, ',', '.')
+                                        ? number_format((float) $wo->biaya_wo, 2, ',', '.')
                                         : '-';
                                 @endphp
                                 <span class="break-words font-medium text-gray-900 dark:text-gray-300">
@@ -306,23 +308,28 @@
                                     {{ optional($wo->sublocation)->sub_location_name ?? $wo->sub_location_id }}
                                 </span>
                             </div>
-                            
+
                             {{-- Budget --}}
                             <div class="flex items-center gap-2 p-2">
                                 <x-heroicon-o-banknotes class="h-5 w-5 text-gray-400" />
                                 <span class="min-w-32 max-w-32 text-gray-500">Budget</span>
                                 <span class="break-words font-medium text-gray-900 dark:text-gray-300">
                                     @php
-                                        $budgetText = $wo->budget_use === 'Internal' ? 'Pemberi Kerja' : ($wo->budget_use === 'External' ? 'Penerima Kerja' : '-');
+                                        $budgetText =
+                                            $wo->budget_use === 'Internal'
+                                                ? 'Pemberi Kerja'
+                                                : ($wo->budget_use === 'External'
+                                                    ? 'Penerima Kerja'
+                                                    : '-');
                                     @endphp
                                     {{ $budgetText }}
                                 </span>
-                            </div>                            
+                            </div>
 
                             <div class="col-span-1 flex flex-col gap-3 sm:flex-row">
-                               
+
                                 {{-- Purpose --}}
-                                <div class="flex flex-2 items-center gap-2 rounded-md bg-gray-50 p-3 dark:bg-gray-700">
+                                <div class="flex-2 flex items-center gap-2 rounded-md bg-gray-50 p-3 dark:bg-gray-700">
                                     <x-heroicon-o-clipboard-document-check class="h-5 w-5 text-gray-400" />
                                     <div class="flex flex-col">
                                         <span class="text-gray-500">Purpose</span>
@@ -339,7 +346,7 @@
                 </div>
 
                 {{-- Right card (Tabs) --}}
-                <div class="flex flex-1 flex-col rounded-xl bg-white dark:bg-gray-800">
+                <div class="flex flex-col gap-4 sm:w-1/2 md:w-full">
                     <div x-data="{ activeTab: 'attachment' }" class="flex flex-1 flex-col">
                         <header
                             class="sticky top-0 z-10 flex items-center rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
@@ -385,7 +392,7 @@
                                             <th class="p-3 text-left font-semibold">Status</th>
                                         </tr>
                                     </thead>
-                                    <tbody id="approval-table-body">                                       
+                                    <tbody id="approval-table-body">
                                     </tbody>
                                     {{-- <tbody>
                                         @foreach ($approval as $ap)
@@ -432,7 +439,7 @@
                                     </tbody> --}}
                                 </table>
                             </div>
-                            {{-- Attachment tab --}}                           
+                            {{-- Attachment tab --}}
                             <div x-show="activeTab === 'attachment'" class="flex-1 transition-all">
                                 <table class="w-full text-sm">
                                     <thead class="text-gray-600 dark:text-gray-300">
@@ -467,34 +474,38 @@
                                             </tr>
                                         @endforelse
                                     </tbody> --}}
-                                    <tbody id="woAttachmentTbody"></tbody> 
+                                    <tbody id="woAttachmentTbody"></tbody>
                                 </table>
                                 <div class="border-t border-gray-200 p-4 dark:border-gray-700">
                                     <form id="woAttachmentUploadForm" enctype="multipart/form-data">
                                         @csrf
                                         <div class="flex flex-col gap-3 md:flex-row md:items-center">
-                                        <div class="flex-1">
-                                            <label for="woAttachFiles" class="mb-2 block text-sm font-semibold text-gray-800 dark:text-gray-200">
-                                            Upload Attachments
-                                            </label>
-                                            <div class="flex items-center gap-3">
-                                            <input type="hidden" name="cpnyid" value="{{ $wo->cpny_id }}">
-                                            <input type="hidden" name="departementid" value="{{ $wo->department_id }}">
-                                            <input type="file" id="woAttachFiles" name="attachments[]" multiple
-                                                    class="block w-full cursor-pointer rounded-md border border-gray-300 bg-white px-2 py-[7px] text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" />
-                                            <button type="button" id="btnUploadSppbAttachment"
-                                                    class="inline-flex h-[36px] items-center justify-center rounded-md bg-indigo-600 px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                                                Upload
-                                            </button>
-                                            <button type="button" id="btnResetSppbAttachment"
-                                                    class="inline-flex h-[36px] items-center justify-center rounded-md border border-gray-300 bg-white px-4 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-400 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">
-                                                Reset
-                                            </button>
+                                            <div class="flex-1">
+                                                <label for="woAttachFiles"
+                                                    class="mb-2 block text-sm font-semibold text-gray-800 dark:text-gray-200">
+                                                    Upload Attachments
+                                                </label>
+                                                <div class="flex items-center gap-3">
+                                                    <input type="hidden" name="cpnyid"
+                                                        value="{{ $wo->cpny_id }}">
+                                                    <input type="hidden" name="departementid"
+                                                        value="{{ $wo->department_id }}">
+                                                    <input type="file" id="woAttachFiles" name="attachments[]"
+                                                        multiple
+                                                        class="block w-full cursor-pointer rounded-md border border-gray-300 bg-white px-2 py-[7px] text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" />
+                                                    <button type="button" id="btnUploadSppbAttachment"
+                                                        class="inline-flex h-[36px] items-center justify-center rounded-md bg-indigo-600 px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                                        Upload
+                                                    </button>
+                                                    <button type="button" id="btnResetSppbAttachment"
+                                                        class="inline-flex h-[36px] items-center justify-center rounded-md border border-gray-300 bg-white px-4 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-400 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">
+                                                        Reset
+                                                    </button>
+                                                </div>
+                                                <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                                                    Max 10 files, PDF / Image preferred.
+                                                </p>
                                             </div>
-                                            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                                            Max 10 files, PDF / Image preferred.
-                                            </p>
-                                        </div>
                                         </div>
                                     </form>
                                 </div>
@@ -526,30 +537,27 @@
 
             {{-- === JOB PROCESS (status_pekerjaan + comment) === --}}
             {{-- form status_pekerjaan + comment (disembunyikan dulu) --}}
-           @php
-            $loginUser = auth()->user();
+            @php
+                $loginUser = auth()->user();
 
-            // Ambil semua departemen yang terkait dengan worktype ini
-            $cek_dept = \App\Models\MsWorktypeDept::where('worktypeid', $wo->worktypeid)->get();
+                // Ambil semua departemen yang terkait dengan worktype ini
+                $cek_dept = \App\Models\MsWorktypeDept::where('worktypeid', $wo->worktypeid)->get();
 
-            // Department user login
-            $userDept = $loginUser->departmentid ?? null;
+                // Department user login
+                $userDept = $loginUser->departmentid ?? null;
 
-            // Apakah department user ada di daftar departemen worktype?
-            $deptMatch = $cek_dept->contains('department_id', $userDept);
+                // Apakah department user ada di daftar departemen worktype?
+                $deptMatch = $cek_dept->contains('department_id', $userDept);
 
-            // Cek PIC WO
-            $loginUsername = strtolower(trim($loginUser->username));
-            $pic           = strtolower(trim($wo->pic_wo ?? ''));
+                // Cek PIC WO
+                $loginUsername = strtolower(trim($loginUser->username));
+                $pic = strtolower(trim($wo->pic_wo ?? ''));
 
-            // User boleh proses jika:
-            // 1. Department user termasuk list department worktype
-            // 2. PIC WO = user login
-            $isProcessor = $deptMatch || ($pic === $loginUsername);
-        @endphp
-
-
-
+                // User boleh proses jika:
+                // 1. Department user termasuk list department worktype
+                // 2. PIC WO = user login
+                $isProcessor = $deptMatch || $pic === $loginUsername;
+            @endphp
 
             @if ($isProcessor)
                 {{-- ===== EDITABLE (PIC = user login) ===== --}}
@@ -559,7 +567,7 @@
                         data-mode="process">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none"
                             stroke="currentColor" stroke-width="1.5">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m6-6H6"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m6-6H6" />
                         </svg>
                         <span>Process</span>
                     </button>
@@ -568,21 +576,23 @@
                         <div class="mb-3">
                             <div class="flex items-end gap-4">
                                 <div class="flex-1">
-                                    <label for="jobStatusSelect" class="mb-1 block text-sm font-semibold text-gray-700 dark:text-gray-200">
+                                    <label for="jobStatusSelect"
+                                        class="mb-1 block text-sm font-semibold text-gray-700 dark:text-gray-200">
                                         Status Pekerjaan
                                     </label>
                                     <select id="jobStatusSelect"
-                                            class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-indigo-500 focus:ring-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
+                                        class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-indigo-500 focus:ring-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
                                         <option value="">-- pilih --</option>
                                         <option value="P">On Progress</option>
                                         <option value="R">Rejected</option>
                                         <option value="C">Completed</option>
                                     </select>
-                                    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">P = On Progress, R = Rejected, C = Completed</p>
+                                    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">P = On Progress, R =
+                                        Rejected, C = Completed</p>
                                 </div>
 
                                 {{-- Checkbox SPPB JKT --}}
-                                <label class="inline-flex items-center gap-2 select-none mb-1">
+                                <label class="mb-1 inline-flex select-none items-center gap-2">
                                     <input type="checkbox" id="flagSppbJkt"
                                         class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 dark:border-gray-500" />
                                     <span class="text-sm text-gray-700 dark:text-gray-200">SPPB JKT</span>
@@ -591,7 +601,8 @@
                         </div>
 
                         <div>
-                            <label for="jobComment" class="mb-1 block text-sm font-semibold text-gray-700 dark:text-gray-200">Comment</label>
+                            <label for="jobComment"
+                                class="mb-1 block text-sm font-semibold text-gray-700 dark:text-gray-200">Comment</label>
                             <textarea id="jobComment" rows="3"
                                 class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-indigo-500 focus:ring-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
                                 placeholder="Tuliskan catatan untuk pekerjaan ini..."></textarea>
@@ -600,8 +611,15 @@
                 </div>
             @else
                 {{-- ===== READ-ONLY (bukan PIC) ===== --}}
-                <div class="border-b border-gray-200 px-6 py-4 dark:border-gray-700">
-                    <div class="mb-3">
+                <div class="flex w-full flex-col rounded-2xl bg-white dark:bg-gray-800">
+                    <header
+                        class="flex items-center justify-between rounded-t-2xl border-b border-gray-200 bg-white px-6 py-4 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
+                        <h2 class="text-xl font-semibold">📝 WO Detail</h2>
+                        <h2 class="text-xl font-medium"> PIC :
+                            {{ $wo->pic_wo ?: '-' }}
+                        </h2>
+                    </header>
+                    <div class="flex flex-col gap-4 p-4">
                         <div class="flex items-end gap-4">
                             <div class="flex-1">
                                 <label class="mb-1 block text-sm font-semibold text-gray-700 dark:text-gray-200">
@@ -617,38 +635,25 @@
                                             @endswitch">
                             </div>
 
-                            <label class="inline-flex items-center gap-2 select-none mb-1 opacity-60">
+                            <label class="mb-1 inline-flex select-none items-center gap-2 opacity-60">
                                 <input type="checkbox" disabled
                                     class="h-4 w-4 rounded border-gray-300 text-indigo-600 dark:border-gray-500"
-                                    @checked( in_array(Str::upper((string)$wo->flag_sppbjkt), ['1','Y','TRUE']) ) />
+                                    @checked(in_array(Str::upper((string) $wo->flag_sppbjkt), ['1', 'Y', 'TRUE'])) />
                                 <span class="text-sm text-gray-700 dark:text-gray-200">SPPB JKT</span>
                             </label>
                         </div>
+                        <div>
+                            <label
+                                class="mb-1 block text-sm font-semibold text-gray-700 dark:text-gray-200">Comment</label>
+                            <textarea rows="3" readonly
+                                class="w-full rounded-md border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-700 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300">{{ $wo->pic_wo_comment }}</textarea>
+                        </div>
                     </div>
-
-                    <div>
-                        <label class="mb-1 block text-sm font-semibold text-gray-700 dark:text-gray-200">Comment</label>
-                        <textarea rows="3" readonly
-                            class="w-full rounded-md border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-700 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300"
-                        >{{ $wo->pic_wo_comment }}</textarea>
-                    </div>
-
-                    {{-- Info siapa PIC-nya --}}
-                    <p class="mt-3 text-xs text-gray-500">
-                        PIC: <span class="font-medium">{{ $wo->pic_wo ?: '-' }}</span>
-                    </p>
                 </div>
             @endif
-
-
-
-
-
-
-            
         </div>
     </div>
-  
+
     <div id="loadingSpinnerContainer" role="status" aria-live="polite" aria-label="Loading">
         <div class="loading-card">
             <div class="loading-spinner"></div>
@@ -810,8 +815,8 @@
     </script> --}}
     <script>
         $(document).ready(function() {
-            const woid  = "{{ $wo->woid }}";
-            const doctype = "WO"; 
+            const woid = "{{ $wo->woid }}";
+            const doctype = "WO";
 
             loadComments(woid, doctype);
 
@@ -826,7 +831,9 @@
                         commentList.empty();
 
                         if (!response.comments || response.comments.length === 0) {
-                            commentList.append('<p class="text-gray-500 italic">No comments yet. Be the first to comment!</p>');
+                            commentList.append(
+                                '<p class="text-gray-500 italic">No comments yet. Be the first to comment!</p>'
+                            );
                             return;
                         }
 
@@ -877,7 +884,8 @@
                     },
                     error: function(xhr) {
                         console.error("Error adding comment:", xhr);
-                        alert("Error: " + (xhr.responseJSON ? xhr.responseJSON.message : "Unknown Error"));
+                        alert("Error: " + (xhr.responseJSON ? xhr.responseJSON.message :
+                            "Unknown Error"));
                     },
                     complete: function() {
                         $('#postCommentBtn').prop('disabled', false).text('Post 🚀');
@@ -897,9 +905,9 @@
                 }
             });
 
-            
+
         });
-    </script>  
+    </script>
     <script>
         $(document).on("click", "#approveBtn", function() {
             let woid = "{{ $wo->woid }}"; // Ambil Task ID dari modal        
@@ -1120,125 +1128,128 @@
         }
     </script>
     <script>
-    (function () {
-        const btn = document.getElementById('printMenuBtn');
-        const menu = document.getElementById('printMenu');
+        (function() {
+            const btn = document.getElementById('printMenuBtn');
+            const menu = document.getElementById('printMenu');
 
-        if (!btn || !menu) return;
+            if (!btn || !menu) return;
 
-        btn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        menu.classList.toggle('hidden');
-        });
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                menu.classList.toggle('hidden');
+            });
 
-        document.addEventListener('click', () => {
-        if (!menu.classList.contains('hidden')) menu.classList.add('hidden');
-        });
-    })();
+            document.addEventListener('click', () => {
+                if (!menu.classList.contains('hidden')) menu.classList.add('hidden');
+            });
+        })();
     </script>
 
-   
+
 
     <script>
-        $(function () {
-        const listUrl   = @json(route('attachments.list',   ['doctype' => 'WO', 'refnbr' => $wo->woid]));
-        const uploadUrl = @json(route('attachments.upload', ['doctype' => 'WO', 'refnbr' => $wo->woid]));
+        $(function() {
+            const listUrl = @json(route('attachments.list', ['doctype' => 'WO', 'refnbr' => $wo->woid]));
+            const uploadUrl = @json(route('attachments.upload', ['doctype' => 'WO', 'refnbr' => $wo->woid]));
 
-        function $tbody() { return $('#woAttachmentTbody'); } // <tbody id="woAttachmentTbody">
+            function $tbody() {
+                return $('#woAttachmentTbody');
+            } // <tbody id="woAttachmentTbody">
 
-        function renderSppbAttachmentRows(rows){
-            const $tb = $tbody().empty();
+            function renderSppbAttachmentRows(rows) {
+                const $tb = $tbody().empty();
 
-            if (!rows || !rows.length) {
-            $tb.append(`
+                if (!rows || !rows.length) {
+                    $tb.append(`
                 <tr>
                 <td colspan="3" class="p-4 text-center italic text-gray-500 dark:text-gray-400">
                     No attachments found.
                 </td>
                 </tr>
             `);
-            return;
-            }
+                    return;
+                }
 
-            rows.forEach(at => {
-            const fileName  = at.name || at.display_name || '(no name)';
-            const createdBy = at.created_user ?? at.created_by ?? '-';
-            const dateStr = at.created_at ? dayjs(at.created_at).format('DD MMM YYYY HH:mm:ss') : '-';
-            const linkHtml  = at.url
-                ? `<a href="${at.url}" target="_blank"
-                    class="flex items-center gap-2 font-medium text-indigo-600 hover:underline dark:text-indigo-400">📎 ${fileName}</a>`
-                : `<span class="text-gray-700 dark:text-gray-300">📎 ${fileName}</span>
+                rows.forEach(at => {
+                    const fileName = at.name || at.display_name || '(no name)';
+                    const createdBy = at.created_user ?? at.created_by ?? '-';
+                    const dateStr = at.created_at ? dayjs(at.created_at).format('DD MMM YYYY HH:mm:ss') :
+                        '-';
+                    const linkHtml = at.url ?
+                        `<a href="${at.url}" target="_blank"
+                    class="flex items-center gap-2 font-medium text-indigo-600 hover:underline dark:text-indigo-400">📎 ${fileName}</a>` :
+                        `<span class="text-gray-700 dark:text-gray-300">📎 ${fileName}</span>
                 <span class="ml-2 text-xs text-red-500">(link unavailable)</span>`;
 
-            $tb.append(`
+                    $tb.append(`
                 <tr class="border-b border-gray-100 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700">
                 <td class="p-3">${linkHtml}</td>
                 <td class="p-3">${createdBy}</td>
                 <td class="p-3">${dateStr}</td>
                 </tr>
             `);
-            });
-        }
-
-        function refreshSppbAttachments(){
-            $.get(listUrl)
-            .done(res => {
-                if (res.success) renderSppbAttachmentRows(res.attachments);
-                else toastr.error(res.message || 'Failed to load attachments.');
-            })
-            .fail(() => toastr.error('Failed to load attachments.'));
-        }
-
-        // optional: load saat tab dibuka / page load
-        refreshSppbAttachments();
-
-        $('#btnUploadSppbAttachment').on('click', function(){
-            const $form = $('#woAttachmentUploadForm')[0];
-            const files = $('#woAttachFiles')[0].files;
-
-            if (!files || !files.length) {
-            toastr.warning('Please choose at least one file.');
-            return;
+                });
             }
 
-            const fd = new FormData($form);
-            if (typeof showOverlay === 'function') showOverlay('Uploading');
+            function refreshSppbAttachments() {
+                $.get(listUrl)
+                    .done(res => {
+                        if (res.success) renderSppbAttachmentRows(res.attachments);
+                        else toastr.error(res.message || 'Failed to load attachments.');
+                    })
+                    .fail(() => toastr.error('Failed to load attachments.'));
+            }
 
-            $.ajax({
-            url: uploadUrl,
-            method: 'POST',
-            data: fd,
-            processData: false,
-            contentType: false,
-            success: function(res){
-                if (typeof hideOverlay === 'function') hideOverlay();
-                if (!res || !res.success) {
-                toastr.error(res?.message || 'Upload failed.');
-                return;
+            // optional: load saat tab dibuka / page load
+            refreshSppbAttachments();
+
+            $('#btnUploadSppbAttachment').on('click', function() {
+                const $form = $('#woAttachmentUploadForm')[0];
+                const files = $('#woAttachFiles')[0].files;
+
+                if (!files || !files.length) {
+                    toastr.warning('Please choose at least one file.');
+                    return;
                 }
-                toastr.success('Upload success.');
-                $('#woAttachFiles').val('');
-                // back-end sudah mengembalikan list terbaru
-                renderSppbAttachmentRows(res.attachments || []);
-            },
-            error: function(xhr){
-                if (typeof hideOverlay === 'function') hideOverlay();
-                toastr.error(xhr.responseJSON?.message || 'Upload failed.');
-            }
-            });
-        });
 
-        $('#btnResetSppbAttachment').on('click', function(){
-            $('#woAttachFiles').val('');
-        });
+                const fd = new FormData($form);
+                if (typeof showOverlay === 'function') showOverlay('Uploading');
+
+                $.ajax({
+                    url: uploadUrl,
+                    method: 'POST',
+                    data: fd,
+                    processData: false,
+                    contentType: false,
+                    success: function(res) {
+                        if (typeof hideOverlay === 'function') hideOverlay();
+                        if (!res || !res.success) {
+                            toastr.error(res?.message || 'Upload failed.');
+                            return;
+                        }
+                        toastr.success('Upload success.');
+                        $('#woAttachFiles').val('');
+                        // back-end sudah mengembalikan list terbaru
+                        renderSppbAttachmentRows(res.attachments || []);
+                    },
+                    error: function(xhr) {
+                        if (typeof hideOverlay === 'function') hideOverlay();
+                        toastr.error(xhr.responseJSON?.message || 'Upload failed.');
+                    }
+                });
+            });
+
+            $('#btnResetSppbAttachment').on('click', function() {
+                $('#woAttachFiles').val('');
+            });
         });
     </script>
 
 
     <script>
-        document.addEventListener("DOMContentLoaded", function () {
+        document.addEventListener("DOMContentLoaded", function() {
 
-            const woid  = "{{ $wo->woid }}";   // contoh: PB2501010001
+            const woid = "{{ $wo->woid }}"; // contoh: PB2501010001
             const doctype = "WO";
 
             loadApproval(woid, doctype);
@@ -1272,7 +1283,11 @@
         function formatDate(dateString) {
             if (!dateString) return "-";
             const d = new Date(dateString);
-            const options = { year: "numeric", month: "short", day: "numeric" };
+            const options = {
+                year: "numeric",
+                month: "short",
+                day: "numeric"
+            };
             return d.toLocaleDateString("en-US", options);
         }
 
@@ -1307,107 +1322,118 @@
     </script>
 
     <script>
-        (function () {
-        // Safety: pastikan tombol nampak dulu
-        $("#btnJobProcess").removeClass("hidden").show();
+        (function() {
+            // Safety: pastikan tombol nampak dulu
+            $("#btnJobProcess").removeClass("hidden").show();
 
-        const woid = @json($wo->woid);
-        const csrf = @json(csrf_token());
+            const woid = @json($wo->woid);
+            const csrf = @json(csrf_token());
 
-        // Gunakan nilai boolean yang pasti (bukan string kosong/null yang bikin truthy)
-        const hasProcessorBool = Boolean(@json(!empty($wo->pic_wo)));
-        const initialJobStatus = @json($wo->status_pekerjaan ?? '');
-        const initialComment   = @json($wo->pic_wo_comment ?? '');
-        const initialFlagRaw   = @json($wo->flag_sppbjkt ?? null);
+            // Gunakan nilai boolean yang pasti (bukan string kosong/null yang bikin truthy)
+            const hasProcessorBool = Boolean(@json(!empty($wo->pic_wo)));
+            const initialJobStatus = @json($wo->status_pekerjaan ?? '');
+            const initialComment = @json($wo->pic_wo_comment ?? '');
+            const initialFlagRaw = @json($wo->flag_sppbjkt ?? null);
 
-        const $spinner = $("#loadingSpinnerContainer");
-        const $btn     = $("#btnJobProcess");
-        const $form    = $("#jobForm");
-        const $select  = $("#jobStatusSelect");
-        const $comment = $("#jobComment");
-        const $flag    = $("#flagSppbJkt");
+            const $spinner = $("#loadingSpinnerContainer");
+            const $btn = $("#btnJobProcess");
+            const $form = $("#jobForm");
+            const $select = $("#jobStatusSelect");
+            const $comment = $("#jobComment");
+            const $flag = $("#flagSppbJkt");
 
-        // Normalisasi flag checkbox
-        const initialFlag =
-            initialFlagRaw === true || initialFlagRaw === 1 || initialFlagRaw === '1' ||
-            String(initialFlagRaw).toUpperCase() === 'Y';
-        $flag.prop('checked', !!initialFlag);
+            // Normalisasi flag checkbox
+            const initialFlag =
+                initialFlagRaw === true || initialFlagRaw === 1 || initialFlagRaw === '1' ||
+                String(initialFlagRaw).toUpperCase() === 'Y';
+            $flag.prop('checked', !!initialFlag);
 
-        // Log untuk debug cepat di console
-        console.log('[JOB INIT]', { hasProcessorBool, initialJobStatus, initialComment, initialFlagRaw });
+            // Log untuk debug cepat di console
+            console.log('[JOB INIT]', {
+                hasProcessorBool,
+                initialJobStatus,
+                initialComment,
+                initialFlagRaw
+            });
 
-        // INITIAL STATE dari pic_wo
-        if (hasProcessorBool) {
-            $form.removeClass('hidden');
-            $btn.attr('data-mode', 'save').find('span').text('Save');
-            if (initialJobStatus) $select.val(initialJobStatus);
-            if (initialComment)   $comment.val(initialComment);
-        } else {
-            $form.addClass('hidden');
-            $btn.attr('data-mode', 'process').find('span').text('Process');
-        }
-
-        $btn.on('click', function () {
-            // const mode = $btn.data('mode');
-            const mode = $btn.attr('data-mode');
-
-            if (mode === 'process') {
-            $spinner.fadeIn();
-            $.ajax({
-                url: `/wo/${woid}/process`,
-                type: 'POST',
-                data: { _token: csrf },
-                success: function (res) {
-                if (!res || !res.success) {
-                    toastr.error(res?.message || 'Failed to start process.');
-                    return;
-                }
+            // INITIAL STATE dari pic_wo
+            if (hasProcessorBool) {
                 $form.removeClass('hidden');
-                // $btn.attr('data-mode', 'save').find('span').text('Save');
                 $btn.attr('data-mode', 'save').find('span').text('Save');
-                toastr.success('WO is now being processed.');
-                },
-                error: function (xhr) {
-                toastr.error(xhr.responseJSON?.message || 'Failed to process WO.');
-                },
-                complete: function () { $spinner.fadeOut(); }
-            });
-
+                if (initialJobStatus) $select.val(initialJobStatus);
+                if (initialComment) $comment.val(initialComment);
             } else {
-            const jobStatus = ($select.val() || '').trim();
-            const comment   = ($comment.val() || '').trim();
-            const flagVal   = $flag.is(':checked') ? 1 : 0;
-
-            if (!jobStatus) {
-                toastr.warning('Silakan pilih Status Pekerjaan terlebih dahulu.');
-                $select.focus();
-                return;
+                $form.addClass('hidden');
+                $btn.attr('data-mode', 'process').find('span').text('Process');
             }
 
-            $spinner.fadeIn();
-            $.ajax({
-                url: `/wo/${woid}/job-status`,
-                type: 'POST',
-                data: {
-                _token: csrf,
-                status_pekerjaan: jobStatus,
-                pic_wo_comment: comment,
-                flag_sppbjkt: flagVal
-                },
-                success: function (res) {
-                if (!res || !res.success) {
-                    toastr.error(res?.message || 'Failed to save job status.');
-                    return;
+            $btn.on('click', function() {
+                // const mode = $btn.data('mode');
+                const mode = $btn.attr('data-mode');
+
+                if (mode === 'process') {
+                    $spinner.fadeIn();
+                    $.ajax({
+                        url: `/wo/${woid}/process`,
+                        type: 'POST',
+                        data: {
+                            _token: csrf
+                        },
+                        success: function(res) {
+                            if (!res || !res.success) {
+                                toastr.error(res?.message || 'Failed to start process.');
+                                return;
+                            }
+                            $form.removeClass('hidden');
+                            // $btn.attr('data-mode', 'save').find('span').text('Save');
+                            $btn.attr('data-mode', 'save').find('span').text('Save');
+                            toastr.success('WO is now being processed.');
+                        },
+                        error: function(xhr) {
+                            toastr.error(xhr.responseJSON?.message || 'Failed to process WO.');
+                        },
+                        complete: function() {
+                            $spinner.fadeOut();
+                        }
+                    });
+
+                } else {
+                    const jobStatus = ($select.val() || '').trim();
+                    const comment = ($comment.val() || '').trim();
+                    const flagVal = $flag.is(':checked') ? 1 : 0;
+
+                    if (!jobStatus) {
+                        toastr.warning('Silakan pilih Status Pekerjaan terlebih dahulu.');
+                        $select.focus();
+                        return;
+                    }
+
+                    $spinner.fadeIn();
+                    $.ajax({
+                        url: `/wo/${woid}/job-status`,
+                        type: 'POST',
+                        data: {
+                            _token: csrf,
+                            status_pekerjaan: jobStatus,
+                            pic_wo_comment: comment,
+                            flag_sppbjkt: flagVal
+                        },
+                        success: function(res) {
+                            if (!res || !res.success) {
+                                toastr.error(res?.message || 'Failed to save job status.');
+                                return;
+                            }
+                            toastr.success('Job status saved.');
+                        },
+                        error: function(xhr) {
+                            toastr.error(xhr.responseJSON?.message || 'Failed to save job status.');
+                        },
+                        complete: function() {
+                            $spinner.fadeOut();
+                        }
+                    });
                 }
-                toastr.success('Job status saved.');
-                },
-                error: function (xhr) {
-                toastr.error(xhr.responseJSON?.message || 'Failed to save job status.');
-                },
-                complete: function () { $spinner.fadeOut(); }
             });
-            }
-        });
         })();
     </script>
 

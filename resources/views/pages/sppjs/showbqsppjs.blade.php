@@ -16,7 +16,7 @@
             z-index: 10;
         }
     </style>
-   <style>
+    <style>
         /* Overlay full-screen */
         #loadingSpinnerContainer {
             position: fixed;
@@ -153,10 +153,10 @@
 
             </div>
         </div>
-        <div class="flex w-full flex-col gap-6 xl:flex-col">
-            <div class="flex w-full items-stretch gap-6 xl:flex-row">
+        <div class="flex w-full flex-col gap-6 overflow-hidden sm:col-span-1 lg:row-span-1 xl:row-span-1 xl:flex-col">
+            <div class="flex flex-col gap-6 sm:w-1/2 md:w-full xl:flex-row">
                 {{-- Left Card --}}
-                <div class="flex flex-1 flex-col rounded-xl bg-white dark:bg-gray-800">
+                <div class="rounded-xl bg-white duration-300 sm:w-1/2 md:w-full dark:bg-gray-800">
                     <header
                         class="sticky top-0 z-10 flex items-center justify-between rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
                         <h1 class="flex items-center gap-2 text-lg font-bold text-gray-800 dark:text-gray-100">
@@ -208,7 +208,7 @@
                 </div>
 
                 {{-- Right Card (Photo Before) --}}
-                <div class="flex flex-1 flex-col rounded-xl bg-white dark:bg-gray-800">
+                <div class="flex flex-col gap-4 bg-white sm:w-1/2 md:w-full dark:bg-gray-800">
                     <header
                         class="flex items-center rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
                         <h2 class="text-lg font-semibold text-gray-800 dark:text-gray-100">📸 Photo Before</h2>
@@ -268,51 +268,50 @@
 
                     {{-- Attachment (div grid) --}}
                     <div class="flex-1 overflow-y-auto px-4 py-3">
-                    <div id="bqAttachmentGrid"
-                        class="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
-                        {{-- akan dirender via JS --}}
-                        <p class="col-span-full py-6 text-center italic text-gray-500 dark:text-gray-400">
-                        Loading...
-                        </p>
-                    </div>
+                        <div id="bqAttachmentGrid"
+                            class="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
+                            {{-- akan dirender via JS --}}
+                            <p class="col-span-full py-6 text-center italic text-gray-500 dark:text-gray-400">
+                                Loading...
+                            </p>
+                        </div>
                     </div>
 
                     @if (!empty($canEdit) && $canEdit)
-                    {{-- form upload ke service GCS --}}
-                    <form id="bqAttachmentUploadForm" enctype="multipart/form-data"
+                        {{-- form upload ke service GCS --}}
+                        <form id="bqAttachmentUploadForm" enctype="multipart/form-data"
                             class="sticky bottom-0 z-10 mt-6 rounded-b-lg border-t border-gray-200 bg-gray-100 p-4 shadow-sm backdrop-blur-sm dark:border-gray-700 dark:bg-gray-700">
-                        @csrf
-                        <input type="hidden" name="cpnyid" value="{{ $bq->cpny_id }}">
-                        <input type="hidden" name="departementid" value="{{ $bq->department_id }}">
+                            @csrf
+                            <input type="hidden" name="cpnyid" value="{{ $bq->cpny_id }}">
+                            <input type="hidden" name="departementid" value="{{ $bq->department_id }}">
 
-                        <div class="flex flex-col gap-3 md:flex-row md:items-center md:gap-4">
-                        <div class="flex-1">
-                            <label for="bqAttachFiles" class="mb-2 block text-sm font-semibold text-gray-800 dark:text-gray-200">
-                            Upload Attachment
-                            </label>
-                            <div class="flex items-center gap-3">
-                            <input type="file" id="bqAttachFiles" name="attachments[]" multiple
-                                    class="block w-full cursor-pointer rounded-md border border-gray-300 bg-white px-2 py-[7px] text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" />
-                            <button type="button" id="btnUploadBqAttachment"
-                                    class="inline-flex h-[36px] items-center justify-center rounded-md bg-indigo-600 px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                                Upload
-                            </button>
-                            <button type="button" id="btnResetBqAttachment"
-                                    class="inline-flex h-[36px] items-center justify-center rounded-md border border-gray-300 bg-white px-4 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-400 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">
-                                Reset
-                            </button>
+                            <div class="flex flex-col gap-3 md:flex-row md:items-center md:gap-4">
+                                <div class="flex-1">
+                                    <label for="bqAttachFiles"
+                                        class="mb-2 block text-sm font-semibold text-gray-800 dark:text-gray-200">
+                                        Upload Attachment
+                                    </label>
+                                    <div class="flex items-center gap-3">
+                                        <input type="file" id="bqAttachFiles" name="attachments[]" multiple
+                                            class="block w-full cursor-pointer rounded-md border border-gray-300 bg-white px-2 py-[7px] text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" />
+                                        <button type="button" id="btnUploadBqAttachment"
+                                            class="inline-flex h-[36px] items-center justify-center rounded-md bg-indigo-600 px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                            Upload
+                                        </button>
+                                        <button type="button" id="btnResetBqAttachment"
+                                            class="inline-flex h-[36px] items-center justify-center rounded-md border border-gray-300 bg-white px-4 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-400 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">
+                                            Reset
+                                        </button>
+                                    </div>
+                                    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Max 10 files, PDF / Image
+                                        preferred.</p>
+                                </div>
                             </div>
-                            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Max 10 files, PDF / Image preferred.</p>
-                        </div>
-                        </div>
-                    </form>
+                        </form>
                     @endif
-
-
-
                 </div>
             </div>
-            <div class="flex max-h-[50rem] min-h-[12rem] flex-col rounded-2xl shadow dark:bg-gray-800">
+            <div class="flex max-h-[50rem] min-h-[12rem] w-full flex-col rounded-2xl bg-white dark:bg-gray-800">
                 {{-- Header --}}
                 <header
                     class="flex items-center justify-between rounded-t-2xl border-b border-gray-300/10 bg-white px-6 py-4 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
@@ -365,7 +364,6 @@
 
 
         </div>
-
     </div>
     <div id="loadingSpinnerContainer" role="status" aria-live="polite" aria-label="Loading">
         <div class="loading-card">
@@ -396,35 +394,36 @@
         });
     </script>
 
-  
+
     <script>
-        $(function () {
-        const listUrl   = @json(route('attachments.list',   ['doctype' => 'BQ', 'refnbr' => $bq->bqid]));
-        const uploadUrl = @json(route('attachments.upload', ['doctype' => 'BQ', 'refnbr' => $bq->bqid]));
-        const canEdit   = @json((bool) (!empty($canEdit) && $canEdit));
+        $(function() {
+            const listUrl = @json(route('attachments.list', ['doctype' => 'BQ', 'refnbr' => $bq->bqid]));
+            const uploadUrl = @json(route('attachments.upload', ['doctype' => 'BQ', 'refnbr' => $bq->bqid]));
+            const canEdit = @json((bool) (!empty($canEdit) && $canEdit));
 
-        const $grid = $('#bqAttachmentGrid');
+            const $grid = $('#bqAttachmentGrid');
 
-        function isImage(ext) {
-            return ['jpg','jpeg','png','gif','webp','bmp','svg','avif'].includes((ext||'').toLowerCase());
-        }
+            function isImage(ext) {
+                return ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'svg', 'avif'].includes((ext || '')
+                    .toLowerCase());
+            }
 
-        function cardTpl(at) {
-            const name    = at.name || at.display_name || '(no name)';
-            const by      = at.created_user ?? at.created_by ?? '-';
-            // format pendek biar muat: 08 Oct '24
-            const dateStr = at.created_at ? dayjs(at.created_at).format("DD MMM 'YY") : '-';
-            const ext     = (at.extention || '').toLowerCase();
-            const href    = at.url || '#';
-            const isImg   = ['jpg','jpeg','png','gif','webp','bmp','svg','avif'].includes(ext);
+            function cardTpl(at) {
+                const name = at.name || at.display_name || '(no name)';
+                const by = at.created_user ?? at.created_by ?? '-';
+                // format pendek biar muat: 08 Oct '24
+                const dateStr = at.created_at ? dayjs(at.created_at).format("DD MMM 'YY") : '-';
+                const ext = (at.extention || '').toLowerCase();
+                const href = at.url || '#';
+                const isImg = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'svg', 'avif'].includes(ext);
 
-            const thumb = isImg && at.url
-                ? `<img src="${href}" alt="${name}" class="h-full w-full object-cover transition group-hover:scale-105" loading="lazy" referrerpolicy="no-referrer">`
-                : `<div class="flex h-full w-full items-center justify-center bg-gray-100 dark:bg-gray-700">
+                const thumb = isImg && at.url ?
+                    `<img src="${href}" alt="${name}" class="h-full w-full object-cover transition group-hover:scale-105" loading="lazy" referrerpolicy="no-referrer">` :
+                    `<div class="flex h-full w-full items-center justify-center bg-gray-100 dark:bg-gray-700">
                     <span class="text-2xl">${ ext === 'pdf' ? '📕' : '📄' }</span>
                 </div>`;
 
-            const actions = `
+                const actions = `
                 <div class="absolute right-1 top-1 flex gap-1 opacity-0 transition group-hover:opacity-100">
                 ${at.url ? `<a href="${href}" target="_blank" class="rounded bg-white p-1 text-xs shadow hover:bg-gray-100 dark:bg-gray-700" title="Open">🔍</a>` : ''}
                 ${at.url ? `<a href="${href}" download class="rounded bg-white p-1 text-xs shadow hover:bg-gray-100 dark:bg-gray-700" title="Download">⬇️</a>` : ''}
@@ -432,7 +431,7 @@
                 </div>
             `;
 
-            return `
+                return `
                 <div class="group relative flex flex-col overflow-hidden rounded-md border border-gray-200 bg-white transition hover:border-gray-500 dark:border-gray-700 dark:bg-gray-800 min-w-[120px]">
                 <a ${at.url ? `href="${href}" target="_blank"` : ''} class="relative block aspect-square overflow-hidden">
                     ${thumb}
@@ -453,89 +452,102 @@
             }
 
 
-        function renderGrid(rows) {
-            $grid.empty();
-            if (!rows || !rows.length) {
-            $grid.append(`
+            function renderGrid(rows) {
+                $grid.empty();
+                if (!rows || !rows.length) {
+                    $grid.append(`
                 <p class="col-span-full py-6 text-center italic text-gray-500 dark:text-gray-400">
                 No attachments found.
                 </p>
             `);
-            return;
-            }
-            rows.forEach(at => $grid.append(cardTpl(at)));
-        }
-
-        function refresh() {
-            $.get(listUrl)
-            .done(res => {
-                if (res.success) renderGrid(res.attachments);
-                else toastr.error(res.message || 'Failed to load attachments.');
-            })
-            .fail(() => toastr.error('Failed to load attachments.'));
-        }
-
-        // initial load
-        refresh();
-
-        // Upload
-        $('#btnUploadBqAttachment').on('click', function(){
-            if (!canEdit) return;
-            const $form = $('#bqAttachmentUploadForm')[0];
-            const files = $('#bqAttachFiles')[0]?.files;
-            if (!files || !files.length) {
-            toastr.warning('Please choose at least one file.');
-            return;
+                    return;
+                }
+                rows.forEach(at => $grid.append(cardTpl(at)));
             }
 
-            const fd = new FormData($form);
-            // (opsional) kalau tidak pakai hidden input:
-            // fd.append('cpnyid',        @json($bq->cpny_id ?? ''));
-            // fd.append('departementid', @json($bq->department_id ?? ''));
+            function refresh() {
+                $.get(listUrl)
+                    .done(res => {
+                        if (res.success) renderGrid(res.attachments);
+                        else toastr.error(res.message || 'Failed to load attachments.');
+                    })
+                    .fail(() => toastr.error('Failed to load attachments.'));
+            }
 
-            if (typeof showOverlay === 'function') showOverlay('Uploading');
-            $.ajax({
-            url: uploadUrl, method: 'POST', data: fd, processData: false, contentType: false,
-            success(res){
-                if (typeof hideOverlay === 'function') hideOverlay();
-                if (!res || !res.success) { toastr.error(res?.message || 'Upload failed.'); return; }
-                toastr.success('Upload success.');
+            // initial load
+            refresh();
+
+            // Upload
+            $('#btnUploadBqAttachment').on('click', function() {
+                if (!canEdit) return;
+                const $form = $('#bqAttachmentUploadForm')[0];
+                const files = $('#bqAttachFiles')[0]?.files;
+                if (!files || !files.length) {
+                    toastr.warning('Please choose at least one file.');
+                    return;
+                }
+
+                const fd = new FormData($form);
+                // (opsional) kalau tidak pakai hidden input:
+                // fd.append('cpnyid',        @json($bq->cpny_id ?? ''));
+                // fd.append('departementid', @json($bq->department_id ?? ''));
+
+                if (typeof showOverlay === 'function') showOverlay('Uploading');
+                $.ajax({
+                    url: uploadUrl,
+                    method: 'POST',
+                    data: fd,
+                    processData: false,
+                    contentType: false,
+                    success(res) {
+                        if (typeof hideOverlay === 'function') hideOverlay();
+                        if (!res || !res.success) {
+                            toastr.error(res?.message || 'Upload failed.');
+                            return;
+                        }
+                        toastr.success('Upload success.');
+                        $('#bqAttachFiles').val('');
+                        renderGrid(res.attachments || []); // BE sudah kirim list terbaru
+                    },
+                    error(xhr) {
+                        if (typeof hideOverlay === 'function') hideOverlay();
+                        toastr.error(xhr.responseJSON?.message || 'Upload failed.');
+                    }
+                });
+            });
+
+            // Reset
+            $('#btnResetBqAttachment').on('click', function() {
                 $('#bqAttachFiles').val('');
-                renderGrid(res.attachments || []); // BE sudah kirim list terbaru
-            },
-            error(xhr){
-                if (typeof hideOverlay === 'function') hideOverlay();
-                toastr.error(xhr.responseJSON?.message || 'Upload failed.');
-            }
             });
-        });
 
-        // Reset
-        $('#btnResetBqAttachment').on('click', function(){
-            $('#bqAttachFiles').val('');
-        });
+            // Delete
+            $(document).on('click', '.btn-del-attachment', function() {
+                if (!canEdit) return;
+                const id = $(this).data('id');
+                if (!id) return;
+                if (!confirm('Hapus attachment ini?')) return;
 
-        // Delete
-        $(document).on('click', '.btn-del-attachment', function(){
-            if (!canEdit) return;
-            const id = $(this).data('id');
-            if (!id) return;
-            if (!confirm('Hapus attachment ini?')) return;
-
-            $.ajax({
-            url: @json(route('attachments.delete', ':id')).replace(':id', id),
-            method: 'POST',
-            data: { _method: 'DELETE', _token: @json(csrf_token()) },
-            success(res){
-                if (!res || !res.success) { toastr.error(res?.message || 'Delete failed.'); return; }
-                toastr.success('Attachment deleted.');
-                refresh();
-            },
-            error(xhr){
-                toastr.error(xhr.responseJSON?.message || 'Delete failed.');
-            }
+                $.ajax({
+                    url: @json(route('attachments.delete', ':id')).replace(':id', id),
+                    method: 'POST',
+                    data: {
+                        _method: 'DELETE',
+                        _token: @json(csrf_token())
+                    },
+                    success(res) {
+                        if (!res || !res.success) {
+                            toastr.error(res?.message || 'Delete failed.');
+                            return;
+                        }
+                        toastr.success('Attachment deleted.');
+                        refresh();
+                    },
+                    error(xhr) {
+                        toastr.error(xhr.responseJSON?.message || 'Delete failed.');
+                    }
+                });
             });
-        });
         });
     </script>
 

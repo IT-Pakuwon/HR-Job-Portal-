@@ -120,8 +120,8 @@
             'X' => 'bg-red-100 text-red-700 dark:bg-red-800/30 dark:text-red-300',
             default => 'bg-gray-100 text-gray-700 dark:bg-gray-800/30 dark:text-gray-300',
         };
-        $nf0 = fn($n) => number_format((float)$n, 0, ',', '.');
-        $nf2 = fn($n) => number_format((float)$n, 2, ',', '.');
+        $nf0 = fn($n) => number_format((float) $n, 0, ',', '.');
+        $nf2 = fn($n) => number_format((float) $n, 2, ',', '.');
     @endphp
 
     <div class="max-w-9xl mx-auto px-4 py-4 sm:px-6 lg:px-8">
@@ -167,15 +167,16 @@
                 </button>
             </div>
         </div>
-        
 
-        <div class="flex w-full flex-col gap-6 xl:flex-col">
-            <div class="flex w-full items-stretch gap-6 xl:flex-row">
+        <div class="flex w-full flex-col gap-6 overflow-hidden sm:col-span-1 lg:row-span-1 xl:row-span-1 xl:flex-col">
+            <div class="flex flex-col gap-6 sm:w-1/2 md:w-full xl:flex-row">
                 {{-- Left card (Receipt Info) --}}
-                <div class="flex flex-1 flex-col rounded-xl bg-white dark:bg-gray-800">
-                    <header class="sticky top-0 z-10 flex items-center justify-between rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
+                <div class="rounded-xl bg-white duration-300 sm:w-1/2 md:w-full dark:bg-gray-800">
+                    <header
+                        class="sticky top-0 z-10 flex items-center justify-between rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
                         <h1 class="flex items-center gap-2 text-lg font-bold text-gray-800 dark:text-gray-100">
-                            <span class="inline-flex items-center rounded-md bg-purple-100 px-2 py-1 text-sm font-semibold text-purple-700">ID</span>
+                            <span
+                                class="inline-flex items-center rounded-md bg-purple-100 px-2 py-1 text-sm font-semibold text-purple-700">ID</span>
                             {{ $rcp->receiptnbr }}
                         </h1>
                         {{-- <div class="flex items-center gap-3">
@@ -191,36 +192,37 @@
                             </a>
                         </div> --}}
                         <div class="flex items-center gap-3">
-                            <span class="{{ $statusClasses }} inline-flex items-center rounded-full px-4 py-1 text-sm font-semibold transition-colors duration-200">
+                            <span
+                                class="{{ $statusClasses }} inline-flex items-center rounded-full px-4 py-1 text-sm font-semibold transition-colors duration-200">
                                 {{ $statusText }}
                             </span>
 
                             {{-- Dropdown Print --}}
                             <div class="relative">
                                 <button id="printMenuBtn"
-                                class="inline-flex cursor-pointer items-center gap-2 rounded-full bg-indigo-600 px-4 py-1 text-sm font-semibold text-white transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-                                aria-haspopup="true" aria-expanded="false">
-                                Print PDF
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 9l-7 7-7-7"/>
-                                </svg>
+                                    class="inline-flex cursor-pointer items-center gap-2 rounded-full bg-indigo-600 px-4 py-1 text-sm font-semibold text-white transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                                    aria-haspopup="true" aria-expanded="false">
+                                    Print PDF
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"
+                                        viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                            d="M19 9l-7 7-7-7" />
+                                    </svg>
                                 </button>
 
                                 <div id="printMenu"
-                                class="absolute right-0 z-20 mt-2 hidden w-56 overflow-hidden rounded-md border border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-gray-800"
-                                role="menu" aria-labelledby="printMenuBtn">
-                                <a href="{{ route('receipts.print', ['hash' => $hash]) }}?type=sttb"
-                                    target="_blank"
-                                    class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700"
-                                    role="menuitem">
-                                    Print STTB
-                                </a>
-                                <a href="{{ route('receipts.print', ['hash' => $hash]) }}?type=bpg"
-                                    target="_blank"
-                                    class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700"
-                                    role="menuitem">
-                                    Print BPG Non Stock
-                                </a>
+                                    class="absolute right-0 z-20 mt-2 hidden w-56 overflow-hidden rounded-md border border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-gray-800"
+                                    role="menu" aria-labelledby="printMenuBtn">
+                                    <a href="{{ route('receipts.print', ['hash' => $hash]) }}?type=sttb" target="_blank"
+                                        class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700"
+                                        role="menuitem">
+                                        Print STTB
+                                    </a>
+                                    <a href="{{ route('receipts.print', ['hash' => $hash]) }}?type=bpg" target="_blank"
+                                        class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700"
+                                        role="menuitem">
+                                        Print BPG Non Stock
+                                    </a>
                                 </div>
                             </div>
                         </div>
@@ -250,7 +252,8 @@
                                 <span class="min-w-32 max-w-32 text-gray-500">PO Nbr</span>
                                 <span class="break-words font-medium text-gray-900 dark:text-gray-300">
                                     @if ($poUrl)
-                                        <a class="text-indigo-600 hover:underline dark:text-indigo-400" target="_blank" href="{{ $poUrl }}">{{ $rcp->ponbr }}</a>
+                                        <a class="text-indigo-600 hover:underline dark:text-indigo-400" target="_blank"
+                                            href="{{ $poUrl }}">{{ $rcp->ponbr }}</a>
                                     @else
                                         {{ $rcp->ponbr }}
                                     @endif
@@ -260,25 +263,29 @@
                             <div class="flex items-center gap-2 p-2">
                                 <x-heroicon-o-building-office class="h-5 w-5 text-gray-400" />
                                 <span class="min-w-32 max-w-32 text-gray-500">Company</span>
-                                <span class="break-words font-medium text-gray-900 dark:text-gray-300">{{ $rcp->cpny_id }}</span>
+                                <span
+                                    class="break-words font-medium text-gray-900 dark:text-gray-300">{{ $rcp->cpny_id }}</span>
                             </div>
 
                             <div class="flex items-center gap-2 p-2">
                                 <x-heroicon-o-squares-2x2 class="h-5 w-5 text-gray-400" />
                                 <span class="min-w-32 max-w-32 text-gray-500">Department</span>
-                                <span class="break-words font-medium text-gray-900 dark:text-gray-300">{{ $rcp->department_id }}</span>
+                                <span
+                                    class="break-words font-medium text-gray-900 dark:text-gray-300">{{ $rcp->department_id }}</span>
                             </div>
 
                             <div class="flex items-center gap-2 p-2">
                                 <x-heroicon-o-user class="h-5 w-5 text-gray-400" />
                                 <span class="min-w-32 max-w-32 text-gray-500">Requester</span>
-                                <span class="break-words font-medium text-gray-900 dark:text-gray-300">{{ $rcp->user_peminta }}</span>
+                                <span
+                                    class="break-words font-medium text-gray-900 dark:text-gray-300">{{ $rcp->user_peminta }}</span>
                             </div>
 
                             <div class="flex items-center gap-2 p-2">
                                 <x-heroicon-o-building-storefront class="h-5 w-5 text-gray-400" />
                                 <span class="min-w-32 max-w-32 text-gray-500">Vendor</span>
-                                <span class="break-words font-medium text-gray-900 dark:text-gray-300">{{ $rcp->vendorname }}</span>
+                                <span
+                                    class="break-words font-medium text-gray-900 dark:text-gray-300">{{ $rcp->vendorname }}</span>
                             </div>
 
                             <div class="flex items-center gap-2 p-2">
@@ -286,7 +293,8 @@
                                 <span class="min-w-32 max-w-32 text-gray-500">CS ID</span>
                                 <span class="break-words font-medium text-gray-900 dark:text-gray-300">
                                     @if (!empty($csUrl))
-                                        <a href="{{ $csUrl }}" target="_blank" class="inline-flex items-center gap-1 text-indigo-600 hover:underline dark:text-indigo-400">
+                                        <a href="{{ $csUrl }}" target="_blank"
+                                            class="inline-flex items-center gap-1 text-indigo-600 hover:underline dark:text-indigo-400">
                                             {{ $rcp->csid }} <x-heroicon-o-arrow-up-right class="h-4 w-4" />
                                         </a>
                                     @else
@@ -300,7 +308,8 @@
                                 <span class="min-w-32 max-w-32 text-gray-500">SPPB/J/K/T</span>
                                 <span class="break-words font-medium text-gray-900 dark:text-gray-300">
                                     @if (!empty($sppbUrl))
-                                        <a href="{{ $sppbUrl }}" target="_blank" class="inline-flex items-center gap-1 text-indigo-600 hover:underline dark:text-indigo-400">
+                                        <a href="{{ $sppbUrl }}" target="_blank"
+                                            class="inline-flex items-center gap-1 text-indigo-600 hover:underline dark:text-indigo-400">
                                             {{ $rcp->sppbjktid }} <x-heroicon-o-arrow-up-right class="h-4 w-4" />
                                         </a>
                                     @else
@@ -313,7 +322,8 @@
                                 <div class="flex items-center gap-2 p-2 sm:col-span-2">
                                     <x-heroicon-o-clipboard-document-list class="h-5 w-5 text-gray-400" />
                                     <span class="min-w-32 max-w-32 text-gray-500">Note</span>
-                                    <span class="break-words font-medium text-gray-900 dark:text-gray-300">{{ $rcp->receiptnote }}</span>
+                                    <span
+                                        class="break-words font-medium text-gray-900 dark:text-gray-300">{{ $rcp->receiptnote }}</span>
                                 </div>
                             @endif
                         </div>
@@ -321,30 +331,36 @@
                 </div>
 
                 {{-- Right card (Tabs) --}}
-                <div class="flex flex-1 flex-col rounded-xl bg-white dark:bg-gray-800">
+                <div class="flex flex-col gap-4 sm:w-1/2 md:w-full">
                     <div x-data="{ activeTab: 'attachment' }" class="flex flex-1 flex-col">
-                        <header class="sticky top-0 z-10 flex items-center rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
+                        <header
+                            class="sticky top-0 z-10 flex items-center rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
                             <nav class="flex flex-grow">
                                 <button @click="activeTab = 'attachment'"
-                                  :class="activeTab === 'attachment' ? 'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400' : 'border-b-2 border-transparent text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-gray-100'"
-                                  class="flex-1 px-4 py-2 text-center text-sm font-medium">Attachment
+                                    :class="activeTab === 'attachment' ?
+                                        'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400' :
+                                        'border-b-2 border-transparent text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-gray-100'"
+                                    class="flex-1 px-4 py-2 text-center text-sm font-medium">Attachment
                                 </button>
                                 <button @click="activeTab = 'approval'"
-                                :class="activeTab === 'approval'
-                                    ?
-                                    'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400' :
-                                    'border-b-2 border-transparent text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-gray-100'"
-                                class="flex-1 px-4 py-2 text-center text-sm font-medium transition-colors duration-200">
-                                Approval Details
-                            </button>
+                                    :class="activeTab === 'approval'
+                                        ?
+                                        'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400' :
+                                        'border-b-2 border-transparent text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-gray-100'"
+                                    class="flex-1 px-4 py-2 text-center text-sm font-medium transition-colors duration-200">
+                                    Approval Details
+                                </button>
 
                                 <button @click="activeTab = 'comments'"
-                                  :class="activeTab === 'comments' ? 'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400' : 'border-b-2 border-transparent text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-gray-100'"
-                                  class="flex-1 px-4 py-2 text-center text-sm font-medium">Comments</button>
+                                    :class="activeTab === 'comments' ?
+                                        'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400' :
+                                        'border-b-2 border-transparent text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-gray-100'"
+                                    class="flex-1 px-4 py-2 text-center text-sm font-medium">Comments</button>
                             </nav>
                         </header>
 
-                        <div x-show="activeTab === 'approval'" class="flex-1 p-4 transition-all">
+                        <div class="flex flex-1 flex-col rounded-b-xl bg-white dark:bg-gray-800">
+                            <div x-show="activeTab === 'approval'" class="flex-1 p-4 transition-all">
                                 <table class="w-full text-sm">
                                     <thead>
                                         <tr
@@ -355,7 +371,7 @@
                                             <th class="p-3 text-left font-semibold">Status</th>
                                         </tr>
                                     </thead>
-                                    <tbody id="approval-table-body">                                       
+                                    <tbody id="approval-table-body">
                                     </tbody>
                                     {{-- <tbody>
                                         @foreach ($approval as $ap)
@@ -403,18 +419,19 @@
                                 </table>
                             </div>
 
-                        {{-- Attachment Tab --}}
-                        <div x-show="activeTab === 'attachment'" class="flex h-full flex-1 flex-col transition-all">
-                            <div class="flex-1 overflow-auto rounded-lg">
-                                <table class="w-full text-sm">
-                                    <thead class="text-gray-600 dark:text-gray-300">
-                                        <tr class="border-b border-gray-200 dark:border-gray-700">
-                                            <th class="p-3 text-left font-semibold">Filename</th>
-                                            <th class="p-3 text-left font-semibold">Created By</th>
-                                            <th class="p-3 text-left font-semibold">Date</th>
-                                        </tr>
-                                    </thead>
-                                    {{-- <tbody id="attachmentTbody">
+                            {{-- Attachment Tab --}}
+                            <div x-show="activeTab === 'attachment'"
+                                class="flex h-full flex-1 flex-col transition-all">
+                                <div class="flex-1 overflow-auto rounded-lg">
+                                    <table class="w-full text-sm">
+                                        <thead class="text-gray-600 dark:text-gray-300">
+                                            <tr class="border-b border-gray-200 dark:border-gray-700">
+                                                <th class="p-3 text-left font-semibold">Filename</th>
+                                                <th class="p-3 text-left font-semibold">Created By</th>
+                                                <th class="p-3 text-left font-semibold">Date</th>
+                                            </tr>
+                                        </thead>
+                                        {{-- <tbody id="attachmentTbody">
                                         @forelse ($attachment as $at)
                                             @php
                                                 $year = \Carbon\Carbon::parse($at->created_at)->year;
@@ -438,68 +455,77 @@
                                             </tr>
                                         @endforelse
                                     </tbody> --}}
-                                    <tbody id="rcpAttachmentTbody"></tbody>
-                                </table>
-                                <div class="border-t border-gray-200 p-4 dark:border-gray-700">
-                                    <form id="rcpAttachmentUploadForm" enctype="multipart/form-data">
-                                        @csrf
-                                        <div class="flex flex-col gap-3 md:flex-row md:items-center">
-                                        <div class="flex-1">
-                                            <label for="rcpAttachFiles" class="mb-2 block text-sm font-semibold text-gray-800 dark:text-gray-200">
-                                            Upload Attachments
-                                            </label>
-                                            <div class="flex items-center gap-3">
-                                            <input type="hidden" name="cpnyid" value="{{ $rcp->cpny_id }}">
-                                            <input type="hidden" name="departementid" value="{{ $rcp->department_id }}">
-                                            <input type="file" id="rcpAttachFiles" name="attachments[]" multiple
-                                                    class="block w-full cursor-pointer rounded-md border border-gray-300 bg-white px-2 py-[7px] text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" />
-                                            <button type="button" id="btnUploadSppbAttachment"
-                                                    class="inline-flex h-[36px] items-center justify-center rounded-md bg-indigo-600 px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                                                Upload
-                                            </button>
-                                            <button type="button" id="btnResetSppbAttachment"
-                                                    class="inline-flex h-[36px] items-center justify-center rounded-md border border-gray-300 bg-white px-4 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-400 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">
-                                                Reset
-                                            </button>
+                                        <tbody id="rcpAttachmentTbody"></tbody>
+                                    </table>
+                                    <div class="border-t border-gray-200 p-4 dark:border-gray-700">
+                                        <form id="rcpAttachmentUploadForm" enctype="multipart/form-data">
+                                            @csrf
+                                            <div class="flex flex-col gap-3 md:flex-row md:items-center">
+                                                <div class="flex-1">
+                                                    <label for="rcpAttachFiles"
+                                                        class="mb-2 block text-sm font-semibold text-gray-800 dark:text-gray-200">
+                                                        Upload Attachments
+                                                    </label>
+                                                    <div class="flex items-center gap-3">
+                                                        <input type="hidden" name="cpnyid"
+                                                            value="{{ $rcp->cpny_id }}">
+                                                        <input type="hidden" name="departementid"
+                                                            value="{{ $rcp->department_id }}">
+                                                        <input type="file" id="rcpAttachFiles"
+                                                            name="attachments[]" multiple
+                                                            class="block w-full cursor-pointer rounded-md border border-gray-300 bg-white px-2 py-[7px] text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" />
+                                                        <button type="button" id="btnUploadSppbAttachment"
+                                                            class="inline-flex h-[36px] items-center justify-center rounded-md bg-indigo-600 px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                                            Upload
+                                                        </button>
+                                                        <button type="button" id="btnResetSppbAttachment"
+                                                            class="inline-flex h-[36px] items-center justify-center rounded-md border border-gray-300 bg-white px-4 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-400 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">
+                                                            Reset
+                                                        </button>
+                                                    </div>
+                                                    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                                                        Max 10 files, PDF / Image preferred.
+                                                    </p>
+                                                </div>
                                             </div>
-                                            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                                            Max 10 files, PDF / Image preferred.
-                                            </p>
-                                        </div>
-                                        </div>
-                                    </form>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {{-- Comments Tab --}}
+                            <div x-show="activeTab === 'comments'" class="flex-1 transition-all">
+                                <div class="flex h-full flex-col">
+                                    <div id="commentList"
+                                        class="custom-scrollbar flex-1 flex-col space-y-4 overflow-y-auto p-4">
+                                        <p class="py-4 text-center italic text-gray-500">Loading comments...</p>
+                                    </div>
+                                    <div
+                                        class="flex items-center gap-3 border-t border-gray-200 p-4 dark:border-gray-700">
+                                        <input id="commentInput" type="text" placeholder="Write a comment..."
+                                            class="flex-1 rounded-lg bg-gray-100 p-3 text-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white dark:focus:ring-indigo-400">
+                                        <button id="postCommentBtn" type="button"
+                                            class="rounded-lg bg-indigo-600 px-5 py-3 text-sm font-semibold text-white transition-all duration-200 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                                            Post 🚀
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
-                        {{-- Comments Tab --}}
-                        <div x-show="activeTab === 'comments'" class="flex-1 transition-all">
-                            <div class="flex h-full flex-col">
-                                <div id="commentList" class="custom-scrollbar flex-1 flex-col space-y-4 overflow-y-auto p-4">
-                                    <p class="py-4 text-center italic text-gray-500">Loading comments...</p>
-                                </div>
-                                <div class="flex items-center gap-3 border-t border-gray-200 p-4 dark:border-gray-700">
-                                    <input id="commentInput" type="text" placeholder="Write a comment..."
-                                           class="flex-1 rounded-lg bg-gray-100 p-3 text-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white dark:focus:ring-indigo-400">
-                                    <button id="postCommentBtn" type="button"
-                                        class="rounded-lg bg-indigo-600 px-5 py-3 text-sm font-semibold text-white transition-all duration-200 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
-                                        Post 🚀
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
                     </div>
                 </div>
             </div>
 
             {{-- Receipt Detail table --}}
             <div class="flex w-full flex-col rounded-2xl bg-white dark:bg-gray-800">
-                <header class="flex items-center justify-between rounded-t-2xl border-b border-gray-200 bg-white px-6 py-4 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
+                <header
+                    class="flex items-center justify-between rounded-t-2xl border-b border-gray-200 bg-white px-6 py-4 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
                     <h2 class="text-xl font-semibold">📦 Receipt Detail</h2>
                 </header>
                 <div class="overflow-x-auto">
                     <table class="w-full text-sm text-gray-700 dark:text-gray-200">
-                        <thead class="bg-gray-100 dark:bg-gray-700 dark:text-gray-100">
+                        <thead class="sticky top-0 z-20 bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300">
                             <tr>
                                 <th class="px-4 py-2">No</th>
                                 <th class="px-4 py-2">Inventory ID</th>
@@ -511,7 +537,8 @@
                         </thead>
                         <tbody>
                             @foreach ($rcpdetail as $i => $item)
-                                <tr class="border-t border-gray-200 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800">
+                                <tr
+                                    class="border-t border-gray-200 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800">
                                     <td class="px-4 py-2">{{ $i + 1 }}</td>
                                     <td class="px-4 py-2">{{ $item->inventoryid }}</td>
                                     <td class="px-4 py-2">{{ $item->inventory_descr }}</td>
@@ -566,14 +593,15 @@
     <div id="loadingSpinnerContainer" role="status" aria-live="polite" aria-label="Loading">
         <div class="loading-card">
             <div class="loading-spinner"></div>
-            <div class="loading-text">Processing<span class="loading-ellipsis"><span>.</span><span>.</span><span>.</span></span></div>
+            <div class="loading-text">Processing<span
+                    class="loading-ellipsis"><span>.</span><span>.</span><span>.</span></span></div>
         </div>
     </div>
 
     {{-- dayjs & toastr --}}
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dayjs/1.11.10/dayjs.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dayjs/1.11.10/plugin/relativeTime.min.js"></script>
-   
+
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 
@@ -589,8 +617,8 @@
     {{-- Comments --}}
     <script>
         $(document).ready(function() {
-            const receiptnbr  = "{{ $rcp->receiptnbr }}";
-            const doctype = "PR"; 
+            const receiptnbr = "{{ $rcp->receiptnbr }}";
+            const doctype = "PR";
 
             loadComments(receiptnbr, doctype);
 
@@ -605,7 +633,9 @@
                         commentList.empty();
 
                         if (!response.comments || response.comments.length === 0) {
-                            commentList.append('<p class="text-gray-500 italic">No comments yet. Be the first to comment!</p>');
+                            commentList.append(
+                                '<p class="text-gray-500 italic">No comments yet. Be the first to comment!</p>'
+                            );
                             return;
                         }
 
@@ -656,7 +686,8 @@
                     },
                     error: function(xhr) {
                         console.error("Error adding comment:", xhr);
-                        alert("Error: " + (xhr.responseJSON ? xhr.responseJSON.message : "Unknown Error"));
+                        alert("Error: " + (xhr.responseJSON ? xhr.responseJSON.message :
+                            "Unknown Error"));
                     },
                     complete: function() {
                         $('#postCommentBtn').prop('disabled', false).text('Post 🚀');
@@ -676,10 +707,10 @@
                 }
             });
 
-            
+
         });
-    </script>  
-    
+    </script>
+
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         $(document).on("click", "#approveBtn", function() {
@@ -900,123 +931,135 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-        const btn  = document.getElementById('printMenuBtn');
-        const menu = document.getElementById('printMenu');
+            const btn = document.getElementById('printMenuBtn');
+            const menu = document.getElementById('printMenu');
 
-        const open  = () => { menu.classList.remove('hidden'); btn.setAttribute('aria-expanded','true'); };
-        const close = () => { menu.classList.add('hidden');  btn.setAttribute('aria-expanded','false'); };
+            const open = () => {
+                menu.classList.remove('hidden');
+                btn.setAttribute('aria-expanded', 'true');
+            };
+            const close = () => {
+                menu.classList.add('hidden');
+                btn.setAttribute('aria-expanded', 'false');
+            };
 
-        btn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            menu.classList.contains('hidden') ? open() : close();
-        });
-        document.addEventListener('click', (e) => {
-            if (!menu.classList.contains('hidden') && !menu.contains(e.target) && e.target !== btn) close();
-        });
-        document.addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                menu.classList.contains('hidden') ? open() : close();
+            });
+            document.addEventListener('click', (e) => {
+                if (!menu.classList.contains('hidden') && !menu.contains(e.target) && e.target !== btn)
+                    close();
+            });
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') close();
+            });
         });
     </script>
-    
+
 
     <script>
-        $(function () {
-        const listUrl   = @json(route('attachments.list',   ['doctype' => 'GR', 'refnbr' => $rcp->receiptnbr]));
-        const uploadUrl = @json(route('attachments.upload', ['doctype' => 'GR', 'refnbr' => $rcp->receiptnbr]));
+        $(function() {
+            const listUrl = @json(route('attachments.list', ['doctype' => 'GR', 'refnbr' => $rcp->receiptnbr]));
+            const uploadUrl = @json(route('attachments.upload', ['doctype' => 'GR', 'refnbr' => $rcp->receiptnbr]));
 
-        function $tbody() { return $('#rcpAttachmentTbody'); } // <tbody id="rcpAttachmentTbody">
+            function $tbody() {
+                return $('#rcpAttachmentTbody');
+            } // <tbody id="rcpAttachmentTbody">
 
-        function renderSppbAttachmentRows(rows){
-            const $tb = $tbody().empty();
+            function renderSppbAttachmentRows(rows) {
+                const $tb = $tbody().empty();
 
-            if (!rows || !rows.length) {
-            $tb.append(`
+                if (!rows || !rows.length) {
+                    $tb.append(`
                 <tr>
                 <td colspan="3" class="p-4 text-center italic text-gray-500 dark:text-gray-400">
                     No attachments found.
                 </td>
                 </tr>
             `);
-            return;
-            }
+                    return;
+                }
 
-            rows.forEach(at => {
-            const fileName  = at.name || at.display_name || '(no name)';
-            const createdBy = at.created_user ?? at.created_by ?? '-';
-            const dateStr = at.created_at ? dayjs(at.created_at).format('DD MMM YYYY HH:mm:ss') : '-';
-            const linkHtml  = at.url
-                ? `<a href="${at.url}" target="_blank"
-                    class="flex items-center gap-2 font-medium text-indigo-600 hover:underline dark:text-indigo-400">📎 ${fileName}</a>`
-                : `<span class="text-gray-700 dark:text-gray-300">📎 ${fileName}</span>
+                rows.forEach(at => {
+                    const fileName = at.name || at.display_name || '(no name)';
+                    const createdBy = at.created_user ?? at.created_by ?? '-';
+                    const dateStr = at.created_at ? dayjs(at.created_at).format('DD MMM YYYY HH:mm:ss') :
+                        '-';
+                    const linkHtml = at.url ?
+                        `<a href="${at.url}" target="_blank"
+                    class="flex items-center gap-2 font-medium text-indigo-600 hover:underline dark:text-indigo-400">📎 ${fileName}</a>` :
+                        `<span class="text-gray-700 dark:text-gray-300">📎 ${fileName}</span>
                 <span class="ml-2 text-xs text-red-500">(link unavailable)</span>`;
 
-            $tb.append(`
+                    $tb.append(`
                 <tr class="border-b border-gray-100 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700">
                 <td class="p-3">${linkHtml}</td>
                 <td class="p-3">${createdBy}</td>
                 <td class="p-3">${dateStr}</td>
                 </tr>
             `);
-            });
-        }
-
-        function refreshSppbAttachments(){
-            $.get(listUrl)
-            .done(res => {
-                if (res.success) renderSppbAttachmentRows(res.attachments);
-                else toastr.error(res.message || 'Failed to load attachments.');
-            })
-            .fail(() => toastr.error('Failed to load attachments.'));
-        }
-
-        // optional: load saat tab dibuka / page load
-        refreshSppbAttachments();
-
-        $('#btnUploadSppbAttachment').on('click', function(){
-            const $form = $('#rcpAttachmentUploadForm')[0];
-            const files = $('#rcpAttachFiles')[0].files;
-
-            if (!files || !files.length) {
-            toastr.warning('Please choose at least one file.');
-            return;
+                });
             }
 
-            const fd = new FormData($form);
-            if (typeof showOverlay === 'function') showOverlay('Uploading');
+            function refreshSppbAttachments() {
+                $.get(listUrl)
+                    .done(res => {
+                        if (res.success) renderSppbAttachmentRows(res.attachments);
+                        else toastr.error(res.message || 'Failed to load attachments.');
+                    })
+                    .fail(() => toastr.error('Failed to load attachments.'));
+            }
 
-            $.ajax({
-            url: uploadUrl,
-            method: 'POST',
-            data: fd,
-            processData: false,
-            contentType: false,
-            success: function(res){
-                if (typeof hideOverlay === 'function') hideOverlay();
-                if (!res || !res.success) {
-                toastr.error(res?.message || 'Upload failed.');
-                return;
+            // optional: load saat tab dibuka / page load
+            refreshSppbAttachments();
+
+            $('#btnUploadSppbAttachment').on('click', function() {
+                const $form = $('#rcpAttachmentUploadForm')[0];
+                const files = $('#rcpAttachFiles')[0].files;
+
+                if (!files || !files.length) {
+                    toastr.warning('Please choose at least one file.');
+                    return;
                 }
-                toastr.success('Upload success.');
-                $('#rcpAttachFiles').val('');
-                // back-end sudah mengembalikan list terbaru
-                renderSppbAttachmentRows(res.attachments || []);
-            },
-            error: function(xhr){
-                if (typeof hideOverlay === 'function') hideOverlay();
-                toastr.error(xhr.responseJSON?.message || 'Upload failed.');
-            }
-            });
-        });
 
-        $('#btnResetSppbAttachment').on('click', function(){
-            $('#rcpAttachFiles').val('');
-        });
+                const fd = new FormData($form);
+                if (typeof showOverlay === 'function') showOverlay('Uploading');
+
+                $.ajax({
+                    url: uploadUrl,
+                    method: 'POST',
+                    data: fd,
+                    processData: false,
+                    contentType: false,
+                    success: function(res) {
+                        if (typeof hideOverlay === 'function') hideOverlay();
+                        if (!res || !res.success) {
+                            toastr.error(res?.message || 'Upload failed.');
+                            return;
+                        }
+                        toastr.success('Upload success.');
+                        $('#rcpAttachFiles').val('');
+                        // back-end sudah mengembalikan list terbaru
+                        renderSppbAttachmentRows(res.attachments || []);
+                    },
+                    error: function(xhr) {
+                        if (typeof hideOverlay === 'function') hideOverlay();
+                        toastr.error(xhr.responseJSON?.message || 'Upload failed.');
+                    }
+                });
+            });
+
+            $('#btnResetSppbAttachment').on('click', function() {
+                $('#rcpAttachFiles').val('');
+            });
         });
     </script>
 
     <script>
-        document.addEventListener("DOMContentLoaded", function () {
+        document.addEventListener("DOMContentLoaded", function() {
 
-            const receiptnbr  = "{{ $rcp->receiptnbr }}";   // contoh: PB2501010001
+            const receiptnbr = "{{ $rcp->receiptnbr }}"; // contoh: PB2501010001
             const doctype = "GR";
 
             loadApproval(receiptnbr, doctype);
@@ -1050,7 +1093,11 @@
         function formatDate(dateString) {
             if (!dateString) return "-";
             const d = new Date(dateString);
-            const options = { year: "numeric", month: "short", day: "numeric" };
+            const options = {
+                year: "numeric",
+                month: "short",
+                day: "numeric"
+            };
             return d.toLocaleDateString("en-US", options);
         }
 

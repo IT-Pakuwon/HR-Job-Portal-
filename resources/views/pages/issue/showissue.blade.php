@@ -117,7 +117,7 @@
             'X' => 'bg-red-100 text-red-700 dark:bg-red-800/30 dark:text-red-300',
             default => 'bg-gray-100 text-gray-700 dark:bg-gray-800/30 dark:text-gray-300',
         };
-        $nf2 = fn($n) => number_format((float)$n, 2, ',', '.');
+        $nf2 = fn($n) => number_format((float) $n, 2, ',', '.');
     @endphp
 
     <div class="max-w-9xl mx-auto px-4 py-4 sm:px-6 lg:px-8">
@@ -164,17 +164,20 @@
             </div>
         </div>
 
-        <div class="flex w-full flex-col gap-6 xl:flex-col">
-            <div class="flex w-full items-stretch gap-6 xl:flex-row">
+        <div class="flex w-full flex-col gap-6 overflow-hidden sm:col-span-1 lg:row-span-1 xl:row-span-1 xl:flex-col">
+            <div class="flex flex-col gap-6 sm:w-1/2 md:w-full xl:flex-row">
                 {{-- Left card (Issue Info) --}}
-                <div class="flex flex-1 flex-col rounded-xl bg-white dark:bg-gray-800">
-                    <header class="sticky top-0 z-10 flex items-center justify-between rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
+                <div class="rounded-xl bg-white duration-300 sm:w-1/2 md:w-full dark:bg-gray-800">
+                    <header
+                        class="sticky top-0 z-10 flex items-center justify-between rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
                         <h1 class="flex items-center gap-2 text-lg font-bold text-gray-800 dark:text-gray-100">
-                            <span class="inline-flex items-center rounded-md bg-purple-100 px-2 py-1 text-sm font-semibold text-purple-700">ID</span>
+                            <span
+                                class="inline-flex items-center rounded-md bg-purple-100 px-2 py-1 text-sm font-semibold text-purple-700">ID</span>
                             {{ $iss->issueid }}
                         </h1>
                         <div class="flex items-center gap-3">
-                            <span class="{{ $statusClasses }} inline-flex items-center rounded-full px-4 py-1 text-sm font-semibold transition-colors duration-200">
+                            <span
+                                class="{{ $statusClasses }} inline-flex items-center rounded-full px-4 py-1 text-sm font-semibold transition-colors duration-200">
                                 {{ $statusText }}
                             </span>
                             <a href="{{ url('/pdf_issues') }}/{{ $hash }}" target="_blank">
@@ -209,7 +212,8 @@
                                 <span class="min-w-32 max-w-32 text-gray-500">SPB ID</span>
                                 <span class="break-words font-medium text-gray-900 dark:text-gray-300">
                                     @if ($spbUrl)
-                                        <a class="text-indigo-600 hover:underline dark:text-indigo-400" target="_blank" href="{{ $spbUrl }}">{{ $iss->spbid }}</a>
+                                        <a class="text-indigo-600 hover:underline dark:text-indigo-400" target="_blank"
+                                            href="{{ $spbUrl }}">{{ $iss->spbid }}</a>
                                     @else
                                         {{ $iss->spbid }}
                                     @endif
@@ -219,26 +223,30 @@
                             <div class="flex items-center gap-2 p-2">
                                 <x-heroicon-o-building-office class="h-5 w-5 text-gray-400" />
                                 <span class="min-w-32 max-w-32 text-gray-500">Company</span>
-                                <span class="break-words font-medium text-gray-900 dark:text-gray-300">{{ $iss->cpny_id }}</span>
+                                <span
+                                    class="break-words font-medium text-gray-900 dark:text-gray-300">{{ $iss->cpny_id }}</span>
                             </div>
 
                             <div class="flex items-center gap-2 p-2">
                                 <x-heroicon-o-squares-2x2 class="h-5 w-5 text-gray-400" />
                                 <span class="min-w-32 max-w-32 text-gray-500">Department</span>
-                                <span class="break-words font-medium text-gray-900 dark:text-gray-300">{{ $iss->department_id }}</span>
+                                <span
+                                    class="break-words font-medium text-gray-900 dark:text-gray-300">{{ $iss->department_id }}</span>
                             </div>
 
                             <div class="flex items-center gap-2 p-2">
                                 <x-heroicon-o-user class="h-5 w-5 text-gray-400" />
                                 <span class="min-w-32 max-w-32 text-gray-500">Requester</span>
-                                <span class="break-words font-medium text-gray-900 dark:text-gray-300">{{ $iss->user_peminta }}</span>
+                                <span
+                                    class="break-words font-medium text-gray-900 dark:text-gray-300">{{ $iss->user_peminta }}</span>
                             </div>
 
                             @if (!empty($iss->issuenote))
                                 <div class="flex items-center gap-2 p-2 sm:col-span-2">
                                     <x-heroicon-o-clipboard-document-list class="h-5 w-5 text-gray-400" />
                                     <span class="min-w-32 max-w-32 text-gray-500">Note</span>
-                                    <span class="break-words font-medium text-gray-900 dark:text-gray-300">{{ $iss->issuenote }}</span>
+                                    <span
+                                        class="break-words font-medium text-gray-900 dark:text-gray-300">{{ $iss->issuenote }}</span>
                                 </div>
                             @endif
                         </div>
@@ -246,12 +254,15 @@
                 </div>
 
                 {{-- Right card (Tabs) --}}
-                <div class="flex flex-1 flex-col rounded-xl bg-white dark:bg-gray-800">
+                <div class="flex flex-col gap-4 sm:w-1/2 md:w-full">
                     <div x-data="{ activeTab: 'attachment' }" class="flex flex-1 flex-col">
-                        <header class="sticky top-0 z-10 flex items-center rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
+                        <header
+                            class="sticky top-0 z-10 flex items-center rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
                             <nav class="flex flex-grow">
                                 <button @click="activeTab = 'attachment'"
-                                    :class="activeTab === 'attachment' ? 'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400' : 'border-b-2 border-transparent text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-gray-100'"
+                                    :class="activeTab === 'attachment' ?
+                                        'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400' :
+                                        'border-b-2 border-transparent text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-gray-100'"
                                     class="flex-1 px-4 py-2 text-center text-sm font-medium">Attachment</button>
 
                                 <button @click="activeTab = 'approval'"
@@ -264,26 +275,29 @@
                                 </button>
 
                                 <button @click="activeTab = 'comments'"
-                                    :class="activeTab === 'comments' ? 'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400' : 'border-b-2 border-transparent text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-gray-100'"
+                                    :class="activeTab === 'comments' ?
+                                        'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400' :
+                                        'border-b-2 border-transparent text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-gray-100'"
                                     class="flex-1 px-4 py-2 text-center text-sm font-medium">Comments</button>
                             </nav>
                         </header>
 
-                        {{-- Approval tab --}}
-                        <div x-show="activeTab === 'approval'" class="flex-1 p-4 transition-all">
-                            <table class="w-full text-sm">
-                                <thead>
-                                    <tr
-                                        class="border-b border-gray-200 text-gray-600 dark:border-gray-700 dark:text-gray-300">
-                                        <th class="p-3 text-left font-semibold">Level</th>
-                                        <th class="p-3 text-left font-semibold">Name</th>
-                                        <th class="p-3 text-left font-semibold">Date</th>
-                                        <th class="p-3 text-left font-semibold">Status</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="approval-table-body">                                       
+                        <div class="flex flex-1 flex-col rounded-b-xl bg-white dark:bg-gray-800">
+                            {{-- Approval tab --}}
+                            <div x-show="activeTab === 'approval'" class="flex-1 p-4 transition-all">
+                                <table class="w-full text-sm">
+                                    <thead>
+                                        <tr
+                                            class="border-b border-gray-200 text-gray-600 dark:border-gray-700 dark:text-gray-300">
+                                            <th class="p-3 text-left font-semibold">Level</th>
+                                            <th class="p-3 text-left font-semibold">Name</th>
+                                            <th class="p-3 text-left font-semibold">Date</th>
+                                            <th class="p-3 text-left font-semibold">Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="approval-table-body">
                                     </tbody>
-                                {{-- <tbody>
+                                    {{-- <tbody>
                                     @foreach ($approval as $ap)
                                         <tr
                                             class="border-b border-gray-100 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700">
@@ -326,68 +340,76 @@
                                         </tr>
                                     @endforeach
                                 </tbody> --}}
-                            </table>
-                        </div>
-
-                        {{-- Attachment Tab --}}
-                        <div x-show="activeTab === 'attachment'" class="flex h-full flex-1 flex-col transition-all">
-                            <div class="flex-1 overflow-auto rounded-lg">
-                                <table class="w-full text-sm">
-                                    <thead class="text-gray-600 dark:text-gray-300">
-                                        <tr class="border-b border-gray-200 dark:border-gray-700">
-                                            <th class="p-3 text-left font-semibold">Filename</th>
-                                            <th class="p-3 text-left font-semibold">Created By</th>
-                                            <th class="p-3 text-left font-semibold">Date</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="issueAttachmentTbody"></tbody>
                                 </table>
+                            </div>
 
-                                <div class="border-t border-gray-200 p-4 dark:border-gray-700">
-                                    <form id="issueAttachmentUploadForm" enctype="multipart/form-data">
-                                        @csrf
-                                        <div class="flex flex-col gap-3 md:flex-row md:items-center">
-                                            <div class="flex-1">
-                                                <label for="issueAttachFiles" class="mb-2 block text-sm font-semibold text-gray-800 dark:text-gray-200">
-                                                    Upload Attachments
-                                                </label>
-                                                <div class="flex items-center gap-3">
-                                                    <input type="hidden" name="cpnyid" value="{{ $iss->cpny_id }}">
-                                                    <input type="hidden" name="departementid" value="{{ $iss->department_id }}">
-                                                    <input type="file" id="issueAttachFiles" name="attachments[]" multiple
-                                                        class="block w-full cursor-pointer rounded-md border border-gray-300 bg-white px-2 py-[7px] text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" />
-                                                    <button type="button" id="btnUploadIssueAttachment"
-                                                        class="inline-flex h-[36px] items-center justify-center rounded-md bg-indigo-600 px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                                                        Upload
-                                                    </button>
-                                                    <button type="button" id="btnResetIssueAttachment"
-                                                        class="inline-flex h-[36px] items-center justify-center rounded-md border border-gray-300 bg-white px-4 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-400 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">
-                                                        Reset
-                                                    </button>
+                            {{-- Attachment Tab --}}
+                            <div x-show="activeTab === 'attachment'"
+                                class="flex h-full flex-1 flex-col transition-all">
+                                <div class="flex-1 overflow-auto rounded-lg">
+                                    <table class="w-full text-sm">
+                                        <thead class="text-gray-600 dark:text-gray-300">
+                                            <tr class="border-b border-gray-200 dark:border-gray-700">
+                                                <th class="p-3 text-left font-semibold">Filename</th>
+                                                <th class="p-3 text-left font-semibold">Created By</th>
+                                                <th class="p-3 text-left font-semibold">Date</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="issueAttachmentTbody"></tbody>
+                                    </table>
+
+                                    <div class="border-t border-gray-200 p-4 dark:border-gray-700">
+                                        <form id="issueAttachmentUploadForm" enctype="multipart/form-data">
+                                            @csrf
+                                            <div class="flex flex-col gap-3 md:flex-row md:items-center">
+                                                <div class="flex-1">
+                                                    <label for="issueAttachFiles"
+                                                        class="mb-2 block text-sm font-semibold text-gray-800 dark:text-gray-200">
+                                                        Upload Attachments
+                                                    </label>
+                                                    <div class="flex items-center gap-3">
+                                                        <input type="hidden" name="cpnyid"
+                                                            value="{{ $iss->cpny_id }}">
+                                                        <input type="hidden" name="departementid"
+                                                            value="{{ $iss->department_id }}">
+                                                        <input type="file" id="issueAttachFiles"
+                                                            name="attachments[]" multiple
+                                                            class="block w-full cursor-pointer rounded-md border border-gray-300 bg-white px-2 py-[7px] text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" />
+                                                        <button type="button" id="btnUploadIssueAttachment"
+                                                            class="inline-flex h-[36px] items-center justify-center rounded-md bg-indigo-600 px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                                            Upload
+                                                        </button>
+                                                        <button type="button" id="btnResetIssueAttachment"
+                                                            class="inline-flex h-[36px] items-center justify-center rounded-md border border-gray-300 bg-white px-4 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-400 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">
+                                                            Reset
+                                                        </button>
+                                                    </div>
+                                                    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                                                        Max 10 files, PDF / Image preferred.
+                                                    </p>
                                                 </div>
-                                                <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                                                    Max 10 files, PDF / Image preferred.
-                                                </p>
                                             </div>
-                                        </div>
-                                    </form>
+                                        </form>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
 
-                        {{-- Comments Tab --}}
-                        <div x-show="activeTab === 'comments'" class="flex-1 transition-all">
-                            <div class="flex h-full flex-col">
-                                <div id="commentList" class="custom-scrollbar flex-1 flex-col space-y-4 overflow-y-auto p-4">
-                                    <p class="py-4 text-center italic text-gray-500">Loading comments...</p>
-                                </div>
-                                <div class="flex items-center gap-3 border-t border-gray-200 p-4 dark:border-gray-700">
-                                    <input id="commentInput" type="text" placeholder="Write a comment..."
-                                        class="flex-1 rounded-lg bg-gray-100 p-3 text-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white dark:focus:ring-indigo-400">
-                                    <button id="postCommentBtn" type="button"
-                                        class="rounded-lg bg-indigo-600 px-5 py-3 text-sm font-semibold text-white transition-all duration-200 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
-                                        Post 🚀
-                                    </button>
+                            {{-- Comments Tab --}}
+                            <div x-show="activeTab === 'comments'" class="flex-1 transition-all">
+                                <div class="flex h-full flex-col">
+                                    <div id="commentList"
+                                        class="custom-scrollbar flex-1 flex-col space-y-4 overflow-y-auto p-4">
+                                        <p class="py-4 text-center italic text-gray-500">Loading comments...</p>
+                                    </div>
+                                    <div
+                                        class="flex items-center gap-3 border-t border-gray-200 p-4 dark:border-gray-700">
+                                        <input id="commentInput" type="text" placeholder="Write a comment..."
+                                            class="flex-1 rounded-lg bg-gray-100 p-3 text-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white dark:focus:ring-indigo-400">
+                                        <button id="postCommentBtn" type="button"
+                                            class="rounded-lg bg-indigo-600 px-5 py-3 text-sm font-semibold text-white transition-all duration-200 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                                            Post 🚀
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -397,12 +419,13 @@
 
             {{-- Issue Detail table --}}
             <div class="flex w-full flex-col rounded-2xl bg-white dark:bg-gray-800">
-                <header class="flex items-center justify-between rounded-t-2xl border-b border-gray-200 bg-white px-6 py-4 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
+                <header
+                    class="flex items-center justify-between rounded-t-2xl border-b border-gray-200 bg-white px-6 py-4 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
                     <h2 class="text-xl font-semibold">📦 Issue Detail</h2>
                 </header>
                 <div class="overflow-x-auto">
                     <table class="w-full text-sm text-gray-700 dark:text-gray-200">
-                        <thead class="bg-gray-100 dark:bg-gray-700 dark:text-gray-100">
+                        <thead class="sticky top-0 z-20 bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300">
                             <tr>
                                 <th class="px-4 py-2">No</th>
                                 <th class="px-4 py-2">Inventory ID</th>
@@ -414,7 +437,8 @@
                         </thead>
                         <tbody>
                             @foreach ($issdetail as $i => $item)
-                                <tr class="border-t border-gray-200 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800">
+                                <tr
+                                    class="border-t border-gray-200 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800">
                                     <td class="px-4 py-2">{{ $i + 1 }}</td>
                                     <td class="px-4 py-2">{{ $item->inventoryid }}</td>
                                     <td class="px-4 py-2">{{ $item->inventory_descr }}</td>
@@ -431,7 +455,7 @@
     </div>
 
     {{-- Overlay --}}
-      <div id="loadingSpinnerContainer" role="status" aria-live="polite" aria-label="Loading">
+    <div id="loadingSpinnerContainer" role="status" aria-live="polite" aria-label="Loading">
         <div class="loading-card">
             <div class="loading-spinner"></div>
             <div class="loading-text">
@@ -439,7 +463,7 @@
             </div>
         </div>
     </div>
-     <div id="rejectTaskModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50">
+    <div id="rejectTaskModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50">
         <div class="w-full max-w-md rounded-lg bg-white p-6 dark:bg-gray-700">
             <h2 class="mb-4 text-xl font-semibold text-gray-800 dark:text-white">Reject</h2>
             <textarea id="rejectReason" class="mt-2 w-full rounded-lg p-3 focus:outline-none dark:bg-gray-800 dark:text-white"
@@ -474,9 +498,9 @@
         </div>
     </div>
 
-    
+
     {{-- dayjs & toastr --}}
-     <script src="https://cdnjs.cloudflare.com/ajax/libs/dayjs/1.11.10/dayjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dayjs/1.11.10/dayjs.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dayjs/1.11.10/plugin/relativeTime.min.js"></script>
 
     <script>
@@ -487,15 +511,15 @@
         // ...
         $spinner.fadeOut(); // sembunyikan saat selesai
     </script>
-    
+
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 
     {{-- Comments --}}
     <script>
         $(document).ready(function() {
-            const issueid  = "{{ $iss->issueid }}";
-            const doctype = "IS"; 
+            const issueid = "{{ $iss->issueid }}";
+            const doctype = "IS";
 
             loadComments(issueid, doctype);
 
@@ -510,7 +534,9 @@
                         commentList.empty();
 
                         if (!response.comments || response.comments.length === 0) {
-                            commentList.append('<p class="text-gray-500 italic">No comments yet. Be the first to comment!</p>');
+                            commentList.append(
+                                '<p class="text-gray-500 italic">No comments yet. Be the first to comment!</p>'
+                            );
                             return;
                         }
 
@@ -561,7 +587,8 @@
                     },
                     error: function(xhr) {
                         console.error("Error adding comment:", xhr);
-                        alert("Error: " + (xhr.responseJSON ? xhr.responseJSON.message : "Unknown Error"));
+                        alert("Error: " + (xhr.responseJSON ? xhr.responseJSON.message :
+                            "Unknown Error"));
                     },
                     complete: function() {
                         $('#postCommentBtn').prop('disabled', false).text('Post 🚀');
@@ -581,12 +608,12 @@
                 }
             });
 
-            
-        });
-    </script>  
 
-  
-     <script>
+        });
+    </script>
+
+
+    <script>
         $(document).on("click", "#approveBtn", function() {
             let issueid = "{{ $iss->issueid }}"; // Ambil Task ID dari modal        
             approveSPB(issueid);
@@ -802,13 +829,15 @@
 
     {{-- Attachment list/upload (doctype IS, refnbr = issueid) --}}
     <script>
-        $(function () {
-            const listUrl   = @json(route('attachments.list',   ['doctype' => 'IS', 'refnbr' => $iss->issueid]));
+        $(function() {
+            const listUrl = @json(route('attachments.list', ['doctype' => 'IS', 'refnbr' => $iss->issueid]));
             const uploadUrl = @json(route('attachments.upload', ['doctype' => 'IS', 'refnbr' => $iss->issueid]));
 
-            function $tbody() { return $('#issueAttachmentTbody'); }
+            function $tbody() {
+                return $('#issueAttachmentTbody');
+            }
 
-            function renderAttachmentRows(rows){
+            function renderAttachmentRows(rows) {
                 const $tb = $tbody().empty();
 
                 if (!rows || !rows.length) {
@@ -823,13 +852,14 @@
                 }
 
                 rows.forEach(at => {
-                    const fileName  = at.name || at.display_name || '(no name)';
+                    const fileName = at.name || at.display_name || '(no name)';
                     const createdBy = at.created_user ?? at.created_by ?? '-';
-                    const dateStr = at.created_at ? dayjs(at.created_at).format('DD MMM YYYY HH:mm:ss') : '-';
-                    const linkHtml  = at.url
-                        ? `<a href="${at.url}" target="_blank"
-                                class="flex items-center gap-2 font-medium text-indigo-600 hover:underline dark:text-indigo-400">📎 ${fileName}</a>`
-                        : `<span class="text-gray-700 dark:text-gray-300">📎 ${fileName}</span>
+                    const dateStr = at.created_at ? dayjs(at.created_at).format('DD MMM YYYY HH:mm:ss') :
+                        '-';
+                    const linkHtml = at.url ?
+                        `<a href="${at.url}" target="_blank"
+                                class="flex items-center gap-2 font-medium text-indigo-600 hover:underline dark:text-indigo-400">📎 ${fileName}</a>` :
+                        `<span class="text-gray-700 dark:text-gray-300">📎 ${fileName}</span>
                             <span class="ml-2 text-xs text-red-500">(link unavailable)</span>`;
 
                     $tb.append(`
@@ -842,19 +872,19 @@
                 });
             }
 
-            function refreshAttachments(){
+            function refreshAttachments() {
                 $.get(listUrl)
-                .done(res => {
-                    if (res.success) renderAttachmentRows(res.attachments);
-                    else toastr.error(res.message || 'Failed to load attachments.');
-                })
-                .fail(() => toastr.error('Failed to load attachments.'));
+                    .done(res => {
+                        if (res.success) renderAttachmentRows(res.attachments);
+                        else toastr.error(res.message || 'Failed to load attachments.');
+                    })
+                    .fail(() => toastr.error('Failed to load attachments.'));
             }
 
             // load awal
             refreshAttachments();
 
-            $('#btnUploadIssueAttachment').on('click', function(){
+            $('#btnUploadIssueAttachment').on('click', function() {
                 const $form = $('#issueAttachmentUploadForm')[0];
                 const files = $('#issueAttachFiles')[0].files;
 
@@ -871,7 +901,7 @@
                     data: fd,
                     processData: false,
                     contentType: false,
-                    success: function(res){
+                    success: function(res) {
                         if (!res || !res.success) {
                             toastr.error(res?.message || 'Upload failed.');
                             return;
@@ -880,22 +910,22 @@
                         $('#issueAttachFiles').val('');
                         renderAttachmentRows(res.attachments || []);
                     },
-                    error: function(xhr){
+                    error: function(xhr) {
                         toastr.error(xhr.responseJSON?.message || 'Upload failed.');
                     }
                 });
             });
 
-            $('#btnResetIssueAttachment').on('click', function(){
+            $('#btnResetIssueAttachment').on('click', function() {
                 $('#issueAttachFiles').val('');
             });
         });
     </script>
 
     <script>
-        document.addEventListener("DOMContentLoaded", function () {
+        document.addEventListener("DOMContentLoaded", function() {
 
-            const issueid  = "{{ $iss->issueid }}";   // contoh: PB2501010001
+            const issueid = "{{ $iss->issueid }}"; // contoh: PB2501010001
             const doctype = "IS";
 
             loadApproval(issueid, doctype);
@@ -929,7 +959,11 @@
         function formatDate(dateString) {
             if (!dateString) return "-";
             const d = new Date(dateString);
-            const options = { year: "numeric", month: "short", day: "numeric" };
+            const options = {
+                year: "numeric",
+                month: "short",
+                day: "numeric"
+            };
             return d.toLocaleDateString("en-US", options);
         }
 

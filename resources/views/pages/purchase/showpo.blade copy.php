@@ -836,7 +836,7 @@
                 </header>
                 <div class="overflow-x-auto">
                     <table class="w-full text-sm text-gray-700 dark:text-gray-200">
-                        <thead class="bg-gray-100 dark:bg-gray-700 dark:text-gray-100">
+                        <thead class="sticky top-0 z-20 bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300">
                             <tr>
                                 <th class="px-4 py-2">No</th>
                                 <th class="px-4 py-2">Inventory ID</th>

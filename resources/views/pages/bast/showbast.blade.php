@@ -168,11 +168,10 @@
             </div>
         </div>
 
-
-        <div class="flex w-full flex-col gap-6 xl:flex-col">
-            <div class="flex w-full items-stretch gap-6 xl:flex-row">
+        <div class="flex w-full flex-col gap-6 overflow-hidden sm:col-span-1 lg:row-span-1 xl:row-span-1 xl:flex-col">
+            <div class="flex flex-col gap-6 sm:w-1/2 md:w-full xl:flex-row">
                 {{-- Left card (Bast Info) --}}
-                <div class="flex flex-1 flex-col rounded-xl bg-white dark:bg-gray-800">
+                <div class="rounded-xl bg-white duration-300 sm:w-1/2 md:w-full dark:bg-gray-800">
                     <header
                         class="sticky top-0 z-10 flex items-center justify-between rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
                         <h1 class="flex items-center gap-2 text-lg font-bold text-gray-800 dark:text-gray-100">
@@ -203,29 +202,29 @@
                             {{-- Dropdown Print --}}
                             <div class="relative">
                                 <button id="printMenuBtn"
-                                class="inline-flex cursor-pointer items-center gap-2 rounded-full bg-indigo-600 px-4 py-1 text-sm font-semibold text-white transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-                                aria-haspopup="true" aria-expanded="false">
-                                Print PDF
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 9l-7 7-7-7"/>
-                                </svg>
+                                    class="inline-flex cursor-pointer items-center gap-2 rounded-full bg-indigo-600 px-4 py-1 text-sm font-semibold text-white transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                                    aria-haspopup="true" aria-expanded="false">
+                                    Print PDF
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"
+                                        viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                            d="M19 9l-7 7-7-7" />
+                                    </svg>
                                 </button>
 
                                 <div id="printMenu"
-                                class="absolute right-0 z-20 mt-2 hidden w-56 overflow-hidden rounded-md border border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-gray-800"
-                                role="menu" aria-labelledby="printMenuBtn">
-                                <a href="{{ url('/pdf_bast') }}/{{ $hash }}"
-                                    target="_blank"
-                                    class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700"
-                                    role="menuitem">
-                                    Print BAST
-                                </a>
-                                <a href="{{ url('/pdf_bast_vendor') }}/{{ $hash }}"
-                                    target="_blank"
-                                    class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700"
-                                    role="menuitem">
-                                    Print BAST Vendor
-                                </a>
+                                    class="absolute right-0 z-20 mt-2 hidden w-56 overflow-hidden rounded-md border border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-gray-800"
+                                    role="menu" aria-labelledby="printMenuBtn">
+                                    <a href="{{ url('/pdf_bast') }}/{{ $hash }}" target="_blank"
+                                        class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700"
+                                        role="menuitem">
+                                        Print BAST
+                                    </a>
+                                    <a href="{{ url('/pdf_bast_vendor') }}/{{ $hash }}" target="_blank"
+                                        class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700"
+                                        role="menuitem">
+                                        Print BAST Vendor
+                                    </a>
                                 </div>
                             </div>
 
@@ -477,8 +476,7 @@
                 </div>
 
                 {{-- Right card (Tabs) --}}
-
-                <div class="flex flex-col gap-4">
+                <div class="flex flex-col gap-4 sm:w-1/2 md:w-full">
                     <div class="flex flex-1 flex-col rounded-xl bg-white dark:bg-gray-800">
                         <div x-data="{ activeTab: 'attachment' }" class="flex flex-1 flex-col">
                             <header
@@ -507,89 +505,91 @@
                                 </nav>
                             </header>
 
-                            <div x-show="activeTab === 'approval'" class="flex-1 p-4 transition-all">
-                                <table class="w-full text-sm">
-                                    <thead>
-                                        <tr
-                                            class="border-b border-gray-200 text-gray-600 dark:border-gray-700 dark:text-gray-300">
-                                            <th class="p-3 text-left font-semibold">Level</th>
-                                            <th class="p-3 text-left font-semibold">Name</th>
-                                            <th class="p-3 text-left font-semibold">Date</th>
-                                            <th class="p-3 text-left font-semibold">Status</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="approval-table-body">
-                                    </tbody>
-
-                                </table>
-                            </div>
-
-                            {{-- Attachment Tab --}}
-                            <div x-show="activeTab === 'attachment'"
-                                class="flex h-full flex-1 flex-col transition-all">
-                                <div class="flex-1 overflow-auto rounded-lg">
+                            <div class="flex flex-1 flex-col rounded-b-xl bg-white dark:bg-gray-800">
+                                <div x-show="activeTab === 'approval'" class="flex-1 p-4 transition-all">
                                     <table class="w-full text-sm">
-                                        <thead class="text-gray-600 dark:text-gray-300">
-                                            <tr class="border-b border-gray-200 dark:border-gray-700">
-                                                <th class="p-3 text-left font-semibold">Filename</th>
-                                                <th class="p-3 text-left font-semibold">Created By</th>
+                                        <thead>
+                                            <tr
+                                                class="border-b border-gray-200 text-gray-600 dark:border-gray-700 dark:text-gray-300">
+                                                <th class="p-3 text-left font-semibold">Level</th>
+                                                <th class="p-3 text-left font-semibold">Name</th>
                                                 <th class="p-3 text-left font-semibold">Date</th>
+                                                <th class="p-3 text-left font-semibold">Status</th>
                                             </tr>
                                         </thead>
+                                        <tbody id="approval-table-body">
+                                        </tbody>
 
-                                        <tbody id="rcpAttachmentTbody"></tbody>
                                     </table>
-                                    <div class="border-t border-gray-200 p-4 dark:border-gray-700">
-                                        <form id="rcpAttachmentUploadForm" enctype="multipart/form-data">
-                                            @csrf
-                                            <div class="flex flex-col gap-3 md:flex-row md:items-center">
-                                                <div class="flex-1">
-                                                    <label for="rcpAttachFiles"
-                                                        class="mb-2 block text-sm font-semibold text-gray-800 dark:text-gray-200">
-                                                        Upload Attachments
-                                                    </label>
-                                                    <div class="flex items-center gap-3">
-                                                        <input type="hidden" name="cpnyid"
-                                                            value="{{ $bast->cpny_id }}">
-                                                        <input type="hidden" name="departementid"
-                                                            value="{{ $bast->department_id }}">
-                                                        <input type="file" id="rcpAttachFiles"
-                                                            name="attachments[]" multiple
-                                                            class="block w-full cursor-pointer rounded-md border border-gray-300 bg-white px-2 py-[7px] text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" />
-                                                        <button type="button" id="btnUploadSppbAttachment"
-                                                            class="inline-flex h-[36px] items-center justify-center rounded-md bg-indigo-600 px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                                                            Upload
-                                                        </button>
-                                                        <button type="button" id="btnResetSppbAttachment"
-                                                            class="inline-flex h-[36px] items-center justify-center rounded-md border border-gray-300 bg-white px-4 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-400 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">
-                                                            Reset
-                                                        </button>
+                                </div>
+
+                                {{-- Attachment Tab --}}
+                                <div x-show="activeTab === 'attachment'"
+                                    class="flex h-full flex-1 flex-col transition-all">
+                                    <div class="flex-1 overflow-auto rounded-lg">
+                                        <table class="w-full text-sm">
+                                            <thead class="text-gray-600 dark:text-gray-300">
+                                                <tr class="border-b border-gray-200 dark:border-gray-700">
+                                                    <th class="p-3 text-left font-semibold">Filename</th>
+                                                    <th class="p-3 text-left font-semibold">Created By</th>
+                                                    <th class="p-3 text-left font-semibold">Date</th>
+                                                </tr>
+                                            </thead>
+
+                                            <tbody id="rcpAttachmentTbody"></tbody>
+                                        </table>
+                                        <div class="border-t border-gray-200 p-4 dark:border-gray-700">
+                                            <form id="rcpAttachmentUploadForm" enctype="multipart/form-data">
+                                                @csrf
+                                                <div class="flex flex-col gap-3 md:flex-row md:items-center">
+                                                    <div class="flex-1">
+                                                        <label for="rcpAttachFiles"
+                                                            class="mb-2 block text-sm font-semibold text-gray-800 dark:text-gray-200">
+                                                            Upload Attachments
+                                                        </label>
+                                                        <div class="flex items-center gap-3">
+                                                            <input type="hidden" name="cpnyid"
+                                                                value="{{ $bast->cpny_id }}">
+                                                            <input type="hidden" name="departementid"
+                                                                value="{{ $bast->department_id }}">
+                                                            <input type="file" id="rcpAttachFiles"
+                                                                name="attachments[]" multiple
+                                                                class="block w-full cursor-pointer rounded-md border border-gray-300 bg-white px-2 py-[7px] text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" />
+                                                            <button type="button" id="btnUploadSppbAttachment"
+                                                                class="inline-flex h-[36px] items-center justify-center rounded-md bg-indigo-600 px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                                                Upload
+                                                            </button>
+                                                            <button type="button" id="btnResetSppbAttachment"
+                                                                class="inline-flex h-[36px] items-center justify-center rounded-md border border-gray-300 bg-white px-4 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-400 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">
+                                                                Reset
+                                                            </button>
+                                                        </div>
+                                                        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                                                            Max 10 files, PDF / Image preferred.
+                                                        </p>
                                                     </div>
-                                                    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                                                        Max 10 files, PDF / Image preferred.
-                                                    </p>
                                                 </div>
-                                            </div>
-                                        </form>
+                                            </form>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
 
-                            {{-- Comments Tab --}}
-                            <div x-show="activeTab === 'comments'" class="flex-1 transition-all">
-                                <div class="flex h-full flex-col">
-                                    <div id="commentList"
-                                        class="custom-scrollbar flex-1 flex-col space-y-4 overflow-y-auto p-4">
-                                        <p class="py-4 text-center italic text-gray-500">Loading comments...</p>
-                                    </div>
-                                    <div
-                                        class="flex items-center gap-3 border-t border-gray-200 p-4 dark:border-gray-700">
-                                        <input id="commentInput" type="text" placeholder="Write a comment..."
-                                            class="flex-1 rounded-lg bg-gray-100 p-3 text-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white dark:focus:ring-indigo-400">
-                                        <button id="postCommentBtn" type="button"
-                                            class="rounded-lg bg-indigo-600 px-5 py-3 text-sm font-semibold text-white transition-all duration-200 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
-                                            Post 🚀
-                                        </button>
+                                {{-- Comments Tab --}}
+                                <div x-show="activeTab === 'comments'" class="flex-1 transition-all">
+                                    <div class="flex h-full flex-col">
+                                        <div id="commentList"
+                                            class="custom-scrollbar flex-1 flex-col space-y-4 overflow-y-auto p-4">
+                                            <p class="py-4 text-center italic text-gray-500">Loading comments...</p>
+                                        </div>
+                                        <div
+                                            class="flex items-center gap-3 border-t border-gray-200 p-4 dark:border-gray-700">
+                                            <input id="commentInput" type="text" placeholder="Write a comment..."
+                                                class="flex-1 rounded-lg bg-gray-100 p-3 text-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white dark:focus:ring-indigo-400">
+                                            <button id="postCommentBtn" type="button"
+                                                class="rounded-lg bg-indigo-600 px-5 py-3 text-sm font-semibold text-white transition-all duration-200 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                                                Post 🚀
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -1668,20 +1668,29 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-        const btn  = document.getElementById('printMenuBtn');
-        const menu = document.getElementById('printMenu');
+            const btn = document.getElementById('printMenuBtn');
+            const menu = document.getElementById('printMenu');
 
-        const open  = () => { menu.classList.remove('hidden'); btn.setAttribute('aria-expanded','true'); };
-        const close = () => { menu.classList.add('hidden');  btn.setAttribute('aria-expanded','false'); };
+            const open = () => {
+                menu.classList.remove('hidden');
+                btn.setAttribute('aria-expanded', 'true');
+            };
+            const close = () => {
+                menu.classList.add('hidden');
+                btn.setAttribute('aria-expanded', 'false');
+            };
 
-        btn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            menu.classList.contains('hidden') ? open() : close();
-        });
-        document.addEventListener('click', (e) => {
-            if (!menu.classList.contains('hidden') && !menu.contains(e.target) && e.target !== btn) close();
-        });
-        document.addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                menu.classList.contains('hidden') ? open() : close();
+            });
+            document.addEventListener('click', (e) => {
+                if (!menu.classList.contains('hidden') && !menu.contains(e.target) && e.target !== btn)
+                    close();
+            });
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') close();
+            });
         });
     </script>
 

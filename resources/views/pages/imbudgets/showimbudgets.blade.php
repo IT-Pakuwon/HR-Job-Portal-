@@ -143,10 +143,10 @@
                 </button>
             </div>
         </div>
-        <div class="flex w-full flex-col gap-6 xl:flex-col">
-            <div class="flex w-full items-stretch gap-6 xl:flex-row">
+        <div class="flex w-full flex-col gap-6 overflow-hidden sm:col-span-1 lg:row-span-1 xl:row-span-1 xl:flex-col">
+            <div class="flex flex-col gap-6 sm:w-1/2 md:w-full xl:flex-row">
                 {{-- Left card (IMBudget Info) --}}
-                <div class="flex flex-1 flex-col rounded-xl bg-white dark:bg-gray-800">
+                <div class="rounded-xl bg-white duration-300 sm:w-1/2 md:w-full dark:bg-gray-800">
                     <header
                         class="sticky top-0 z-10 flex items-center justify-between rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
                         <h1 class="flex items-center gap-2 text-lg font-bold text-gray-800 dark:text-gray-100">
@@ -227,7 +227,7 @@
                                 </span>
                             </div>
 
-                             {{-- Company --}}
+                            {{-- Company --}}
                             <div class="flex items-center gap-2 p-2">
                                 <x-heroicon-o-document-text class="h-5 w-5 text-gray-400" />
                                 <span class="min-w-32 max-w-32 text-gray-500">CS</span>
@@ -271,7 +271,7 @@
                 </div>
 
                 {{-- Right card (Tabs) --}}
-                <div class="flex flex-1 flex-col rounded-xl bg-white dark:bg-gray-800">
+                <div class="flex flex-col gap-4 sm:w-1/2 md:w-full">
                     <div x-data="{ activeTab: 'attachment' }" class="flex flex-1 flex-col">
                         <header
                             class="sticky top-0 z-10 flex items-center rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
@@ -317,8 +317,8 @@
                                             <th class="p-3 text-left font-semibold">Status</th>
                                         </tr>
                                     </thead>
-                                    <tbody id="approval-table-body">                                       
-                                    </tbody>                                    
+                                    <tbody id="approval-table-body">
+                                    </tbody>
                                 </table>
                             </div>
                             {{-- Attachment tab --}}
@@ -331,8 +331,8 @@
                                             <th class="p-3 text-left font-semibold">Date</th>
                                         </tr>
                                     </thead>
-                                    
-                                    <tbody id="imbudgetAttachmentTbody"></tbody>                                   
+
+                                    <tbody id="imbudgetAttachmentTbody"></tbody>
 
                                 </table>
                                 {{-- Upload attachment (multi) --}}
@@ -340,33 +340,37 @@
                                     <form id="imbudgetAttachmentUploadForm" enctype="multipart/form-data">
                                         @csrf
                                         <div class="flex flex-col gap-3 md:flex-row md:items-center">
-                                        <div class="flex-1">
-                                            <label for="imbudgetAttachFiles" class="mb-2 block text-sm font-semibold text-gray-800 dark:text-gray-200">
-                                            Upload Attachments
-                                            </label>
-                                            <div class="flex items-center gap-3">
-                                            <input type="hidden" name="cpnyid" value="{{ $imbudget->cpny_id }}">
-                                            <input type="hidden" name="departementid" value="{{ $imbudget->department_id }}">
-                                            <input type="file" id="imbudgetAttachFiles" name="attachments[]" multiple
-                                                    class="block w-full cursor-pointer rounded-md border border-gray-300 bg-white px-2 py-[7px] text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" />
-                                            <button type="button" id="btnUploadIMBudgetAttachment"
-                                                    class="inline-flex h-[36px] items-center justify-center rounded-md bg-indigo-600 px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                                                Upload
-                                            </button>
-                                            <button type="button" id="btnResetIMBudgetAttachment"
-                                                    class="inline-flex h-[36px] items-center justify-center rounded-md border border-gray-300 bg-white px-4 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-400 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">
-                                                Reset
-                                            </button>
+                                            <div class="flex-1">
+                                                <label for="imbudgetAttachFiles"
+                                                    class="mb-2 block text-sm font-semibold text-gray-800 dark:text-gray-200">
+                                                    Upload Attachments
+                                                </label>
+                                                <div class="flex items-center gap-3">
+                                                    <input type="hidden" name="cpnyid"
+                                                        value="{{ $imbudget->cpny_id }}">
+                                                    <input type="hidden" name="departementid"
+                                                        value="{{ $imbudget->department_id }}">
+                                                    <input type="file" id="imbudgetAttachFiles"
+                                                        name="attachments[]" multiple
+                                                        class="block w-full cursor-pointer rounded-md border border-gray-300 bg-white px-2 py-[7px] text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" />
+                                                    <button type="button" id="btnUploadIMBudgetAttachment"
+                                                        class="inline-flex h-[36px] items-center justify-center rounded-md bg-indigo-600 px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                                        Upload
+                                                    </button>
+                                                    <button type="button" id="btnResetIMBudgetAttachment"
+                                                        class="inline-flex h-[36px] items-center justify-center rounded-md border border-gray-300 bg-white px-4 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-400 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">
+                                                        Reset
+                                                    </button>
+                                                </div>
+                                                <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                                                    Max 10 files, PDF / Image preferred.
+                                                </p>
                                             </div>
-                                            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                                            Max 10 files, PDF / Image preferred.
-                                            </p>
-                                        </div>
                                         </div>
                                     </form>
                                 </div>
                             </div>
-                             
+
                             {{-- Comments tab --}}
                             <div x-show="activeTab === 'comments'" class="flex-1 transition-all">
                                 <div x-data="{ comments: [], newComment: '', currentUser: 'User1' }" class="flex h-full flex-col">
@@ -400,8 +404,8 @@
                 </header>
                 <div class="overflow-x-auto">
                     <table class="w-full text-sm text-gray-700 dark:text-gray-200">
-                        <thead class="bg-gray-100 dark:bg-gray-700 dark:text-gray-100">
-                            <tr>                                                                          
+                        <thead class="sticky top-0 z-20 bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300">
+                            <tr>
                                 <th class="w-20 border p-3 text-center">COA</th>
                                 <th class="w-24 border p-3 text-center">Activity</th>
                                 <th class="w-[16%] border p-3">Activity Descr</th>
@@ -409,20 +413,21 @@
                                 <th class="w-24 border p-3 text-right">Budget Remain</th>
                                 <th class="w-24 border p-3 text-right">Budget Needed</th>
                                 <th class="w-24 border p-3 text-right">Budget Requested</th>
-                                <th class="w-[14%] border p-3">Note</th>  
+                                <th class="w-[14%] border p-3">Note</th>
                             </tr>
                         </thead>
                         <tbody>
                             @foreach ($imbudgetdetail as $item)
-                                <tr class="border-t border-gray-200 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800">
+                                <tr
+                                    class="border-t border-gray-200 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800">
                                     <td class="px-4 py-2">{{ $item->budget_account_id }}</td>
                                     <td class="px-4 py-2">{{ $item->budget_activity_id }}</td>
-                                    <td class="px-4 py-2">{{ $item->budget_activity_descr }}</td>                                    
-                                    <td class="px-4 py-2">{{ number_format((float) $item->amount_expense, 2)}}</td>
-                                    <td class="px-4 py-2">{{ number_format((float) $item->budget_remain, 2)}}</td>
-                                    <td class="px-4 py-2">{{ number_format((float) $item->budget_needed, 2)}}</td>                                  
-                                    <td class="px-4 py-2">{{ number_format((float) $item->budget_requested, 2)}}</td>
-                                    <td class="px-4 py-2">{{ $item->note }}</td>                                    
+                                    <td class="px-4 py-2">{{ $item->budget_activity_descr }}</td>
+                                    <td class="px-4 py-2">{{ number_format((float) $item->amount_expense, 2) }}</td>
+                                    <td class="px-4 py-2">{{ number_format((float) $item->budget_remain, 2) }}</td>
+                                    <td class="px-4 py-2">{{ number_format((float) $item->budget_needed, 2) }}</td>
+                                    <td class="px-4 py-2">{{ number_format((float) $item->budget_requested, 2) }}</td>
+                                    <td class="px-4 py-2">{{ $item->note }}</td>
                                 </tr>
                             @endforeach
                         </tbody>
@@ -430,7 +435,7 @@
                 </div>
             </div>
         </div>
-    </div>   
+    </div>
     <div id="loadingSpinnerContainer" role="status" aria-live="polite" aria-label="Loading">
         <div class="loading-card">
             <div class="loading-spinner"></div>
@@ -486,11 +491,11 @@
         // ...
         $spinner.fadeOut(); // sembunyikan saat selesai
     </script>
-   
+
     <script>
         $(document).ready(function() {
-            const imbudgetid  = "{{ $imbudget->imbudgetid }}";
-            const doctype = "IM"; 
+            const imbudgetid = "{{ $imbudget->imbudgetid }}";
+            const doctype = "IM";
 
             loadComments(imbudgetid, doctype);
 
@@ -505,7 +510,9 @@
                         commentList.empty();
 
                         if (!response.comments || response.comments.length === 0) {
-                            commentList.append('<p class="text-gray-500 italic">No comments yet. Be the first to comment!</p>');
+                            commentList.append(
+                                '<p class="text-gray-500 italic">No comments yet. Be the first to comment!</p>'
+                            );
                             return;
                         }
 
@@ -556,7 +563,8 @@
                     },
                     error: function(xhr) {
                         console.error("Error adding comment:", xhr);
-                        alert("Error: " + (xhr.responseJSON ? xhr.responseJSON.message : "Unknown Error"));
+                        alert("Error: " + (xhr.responseJSON ? xhr.responseJSON.message :
+                            "Unknown Error"));
                     },
                     complete: function() {
                         $('#postCommentBtn').prop('disabled', false).text('Post 🚀');
@@ -576,7 +584,7 @@
                 }
             });
 
-            
+
         });
     </script>
 
@@ -804,104 +812,107 @@
     </script>
 
     <script>
-        $(function () {
-        const listUrl   = @json(route('attachments.list',   ['doctype' => 'IM', 'refnbr' => $imbudget->imbudgetid]));
-        const uploadUrl = @json(route('attachments.upload', ['doctype' => 'IM', 'refnbr' => $imbudget->imbudgetid]));
+        $(function() {
+            const listUrl = @json(route('attachments.list', ['doctype' => 'IM', 'refnbr' => $imbudget->imbudgetid]));
+            const uploadUrl = @json(route('attachments.upload', ['doctype' => 'IM', 'refnbr' => $imbudget->imbudgetid]));
 
-        function $tbody() { return $('#imbudgetAttachmentTbody'); } // <tbody id="imbudgetAttachmentTbody">
+            function $tbody() {
+                return $('#imbudgetAttachmentTbody');
+            } // <tbody id="imbudgetAttachmentTbody">
 
-        function renderIMBudgetAttachmentRows(rows){
-            const $tb = $tbody().empty();
+            function renderIMBudgetAttachmentRows(rows) {
+                const $tb = $tbody().empty();
 
-            if (!rows || !rows.length) {
-            $tb.append(`
+                if (!rows || !rows.length) {
+                    $tb.append(`
                 <tr>
                 <td colspan="3" class="p-4 text-center italic text-gray-500 dark:text-gray-400">
                     No attachments found.
                 </td>
                 </tr>
             `);
-            return;
-            }
+                    return;
+                }
 
-            rows.forEach(at => {
-            const fileName  = at.name || at.display_name || '(no name)';
-            const createdBy = at.created_user ?? at.created_by ?? '-';
-            const dateStr = at.created_at ? dayjs(at.created_at).format('DD MMM YYYY HH:mm:ss') : '-';
-            const linkHtml  = at.url
-                ? `<a href="${at.url}" target="_blank"
-                    class="flex items-center gap-2 font-medium text-indigo-600 hover:underline dark:text-indigo-400">📎 ${fileName}</a>`
-                : `<span class="text-gray-700 dark:text-gray-300">📎 ${fileName}</span>
+                rows.forEach(at => {
+                    const fileName = at.name || at.display_name || '(no name)';
+                    const createdBy = at.created_user ?? at.created_by ?? '-';
+                    const dateStr = at.created_at ? dayjs(at.created_at).format('DD MMM YYYY HH:mm:ss') :
+                        '-';
+                    const linkHtml = at.url ?
+                        `<a href="${at.url}" target="_blank"
+                    class="flex items-center gap-2 font-medium text-indigo-600 hover:underline dark:text-indigo-400">📎 ${fileName}</a>` :
+                        `<span class="text-gray-700 dark:text-gray-300">📎 ${fileName}</span>
                 <span class="ml-2 text-xs text-red-500">(link unavailable)</span>`;
 
-            $tb.append(`
+                    $tb.append(`
                 <tr class="border-b border-gray-100 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700">
                 <td class="p-3">${linkHtml}</td>
                 <td class="p-3">${createdBy}</td>
                 <td class="p-3">${dateStr}</td>
                 </tr>
             `);
-            });
-        }
-
-        function refreshIMBudgetAttachments(){
-            $.get(listUrl)
-            .done(res => {
-                if (res.success) renderIMBudgetAttachmentRows(res.attachments);
-                else toastr.error(res.message || 'Failed to load attachments.');
-            })
-            .fail(() => toastr.error('Failed to load attachments.'));
-        }
-
-        // optional: load saat tab dibuka / page load
-        refreshIMBudgetAttachments();
-
-        $('#btnUploadIMBudgetAttachment').on('click', function(){
-            const $form = $('#imbudgetAttachmentUploadForm')[0];
-            const files = $('#imbudgetAttachFiles')[0].files;
-
-            if (!files || !files.length) {
-            toastr.warning('Please choose at least one file.');
-            return;
+                });
             }
 
-            const fd = new FormData($form);
-            if (typeof showOverlay === 'function') showOverlay('Uploading');
+            function refreshIMBudgetAttachments() {
+                $.get(listUrl)
+                    .done(res => {
+                        if (res.success) renderIMBudgetAttachmentRows(res.attachments);
+                        else toastr.error(res.message || 'Failed to load attachments.');
+                    })
+                    .fail(() => toastr.error('Failed to load attachments.'));
+            }
 
-            $.ajax({
-            url: uploadUrl,
-            method: 'POST',
-            data: fd,
-            processData: false,
-            contentType: false,
-            success: function(res){
-                if (typeof hideOverlay === 'function') hideOverlay();
-                if (!res || !res.success) {
-                toastr.error(res?.message || 'Upload failed.');
-                return;
+            // optional: load saat tab dibuka / page load
+            refreshIMBudgetAttachments();
+
+            $('#btnUploadIMBudgetAttachment').on('click', function() {
+                const $form = $('#imbudgetAttachmentUploadForm')[0];
+                const files = $('#imbudgetAttachFiles')[0].files;
+
+                if (!files || !files.length) {
+                    toastr.warning('Please choose at least one file.');
+                    return;
                 }
-                toastr.success('Upload success.');
-                $('#imbudgetAttachFiles').val('');
-                // back-end sudah mengembalikan list terbaru
-                renderIMBudgetAttachmentRows(res.attachments || []);
-            },
-            error: function(xhr){
-                if (typeof hideOverlay === 'function') hideOverlay();
-                toastr.error(xhr.responseJSON?.message || 'Upload failed.');
-            }
-            });
-        });
 
-        $('#btnResetIMBudgetAttachment').on('click', function(){
-            $('#imbudgetAttachFiles').val('');
-        });
+                const fd = new FormData($form);
+                if (typeof showOverlay === 'function') showOverlay('Uploading');
+
+                $.ajax({
+                    url: uploadUrl,
+                    method: 'POST',
+                    data: fd,
+                    processData: false,
+                    contentType: false,
+                    success: function(res) {
+                        if (typeof hideOverlay === 'function') hideOverlay();
+                        if (!res || !res.success) {
+                            toastr.error(res?.message || 'Upload failed.');
+                            return;
+                        }
+                        toastr.success('Upload success.');
+                        $('#imbudgetAttachFiles').val('');
+                        // back-end sudah mengembalikan list terbaru
+                        renderIMBudgetAttachmentRows(res.attachments || []);
+                    },
+                    error: function(xhr) {
+                        if (typeof hideOverlay === 'function') hideOverlay();
+                        toastr.error(xhr.responseJSON?.message || 'Upload failed.');
+                    }
+                });
+            });
+
+            $('#btnResetIMBudgetAttachment').on('click', function() {
+                $('#imbudgetAttachFiles').val('');
+            });
         });
     </script>
 
     <script>
-        document.addEventListener("DOMContentLoaded", function () {
+        document.addEventListener("DOMContentLoaded", function() {
 
-            const imbudgetid  = "{{ $imbudget->imbudgetid }}";   // contoh: IM2501010001
+            const imbudgetid = "{{ $imbudget->imbudgetid }}"; // contoh: IM2501010001
             const doctype = "IM";
 
             loadApproval(imbudgetid, doctype);
@@ -935,7 +946,11 @@
         function formatDate(dateString) {
             if (!dateString) return "-";
             const d = new Date(dateString);
-            const options = { year: "numeric", month: "short", day: "numeric" };
+            const options = {
+                year: "numeric",
+                month: "short",
+                day: "numeric"
+            };
             return d.toLocaleDateString("en-US", options);
         }
 

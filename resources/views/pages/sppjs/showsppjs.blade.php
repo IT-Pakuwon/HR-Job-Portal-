@@ -171,10 +171,11 @@
                 </button>
             </div>
         </div>
-        <div class="flex w-full flex-col gap-6 xl:flex-col">
-            <div class="flex w-full items-stretch gap-6 xl:flex-row">
+
+        <div class="flex w-full flex-col gap-6 overflow-hidden sm:col-span-1 lg:row-span-1 xl:row-span-1 xl:flex-col">
+            <div class="flex flex-col gap-6 sm:w-1/2 md:w-full xl:flex-row">
                 {{-- Left card (SPPJ Info) --}}
-                <div class="flex flex-1 flex-col rounded-xl bg-white dark:bg-gray-800">
+                <div class="rounded-xl bg-white duration-300 sm:w-1/2 md:w-full dark:bg-gray-800">
                     <header
                         class="sticky top-0 z-10 flex items-center justify-between rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
                         <h1 class="flex items-center gap-2 text-lg font-bold text-gray-800 dark:text-gray-100">
@@ -286,9 +287,8 @@
 
                 </div>
 
-
                 {{-- Right card (Tabs) --}}
-                <div class="flex flex-1 flex-col rounded-xl bg-white dark:bg-gray-800">
+                <div class="flex flex-col gap-4 sm:w-1/2 md:w-full">
                     <div x-data="{ activeTab: 'attachment' }" class="flex flex-1 flex-col">
                         {{-- Tabs Header --}}
                         <header
@@ -335,7 +335,7 @@
                                             <th class="p-3 text-left font-semibold">Status</th>
                                         </tr>
                                     </thead>
-                                    <tbody id="approval-table-body">                                       
+                                    <tbody id="approval-table-body">
                                     </tbody>
                                     {{-- <tbody>
                                         @foreach ($approval as $ap)
@@ -424,28 +424,32 @@
                                     <form id="sppjAttachmentUploadForm" enctype="multipart/form-data">
                                         @csrf
                                         <div class="flex flex-col gap-3 md:flex-row md:items-center">
-                                        <div class="flex-1">
-                                            <label for="sppjAttachFiles" class="mb-2 block text-sm font-semibold text-gray-800 dark:text-gray-200">
-                                            Upload Attachments
-                                            </label>
-                                            <div class="flex items-center gap-3">
-                                            <input type="hidden" name="cpnyid" value="{{ $sppj->cpny_id }}">
-                                            <input type="hidden" name="departementid" value="{{ $sppj->department_id }}">
-                                            <input type="file" id="sppjAttachFiles" name="attachments[]" multiple
-                                                    class="block w-full cursor-pointer rounded-md border border-gray-300 bg-white px-2 py-[7px] text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" />
-                                            <button type="button" id="btnUploadSppbAttachment"
-                                                    class="inline-flex h-[36px] items-center justify-center rounded-md bg-indigo-600 px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                                                Upload
-                                            </button>
-                                            <button type="button" id="btnResetSppbAttachment"
-                                                    class="inline-flex h-[36px] items-center justify-center rounded-md border border-gray-300 bg-white px-4 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-400 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">
-                                                Reset
-                                            </button>
+                                            <div class="flex-1">
+                                                <label for="sppjAttachFiles"
+                                                    class="mb-2 block text-sm font-semibold text-gray-800 dark:text-gray-200">
+                                                    Upload Attachments
+                                                </label>
+                                                <div class="flex items-center gap-3">
+                                                    <input type="hidden" name="cpnyid"
+                                                        value="{{ $sppj->cpny_id }}">
+                                                    <input type="hidden" name="departementid"
+                                                        value="{{ $sppj->department_id }}">
+                                                    <input type="file" id="sppjAttachFiles" name="attachments[]"
+                                                        multiple
+                                                        class="block w-full cursor-pointer rounded-md border border-gray-300 bg-white px-2 py-[7px] text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" />
+                                                    <button type="button" id="btnUploadSppbAttachment"
+                                                        class="inline-flex h-[36px] items-center justify-center rounded-md bg-indigo-600 px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                                        Upload
+                                                    </button>
+                                                    <button type="button" id="btnResetSppbAttachment"
+                                                        class="inline-flex h-[36px] items-center justify-center rounded-md border border-gray-300 bg-white px-4 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-400 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">
+                                                        Reset
+                                                    </button>
+                                                </div>
+                                                <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                                                    Max 10 files, PDF / Image preferred.
+                                                </p>
                                             </div>
-                                            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                                            Max 10 files, PDF / Image preferred.
-                                            </p>
-                                        </div>
                                         </div>
                                     </form>
                                 </div>
@@ -483,7 +487,7 @@
                 $hasBq = filled($bqId);
             @endphp
 
-            <div class="flex flex-col rounded-xl bg-white dark:bg-gray-800">
+            <div class="flex w-full flex-col rounded-2xl bg-white dark:bg-gray-800">
                 <header
                     class="flex items-center justify-between rounded-t-xl border-b border-gray-200 bg-white px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
                     <h2 class="text-xl font-semibold text-gray-800 dark:text-gray-100">📝 SPPJ Detail</h2>
@@ -497,7 +501,7 @@
 
                 <div class="overflow-x-auto">
                     <table class="w-full text-sm text-gray-700 dark:text-gray-200">
-                        <thead class="bg-gray-100 dark:bg-gray-700 dark:text-gray-100">
+                        <thead class="sticky top-0 z-20 bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300">
                             <tr>
                                 <th class="px-4 py-2">No</th>
                                 <th class="px-4 py-2">InventoryID</th>
@@ -599,10 +603,10 @@
         $spinner.fadeOut(); // sembunyikan saat selesai
     </script>
 
-   <script>
+    <script>
         $(document).ready(function() {
-            const sppjid  = "{{ $sppj->sppjid }}";
-            const doctype = "PJ"; 
+            const sppjid = "{{ $sppj->sppjid }}";
+            const doctype = "PJ";
 
             loadComments(sppjid, doctype);
 
@@ -617,7 +621,9 @@
                         commentList.empty();
 
                         if (!response.comments || response.comments.length === 0) {
-                            commentList.append('<p class="text-gray-500 italic">No comments yet. Be the first to comment!</p>');
+                            commentList.append(
+                                '<p class="text-gray-500 italic">No comments yet. Be the first to comment!</p>'
+                            );
                             return;
                         }
 
@@ -668,7 +674,8 @@
                     },
                     error: function(xhr) {
                         console.error("Error adding comment:", xhr);
-                        alert("Error: " + (xhr.responseJSON ? xhr.responseJSON.message : "Unknown Error"));
+                        alert("Error: " + (xhr.responseJSON ? xhr.responseJSON.message :
+                            "Unknown Error"));
                     },
                     complete: function() {
                         $('#postCommentBtn').prop('disabled', false).text('Post 🚀');
@@ -688,9 +695,9 @@
                 }
             });
 
-            
+
         });
-    </script>  
+    </script>
 
     <script>
         const HAS_BQ = @json((bool) $sppj->bqid);
@@ -940,100 +947,103 @@
             });
         }
     </script>
-   
+
 
     <script>
-        $(function () {
-        const listUrl   = @json(route('attachments.list',   ['doctype' => 'PJ', 'refnbr' => $sppj->sppjid]));
-        const uploadUrl = @json(route('attachments.upload', ['doctype' => 'PJ', 'refnbr' => $sppj->sppjid]));
+        $(function() {
+            const listUrl = @json(route('attachments.list', ['doctype' => 'PJ', 'refnbr' => $sppj->sppjid]));
+            const uploadUrl = @json(route('attachments.upload', ['doctype' => 'PJ', 'refnbr' => $sppj->sppjid]));
 
-        function $tbody() { return $('#sppjAttachmentTbody'); } // <tbody id="sppjAttachmentTbody">
+            function $tbody() {
+                return $('#sppjAttachmentTbody');
+            } // <tbody id="sppjAttachmentTbody">
 
-        function renderSppbAttachmentRows(rows){
-            const $tb = $tbody().empty();
+            function renderSppbAttachmentRows(rows) {
+                const $tb = $tbody().empty();
 
-            if (!rows || !rows.length) {
-            $tb.append(`
+                if (!rows || !rows.length) {
+                    $tb.append(`
                 <tr>
                 <td colspan="3" class="p-4 text-center italic text-gray-500 dark:text-gray-400">
                     No attachments found.
                 </td>
                 </tr>
             `);
-            return;
-            }
+                    return;
+                }
 
-            rows.forEach(at => {
-            const fileName  = at.name || at.display_name || '(no name)';
-            const createdBy = at.created_user ?? at.created_by ?? '-';
-            const dateStr = at.created_at ? dayjs(at.created_at).format('DD MMM YYYY HH:mm:ss') : '-';
-            const linkHtml  = at.url
-                ? `<a href="${at.url}" target="_blank"
-                    class="flex items-center gap-2 font-medium text-indigo-600 hover:underline dark:text-indigo-400">📎 ${fileName}</a>`
-                : `<span class="text-gray-700 dark:text-gray-300">📎 ${fileName}</span>
+                rows.forEach(at => {
+                    const fileName = at.name || at.display_name || '(no name)';
+                    const createdBy = at.created_user ?? at.created_by ?? '-';
+                    const dateStr = at.created_at ? dayjs(at.created_at).format('DD MMM YYYY HH:mm:ss') :
+                        '-';
+                    const linkHtml = at.url ?
+                        `<a href="${at.url}" target="_blank"
+                    class="flex items-center gap-2 font-medium text-indigo-600 hover:underline dark:text-indigo-400">📎 ${fileName}</a>` :
+                        `<span class="text-gray-700 dark:text-gray-300">📎 ${fileName}</span>
                 <span class="ml-2 text-xs text-red-500">(link unavailable)</span>`;
 
-            $tb.append(`
+                    $tb.append(`
                 <tr class="border-b border-gray-100 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700">
                 <td class="p-3">${linkHtml}</td>
                 <td class="p-3">${createdBy}</td>
                 <td class="p-3">${dateStr}</td>
                 </tr>
             `);
-            });
-        }
-
-        function refreshSppbAttachments(){
-            $.get(listUrl)
-            .done(res => {
-                if (res.success) renderSppbAttachmentRows(res.attachments);
-                else toastr.error(res.message || 'Failed to load attachments.');
-            })
-            .fail(() => toastr.error('Failed to load attachments.'));
-        }
-
-        // optional: load saat tab dibuka / page load
-        refreshSppbAttachments();
-
-        $('#btnUploadSppbAttachment').on('click', function(){
-            const $form = $('#sppjAttachmentUploadForm')[0];
-            const files = $('#sppjAttachFiles')[0].files;
-
-            if (!files || !files.length) {
-            toastr.warning('Please choose at least one file.');
-            return;
+                });
             }
 
-            const fd = new FormData($form);
-            if (typeof showOverlay === 'function') showOverlay('Uploading');
+            function refreshSppbAttachments() {
+                $.get(listUrl)
+                    .done(res => {
+                        if (res.success) renderSppbAttachmentRows(res.attachments);
+                        else toastr.error(res.message || 'Failed to load attachments.');
+                    })
+                    .fail(() => toastr.error('Failed to load attachments.'));
+            }
 
-            $.ajax({
-            url: uploadUrl,
-            method: 'POST',
-            data: fd,
-            processData: false,
-            contentType: false,
-            success: function(res){
-                if (typeof hideOverlay === 'function') hideOverlay();
-                if (!res || !res.success) {
-                toastr.error(res?.message || 'Upload failed.');
-                return;
+            // optional: load saat tab dibuka / page load
+            refreshSppbAttachments();
+
+            $('#btnUploadSppbAttachment').on('click', function() {
+                const $form = $('#sppjAttachmentUploadForm')[0];
+                const files = $('#sppjAttachFiles')[0].files;
+
+                if (!files || !files.length) {
+                    toastr.warning('Please choose at least one file.');
+                    return;
                 }
-                toastr.success('Upload success.');
-                $('#sppjAttachFiles').val('');
-                // back-end sudah mengembalikan list terbaru
-                renderSppbAttachmentRows(res.attachments || []);
-            },
-            error: function(xhr){
-                if (typeof hideOverlay === 'function') hideOverlay();
-                toastr.error(xhr.responseJSON?.message || 'Upload failed.');
-            }
-            });
-        });
 
-        $('#btnResetSppbAttachment').on('click', function(){
-            $('#sppjAttachFiles').val('');
-        });
+                const fd = new FormData($form);
+                if (typeof showOverlay === 'function') showOverlay('Uploading');
+
+                $.ajax({
+                    url: uploadUrl,
+                    method: 'POST',
+                    data: fd,
+                    processData: false,
+                    contentType: false,
+                    success: function(res) {
+                        if (typeof hideOverlay === 'function') hideOverlay();
+                        if (!res || !res.success) {
+                            toastr.error(res?.message || 'Upload failed.');
+                            return;
+                        }
+                        toastr.success('Upload success.');
+                        $('#sppjAttachFiles').val('');
+                        // back-end sudah mengembalikan list terbaru
+                        renderSppbAttachmentRows(res.attachments || []);
+                    },
+                    error: function(xhr) {
+                        if (typeof hideOverlay === 'function') hideOverlay();
+                        toastr.error(xhr.responseJSON?.message || 'Upload failed.');
+                    }
+                });
+            });
+
+            $('#btnResetSppbAttachment').on('click', function() {
+                $('#sppjAttachFiles').val('');
+            });
         });
     </script>
     {{-- <script>
@@ -1050,9 +1060,9 @@
     </script> --}}
 
     <script>
-        document.addEventListener("DOMContentLoaded", function () {
+        document.addEventListener("DOMContentLoaded", function() {
 
-            const sppjid  = "{{ $sppj->sppjid }}";   // contoh: PJ2501010001
+            const sppjid = "{{ $sppj->sppjid }}"; // contoh: PJ2501010001
             const doctype = "PJ";
 
             loadApproval(sppjid, doctype);
@@ -1086,7 +1096,11 @@
         function formatDate(dateString) {
             if (!dateString) return "-";
             const d = new Date(dateString);
-            const options = { year: "numeric", month: "short", day: "numeric" };
+            const options = {
+                year: "numeric",
+                month: "short",
+                day: "numeric"
+            };
             return d.toLocaleDateString("en-US", options);
         }
 

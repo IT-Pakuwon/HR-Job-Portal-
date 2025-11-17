@@ -142,9 +142,10 @@
                 </button>
             </div>
         </div>
-        <div class="flex w-full flex-col gap-6 xl:flex-col">
-            <div class="flex w-full items-stretch gap-6 xl:flex-row">
-                <div class="flex flex-1 flex-col rounded-xl bg-white dark:bg-gray-800">
+        <div class="flex w-full flex-col gap-6 overflow-hidden sm:col-span-1 lg:row-span-1 xl:row-span-1 xl:flex-col">
+            <div class="flex flex-col gap-6 sm:w-1/2 md:w-full xl:flex-row">
+                {{-- Left card (CS Info) --}}
+                <div class="rounded-xl bg-white duration-300 sm:w-1/2 md:w-full dark:bg-gray-800">
                     <header
                         class="sticky top-0 z-10 flex items-center justify-between rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
                         <h1 class="flex items-center gap-2 text-lg font-bold text-gray-800 dark:text-gray-100">
@@ -292,7 +293,8 @@
                     </div>
                 </div>
 
-                <div class="flex flex-1 flex-col rounded-xl bg-white dark:bg-gray-800">
+                {{-- Right card (Tabs) --}}
+                <div class="flex flex-col gap-4 sm:w-1/2 md:w-full">
                     <div x-data="{ activeTab: 'attachment' }" class="flex flex-1 flex-col">
                         <header
                             class="sticky top-0 z-10 flex items-center rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
@@ -338,7 +340,7 @@
                                             <th class="p-3 text-left font-semibold">Status</th>
                                         </tr>
                                     </thead>
-                                     <tbody id="approval-table-body">                                       
+                                    <tbody id="approval-table-body">
                                     </tbody>
                                     {{-- <tbody>
                                         @foreach ($approval as $ap)
@@ -449,26 +451,31 @@
                                     <form id="csAttachmentUploadForm" enctype="multipart/form-data">
                                         @csrf
                                         <div class="flex flex-col gap-3 md:flex-row md:items-center">
-                                        <div class="flex-1">
-                                            <label for="csAttachFiles" class="mb-2 block text-sm font-semibold text-gray-800 dark:text-gray-200">
-                                            Upload Attachments (CS)
-                                            </label>
-                                            <div class="flex items-center gap-3">
-                                            <input type="hidden" name="cpnyid" value="{{ $cs->cpny_id }}">
-                                            <input type="hidden" name="departementid" value="{{ $cs->department_id }}">
-                                            <input type="file" id="csAttachFiles" name="attachments[]" multiple
-                                                    class="block w-full cursor-pointer rounded-md border border-gray-300 bg-white px-2 py-[7px] text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" />
-                                            <button type="button" id="btnUploadCSAttachment"
-                                                    class="inline-flex h-[36px] items-center justify-center rounded-md bg-indigo-600 px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                                                Upload
-                                            </button>
-                                            <button type="button" id="btnResetCSAttachment"
-                                                    class="inline-flex h-[36px] items-center justify-center rounded-md border border-gray-300 bg-white px-4 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-400 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">
-                                                Reset
-                                            </button>
+                                            <div class="flex-1">
+                                                <label for="csAttachFiles"
+                                                    class="mb-2 block text-sm font-semibold text-gray-800 dark:text-gray-200">
+                                                    Upload Attachments (CS)
+                                                </label>
+                                                <div class="flex items-center gap-3">
+                                                    <input type="hidden" name="cpnyid"
+                                                        value="{{ $cs->cpny_id }}">
+                                                    <input type="hidden" name="departementid"
+                                                        value="{{ $cs->department_id }}">
+                                                    <input type="file" id="csAttachFiles" name="attachments[]"
+                                                        multiple
+                                                        class="block w-full cursor-pointer rounded-md border border-gray-300 bg-white px-2 py-[7px] text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" />
+                                                    <button type="button" id="btnUploadCSAttachment"
+                                                        class="inline-flex h-[36px] items-center justify-center rounded-md bg-indigo-600 px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                                        Upload
+                                                    </button>
+                                                    <button type="button" id="btnResetCSAttachment"
+                                                        class="inline-flex h-[36px] items-center justify-center rounded-md border border-gray-300 bg-white px-4 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-400 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">
+                                                        Reset
+                                                    </button>
+                                                </div>
+                                                <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">PDF / gambar
+                                                    disarankan.</p>
                                             </div>
-                                            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">PDF / gambar disarankan.</p>
-                                        </div>
                                         </div>
                                     </form>
                                 </div>
@@ -497,129 +504,126 @@
                     </div>
                 </div>
             </div>
+
             <!-- CS Detail -->
-            <div class="rounded-2xl bg-white p-4 shadow-md dark:bg-gray-800">
-                <div
-                    class="flex items-center justify-between border-b border-gray-200 pb-3 text-lg font-bold text-gray-800 dark:border-gray-700 dark:text-white">
-                    <span>CS Detail</span>
-                </div>
+            <div class="flex w-full flex-col rounded-2xl bg-white dark:bg-gray-800">
+                <header
+                    class="flex items-center justify-between rounded-t-xl border-b border-gray-200 bg-white px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
+                    <h2 class="text-xl font-semibold text-gray-800 dark:text-gray-100">📝 CS Detail</h2>
+                </header>
                 <div class="mt-4 overflow-x-auto">
-                    <div class="relative overflow-y-auto">
-                        <table class="min-w-full border-separate border-spacing-0 text-sm">
-                            <!-- Table Head -->
-                            <thead
-                                class="sticky top-0 z-20 bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300">
-                                <tr>
-                                    <th class="w-64 px-3 py-2 text-left">Inventory Descr</th>
-                                    <th class="w-20 px-3 py-2 text-center">Qty</th>
-                                    <th class="w-16 px-3 py-2 text-center">UOM</th>
-                                    <th class="w-40 px-3 py-2 text-left">Note</th>
-                                    @foreach ($vendors as $v)
-                                        <th class="max-w-xs px-3 py-2 text-left align-top">
-                                            <div class="font-semibold">{{ $v['vendorname'] }}</div>
-                                            <div class="mt-0.5 space-y-0.5 text-sm text-gray-500 dark:text-gray-400">
-                                                <div>👤 {{ $v['vendorcp'] ?: '-' }}</div>
-                                                <div>☎️ {{ $v['vendortelp'] ?: '-' }}</div>
-                                                <div>🏠 {{ $v['vendoralamat'] ?: '-' }}</div>
-                                            </div>
-                                            @if ($v['vendortop'])
-                                                <span
-                                                    class="text-sm font-semibold text-gray-600 dark:text-gray-300">Payment
-                                                    Term:</span>
-                                                <span
-                                                    class="inline-block rounded-full border px-2 py-0.5 text-xs text-gray-700 dark:text-gray-300">
-                                                    {{ $v['vendortop'] }}
-                                                </span>
-                                            @endif
-                                        </th>
-                                    @endforeach
-                                </tr>
-                            </thead>
-
-                            <!-- Table Body -->
-                            <tbody id="cvBody" class="divide-y divide-gray-100 dark:divide-gray-700">
-                                @foreach ($csdetail as $row)
-                                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50">
-                                        <td class="px-3 py-2">{{ $row->inventory_descr }}</td>
-                                        <td class="px-3 py-2 text-center">
-                                            <input type="text" readonly
-                                                class="w-20 rounded border bg-gray-50 px-2 text-center dark:bg-gray-700"
-                                                value="{{ number_format((float) $row->qty, 2, ',', '.') }}">
-                                        </td>
-                                        <td class="px-3 py-2 text-center">{{ $row->uom }}</td>
-                                        <td class="px-3 py-2">{{ $row->csnote_detail }}</td>
-
-                                        @foreach ($vendors as $v)
-                                            @php
-                                                $i = $v['i'];
-                                                $prc = (float) ($row->{"vendorprice{$i}"} ?? 0);
-                                                $tot = (float) ($row->{"vendortotalprice{$i}"} ?? 0);
-                                                $sel = (bool) ($row->{"vendor{$i}selected"} ?? false);
-                                            @endphp
-                                            <td class="px-3 py-2 text-center">
-                                                <div class="space-y-1">
-                                                    <input type="text" readonly
-                                                        class="w-full rounded border bg-gray-50 px-1 text-right text-sm dark:bg-gray-700"
-                                                        value="{{ number_format($prc, 2, ',', '.') }}">
-                                                    <div
-                                                        class="text-xs font-semibold text-gray-600 dark:text-gray-300">
-                                                        {{ number_format($tot, 0, ',', '.') }}
-                                                    </div>
-                                                    <input type="radio" class="h-3 w-3 text-indigo-600"
-                                                        {{ $sel ? 'checked' : '' }} disabled>
-                                                </div>
-                                            </td>
-                                        @endforeach
-                                    </tr>
+                    <table class="min-w-full border-separate border-spacing-0 text-sm">
+                        <!-- Table Head -->
+                        <thead class="sticky top-0 z-20 bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300">
+                            <tr>
+                                <th class="w-64 px-3 py-2 text-left">Inventory Descr</th>
+                                <th class="w-20 px-3 py-2 text-center">Qty</th>
+                                <th class="w-16 px-3 py-2 text-center">UOM</th>
+                                <th class="w-40 px-3 py-2 text-left">Note</th>
+                                @foreach ($vendors as $v)
+                                    <th class="max-w-xs px-3 py-2 text-left align-top">
+                                        <div class="font-semibold">{{ $v['vendorname'] }}</div>
+                                        <div class="mt-0.5 space-y-0.5 text-sm text-gray-500 dark:text-gray-400">
+                                            <div>👤 {{ $v['vendorcp'] ?: '-' }}</div>
+                                            <div>☎️ {{ $v['vendortelp'] ?: '-' }}</div>
+                                            <div>🏠 {{ $v['vendoralamat'] ?: '-' }}</div>
+                                        </div>
+                                        @if ($v['vendortop'])
+                                            <span
+                                                class="text-sm font-semibold text-gray-600 dark:text-gray-300">Payment
+                                                Term:</span>
+                                            <span
+                                                class="inline-block rounded-full border px-2 py-0.5 text-xs text-gray-700 dark:text-gray-300">
+                                                {{ $v['vendortop'] }}
+                                            </span>
+                                        @endif
+                                    </th>
                                 @endforeach
-                            </tbody>
+                            </tr>
+                        </thead>
 
-                            <!-- Table Footer (Summary) -->
-                            <tfoot
-                                class="sticky bottom-0 z-10 bg-gray-50 text-xs text-gray-700 dark:bg-gray-700/40 dark:text-gray-300">
-                                <tr class="text-sm">
-                                    <!-- Summary label -->
-                                    <td colspan="4"
-                                        class="px-3 py-2 text-right font-semibold text-gray-700 dark:text-gray-200">
-                                        Summary
+                        <!-- Table Body -->
+                        <tbody id="cvBody" class="divide-y divide-gray-100 dark:divide-gray-700">
+                            @foreach ($csdetail as $row)
+                                <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                                    <td class="px-3 py-2">{{ $row->inventory_descr }}</td>
+                                    <td class="px-3 py-2 text-center">
+                                        <input type="text" readonly
+                                            class="w-20 rounded border bg-gray-50 px-2 text-center dark:bg-gray-700"
+                                            value="{{ number_format((float) $row->qty, 2, ',', '.') }}">
                                     </td>
+                                    <td class="px-3 py-2 text-center">{{ $row->uom }}</td>
+                                    <td class="px-3 py-2">{{ $row->csnote_detail }}</td>
 
-                                    <!-- Vendor totals -->
                                     @foreach ($vendors as $v)
                                         @php
-                                            $ppn = (float) ($v['ppn'] ?? 11);
-                                            $pph = (float) ($v['pph'] ?? 0);
+                                            $i = $v['i'];
+                                            $prc = (float) ($row->{"vendorprice{$i}"} ?? 0);
+                                            $tot = (float) ($row->{"vendortotalprice{$i}"} ?? 0);
+                                            $sel = (bool) ($row->{"vendor{$i}selected"} ?? false);
                                         @endphp
-                                        <td class="max-w-xs space-y-1 px-3 py-2">
-                                            <div class="flex justify-between">
-                                                <span class="font-semibold">Total:</span>
-                                                <span>{{ number_format($v['total'], 0, ',', '.') }}</span>
-                                            </div>
-
-                                            <div
-                                                class="flex justify-between gap-2 font-semibold text-gray-700 dark:text-gray-300">
-                                                <span>PPN:</span>
-                                                <span>{{ number_format($ppn, 2, ',', '.') }}%</span>
-
-                                                <span>PPh:</span>
-                                                <span>{{ number_format($pph, 2, ',', '.') }}%</span>
-                                            </div>
-
-                                            <div class="flex justify-between">
-                                                <span class="font-semibold">Grand:</span>
-                                                <span>{{ number_format($v['grand'], 0, ',', '.') }}</span>
-                                            </div>
-
-                                            <div class="flex justify-between">
-                                                <span class="font-semibold">G.Total Sel:</span>
-                                                <span>{{ number_format($v['selected_grand'] ?: $v['selected_total'], 0, ',', '.') }}</span>
+                                        <td class="px-3 py-2 text-center">
+                                            <div class="space-y-1">
+                                                <input type="text" readonly
+                                                    class="w-full rounded border bg-gray-50 px-1 text-right text-sm dark:bg-gray-700"
+                                                    value="{{ number_format($prc, 2, ',', '.') }}">
+                                                <div class="text-xs font-semibold text-gray-600 dark:text-gray-300">
+                                                    {{ number_format($tot, 0, ',', '.') }}
+                                                </div>
+                                                <input type="radio" class="h-3 w-3 text-indigo-600"
+                                                    {{ $sel ? 'checked' : '' }} disabled>
                                             </div>
                                         </td>
                                     @endforeach
                                 </tr>
-                            </tfoot>
-                        </table>
-                    </div>
+                            @endforeach
+                        </tbody>
+
+                        <!-- Table Footer (Summary) -->
+                        <tfoot
+                            class="sticky bottom-0 z-10 bg-gray-50 text-xs text-gray-700 dark:bg-gray-700/40 dark:text-gray-300">
+                            <tr class="text-sm">
+                                <!-- Summary label -->
+                                <td colspan="4"
+                                    class="px-3 py-2 text-right font-semibold text-gray-700 dark:text-gray-200">
+                                    Summary
+                                </td>
+
+                                <!-- Vendor totals -->
+                                @foreach ($vendors as $v)
+                                    @php
+                                        $ppn = (float) ($v['ppn'] ?? 11);
+                                        $pph = (float) ($v['pph'] ?? 0);
+                                    @endphp
+                                    <td class="max-w-xs space-y-1 px-3 py-2">
+                                        <div class="flex justify-between">
+                                            <span class="font-semibold">Total:</span>
+                                            <span>{{ number_format($v['total'], 0, ',', '.') }}</span>
+                                        </div>
+
+                                        <div
+                                            class="flex justify-between gap-2 font-semibold text-gray-700 dark:text-gray-300">
+                                            <span>PPN:</span>
+                                            <span>{{ number_format($ppn, 2, ',', '.') }}%</span>
+
+                                            <span>PPh:</span>
+                                            <span>{{ number_format($pph, 2, ',', '.') }}%</span>
+                                        </div>
+
+                                        <div class="flex justify-between">
+                                            <span class="font-semibold">Grand:</span>
+                                            <span>{{ number_format($v['grand'], 0, ',', '.') }}</span>
+                                        </div>
+
+                                        <div class="flex justify-between">
+                                            <span class="font-semibold">G.Total Sel:</span>
+                                            <span>{{ number_format($v['selected_grand'] ?: $v['selected_total'], 0, ',', '.') }}</span>
+                                        </div>
+                                    </td>
+                                @endforeach
+                            </tr>
+                        </tfoot>
+                    </table>
                 </div>
             </div>
         </div>
@@ -681,10 +685,10 @@
         $spinner.fadeOut(); // sembunyikan saat selesai
     </script>
 
-   <script>
+    <script>
         $(document).ready(function() {
-            const csid  = "{{ $cs->csid }}";
-            const doctype = "CS"; 
+            const csid = "{{ $cs->csid }}";
+            const doctype = "CS";
 
             loadComments(csid, doctype);
 
@@ -699,7 +703,9 @@
                         commentList.empty();
 
                         if (!response.comments || response.comments.length === 0) {
-                            commentList.append('<p class="text-gray-500 italic">No comments yet. Be the first to comment!</p>');
+                            commentList.append(
+                                '<p class="text-gray-500 italic">No comments yet. Be the first to comment!</p>'
+                            );
                             return;
                         }
 
@@ -750,7 +756,8 @@
                     },
                     error: function(xhr) {
                         console.error("Error adding comment:", xhr);
-                        alert("Error: " + (xhr.responseJSON ? xhr.responseJSON.message : "Unknown Error"));
+                        alert("Error: " + (xhr.responseJSON ? xhr.responseJSON.message :
+                            "Unknown Error"));
                     },
                     complete: function() {
                         $('#postCommentBtn').prop('disabled', false).text('Post 🚀');
@@ -770,9 +777,9 @@
                 }
             });
 
-            
+
         });
-    </script>  
+    </script>
     {{-- <script>
         $(document).on("click", "#approveBtn", function() {
             let csid = "{{ $cs->csid }}"; // Ambil Task ID dari modal        
@@ -838,7 +845,9 @@
             $.ajax({
                 url: `/cs/${encodeURIComponent(csid)}/approve`,
                 type: "POST",
-                data: { _token: "{{ csrf_token() }}" },
+                data: {
+                    _token: "{{ csrf_token() }}"
+                },
                 success: function(res) {
                     // CASE: perlu konfirmasi generate IM
                     if (res?.need_confirm_generate_im) {
@@ -864,10 +873,12 @@
                                     success: function(res2) {
                                         $spinner.fadeOut();
                                         if (res2?.code === 'IM_CREATED_HOLD') {
-                                            toastr.success(res2.message || 'IMBudget dibuat & di-HOLD.');
+                                            toastr.success(res2.message ||
+                                                'IMBudget dibuat & di-HOLD.');
                                             // opsional: arahkan user ke dokumen IM
                                             if (res2.imbudget_show_url) {
-                                                window.location.href = res2.imbudget_show_url;
+                                                window.location.href = res2
+                                                    .imbudget_show_url;
                                             }
                                         } else if (res2?.success) {
                                             toastr.success(res2.message || 'Success');
@@ -876,9 +887,10 @@
                                             toastr.error(res2?.message || 'Failed');
                                         }
                                     },
-                                    error: function(xhr){
+                                    error: function(xhr) {
                                         $spinner.fadeOut();
-                                        toastr.error(xhr.responseJSON?.message || 'Gagal generate IMBudget.');
+                                        toastr.error(xhr.responseJSON?.message ||
+                                            'Gagal generate IMBudget.');
                                     }
                                 });
                             }
@@ -1116,79 +1128,82 @@
             });
         }
     </script>
-   
 
-   <script>
-        $(function () {
-        // API khusus CS
-        const listUrl   = @json(route('attachments.list',   ['doctype' => 'CS', 'refnbr' => $cs->csid]));
-        const uploadUrl = @json(route('attachments.upload', ['doctype' => 'CS', 'refnbr' => $cs->csid]));
 
-        // Data awal dari server (punya signed URL juga) —> dipakai untuk render awal biar langsung tampil
-        const prefix     = @json($prefix); // 'PB' / 'PJ' / 'PK' / 'PT'
-        const bjktStatic = (@json($attachmentBJKT ?? []))
-            .map(a => ({
-            id: a.id ?? null,
-            name: a.display_name,
-            display_name: a.display_name,
-            created_by: a.created_by,
-            created_user: a.created_by,
-            created_at: a.created_at,
-            url: a.url,
-            type: prefix
-            }));
+    <script>
+        $(function() {
+            // API khusus CS
+            const listUrl = @json(route('attachments.list', ['doctype' => 'CS', 'refnbr' => $cs->csid]));
+            const uploadUrl = @json(route('attachments.upload', ['doctype' => 'CS', 'refnbr' => $cs->csid]));
 
-        const csInitial = (@json($attachmentCS ?? []))
-            .map(a => ({
-            id: a.id ?? null,
-            name: a.display_name,
-            display_name: a.display_name,
-            created_by: a.created_by,
-            created_user: a.created_by,
-            created_at: a.created_at,
-            url: a.url,
-            type: 'CS'
-            }));
+            // Data awal dari server (punya signed URL juga) —> dipakai untuk render awal biar langsung tampil
+            const prefix = @json($prefix); // 'PB' / 'PJ' / 'PK' / 'PT'
+            const bjktStatic = (@json($attachmentBJKT ?? []))
+                .map(a => ({
+                    id: a.id ?? null,
+                    name: a.display_name,
+                    display_name: a.display_name,
+                    created_by: a.created_by,
+                    created_user: a.created_by,
+                    created_at: a.created_at,
+                    url: a.url,
+                    type: prefix
+                }));
 
-        function $tbody(){ return $('#allAttachmentTbody'); }
+            const csInitial = (@json($attachmentCS ?? []))
+                .map(a => ({
+                    id: a.id ?? null,
+                    name: a.display_name,
+                    display_name: a.display_name,
+                    created_by: a.created_by,
+                    created_user: a.created_by,
+                    created_at: a.created_at,
+                    url: a.url,
+                    type: 'CS'
+                }));
 
-        function renderAllAttachments(csRows){
-            const $tb = $tbody().empty();
-            // normalisasi csRows dari API
-            const csNorm = (csRows || []).map(a => ({
-            id: a.id ?? null,
-            name: a.name || a.display_name || '(no name)',
-            display_name: a.display_name || a.name || '(no name)',
-            created_by: a.created_by || a.created_user || '-',
-            created_user: a.created_user || a.created_by || '-',
-            created_at: a.created_at || null,
-            url: a.url || null,
-            type: 'CS'
-            }));
+            function $tbody() {
+                return $('#allAttachmentTbody');
+            }
 
-            const merged = [...bjktStatic, ...csNorm];
+            function renderAllAttachments(csRows) {
+                const $tb = $tbody().empty();
+                // normalisasi csRows dari API
+                const csNorm = (csRows || []).map(a => ({
+                    id: a.id ?? null,
+                    name: a.name || a.display_name || '(no name)',
+                    display_name: a.display_name || a.name || '(no name)',
+                    created_by: a.created_by || a.created_user || '-',
+                    created_user: a.created_user || a.created_by || '-',
+                    created_at: a.created_at || null,
+                    url: a.url || null,
+                    type: 'CS'
+                }));
 
-            if (!merged.length){
-            $tb.append(`
+                const merged = [...bjktStatic, ...csNorm];
+
+                if (!merged.length) {
+                    $tb.append(`
                 <tr>
                 <td colspan="4" class="p-4 text-center italic text-gray-500 dark:text-gray-400">
                     No attachments found.
                 </td>
                 </tr>
             `);
-            return;
-            }
+                    return;
+                }
 
-            merged.forEach(at => {
-            const fileName = at.name || at.display_name || '(no name)';
-            const dateStr = at.created_at ? dayjs(at.created_at).format('DD MMM YYYY HH:mm:ss') : '-';
-            const linkHtml = at.url
-                ? `<a href="${at.url}" target="_blank"
-                    class="font-medium text-indigo-600 hover:underline dark:text-indigo-400">📎 ${fileName}</a>`
-                : `<span class="font-medium text-gray-700 dark:text-gray-300">📎 ${fileName}</span>
+                merged.forEach(at => {
+                    const fileName = at.name || at.display_name || '(no name)';
+                    const dateStr = at.created_at ? dayjs(at.created_at).format('DD MMM YYYY HH:mm:ss') :
+                        '-';
+                    const linkHtml = at.url ?
+                        `<a href="${at.url}" target="_blank"
+                    class="font-medium text-indigo-600 hover:underline dark:text-indigo-400">📎 ${fileName}</a>` :
+                        `<span class="font-medium text-gray-700 dark:text-gray-300">📎 ${fileName}</span>
                 <span class="ml-2 text-xs text-red-500">(link unavailable)</span>`;
 
-            $tb.append(`
+                    $tb.append(`
                 <tr class="border-b border-gray-200 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700">
                 <td class="px-3 py-2">${linkHtml}</td>
                 <td class="px-3 py-2">${at.type || ''}</td>
@@ -1196,69 +1211,69 @@
                 <td class="px-3 py-2">${dateStr}</td>
                 </tr>
             `);
-            });
-        }
-
-        // Render awal pakai data server (cepat tampil)
-        renderAllAttachments(csInitial);
-
-        // Jika perlu refresh CS dari API (mis. signed URL baru), panggil ini
-        function refreshCSAttachments(){
-            $.get(listUrl)
-            .done(res => {
-                if (res.success) renderAllAttachments(res.attachments || []);
-                else toastr.error(res.message || 'Failed to load attachments.');
-            })
-            .fail(() => toastr.error('Failed to load attachments.'));
-        }
-
-        // Upload khusus CS
-        $('#btnUploadCSAttachment').on('click', function(){
-            const $form = $('#csAttachmentUploadForm')[0];
-            const files = $('#csAttachFiles')[0].files;
-
-            if (!files || !files.length){
-            toastr.warning('Please choose at least one file.');
-            return;
+                });
             }
 
-            const fd = new FormData($form);
-            if (typeof showOverlay === 'function') showOverlay('Uploading');
+            // Render awal pakai data server (cepat tampil)
+            renderAllAttachments(csInitial);
 
-            $.ajax({
-            url: uploadUrl,
-            method: 'POST',
-            data: fd,
-            processData: false,
-            contentType: false,
-            success: function(res){
-                if (typeof hideOverlay === 'function') hideOverlay();
-                if (!res || !res.success){
-                toastr.error(res?.message || 'Upload failed.');
-                return;
+            // Jika perlu refresh CS dari API (mis. signed URL baru), panggil ini
+            function refreshCSAttachments() {
+                $.get(listUrl)
+                    .done(res => {
+                        if (res.success) renderAllAttachments(res.attachments || []);
+                        else toastr.error(res.message || 'Failed to load attachments.');
+                    })
+                    .fail(() => toastr.error('Failed to load attachments.'));
+            }
+
+            // Upload khusus CS
+            $('#btnUploadCSAttachment').on('click', function() {
+                const $form = $('#csAttachmentUploadForm')[0];
+                const files = $('#csAttachFiles')[0].files;
+
+                if (!files || !files.length) {
+                    toastr.warning('Please choose at least one file.');
+                    return;
                 }
-                toastr.success('Upload success.');
-                $('#csAttachFiles').val('');
-                // Back-end sudah mengembalikan list CS terbaru -> merge lagi dengan BJKT statis
-                renderAllAttachments(res.attachments || []);
-            },
-            error: function(xhr){
-                if (typeof hideOverlay === 'function') hideOverlay();
-                toastr.error(xhr.responseJSON?.message || 'Upload failed.');
-            }
-            });
-        });
 
-        $('#btnResetCSAttachment').on('click', function(){
-            $('#csAttachFiles').val('');
-        });
+                const fd = new FormData($form);
+                if (typeof showOverlay === 'function') showOverlay('Uploading');
+
+                $.ajax({
+                    url: uploadUrl,
+                    method: 'POST',
+                    data: fd,
+                    processData: false,
+                    contentType: false,
+                    success: function(res) {
+                        if (typeof hideOverlay === 'function') hideOverlay();
+                        if (!res || !res.success) {
+                            toastr.error(res?.message || 'Upload failed.');
+                            return;
+                        }
+                        toastr.success('Upload success.');
+                        $('#csAttachFiles').val('');
+                        // Back-end sudah mengembalikan list CS terbaru -> merge lagi dengan BJKT statis
+                        renderAllAttachments(res.attachments || []);
+                    },
+                    error: function(xhr) {
+                        if (typeof hideOverlay === 'function') hideOverlay();
+                        toastr.error(xhr.responseJSON?.message || 'Upload failed.');
+                    }
+                });
+            });
+
+            $('#btnResetCSAttachment').on('click', function() {
+                $('#csAttachFiles').val('');
+            });
         });
     </script>
 
     <script>
-        document.addEventListener("DOMContentLoaded", function () {
+        document.addEventListener("DOMContentLoaded", function() {
 
-            const csid  = "{{ $cs->csid }}";   // contoh: PT2501010001
+            const csid = "{{ $cs->csid }}"; // contoh: PT2501010001
             const doctype = "CS";
 
             loadApproval(csid, doctype);
@@ -1292,7 +1307,11 @@
         function formatDate(dateString) {
             if (!dateString) return "-";
             const d = new Date(dateString);
-            const options = { year: "numeric", month: "short", day: "numeric" };
+            const options = {
+                year: "numeric",
+                month: "short",
+                day: "numeric"
+            };
             return d.toLocaleDateString("en-US", options);
         }
 

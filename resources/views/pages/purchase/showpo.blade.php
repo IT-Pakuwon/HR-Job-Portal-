@@ -114,15 +114,16 @@
             </div>
             @php
                 $loginUser = auth()->user();
-                $createdBy = $po->created_by ?? $po->created_user ?? null;
+                $createdBy = $po->created_by ?? ($po->created_user ?? null);
 
                 // Longgar: cocokkan ke id / username / name / email (sesuaikan jika skema kamu pasti id saja)
                 $isOwner = false;
                 if ($loginUser) {
-                    $isOwner = ($createdBy == $loginUser->id)
-                        || (is_string($createdBy) && strtolower($createdBy) === strtolower($loginUser->username ?? ''))
-                        || (is_string($createdBy) && strtolower($createdBy) === strtolower($loginUser->name ?? ''))
-                        || (is_string($createdBy) && strtolower($createdBy) === strtolower($loginUser->email ?? ''));
+                    $isOwner =
+                        $createdBy == $loginUser->id ||
+                        (is_string($createdBy) && strtolower($createdBy) === strtolower($loginUser->username ?? '')) ||
+                        (is_string($createdBy) && strtolower($createdBy) === strtolower($loginUser->name ?? '')) ||
+                        (is_string($createdBy) && strtolower($createdBy) === strtolower($loginUser->email ?? ''));
                 }
             @endphp
 
@@ -130,17 +131,17 @@
             <div class="flex gap-3">
                 @if ($isOwner)
                     @if ($po->status === 'H')
-                    <button id="submitBtn"
-                        class="inline-flex items-center gap-1 rounded-md bg-green-100 px-3 py-2 text-sm font-medium text-green-700 transition-colors hover:bg-green-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 dark:bg-green-700/30 dark:text-green-300 dark:hover:bg-green-600/50">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                            stroke="currentColor" class="h-4 w-4">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                d="M6.633 10.25c.806 0 1.533-.446 2.031-1.08a9.041 9.041 0 0 1 2.861-2.4c.723-.384 1.35-.956 1.653-1.715a4.498 4.498 0 0 0 .322-1.672V2.75a.75.75 0 0 1 .75-.75 2.25 2.25 0 0 1 2.25 2.25c0 1.152-.26 2.243-.723 3.218-.266.558.107 1.282.725 1.282m0 0h3.126c1.026 0 1.945.694 2.054 1.715.045.422.068.85.068 1.285a11.95 11.95 0 0 1-2.649 7.521c-.388.482-.987.729-1.605.729H13.48c-.483 0-.964-.078-1.423-.23l-3.114-1.04a4.501 4.501 0 0 0-1.423-.23H5.904m10.598-9.75H14.25M5.904 18.5c.083.205.173.405.27.602.197.4-.078.898-.523.898h-.908c-.889 0-1.713-.518-1.972-1.368a12 12 0 0 1-.521-3.507c0-1.553.295-3.036.831-4.398C3.387 9.953 4.167 9.5 5 9.5h1.053c.472 0 .745.556.5.96a8.958 8.958 0 0 0-1.302 4.665c0 1.194.232 2.333.654 3.375Z" />
-                        </svg>
-                        Submit
-                    </button>
+                        <button id="submitBtn"
+                            class="inline-flex items-center gap-1 rounded-md bg-green-100 px-3 py-2 text-sm font-medium text-green-700 transition-colors hover:bg-green-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 dark:bg-green-700/30 dark:text-green-300 dark:hover:bg-green-600/50">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                stroke-width="1.5" stroke="currentColor" class="h-4 w-4">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M6.633 10.25c.806 0 1.533-.446 2.031-1.08a9.041 9.041 0 0 1 2.861-2.4c.723-.384 1.35-.956 1.653-1.715a4.498 4.498 0 0 0 .322-1.672V2.75a.75.75 0 0 1 .75-.75 2.25 2.25 0 0 1 2.25 2.25c0 1.152-.26 2.243-.723 3.218-.266.558.107 1.282.725 1.282m0 0h3.126c1.026 0 1.945.694 2.054 1.715.045.422.068.85.068 1.285a11.95 11.95 0 0 1-2.649 7.521c-.388.482-.987.729-1.605.729H13.48c-.483 0-.964-.078-1.423-.23l-3.114-1.04a4.501 4.501 0 0 0-1.423-.23H5.904m10.598-9.75H14.25M5.904 18.5c.083.205.173.405.27.602.197.4-.078.898-.523.898h-.908c-.889 0-1.713-.518-1.972-1.368a12 12 0 0 1-.521-3.507c0-1.553.295-3.036.831-4.398C3.387 9.953 4.167 9.5 5 9.5h1.053c.472 0 .745.556.5.96a8.958 8.958 0 0 0-1.302 4.665c0 1.194.232 2.333.654 3.375Z" />
+                            </svg>
+                            Submit
+                        </button>
                     @endif
-                    <button id="cancelReuseBtn" 
+                    <button id="cancelReuseBtn"
                         class="inline-flex items-center gap-1 rounded-md bg-gray-500 px-3 py-2 text-sm font-medium text-gray-100 transition-colors hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:bg-gray-100 dark:bg-gray-700/30 dark:text-gray-300 dark:hover:bg-gray-600/50">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                             stroke="currentColor" class="size-4">
@@ -159,23 +160,23 @@
                         Cancel
                     </button>
                     @if ($po->status !== 'H')
-                    <button id="sendEmailBtn"
-                        class="inline-flex items-center gap-1 rounded-md bg-indigo-600 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                            stroke="currentColor" class="h-4 w-4">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15A2.25 2.25 0 0 1 2.25 17.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.02 1.9l-6.75 4.5a2.25 2.25 0 0 1-2.46 0l-6.75-4.5a2.25 2.25 0 0 1-1.02-1.9V6.75" />
-                        </svg>
-                        Send Email
-                    </button>
+                        <button id="sendEmailBtn"
+                            class="inline-flex items-center gap-1 rounded-md bg-indigo-600 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                stroke-width="1.5" stroke="currentColor" class="h-4 w-4">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15A2.25 2.25 0 0 1 2.25 17.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.02 1.9l-6.75 4.5a2.25 2.25 0 0 1-2.46 0l-6.75-4.5a2.25 2.25 0 0 1-1.02-1.9V6.75" />
+                            </svg>
+                            Send Email
+                        </button>
                     @endif
                 @endif
             </div>
         </div>
-        <div class="flex w-full flex-col gap-6 xl:flex-col">
-            <div class="flex w-full items-stretch gap-6 xl:flex-row">
+        <div class="flex w-full flex-col gap-6 overflow-hidden sm:col-span-1 lg:row-span-1 xl:row-span-1 xl:flex-col">
+            <div class="flex flex-col gap-6 sm:w-1/2 md:w-full xl:flex-row">
                 {{-- Left card (PO Info) --}}
-                <div class="flex flex-1 flex-col rounded-xl bg-white dark:bg-gray-800">
+                <div class="rounded-xl bg-white duration-300 sm:w-1/2 md:w-full dark:bg-gray-800">
                     <header
                         class="sticky top-0 z-10 flex items-center justify-between rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
                         <h1 class="flex items-center gap-2 text-lg font-bold text-gray-800 dark:text-gray-100">
@@ -382,7 +383,7 @@
                 </div>
 
                 {{-- Right card (Tabs) --}}
-                <div class="flex flex-1 flex-col rounded-xl bg-white dark:bg-gray-800">
+                <div class="flex flex-col gap-4 sm:w-1/2 md:w-full">
                     <div x-data="{ activeTab: 'information_po' }" class="flex flex-1 flex-col">
                         <header
                             class="sticky top-0 z-10 flex items-center rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
@@ -421,7 +422,8 @@
                                 wire:ignore>
                                 <form id="infoPoForm" class="space-y-5" @submit.prevent>
                                     @csrf
-                                    <input type="hidden" name="potype" value="{{ strtoupper($po->potype ?? '') }}">
+                                    <input type="hidden" name="potype"
+                                        value="{{ strtoupper($po->potype ?? '') }}">
                                     @php
                                         $isPO = strtoupper($po->potype ?? '') === 'PO';
                                         $readOnlyDelivery = $po->status === 'P';
@@ -753,60 +755,68 @@
 
                             {{-- Attachment tab --}}
                             {{-- Attachment tab (PO pakai TrAttachmentController generic) --}}
-                            <div x-show="activeTab === 'attachment'" class="flex h-full flex-1 flex-col transition-all">
+                            <div x-show="activeTab === 'attachment'"
+                                class="flex h-full flex-1 flex-col transition-all">
                                 <div class="flex-1 overflow-auto rounded-lg">
                                     <table class="w-full text-sm">
-                                    <thead class="text-gray-600 dark:text-gray-300">
-                                        <tr class="border-b border-gray-200 dark:border-gray-700">
-                                        <th class="p-3 text-left font-semibold">Filename</th>
-                                        <th class="p-3 text-left font-semibold">Created By</th>
-                                        <th class="p-3 text-left font-semibold">Date</th>
-                                        @if ($po->status === 'H')
-                                            <th class="p-3 text-center font-semibold">Action</th>
-                                        @endif
-                                        </tr>
-                                    </thead>
-                                    <tbody id="poAttachmentTbody"></tbody>
+                                        <thead class="text-gray-600 dark:text-gray-300">
+                                            <tr class="border-b border-gray-200 dark:border-gray-700">
+                                                <th class="p-3 text-left font-semibold">Filename</th>
+                                                <th class="p-3 text-left font-semibold">Created By</th>
+                                                <th class="p-3 text-left font-semibold">Date</th>
+                                                @if ($po->status === 'H')
+                                                    <th class="p-3 text-center font-semibold">Action</th>
+                                                @endif
+                                            </tr>
+                                        </thead>
+                                        <tbody id="poAttachmentTbody"></tbody>
                                     </table>
                                 </div>
 
                                 @if ($po->status === 'H')
-                                {{-- Upload (status HOLD saja yang boleh) --}}
-                                <form id="poAttachmentUploadForm" enctype="multipart/form-data"
+                                    {{-- Upload (status HOLD saja yang boleh) --}}
+                                    <form id="poAttachmentUploadForm" enctype="multipart/form-data"
                                         class="sticky bottom-0 z-10 mt-6 rounded-b-lg border-t border-gray-200 bg-gray-100 p-4 shadow-sm backdrop-blur-sm dark:border-gray-700 dark:bg-gray-700">
-                                    @csrf
-                                    {{-- opsional kalau mau kirim meta tambahan --}}
-                                    <input type="hidden" name="cpnyid" value="{{ $po->cpny_id }}">
-                                    <input type="hidden" name="departementid" value="{{ $po->department_id }}">
+                                        @csrf
+                                        {{-- opsional kalau mau kirim meta tambahan --}}
+                                        <input type="hidden" name="cpnyid" value="{{ $po->cpny_id }}">
+                                        <input type="hidden" name="departementid" value="{{ $po->department_id }}">
 
-                                    <div class="flex flex-col gap-3 md:flex-row md:items-center md:gap-4">
-                                    <div class="flex-1">
-                                        <label for="poAttachFiles" class="mb-2 block text-sm font-semibold text-gray-800 dark:text-gray-200">
-                                        Upload Attachment
-                                        </label>
-                                        <div class="flex items-center gap-3">
-                                        <input type="file" id="poAttachFiles" name="attachments[]" multiple
-                                                class="block w-full cursor-pointer rounded-md border border-gray-300 bg-white px-2 py-[7px] text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" />
-                                        <button type="button" id="btnUploadPOAttachment"
-                                                class="inline-flex h-[36px] items-center justify-center rounded-md bg-indigo-600 px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                                            Upload
-                                        </button>
-                                        <button type="button" id="btnResetPOAttachment"
-                                                class="inline-flex h-[36px] items-center justify-center rounded-md border border-gray-300 bg-white px-4 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-400 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">
-                                            Reset
-                                        </button>
+                                        <div class="flex flex-col gap-3 md:flex-row md:items-center md:gap-4">
+                                            <div class="flex-1">
+                                                <label for="poAttachFiles"
+                                                    class="mb-2 block text-sm font-semibold text-gray-800 dark:text-gray-200">
+                                                    Upload Attachment
+                                                </label>
+                                                <div class="flex items-center gap-3">
+                                                    <input type="file" id="poAttachFiles" name="attachments[]"
+                                                        multiple
+                                                        class="block w-full cursor-pointer rounded-md border border-gray-300 bg-white px-2 py-[7px] text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" />
+                                                    <button type="button" id="btnUploadPOAttachment"
+                                                        class="inline-flex h-[36px] items-center justify-center rounded-md bg-indigo-600 px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                                        Upload
+                                                    </button>
+                                                    <button type="button" id="btnResetPOAttachment"
+                                                        class="inline-flex h-[36px] items-center justify-center rounded-md border border-gray-300 bg-white px-4 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-400 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">
+                                                        Reset
+                                                    </button>
+                                                </div>
+                                                <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Max 10 files,
+                                                    PDF / Image preferred.</p>
+                                            </div>
                                         </div>
-                                        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Max 10 files, PDF / Image preferred.</p>
-                                    </div>
-                                    </div>
 
-                                    <div id="poUploadProgress" class="mt-4 hidden">
-                                    <div class="h-2 w-full overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700">
-                                        <div id="poUploadBar" class="h-2 w-0 rounded-full bg-indigo-600 transition-all duration-300 ease-out dark:bg-indigo-500"></div>
-                                    </div>
-                                    <p id="poUploadPct" class="mt-1 text-xs text-gray-600 dark:text-gray-300">0%</p>
-                                    </div>
-                                </form>
+                                        <div id="poUploadProgress" class="mt-4 hidden">
+                                            <div
+                                                class="h-2 w-full overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700">
+                                                <div id="poUploadBar"
+                                                    class="h-2 w-0 rounded-full bg-indigo-600 transition-all duration-300 ease-out dark:bg-indigo-500">
+                                                </div>
+                                            </div>
+                                            <p id="poUploadPct" class="mt-1 text-xs text-gray-600 dark:text-gray-300">
+                                                0%</p>
+                                        </div>
+                                    </form>
                                 @endif
                             </div>
 
@@ -846,7 +856,7 @@
                 </header>
                 <div class="overflow-x-auto">
                     <table class="w-full text-sm text-gray-700 dark:text-gray-200">
-                        <thead class="bg-gray-100 dark:bg-gray-700 dark:text-gray-100">
+                        <thead class="sticky top-0 z-20 bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300">
                             <tr>
                                 <th class="px-4 py-2">No</th>
                                 <th class="px-4 py-2">Inventory ID</th>
@@ -948,8 +958,8 @@
 
     <script>
         $(document).ready(function() {
-            const ponbr  = "{{ $po->ponbr }}";
-            const doctype = "PO"; 
+            const ponbr = "{{ $po->ponbr }}";
+            const doctype = "PO";
 
             loadComments(ponbr, doctype);
 
@@ -964,7 +974,9 @@
                         commentList.empty();
 
                         if (!response.comments || response.comments.length === 0) {
-                            commentList.append('<p class="text-gray-500 italic">No comments yet. Be the first to comment!</p>');
+                            commentList.append(
+                                '<p class="text-gray-500 italic">No comments yet. Be the first to comment!</p>'
+                            );
                             return;
                         }
 
@@ -1015,7 +1027,8 @@
                     },
                     error: function(xhr) {
                         console.error("Error adding comment:", xhr);
-                        alert("Error: " + (xhr.responseJSON ? xhr.responseJSON.message : "Unknown Error"));
+                        alert("Error: " + (xhr.responseJSON ? xhr.responseJSON.message :
+                            "Unknown Error"));
                     },
                     complete: function() {
                         $('#postCommentBtn').prop('disabled', false).text('Post 🚀');
@@ -1035,9 +1048,9 @@
                 }
             });
 
-            
+
         });
-    </script>  
+    </script>
 
     {{-- <script>
         $(document).ready(function() {
@@ -1165,46 +1178,99 @@
 
                 if (isPO) {
                     // Hanya wajib untuk PO
-                    if (!val('podeliverydate')) errors.push({ id: 'podeliverydate', msg: 'Delivery Date wajib diisi.' });
+                    if (!val('podeliverydate')) errors.push({
+                        id: 'podeliverydate',
+                        msg: 'Delivery Date wajib diisi.'
+                    });
                 } else {
                     // Hanya wajib untuk SPK/Other
-                    if (!val('work_date_from')) errors.push({ id: 'work_date_from', msg: 'Dari Tanggal wajib diisi.' });
-                    if (!val('work_date_to'))   errors.push({ id: 'work_date_to',   msg: 'Sampai Tanggal wajib diisi.' });
+                    if (!val('work_date_from')) errors.push({
+                        id: 'work_date_from',
+                        msg: 'Dari Tanggal wajib diisi.'
+                    });
+                    if (!val('work_date_to')) errors.push({
+                        id: 'work_date_to',
+                        msg: 'Sampai Tanggal wajib diisi.'
+                    });
 
                     const wd = val('work_days');
-                    if (!wd) errors.push({ id: 'work_days', msg: 'Jumlah Hari Kerja wajib diisi.' });
-                    else if (isNaN(Number(wd)) || Number(wd) < 0) errors.push({ id: 'work_days', msg: 'Jumlah Hari Kerja harus angka ≥ 0.' });
+                    if (!wd) errors.push({
+                        id: 'work_days',
+                        msg: 'Jumlah Hari Kerja wajib diisi.'
+                    });
+                    else if (isNaN(Number(wd)) || Number(wd) < 0) errors.push({
+                        id: 'work_days',
+                        msg: 'Jumlah Hari Kerja harus angka ≥ 0.'
+                    });
 
-                    if (!val('work_day_from'))  errors.push({ id: 'work_day_from',  msg: 'Hari (Dari) wajib diisi.' });
-                    if (!val('work_day_to'))    errors.push({ id: 'work_day_to',    msg: 'Hari (Sampai) wajib diisi.' });
-                    if (!val('work_time_from')) errors.push({ id: 'work_time_from', msg: 'Pukul (Dari) wajib diisi.' });
-                    if (!val('work_time_to'))   errors.push({ id: 'work_time_to',   msg: 'Pukul (Sampai) wajib diisi.' });
+                    if (!val('work_day_from')) errors.push({
+                        id: 'work_day_from',
+                        msg: 'Hari (Dari) wajib diisi.'
+                    });
+                    if (!val('work_day_to')) errors.push({
+                        id: 'work_day_to',
+                        msg: 'Hari (Sampai) wajib diisi.'
+                    });
+                    if (!val('work_time_from')) errors.push({
+                        id: 'work_time_from',
+                        msg: 'Pukul (Dari) wajib diisi.'
+                    });
+                    if (!val('work_time_to')) errors.push({
+                        id: 'work_time_to',
+                        msg: 'Pukul (Sampai) wajib diisi.'
+                    });
 
                     const mp = val('manpower_total');
-                    if (!mp) errors.push({ id: 'manpower_total', msg: 'Total Man Power wajib diisi.' });
-                    else if (isNaN(Number(mp)) || Number(mp) < 0) errors.push({ id: 'manpower_total', msg: 'Total Man Power harus angka ≥ 0.' });
+                    if (!mp) errors.push({
+                        id: 'manpower_total',
+                        msg: 'Total Man Power wajib diisi.'
+                    });
+                    else if (isNaN(Number(mp)) || Number(mp) < 0) errors.push({
+                        id: 'manpower_total',
+                        msg: 'Total Man Power harus angka ≥ 0.'
+                    });
 
-                    if (!val('pic_name'))       errors.push({ id: 'pic_name',       msg: 'Nama PIC wajib diisi.' });
-                    if (!val('pic_phone'))      errors.push({ id: 'pic_phone',      msg: 'Nomor HP PIC wajib diisi.' });
-                    if (!val('payment_method')) errors.push({ id: 'payment_method', msg: 'Cara Pembayaran wajib diisi.' });
-                    if (!val('warranty'))       errors.push({ id: 'warranty',       msg: 'Garansi Pekerjaan wajib diisi.' });
+                    if (!val('pic_name')) errors.push({
+                        id: 'pic_name',
+                        msg: 'Nama PIC wajib diisi.'
+                    });
+                    if (!val('pic_phone')) errors.push({
+                        id: 'pic_phone',
+                        msg: 'Nomor HP PIC wajib diisi.'
+                    });
+                    if (!val('payment_method')) errors.push({
+                        id: 'payment_method',
+                        msg: 'Cara Pembayaran wajib diisi.'
+                    });
+                    if (!val('warranty')) errors.push({
+                        id: 'warranty',
+                        msg: 'Garansi Pekerjaan wajib diisi.'
+                    });
                 }
 
                 if (errors.length) {
                     errors.forEach(e => markInvalid($('#' + e.id)));
                     const first = errors[0];
                     const $first = $('#' + first.id);
-                    $first.focus()[0]?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    $first.focus()[0]?.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'center'
+                    });
                     toastr.error(first.msg);
-                    return { ok: false, errors };
+                    return {
+                        ok: false,
+                        errors
+                    };
                 }
-                return { ok: true };
+                return {
+                    ok: true
+                };
             }
 
             // ===== SUBMIT PO with validation =====
             $('#submitBtn').on('click', function(e) {
                 e.preventDefault();
-                
+
                 const statusNow = "{{ $po->status }}";
                 if (statusNow !== 'H') {
                     toastr.warning('Dokumen hanya bisa di-Submit jika status = HOLD (H).');
@@ -1519,52 +1585,54 @@
                 //     encodeURIComponent(eid_ponbr))
                 // window.open(url, '_blank');
                 const url = "{{ route('po.viewemail', ['hash' => '__HASH__']) }}"
-                        .replace('__HASH__', encodeURIComponent(eid_ponbr));
+                    .replace('__HASH__', encodeURIComponent(eid_ponbr));
                 window.location.href = url;
             });
         });
     </script>
 
     <script>
-        $(function () {
-        const isHold   = @json($po->status === 'H');
-        const listUrl  = @json(route('attachments.list',   ['doctype' => 'PO', 'refnbr' => $po->ponbr]));
-        const uploadUrl= @json(route('attachments.upload', ['doctype' => 'PO', 'refnbr' => $po->ponbr]));
-        // const delRoute = @json(route('attachments.delete', ':id'));
-        const removeUrlTpl = @json(url('/remove-attachment/:id'));
+        $(function() {
+            const isHold = @json($po->status === 'H');
+            const listUrl = @json(route('attachments.list', ['doctype' => 'PO', 'refnbr' => $po->ponbr]));
+            const uploadUrl = @json(route('attachments.upload', ['doctype' => 'PO', 'refnbr' => $po->ponbr]));
+            // const delRoute = @json(route('attachments.delete', ':id'));
+            const removeUrlTpl = @json(url('/remove-attachment/:id'));
 
-        function $tbody(){ return $('#poAttachmentTbody'); }
+            function $tbody() {
+                return $('#poAttachmentTbody');
+            }
 
-        function renderAttachmentRows(rows){
-            const $tb = $tbody().empty();
-            if (!rows || !rows.length){
-            $tb.append(`
+            function renderAttachmentRows(rows) {
+                const $tb = $tbody().empty();
+                if (!rows || !rows.length) {
+                    $tb.append(`
                 <tr>
                 <td colspan="${isHold ? 4 : 3}" class="p-4 text-center italic text-gray-500 dark:text-gray-400">
                     No attachments found.
                 </td>
                 </tr>
             `);
-            return;
-            }
+                    return;
+                }
 
-            rows.forEach(at => {
-            const name   = at.name || at.display_name || '(no name)';
-            const by     = at.created_user ?? at.created_by ?? '-';
-            const date   = at.created_at ? dayjs(at.created_at).format('DD MMM YYYY HH:mm:ss') : '-';
-            const link   = at.url
-                ? `<a href="${at.url}" target="_blank" class="flex items-center gap-2 font-medium text-indigo-600 hover:underline dark:text-indigo-400">📎 ${name}</a>`
-                : `<span class="flex items-center gap-2 font-medium text-gray-700 dark:text-gray-300">📎 ${name}</span>
+                rows.forEach(at => {
+                    const name = at.name || at.display_name || '(no name)';
+                    const by = at.created_user ?? at.created_by ?? '-';
+                    const date = at.created_at ? dayjs(at.created_at).format('DD MMM YYYY HH:mm:ss') : '-';
+                    const link = at.url ?
+                        `<a href="${at.url}" target="_blank" class="flex items-center gap-2 font-medium text-indigo-600 hover:underline dark:text-indigo-400">📎 ${name}</a>` :
+                        `<span class="flex items-center gap-2 font-medium text-gray-700 dark:text-gray-300">📎 ${name}</span>
                 <span class="ml-2 text-xs text-red-500">(link unavailable)</span>`;
-            const action = isHold
-                ? `<td class="p-3 text-center">
+                    const action = isHold ?
+                        `<td class="p-3 text-center">
                     <button type="button"
                             class="btn-del-attachment mt-4 rounded border border-red-700 bg-red-200/10 px-3 py-3 text-white hover:border-red-700 hover:bg-red-400/30 dark:bg-red-700/30"
                             data-id="${at.id ?? ''}">🗑️</button>
-                </td>`
-                : '';
+                </td>` :
+                        '';
 
-            $tb.append(`
+                    $tb.append(`
                 <tr class="border-b border-gray-100 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700">
                 <td class="p-3">${link}</td>
                 <td class="p-3">${by}</td>
@@ -1572,101 +1640,116 @@
                 ${action}
                 </tr>
             `);
-            });
-        }
-
-        function refreshAttachments(){
-            $.get(listUrl)
-            .done(res => {
-                if (res.success) renderAttachmentRows(res.attachments || []);
-                else toastr.error(res.message || 'Failed to load attachments.');
-            })
-            .fail(() => toastr.error('Failed to load attachments.'));
-        }
-
-        // initial load dari API (agar signed URL fresh)
-        refreshAttachments();
-
-        // ===== Upload (HOLD only) =====
-        $('#btnUploadPOAttachment').on('click', function(){
-            const $form = $('#poAttachmentUploadForm')[0];
-            const files = $('#poAttachFiles')[0]?.files;
-            if (!files || !files.length){
-            toastr.warning('Please choose at least one file.');
-            return;
-            }
-
-            const fd = new FormData($form);
-
-            if (typeof showOverlay === 'function') showOverlay('Uploading');
-            $('#poUploadProgress').removeClass('hidden'); $('#poUploadBar').css('width','0%'); $('#poUploadPct').text('0%');
-
-            $.ajax({
-            url: uploadUrl,
-            method: 'POST',
-            data: fd,
-            processData: false,
-            contentType: false,
-            xhr: function(){
-                const xhr = new window.XMLHttpRequest();
-                xhr.upload.addEventListener('progress', function(e){
-                if (e.lengthComputable){
-                    const pct = Math.round((e.loaded / e.total) * 100);
-                    $('#poUploadBar').css('width', pct + '%');
-                    $('#poUploadPct').text(pct + '%');
-                }
                 });
-                return xhr;
-            },
-            success: function(res){
-                if (typeof hideOverlay === 'function') hideOverlay();
-                if (!res || !res.success){
-                toastr.error(res?.message || 'Upload failed.');
-                return;
-                }
-                toastr.success('Upload success.');
-                $('#poAttachFiles').val('');
-                renderAttachmentRows(res.attachments || []); // backend sudah kembalikan list terbaru
-            },
-            error: function(xhr){
-                if (typeof hideOverlay === 'function') hideOverlay();
-                toastr.error(xhr.responseJSON?.message || 'Upload failed.');
             }
+
+            function refreshAttachments() {
+                $.get(listUrl)
+                    .done(res => {
+                        if (res.success) renderAttachmentRows(res.attachments || []);
+                        else toastr.error(res.message || 'Failed to load attachments.');
+                    })
+                    .fail(() => toastr.error('Failed to load attachments.'));
+            }
+
+            // initial load dari API (agar signed URL fresh)
+            refreshAttachments();
+
+            // ===== Upload (HOLD only) =====
+            $('#btnUploadPOAttachment').on('click', function() {
+                const $form = $('#poAttachmentUploadForm')[0];
+                const files = $('#poAttachFiles')[0]?.files;
+                if (!files || !files.length) {
+                    toastr.warning('Please choose at least one file.');
+                    return;
+                }
+
+                const fd = new FormData($form);
+
+                if (typeof showOverlay === 'function') showOverlay('Uploading');
+                $('#poUploadProgress').removeClass('hidden');
+                $('#poUploadBar').css('width', '0%');
+                $('#poUploadPct').text('0%');
+
+                $.ajax({
+                    url: uploadUrl,
+                    method: 'POST',
+                    data: fd,
+                    processData: false,
+                    contentType: false,
+                    xhr: function() {
+                        const xhr = new window.XMLHttpRequest();
+                        xhr.upload.addEventListener('progress', function(e) {
+                            if (e.lengthComputable) {
+                                const pct = Math.round((e.loaded / e.total) * 100);
+                                $('#poUploadBar').css('width', pct + '%');
+                                $('#poUploadPct').text(pct + '%');
+                            }
+                        });
+                        return xhr;
+                    },
+                    success: function(res) {
+                        if (typeof hideOverlay === 'function') hideOverlay();
+                        if (!res || !res.success) {
+                            toastr.error(res?.message || 'Upload failed.');
+                            return;
+                        }
+                        toastr.success('Upload success.');
+                        $('#poAttachFiles').val('');
+                        renderAttachmentRows(res.attachments ||
+                    []); // backend sudah kembalikan list terbaru
+                    },
+                    error: function(xhr) {
+                        if (typeof hideOverlay === 'function') hideOverlay();
+                        toastr.error(xhr.responseJSON?.message || 'Upload failed.');
+                    }
+                });
             });
-        });
 
-        // Reset
-        $('#btnResetPOAttachment').on('click', function(){
-            try { $('#poAttachFiles')[0].value = ''; } catch(e){}
-            const $fresh = $('#poAttachFiles').clone({withDataAndEvents:false});
-            $('#poAttachFiles').replaceWith($fresh);
-            $('#poUploadBar').css('width','0%'); $('#poUploadPct').text('0%'); $('#poUploadProgress').addClass('hidden');
-            toastr.info('Attachment input has been reset.');
-        });
+            // Reset
+            $('#btnResetPOAttachment').on('click', function() {
+                try {
+                    $('#poAttachFiles')[0].value = '';
+                } catch (e) {}
+                const $fresh = $('#poAttachFiles').clone({
+                    withDataAndEvents: false
+                });
+                $('#poAttachFiles').replaceWith($fresh);
+                $('#poUploadBar').css('width', '0%');
+                $('#poUploadPct').text('0%');
+                $('#poUploadProgress').addClass('hidden');
+                toastr.info('Attachment input has been reset.');
+            });
 
 
-            $(document).on('click', '.btn-del-attachment', function(){
+            $(document).on('click', '.btn-del-attachment', function() {
                 if (!isHold) return;
 
                 const id = $(this).data('id');
-                if (!id){ toastr.error('Invalid attachment id.'); return; }
+                if (!id) {
+                    toastr.error('Invalid attachment id.');
+                    return;
+                }
                 if (!confirm('Yakin Hapus attachment ini?')) return;
 
                 $.ajax({
-                url: removeUrlTpl.replace(':id', id),
-                method: 'PUT',
-                headers: { 'X-CSRF-TOKEN': @json(csrf_token()) },
-                success: function(res){
-                    if (!res || !res.success){
-                    toastr.error(res?.message || 'Gagal update status attachment.');
-                    return;
+                    url: removeUrlTpl.replace(':id', id),
+                    method: 'PUT',
+                    headers: {
+                        'X-CSRF-TOKEN': @json(csrf_token())
+                    },
+                    success: function(res) {
+                        if (!res || !res.success) {
+                            toastr.error(res?.message || 'Gagal update status attachment.');
+                            return;
+                        }
+                        toastr.success('Attachment diperbarui.');
+                        refreshAttachments(); // ambil ulang list (signed URL tetap fresh)
+                    },
+                    error: function(xhr) {
+                        toastr.error(xhr.responseJSON?.message ||
+                            'Gagal update status attachment.');
                     }
-                    toastr.success('Attachment diperbarui.');
-                    refreshAttachments(); // ambil ulang list (signed URL tetap fresh)
-                },
-                error: function(xhr){
-                    toastr.error(xhr.responseJSON?.message || 'Gagal update status attachment.');
-                }
                 });
             });
         });
