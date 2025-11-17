@@ -246,189 +246,126 @@
                     @endphp
 
                     <div class="flex flex-1 flex-col overflow-y-auto p-4">
-                        <div class="grid grid-cols-1 gap-x-8 gap-y-3 text-sm sm:grid-cols-2">
-                            <div class="flex items-center gap-2 p-2">
-                                <x-heroicon-o-calendar-days class="h-5 w-5 text-gray-400" />
-                                <span class="min-w-32 max-w-32 text-gray-500">Bast Date</span>
-                                <span class="break-words font-medium text-gray-900 dark:text-gray-300">
-                                    {{ \Carbon\Carbon::parse($bast->bastdate)->format('d M Y') }}
-                                </span>
-                            </div>
 
+                        @php
+                            // Reusable layout classes
+                            $row = 'flex flex-col gap-1 p-2 sm:flex-row sm:items-center sm:gap-3';
+                            $label = 'flex items-center gap-2 text-gray-500 sm:min-w-40';
+                            $value = 'break-words font-medium text-gray-900 dark:text-gray-300 sm:flex-1';
 
-                            <div class="flex items-center gap-2 p-2">
-                                <x-heroicon-o-hashtag class="h-5 w-5 text-gray-400" />
-                                <span class="min-w-32 max-w-32 text-gray-500">PO Nbr</span>
-                                <span class="break-words font-medium text-gray-900 dark:text-gray-300">
-                                    @if ($poUrl)
-                                        <a class="text-indigo-600 hover:underline dark:text-indigo-400" target="_blank"
-                                            href="{{ $poUrl }}">{{ $bast->ponbr }}</a>
-                                    @else
-                                        {{ $bast->ponbr }}
-                                    @endif
-                                </span>
-                            </div>
+                            // Helper number/date formats
+                            $money = fn($v) => $fmtMoney($v ?? null);
+                            $pct = fn($v) => $fmtPct($v ?? null);
+                            $date = fn($v) => $fmtDate($v ?? null);
 
-                            <div class="flex items-center gap-2 p-2">
-                                <x-heroicon-o-building-office class="h-5 w-5 text-gray-400" />
-                                <span class="min-w-32 max-w-32 text-gray-500">Company</span>
-                                <span
-                                    class="break-words font-medium text-gray-900 dark:text-gray-300">{{ $bast->cpny_id }}</span>
-                            </div>
+                            $fields = [
+                                [
+                                    'icon' => 'calendar-days',
+                                    'label' => 'BAST Date',
+                                    'value' => \Carbon\Carbon::parse($bast->bastdate)->format('d M Y'),
+                                ],
+                                [
+                                    'icon' => 'hashtag',
+                                    'label' => 'PO Nbr',
+                                    'value' => !empty($poUrl)
+                                        ? '<a href="' .
+                                            $poUrl .
+                                            '" target="_blank" class="text-indigo-600 hover:underline dark:text-indigo-400">' .
+                                            $bast->ponbr .
+                                            '</a>'
+                                        : $bast->ponbr,
+                                ],
+                                ['icon' => 'building-office', 'label' => 'Company', 'value' => $bast->cpny_id],
+                                ['icon' => 'squares-2x2', 'label' => 'Department', 'value' => $bast->department_id],
+                                ['icon' => 'user', 'label' => 'Requester', 'value' => $bast->user_peminta],
+                                ['icon' => 'building-storefront', 'label' => 'Vendor', 'value' => $bast->vendorname],
+                                [
+                                    'icon' => 'document-duplicate',
+                                    'label' => 'CS ID',
+                                    'value' => !empty($csUrl)
+                                        ? '<a href="' .
+                                            $csUrl .
+                                            '" target="_blank" class="inline-flex items-center gap-1 text-indigo-600 hover:underline dark:text-indigo-400">' .
+                                            $bast->csid .
+                                            ' <x-heroicon-o-arrow-up-right class="h-4 w-4" /></a>'
+                                        : $bast->csid,
+                                ],
+                                [
+                                    'icon' => 'document-text',
+                                    'label' => 'SPPB/J/K/T',
+                                    'value' => !empty($sppbUrl)
+                                        ? '<a href="' .
+                                            $sppbUrl .
+                                            '" target="_blank" class="inline-flex items-center gap-1 text-indigo-600 hover:underline dark:text-indigo-400">' .
+                                            $bast->sppbjktid .
+                                            ' <x-heroicon-o-arrow-up-right class="h-4 w-4" /></a>'
+                                        : $bast->sppbjktid,
+                                ],
+                                ['icon' => 'queue-list', 'label' => 'BQ ID', 'value' => $bast->bqid ?? '-'],
 
-                            <div class="flex items-center gap-2 p-2">
-                                <x-heroicon-o-squares-2x2 class="h-5 w-5 text-gray-400" />
-                                <span class="min-w-32 max-w-32 text-gray-500">Department</span>
-                                <span
-                                    class="break-words font-medium text-gray-900 dark:text-gray-300">{{ $bast->department_id }}</span>
-                            </div>
+                                // Financials
+                                [
+                                    'icon' => 'currency-dollar',
+                                    'label' => 'BAST Amount',
+                                    'value' => 'Rp ' . $money($bast->bast_amount),
+                                ],
+                                ['icon' => 'chart-bar', 'label' => 'Progress', 'value' => $pct($bast->progress_pct)],
+                                ['icon' => 'banknotes', 'label' => 'Payment', 'value' => $pct($bast->payment_pct)],
 
-                            <div class="flex items-center gap-2 p-2">
-                                <x-heroicon-o-user class="h-5 w-5 text-gray-400" />
-                                <span class="min-w-32 max-w-32 text-gray-500">Requester</span>
-                                <span
-                                    class="break-words font-medium text-gray-900 dark:text-gray-300">{{ $bast->user_peminta }}</span>
-                            </div>
+                                // Dates
+                                ['icon' => 'calendar', 'label' => 'Start Date', 'value' => $date($bast->startdate)],
+                                ['icon' => 'calendar', 'label' => 'End Date', 'value' => $date($bast->enddate)],
+                                ['icon' => 'hand-raised', 'label' => 'Handover', 'value' => $date($bast->handoverdate)],
 
-                            <div class="flex items-center gap-2 p-2">
-                                <x-heroicon-o-building-storefront class="h-5 w-5 text-gray-400" />
-                                <span class="min-w-32 max-w-32 text-gray-500">Vendor</span>
-                                <span
-                                    class="break-words font-medium text-gray-900 dark:text-gray-300">{{ $bast->vendorname }}</span>
-                            </div>
+                                // Penalties
+                                ['icon' => 'clock', 'label' => 'Days Penalty', 'value' => $bast->days_penalty ?? '-'],
+                                [
+                                    'icon' => 'exclamation-triangle',
+                                    'label' => 'Penalty',
+                                    'value' => 'Rp ' . $money($bast->penalty),
+                                ],
+                                [
+                                    'icon' => 'exclamation-circle',
+                                    'label' => 'Total Penalty',
+                                    'value' => 'Rp ' . $money($bast->total_penalty),
+                                ],
 
-                            <div class="flex items-center gap-2 p-2">
-                                <x-heroicon-o-document-duplicate class="h-5 w-5 text-gray-400" />
-                                <span class="min-w-32 max-w-32 text-gray-500">CS ID</span>
-                                <span class="break-words font-medium text-gray-900 dark:text-gray-300">
-                                    @if (!empty($csUrl))
-                                        <a href="{{ $csUrl }}" target="_blank"
-                                            class="inline-flex items-center gap-1 text-indigo-600 hover:underline dark:text-indigo-400">
-                                            {{ $bast->csid }} <x-heroicon-o-arrow-up-right class="h-4 w-4" />
-                                        </a>
-                                    @else
-                                        {{ $bast->csid }}
-                                    @endif
-                                </span>
-                            </div>
+                                // Realization
+                                [
+                                    'icon' => 'receipt-percent',
+                                    'label' => 'Realize Amount',
+                                    'value' => 'Rp ' . $money($bast->realize_amount),
+                                ],
 
-                            <div class="flex items-center gap-2 p-2">
-                                <x-heroicon-o-document-text class="h-5 w-5 text-gray-400" />
-                                <span class="min-w-32 max-w-32 text-gray-500">SPPB/J/K/T</span>
-                                <span class="break-words font-medium text-gray-900 dark:text-gray-300">
-                                    @if (!empty($sppbUrl))
-                                        <a href="{{ $sppbUrl }}" target="_blank"
-                                            class="inline-flex items-center gap-1 text-indigo-600 hover:underline dark:text-indigo-400">
-                                            {{ $bast->sppbjktid }} <x-heroicon-o-arrow-up-right class="h-4 w-4" />
-                                        </a>
-                                    @else
-                                        {{ $bast->sppbjktid }}
-                                    @endif
-                                </span>
-                            </div>
+                                // Rating Vendor → special rendering below
+                            ];
+                        @endphp
 
-                            {{-- BQ ID (bqid) --}}
-                            <div class="flex items-center gap-2 p-2">
-                                <x-heroicon-o-queue-list class="h-5 w-5 text-gray-400" />
-                                <span class="min-w-32 max-w-32 text-gray-500">BQ ID</span>
-                                <span
-                                    class="break-words font-medium text-gray-900 dark:text-gray-300">{{ $bast->bqid ?? '-' }}</span>
-                            </div>
+                        <div class="grid grid-cols-2 gap-x-8 gap-y-3 text-sm sm:grid-cols-2">
 
-                            {{-- Bast Amount --}}
-                            <div class="flex items-center gap-2 p-2">
-                                <x-heroicon-o-currency-dollar class="h-5 w-5 text-gray-400" />
-                                <span class="min-w-32 max-w-32 text-gray-500">BAST Amount</span>
-                                <span class="break-words font-medium text-gray-900 dark:text-gray-300">Rp
-                                    {{ $fmtMoney($bast->bast_amount ?? null) }}</span>
-                            </div>
+                            {{-- Render rows normally --}}
+                            @foreach ($fields as $f)
+                                <div class="{{ $row }}">
+                                    <div class="{{ $label }}">
+                                        <x-dynamic-component :component="'heroicon-o-' . $f['icon']" class="h-5 w-5 text-gray-400" />
+                                        <span>{{ $f['label'] }}</span>
+                                    </div>
+                                    <span class="{!! $value !!}">{!! $f['value'] !!}</span>
+                                </div>
+                            @endforeach
 
-                            {{-- Progress % --}}
-                            <div class="flex items-center gap-2 p-2">
-                                <x-heroicon-o-chart-bar class="h-5 w-5 text-gray-400" />
-                                <span class="min-w-32 max-w-32 text-gray-500">Progress</span>
-                                <span
-                                    class="break-words font-medium text-gray-900 dark:text-gray-300">{{ $fmtPct($bast->progress_pct ?? null) }}</span>
-                            </div>
-
-                            {{-- Payment % --}}
-                            <div class="flex items-center gap-2 p-2">
-                                <x-heroicon-o-banknotes class="h-5 w-5 text-gray-400" />
-                                <span class="min-w-32 max-w-32 text-gray-500">Payment</span>
-                                <span
-                                    class="break-words font-medium text-gray-900 dark:text-gray-300">{{ $fmtPct($bast->payment_pct ?? null) }}</span>
-                            </div>
-
-                            {{-- Start Date --}}
-                            <div class="flex items-center gap-2 p-2">
-                                <x-heroicon-o-calendar class="h-5 w-5 text-gray-400" />
-                                <span class="min-w-32 max-w-32 text-gray-500">Start Date</span>
-                                <span
-                                    class="break-words font-medium text-gray-900 dark:text-gray-300">{{ $fmtDate($bast->startdate ?? null) }}</span>
-                            </div>
-
-                            {{-- End Date --}}
-                            <div class="flex items-center gap-2 p-2">
-                                <x-heroicon-o-calendar class="h-5 w-5 text-gray-400" />
-                                <span class="min-w-32 max-w-32 text-gray-500">End Date</span>
-                                <span
-                                    class="break-words font-medium text-gray-900 dark:text-gray-300">{{ $fmtDate($bast->enddate ?? null) }}</span>
-                            </div>
-
-                            {{-- Handover Date --}}
-                            <div class="flex items-center gap-2 p-2">
-                                <x-heroicon-o-hand-raised class="h-5 w-5 text-gray-400" />
-                                <span class="min-w-32 max-w-32 text-gray-500">Handover</span>
-                                <span
-                                    class="break-words font-medium text-gray-900 dark:text-gray-300">{{ $fmtDate($bast->handoverdate ?? null) }}</span>
-                            </div>
-
-
-                            {{-- Days Penalty --}}
-                            <div class="flex items-center gap-2 p-2">
-                                <x-heroicon-o-clock class="h-5 w-5 text-gray-400" />
-                                <span class="min-w-32 max-w-32 text-gray-500">Days Penalty</span>
-                                <span
-                                    class="break-words font-medium text-gray-900 dark:text-gray-300">{{ $bast->days_penalty ?? '-' }}</span>
-                            </div>
-
-                            {{-- Penalty --}}
-                            <div class="flex items-center gap-2 p-2">
-                                <x-heroicon-o-exclamation-triangle class="h-5 w-5 text-gray-400" />
-                                <span class="min-w-32 max-w-32 text-gray-500">Penalty</span>
-                                <span class="break-words font-medium text-gray-900 dark:text-gray-300">Rp
-                                    {{ $fmtMoney($bast->penalty ?? null) }}</span>
-                            </div>
-
-                            {{-- Total Penalty --}}
-                            <div class="flex items-center gap-2 p-2">
-                                <x-heroicon-o-exclamation-circle class="h-5 w-5 text-gray-400" />
-                                <span class="min-w-32 max-w-32 text-gray-500">Total Penalty</span>
-                                <span class="break-words font-medium text-gray-900 dark:text-gray-300">Rp
-                                    {{ $fmtMoney($bast->total_penalty ?? null) }}</span>
-                            </div>
-
-                            {{-- Realize Amount --}}
-                            <div class="flex items-center gap-2 p-2">
-                                <x-heroicon-o-receipt-percent class="h-5 w-5 text-gray-400" />
-                                <span class="min-w-32 max-w-32 text-gray-500">Realize Amount</span>
-                                <span class="break-words font-medium text-gray-900 dark:text-gray-300">Rp
-                                    {{ $fmtMoney($bast->realize_amount ?? null) }}</span>
-                            </div>
-
-                            {{-- Rating Vendor --}}
-                            <div class="flex items-center gap-2 p-2">
-                                <x-heroicon-o-star class="h-5 w-5 text-gray-400" />
-                                <span class="min-w-32 max-w-32 text-gray-500">Rating Vendor</span>
+                            {{-- ⭐ Vendor Rating (special layout with badges) --}}
+                            <div class="{{ $row }}">
+                                <div class="{{ $label }}">
+                                    <x-heroicon-o-star class="h-5 w-5 text-gray-400" />
+                                    <span>Rating Vendor</span>
+                                </div>
 
                                 <span class="flex items-center gap-2 font-medium text-gray-900 dark:text-gray-300">
-                                    @php
-                                        $fmt1 = fn($v) => is_null($v) ? '-' : number_format((float) $v, 1, ',', '.');
-                                    @endphp
 
                                     <span
                                         class="inline-flex items-center rounded-md bg-indigo-50 px-2 py-0.5 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300">
-                                        {{ $fmt1($bast->rating_vendor) }}
+                                        {{ $bast->rating_vendor ? number_format((float) $bast->rating_vendor, 1, ',', '.') : '-' }}
                                     </span>
 
                                     @if (!empty($ratingLegendName))
@@ -442,45 +379,36 @@
                                             -
                                         </span>
                                     @endif
+
                                 </span>
                             </div>
 
-
-
-                            {{-- SPK PIC --}}
-                            <div class="flex items-center gap-2 p-2">
-                                <x-heroicon-o-user-circle class="h-5 w-5 text-gray-400" />
-                                <span class="min-w-32 max-w-32 text-gray-500">SPK PIC</span>
-                                <span
-                                    class="break-words font-medium text-gray-900 dark:text-gray-300">{{ $bast->spkpic ?? '-' }}</span>
-                            </div>
-
-                            {{-- SPK Warranty --}}
-                            <div class="flex items-center gap-2 p-2">
-                                <x-heroicon-o-shield-check class="h-5 w-5 text-gray-400" />
-                                <span class="min-w-32 max-w-32 text-gray-500">SPK Warranty</span>
-                                <span
-                                    class="break-words font-medium text-gray-900 dark:text-gray-300">{{ $bast->spkwarranty ?? '-' }}</span>
-                            </div>
-
+                            {{-- Note full width --}}
                             @if (!empty($bast->bastnote))
-                                <div class="flex items-center gap-2 p-2 sm:col-span-2">
-                                    <x-heroicon-o-clipboard-document-list class="h-5 w-5 text-gray-400" />
-                                    <span class="min-w-32 max-w-32 text-gray-500">Note</span>
-                                    <span
-                                        class="break-words font-medium text-gray-900 dark:text-gray-300">{{ $bast->bastnote }}</span>
+                                <div class="col-span-2">
+                                    <div class="flex items-start gap-2 rounded-md bg-gray-50 p-3 dark:bg-gray-700">
+                                        <x-heroicon-o-clipboard-document-list class="mt-0.5 h-5 w-5 text-gray-400" />
+                                        <div class="flex flex-col">
+                                            <span class="text-gray-500">Note</span>
+                                            <span class="break-words font-medium text-gray-900 dark:text-gray-300">
+                                                {{ $bast->bastnote }}
+                                            </span>
+                                        </div>
+                                    </div>
                                 </div>
                             @endif
+
                         </div>
                     </div>
+
                 </div>
 
                 {{-- Right card (Tabs) --}}
-                <div class="flex flex-col gap-4 sm:w-1/2 md:w-full">
+                <div class="flex flex-col gap-4 rounded-xl duration-300 sm:w-1/2 md:w-full">
                     <div class="flex flex-1 flex-col rounded-xl bg-white dark:bg-gray-800">
                         <div x-data="{ activeTab: 'attachment' }" class="flex flex-1 flex-col">
                             <header
-                                class="sticky top-0 z-10 flex items-center rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
+                                class="sticky top-0 z-10 flex items-center rounded-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
                                 <nav class="flex flex-grow">
                                     <button @click="activeTab = 'attachment'"
                                         :class="activeTab === 'attachment' ?
@@ -505,7 +433,7 @@
                                 </nav>
                             </header>
 
-                            <div class="flex flex-1 flex-col rounded-b-xl bg-white dark:bg-gray-800">
+                            <div class="flex flex-1 flex-col">
                                 <div x-show="activeTab === 'approval'" class="flex-1 p-4 transition-all">
                                     <table class="w-full text-sm">
                                         <thead>
@@ -665,7 +593,7 @@
 
 
             {{-- Bast Detail table --}}
-            <div class="flex flex-row gap-4">
+            <div class="flex w-full flex-col gap-4 rounded-2xl md:flex-row xl:flex-row">
 
                 {{-- Photo Before (by BQID) --}}
                 <div class="flex-1 rounded-xl bg-white dark:bg-gray-800">

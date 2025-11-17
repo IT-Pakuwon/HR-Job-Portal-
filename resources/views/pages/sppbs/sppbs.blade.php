@@ -633,7 +633,7 @@
                                     // let url = `/showsppbs/${row.id}`;
                                     let url = `/showsppbs/${row.eid}`;
                                     let cls =
-                                        'inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-sm leading-tight font-medium text-white rounded text-center transition-colors duration-200 bg-gray-500 hover:bg-gray-700';
+                                        'inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-base leading-tight font-semibold text-white rounded text-center transition-colors duration-200 bg-gray-500 hover:bg-gray-700';
 
                                     const text = data || row.id;
 
@@ -642,7 +642,7 @@
                                         // url = `/editsppbs/${row.id}`;
                                         url = `/editsppbs/${row.eid}`;
                                         cls =
-                                            'inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-sm leading-tight font-medium text-white rounded text-center transition-colors duration-200 bg-yellow-500 hover:bg-yellow-700';
+                                            'inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-base leading-tight font-semibold text-white rounded text-center transition-colors duration-200 bg-yellow-500 hover:bg-yellow-700';
 
                                     }
 
@@ -711,7 +711,7 @@
                                         t: data || '-',
                                         c: 'bg-gray-300/30 text-gray-600'
                                     };
-                                    return `<span class="w-32 inline-block ${it.c} font-semibold px-4 py-2 text-center rounded">${it.t}</span>`;
+                                    return `<span class="w-32 inline-block ${it.c} font-semibold px-3 py-1.5 text-base text-center rounded">${it.t}</span>`;
                                 }
                             }
                         ],

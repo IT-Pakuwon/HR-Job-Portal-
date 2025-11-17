@@ -256,16 +256,16 @@
 
             {{-- Return Jobs --}}
             <button>
-            <a href="#" class="scope-filter group block" data-scope="returnjobs">
-                <div
-                class="scope-card flex items-center gap-4 rounded-lg border border-purple-700 bg-purple-200/20 p-3 text-purple-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-purple-100 hover:shadow-lg active:scale-95">
-                <span class="text-xl group-hover:animate-pulse">↩️</span>
-                <div class="flex flex-grow items-center justify-between">
-                    <p class="text-lg font-medium">Return Jobs</p>
-                    <p class="text-right text-xl font-extrabold">{{ $returnjobs }}</p>
-                </div>
-                </div>
-            </a>
+                <a href="#" class="scope-filter group block" data-scope="returnjobs">
+                    <div
+                        class="scope-card flex items-center gap-4 rounded-lg border border-purple-700 bg-purple-200/20 p-3 text-purple-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-purple-100 hover:shadow-lg active:scale-95">
+                        <span class="text-xl group-hover:animate-pulse">↩️</span>
+                        <div class="flex flex-grow items-center justify-between">
+                            <p class="text-lg font-medium">Return Jobs</p>
+                            <p class="text-right text-xl font-extrabold">{{ $returnjobs }}</p>
+                        </div>
+                    </div>
+                </a>
             </button>
 
 
@@ -369,12 +369,12 @@
 
                     const titleMap = {
                         receiptjobs: 'Receipt - Jobs',
-                        returnjobs:  'Receipt - Return Jobs',
-                        onprogress:  'Receipt - On Progress',
-                        completed:   'Receipt - Completed',
-                        rejected:    'Receipt - Rejected',   
-                        revise:      'Receipt - Revise',     
-                        all:         'Receipt - All',
+                        returnjobs: 'Receipt - Return Jobs',
+                        onprogress: 'Receipt - On Progress',
+                        completed: 'Receipt - Completed',
+                        rejected: 'Receipt - Rejected',
+                        revise: 'Receipt - Revise',
+                        all: 'Receipt - All',
                     };
 
 
@@ -416,28 +416,72 @@
                     function columnsFor(sc) {
                         let buttonClass =
                             'inline-flex items-center justify-center w-[100px] rounded bg-gray-500 py-1.5 text-white hover:bg-gray-700';
-                            if (sc === 'receiptjobs') {
-                                return [
-                                { data: null, orderable:false, searchable:false, render: (_v,t,row)=>renderPlusCreate(row) },
-                                { data: 'ponbr', render: (_v,_t,row)=>renderPoLink(row) },
-                                { data: 'podate', render: (_v,_t,row)=>row.podate_fmt ?? '', className:'text-left' },
-                                { data: 'cpny_id', className:'text-left' },
-                                { data: 'vendorname' },
-                                { data: 'podeliverydate', render: (_v,_t,row)=>row.podelivery_fmt ?? '', className:'text-left' },
-                                { data: 'created_by' },
-                                ];
-                            }
-                            if (sc === 'returnjobs') {
-                                return [
-                                { data: null, orderable:false, searchable:false, render: (_v,t,row)=>renderPlusReturn(row) },
-                                { data: 'receiptnbr', render: (_v,_t,row)=>renderReceiptLink(row) },
-                                { data: 'receiptdate', render: (_v,_t,row)=>row.receiptdate_fmt ?? '', className:'text-left' },
-                                { data: 'ponbr', className:'text-left' },
-                                { data: 'sppbjktid', className:'text-left' },
-                                { data: 'cpny_id', className:'text-left' },
-                                { data: 'created_by' },
-                                ];
-                            }
+                        if (sc === 'receiptjobs') {
+                            return [{
+                                    data: null,
+                                    orderable: false,
+                                    searchable: false,
+                                    render: (_v, t, row) => renderPlusCreate(row)
+                                },
+                                {
+                                    data: 'ponbr',
+                                    render: (_v, _t, row) => renderPoLink(row)
+                                },
+                                {
+                                    data: 'podate',
+                                    render: (_v, _t, row) => row.podate_fmt ?? '',
+                                    className: 'text-left'
+                                },
+                                {
+                                    data: 'cpny_id',
+                                    className: 'text-left'
+                                },
+                                {
+                                    data: 'vendorname'
+                                },
+                                {
+                                    data: 'podeliverydate',
+                                    render: (_v, _t, row) => row.podelivery_fmt ?? '',
+                                    className: 'text-left'
+                                },
+                                {
+                                    data: 'created_by'
+                                },
+                            ];
+                        }
+                        if (sc === 'returnjobs') {
+                            return [{
+                                    data: null,
+                                    orderable: false,
+                                    searchable: false,
+                                    render: (_v, t, row) => renderPlusReturn(row)
+                                },
+                                {
+                                    data: 'receiptnbr',
+                                    render: (_v, _t, row) => renderReceiptLink(row)
+                                },
+                                {
+                                    data: 'receiptdate',
+                                    render: (_v, _t, row) => row.receiptdate_fmt ?? '',
+                                    className: 'text-left'
+                                },
+                                {
+                                    data: 'ponbr',
+                                    className: 'text-left'
+                                },
+                                {
+                                    data: 'sppbjktid',
+                                    className: 'text-left'
+                                },
+                                {
+                                    data: 'cpny_id',
+                                    className: 'text-left'
+                                },
+                                {
+                                    data: 'created_by'
+                                },
+                            ];
+                        }
                         // TrReceipt scopes: tanpa kolom "+"
                         return [{
                                 data: 'receiptnbr',
@@ -448,7 +492,9 @@
                                 render: (_v, _t, row) => row.receiptdate_fmt ?? '',
                                 className: 'text-left'
                             },
-                            { data: 'receipttype' },
+                            {
+                                data: 'receipttype'
+                            },
                             {
                                 data: 'ponbr',
                                 className: 'text-left'
@@ -469,10 +515,19 @@
                         ];
                     }
 
-                    function orderFor(sc){
-                        if (sc === 'receiptjobs') return [[2,'desc'],[1,'desc']];
-                        if (sc === 'returnjobs')  return [[2,'desc'],[1,'desc']];
-                        return [[1,'desc'],[0,'desc']];
+                    function orderFor(sc) {
+                        if (sc === 'receiptjobs') return [
+                            [2, 'desc'],
+                            [1, 'desc']
+                        ];
+                        if (sc === 'returnjobs') return [
+                            [2, 'desc'],
+                            [1, 'desc']
+                        ];
+                        return [
+                            [1, 'desc'],
+                            [0, 'desc']
+                        ];
                     }
 
 
@@ -526,8 +581,9 @@
                     <i class="fas fa-plus"></i></a>`;
                     }
 
-                    function renderPlusReturn(row){
-                        const url = `{{ route('receipt.return.create') }}` + `?rcp=${encodeURIComponent(row.receiptnbr_eid ?? '')}`;
+                    function renderPlusReturn(row) {
+                        const url = `{{ route('receipt.return.create') }}` +
+                            `?rcp=${encodeURIComponent(row.receiptnbr_eid ?? '')}`;
                         return `<a href="${url}" class="inline-flex items-center justify-center rounded bg-indigo-600 px-2 py-1 text-white text-sm font-bold hover:bg-indigo-700">+</a>`;
                     }
 
@@ -537,7 +593,7 @@
                         // gunakan hash id jika tersedia
                         if (row.ponbr_eid) {
                             const url = `/showpo/${encodeURIComponent(row.ponbr_eid)}`;
-                            return `<a href="${url}" class="inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-sm leading-tight font-medium text-white rounded text-center transition-colors duration-200 bg-gray-500 hover:bg-gray-700">${text}</a>`;
+                            return `<a href="${url}" class="inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-base leading-tight font-semibold text-white rounded text-center transition-colors duration-200 bg-gray-500 hover:bg-gray-700">${text}</a>`;
                         }
                         return text;
                     }
@@ -546,7 +602,7 @@
                         const text = row.sppbjktid ?? '';
                         if (row.sppb_route && row.sppb_eid) {
                             const url = `/${row.sppb_route}/${encodeURIComponent(row.sppb_eid)}`;
-                            return `<a href="${url}" class="inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-sm leading-tight font-medium text-white rounded text-center transition-colors duration-200 bg-gray-500 hover:bg-gray-700">${text}</a>`;
+                            return `<a href="${url}" class="inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-base leading-tight font-semibold text-white rounded text-center transition-colors duration-200 bg-gray-500 hover:bg-gray-700">${text}</a>`;
                         }
                         return text;
                     }
@@ -554,12 +610,12 @@
                     // function renderReceiptLink(row) {
                     //     const url = `/showreceipt/${encodeURIComponent(row.receiptnbr_eid ?? '')}`;
                     //     const text = row.receiptnbr ?? '';
-                    //     return `<a href="${url}" class="inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-sm leading-tight font-medium text-white rounded text-center transition-colors duration-200 bg-gray-500 hover:bg-gray-700">${text}</a>`;
+                    //     return `<a href="${url}" class="inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-base leading-tight font-semibold text-white rounded text-center transition-colors duration-200 bg-gray-500 hover:bg-gray-700">${text}</a>`;
                     // }
 
                     function renderReceiptLink(row) {
                         const label = row.receiptnbr ?? '';
-                        const hash  = row.receiptnbr_eid || row.eid || row.hash || row.id; // prioritaskan receiptnbr_eid
+                        const hash = row.receiptnbr_eid || row.eid || row.hash || row.id; // prioritaskan receiptnbr_eid
 
                         if (!label) return '';
                         if (!hash) {
@@ -569,9 +625,9 @@
 
                         // baca status & creator
                         const statusRaw = (row.status ?? row.xstatus ?? '').toString().trim().toUpperCase();
-                        const creator   = (row.created_by ?? row.createdby ?? '').toString();
-                        const isRevise  = statusRaw === 'D';
-                        const isOwner   = creator === (currentUser ?? '');
+                        const creator = (row.created_by ?? row.createdby ?? '').toString();
+                        const isRevise = statusRaw === 'D';
+                        const isOwner = creator === (currentUser ?? '');
 
                         // Jika Revise dan pemilik dokumen = user sekarang → arahkan ke EDIT
                         if (isRevise && isOwner) {

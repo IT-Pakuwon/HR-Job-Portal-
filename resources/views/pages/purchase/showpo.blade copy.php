@@ -41,7 +41,7 @@
             animation: spin 1s linear infinite;
             position: relative;
         }
-
+/* 
         .loading-spinner::after {
             content: "";
             position: absolute;
@@ -51,7 +51,7 @@
             -left-color: #a5b4fc;
             /* indigo-200 */
             animation: spinReverse .75s linear infinite;
-        }
+        } */
 
         /* Teks */
         .loading-text {
@@ -333,7 +333,7 @@
                         </header>
 
                         {{-- Tabs Content --}}
-                        <div class="flex flex-1 flex-col rounded-b-xl bg-white dark:bg-gray-800">
+                        <div class="flex flex-1 flex-col">
                             {{-- Approval tab --}}
                             <div x-show="activeTab === 'information_po'" class="flex-1 p-4 transition-all">
                                 <form id="infoPoForm">

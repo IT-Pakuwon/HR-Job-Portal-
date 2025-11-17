@@ -418,7 +418,7 @@
                     function renderCSBtn(_v, row) {
                         const url = `/showcs/${row.eid}`;
                         const text = row.csid || row.eid;
-                        return `<a href="${url}" class="inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-sm leading-tight font-medium text-white rounded text-center transition-colors duration-200 bg-gray-500 hover:bg-gray-700">${text}</a>`;
+                        return `<a href="${url}" class="inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-base leading-tight font-semibold text-white rounded text-center transition-colors duration-200 bg-gray-500 hover:bg-gray-700">${text}</a>`;
                     }
                     const showMap = {
                         PB: 'showsppbs',

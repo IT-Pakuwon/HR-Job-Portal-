@@ -220,42 +220,50 @@
                         </div>
                     </header>
                     <div class="flex flex-1 flex-col overflow-y-auto p-4">
-                        <div class="grid grid-cols-1 gap-x-8 gap-y-3 text-sm sm:grid-cols-2">
+                        <div class="grid grid-cols-2 gap-x-8 gap-y-3 text-sm sm:grid-cols-2">
 
-                            {{-- Company --}}
-                            <div class="flex items-center gap-2 p-2">
-                                <x-heroicon-o-building-office class="h-5 w-5 text-gray-400" />
-                                <span class="min-w-32 max-w-32 text-gray-500">Company</span>
-                                <span
-                                    class="break-words font-medium text-gray-900 dark:text-gray-300">{{ $sppj->cpny_id }}</span>
-                            </div>
+                            {{-- Reusable Classes --}}
+                            @php
+                                $row = 'flex flex-col gap-1 p-2 sm:flex-row sm:items-center sm:gap-3';
+                                $label = 'flex items-center gap-2 text-gray-500 sm:min-w-40';
+                                $value = 'break-words font-medium text-gray-900 dark:text-gray-300 sm:flex-1';
 
-                            {{-- Department --}}
-                            <div class="flex items-center gap-2 p-2">
-                                <x-heroicon-o-squares-2x2 class="h-5 w-5 text-gray-400" />
-                                <span class="min-w-32 max-w-32 text-gray-500">Department</span>
-                                <span
-                                    class="break-words font-medium text-gray-900 dark:text-gray-300">{{ $sppj->department_id }}</span>
-                            </div>
+                                $fields = [
+                                    [
+                                        'icon' => 'building-office',
+                                        'label' => 'Company',
+                                        'value' => $sppj->cpny_id,
+                                    ],
+                                    [
+                                        'icon' => 'squares-2x2',
+                                        'label' => 'Department',
+                                        'value' => $sppj->department_id,
+                                    ],
+                                    [
+                                        'icon' => 'calendar',
+                                        'label' => 'Date',
+                                        'value' => date('j F Y', strtotime($sppj->sppjdate)),
+                                    ],
+                                    [
+                                        'icon' => 'user-circle',
+                                        'label' => 'Created User',
+                                        'value' => ucwords(strtolower(optional($sppj->creator)->name)),
+                                    ],
+                                ];
+                            @endphp
 
-                            {{-- Date --}}
-                            <div class="flex items-center gap-2 p-2">
-                                <x-heroicon-o-calendar class="h-5 w-5 text-gray-400" />
-                                <span class="min-w-32 max-w-32 text-gray-500">Date</span>
-                                <span class="break-words font-medium text-gray-900 dark:text-gray-300">
-                                    {{ date('j F Y', strtotime($sppj->sppjdate)) }}
-                                </span>
-                            </div>
+                            {{-- Top fields --}}
+                            @foreach ($fields as $f)
+                                <div class="{{ $row }}">
+                                    <div class="{{ $label }}">
+                                        <x-dynamic-component :component="'heroicon-o-' . $f['icon']" class="h-5 w-5 text-gray-400" />
+                                        <span>{{ $f['label'] }}</span>
+                                    </div>
+                                    <span class="{{ $value }}">{{ $f['value'] }}</span>
+                                </div>
+                            @endforeach
 
-                            {{-- Created User --}}
-                            <div class="flex items-center gap-2 p-2">
-                                <x-heroicon-o-user class="h-5 w-5 text-gray-400" />
-                                <span class="min-w-32 max-w-32 text-gray-500">Created User</span>
-                                <span class="break-words font-medium text-gray-900 dark:text-gray-300">
-                                    {{ ucwords(strtolower(optional($sppj->creator)->name)) }}
-                                </span>
-                            </div>
-
+                            {{-- Request Type + Purpose --}}
                             <div class="col-span-2 flex flex-col gap-3 sm:flex-row">
 
                                 {{-- Request Type --}}
@@ -274,21 +282,24 @@
                                     <x-heroicon-o-clipboard-document-check class="h-5 w-5 text-gray-400" />
                                     <div class="flex flex-col">
                                         <span class="text-gray-500">Purpose</span>
-                                        <span <span
-                                            class="break-words font-medium text-gray-900 dark:text-gray-300">{{ $sppj->keperluan }}</span>
+                                        <span class="break-words font-medium text-gray-900 dark:text-gray-300">
+                                            {{ $sppj->keperluan }}
+                                        </span>
                                     </div>
                                 </div>
 
                             </div>
+
                         </div>
                     </div>
+
 
 
 
                 </div>
 
                 {{-- Right card (Tabs) --}}
-                <div class="flex flex-col gap-4 sm:w-1/2 md:w-full">
+                <div class="flex flex-col gap-4 rounded-xl bg-white duration-300 sm:w-1/2 md:w-full dark:bg-gray-800">
                     <div x-data="{ activeTab: 'attachment' }" class="flex flex-1 flex-col">
                         {{-- Tabs Header --}}
                         <header
@@ -322,7 +333,7 @@
                         </header>
 
                         {{-- Tabs Content --}}
-                        <div class="rounded-b-x flex flex-1 flex-col overflow-y-auto bg-white dark:bg-gray-800">
+                        <div class="flex flex-1 flex-col">
                             {{-- Approval tab --}}
                             <div x-show="activeTab === 'approval'" class="flex-1 overflow-y-auto">
                                 <table class="w-full text-sm">

@@ -640,7 +640,7 @@
 
             function renderDocBtn(row) {
                 const base = mapShowUrl[row.doc_type] || '#';
-                return `<a href="/${base}/${row.eid}" class=                                     'inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-sm leading-tight font-medium text-white rounded text-center transition-colors duration-200 bg-gray-500 hover:bg-gray-700'>${row.doc_no}</a>`;
+                return `<a href="/${base}/${row.eid}" class=                                     'inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-base leading-tight font-semibold text-white rounded text-center transition-colors duration-200 bg-gray-500 hover:bg-gray-700'>${row.doc_no}</a>`;
             }
 
             function colSetWithoutCreate() {
@@ -696,22 +696,22 @@
             //         searchable: false,
             //         className: 'text-left',
             //         render: (_d, _t, row) => `<a href="${buildCreateUrl(row)}" class="inline-flex justify-center items-center px-4 py-2 text-sm leading-tight font-medium text-white rounded text-center transition-colors duration-200 bg-blue-500 hover:bg-blue-700">
-            //         <i class="fas fa-plus"></i></a>`
+        //         <i class="fas fa-plus"></i></a>`
             //     };
             //     return [createCol, ...colSetWithoutCreate()];
             // }
 
-        
+
             function colSetWithCreate() {
-            const actionCol = {
-                data: null,
-                orderable: false,
-                searchable: false,
-                className: 'text-left',
-                render: (_d, _t, row) => {
-                const createUrl = `/createcs/${row.doc_type}/${row.eid}`;
-                // tombol + (buat CS) & X (complete sisaan)
-                return `
+                const actionCol = {
+                    data: null,
+                    orderable: false,
+                    searchable: false,
+                    className: 'text-left',
+                    render: (_d, _t, row) => {
+                        const createUrl = `/createcs/${row.doc_type}/${row.eid}`;
+                        // tombol + (buat CS) & X (complete sisaan)
+                        return `
                     <div class="inline-flex gap-2">
                     <a href="${createUrl}"
                         class="inline-flex justify-center items-center px-3 py-1.5 text-sm font-medium text-white rounded bg-blue-500 hover:bg-blue-700"
@@ -724,9 +724,9 @@
                         <i class="fas fa-times"></i>
                     </button>
                     </div>`;
-                }
-            };
-            return [actionCol, ...colSetWithoutCreate()];
+                    }
+                };
+                return [actionCol, ...colSetWithoutCreate()];
             }
 
 
@@ -769,7 +769,7 @@
                         data: 'csid',
                         className: 'text-left',
                         render: (v, _t, row) =>
-                            `<a href="/editcs/${row.eid}" class="inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-sm leading-tight font-medium text-white rounded text-center transition-colors duration-200 bg-yellow-500 hover:bg-yellow-700">${v}</a>`
+                            `<a href="/editcs/${row.eid}" class="inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-base leading-tight font-semibold text-white rounded text-center transition-colors duration-200 bg-yellow-500 hover:bg-yellow-700">${v}</a>`
                     },
                     {
                         data: 'csdate',
@@ -922,11 +922,11 @@
             });
         });
     </script>
-    <Script>        
+    <Script>
         // Klik tombol X untuk complete sisa openordered
-        $(document).on('click', '.btn-complete-open', function () {
-            const doc = $(this).data('doc');   // SPPB | SPPJ | SPPK | SPPT
-            const eid = $(this).data('eid');   // hashids dari src_id
+        $(document).on('click', '.btn-complete-open', function() {
+            const doc = $(this).data('doc'); // SPPB | SPPJ | SPPK | SPPT
+            const eid = $(this).data('eid'); // hashids dari src_id
 
             Swal.fire({
                 title: 'Complete Sisa Order?',
@@ -949,44 +949,52 @@
                 const $btn = $(this).prop('disabled', true);
 
                 $.ajax({
-                    url: `/csjobs/complete/${doc}/${eid}`,
-                    type: 'POST',
-                    data: { _token: '{{ csrf_token() }}' },
-                })
-                .done(res => {
-                    if (res.ok) {
-                        Swal.fire({
-                            icon: 'success',
-                            title: 'Berhasil!',
-                            text: res.message || 'Sisa qty telah di-completed-kan.',
-                            timer: 2000,
-                            showConfirmButton: false
-                        });
+                        url: `/csjobs/complete/${doc}/${eid}`,
+                        type: 'POST',
+                        data: {
+                            _token: '{{ csrf_token() }}'
+                        },
+                    })
+                    .done(res => {
+                        if (res.ok) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Berhasil!',
+                                text: res.message || 'Sisa qty telah di-completed-kan.',
+                                timer: 2000,
+                                showConfirmButton: false
+                            });
 
-                        // Refresh semua tabel yang mungkin terpengaruh
-                        try { $('#tblMine').DataTable().ajax.reload(null, false); } catch(e){}
-                        try { $('#tblAll').DataTable().ajax.reload(null, false); } catch(e){}
-                        try { $('#tblRevision').DataTable().ajax.reload(null, false); } catch(e){}
-                        try { $('#tblSppbjkt').DataTable().ajax.reload(null, false); } catch(e){}
-                    } else {
+                            // Refresh semua tabel yang mungkin terpengaruh
+                            try {
+                                $('#tblMine').DataTable().ajax.reload(null, false);
+                            } catch (e) {}
+                            try {
+                                $('#tblAll').DataTable().ajax.reload(null, false);
+                            } catch (e) {}
+                            try {
+                                $('#tblRevision').DataTable().ajax.reload(null, false);
+                            } catch (e) {}
+                            try {
+                                $('#tblSppbjkt').DataTable().ajax.reload(null, false);
+                            } catch (e) {}
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Gagal!',
+                                text: res.message || 'Gagal memproses aksi.',
+                            });
+                        }
+                    })
+                    .fail(xhr => {
                         Swal.fire({
                             icon: 'error',
                             title: 'Gagal!',
-                            text: res.message || 'Gagal memproses aksi.',
+                            text: xhr.responseJSON?.message || 'Terjadi kesalahan pada server.',
                         });
-                    }
-                })
-                .fail(xhr => {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Gagal!',
-                        text: xhr.responseJSON?.message || 'Terjadi kesalahan pada server.',
-                    });
-                })
-                .always(() => $btn.prop('disabled', false));
+                    })
+                    .always(() => $btn.prop('disabled', false));
             });
         });
-
-
     </Script>
 </x-app-layout>

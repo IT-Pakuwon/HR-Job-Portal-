@@ -1,5 +1,5 @@
 <x-app-layout>
-   <style>
+    <style>
         /* Active / Selected state */
         .scope-filter.active .scope-card {
             transform: scale(1.02);
@@ -351,12 +351,12 @@
                     let table;
 
                     const titleMap = {
-                        bastjobs:  'Bast - Jobs',
-                        onprogress:'Bast - On Progress',
+                        bastjobs: 'Bast - Jobs',
+                        onprogress: 'Bast - On Progress',
                         completed: 'Bast - Completed',
-                        rejected:  'Bast - Rejected',
-                        revise:    'Bast - Revise',
-                        all:       'Bast - All',
+                        rejected: 'Bast - Rejected',
+                        revise: 'Bast - Revise',
+                        all: 'Bast - All',
                     };
 
                     function headerFor(sc) {
@@ -386,15 +386,37 @@
 
                     function columnsFor(sc) {
                         if (sc === 'bastjobs') {
-                            return [
-                                { data: null, orderable:false, searchable:false, render: (_v,t,row)=>renderPlusCreate(row) },
-                                { data: 'ponbr', render: (_v,_t,row)=>renderPoLink(row) },
-                                { data: 'cpny_id', className:'text-left' },
-                                { data: 'vendorname' },
-                                { data: 'terms_name' },
-                                { data: 'progress_pct', className:'text-left' },
-                                { data: 'payment_pct', className:'text-left' },
-                                { data: 'created_by' },
+                            return [{
+                                    data: null,
+                                    orderable: false,
+                                    searchable: false,
+                                    render: (_v, t, row) => renderPlusCreate(row)
+                                },
+                                {
+                                    data: 'ponbr',
+                                    render: (_v, _t, row) => renderPoLink(row)
+                                },
+                                {
+                                    data: 'cpny_id',
+                                    className: 'text-left'
+                                },
+                                {
+                                    data: 'vendorname'
+                                },
+                                {
+                                    data: 'terms_name'
+                                },
+                                {
+                                    data: 'progress_pct',
+                                    className: 'text-left'
+                                },
+                                {
+                                    data: 'payment_pct',
+                                    className: 'text-left'
+                                },
+                                {
+                                    data: 'created_by'
+                                },
                             ];
                         }
                         // TrBast scopes
@@ -406,19 +428,41 @@
                         //     { data: 'cpny_id', className:'text-center' },
                         //     { data: 'created_by' },
                         // ];
-                        return [
-                            { data: 'bastid',  render: (_v,_t,row)=>renderBastLink(row) },
-                            { data: 'bastdate', render: (_v,_t,row)=>row.bastdate_fmt ?? '', className:'text-left' },
-                            { data: 'ponbr', className:'text-left' },
-                            { data: 'sppbjktid', className:'text-left' },
-                            { data: 'cpny_id', className:'text-left' },
-                            { data: 'created_by' },
+                        return [{
+                                data: 'bastid',
+                                render: (_v, _t, row) => renderBastLink(row)
+                            },
+                            {
+                                data: 'bastdate',
+                                render: (_v, _t, row) => row.bastdate_fmt ?? '',
+                                className: 'text-left'
+                            },
+                            {
+                                data: 'ponbr',
+                                className: 'text-left'
+                            },
+                            {
+                                data: 'sppbjktid',
+                                className: 'text-left'
+                            },
+                            {
+                                data: 'cpny_id',
+                                className: 'text-left'
+                            },
+                            {
+                                data: 'created_by'
+                            },
                         ];
                     }
 
-                    function orderFor(sc){
-                        if (sc === 'bastjobs') return [[1,'desc']]; // sort by PONBR
-                        return [[1,'desc'],[0,'desc']];
+                    function orderFor(sc) {
+                        if (sc === 'bastjobs') return [
+                            [1, 'desc']
+                        ]; // sort by PONBR
+                        return [
+                            [1, 'desc'],
+                            [0, 'desc']
+                        ];
                     }
 
                     function updateTitle(sc) {
@@ -426,7 +470,7 @@
                     }
 
                     function resetThead(sc) {
-                       const $table = $('#bastTable');
+                        const $table = $('#bastTable');
 
                         // hapus thead lama (yang mungkin sisa clone DataTables)
                         $table.find('thead').remove();
@@ -440,7 +484,9 @@
 
                         // pastikan tbody ada
                         if ($table.find('tbody').length === 0) {
-                            $table.append('<tbody class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-800"></tbody>');
+                            $table.append(
+                                '<tbody class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-800"></tbody>'
+                                );
                         }
                     }
 
@@ -460,7 +506,9 @@
                             ajax: {
                                 url: "{{ route('bastlist.json') }}",
                                 type: "GET",
-                                data: function(d) { d.scope = sc; }
+                                data: function(d) {
+                                    d.scope = sc;
+                                }
                             },
                             columns: columnsFor(sc),
                             searchDelay: 400,
@@ -480,7 +528,7 @@
                         const text = row.ponbr ?? '';
                         if (row.ponbr_eid) {
                             const url = `/showpo/${encodeURIComponent(row.ponbr_eid)}`;
-                            return `<a href="${url}" class="inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-sm leading-tight font-medium text-white rounded text-center transition-colors duration-200 bg-gray-500 hover:bg-gray-700">${text}</a>`;
+                            return `<a href="${url}" class="inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-base leading-tight font-semibold text-white rounded text-center transition-colors duration-200 bg-gray-500 hover:bg-gray-700">${text}</a>`;
                         }
                         return text;
                     }
@@ -489,14 +537,14 @@
                         const text = row.sppbjktid ?? '';
                         if (row.sppb_route && row.sppb_eid) {
                             const url = `/${row.sppb_route}/${encodeURIComponent(row.sppb_eid)}`;
-                            return `<a href="${url}" class="inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-sm leading-tight font-medium text-white rounded text-center transition-colors duration-200 bg-gray-500 hover:bg-gray-700">${text}</a>`;
+                            return `<a href="${url}" class="inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-base leading-tight font-semibold text-white rounded text-center transition-colors duration-200 bg-gray-500 hover:bg-gray-700">${text}</a>`;
                         }
                         return text;
                     }
 
                     function renderBastLink(row) {
                         const label = row.bastid ?? '';
-                        const hash  = row.bastid_eid || row.eid || row.hash || row.id;
+                        const hash = row.bastid_eid || row.eid || row.hash || row.id;
 
                         if (!label) return '';
                         if (!hash) {
@@ -504,9 +552,9 @@
                         }
 
                         const statusRaw = (row.status ?? '').toString().trim().toUpperCase();
-                        const creator   = (row.created_by ?? '').toString();
-                        const isRevise  = statusRaw === 'D';
-                        const isOwner   = creator === (currentUser ?? '');
+                        const creator = (row.created_by ?? '').toString();
+                        const isRevise = statusRaw === 'D';
+                        const isOwner = creator === (currentUser ?? '');
 
                         if (isRevise && isOwner) {
                             const url = `/editbasts/${encodeURIComponent(hash)}`;

@@ -416,14 +416,14 @@
                                 render: function(data, type, row) {
                                     let url = `/showpersonnels/${row.eid}`;
                                     let buttonClass =
-                                        'inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-sm leading-tight font-medium text-white rounded text-center transition-colors duration-200 bg-gray-500 hover:bg-gray-700';
+                                        'inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-base leading-tight font-semibold text-white rounded text-center transition-colors duration-200 bg-gray-500 hover:bg-gray-700';
                                     let buttonText = row.docid; // Menggunakan row.docid untuk teks tombol
 
                                     // Cek apakah user yang login sama dengan created_user dan status = D (Revise/Draft)
                                     if (row.status === 'D' && row.created_user === currentUser) {
                                         url = `/editpersonnels/${row.eid}`;
                                         buttonClass =
-                                            'inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-sm leading-tight font-medium text-white rounded text-center transition-colors duration-200 bg-yellow-500 hover:bg-yellow-700';
+                                            'inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-base leading-tight font-semibold text-white rounded text-center transition-colors duration-200 bg-yellow-500 hover:bg-yellow-700';
                                     }
 
                                     return `<a href="${url}" class="px-3 py-1 ${buttonClass} text-white rounded">${buttonText}</a>`;

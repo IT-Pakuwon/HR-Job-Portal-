@@ -190,71 +190,107 @@
                     </header>
 
                     <div class="flex flex-1 flex-col overflow-y-auto p-4">
-                        <div class="grid grid-cols-1 gap-x-8 gap-y-3 text-sm sm:grid-cols-2">
-                            <div class="flex items-center gap-2 p-2">
-                                <x-heroicon-o-calendar-days class="h-5 w-5 text-gray-400" />
-                                <span class="min-w-32 max-w-32 text-gray-500">Issue Date</span>
-                                <span class="break-words font-medium text-gray-900 dark:text-gray-300">
-                                    {{ \Carbon\Carbon::parse($iss->issuedate)->format('d M Y') }}
-                                </span>
-                            </div>
+                        @php
+                            // Reusable classes
+                            $row = 'flex flex-col gap-1 p-2 sm:flex-row sm:items-center sm:gap-3';
+                            $label = 'flex items-center gap-2 text-gray-500 sm:min-w-40';
+                            $value = 'break-words font-medium text-gray-900 dark:text-gray-300 sm:flex-1';
 
-                            <div class="flex items-center gap-2 p-2">
-                                <x-heroicon-o-document-text class="h-5 w-5 text-gray-400" />
-                                <span class="min-w-32 max-w-32 text-gray-500">Type</span>
-                                <span class="break-words font-medium text-gray-900 dark:text-gray-300">
-                                    {{ $iss->issuetype === 'IS' ? 'Issue' : ($iss->issuetype === 'RI' ? 'Return Issue' : $iss->issuetype) }}
-                                </span>
-                            </div>
+                            // SPB clickable link
+                            $spbDisplay = e($iss->spbid);
+                            if (!empty($spbUrl)) {
+                                $spbDisplay =
+                                    '<a href="' .
+                                    e($spbUrl) .
+                                    '" target="_blank" class="inline-flex items-center gap-1 text-indigo-600 hover:underline dark:text-indigo-400">' .
+                                    e($iss->spbid) .
+                                    '<x-heroicon-o-arrow-up-right class="h-4 w-4" />' .
+                                    '</a>';
+                            }
 
-                            <div class="flex items-center gap-2 p-2">
-                                <x-heroicon-o-hashtag class="h-5 w-5 text-gray-400" />
-                                <span class="min-w-32 max-w-32 text-gray-500">SPB ID</span>
-                                <span class="break-words font-medium text-gray-900 dark:text-gray-300">
-                                    @if ($spbUrl)
-                                        <a class="text-indigo-600 hover:underline dark:text-indigo-400" target="_blank"
-                                            href="{{ $spbUrl }}">{{ $iss->spbid }}</a>
+                            // Convert issuetype code → readable name
+                            $issueTypeText =
+                                $iss->issuetype === 'IS'
+                                    ? 'Issue'
+                                    : ($iss->issuetype === 'RI'
+                                        ? 'Return Issue'
+                                        : $iss->issuetype);
+
+                            // All fields
+                            $fields = [
+                                [
+                                    'icon' => 'calendar-days',
+                                    'label' => 'Issue Date',
+                                    'value' => \Carbon\Carbon::parse($iss->issuedate)->format('d M Y'),
+                                ],
+                                [
+                                    'icon' => 'document-text',
+                                    'label' => 'Type',
+                                    'value' => $issueTypeText,
+                                ],
+                                [
+                                    'icon' => 'hashtag',
+                                    'label' => 'SPB ID',
+                                    'value' => $spbDisplay,
+                                    'is_raw' => true,
+                                ],
+                                [
+                                    'icon' => 'building-office',
+                                    'label' => 'Company',
+                                    'value' => $iss->cpny_id,
+                                ],
+                                [
+                                    'icon' => 'squares-2x2',
+                                    'label' => 'Department',
+                                    'value' => $iss->department_id,
+                                ],
+                                [
+                                    'icon' => 'user-circle',
+                                    'label' => 'Requester',
+                                    'value' => $iss->user_peminta,
+                                ],
+                            ];
+                        @endphp
+
+                        <div class="grid grid-cols-2 gap-x-8 gap-y-3 text-sm sm:grid-cols-2">
+
+                            {{-- Render each field --}}
+                            @foreach ($fields as $f)
+                                <div class="{{ $row }}">
+                                    <div class="{{ $label }}">
+                                        <x-dynamic-component :component="'heroicon-o-' . $f['icon']" class="h-5 w-5 text-gray-400" />
+                                        <span>{{ $f['label'] }}</span>
+                                    </div>
+
+                                    @if (!empty($f['is_raw']))
+                                        <span class="{{ $value }}">{!! $f['value'] !!}</span>
                                     @else
-                                        {{ $iss->spbid }}
+                                        <span class="{{ $value }}">{{ $f['value'] }}</span>
                                     @endif
-                                </span>
-                            </div>
+                                </div>
+                            @endforeach
 
-                            <div class="flex items-center gap-2 p-2">
-                                <x-heroicon-o-building-office class="h-5 w-5 text-gray-400" />
-                                <span class="min-w-32 max-w-32 text-gray-500">Company</span>
-                                <span
-                                    class="break-words font-medium text-gray-900 dark:text-gray-300">{{ $iss->cpny_id }}</span>
-                            </div>
-
-                            <div class="flex items-center gap-2 p-2">
-                                <x-heroicon-o-squares-2x2 class="h-5 w-5 text-gray-400" />
-                                <span class="min-w-32 max-w-32 text-gray-500">Department</span>
-                                <span
-                                    class="break-words font-medium text-gray-900 dark:text-gray-300">{{ $iss->department_id }}</span>
-                            </div>
-
-                            <div class="flex items-center gap-2 p-2">
-                                <x-heroicon-o-user class="h-5 w-5 text-gray-400" />
-                                <span class="min-w-32 max-w-32 text-gray-500">Requester</span>
-                                <span
-                                    class="break-words font-medium text-gray-900 dark:text-gray-300">{{ $iss->user_peminta }}</span>
-                            </div>
-
+                            {{-- NOTE --}}
                             @if (!empty($iss->issuenote))
-                                <div class="flex items-center gap-2 p-2 sm:col-span-2">
-                                    <x-heroicon-o-clipboard-document-list class="h-5 w-5 text-gray-400" />
-                                    <span class="min-w-32 max-w-32 text-gray-500">Note</span>
-                                    <span
-                                        class="break-words font-medium text-gray-900 dark:text-gray-300">{{ $iss->issuenote }}</span>
+                                <div
+                                    class="col-span-2 mt-2 flex flex-col gap-2 rounded-md bg-gray-50 p-3 dark:bg-gray-700">
+                                    <div class="flex items-center gap-2 text-gray-500">
+                                        <x-heroicon-o-clipboard-document-list class="h-5 w-5 text-gray-400" />
+                                        <span>Note</span>
+                                    </div>
+                                    <span class="font-medium text-gray-900 dark:text-gray-300">
+                                        {{ $iss->issuenote }}
+                                    </span>
                                 </div>
                             @endif
+
                         </div>
                     </div>
+
                 </div>
 
                 {{-- Right card (Tabs) --}}
-                <div class="flex flex-col gap-4 sm:w-1/2 md:w-full">
+                <div class="flex flex-col gap-4 rounded-xl bg-white duration-300 sm:w-1/2 md:w-full dark:bg-gray-800">
                     <div x-data="{ activeTab: 'attachment' }" class="flex flex-1 flex-col">
                         <header
                             class="sticky top-0 z-10 flex items-center rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
@@ -282,7 +318,7 @@
                             </nav>
                         </header>
 
-                        <div class="flex flex-1 flex-col rounded-b-xl bg-white dark:bg-gray-800">
+                        <div class="flex flex-1 flex-col">
                             {{-- Approval tab --}}
                             <div x-show="activeTab === 'approval'" class="flex-1 p-4 transition-all">
                                 <table class="w-full text-sm">
@@ -344,8 +380,7 @@
                             </div>
 
                             {{-- Attachment Tab --}}
-                            <div x-show="activeTab === 'attachment'"
-                                class="flex h-full flex-1 flex-col transition-all">
+                            <div x-show="activeTab === 'attachment'" class="flex h-full flex-1 flex-col transition-all">
                                 <div class="flex-1 overflow-auto rounded-lg">
                                     <table class="w-full text-sm">
                                         <thead class="text-gray-600 dark:text-gray-300">

@@ -5,7 +5,7 @@
                 <div class="gap-1">
                     <div
                         class="flex w-full flex-col gap-2 overflow-hidden sm:col-span-1 lg:row-span-1 xl:row-span-1 xl:flex-row">
-                        <div class="flex flex-col gap-4 sm:w-1/2 md:w-full">
+                        <div class="flex flex-col gap-4 rounded-xl bg-white duration-300 sm:w-1/2 md:w-full dark:bg-gray-800">
                             <div class="flex flex-col rounded-2xl bg-white shadow-sm dark:bg-gray-800">
                                 <header
                                     class="flex items-center justify-between rounded-t-2xl border-b border-gray-300/10 bg-gray-50 px-6 py-4 dark:border-gray-600">

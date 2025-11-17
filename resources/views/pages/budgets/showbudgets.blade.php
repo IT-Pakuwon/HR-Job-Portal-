@@ -210,53 +210,70 @@
                     </header>
 
                     <!-- Main Content -->
-                    <div class="space-y-4 p-4">
-                        <div class="grid grid-cols-1 gap-6 md:grid-cols-3">
+                    <div class="flex flex-1 flex-col overflow-y-auto p-4">
+                        <div class="grid grid-cols-2 gap-x-8 gap-y-4 text-sm sm:grid-cols-2">
+
+                            {{-- Reusable classes (same as PRF UI) --}}
                             @php
+                                $row = 'flex flex-col gap-1 p-2 sm:flex-row sm:items-center sm:gap-3';
+                                $label = 'flex items-center gap-2 text-gray-500 sm:min-w-40';
+                                $value = 'font-medium text-gray-900 dark:text-gray-100 sm:flex-1 break-words';
+
                                 $jobDetails = [
                                     [
                                         'label' => 'Company',
                                         'value' => $budget->cpny_id,
+                                        'icon' => 'building-office',
                                     ],
                                     [
-                                        'label' => 'Creted By',
+                                        'label' => 'Created By',
                                         'value' => ucwords(
                                             strtolower($budget->creator->name ?? ($budget->creator->username ?? '-')),
                                         ),
+                                        'icon' => 'user-circle',
                                     ],
                                     [
                                         'label' => 'Date',
                                         'value' => date('j F Y', strtotime($budget->budget_date)),
+                                        'icon' => 'calendar',
                                     ],
                                     [
                                         'label' => 'Business Unit',
                                         'value' => ucwords(strtolower($budget->businessUnit->business_unit_name)),
+                                        'icon' => 'building-storefront',
                                     ],
                                     [
                                         'label' => 'Department',
                                         'value' => $budget->departmentFin->department_name,
+                                        'icon' => 'rectangle-group',
                                     ],
-
                                     [
                                         'label' => 'Perpost',
                                         'value' => $budget->perpost,
+                                        'icon' => 'document-text',
                                     ],
                                 ];
                             @endphp
+
                             @foreach ($jobDetails as $detail)
-                                <div
-                                    class="rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-800">
-                                    <p class="text-xs text-gray-500 dark:text-gray-400">{{ $detail['label'] }}</p>
-                                    <p class="text-sm font-medium text-gray-900 dark:text-gray-100">
+                                <div class="{{ $row }}">
+                                    <div class="{{ $label }}">
+                                        <x-dynamic-component :component="'heroicon-o-' . $detail['icon']" class="h-5 w-5 text-gray-400" />
+                                        <span>{{ $detail['label'] }}</span>
+                                    </div>
+
+                                    <span class="{{ $value }}">
                                         {{ $detail['value'] }}
-                                    </p>
+                                    </span>
                                 </div>
                             @endforeach
                         </div>
                     </div>
 
+
+
                 </div>
-                <div class="flex flex-col gap-4 sm:w-1/2 md:w-full">
+                <div class="flex flex-col gap-4 rounded-xl bg-white duration-300 sm:w-1/2 md:w-full dark:bg-gray-800">
                     <div x-data="{ activeTab: 'attachment' }" class="flex flex-1 flex-col">
                         <header
                             class="sticky top-0 z-10 flex items-center rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
@@ -289,7 +306,7 @@
                         </header>
 
                         {{-- Tabs Content --}}
-                        <div class="flex flex-1 flex-col rounded-b-xl bg-white dark:bg-gray-800">
+                        <div class="flex flex-1 flex-col">
                             {{-- Approval tab --}}
                             <div x-show="activeTab === 'approval'" class="flex-1 p-2 transition-all">
                                 <table class="w-full text-sm">
@@ -528,7 +545,7 @@
                         if (!response.comments || response.comments.length === 0) {
                             commentList.append(
                                 '<p class="text-gray-500 italic">No comments yet. Be the first to comment!</p>'
-                                );
+                            );
                             return;
                         }
 

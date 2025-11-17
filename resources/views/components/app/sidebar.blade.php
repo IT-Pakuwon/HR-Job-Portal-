@@ -53,23 +53,27 @@
                 <ul class="mt-3">
                     <!-- Dashboard -->
                     <li
-                        class="bg-linear-to-r @if (in_array(Request::segment(1), ['dashboard'])) {{ 'from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]' }} @endif mb-0.5 rounded-lg py-2 pl-4 pr-3 last:mb-0">
-                        <a class="@if (!in_array(Request::segment(1), ['dashboard'])) {{ 'hover:text-gray-900 dark:hover:text-white' }} @endif block truncate text-gray-800 transition dark:text-gray-100"
+                        class="bg-linear-to-r @if (in_array(Request::segment(1), ['dashboard'])) from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04] @endif mb-0.5 rounded-lg py-2 pl-4 pr-3 last:mb-0">
+                        <a class="@if (!in_array(Request::segment(1), ['dashboard'])) hover:text-gray-900 dark:hover:text-white @endif block truncate text-gray-800 transition dark:text-gray-100"
                             href="{{ route('dashboard') }}">
                             <div class="flex items-center">
-                                <svg class="@if (in_array(Request::segment(1), ['dashboard'])) {{ 'text-violet-500' }}@else{{ 'text-gray-400 dark:text-gray-500' }} @endif shrink-0 fill-current"
-                                    xmlns="http://www.w3.org/2000/svg" width="16" height="16"
-                                    viewBox="0 0 16 16">
-                                    <path
-                                        d="M5.936.278A7.983 7.983 0 0 1 8 0a8 8 0 1 1-8 8c0-.722.104-1.413.278-2.064a1 1 0 1 1 1.932.516A5.99 5.99 0 0 0 2 8a6 6 0 1 0 6-6c-.53 0-1.045.076-1.548.21A1 1 0 1 1 5.936.278Z" />
-                                    <path
-                                        d="M6.068 7.482A2.003 2.003 0 0 0 8 10a2 2 0 1 0-.518-3.932L3.707 2.293a1 1 0 0 0-1.414 1.414l3.775 3.775Z" />
-                                    <span
-                                        class="lg:sidebar-expanded:opacity-100 text-m ml-4 font-medium duration-200 lg:opacity-0 2xl:opacity-100">
-                                        Dashboard</span>
+
+                                <!-- NEW DASHBOARD ICON -->
+                                <svg class="@if (in_array(Request::segment(1), ['dashboard'])) text-violet-500 @else text-gray-400 dark:text-gray-500 @endif shrink-0"
+                                    xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                    stroke-width="1.5" stroke="currentColor" width="16" height="16">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M3 3v18h18M7 13v6m4-10v10m4-14v14" />
+                                </svg>
+
+                                <span
+                                    class="lg:sidebar-expanded:opacity-100 text-m ml-4 font-medium duration-200 lg:opacity-0 2xl:opacity-100">
+                                    Dashboard
+                                </span>
                             </div>
                         </a>
                     </li>
+
                     <!-- Structure Organization -->
 
                     <li class="py-2 pl-4 pr-3 text-xs font-semibold uppercase tracking-wider text-gray-500 last:mb-0"
@@ -98,7 +102,7 @@
                             'personnels',
                             'createPersonnel',
                             'editPersonnel',
-                            // 'showpersonnels/{hash}',
+                            'showpersonnels',
                             'jobapplicant',
                             'changestos',
                             'showApplicant',
@@ -112,7 +116,7 @@
                             'personnels',
                             'createPersonnel',
                             'editPersonnel',
-                            // 'showpersonnels/{hash}',
+                            'showpersonnels',
                             'jobapplicant',
                             'changestos',
                             'showApplicant',
@@ -129,7 +133,7 @@
                                 'personnels',
                                 'createPersonnel',
                                 'editPersonnel',
-                                // 'showpersonnels/{hash}',
+                                'showpersonnels',
                                 'jobapplicant',
                                 'showApplicant',
                                 'showcareers',
@@ -145,7 +149,6 @@
                                             'personnels',
                                             'createPersonnel',
                                             'editPersonnel',
-                                            // 'showpersonnels/{hash}',
                                             'jobapplicant',
                                             'changestos',
                                             'editChangesto',
@@ -153,12 +156,13 @@
                                             'createChangesto',
                                             'showApplicant',
                                             'showcareers',
-                                        ])) {{ 'text-violet-500' }}@else{{ 'text-gray-400 dark:text-gray-500' }} @endif shrink-0 fill-current"
+                                        ])) text-violet-500 @else text-gray-400 dark:text-gray-500 @endif shrink-0"
                                         xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                         stroke-width="1.5" stroke="currentColor" width="16" height="16">
                                         <path stroke-linecap="round" stroke-linejoin="round"
-                                            d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
+                                            d="M18 18v-1a3 3 0 00-3-3h-.75m-4.5 0H9a3 3 0 00-3 3v1m12-10.5a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-7.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm0 10.5v-1a2.999 2.999 0 00-2.25-2.902m6.75 3.902v-1a2.999 2.999 0 00-2.25-2.902" />
                                     </svg>
+
                                     <span
                                         class="lg:sidebar-expanded:opacity-100 text-m ml-4 font-medium duration-200 lg:opacity-0 2xl:opacity-100">Recruitment</span>
                                 </div>
@@ -202,14 +206,14 @@
                                             Portal</span>
                                     </a>
                                 </li>
-                                <li class="mb-1 last:mb-0">
+                                {{-- <li class="mb-1 last:mb-0">
                                     <a class="@if (Route::is('changestos')) {{ 'text-violet-500!' }} @endif block truncate text-gray-500/90 transition hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
                                         href="{{ route('changestos') }}">
                                         <span
                                             class="lg:sidebar-expanded:opacity-100 text-m font-medium duration-200 lg:opacity-0 2xl:opacity-100">Request
                                             Additional</span>
                                     </a>
-                                </li>
+                                </li> --}}
                             </ul>
                         </div>
                     </li>
@@ -227,104 +231,146 @@
                                 Purchasing
                             </li>
                             <li
-                                class="bg-linear-to-r @if (in_array(Request::segment(1), ['budgets', 'showbudgets', 'createBudget', 'editBudget'])) {{ 'from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]' }} @endif mb-0.5 rounded-lg py-2 pl-4 pr-3 last:mb-0">
-                                <a class="@if (!in_array(Request::segment(1), ['budgets', 'showbudgets', 'createBudget', 'editBudget'])) {{ 'hover:text-gray-900 dark:hover:text-white' }} @endif block truncate text-gray-800 transition dark:text-gray-100"
-                                    href="{{ route('budgets', 'showbudgets', 'createBudget', 'editBudget') }}">
+                                class="bg-linear-to-r @if (in_array(Request::segment(1), ['budgets', 'showbudgets', 'createbudgets', 'editbudgets'])) {{ 'from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]' }} @endif mb-0.5 rounded-lg py-2 pl-4 pr-3 last:mb-0">
+                                <a class="@if (!in_array(Request::segment(1), ['budgets', 'showbudgets', 'createbudgets', 'editbudgets'])) {{ 'hover:text-gray-900 dark:hover:text-white' }} @endif block truncate text-gray-800 transition dark:text-gray-100"
+                                    href="{{ route('budgets') }}">
                                     <div class="flex items-center">
-                                        <svg class="@if (in_array(Request::segment(1), ['budgets', 'showbudgets', 'createBudget', 'editBudget'])) {{ 'text-violet-500' }}@else{{ 'text-gray-400 dark:text-gray-500' }} @endif shrink-0 fill-current"
-                                            viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="none"
+                                        <svg class="@if (in_array(Request::segment(1), ['budgets', 'showbudgets', 'createbudgets', 'editbudgets'])) text-violet-500 @else text-gray-400 dark:text-gray-500 @endif shrink-0"
+                                            xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                             stroke-width="1.5" stroke="currentColor" width="16" height="16">
                                             <path stroke-linecap="round" stroke-linejoin="round"
-                                                d=" M2.25 18.75a60.07 60.07 0 0 1 15.797 2.101c.727.198 1.453-.342
-                                                                                                                                                                                                                                                        1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 0 1 3 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 0 0-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 0 1-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 0 0 3 15h-.75M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm3 0h.008v.008H18V10.5Zm-12 0h.008v.008H6V10.5Z" />
+                                                d="M2.25 12.75v-.75a2.25 2.25 0 012.25-2.25h15a2.25 2.25 0 012.25 2.25v.75m-19.5 0v3a2.25 2.25 0 002.25 2.25h15a2.25 2.25 0 002.25-2.25v-3m-19.5 0h19.5M6 9.75v-.75a3 3 0 013-3h6a3 3 0 013 3v.75" />
                                         </svg>
+
                                         <span
                                             class="lg:sidebar-expanded:opacity-100 text-m ml-4 font-medium duration-200 lg:opacity-0 2xl:opacity-100">Budget</span>
                                     </div>
                                 </a>
                             </li>
                             <li class="bg-linear-to-r @if (in_array(Request::segment(1), [
-                                    'sppjs',
-                                    'createsppjs',
-                                    'showsppjs',
-                                    'editsppjs',
                                     'sppbs',
                                     'createsppbs',
                                     'showsppbs',
                                     'editsppbs',
+                                    'pdf_sppbs',
+                                    'sppjs',
+                                    'createsppjs',
+                                    'showsppjs',
+                                    'editsppjs',
+                                    'pdf_sppjs',
+                                    'createbqsppj',
+                                    'showbqsppjs',
+                                    'editbqsppjs',
                                     'sppks',
                                     'createsppks',
                                     'showsppks',
                                     'editsppks',
+                                    'pdf_sppks',
+                                    'showbqsppks',
+                                    'editbqsppks',
+                                    'createbqsppks',
                                     'sppts',
                                     'createsppts',
                                     'showsppts',
                                     'editsppts',
+                                    'pdf_sppts',
                                 ])) {{ 'from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]' }} @endif mb-0.5 rounded-lg py-2 pl-4 pr-3 last:mb-0"
                                 x-data="{ open: {{ in_array(Request::segment(1), [
-                                    'sppjs',
-                                    'createsppjs',
-                                    'showsppjs',
-                                    'editsppjs',
                                     'sppbs',
                                     'createsppbs',
                                     'showsppbs',
                                     'editsppbs',
+                                    'pdf_sppbs',
+                                    'sppjs',
+                                    'createsppjs',
+                                    'showsppjs',
+                                    'editsppjs',
+                                    'pdf_sppjs',
+                                    'createbqsppj',
+                                    'showbqsppjs',
+                                    'editbqsppjs',
                                     'sppks',
                                     'createsppks',
                                     'showsppks',
                                     'editsppks',
+                                    'pdf_sppks',
+                                    'showbqsppks',
+                                    'editbqsppks',
+                                    'createbqsppks',
                                     'sppts',
                                     'createsppts',
                                     'showsppts',
                                     'editsppts',
+                                    'pdf_sppts',
                                 ])
                                     ? 1
                                     : 0 }} }">
                                 <a class="@if (
                                     !in_array(Request::segment(1), [
-                                        'sppjs',
-                                        'createsppjs',
-                                        'showsppjs',
-                                        'editsppjs',
                                         'sppbs',
                                         'createsppbs',
                                         'showsppbs',
                                         'editsppbs',
+                                        'pdf_sppbs',
+                                        'sppjs',
+                                        'createsppjs',
+                                        'showsppjs',
+                                        'editsppjs',
+                                        'pdf_sppjs',
+                                        'createbqsppj',
+                                        'showbqsppjs',
+                                        'editbqsppjs',
                                         'sppks',
                                         'createsppks',
                                         'showsppks',
                                         'editsppks',
+                                        'pdf_sppks',
+                                        'showbqsppks',
+                                        'editbqsppks',
+                                        'createbqsppks',
                                         'sppts',
                                         'createsppts',
                                         'showsppts',
                                         'editsppts',
+                                        'pdf_sppts',
                                     ])) {{ 'hover:text-gray-900 dark:hover:text-white' }} @endif block truncate text-gray-800 transition dark:text-gray-100"
                                     href="#0" @click.prevent="open = !open; sidebarExpanded = true">
                                     <div class="flex items-center justify-between">
                                         <div class="flex items-center">
-                                            <svg class="@if (in_array(Request::segment(1), [
-                                                    'sppjs',
-                                                    'createsppjs',
-                                                    'showsppjs',
-                                                    'editsppjs',
-                                                    'sppbs',
-                                                    'createsppbs',
-                                                    'showsppbs',
-                                                    'editsppbs',
-                                                    'sppks',
-                                                    'createsppks',
-                                                    'showsppks',
-                                                    'editsppks',
-                                                    'sppts',
-                                                    'createsppts',
-                                                    'showsppts',
-                                                    'editsppts',
-                                                ])) {{ 'text-violet-500' }}@else{{ 'text-gray-400 dark:text-gray-500' }} @endif shrink-0 fill-current"
+                                            <svg class="{{ in_array(Request::segment(1), [
+                                                'sppbs',
+                                                'createsppbs',
+                                                'showsppbs',
+                                                'editsppbs',
+                                                'pdf_sppbs',
+                                                'sppjs',
+                                                'createsppjs',
+                                                'showsppjs',
+                                                'editsppjs',
+                                                'pdf_sppjs',
+                                                'createbqsppj',
+                                                'showbqsppjs',
+                                                'editbqsppjs',
+                                                'sppks',
+                                                'createsppks',
+                                                'showsppks',
+                                                'editsppks',
+                                                'pdf_sppks',
+                                                'showbqsppks',
+                                                'editbqsppks',
+                                                'createbqsppks',
+                                                'sppts',
+                                                'createsppts',
+                                                'showsppts',
+                                                'editsppts',
+                                                'pdf_sppts',
+                                            ])
+                                                ? 'text-violet-500'
+                                                : 'text-gray-400 dark:text-gray-500' }} shrink-0"
                                                 xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                                stroke-width="1.5" stroke="currentColor" HEIGHT="16" WIDTH="16">
+                                                stroke-width="1.5" stroke="currentColor" width="16" height="16">
                                                 <path stroke-linecap="round" stroke-linejoin="round"
-                                                    d="M13.5 21v-7.5a.75.75 0 0 1 .75-.75h3a.75.75 0 0 1 .75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349M3.75 21V9.349m0 0a3.001 3.001 0 0 0 3.75-.615A2.993 2.993 0 0 0 9.75 9.75c.896 0 1.7-.393 2.25-1.016a2.993 2.993 0 0 0 2.25 1.016c.896 0 1.7-.393 2.25-1.015a3.001 3.001 0 0 0 3.75.614m-16.5 0a3.004 3.004 0 0 1-.621-4.72l1.189-1.19A1.5 1.5 0 0 1 5.378 3h13.243a1.5 1.5 0 0 1 1.06.44l1.19 1.189a3 3 0 0 1-.621 4.72M6.75 18h3.75a.75.75 0 0 0 .75-.75V13.5a.75.75 0 0 0-.75-.75H6.75a.75.75 0 0 0-.75.75v3.75c0 .414.336.75.75.75Z" />
+                                                    d="M9 12h6m-6 4h6m2 5.25H7a2.25 2.25 0 01-2.25-2.25V4.5A2.25 2.25 0 017 2.25h3.136a2.25 2.25 0 012.06 1.314l.278.586a1.5 1.5 0 001.358.85H17A2.25 2.25 0 0119.25 7v12A2.25 2.25 0 0117 21.25z" />
                                             </svg>
 
                                             </svg>
@@ -335,22 +381,142 @@
                                         <div
                                             class="lg:sidebar-expanded:opacity-100 ml-2 flex shrink-0 duration-200 lg:opacity-0 2xl:opacity-100">
                                             <svg class="@if (in_array(Request::segment(1), [
-                                                    'sppjs',
-                                                    'createsppjs',
-                                                    'showsppjs',
-                                                    'editsppjs',
                                                     'sppbs',
                                                     'createsppbs',
                                                     'showsppbs',
                                                     'editsppbs',
+                                                    'pdf_sppbs',
+                                                    'sppjs',
+                                                    'createsppjs',
+                                                    'showsppjs',
+                                                    'editsppjs',
+                                                    'pdf_sppjs',
+                                                    'createbqsppj',
+                                                    'showbqsppjs',
+                                                    'editbqsppjs',
                                                     'sppks',
                                                     'createsppks',
                                                     'showsppks',
                                                     'editsppks',
+                                                    'pdf_sppks',
+                                                    'showbqsppks',
+                                                    'editbqsppks',
+                                                    'createbqsppks',
                                                     'sppts',
                                                     'createsppts',
                                                     'showsppts',
                                                     'editsppts',
+                                                    'pdf_sppts',
+                                                ])) {{ 'rotate-180' }} @endif ml-1 h-3 w-3 shrink-0 fill-current text-gray-400 dark:text-gray-500"
+                                                :class="open ? 'rotate-180' : 'rotate-0'" viewBox="0 0 12 12">
+                                                <path d="M5.9 11.4L.5 6l1.4-1.4 4 4 4-4L11.3 6z" />
+                                            </svg>
+                                        </div>
+                                    </div>
+                                </a>
+                                <div class="lg:sidebar-expanded:block lg:hidden 2xl:block">
+                                    <ul class="@if (!in_array(Request::segment(1), ['sppbs', 'createsppbs', 'showsppbs', 'editsppbs', 'pdf_sppbs'])) {{ 'hidden' }} @endif mt-1 pl-8"
+                                        :class="open ? 'block!' : 'hidden'">
+                                        <li class="mb-1 last:mb-0">
+                                            <a class="@if (Route::is('sppbs', 'createsppbs', 'showsppbs', 'editsppbs', 'pdf_sppbs')) {{ 'text-violet-500!' }} @endif block truncate text-gray-500/90 transition hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                                                href="{{ route('sppbs') }}">
+                                                <span
+                                                    class="lg:sidebar-expanded:opacity-100 text-m font-medium duration-200 lg:opacity-0 2xl:opacity-100">SPP
+                                                    Barang</span>
+                                            </a>
+                                        </li>
+                                        <li class="mb-1 last:mb-0">
+                                            <a class="@if (Route::is(
+                                                    'sppjs',
+                                                    'createsppjs',
+                                                    'showsppjs',
+                                                    'editsppjs',
+                                                    'pdf_sppjs',
+                                                    'createbqsppj',
+                                                    'showbqsppjs',
+                                                    'editbqsppjs')) {{ 'text-violet-500!' }} @endif block truncate text-gray-500/90 transition hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                                                href="{{ route('sppjs') }}">
+                                                <span
+                                                    class="lg:sidebar-expanded:opacity-100 text-m font-medium duration-200 lg:opacity-0 2xl:opacity-100">SPP
+                                                    Jasa</span>
+                                            </a>
+                                        </li>
+                                        <li class="mb-1 last:mb-0">
+                                            <a class="@if (Route::is(
+                                                    'sppks',
+                                                    'createsppks',
+                                                    'showsppks',
+                                                    'editsppks',
+                                                    'pdf_sppks',
+                                                    'showbqsppks',
+                                                    'editbqsppks',
+                                                    'createbqsppks')) {{ 'text-violet-500!' }} @endif block truncate text-gray-500/90 transition hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                                                href="{{ route('sppks') }}">
+                                                <span
+                                                    class="lg:sidebar-expanded:opacity-100 text-m font-medium duration-200 lg:opacity-0 2xl:opacity-100">SPP
+                                                    Kendaran</span>
+                                            </a>
+                                        </li>
+                                        <li class="mb-1 last:mb-0">
+                                            <a class="@if (Route::is('sppts', 'createsppts', 'showsppts', 'editsppts', 'pdf_sppts')) {{ 'text-violet-500!' }} @endif block truncate text-gray-500/90 transition hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                                                href="{{ route('sppts') }}">
+                                                <span
+                                                    class="lg:sidebar-expanded:opacity-100 text-m font-medium duration-200 lg:opacity-0 2xl:opacity-100">SPP
+                                                    Tenant</span>
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </li>
+                            <li class="bg-linear-to-r @if (in_array(Request::segment(1), [
+                                    'canvasssheet',
+                                    'assignlist',
+                                    'csjobs', // main page
+                                    'cslist',
+                                ])) {{ 'from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]' }} @endif mb-0.5 rounded-lg py-2 pl-4 pr-3 last:mb-0"
+                                x-data="{ open: {{ in_array(Request::segment(1), [
+                                    'canvasssheet',
+                                    'assignlist',
+                                    'csjobs', // main page
+                                    'cslist',
+                                ])
+                                    ? 1
+                                    : 0 }} }">
+                                <a class="@if (
+                                    !in_array(Request::segment(1), [
+                                        'canvasssheet',
+                                        'assignlist',
+                                        'csjobs', // main page
+                                        'cslist',
+                                    ])) {{ 'hover:text-gray-900 dark:hover:text-white' }} @endif block truncate text-gray-800 transition dark:text-gray-100"
+                                    href="#0" @click.prevent="open = !open; sidebarExpanded = true">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center">
+                                            <svg class="{{ in_array(Request::segment(1), [
+                                                'canvasssheet',
+                                                'assignlist',
+                                                'csjobs', // main page
+                                                'cslist',
+                                            ])
+                                                ? 'text-violet-500'
+                                                : 'text-gray-400 dark:text-gray-500' }} shrink-0"
+                                                xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                                stroke-width="1.5" stroke="currentColor" width="16" height="16">
+                                                <path stroke-linecap="round" stroke-linejoin="round"
+                                                    d="M3 3h18M3 9h18M3 15h18M3 21h18M3 3v18M9 3v18M15 3v18M21 3v18" />
+                                            </svg>
+
+                                            <span
+                                                class="lg:sidebar-expanded:opacity-100 text-m ml-4 font-medium duration-200 lg:opacity-0 2xl:opacity-100">Canvass
+                                                Sheets</span>
+                                        </div>
+                                        <div
+                                            class="lg:sidebar-expanded:opacity-100 ml-2 flex shrink-0 duration-200 lg:opacity-0 2xl:opacity-100">
+                                            <svg class="@if (in_array(Request::segment(1), [
+                                                    'canvasssheet',
+                                                    'assignlist',
+                                                    'csjobs', // main page
+                                                    'cslist',
                                                 ])) {{ 'rotate-180' }} @endif ml-1 h-3 w-3 shrink-0 fill-current text-gray-400 dark:text-gray-500"
                                                 :class="open ? 'rotate-180' : 'rotate-0'" viewBox="0 0 12 12">
                                                 <path d="M5.9 11.4L.5 6l1.4-1.4 4 4 4-4L11.3 6z" />
@@ -361,86 +527,11 @@
                                 <div class="lg:sidebar-expanded:block lg:hidden 2xl:block">
                                     <ul class="@if (
                                         !in_array(Request::segment(1), [
-                                            'sppjs',
-                                            'createsppjs',
-                                            'showsppjs',
-                                            'editsppjs',
-                                            'sppbs',
-                                            'createsppbs',
-                                            'showsppbs',
-                                            'editsppbs',
-                                            'sppks',
-                                            'createsppks',
-                                            'showsppks',
-                                            'editsppks',
-                                            'sppts',
-                                            'createsppts',
-                                            'showsppts',
-                                            'editsppts',
+                                            'canvasssheet',
+                                            'assignlist',
+                                            'csjobs', // main page
+                                            'cslist',
                                         ])) {{ 'hidden' }} @endif mt-1 pl-8"
-                                        :class="open ? 'block!' : 'hidden'">
-                                        <li class="mb-1 last:mb-0">
-                                            <a class="@if (Route::is('sppbs', 'createsppbs', 'showsppbs', 'editsppbs')) {{ 'text-violet-500!' }} @endif block truncate text-gray-500/90 transition hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-                                                href="{{ route('sppbs') }}">
-                                                <span
-                                                    class="lg:sidebar-expanded:opacity-100 text-m font-medium duration-200 lg:opacity-0 2xl:opacity-100">SPP
-                                                    Barang</span>
-                                            </a>
-                                        </li>
-                                        <li class="mb-1 last:mb-0">
-                                            <a class="@if (Route::is('sppjs', 'createsppjs', 'showsppjs', 'editsppjs')) {{ 'text-violet-500!' }} @endif block truncate text-gray-500/90 transition hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-                                                href="{{ route('sppjs') }}">
-                                                <span
-                                                    class="lg:sidebar-expanded:opacity-100 text-m font-medium duration-200 lg:opacity-0 2xl:opacity-100">SPP
-                                                    Jasa</span>
-                                            </a>
-                                        </li>
-                                        <li class="mb-1 last:mb-0">
-                                            <a class="@if (Route::is('sppks')) {{ 'text-violet-500!' }} @endif block truncate text-gray-500/90 transition hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-                                                href="{{ route('sppks') }}">
-                                                <span
-                                                    class="lg:sidebar-expanded:opacity-100 text-m font-medium duration-200 lg:opacity-0 2xl:opacity-100">SPP
-                                                    Kendaran</span>
-                                            </a>
-                                        </li>
-                                        <li class="mb-1 last:mb-0">
-                                            <a class="@if (Route::is('sppts')) {{ 'text-violet-500!' }} @endif block truncate text-gray-500/90 transition hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-                                                href="{{ route('sppts') }}">
-                                                <span
-                                                    class="lg:sidebar-expanded:opacity-100 text-m font-medium duration-200 lg:opacity-0 2xl:opacity-100">SPP
-                                                    Tenant</span>
-                                            </a>
-                                        </li>
-                                    </ul>
-                                </div>
-                            </li>
-                            <li class="bg-linear-to-r @if (in_array(Request::segment(1), ['canvasssheet', 'assignlist', 'csjobs', 'cslist'])) {{ 'from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]' }} @endif mb-0.5 rounded-lg py-2 pl-4 pr-3 last:mb-0"
-                                x-data="{ open: {{ in_array(Request::segment(1), ['canvasssheet', 'assignlist', 'csjobs', 'cslist']) ? 1 : 0 }} }">
-                                <a class="@if (!in_array(Request::segment(1), ['canvasssheet', 'assignlist', 'csjobs', 'cslist'])) {{ 'hover:text-gray-900 dark:hover:text-white' }} @endif block truncate text-gray-800 transition dark:text-gray-100"
-                                    href="#0" @click.prevent="open = !open; sidebarExpanded = true">
-                                    <div class="flex items-center justify-between">
-                                        <div class="flex items-center">
-                                            <svg class="@if (in_array(Request::segment(1), ['canvasssheet', 'cslist', 'csjobs', 'assignlist'])) {{ 'text-violet-500' }}@else{{ 'text-gray-400 dark:text-gray-500' }} @endif shrink-0 fill-current"
-                                                xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                                stroke-width="1.5" stroke="currentColor" width="16" height="16">
-                                                <path stroke-linecap="round" stroke-linejoin="round"
-                                                    d="M3.375 19.5h17.25m-17.25 0a1.125 1.125 0 0 1-1.125-1.125M3.375 19.5h7.5c.621 0 1.125-.504 1.125-1.125m-9.75 0V5.625m0 12.75v-1.5c0-.621.504-1.125 1.125-1.125m18.375 2.625V5.625m0 12.75c0 .621-.504 1.125-1.125 1.125m1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125m0 3.75h-7.5A1.125 1.125 0 0 1 12 18.375m9.75-12.75c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125m19.5 0v1.5c0 .621-.504 1.125-1.125 1.125M2.25 5.625v1.5c0 .621.504 1.125 1.125 1.125m0 0h17.25m-17.25 0h7.5c.621 0 1.125.504 1.125 1.125M3.375 8.25c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125m17.25-3.75h-7.5c-.621 0-1.125.504-1.125 1.125m8.625-1.125c.621 0 1.125.504 1.125 1.125v1.5c0 .621-.504 1.125-1.125 1.125m-17.25 0h7.5m-7.5 0c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125M12 10.875v-1.5m0 1.5c0 .621-.504 1.125-1.125 1.125M12 10.875c0 .621.504 1.125 1.125 1.125m-2.25 0c.621 0 1.125.504 1.125 1.125M13.125 12h7.5m-7.5 0c-.621 0-1.125.504-1.125 1.125M20.625 12c.621 0 1.125.504 1.125 1.125v1.5c0 .621-.504 1.125-1.125 1.125m-17.25 0h7.5M12 14.625v-1.5m0 1.5c0 .621-.504 1.125-1.125 1.125M12 14.625c0 .621.504 1.125 1.125 1.125m-2.25 0c.621 0 1.125.504 1.125 1.125m0 1.5v-1.5m0 0c0-.621.504-1.125 1.125-1.125m0 0h7.5" />
-                                            </svg>
-                                            <span
-                                                class="lg:sidebar-expanded:opacity-100 text-m ml-4 font-medium duration-200 lg:opacity-0 2xl:opacity-100">Canvass
-                                                Sheets</span>
-                                        </div>
-                                        <div
-                                            class="lg:sidebar-expanded:opacity-100 ml-2 flex shrink-0 duration-200 lg:opacity-0 2xl:opacity-100">
-                                            <svg class="@if (in_array(Request::segment(1), ['canvasssheet', 'cslist', 'csjobs', 'assignlist'])) {{ 'rotate-180' }} @endif ml-1 h-3 w-3 shrink-0 fill-current text-gray-400 dark:text-gray-500"
-                                                :class="open ? 'rotate-180' : 'rotate-0'" viewBox="0 0 12 12">
-                                                <path d="M5.9 11.4L.5 6l1.4-1.4 4 4 4-4L11.3 6z" />
-                                            </svg>
-                                        </div>
-                                    </div>
-                                </a>
-                                <div class="lg:sidebar-expanded:block lg:hidden 2xl:block">
-                                    <ul class="@if (!in_array(Request::segment(1), ['canvasssheet', 'cslist', 'csjobs', 'assignlist'])) {{ 'hidden' }} @endif mt-1 pl-8"
                                         :class="open ? 'block!' : 'hidden'">
                                         <li class="mb-1 last:mb-0">
                                             <a class="@if (Route::is('assignlist')) {{ 'text-violet-500!' }} @endif block truncate text-gray-500/90 transition hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
@@ -469,18 +560,60 @@
                                     </ul>
                                 </div>
                             </li>
-                            <li class="bg-linear-to-r @if (in_array(Request::segment(1), ['polist', 'receiptlist'])) {{ 'from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]' }} @endif mb-0.5 rounded-lg py-2 pl-4 pr-3 last:mb-0"
-                                x-data="{ open: {{ in_array(Request::segment(1), ['polist', 'receiptlist']) ? 1 : 0 }} }">
-                                <a class="@if (!in_array(Request::segment(1), ['polist', 'receiptlist'])) {{ 'hover:text-gray-900 dark:hover:text-white' }} @endif block truncate text-gray-800 transition dark:text-gray-100"
+                            <li class="bg-linear-to-r @if (in_array(Request::segment(1), [
+                                    'polist',
+                                    'showpo',
+                                    'receiptlist',
+                                    'showreceipt',
+                                    'editreceipts',
+                                    'receipt',
+                                    'receipt-return',
+                                    'pdf_po',
+                                ])) {{ 'from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]' }} @endif mb-0.5 rounded-lg py-2 pl-4 pr-3 last:mb-0"
+                                x-data="{ open: {{ in_array(Request::segment(1), [
+                                    'polist',
+                                    'showpo',
+                                    'receiptlist',
+                                    'showreceipt',
+                                    'editreceipts',
+                                    'receipt',
+                                    'receipt-return',
+                                    'pdf_po',
+                                ])
+                                    ? 1
+                                    : 0 }} }">
+                                <a class="@if (
+                                    !in_array(Request::segment(1), [
+                                        'polist',
+                                        'showpo',
+                                        'receiptlist',
+                                        'showreceipt',
+                                        'editreceipts',
+                                        'receipt',
+                                        'receipt-return',
+                                        'pdf_po',
+                                    ])) {{ 'hover:text-gray-900 dark:hover:text-white' }} @endif block truncate text-gray-800 transition dark:text-gray-100"
                                     href="#0" @click.prevent="open = !open; sidebarExpanded = true">
                                     <div class="flex items-center justify-between">
                                         <div class="flex items-center">
-                                            <svg class="@if (in_array(Request::segment(1), ['polist', 'receiptlist'])) text-violet-500 @else text-gray-400 dark:text-gray-500 @endif shrink-0"
+                                            <svg class="{{ in_array(Request::segment(1), [
+                                                'polist',
+                                                'showpo',
+                                                'receiptlist',
+                                                'showreceipt',
+                                                'editreceipts',
+                                                'receipt',
+                                                'receipt-return',
+                                                'pdf_po',
+                                            ])
+                                                ? 'text-violet-500'
+                                                : 'text-gray-400 dark:text-gray-500' }} shrink-0"
                                                 xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                                 stroke-width="1.5" stroke="currentColor" width="16" height="16">
                                                 <path stroke-linecap="round" stroke-linejoin="round"
-                                                    d="M2.25 3h1.386c.51 0 .955.343 1.09.835l.383 1.432M7.5 14.25h9.75m0 0a2.25 2.25 0 1 0 0 4.5 2.25 2.25 0 0 0 0-4.5Zm-9.75 0a2.25 2.25 0 1 0 0 4.5 2.25 2.25 0 0 0 0-4.5Zm9.75 0L18.75 6.75H6.6M6.6 6.75 5.25 3M6.6 6.75h12.15a1.125 1.125 0 0 1 1.107 1.347l-1.005 4.5a1.125 1.125 0 0 1-1.107.903H7.5" />
+                                                    d="M2.25 3h1.5l1.5 12h12l1.5-9H6.75m3 15a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zm9 0a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z" />
                                             </svg>
+
 
                                             <span
                                                 class="lg:sidebar-expanded:opacity-100 text-m ml-4 font-medium duration-200 lg:opacity-0 2xl:opacity-100">
@@ -489,7 +622,16 @@
                                         </div>
                                         <div
                                             class="lg:sidebar-expanded:opacity-100 ml-2 flex shrink-0 duration-200 lg:opacity-0 2xl:opacity-100">
-                                            <svg class="@if (in_array(Request::segment(1), ['polist', 'receiptlist'])) {{ 'rotate-180' }} @endif ml-1 h-3 w-3 shrink-0 fill-current text-gray-400 dark:text-gray-500"
+                                            <svg class="@if (in_array(Request::segment(1), [
+                                                    'polist',
+                                                    'showpo',
+                                                    'receiptlist',
+                                                    'showreceipt',
+                                                    'editreceipts',
+                                                    'receipt',
+                                                    'receipt-return',
+                                                    'pdf_po',
+                                                ])) {{ 'rotate-180' }} @endif ml-1 h-3 w-3 shrink-0 fill-current text-gray-400 dark:text-gray-500"
                                                 :class="open ? 'rotate-180' : 'rotate-0'" viewBox="0 0 12 12">
                                                 <path d="M5.9 11.4L.5 6l1.4-1.4 4 4 4-4L11.3 6z" />
                                             </svg>
@@ -497,7 +639,17 @@
                                     </div>
                                 </a>
                                 <div class="lg:sidebar-expanded:block lg:hidden 2xl:block">
-                                    <ul class="@if (!in_array(Request::segment(1), ['polist', 'receiptlist'])) {{ 'hidden' }} @endif mt-1 pl-8"
+                                    <ul class="@if (
+                                        !in_array(Request::segment(1), [
+                                            'polist',
+                                            'showpo',
+                                            'receiptlist',
+                                            'showreceipt',
+                                            'editreceipts',
+                                            'receipt',
+                                            'receipt-return',
+                                            'pdf_po',
+                                        ])) {{ 'hidden' }} @endif mt-1 pl-8"
                                         :class="open ? 'block!' : 'hidden'">
                                         <li class="mb-1 last:mb-0">
                                             <a class="@if (Route::is('polist')) {{ 'text-violet-500!' }} @endif block truncate text-gray-500/90 transition hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
@@ -518,18 +670,52 @@
                                     </ul>
                                 </div>
                             </li>
-                            <li class="bg-linear-to-r @if (in_array(Request::segment(1), ['wos'])) {{ 'from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]' }} @endif mb-0.5 rounded-lg py-2 pl-4 pr-3 last:mb-0"
-                                x-data="{ open: {{ in_array(Request::segment(1), ['wos']) ? 1 : 0 }} }">
-                                <a class="@if (!in_array(Request::segment(1), ['wos'])) {{ 'hover:text-gray-900 dark:hover:text-white' }} @endif block truncate text-gray-800 transition dark:text-gray-100"
+                            <li class="bg-linear-to-r @if (in_array(Request::segment(1), [
+                                    'wos',
+                                    'showwos',
+                                    'editwos',
+                                    'wo', // approve / reject / revise
+                                    'wojobs',
+                                    'pdf_wos',
+                                ])) {{ 'from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]' }} @endif mb-0.5 rounded-lg py-2 pl-4 pr-3 last:mb-0"
+                                x-data="{ open: {{ in_array(Request::segment(1), [
+                                    'wos',
+                                    'showwos',
+                                    'editwos',
+                                    'wo', // approve / reject / revise
+                                    'wojobs',
+                                    'pdf_wos',
+                                ])
+                                    ? 1
+                                    : 0 }} }">
+                                <a class="@if (
+                                    !in_array(Request::segment(1), [
+                                        'wos',
+                                        'showwos',
+                                        'editwos',
+                                        'wo', // approve / reject / revise
+                                        'wojobs',
+                                        'pdf_wos',
+                                    ])) {{ 'hover:text-gray-900 dark:hover:text-white' }} @endif block truncate text-gray-800 transition dark:text-gray-100"
                                     href="#0" @click.prevent="open = !open; sidebarExpanded = true">
                                     <div class="flex items-center justify-between">
                                         <div class="flex items-center">
-                                            <svg class="@if (in_array(Request::segment(1), ['wos'])) text-violet-500 @else text-gray-400 dark:text-gray-500 @endif shrink-0"
+                                            <svg class="{{ in_array(Request::segment(1), [
+                                                'wos',
+                                                'showwos',
+                                                'editwos',
+                                                'wo', // approve / reject / revise
+                                                'wojobs',
+                                                'pdf_wos',
+                                            ])
+                                                ? 'text-violet-500'
+                                                : 'text-gray-400 dark:text-gray-500' }} shrink-0"
                                                 xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                                 stroke-width="1.5" stroke="currentColor" width="16" height="16">
                                                 <path stroke-linecap="round" stroke-linejoin="round"
-                                                    d="M2.25 3h1.386c.51 0 .955.343 1.09.835l.383 1.432M7.5 14.25h9.75m0 0a2.25 2.25 0 1 0 0 4.5 2.25 2.25 0 0 0 0-4.5Zm-9.75 0a2.25 2.25 0 1 0 0 4.5 2.25 2.25 0 0 0 0-4.5Zm9.75 0L18.75 6.75H6.6M6.6 6.75 5.25 3M6.6 6.75h12.15a1.125 1.125 0 0 1 1.107 1.347l-1.005 4.5a1.125 1.125 0 0 1-1.107.903H7.5" />
+                                                    d="M15.232 5.232a3 3 0 014.243 4.243l-7.5 7.5a3 3 0 01-4.243 0l-.707-.707a3 3 0 010-4.243l7.5-7.5z" />
                                             </svg>
+
 
                                             <span
                                                 class="lg:sidebar-expanded:opacity-100 text-m ml-4 font-medium duration-200 lg:opacity-0 2xl:opacity-100">
@@ -538,7 +724,14 @@
                                         </div>
                                         <div
                                             class="lg:sidebar-expanded:opacity-100 ml-2 flex shrink-0 duration-200 lg:opacity-0 2xl:opacity-100">
-                                            <svg class="@if (in_array(Request::segment(1), ['wos'])) {{ 'rotate-180' }} @endif ml-1 h-3 w-3 shrink-0 fill-current text-gray-400 dark:text-gray-500"
+                                            <svg class="@if (in_array(Request::segment(1), [
+                                                    'wos',
+                                                    'showwos',
+                                                    'editwos',
+                                                    'wo', // approve / reject / revise
+                                                    'wojobs',
+                                                    'pdf_wos',
+                                                ])) {{ 'rotate-180' }} @endif ml-1 h-3 w-3 shrink-0 fill-current text-gray-400 dark:text-gray-500"
                                                 :class="open ? 'rotate-180' : 'rotate-0'" viewBox="0 0 12 12">
                                                 <path d="M5.9 11.4L.5 6l1.4-1.4 4 4 4-4L11.3 6z" />
                                             </svg>
@@ -546,7 +739,15 @@
                                     </div>
                                 </a>
                                 <div class="lg:sidebar-expanded:block lg:hidden 2xl:block">
-                                    <ul class="@if (!in_array(Request::segment(1), ['wos'])) {{ 'hidden' }} @endif mt-1 pl-8"
+                                    <ul class="@if (
+                                        !in_array(Request::segment(1), [
+                                            'wos',
+                                            'showwos',
+                                            'editwos',
+                                            'wo', // approve / reject / revise
+                                            'wojobs',
+                                            'pdf_wos',
+                                        ])) {{ 'hidden' }} @endif mt-1 pl-8"
                                         :class="open ? 'block!' : 'hidden'">
                                         <li class="mb-1 last:mb-0">
                                             <a class="@if (Route::is('wos')) {{ 'text-violet-500!' }} @endif block truncate text-gray-500/90 transition hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
@@ -567,18 +768,68 @@
                                     </ul>
                                 </div>
                             </li>
-                            <li class="bg-linear-to-r @if (in_array(Request::segment(1), ['spbs'])) {{ 'from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]' }} @endif mb-0.5 rounded-lg py-2 pl-4 pr-3 last:mb-0"
-                                x-data="{ open: {{ in_array(Request::segment(1), ['spbs']) ? 1 : 0 }} }">
-                                <a class="@if (!in_array(Request::segment(1), ['spbs'])) {{ 'hover:text-gray-900 dark:hover:text-white' }} @endif block truncate text-gray-800 transition dark:text-gray-100"
+                            <li class="bg-linear-to-r @if (in_array(Request::segment(1), [
+                                    'spbs',
+                                    'showspbs',
+                                    'editspbs',
+                                    'spb',
+                                    'pdf_spbs',
+                                    'issuelist',
+                                    'showissue',
+                                    'editissues',
+                                    'issue',
+                                    'pdf_issues',
+                                ])) {{ 'from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]' }} @endif mb-0.5 rounded-lg py-2 pl-4 pr-3 last:mb-0"
+                                x-data="{ open: {{ in_array(Request::segment(1), [
+                                    'spbs',
+                                    'showspbs',
+                                    'editspbs',
+                                    'spb',
+                                    'pdf_spbs',
+                                    'issuelist',
+                                    'showissue',
+                                    'editissues',
+                                    'issue',
+                                    'pdf_issues',
+                                ])
+                                    ? 1
+                                    : 0 }} }">
+                                <a class="@if (
+                                    !in_array(Request::segment(1), [
+                                        'spbs',
+                                        'showspbs',
+                                        'editspbs',
+                                        'spb',
+                                        'pdf_spbs',
+                                        'issuelist',
+                                        'showissue',
+                                        'editissues',
+                                        'issue',
+                                        'pdf_issues',
+                                    ])) {{ 'hover:text-gray-900 dark:hover:text-white' }} @endif block truncate text-gray-800 transition dark:text-gray-100"
                                     href="#0" @click.prevent="open = !open; sidebarExpanded = true">
                                     <div class="flex items-center justify-between">
                                         <div class="flex items-center">
-                                            <svg class="@if (in_array(Request::segment(1), ['spbs'])) text-violet-500 @else text-gray-400 dark:text-gray-500 @endif shrink-0"
+                                            <svg class="{{ in_array(Request::segment(1), [
+                                                'spbs',
+                                                'showspbs',
+                                                'editspbs',
+                                                'spb',
+                                                'pdf_spbs',
+                                                'issuelist',
+                                                'showissue',
+                                                'editissues',
+                                                'issue',
+                                                'pdf_issues',
+                                            ])
+                                                ? 'text-violet-500'
+                                                : 'text-gray-400 dark:text-gray-500' }} shrink-0"
                                                 xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                                 stroke-width="1.5" stroke="currentColor" width="16" height="16">
                                                 <path stroke-linecap="round" stroke-linejoin="round"
-                                                    d="M2.25 3h1.386c.51 0 .955.343 1.09.835l.383 1.432M7.5 14.25h9.75m0 0a2.25 2.25 0 1 0 0 4.5 2.25 2.25 0 0 0 0-4.5Zm-9.75 0a2.25 2.25 0 1 0 0 4.5 2.25 2.25 0 0 0 0-4.5Zm9.75 0L18.75 6.75H6.6M6.6 6.75 5.25 3M6.6 6.75h12.15a1.125 1.125 0 0 1 1.107 1.347l-1.005 4.5a1.125 1.125 0 0 1-1.107.903H7.5" />
+                                                    d="M12 2.25l8.25 4.5v10.5L12 21.75l-8.25-4.5V6.75L12 2.25z" />
                                             </svg>
+
 
                                             <span
                                                 class="lg:sidebar-expanded:opacity-100 text-m ml-4 font-medium duration-200 lg:opacity-0 2xl:opacity-100">
@@ -587,7 +838,18 @@
                                         </div>
                                         <div
                                             class="lg:sidebar-expanded:opacity-100 ml-2 flex shrink-0 duration-200 lg:opacity-0 2xl:opacity-100">
-                                            <svg class="@if (in_array(Request::segment(1), ['spbs'])) {{ 'rotate-180' }} @endif ml-1 h-3 w-3 shrink-0 fill-current text-gray-400 dark:text-gray-500"
+                                            <svg class="@if (in_array(Request::segment(1), [
+                                                    'spbs',
+                                                    'showspbs',
+                                                    'editspbs',
+                                                    'spb',
+                                                    'pdf_spbs',
+                                                    'issuelist',
+                                                    'showissue',
+                                                    'editissues',
+                                                    'issue',
+                                                    'pdf_issues',
+                                                ])) {{ 'rotate-180' }} @endif ml-1 h-3 w-3 shrink-0 fill-current text-gray-400 dark:text-gray-500"
                                                 :class="open ? 'rotate-180' : 'rotate-0'" viewBox="0 0 12 12">
                                                 <path d="M5.9 11.4L.5 6l1.4-1.4 4 4 4-4L11.3 6z" />
                                             </svg>
@@ -595,7 +857,19 @@
                                     </div>
                                 </a>
                                 <div class="lg:sidebar-expanded:block lg:hidden 2xl:block">
-                                    <ul class="@if (!in_array(Request::segment(1), ['spbs'])) {{ 'hidden' }} @endif mt-1 pl-8"
+                                    <ul class="@if (
+                                        !in_array(Request::segment(1), [
+                                            'spbs',
+                                            'showspbs',
+                                            'editspbs',
+                                            'spb',
+                                            'pdf_spbs',
+                                            'issuelist',
+                                            'showissue',
+                                            'editissues',
+                                            'issue',
+                                            'pdf_issues',
+                                        ])) {{ 'hidden' }} @endif mt-1 pl-8"
                                         :class="open ? 'block!' : 'hidden'">
                                         <li class="mb-1 last:mb-0">
                                             <a class="@if (Route::is('spbs')) {{ 'text-violet-500!' }} @endif block truncate text-gray-500/90 transition hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
@@ -608,7 +882,19 @@
                                     </ul>
                                 </div>
                                 <div class="lg:sidebar-expanded:block lg:hidden 2xl:block">
-                                    <ul class="@if (!in_array(Request::segment(1), ['issuelist'])) {{ 'hidden' }} @endif mt-1 pl-8"
+                                    <ul class="@if (
+                                        !in_array(Request::segment(1), [
+                                            'spbs',
+                                            'showspbs',
+                                            'editspbs',
+                                            'spb',
+                                            'pdf_spbs',
+                                            'issuelist',
+                                            'showissue',
+                                            'editissues',
+                                            'issue',
+                                            'pdf_issues',
+                                        ])) {{ 'hidden' }} @endif mt-1 pl-8"
                                         :class="open ? 'block!' : 'hidden'">
                                         <li class="mb-1 last:mb-0">
                                             <a class="@if (Route::is('issuelist')) {{ 'text-violet-500!' }} @endif block truncate text-gray-500/90 transition hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
@@ -622,36 +908,42 @@
                                 </div>
                             </li>
                             <li
-                                class="bg-linear-to-r @if (in_array(Request::segment(1), ['imbudgets'])) {{ 'from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]' }} @endif mb-0.5 rounded-lg py-2 pl-4 pr-3 last:mb-0">
-                                <a class="@if (!in_array(Request::segment(1), ['imbudgets'])) {{ 'hover:text-gray-900 dark:hover:text-white' }} @endif block truncate text-gray-800 transition dark:text-gray-100"
+                                class="bg-linear-to-r @if (in_array(Request::segment(1), ['imbudgets', 'showimbudgets', 'editimbudgets', 'imbudget', 'pdf_imbudgets'])) {{ 'from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]' }} @endif mb-0.5 rounded-lg py-2 pl-4 pr-3 last:mb-0">
+                                <a class="@if (!in_array(Request::segment(1), ['imbudgets', 'showimbudgets', 'editimbudgets', 'imbudget', 'pdf_imbudgets'])) {{ 'hover:text-gray-900 dark:hover:text-white' }} @endif block truncate text-gray-800 transition dark:text-gray-100"
                                     href="{{ route('imbudgets') }}">
                                     <div class="flex items-center">
-                                        <svg class="@if (in_array(Request::segment(1), ['imbudgets'])) {{ 'text-violet-500' }}@else{{ 'text-gray-400 dark:text-gray-500' }} @endif shrink-0 fill-current"
-                                            viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="none"
+                                        <svg class="{{ in_array(Request::segment(1), ['imbudgets', 'showimbudgets', 'editimbudgets', 'imbudget', 'pdf_imbudgets'])
+                                            ? 'text-violet-500'
+                                            : 'text-gray-400 dark:text-gray-500' }} shrink-0"
+                                            xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                             stroke-width="1.5" stroke="currentColor" width="16" height="16">
                                             <path stroke-linecap="round" stroke-linejoin="round"
-                                                d=" M2.25 18.75a60.07 60.07 0 0 1 15.797 2.101c.727.198 1.453-.342
-                                                                                                                                                                                                                                                        1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 0 1 3 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 0 0-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 0 1-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 0 0 3 15h-.75M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm3 0h.008v.008H18V10.5Zm-12 0h.008v.008H6V10.5Z" />
+                                                d="M9 7.5v9m3-9v9m-6 0h12m-12-9h12M6 4.5h12v15H6z" />
                                         </svg>
+
                                         <span
-                                            class="lg:sidebar-expanded:opacity-100 text-m ml-4 font-medium duration-200 lg:opacity-0 2xl:opacity-100">IM Budget</span>
+                                            class="lg:sidebar-expanded:opacity-100 text-m ml-4 font-medium duration-200 lg:opacity-0 2xl:opacity-100">IM
+                                            Budget</span>
                                     </div>
                                 </a>
                             </li>
                             <li
-                                class="bg-linear-to-r @if (in_array(Request::segment(1), ['bastlist'])) {{ 'from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]' }} @endif mb-0.5 rounded-lg py-2 pl-4 pr-3 last:mb-0">
-                                <a class="@if (!in_array(Request::segment(1), ['bastlist'])) {{ 'hover:text-gray-900 dark:hover:text-white' }} @endif block truncate text-gray-800 transition dark:text-gray-100"
+                                class="bg-linear-to-r @if (in_array(Request::segment(1), ['bastlist', 'showbast', 'editbasts', 'bast', 'pdf_bast', 'pdf_bast_vendor'])) {{ 'from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]' }} @endif mb-0.5 rounded-lg py-2 pl-4 pr-3 last:mb-0">
+                                <a class="@if (!in_array(Request::segment(1), ['bastlist', 'showbast', 'editbasts', 'bast', 'pdf_bast', 'pdf_bast_vendor'])) {{ 'hover:text-gray-900 dark:hover:text-white' }} @endif block truncate text-gray-800 transition dark:text-gray-100"
                                     href="{{ route('bastlist') }}">
                                     <div class="flex items-center">
-                                        <svg class="@if (in_array(Request::segment(1), ['bastlist'])) {{ 'text-violet-500' }}@else{{ 'text-gray-400 dark:text-gray-500' }} @endif shrink-0 fill-current"
-                                            viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="none"
+                                        <svg class="{{ in_array(Request::segment(1), ['bastlist', 'showbast', 'editbasts', 'bast', 'pdf_bast', 'pdf_bast_vendor'])
+                                            ? 'text-violet-500'
+                                            : 'text-gray-400 dark:text-gray-500' }} shrink-0"
+                                            xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                             stroke-width="1.5" stroke="currentColor" width="16" height="16">
                                             <path stroke-linecap="round" stroke-linejoin="round"
-                                                d=" M2.25 18.75a60.07 60.07 0 0 1 15.797 2.101c.727.198 1.453-.342
-                                                                                                                                                                                                                                                        1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 0 1 3 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 0 0-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 0 1-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 0 0 3 15h-.75M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm3 0h.008v.008H18V10.5Zm-12 0h.008v.008H6V10.5Z" />
+                                                d="M9 12l2 2 4-4m2-3H7a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2z" />
                                         </svg>
+
                                         <span
-                                            class="lg:sidebar-expanded:opacity-100 text-m ml-4 font-medium duration-200 lg:opacity-0 2xl:opacity-100">Bast List</span>
+                                            class="lg:sidebar-expanded:opacity-100 text-m ml-4 font-medium duration-200 lg:opacity-0 2xl:opacity-100">Bast
+                                            List</span>
                                     </div>
                                 </a>
                             </li>

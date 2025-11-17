@@ -349,14 +349,30 @@
                     <table id="wosTable" class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                         <thead class="bg-gray-50 dark:bg-gray-700">
                             <tr>
-                                <th class="w-32 px-6 py-3 text-left  text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">DocID</th>
-                                <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">Date</th>
-                                <th class="w-32 px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">Company</th>
-                                <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">Department</th>
-                                <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">Work Type</th> <!-- << -->
-                                <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">WO Request</th>
-                                <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">Description</th>
-                                <th class="w-32 px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">Status</th>
+                                <th
+                                    class="w-32 px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                                    DocID</th>
+                                <th
+                                    class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                                    Date</th>
+                                <th
+                                    class="w-32 px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                                    Company</th>
+                                <th
+                                    class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                                    Department</th>
+                                <th
+                                    class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                                    Work Type</th> <!-- << -->
+                                <th
+                                    class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                                    WO Request</th>
+                                <th
+                                    class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                                    Description</th>
+                                <th
+                                    class="w-32 px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                                    Status</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-800">
@@ -579,34 +595,39 @@
             <script>
                 var currentUser = "{{ auth()->user()->username }}";
                 $(document).ready(function() {
-                let statusFilter = 'P';
+                    let statusFilter = 'P';
 
-                const table = $('#wosTable').DataTable({
-                    processing: true,
-                    serverSide: true,
-                    deferRender: true,
-                    pageLength: 25,
-                    lengthMenu: [10, 25, 50, 100, 250],
-                    ajax: {
-                    url: "{{ route('wos.json') }}",
-                    type: "GET",
-                    data: function(d){ d.status = statusFilter ?? ''; }
-                    },
-                    order: [[0, 'desc']],
-                    columns: [
-                    {
-                        data: 'woid',
-                        render: function(data, type, row) {
-                        let url = `/showwos/${row.eid}`;
-                        let cls = 'shrink-0 px-6 py-2 bg-gray-500 text-white rounded hover:bg-gray-700 text-sm';
-                        const text = data || row.eid;
+                    const table = $('#wosTable').DataTable({
+                        processing: true,
+                        serverSide: true,
+                        deferRender: true,
+                        pageLength: 25,
+                        lengthMenu: [10, 25, 50, 100, 250],
+                        ajax: {
+                            url: "{{ route('wos.json') }}",
+                            type: "GET",
+                            data: function(d) {
+                                d.status = statusFilter ?? '';
+                            }
+                        },
+                        order: [
+                            [0, 'desc']
+                        ],
+                        columns: [{
+                                data: 'woid',
+                                render: function(data, type, row) {
+                                    let url = `/showwos/${row.eid}`;
+                                    let cls =
+                                        'shrink-0 px-6 py-2 bg-gray-500 text-white rounded hover:bg-gray-700 text-sm';
+                                    const text = data || row.eid;
 
-                        if (row.status === 'D' && row.created_by === currentUser) {
-                            url = `/editwos/${row.eid}`;
-                            cls = 'shrink-0 px-3 py-1.5 bg-yellow-500 text-white rounded hover:bg-yellow-700 text-sm';
-                        }
+                                    if (row.status === 'D' && row.created_by === currentUser) {
+                                        url = `/editwos/${row.eid}`;
+                                        cls =
+                                            'shrink-0 px-3 py-1.5 bg-yellow-500 text-white rounded hover:bg-yellow-700 text-sm';
+                                    }
 
-                        return `
+                                    return `
                             <div class="flex items-left gap-2 whitespace-nowrap">
                             <a href="${url}" class="${cls}">${text}</a>
                             <button type="button"
@@ -617,50 +638,88 @@
                             </button>
                             </div>
                         `;
-                        }
-                    },
-                    { data: 'wodate',        className: 'text-left' },
-                    { data: 'cpny_id',       className: 'text-center w-32' },
-                    { data: 'department_id', className: 'text-center whitespace-normal break-words' },
-                    { data: 'worktype_name', defaultContent: '-', className: 'text-left' }, // << kolom baru
-                    { data: 'worequest',     defaultContent: '-', className: 'text-left' },
-                    { data: 'keperluan' },
-                    {
-                        data: 'status',
-                        className: 'text-left',
-                        render: function(data) {
-                        const map = {
-                            'D': { t: 'Revise',      c: 'bg-gray-300/30 text-gray-600' },
-                            'P': { t: 'On Progress', c: 'bg-blue-300/30 text-blue-600' },
-                            'C': { t: 'Completed',   c: 'bg-green-300/30 text-green-600' },
-                            'X': { t: 'Cancel',      c: 'bg-red-300/30 text-red-600' },
-                            'R': { t: 'Rejected',    c: 'bg-red-300/30 text-red-600' },
-                        };
-                        const it = map[data] || { t: data || '-', c: 'bg-gray-300/30 text-gray-600' };
-                        return `<span class="w-32 inline-block ${it.c} font-semibold px-4 py-2 text-center rounded">${it.t}</span>`;
-                        }
-                    }
-                    ],
-                    searchDelay: 400,
-                    stateSave: true,
-                    responsive: true
-                });
+                                }
+                            },
+                            {
+                                data: 'wodate',
+                                className: 'text-left'
+                            },
+                            {
+                                data: 'cpny_id',
+                                className: 'text-center w-32'
+                            },
+                            {
+                                data: 'department_id',
+                                className: 'text-center whitespace-normal break-words'
+                            },
+                            {
+                                data: 'worktype_name',
+                                defaultContent: '-',
+                                className: 'text-left'
+                            }, // << kolom baru
+                            {
+                                data: 'worequest',
+                                defaultContent: '-',
+                                className: 'text-left'
+                            },
+                            {
+                                data: 'keperluan'
+                            },
+                            {
+                                data: 'status',
+                                className: 'text-left',
+                                render: function(data) {
+                                    const map = {
+                                        'D': {
+                                            t: 'Revise',
+                                            c: 'bg-gray-300/30 text-gray-600'
+                                        },
+                                        'P': {
+                                            t: 'On Progress',
+                                            c: 'bg-blue-300/30 text-blue-600'
+                                        },
+                                        'C': {
+                                            t: 'Completed',
+                                            c: 'bg-green-300/30 text-green-600'
+                                        },
+                                        'X': {
+                                            t: 'Cancel',
+                                            c: 'bg-red-300/30 text-red-600'
+                                        },
+                                        'R': {
+                                            t: 'Rejected',
+                                            c: 'bg-red-300/30 text-red-600'
+                                        },
+                                    };
+                                    const it = map[data] || {
+                                        t: data || '-',
+                                        c: 'bg-gray-300/30 text-gray-600'
+                                    };
+                                    return `<span class="w-32 inline-block ${it.c} font-semibold px-3 py-1.5 text-base text-center rounded">${it.t}</span>`;
+                                }
+                            }
+                        ],
+                        searchDelay: 400,
+                        stateSave: true,
+                        responsive: true
+                    });
 
-                $('.status-filter').on('click', function(e){
-                    e.preventDefault();
-                    statusFilter = $(this).data('status') || '';
-                    table.ajax.reload(null, true);
-                });
+                    $('.status-filter').on('click', function(e) {
+                        e.preventDefault();
+                        statusFilter = $(this).data('status') || '';
+                        table.ajax.reload(null, true);
+                    });
 
-                document.querySelectorAll('.status-filter').forEach(btn => {
-                    btn.addEventListener('click', function(e){
-                    e.preventDefault();
-                    document.querySelectorAll('.status-filter').forEach(b => b.classList.remove('active'));
-                    this.classList.add('active');
+                    document.querySelectorAll('.status-filter').forEach(btn => {
+                        btn.addEventListener('click', function(e) {
+                            e.preventDefault();
+                            document.querySelectorAll('.status-filter').forEach(b => b.classList.remove(
+                                'active'));
+                            this.classList.add('active');
+                        });
                     });
                 });
-                });
-                </script>
+            </script>
 
 
 

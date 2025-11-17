@@ -3,7 +3,7 @@
                    class="flex w-full flex-col gap-4 overflow-hidden sm:col-span-1 lg:row-span-1 xl:row-span-1 xl:flex-row">
 
                    {{-- Main Job Posting Card (remains the same) --}}
-                   <div class="flex flex-col gap-4 sm:w-1/2 md:w-full">
+                   <div class="flex flex-col gap-4 rounded-xl bg-white duration-300 sm:w-1/2 md:w-full dark:bg-gray-800">
                        <header
                            class="flex items-center rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
                            <h1 class="flex items-center gap-2 text-xl font-bold text-gray-800 dark:text-gray-100">
@@ -65,7 +65,8 @@
                            </div>
                        </div>
                    </div>
-                   <div class="flex flex-col gap-4 sm:w-1/2 md:w-full">
+                   <div
+                       class="flex flex-col gap-4 rounded-xl bg-white duration-300 sm:w-1/2 md:w-full dark:bg-gray-800">
                        <div x-data="{ activeTab: 'Responsibilities' }" class="rounded-xl bg-white duration-300 dark:bg-gray-800">
                            <header
                                class="flex items-center rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">

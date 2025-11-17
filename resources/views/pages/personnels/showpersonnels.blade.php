@@ -43,8 +43,8 @@
             </div>
         </div>
         <div class="flex w-full flex-col gap-6 overflow-hidden sm:col-span-1 lg:row-span-1 xl:row-span-1 xl:flex-row">
-            <div class="flex flex-col gap-6 sm:w-1/2 md:w-full">
-                <div class="rounded-xl bg-white duration-300 dark:bg-gray-800">
+            <div class="flex flex-col gap-6 sm:w-1/2 md:w-full xl:flex-row">
+                <div class="rounded-xl bg-white duration-300 sm:w-1/2 md:w-full dark:bg-gray-800">
                     <header
                         class="sticky top-0 z-10 flex items-center justify-between rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
                         {{-- Rounded-t-xl, stronger border, and darker background for header --}}
@@ -88,130 +88,157 @@
                         </span>
                     </header>
                     <div class="flex flex-1 flex-col overflow-y-auto p-4">
-                        <div class="grid grid-cols-1 gap-x-8 gap-y-3 text-sm sm:grid-cols-2">
+                        <div class="grid grid-cols-2 gap-x-8 gap-y-4 text-sm sm:grid-cols-2">
+
+                            {{-- Reusable Row Class: mobile = vertical, desktop = horizontal --}}
+                            @php
+                                $row = 'flex flex-col gap-1 p-2 sm:flex-row sm:items-center sm:gap-3';
+                                $label = 'flex items-center gap-2 text-gray-500 sm:min-w-40';
+                                $value = 'font-medium text-gray-900 sm:flex-1 break-words';
+                            @endphp
 
                             {{-- Company --}}
-                            <div class="flex items-center gap-2 p-2">
-                                <x-heroicon-o-building-office class="h-5 w-5 text-gray-400" />
-                                <span class="min-w-32 max-w-32 text-gray-500">Company</span>
-                                <span class="break-words font-medium text-gray-900">{{ $personnel->cpnyid }}</span>
+                            <div class="{{ $row }}">
+                                <div class="{{ $label }}">
+                                    <x-heroicon-o-building-office class="h-5 w-5 text-gray-400" />
+                                    <span>Company</span>
+                                </div>
+                                <span class="{{ $value }}">{{ $personnel->cpnyid }}</span>
                             </div>
 
                             {{-- Department --}}
-                            <div class="flex items-center gap-2 p-2">
-                                <x-heroicon-o-squares-2x2 class="h-5 w-5 text-gray-400" />
-                                <span class="min-w-32 max-w-32 text-gray-500">Department</span>
-                                <span
-                                    class="break-words font-medium text-gray-900">{{ $personnel->departementid }}</span>
+                            <div class="{{ $row }}">
+                                <div class="{{ $label }}">
+                                    <x-heroicon-o-rectangle-group class="h-5 w-5 text-gray-400" />
+                                    <span>Department</span>
+                                </div>
+                                <span class="{{ $value }}">{{ $personnel->departementid }}</span>
                             </div>
 
                             {{-- Date --}}
-                            <div class="flex items-center gap-2 p-2">
-                                <x-heroicon-o-calendar class="h-5 w-5 text-gray-400" />
-                                <span class="min-w-32 max-w-32 text-gray-500">Date</span>
-                                <span class="break-words font-medium text-gray-900">
-                                    {{-- {{ date('j F Y', strtotime($personnel->date)) }} --}}
+                            <div class="{{ $row }}">
+                                <div class="{{ $label }}">
+                                    <x-heroicon-o-calendar class="h-5 w-5 text-gray-400" />
+                                    <span>Date</span>
+                                </div>
+                                <span class="{{ $value }}">
                                     {{ \Carbon\Carbon::parse($personnel->date)->translatedFormat('d F Y') }}
                                 </span>
                             </div>
 
                             {{-- Job Title --}}
-                            <div class="flex items-center gap-2 p-2">
-                                <x-heroicon-o-user class="h-5 w-5 text-gray-400" />
-                                <span class="min-w-32 max-w-32 text-gray-500">Job Title</span>
-                                <span class="break-words font-medium text-gray-900">
+                            <div class="{{ $row }}">
+                                <div class="{{ $label }}">
+                                    <x-heroicon-o-identification class="h-5 w-5 text-gray-400" />
+                                    <span>Job Title</span>
+                                </div>
+                                <span class="{{ $value }}">
                                     {{ ucwords(strtolower(optional($personnel)->job_title)) }}
                                 </span>
                             </div>
 
                             {{-- Job Type --}}
-                            <div class="flex items-center gap-2 p-2">
-                                <x-heroicon-o-user class="h-5 w-5 text-gray-400" />
-                                <span class="min-w-32 max-w-32 text-gray-500">Job Type</span>
-                                <span class="break-words font-medium text-gray-900">
+                            <div class="{{ $row }}">
+                                <div class="{{ $label }}">
+                                    <x-heroicon-o-briefcase class="h-5 w-5 text-gray-400" />
+                                    <span>Job Type</span>
+                                </div>
+                                <span class="{{ $value }}">
                                     {{ ucwords(strtolower(optional($personnel)->job_type)) }}
                                 </span>
                             </div>
 
                             {{-- Immediate Superior --}}
-                            <div class="flex items-center gap-2 p-2">
-                                <x-heroicon-o-user class="h-5 w-5 text-gray-400" />
-                                <span class="min-w-32 max-w-32 text-gray-500">Immediate Superior</span>
-                                <span class="break-words font-medium text-gray-900">
+                            <div class="{{ $row }}">
+                                <div class="{{ $label }}">
+                                    <x-heroicon-o-user-group class="h-5 w-5 text-gray-400" />
+                                    <span>Immediate Superior</span>
+                                </div>
+                                <span class="{{ $value }}">
                                     {{ ucwords(strtolower(optional($personnel)->immediate_superior)) }}
                                 </span>
                             </div>
 
                             {{-- Job Level --}}
-                            <div class="flex items-center gap-2 p-2">
-                                <x-heroicon-o-user class="h-5 w-5 text-gray-400" />
-                                <span class="min-w-32 max-w-32 text-gray-500">Job Level</span>
-                                <span class="break-words font-medium text-gray-900">
+                            <div class="{{ $row }}">
+                                <div class="{{ $label }}">
+                                    <x-heroicon-o-arrow-trending-up class="h-5 w-5 text-gray-400" />
+                                    <span>Job Level</span>
+                                </div>
+                                <span class="{{ $value }}">
                                     {{ ucwords(strtolower(optional($personnel)->job_level)) }}
                                 </span>
                             </div>
 
                             {{-- State Position --}}
-                            <div class="flex items-center gap-2 p-2">
-                                <x-heroicon-o-user class="h-5 w-5 text-gray-400" />
-                                <span class="min-w-32 max-w-32 text-gray-500">State Position</span>
-                                <span class="break-words font-medium text-gray-900">
+                            <div class="{{ $row }}">
+                                <div class="{{ $label }}">
+                                    <x-heroicon-o-map-pin class="h-5 w-5 text-gray-400" />
+                                    <span>State Position</span>
+                                </div>
+                                <span class="{{ $value }}">
                                     {{ ucwords(strtolower(optional($personnel)->state_position)) }}
-
                                 </span>
                             </div>
 
                             {{-- Reason for Vacancy --}}
-                            <div
-                                class="col-span-2 flex flex-1 items-start gap-2 rounded-md bg-gray-50 p-3 dark:bg-gray-700">
-                                <x-heroicon-o-question-mark-circle class="h-5 w-5 text-pink-400" />
-                                <div class="flex flex-col">
-                                    <span class="text-gray-500">Reason for Vacancy</span>
-                                    <span class="break-words font-medium text-gray-900">
-                                        {{ $personnel->reason_vacancy ?: '-' }}
-                                    </span>
+                            <div class="col-span-2 flex flex-col gap-2 rounded-md bg-gray-50 p-3 dark:bg-gray-700">
+                                <div class="flex items-center gap-2 text-gray-500">
+                                    <x-heroicon-o-question-mark-circle class="h-5 w-5 text-pink-400" />
+                                    <span>Reason for Vacancy</span>
                                 </div>
+                                <span class="font-medium text-gray-900">
+                                    {{ $personnel->reason_vacancy ?: '-' }}
+                                </span>
                             </div>
 
                             {{-- Job Numbers --}}
-                            <div class="col-span-2 flex flex-1 gap-4 rounded-md bg-gray-50 p-3 dark:bg-gray-700">
-                                <x-heroicon-o-chart-bar class="h-5 w-5 text-emerald-500" />
-                                <div class="grid w-full grid-cols-3 gap-4">
-                                    <div class="flex">
-                                        <span class="min-w-32 max-w-32 text-xs text-gray-500">Total Required</span>
+                            <div class="col-span-2 flex flex-col gap-2 rounded-md bg-gray-50 p-3 dark:bg-gray-700">
+                                <div class="flex items-center gap-2 text-gray-500">
+                                    <x-heroicon-o-chart-bar class="h-5 w-5 text-emerald-500" />
+                                    <span>Job Numbers</span>
+                                </div>
+
+                                <div class="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                                    <div class="flex flex-col">
+                                        <span class="text-xs text-gray-500">Total Required</span>
                                         <span class="font-bold text-indigo-600">{{ $personnel->required }}</span>
                                     </div>
-                                    <div class="flex">
-                                        <span class="min-w-32 max-w-32 text-xs text-gray-500">Actual</span>
+
+                                    <div class="flex flex-col">
+                                        <span class="text-xs text-gray-500">Actual</span>
                                         <span class="font-bold text-indigo-600">{{ $personnel->actual }}</span>
                                     </div>
-                                    <div class="flex">
-                                        <span class="min-w-32 max-w-32 text-xs text-gray-500">Actual Number</span>
+
+                                    <div class="flex flex-col">
+                                        <span class="text-xs text-gray-500">Actual Number</span>
                                         <span class="font-bold text-indigo-600">{{ $personnel->total_actual }}</span>
                                     </div>
                                 </div>
                             </div>
 
                             {{-- Tags --}}
-                            <div
-                                class="col-span-2 flex flex-1 items-start gap-2 rounded-md bg-gray-50 p-3 dark:bg-gray-700">
-                                <x-heroicon-o-tag class="h-5 w-5 text-purple-500" />
-                                <div class="flex flex-col">
-                                    <span class="text-gray-500">🏷️ Tags</span>
-                                    <div class="mt-1 flex flex-wrap gap-2">
-                                        @forelse ($jobtag as $jt)
-                                            <span
-                                                class="inline-block rounded-full bg-purple-100 px-3 py-1 text-xs font-semibold text-purple-700 dark:bg-purple-800/30 dark:text-purple-300">
-                                                {{ $jt->job_tags }}
-                                            </span>
-                                        @empty
-                                            <span class="text-sm italic text-gray-400">No tags</span>
-                                        @endforelse
-                                    </div>
+                            <div class="col-span-2 flex flex-col gap-2 rounded-md bg-gray-50 p-3 dark:bg-gray-700">
+                                <div class="flex items-center gap-2 text-gray-500">
+                                    <x-heroicon-o-tag class="h-5 w-5 text-purple-500" />
+                                    <span>Tags</span>
+                                </div>
+
+                                <div class="flex flex-wrap gap-2">
+                                    @forelse ($jobtag as $jt)
+                                        <span
+                                            class="inline-block rounded-full bg-purple-100 px-3 py-1 text-xs font-semibold text-purple-700 dark:bg-purple-800/30 dark:text-purple-300">
+                                            {{ $jt->job_tags }}
+                                        </span>
+                                    @empty
+                                        <span class="text-sm italic text-gray-400">No tags</span>
+                                    @endforelse
                                 </div>
                             </div>
+
                         </div>
                     </div>
+
                 </div>
             </div>
             <div class="flex flex-col gap-4 sm:w-1/2 md:w-full">
@@ -371,13 +398,13 @@
                                         <tr
                                             class="border-b border-gray-100 transition-colors hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700">
                                             <td class="p-3 text-left text-gray-800 dark:text-gray-200">
-                                            {{ $ap->aprv_leveling }}
+                                                {{ $ap->aprv_leveling }}
                                             </td>
                                             <td class="p-3 text-left text-gray-800 dark:text-gray-200">
-                                            {{ $ap->aprv_name }}
+                                                {{ $ap->aprv_name }}
                                             </td>
                                             <td class="p-3 text-left text-gray-700 dark:text-gray-300">
-                                            {{ $ap->aprv_datebefore ? : '-' }}
+                                                {{ $ap->aprv_datebefore ?: '-' }}
                                             </td>
                                             <td class="p-3 text-left">
                                                 @php
@@ -430,33 +457,36 @@
                                 </thead>
                                 <tbody>
                                     @foreach ($attachment as $at)
-                                        <tr class="border-b border-gray-100 transition-colors last:border-b-0 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700">
-                                        <td class="p-3">
-                                            @if (!empty($at->signed_url))
-                                            <a href="{{ $at->signed_url }}" target="_blank"
-                                                class="flex items-center gap-2 font-medium text-indigo-600 hover:underline dark:text-indigo-400">📎
-                                                {{ $at->attachment_name ?? ($at->filename ?? 'Attachment') }}
-                                            </a>
-                                            @else
-                                            <span class="text-gray-700 dark:text-gray-300">
-                                                {{ $at->attachment_name ?? ($at->filename ?? 'Attachment') }}
-                                            </span>
-                                            @endif
-                                        </td>
-                                        <td class="p-3 text-gray-800 dark:text-gray-200">
-                                            {{ $at->created_by ?? '-' }}
-                                        </td>
-                                        <td class="p-3 text-gray-700 dark:text-gray-300">
-                                            @php
-                                            $dt = $at->attachment_date ?? $at->created_at ?? null;
-                                            @endphp
-                                            {{ $dt ? : '-' }}
-                                        </td>
+                                        <tr
+                                            class="border-b border-gray-100 transition-colors last:border-b-0 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700">
+                                            <td class="p-3">
+                                                @if (!empty($at->signed_url))
+                                                    <a href="{{ $at->signed_url }}" target="_blank"
+                                                        class="flex items-center gap-2 font-medium text-indigo-600 hover:underline dark:text-indigo-400">📎
+                                                        {{ $at->attachment_name ?? ($at->filename ?? 'Attachment') }}
+                                                    </a>
+                                                @else
+                                                    <span class="text-gray-700 dark:text-gray-300">
+                                                        {{ $at->attachment_name ?? ($at->filename ?? 'Attachment') }}
+                                                    </span>
+                                                @endif
+                                            </td>
+                                            <td class="p-3 text-gray-800 dark:text-gray-200">
+                                                {{ $at->created_by ?? '-' }}
+                                            </td>
+                                            <td class="p-3 text-gray-700 dark:text-gray-300">
+                                                @php
+                                                    $dt = $at->attachment_date ?? ($at->created_at ?? null);
+                                                @endphp
+                                                {{ $dt ?: '-' }}
+                                            </td>
                                         </tr>
                                     @endforeach
                                     @if ($attachment->isEmpty())
                                         <tr>
-                                        <td colspan="3" class="p-4 text-center italic text-gray-500 dark:text-gray-400">No attachments found.</td>
+                                            <td colspan="3"
+                                                class="p-4 text-center italic text-gray-500 dark:text-gray-400">No
+                                                attachments found.</td>
                                         </tr>
                                     @endif
 
@@ -487,30 +517,29 @@
                                 </div>
                             </div>
                         </div> --}}
-                        <div x-show="activeTab === 'comments'"
-                                x-transition:enter="transition ease-out duration-300"
-                                x-transition:enter-start="opacity-0 translate-y-2"
-                                x-transition:enter-end="opacity-100 translate-y-0"
-                                x-transition:leave="transition ease-in duration-200"
-                                x-transition:leave-start="opacity-100 translate-y-0"
-                                x-transition:leave-end="opacity-0 translate-y-2">
+                        <div x-show="activeTab === 'comments'" x-transition:enter="transition ease-out duration-300"
+                            x-transition:enter-start="opacity-0 translate-y-2"
+                            x-transition:enter-end="opacity-100 translate-y-0"
+                            x-transition:leave="transition ease-in duration-200"
+                            x-transition:leave-start="opacity-100 translate-y-0"
+                            x-transition:leave-end="opacity-0 translate-y-2">
 
                             <div class="flex w-full flex-col justify-center">
                                 <div id="commentList"
                                     class="custom-scrollbar flex max-h-60 flex-col space-y-4 overflow-y-auto p-4">
-                                <p class="py-4 text-center italic text-gray-500">Loading comments...</p>
+                                    <p class="py-4 text-center italic text-gray-500">Loading comments...</p>
                                 </div>
 
                                 <div class="flex items-center gap-3 border-t border-gray-200 p-4 dark:border-gray-700">
-                                <input id="commentInput" type="text" placeholder="Write a comment..."
+                                    <input id="commentInput" type="text" placeholder="Write a comment..."
                                         class="flex-1 rounded-lg border border-transparent bg-gray-100 p-3 text-gray-800 transition-all duration-200 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white dark:focus:ring-indigo-400" />
-                                <button id="postCommentBtn" type="button"
+                                    <button id="postCommentBtn" type="button"
                                         class="rounded-lg bg-indigo-600 px-5 py-3 text-sm font-semibold text-white transition-all duration-200 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 active:scale-95 dark:focus:ring-offset-gray-800">
-                                    Post 🚀
-                                </button>
+                                        Post 🚀
+                                    </button>
                                 </div>
                             </div>
-                            </div>
+                        </div>
 
                     </div>
                 </div>
@@ -567,9 +596,9 @@
         </div>
     </div>
     <script>
-    if (window.lucide && typeof window.lucide.createIcons === 'function') {
-        window.lucide.createIcons();
-    }
+        if (window.lucide && typeof window.lucide.createIcons === 'function') {
+            window.lucide.createIcons();
+        }
     </script>
 
 
@@ -672,43 +701,45 @@
         });
     </script> --}}
     <script>
-$(function () {
-  const docid = @json($personnel->docid);
-  const $list = $('#commentList');
-  const $input = $('#commentInput');
-  const $btn = $('#postCommentBtn');
+        $(function() {
+            const docid = @json($personnel->docid);
+            const $list = $('#commentList');
+            const $input = $('#commentInput');
+            const $btn = $('#postCommentBtn');
 
-  function escapeHtml(s) {
-    return String(s)
-      .replaceAll('&', '&amp;')
-      .replaceAll('<', '&lt;')
-      .replaceAll('>', '&gt;')
-      .replaceAll('"', '&quot;')
-      .replaceAll("'", '&#039;');
-  }
+            function escapeHtml(s) {
+                return String(s)
+                    .replaceAll('&', '&amp;')
+                    .replaceAll('<', '&lt;')
+                    .replaceAll('>', '&gt;')
+                    .replaceAll('"', '&quot;')
+                    .replaceAll("'", '&#039;');
+            }
 
-  function prettyTime(ts) {
-    try {
-      if (window.moment) return moment(ts).fromNow();
-      // fallback tanpa moment
-      const d = new Date(ts);
-      return isNaN(d) ? '' : d.toLocaleString();
-    } catch (e) {
-      return '';
-    }
-  }
+            function prettyTime(ts) {
+                try {
+                    if (window.moment) return moment(ts).fromNow();
+                    // fallback tanpa moment
+                    const d = new Date(ts);
+                    return isNaN(d) ? '' : d.toLocaleString();
+                } catch (e) {
+                    return '';
+                }
+            }
 
-  function renderComments(comments) {
-    $list.empty();
-    if (!comments || comments.length === 0) {
-      $list.append('<p class="py-4 text-center italic text-gray-500">No comments yet. Be the first to comment!</p>');
-      return;
-    }
-    comments.forEach(c => {
-      const user = escapeHtml(c.username ?? 'User');
-      const msg  = escapeHtml(c.message ?? '');
-      const when = prettyTime(c.created_at ?? c.createdAt ?? '');
-      $list.append(`
+            function renderComments(comments) {
+                $list.empty();
+                if (!comments || comments.length === 0) {
+                    $list.append(
+                        '<p class="py-4 text-center italic text-gray-500">No comments yet. Be the first to comment!</p>'
+                    );
+                    return;
+                }
+                comments.forEach(c => {
+                    const user = escapeHtml(c.username ?? 'User');
+                    const msg = escapeHtml(c.message ?? '');
+                    const when = prettyTime(c.created_at ?? c.createdAt ?? '');
+                    $list.append(`
         <div class="p-3 bg-gray-100 dark:bg-gray-800 rounded-lg mb-2 border border-gray-300 dark:border-gray-700">
           <p class="text-sm font-semibold">${user}
             <span class="text-xs text-gray-500">(${when})</span>
@@ -716,81 +747,80 @@ $(function () {
           <p class="text-gray-800 dark:text-gray-200">${msg}</p>
         </div>
       `);
-    });
-  }
+                });
+            }
 
-  function loadComments() {
-    $list.html('<p class="text-gray-500 italic">Loading comments...</p>');
-    $.ajax({
-      url: `/personnel/${encodeURIComponent(docid)}/comments`,
-      type: 'GET',
-      dataType: 'json'
-    })
-    .done(function (res) {
-      renderComments(res?.comments || []);
-    })
-    .fail(function (xhr) {
-      console.error('Error fetching comments:', xhr.responseText);
-      $list.html('<p class="text-red-500 italic">Failed to load comments.</p>');
-    });
-  }
+            function loadComments() {
+                $list.html('<p class="text-gray-500 italic">Loading comments...</p>');
+                $.ajax({
+                        url: `/personnel/${encodeURIComponent(docid)}/comments`,
+                        type: 'GET',
+                        dataType: 'json'
+                    })
+                    .done(function(res) {
+                        renderComments(res?.comments || []);
+                    })
+                    .fail(function(xhr) {
+                        console.error('Error fetching comments:', xhr.responseText);
+                        $list.html('<p class="text-red-500 italic">Failed to load comments.</p>');
+                    });
+            }
 
-  function addComment() {
-    const text = ($input.val() || '').trim();
-    if (!text) {
-      toastr.error('Please enter a comment.');
-      return;
-    }
-    $btn.prop('disabled', true).text('Posting...');
-    $.ajax({
-      url: `/personnel/${encodeURIComponent(docid)}/comments`,
-      type: 'POST',
-      dataType: 'json',
-      data: {
-        _token: @json(csrf_token()),
-        docid: docid,
-        comment: text
-      }
-    })
-    .done(function (res) {
-      if (res?.status === 'success' || res?.success) {
-        $input.val('');
-        loadComments();           // refresh list
-        toastr.success('Comment posted');
-      } else {
-        toastr.error(res?.message || 'Failed to post comment');
-      }
-    })
-    .fail(function (xhr) {
-      console.error('Error adding comment:', xhr);
-      toastr.error(xhr?.responseJSON?.message || 'Error posting comment');
-    })
-    .always(function () {
-      $btn.prop('disabled', false).text('Post 🚀');
-    });
-  }
+            function addComment() {
+                const text = ($input.val() || '').trim();
+                if (!text) {
+                    toastr.error('Please enter a comment.');
+                    return;
+                }
+                $btn.prop('disabled', true).text('Posting...');
+                $.ajax({
+                        url: `/personnel/${encodeURIComponent(docid)}/comments`,
+                        type: 'POST',
+                        dataType: 'json',
+                        data: {
+                            _token: @json(csrf_token()),
+                            docid: docid,
+                            comment: text
+                        }
+                    })
+                    .done(function(res) {
+                        if (res?.status === 'success' || res?.success) {
+                            $input.val('');
+                            loadComments(); // refresh list
+                            toastr.success('Comment posted');
+                        } else {
+                            toastr.error(res?.message || 'Failed to post comment');
+                        }
+                    })
+                    .fail(function(xhr) {
+                        console.error('Error adding comment:', xhr);
+                        toastr.error(xhr?.responseJSON?.message || 'Error posting comment');
+                    })
+                    .always(function() {
+                        $btn.prop('disabled', false).text('Post 🚀');
+                    });
+            }
 
-  // Bind actions
-  $btn.on('click', addComment);
-  $input.on('keypress', function (e) {
-    if (e.which === 13 && !e.shiftKey) {
-      e.preventDefault();
-      addComment();
-    }
-  });
+            // Bind actions
+            $btn.on('click', addComment);
+            $input.on('keypress', function(e) {
+                if (e.which === 13 && !e.shiftKey) {
+                    e.preventDefault();
+                    addComment();
+                }
+            });
 
-  // initial load
-  loadComments();
-});
-</script>
-{{-- <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.30.1/moment.min.js" integrity="sha512-TX..." crossorigin="anonymous" referrerpolicy="no-referrer"></script> --}}
-<script> if (window.moment) moment.updateLocale('en', {}); </script>
-<script
-  src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.30.1/moment.min.js"
-  integrity="sha512-QoJS4DOhdmG8kbbHkxmB/rtPdN62cGWXAdAFWWJPvUFF1/zxcPSdAnn4HhYZSIlVoLVEJ0LesfNlusgm2bPfnA=="
-  crossorigin="anonymous"
-  referrerpolicy="no-referrer">
-</script>
+            // initial load
+            loadComments();
+        });
+    </script>
+    {{-- <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.30.1/moment.min.js" integrity="sha512-TX..." crossorigin="anonymous" referrerpolicy="no-referrer"></script> --}}
+    <script>
+        if (window.moment) moment.updateLocale('en', {});
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.30.1/moment.min.js"
+        integrity="sha512-QoJS4DOhdmG8kbbHkxmB/rtPdN62cGWXAdAFWWJPvUFF1/zxcPSdAnn4HhYZSIlVoLVEJ0LesfNlusgm2bPfnA=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
     <script>
         $(document).on("click", "#approveBtn", function() {

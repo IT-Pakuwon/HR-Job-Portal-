@@ -49,18 +49,20 @@
 
             {{-- 🔥 On Hold (status_pekerjaan = H) - kiri paling awal --}}
             <button type="button" class="job-filter group block" data-job="H">
-                <div class="status-card flex items-center gap-4 rounded-lg border border-purple-700 bg-purple-200/20 p-3 text-purple-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-purple-100 hover:shadow-lg active:scale-95">
+                <div
+                    class="status-card flex items-center gap-4 rounded-lg border border-purple-700 bg-purple-200/20 p-3 text-purple-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-purple-100 hover:shadow-lg active:scale-95">
                     <span class="text-xl group-hover:animate-pulse">🕒</span>
                     <div class="flex flex-grow items-center justify-between">
                         <p class="text-lg font-medium">On Hold</p>
                         <p class="text-right text-xl font-extrabold">{{ $wojobs }}</p>
                     </div>
                 </div>
-            </button>          
+            </button>
 
             {{-- On Progress (P) --}}
             <button type="button" class="status-filter group block" data-status="P">
-                <div class="status-card flex items-center gap-4 rounded-lg border border-blue-700 bg-blue-200/20 p-3 text-blue-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-blue-100 hover:shadow-lg active:scale-95">
+                <div
+                    class="status-card flex items-center gap-4 rounded-lg border border-blue-700 bg-blue-200/20 p-3 text-blue-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-blue-100 hover:shadow-lg active:scale-95">
                     <span class="text-xl group-hover:animate-pulse">⏳</span>
                     <div class="flex flex-grow items-center justify-between">
                         <p class="text-lg font-medium">On Progress</p>
@@ -71,7 +73,8 @@
 
             {{-- Reject (R) --}}
             <button type="button" class="status-filter group block" data-status="R">
-                <div class="status-card flex items-center gap-4 rounded-lg border border-red-700 bg-red-200/20 p-3 text-red-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-red-100 hover:shadow-lg active:scale-95">
+                <div
+                    class="status-card flex items-center gap-4 rounded-lg border border-red-700 bg-red-200/20 p-3 text-red-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-red-100 hover:shadow-lg active:scale-95">
                     <span class="text-xl group-hover:animate-pulse">⛔️</span>
                     <div class="flex flex-grow items-center justify-between">
                         <p class="text-lg font-medium">Reject</p>
@@ -82,7 +85,8 @@
 
             {{-- Completed (C) --}}
             <button type="button" class="status-filter group block" data-status="C">
-                <div class="status-card flex items-center gap-4 rounded-lg border border-green-700 bg-green-200/20 p-3 text-green-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-green-100 hover:shadow-lg active:scale-95">
+                <div
+                    class="status-card flex items-center gap-4 rounded-lg border border-green-700 bg-green-200/20 p-3 text-green-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-green-100 hover:shadow-lg active:scale-95">
                     <span class="text-xl group-hover:animate-pulse">✅</span>
                     <div class="flex flex-grow items-center justify-between">
                         <p class="text-lg font-medium">Completed</p>
@@ -91,9 +95,10 @@
                 </div>
             </button>
 
-             {{-- All (dok status semua/terserah filter lain) --}}
+            {{-- All (dok status semua/terserah filter lain) --}}
             <button type="button" class="status-filter group block" data-status="">
-                <div class="status-card flex items-center gap-4 rounded-lg border border-orange-700 bg-orange-200/20 p-3 text-orange-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-orange-100 hover:shadow-lg active:scale-95">
+                <div
+                    class="status-card flex items-center gap-4 rounded-lg border border-orange-700 bg-orange-200/20 p-3 text-orange-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-orange-100 hover:shadow-lg active:scale-95">
                     <span class="text-xl group-hover:animate-pulse">📄</span>
                     <div class="flex flex-grow items-center justify-between">
                         <p class="text-lg font-medium">All</p>
@@ -326,22 +331,39 @@
             </style>
 
             <div class="mt-6 rounded-2xl bg-white dark:bg-gray-800">
-                <div class="flex flex-col items-start justify-between gap-4 border-b border-gray-200 p-4 sm:flex-row sm:items-center dark:border-gray-700">
-                    <h1 class="text-xl font-extrabold text-gray-700 dark:text-white">Jobs WO</h1>                   
+                <div
+                    class="flex flex-col items-start justify-between gap-4 border-b border-gray-200 p-4 sm:flex-row sm:items-center dark:border-gray-700">
+                    <h1 class="text-xl font-extrabold text-gray-700 dark:text-white">Jobs WO</h1>
                 </div>
 
                 <div class="overflow-x-auto p-6">
                     <table id="wosTable" class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                         <thead class="bg-gray-50 dark:bg-gray-700">
                             <tr>
-                                <th class="w-32 px-6 py-3 text-left  text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">DocID</th>
-                                <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">Date</th>
-                                <th class="w-32 px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">Company</th>
-                                <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">Department</th>
-                                <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">Work Type</th>
-                                <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">WO Request</th>
-                                <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">Description</th>
-                                <th class="w-32 px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">Status Pekerjaan</th>
+                                <th
+                                    class="w-32 px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                                    DocID</th>
+                                <th
+                                    class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                                    Date</th>
+                                <th
+                                    class="w-32 px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                                    Company</th>
+                                <th
+                                    class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                                    Department</th>
+                                <th
+                                    class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                                    Work Type</th>
+                                <th
+                                    class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                                    WO Request</th>
+                                <th
+                                    class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                                    Description</th>
+                                <th
+                                    class="w-32 px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                                    Status Pekerjaan</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-800"></tbody>
@@ -349,11 +371,11 @@
                 </div>
             </div>
 
-          
+
             <script>
                 var currentUser = "{{ auth()->user()->username }}";
 
-                $(document).ready(function () {
+                $(document).ready(function() {
                     // 🔥 default: tampilkan On Hold (H)
                     let jobStatusFilter = 'H';
 
@@ -366,22 +388,25 @@
                         ajax: {
                             url: "{{ route('wos.jsonJobs') }}",
                             type: "GET",
-                            data: function (d) {
+                            data: function(d) {
                                 d.job_status = jobStatusFilter ?? ''; // 🔥 hanya ini yg dikirim
                             }
                         },
-                        order: [[0, 'desc']],
-                        columns: [
-                            {
+                        order: [
+                            [0, 'desc']
+                        ],
+                        columns: [{
                                 data: 'woid',
-                                render: function (data, type, row) {
+                                render: function(data, type, row) {
                                     let url = `/showwos/${row.eid}`;
-                                    let cls = 'shrink-0 px-6 py-2 bg-gray-500 text-white rounded hover:bg-gray-700 text-sm';
+                                    let cls =
+                                        'shrink-0 px-6 py-2 bg-gray-500 text-white rounded hover:bg-gray-700 text-sm';
                                     const text = data || row.eid;
 
                                     if (row.status === 'D' && row.created_by === currentUser) {
                                         url = `/editwos/${row.eid}`;
-                                        cls = 'shrink-0 px-3 py-1.5 bg-yellow-500 text-white rounded hover:bg-yellow-700 text-sm';
+                                        cls =
+                                            'shrink-0 px-3 py-1.5 bg-yellow-500 text-white rounded hover:bg-yellow-700 text-sm';
                                     }
 
                                     return `
@@ -390,26 +415,63 @@
 
                                 }
                             },
-                            { data: 'wodate',        className: 'text-left' },
-                            { data: 'cpny_id',       className: 'text-center w-32' },
-                            { data: 'department_id', className: 'text-center whitespace-normal break-words' },
-                            { data: 'worktype_name', defaultContent: '-', className: 'text-left' },
-                            { data: 'worequest',     defaultContent: '-', className: 'text-left' },
-                            { data: 'keperluan' },
+                            {
+                                data: 'wodate',
+                                className: 'text-left'
+                            },
+                            {
+                                data: 'cpny_id',
+                                className: 'text-center w-32'
+                            },
+                            {
+                                data: 'department_id',
+                                className: 'text-center whitespace-normal break-words'
+                            },
+                            {
+                                data: 'worktype_name',
+                                defaultContent: '-',
+                                className: 'text-left'
+                            },
+                            {
+                                data: 'worequest',
+                                defaultContent: '-',
+                                className: 'text-left'
+                            },
+                            {
+                                data: 'keperluan'
+                            },
                             {
                                 data: 'status_pekerjaan', // ini dok-status; kalau mau ganti ke job status tinggal pakai 'status_pekerjaan'
                                 className: 'text-left',
-                                render: function (data, type, row) {
+                                render: function(data, type, row) {
                                     // map dok-status (boleh dibiarkan)
                                     const map = {
-                                        'H': { t: 'Hold',      c: 'bg-gray-300/30 text-gray-600' },
-                                        'P': { t: 'On Progress', c: 'bg-blue-300/30 text-blue-600' },
-                                        'C': { t: 'Completed',   c: 'bg-green-300/30 text-green-600' },
-                                        'X': { t: 'Cancel',      c: 'bg-red-300/30 text-red-600' },
-                                        'R': { t: 'Rejected',    c: 'bg-red-300/30 text-red-600' },
+                                        'H': {
+                                            t: 'Hold',
+                                            c: 'bg-gray-300/30 text-gray-600'
+                                        },
+                                        'P': {
+                                            t: 'On Progress',
+                                            c: 'bg-blue-300/30 text-blue-600'
+                                        },
+                                        'C': {
+                                            t: 'Completed',
+                                            c: 'bg-green-300/30 text-green-600'
+                                        },
+                                        'X': {
+                                            t: 'Cancel',
+                                            c: 'bg-red-300/30 text-red-600'
+                                        },
+                                        'R': {
+                                            t: 'Rejected',
+                                            c: 'bg-red-300/30 text-red-600'
+                                        },
                                     };
-                                    const it = map[data] || { t: data || '-', c: 'bg-gray-300/30 text-gray-600' };
-                                    return `<span class="w-32 inline-block ${it.c} font-semibold px-4 py-2 text-center rounded">${it.t}</span>`;
+                                    const it = map[data] || {
+                                        t: data || '-',
+                                        c: 'bg-gray-300/30 text-gray-600'
+                                    };
+                                    return `<span class="w-32 inline-block ${it.c} font-semibold px-3 py-1.5 text-base text-center rounded">${it.t}</span>`;
                                 }
                             }
                             // Jika ingin menampilkan job status juga, tambah 1 kolom lagi render dari row.status_pekerjaan
@@ -422,7 +484,9 @@
                     // Helper highlight: aktifkan tombol sesuai jobStatusFilter
                     function setActiveCards() {
                         document.querySelectorAll('.status-filter, .job-filter').forEach(b => b.classList.remove('active'));
-                        const btn = document.querySelector(`.status-filter[data-status="${jobStatusFilter}"], .job-filter[data-job="${jobStatusFilter}"]`);
+                        const btn = document.querySelector(
+                            `.status-filter[data-status="${jobStatusFilter}"], .job-filter[data-job="${jobStatusFilter}"]`
+                            );
                         if (btn) btn.classList.add('active');
                     }
 
@@ -432,14 +496,14 @@
                     // Semua kartu pakai status-pekerjaan:
                     // - Kartu On Hold punya class .job-filter data-job="H"
                     // - Kartu lain .status-filter data-status=""|"P"|"R"|"C"
-                    $('.status-filter').on('click', function (e) {
+                    $('.status-filter').on('click', function(e) {
                         e.preventDefault();
                         jobStatusFilter = $(this).data('status') || ''; // '' = All job statuses
                         setActiveCards();
                         table.ajax.reload(null, true);
                     });
 
-                    $('.job-filter').on('click', function (e) {
+                    $('.job-filter').on('click', function(e) {
                         e.preventDefault();
                         jobStatusFilter = $(this).data('job') || '';
                         setActiveCards();

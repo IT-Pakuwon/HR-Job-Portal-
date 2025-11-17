@@ -229,109 +229,141 @@
                     </header>
 
                     <div class="flex flex-1 flex-col overflow-y-auto p-4">
-                        <div class="grid grid-cols-1 gap-x-8 gap-y-3 text-sm sm:grid-cols-2">
-                            <div class="flex items-center gap-2 p-2">
-                                <x-heroicon-o-calendar-days class="h-5 w-5 text-gray-400" />
-                                <span class="min-w-32 max-w-32 text-gray-500">Receipt Date</span>
-                                <span class="break-words font-medium text-gray-900 dark:text-gray-300">
-                                    {{ \Carbon\Carbon::parse($rcp->receiptdate)->format('d M Y') }}
-                                </span>
-                            </div>
 
-                            <div class="flex items-center gap-2 p-2">
-                                <x-heroicon-o-document-text class="h-5 w-5 text-gray-400" />
-                                <span class="min-w-32 max-w-32 text-gray-500">Type</span>
-                                {{-- <span class="break-words font-medium text-gray-900 dark:text-gray-300">{{ $rcp->receipttype }}</span> --}}
-                                <span class="break-words font-medium text-gray-900 dark:text-gray-300">
-                                    {{ $rcp->receipttype === 'PR' ? 'Purchase Receipt' : ($rcp->receipttype === 'RR' ? 'Return Receipt' : $rcp->receipttype) }}
-                                </span>
-                            </div>
+                        @php
+                            $row = 'flex flex-col gap-1 p-2 sm:flex-row sm:items-center sm:gap-3';
+                            $label = 'flex items-center gap-2 text-gray-500 sm:min-w-40';
+                            $value = 'break-words font-medium text-gray-900 dark:text-gray-300 sm:flex-1';
 
-                            <div class="flex items-center gap-2 p-2">
-                                <x-heroicon-o-hashtag class="h-5 w-5 text-gray-400" />
-                                <span class="min-w-32 max-w-32 text-gray-500">PO Nbr</span>
-                                <span class="break-words font-medium text-gray-900 dark:text-gray-300">
-                                    @if ($poUrl)
-                                        <a class="text-indigo-600 hover:underline dark:text-indigo-400" target="_blank"
-                                            href="{{ $poUrl }}">{{ $rcp->ponbr }}</a>
+                            // Build clickable PO URL
+                            $poDisplay = e($rcp->ponbr);
+                            if (!empty($poUrl)) {
+                                $poDisplay =
+                                    '<a href="' .
+                                    e($poUrl) .
+                                    '" target="_blank" class="inline-flex items-center gap-1 text-indigo-600 hover:underline dark:text-indigo-400">' .
+                                    e($rcp->ponbr) .
+                                    '<x-heroicon-o-arrow-up-right class="h-4 w-4" />' .
+                                    '</a>';
+                            }
+
+                            // Build clickable CS URL
+                            $csDisplay = e($rcp->csid);
+                            if (!empty($csUrl)) {
+                                $csDisplay =
+                                    '<a href="' .
+                                    e($csUrl) .
+                                    '" target="_blank" class="inline-flex items-center gap-1 text-indigo-600 hover:underline dark:text-indigo-400">' .
+                                    e($rcp->csid) .
+                                    '<x-heroicon-o-arrow-up-right class="h-4 w-4" />' .
+                                    '</a>';
+                            }
+
+                            // Build clickable SPPB URL
+                            $sppbDisplay = e($rcp->sppbjktid);
+                            if (!empty($sppbUrl)) {
+                                $sppbDisplay =
+                                    '<a href="' .
+                                    e($sppbUrl) .
+                                    '" target="_blank" class="inline-flex items-center gap-1 text-indigo-600 hover:underline dark:text-indigo-400">' .
+                                    e($rcp->sppbjktid) .
+                                    '<x-heroicon-o-arrow-up-right class="h-4 w-4" />' .
+                                    '</a>';
+                            }
+
+                            $fields = [
+                                [
+                                    'icon' => 'calendar-days',
+                                    'label' => 'Receipt Date',
+                                    'value' => \Carbon\Carbon::parse($rcp->receiptdate)->format('d M Y'),
+                                ],
+                                [
+                                    'icon' => 'document-text',
+                                    'label' => 'Type',
+                                    'value' =>
+                                        $rcp->receipttype === 'PR'
+                                            ? 'Purchase Receipt'
+                                            : ($rcp->receipttype === 'RR'
+                                                ? 'Return Receipt'
+                                                : $rcp->receipttype),
+                                ],
+                                [
+                                    'icon' => 'hashtag',
+                                    'label' => 'PO Nbr',
+                                    'value' => $poDisplay,
+                                    'is_raw' => true,
+                                ],
+                                [
+                                    'icon' => 'building-office',
+                                    'label' => 'Company',
+                                    'value' => $rcp->cpny_id,
+                                ],
+                                [
+                                    'icon' => 'squares-2x2',
+                                    'label' => 'Department',
+                                    'value' => $rcp->department_id,
+                                ],
+                                [
+                                    'icon' => 'user-circle',
+                                    'label' => 'Requester',
+                                    'value' => $rcp->user_peminta,
+                                ],
+                                [
+                                    'icon' => 'building-storefront',
+                                    'label' => 'Vendor',
+                                    'value' => $rcp->vendorname,
+                                ],
+                                [
+                                    'icon' => 'document-duplicate',
+                                    'label' => 'CS ID',
+                                    'value' => $csDisplay,
+                                    'is_raw' => true,
+                                ],
+                                [
+                                    'icon' => 'document-text',
+                                    'label' => 'SPPB/J/K/T',
+                                    'value' => $sppbDisplay,
+                                    'is_raw' => true,
+                                ],
+                            ];
+                        @endphp
+
+                        <div class="grid grid-cols-2 gap-x-8 gap-y-3 text-sm sm:grid-cols-2">
+
+                            @foreach ($fields as $f)
+                                <div class="{{ $row }}">
+                                    <div class="{{ $label }}">
+                                        <x-dynamic-component :component="'heroicon-o-' . $f['icon']" class="h-5 w-5 text-gray-400" />
+                                        <span>{{ $f['label'] }}</span>
+                                    </div>
+
+                                    @if (!empty($f['is_raw']))
+                                        <span class="{{ $value }}">{!! $f['value'] !!}</span>
                                     @else
-                                        {{ $rcp->ponbr }}
+                                        <span class="{{ $value }}">{{ $f['value'] }}</span>
                                     @endif
-                                </span>
-                            </div>
+                                </div>
+                            @endforeach
 
-                            <div class="flex items-center gap-2 p-2">
-                                <x-heroicon-o-building-office class="h-5 w-5 text-gray-400" />
-                                <span class="min-w-32 max-w-32 text-gray-500">Company</span>
-                                <span
-                                    class="break-words font-medium text-gray-900 dark:text-gray-300">{{ $rcp->cpny_id }}</span>
-                            </div>
-
-                            <div class="flex items-center gap-2 p-2">
-                                <x-heroicon-o-squares-2x2 class="h-5 w-5 text-gray-400" />
-                                <span class="min-w-32 max-w-32 text-gray-500">Department</span>
-                                <span
-                                    class="break-words font-medium text-gray-900 dark:text-gray-300">{{ $rcp->department_id }}</span>
-                            </div>
-
-                            <div class="flex items-center gap-2 p-2">
-                                <x-heroicon-o-user class="h-5 w-5 text-gray-400" />
-                                <span class="min-w-32 max-w-32 text-gray-500">Requester</span>
-                                <span
-                                    class="break-words font-medium text-gray-900 dark:text-gray-300">{{ $rcp->user_peminta }}</span>
-                            </div>
-
-                            <div class="flex items-center gap-2 p-2">
-                                <x-heroicon-o-building-storefront class="h-5 w-5 text-gray-400" />
-                                <span class="min-w-32 max-w-32 text-gray-500">Vendor</span>
-                                <span
-                                    class="break-words font-medium text-gray-900 dark:text-gray-300">{{ $rcp->vendorname }}</span>
-                            </div>
-
-                            <div class="flex items-center gap-2 p-2">
-                                <x-heroicon-o-document-duplicate class="h-5 w-5 text-gray-400" />
-                                <span class="min-w-32 max-w-32 text-gray-500">CS ID</span>
-                                <span class="break-words font-medium text-gray-900 dark:text-gray-300">
-                                    @if (!empty($csUrl))
-                                        <a href="{{ $csUrl }}" target="_blank"
-                                            class="inline-flex items-center gap-1 text-indigo-600 hover:underline dark:text-indigo-400">
-                                            {{ $rcp->csid }} <x-heroicon-o-arrow-up-right class="h-4 w-4" />
-                                        </a>
-                                    @else
-                                        {{ $rcp->csid }}
-                                    @endif
-                                </span>
-                            </div>
-
-                            <div class="flex items-center gap-2 p-2">
-                                <x-heroicon-o-document-text class="h-5 w-5 text-gray-400" />
-                                <span class="min-w-32 max-w-32 text-gray-500">SPPB/J/K/T</span>
-                                <span class="break-words font-medium text-gray-900 dark:text-gray-300">
-                                    @if (!empty($sppbUrl))
-                                        <a href="{{ $sppbUrl }}" target="_blank"
-                                            class="inline-flex items-center gap-1 text-indigo-600 hover:underline dark:text-indigo-400">
-                                            {{ $rcp->sppbjktid }} <x-heroicon-o-arrow-up-right class="h-4 w-4" />
-                                        </a>
-                                    @else
-                                        {{ $rcp->sppbjktid }}
-                                    @endif
-                                </span>
-                            </div>
-
+                            {{-- Note (if exists) --}}
                             @if (!empty($rcp->receiptnote))
-                                <div class="flex items-center gap-2 p-2 sm:col-span-2">
-                                    <x-heroicon-o-clipboard-document-list class="h-5 w-5 text-gray-400" />
-                                    <span class="min-w-32 max-w-32 text-gray-500">Note</span>
-                                    <span
-                                        class="break-words font-medium text-gray-900 dark:text-gray-300">{{ $rcp->receiptnote }}</span>
+                                <div class="col-span-2 flex flex-col gap-2 rounded-md bg-gray-50 p-3 dark:bg-gray-700">
+                                    <div class="flex items-center gap-2 text-gray-500">
+                                        <x-heroicon-o-clipboard-document-list class="h-5 w-5 text-gray-400" />
+                                        <span>Note</span>
+                                    </div>
+                                    <span class="font-medium text-gray-900 dark:text-gray-300">
+                                        {{ $rcp->receiptnote }}
+                                    </span>
                                 </div>
                             @endif
                         </div>
                     </div>
+
                 </div>
 
                 {{-- Right card (Tabs) --}}
-                <div class="flex flex-col gap-4 sm:w-1/2 md:w-full">
+                <div class="flex flex-col gap-4 rounded-xl bg-white duration-300 sm:w-1/2 md:w-full dark:bg-gray-800">
                     <div x-data="{ activeTab: 'attachment' }" class="flex flex-1 flex-col">
                         <header
                             class="sticky top-0 z-10 flex items-center rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
@@ -359,7 +391,7 @@
                             </nav>
                         </header>
 
-                        <div class="flex flex-1 flex-col rounded-b-xl bg-white dark:bg-gray-800">
+                        <div class="flex flex-1 flex-col">
                             <div x-show="activeTab === 'approval'" class="flex-1 p-4 transition-all">
                                 <table class="w-full text-sm">
                                     <thead>

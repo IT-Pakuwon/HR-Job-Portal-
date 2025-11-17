@@ -191,87 +191,83 @@
                         </div>
                     </header>
                     <div class="flex flex-1 flex-col overflow-y-auto p-4">
-                        <div class="grid grid-cols-1 gap-x-8 gap-y-3 text-sm sm:grid-cols-2">
+                        @php
+                            // Reusable class system
+                            $row = 'flex flex-col gap-1 p-2 sm:flex-row sm:items-center sm:gap-3';
+                            $label = 'flex items-center gap-2 text-gray-500 sm:min-w-40';
+                            $value = 'break-words font-medium text-gray-900 dark:text-gray-300 sm:flex-1';
 
-                            {{-- Company --}}
-                            <div class="flex items-center gap-2 p-2">
-                                <x-heroicon-o-building-office class="h-5 w-5 text-gray-400" />
-                                <span class="min-w-32 max-w-32 text-gray-500">Company</span>
-                                <span
-                                    class="break-words font-medium text-gray-900 dark:text-gray-300">{{ $imbudget->cpny_id }}</span>
-                            </div>
+                            $fields = [
+                                [
+                                    'icon' => 'building-office',
+                                    'label' => 'Company',
+                                    'value' => $imbudget->cpny_id,
+                                ],
+                                [
+                                    'icon' => 'squares-2x2',
+                                    'label' => 'Department',
+                                    'value' => $imbudget->department_id,
+                                ],
+                                [
+                                    'icon' => 'calendar',
+                                    'label' => 'Date',
+                                    'value' => date('j F Y', strtotime($imbudget->imbudgetdate)),
+                                ],
+                                [
+                                    'icon' => 'user',
+                                    'label' => 'User Peminta',
+                                    'value' => ucwords(strtolower(optional($imbudget->userpeminta)->name)),
+                                ],
+                                [
+                                    'icon' => 'document-text',
+                                    'label' => 'CS',
+                                    'value' => $imbudget->csid,
+                                ],
+                                [
+                                    'icon' => 'document-text',
+                                    'label' => 'SPPBJKT ID',
+                                    'value' => $imbudget->sppbjktid,
+                                ],
+                            ];
+                        @endphp
 
-                            {{-- Department --}}
-                            <div class="flex items-center gap-2 p-2">
-                                <x-heroicon-o-squares-2x2 class="h-5 w-5 text-gray-400" />
-                                <span class="min-w-32 max-w-32 text-gray-500">Department</span>
-                                <span
-                                    class="break-words font-medium text-gray-900 dark:text-gray-300">{{ $imbudget->department_id }}</span>
-                            </div>
+                        <div class="grid grid-cols-2 gap-x-8 gap-y-3 text-sm sm:grid-cols-2">
 
-                            {{-- Date --}}
-                            <div class="flex items-center gap-2 p-2">
-                                <x-heroicon-o-calendar class="h-5 w-5 text-gray-400" />
-                                <span class="min-w-32 max-w-32 text-gray-500">Date</span>
-                                <span class="break-words font-medium text-gray-900 dark:text-gray-300">
-                                    {{ date('j F Y', strtotime($imbudget->imbudgetdate)) }}
-                                </span>
-                            </div>
+                            {{-- Render all rows --}}
+                            @foreach ($fields as $f)
+                                <div class="{{ $row }}">
+                                    <div class="{{ $label }}">
+                                        <x-dynamic-component :component="'heroicon-o-' . $f['icon']" class="h-5 w-5 text-gray-400" />
+                                        <span>{{ $f['label'] }}</span>
+                                    </div>
+                                    <span class="{{ $value }}">{{ $f['value'] }}</span>
+                                </div>
+                            @endforeach
 
-                            {{-- Created User --}}
-                            <div class="flex items-center gap-2 p-2">
-                                <x-heroicon-o-user class="h-5 w-5 text-gray-400" />
-                                <span class="min-w-32 max-w-32 text-gray-500">User Peminta</span>
-                                <span class="break-words font-medium text-gray-900 dark:text-gray-300">
-                                    {{ ucwords(strtolower(optional($imbudget->userpeminta)->name)) }}
-                                </span>
-                            </div>
-
-                            {{-- Company --}}
-                            <div class="flex items-center gap-2 p-2">
-                                <x-heroicon-o-document-text class="h-5 w-5 text-gray-400" />
-                                <span class="min-w-32 max-w-32 text-gray-500">CS</span>
-                                <span
-                                    class="break-words font-medium text-gray-900 dark:text-gray-300">{{ $imbudget->csid }}</span>
-                            </div>
-
-                            {{-- Department --}}
-                            <div class="flex items-center gap-2 p-2">
-                                <x-heroicon-o-document-text class="h-5 w-5 text-gray-400" />
-                                <span class="min-w-32 max-w-32 text-gray-500">SPPBJKT ID</span>
-                                <span
-                                    class="break-words font-medium text-gray-900 dark:text-gray-300">{{ $imbudget->sppbjktid }}</span>
-                            </div>
-
-                            {{-- <div class="col-span-1 flex flex-col gap-3 sm:flex-row">                                  {
-                                <div class="flex flex-1 items-center gap-2 rounded-md bg-gray-50 p-3 dark:bg-gray-700">
-                                    <x-heroicon-o-clipboard-document-check class="h-5 w-5 text-gray-400" />
-                                    <div class="flex flex-col">
-                                        <span class="text-gray-500">Purpose</span>
-                                        <span <span
-                                            class="break-words font-medium text-gray-900 dark:text-gray-300">{{ $imbudget->imbudgetnote }}</span>
+                            {{-- Purpose full width --}}
+                            @if (!empty($imbudget->imbudgetnote))
+                                <div class="col-span-2">
+                                    <div class="flex items-start gap-2 rounded-md bg-gray-50 p-3 dark:bg-gray-700">
+                                        <x-heroicon-o-clipboard-document-check class="mt-0.5 h-5 w-5 text-gray-400" />
+                                        <div class="flex flex-col">
+                                            <span class="text-gray-500">Purpose</span>
+                                            <span class="break-words font-medium text-gray-900 dark:text-gray-300">
+                                                {{ $imbudget->imbudgetnote }}
+                                            </span>
+                                        </div>
                                     </div>
                                 </div>
-                            </div> --}}
-                            <div class="col-span-2">
-                                <div class="flex items-start gap-2 rounded-md bg-gray-50 p-3 dark:bg-gray-700">
-                                    <x-heroicon-o-clipboard-document-check class="mt-0.5 h-5 w-5 text-gray-400" />
-                                    <div class="flex flex-col">
-                                        <span class="text-gray-500">Purpose</span>
-                                        <span class="break-words font-medium text-gray-900 dark:text-gray-300">
-                                            {{ $imbudget->imbudgetnote }}
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
+                            @endif
+
                         </div>
                     </div>
+
 
 
                 </div>
 
                 {{-- Right card (Tabs) --}}
-                <div class="flex flex-col gap-4 sm:w-1/2 md:w-full">
+                <div class="flex flex-col gap-4 rounded-xl bg-white duration-300 sm:w-1/2 md:w-full dark:bg-gray-800">
                     <div x-data="{ activeTab: 'attachment' }" class="flex flex-1 flex-col">
                         <header
                             class="sticky top-0 z-10 flex items-center rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
@@ -304,7 +300,7 @@
                         </header>
 
                         {{-- Tabs Content --}}
-                        <div class="flex flex-1 flex-col rounded-b-xl bg-white dark:bg-gray-800">
+                        <div class="flex flex-1 flex-col">
                             {{-- Approval tab --}}
                             <div x-show="activeTab === 'approval'" class="flex-1 p-4 transition-all">
                                 <table class="w-full text-sm">

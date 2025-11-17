@@ -349,29 +349,37 @@
                     <table id="spbsTable" class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                         <thead class="bg-gray-50 dark:bg-gray-700">
                             <tr>
-                                <th class="w-32 px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
-                                DocID
+                                <th
+                                    class="w-32 px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                                    DocID
                                 </th>
-                                <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
-                                Date
+                                <th
+                                    class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                                    Date
                                 </th>
-                                <th class="w-32 px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
-                                Company
+                                <th
+                                    class="w-32 px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                                    Company
                                 </th>
-                                <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
-                                Department
+                                <th
+                                    class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                                    Department
                                 </th>
-                                <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
-                                Work Type
+                                <th
+                                    class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                                    Work Type
                                 </th>
-                                <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
-                                Sub Work Type
+                                <th
+                                    class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                                    Sub Work Type
                                 </th>
-                                <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
-                                Description
+                                <th
+                                    class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                                    Description
                                 </th>
-                                <th class="w-32 px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
-                                Status
+                                <th
+                                    class="w-32 px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                                    Status
                                 </th>
                             </tr>
                         </thead>
@@ -623,16 +631,18 @@
                             {
                                 data: 'spbid',
                                 render: function(data, type, row) {
-                                let url = `/showspbs/${row.eid}`;
-                                let cls = 'inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-sm leading-tight font-medium text-white rounded text-center transition-colors duration-200 bg-gray-500 hover:bg-gray-700';
-                                const text = data || row.id;
+                                    let url = `/showspbs/${row.eid}`;
+                                    let cls =
+                                        'inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-base leading-tight font-semibold text-white rounded text-center transition-colors duration-200 bg-gray-500 hover:bg-gray-700';
+                                    const text = data || row.id;
 
-                                if (row.status === 'D' && row.created_by === currentUser) {
-                                    url = `/editspbs/${row.eid}`;
-                                    cls = 'inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-sm leading-tight font-medium text-white rounded text-center transition-colors duration-200 bg-yellow-500 hover:bg-yellow-700';
-                                }
+                                    if (row.status === 'D' && row.created_by === currentUser) {
+                                        url = `/editspbs/${row.eid}`;
+                                        cls =
+                                            'inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-base leading-tight font-semibold text-white rounded text-center transition-colors duration-200 bg-yellow-500 hover:bg-yellow-700';
+                                    }
 
-                                return `
+                                    return `
                                     <div class="flex items-left gap-2 whitespace-nowrap">
                                     <a href="${url}" class="${cls}">${text}</a>
                                     <button type="button"
@@ -646,37 +656,74 @@
                             },
 
                             // 1. Date
-                            { data: 'spbdate', className: 'text-left' },
+                            {
+                                data: 'spbdate',
+                                className: 'text-left'
+                            },
 
                             // 2. Company
-                            { data: 'cpny_id', className: 'text-center w-32' },
+                            {
+                                data: 'cpny_id',
+                                className: 'text-center w-32'
+                            },
 
                             // 3. Department
-                            { data: 'department_id', className: 'text-center whitespace-normal break-words' },
+                            {
+                                data: 'department_id',
+                                className: 'text-center whitespace-normal break-words'
+                            },
 
                             // 4. Work Type
-                            { data: 'worktype_name', defaultContent: '-', className: 'text-left' },
+                            {
+                                data: 'worktype_name',
+                                defaultContent: '-',
+                                className: 'text-left'
+                            },
 
                             // 5. Sub Work Type
-                            { data: 'subworktype_name', defaultContent: '-', className: 'text-left' },
+                            {
+                                data: 'subworktype_name',
+                                defaultContent: '-',
+                                className: 'text-left'
+                            },
 
                             // 6. Description
-                            { data: 'keperluan' },
+                            {
+                                data: 'keperluan'
+                            },
 
                             // 7. Status (badge)
                             {
                                 data: 'status',
                                 className: 'text-left',
                                 render: function(data) {
-                                const map = {
-                                    'D': { t: 'Revise',     c: 'bg-gray-300/30 text-gray-600' },
-                                    'P': { t: 'On Progress',c: 'bg-blue-300/30 text-blue-600' },
-                                    'C': { t: 'Completed',  c: 'bg-green-300/30 text-green-600' },
-                                    'X': { t: 'Cancel',     c: 'bg-red-300/30 text-red-600' },
-                                    'R': { t: 'Rejected',   c: 'bg-red-300/30 text-red-600' },
-                                };
-                                const it = map[data] || { t: data || '-', c: 'bg-gray-300/30 text-gray-600' };
-                                return `<span class="w-32 inline-block ${it.c} font-semibold px-4 py-2 text-center rounded">${it.t}</span>`;
+                                    const map = {
+                                        'D': {
+                                            t: 'Revise',
+                                            c: 'bg-gray-300/30 text-gray-600'
+                                        },
+                                        'P': {
+                                            t: 'On Progress',
+                                            c: 'bg-blue-300/30 text-blue-600'
+                                        },
+                                        'C': {
+                                            t: 'Completed',
+                                            c: 'bg-green-300/30 text-green-600'
+                                        },
+                                        'X': {
+                                            t: 'Cancel',
+                                            c: 'bg-red-300/30 text-red-600'
+                                        },
+                                        'R': {
+                                            t: 'Rejected',
+                                            c: 'bg-red-300/30 text-red-600'
+                                        },
+                                    };
+                                    const it = map[data] || {
+                                        t: data || '-',
+                                        c: 'bg-gray-300/30 text-gray-600'
+                                    };
+                                    return `<span class="w-32 inline-block ${it.c} font-semibold px-3 py-1.5 text-base text-center rounded">${it.t}</span>`;
                                 }
                             }
                         ],

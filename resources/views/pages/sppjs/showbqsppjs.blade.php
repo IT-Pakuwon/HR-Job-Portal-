@@ -176,35 +176,50 @@
                     </header>
 
                     <div class="flex flex-1 flex-col overflow-y-auto p-4">
-                        <div class="grid grid-cols-1 gap-x-8 gap-y-3 text-sm sm:grid-cols-2">
+                        <div class="grid grid-cols-2 gap-x-8 gap-y-3 text-sm sm:grid-cols-2">
 
-                            {{-- Company --}}
-                            <div class="flex items-center gap-2 p-2">
-                                <x-heroicon-o-building-office class="h-5 w-5 text-gray-400" />
-                                <span class="min-w-32 max-w-32 text-gray-500">Company</span>
-                                <span
-                                    class="break-words font-medium text-gray-900 dark:text-gray-300">{{ $bq->cpny_id }}</span>
-                            </div>
-                            {{-- Date --}}
-                            <div class="flex items-center gap-2 p-2">
-                                <x-heroicon-o-calendar class="h-5 w-5 text-gray-400" />
-                                <span class="min-w-32 max-w-32 text-gray-500">Date</span>
-                                <span class="break-words font-medium text-gray-900 dark:text-gray-300">
-                                    {{ date('j F Y', strtotime($bq->created_at)) }}
-                                </span>
-                            </div>
+                            {{-- Reusable Classes --}}
+                            @php
+                                $row = 'flex flex-col gap-1 p-2 sm:flex-row sm:items-center sm:gap-3';
+                                $label = 'flex items-center gap-2 text-gray-500 sm:min-w-40';
+                                $value = 'break-words font-medium text-gray-900 dark:text-gray-300 sm:flex-1';
 
-                            {{-- Created User --}}
-                            <div class="flex items-center gap-2 p-2">
-                                <x-heroicon-o-user class="h-5 w-5 text-gray-400" />
-                                <span class="min-w-32 max-w-32 text-gray-500">Created User</span>
-                                <span class="break-words font-medium text-gray-900 dark:text-gray-300">
-                                    {{ ucwords(strtolower(optional($bq->creator)->name)) }}
-                                </span>
-                            </div>
+                                $fields = [
+                                    [
+                                        'icon' => 'building-office',
+                                        'label' => 'Company',
+                                        'value' => $bq->cpny_id,
+                                    ],
+                                    [
+                                        'icon' => 'calendar',
+                                        'label' => 'Date',
+                                        'value' => date('j F Y', strtotime($bq->created_at)),
+                                    ],
+                                    [
+                                        'icon' => 'user-circle',
+                                        'label' => 'Created User',
+                                        'value' => ucwords(strtolower(optional($bq->creator)->name)),
+                                    ],
+                                ];
+                            @endphp
+
+                            {{-- Render Fields --}}
+                            @foreach ($fields as $f)
+                                <div class="{{ $row }}">
+                                    <div class="{{ $label }}">
+                                        <x-dynamic-component :component="'heroicon-o-' . $f['icon']" class="h-5 w-5 text-gray-400" />
+                                        <span>{{ $f['label'] }}</span>
+                                    </div>
+
+                                    <span class="{{ $value }}">
+                                        {{ $f['value'] }}
+                                    </span>
+                                </div>
+                            @endforeach
 
                         </div>
                     </div>
+
                 </div>
 
                 {{-- Right Card (Photo Before) --}}

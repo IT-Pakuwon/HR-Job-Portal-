@@ -230,99 +230,114 @@
                         </div>
                     </header>
                     <div class="flex flex-1 flex-col overflow-y-auto p-4">
+                        @php
+                            $row = 'flex flex-col gap-1 p-2 sm:flex-row sm:items-center sm:gap-3';
+                            $label = 'flex items-center gap-2 text-gray-500 sm:min-w-40';
+                            $value = 'break-words font-medium text-gray-900 dark:text-gray-100 sm:flex-1';
+
+                            $sppbDisplay = e($po->sppbjktid);
+                            if (!empty($sppbUrl)) {
+                                $sppbDisplay =
+                                    '<a href="' .
+                                    e($sppbUrl) .
+                                    '" target="_blank" class="inline-flex items-center gap-1 text-indigo-600 hover:underline dark:text-indigo-400">' .
+                                    e($po->sppbjktid) .
+                                    '<svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                    stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M13.5 6H18m0 0v4.5M18 6l-6.75 6.75M18 18.75H6.75A1.5 1.5 0 0 1 5.25 17.25V6.75A1.5 1.5 0 0 1 6.75 5.25H12" />
+                </svg>
+            </a>';
+                            }
+
+                            $csDisplay = e($po->csid);
+                            if (!empty($csUrl)) {
+                                $csDisplay =
+                                    '<a href="' .
+                                    e($csUrl) .
+                                    '" target="_blank" class="inline-flex items-center gap-1 text-indigo-600 hover:underline dark:text-indigo-400">' .
+                                    e($po->csid) .
+                                    '<svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                    stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M13.5 6H18m0 0v4.5M18 6l-6.75 6.75M18 18.75H6.75A1.5 1.5 0 0 1 5.25 17.25V6.75A1.5 1.5 0 0 1 6.75 5.25H12" />
+                </svg>
+            </a>';
+                            }
+
+                            $fields = [
+                                [
+                                    'icon' => 'calendar-days',
+                                    'label' => 'PO Date',
+                                    'value' => \Carbon\Carbon::parse($po->podate)->format('d M Y'),
+                                    'is_raw' => false,
+                                ],
+                                [
+                                    'icon' => 'building-office',
+                                    'label' => 'Company',
+                                    'value' => $po->cpny_id,
+                                    'is_raw' => false,
+                                ],
+                                [
+                                    'icon' => 'squares-2x2',
+                                    'label' => 'Department',
+                                    'value' => $po->department_id,
+                                    'is_raw' => false,
+                                ],
+                                [
+                                    'icon' => 'user-circle',
+                                    'label' => 'Requester',
+                                    'value' => ucwords(strtolower($po->user_peminta)),
+                                    'is_raw' => false,
+                                ],
+                                [
+                                    'icon' => 'document-text',
+                                    'label' => 'SPPB/J/K/T ID',
+                                    'value' => $sppbDisplay,
+                                    'is_raw' => true,
+                                ],
+                                [
+                                    'icon' => 'document-duplicate',
+                                    'label' => 'CS ID',
+                                    'value' => $csDisplay,
+                                    'is_raw' => true,
+                                ],
+                                [
+                                    'icon' => 'identification',
+                                    'label' => 'Vendor ID',
+                                    'value' => $po->vendorid,
+                                    'is_raw' => false,
+                                ],
+                                [
+                                    'icon' => 'building-storefront',
+                                    'label' => 'Vendor',
+                                    'value' => $po->vendorname,
+                                    'is_raw' => false,
+                                ],
+                            ];
+                        @endphp
+
                         <div>
-
                             {{-- Info Grid --}}
-                            <div class="grid grid-cols-1 gap-x-8 gap-y-3 text-sm sm:grid-cols-2">
+                            <div class="grid grid-cols-2 gap-x-8 gap-y-3 text-sm sm:grid-cols-2">
+                                @foreach ($fields as $f)
+                                    <div class="{{ $row }}">
+                                        <div class="{{ $label }}">
+                                            <x-dynamic-component :component="'heroicon-o-' . $f['icon']" class="h-5 w-5 text-gray-400" />
+                                            <span>{{ $f['label'] }}</span>
+                                        </div>
 
-                                {{-- PO Date --}}
-                                <div class="flex items-center gap-2 p-2">
-                                    <x-heroicon-o-calendar-days class="h-5 w-5 text-gray-400" />
-                                    <span class="min-w-32 max-w-32 text-gray-500">PO Date</span>
-                                    <span class="font-medium text-gray-900 dark:text-gray-100">
-                                        {{ \Carbon\Carbon::parse($po->podate)->format('d M Y') }}
-                                    </span>
-                                </div>
-
-                                {{-- Company --}}
-                                <div class="flex items-center gap-2 p-2">
-                                    <x-heroicon-o-building-office class="h-5 w-5 text-gray-400" />
-                                    <span class="min-w-32 max-w-32 text-gray-500">Company</span>
-                                    <span
-                                        class="font-medium text-gray-900 dark:text-gray-100">{{ $po->cpny_id }}</span>
-                                </div>
-
-                                {{-- Department --}}
-                                <div class="flex items-center gap-2 p-2">
-                                    <x-heroicon-o-squares-2x2 class="h-5 w-5 text-gray-400" />
-                                    <span class="min-w-32 max-w-32 text-gray-500">Department</span>
-                                    <span
-                                        class="font-medium text-gray-900 dark:text-gray-100">{{ $po->department_id }}</span>
-                                </div>
-
-                                {{-- Requester --}}
-                                <div class="flex items-center gap-2 p-2">
-                                    <x-heroicon-o-user class="h-5 w-5 text-gray-400" />
-                                    <span class="min-w-32 max-w-32 text-gray-500">Requester</span>
-                                    <span class="font-medium text-gray-900 dark:text-gray-100">
-                                        {{ ucwords(strtolower($po->user_peminta)) }}
-                                    </span>
-                                </div>
-
-                                {{-- SPPB/J/K/T ID --}}
-                                <div class="flex items-center gap-2 p-2">
-                                    <x-heroicon-o-document-text class="h-5 w-5 text-gray-400" />
-                                    <span class="min-w-32 max-w-32 text-gray-500">SPPB/J/K/T ID</span>
-                                    <span class="font-medium text-gray-900 dark:text-gray-100">
-                                        @if (!empty($sppbUrl))
-                                            <a href="{{ $sppbUrl }}" target="_blank"
-                                                class="inline-flex items-center gap-1 text-indigo-600 hover:underline dark:text-indigo-400">
-                                                {{ $po->sppbjktid }}
-                                                <x-heroicon-o-arrow-up-right class="h-4 w-4" />
-                                            </a>
+                                        @if ($f['is_raw'])
+                                            <span class="{{ $value }}">{!! $f['value'] !!}</span>
                                         @else
-                                            {{ $po->sppbjktid }}
+                                            <span class="{{ $value }}">{{ $f['value'] }}</span>
                                         @endif
-                                    </span>
-                                </div>
-
-                                {{-- CS ID --}}
-                                <div class="flex items-center gap-2 p-2">
-                                    <x-heroicon-o-document-duplicate class="h-5 w-5 text-gray-400" />
-                                    <span class="min-w-32 max-w-32 text-gray-500">CS ID</span>
-                                    <span class="font-medium text-gray-900 dark:text-gray-100">
-                                        @if (!empty($csUrl))
-                                            <a href="{{ $csUrl }}" target="_blank"
-                                                class="inline-flex items-center gap-1 text-indigo-600 hover:underline dark:text-indigo-400">
-                                                {{ $po->csid }}
-                                                <x-heroicon-o-arrow-up-right class="h-4 w-4" />
-                                            </a>
-                                        @else
-                                            {{ $po->csid }}
-                                        @endif
-                                    </span>
-                                </div>
-
-                                {{-- Vendor ID --}}
-                                <div class="flex items-center gap-2 p-2">
-                                    <x-heroicon-o-identification class="h-5 w-5 text-gray-400" />
-                                    <span class="min-w-32 max-w-32 text-gray-500">Vendor ID</span>
-                                    <span
-                                        class="font-medium text-gray-900 dark:text-gray-100">{{ $po->vendorid }}</span>
-                                </div>
-
-                                {{-- Vendor Name --}}
-                                <div class="flex items-center gap-2 p-2">
-                                    <x-heroicon-o-building-storefront class="h-5 w-5 text-gray-400" />
-                                    <span class="min-w-32 max-w-32 text-gray-500">Vendor</span>
-                                    <span
-                                        class="font-medium text-gray-900 dark:text-gray-100">{{ $po->vendorname }}</span>
-                                </div>
+                                    </div>
+                                @endforeach
                             </div>
 
                             {{-- Financial Summary --}}
                             <div class="mt-4 grid grid-cols-1 gap-4 md:grid-cols-3">
-
                                 {{-- Total Amount --}}
                                 <div
                                     class="flex items-center gap-3 rounded-md border border-gray-200 bg-white px-4 py-3 dark:border-gray-700 dark:bg-gray-800">
@@ -352,17 +367,15 @@
                                     class="flex items-center gap-3 rounded-md border border-gray-200 bg-white px-4 py-3 dark:border-gray-700 dark:bg-gray-800">
                                     <x-heroicon-o-currency-dollar class="h-5 w-5 text-gray-400" />
                                     <div>
-                                        <p class="text-xs text-gray-500 dark:text-gray-400">Grand Total
-                                        </p>
+                                        <p class="text-xs text-gray-500 dark:text-gray-400">Grand Total</p>
                                         <p class="text-sm font-semibold text-gray-900 dark:text-gray-100">
                                             Rp {{ number_format($po->grandtotalamt, 0, ',', '.') }}
                                         </p>
                                     </div>
                                 </div>
-
                             </div>
 
-                            {{-- Purpose (moved below financial summary) --}}
+                            {{-- Purpose --}}
                             @if (!empty($po->keperluan))
                                 <div
                                     class="mt-4 flex items-start gap-3 rounded-md border bg-gray-50 p-3 dark:bg-gray-700">
@@ -370,20 +383,18 @@
                                     <div>
                                         <p class="text-xs text-gray-500 dark:text-gray-400">Purpose</p>
                                         <p class="text-sm font-medium text-gray-900 dark:text-gray-100">
-                                            {{ $po->keperluan }}</p>
+                                            {{ $po->keperluan }}
+                                        </p>
                                     </div>
                                 </div>
                             @endif
-
                         </div>
-
-
-
                     </div>
+
                 </div>
 
                 {{-- Right card (Tabs) --}}
-                <div class="flex flex-col gap-4 sm:w-1/2 md:w-full">
+                <div class="flex flex-col gap-4 rounded-xl bg-white duration-300 sm:w-1/2 md:w-full dark:bg-gray-800">
                     <div x-data="{ activeTab: 'information_po' }" class="flex flex-1 flex-col">
                         <header
                             class="sticky top-0 z-10 flex items-center rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
@@ -416,7 +427,7 @@
                         </header>
 
                         {{-- Tabs Content --}}
-                        <div class="flex flex-1 flex-col rounded-b-xl bg-white dark:bg-gray-800">
+                        <div class="flex flex-1 flex-col">
                             {{-- Information PO Tab --}}
                             <div x-show="activeTab === 'information_po'" class="flex-1 p-4 transition-all"
                                 wire:ignore>
@@ -846,7 +857,6 @@
                     </div>
                 </div>
             </div>
-
 
             {{-- PO Detail table --}}
             <div class="flex w-full flex-col rounded-2xl bg-white dark:bg-gray-800">

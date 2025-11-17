@@ -15,8 +15,10 @@
         }
 
         .status-filter[data-status="H,D"].active .status-card {
-            background-color: rgb(253 230 138); /* amber-200 */
-            border-color: rgb(31 41 55);        /* gray-700 (campuran H/D) */
+            background-color: rgb(253 230 138);
+            /* amber-200 */
+            border-color: rgb(31 41 55);
+            /* gray-700 (campuran H/D) */
         }
 
 
@@ -63,19 +65,19 @@
                     </div>
                 </a>
             </button>
-           
-           {{-- Hold/Revise Status --}}
+
+            {{-- Hold/Revise Status --}}
             <button>
-            <a href="#" class="status-filter group block" data-status="H,D">
-                <div
-                class="status-card flex items-center gap-4 rounded-lg border border-amber-700 bg-amber-200/20 p-3 text-amber-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-amber-100 hover:shadow-lg active:scale-95">
-                <span class="text-xl group-hover:animate-pulse">🛠️</span>
-                <div class="flex flex-grow items-center justify-between">
-                    <p class="text-lg font-medium">Hold/Revise</p>
-                    <p class="text-right text-xl font-extrabold">{{ ($hold ?? 0) + ($revise ?? 0) }}</p>
-                </div>
-                </div>
-            </a>
+                <a href="#" class="status-filter group block" data-status="H,D">
+                    <div
+                        class="status-card flex items-center gap-4 rounded-lg border border-amber-700 bg-amber-200/20 p-3 text-amber-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-amber-100 hover:shadow-lg active:scale-95">
+                        <span class="text-xl group-hover:animate-pulse">🛠️</span>
+                        <div class="flex flex-grow items-center justify-between">
+                            <p class="text-lg font-medium">Hold/Revise</p>
+                            <p class="text-right text-xl font-extrabold">{{ ($hold ?? 0) + ($revise ?? 0) }}</p>
+                        </div>
+                    </div>
+                </a>
             </button>
 
 
@@ -361,20 +363,34 @@
                 <div
                     class="flex flex-col items-start justify-between gap-4 border-b border-gray-200 p-4 sm:flex-row sm:items-center dark:border-gray-700">
                     {{-- Changed text-3xl to text-xl --}}
-                    <h1 class="text-xl font-extrabold text-gray-700 dark:text-white">IMBudget</h1>                                  
+                    <h1 class="text-xl font-extrabold text-gray-700 dark:text-white">IMBudget</h1>
                 </div>
 
                 <div class="overflow-x-auto p-6"> {{-- Padding applied here instead of outer container --}}
                     <table id="imbudgetsTable" class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                         <thead class="bg-gray-50 dark:bg-gray-700">
                             <tr>
-                                <th class="w-32 px-6 py-3 text-left  text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">DocID</th>
-                                <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">Date</th>
-                                <th class="w-32 px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">CSID</th>
-                                <th class="w-32 px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">SPPBJKTID</th>
-                                <th class="w-32 px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">Company</th>
-                                <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">User Peminta</th>
-                                <th class="w-32 px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">Status</th>
+                                <th
+                                    class="w-32 px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                                    DocID</th>
+                                <th
+                                    class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                                    Date</th>
+                                <th
+                                    class="w-32 px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                                    CSID</th>
+                                <th
+                                    class="w-32 px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                                    SPPBJKTID</th>
+                                <th
+                                    class="w-32 px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                                    Company</th>
+                                <th
+                                    class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                                    User Peminta</th>
+                                <th
+                                    class="w-32 px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                                    Status</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-800">
@@ -555,7 +571,7 @@
 
 
                 $(document).on('click', '.tracking-btn', function() {
-                    const id  = $(this).data('id');   // sekarang imbudgetid (URL-encoded)
+                    const id = $(this).data('id'); // sekarang imbudgetid (URL-encoded)
                     const doc = $(this).data('doc') || '';
 
                     openTrackingModal(doc);
@@ -565,17 +581,29 @@
                         method: 'GET',
                         dataType: 'json',
                         success: function(res) {
-                        renderTimeline(res.steps || []);
+                            renderTimeline(res.steps || []);
                         },
                         error: function() {
-                        renderTimeline([
-                            { key: 'submitted', title: 'IMBudget', status: 'C', status_label: 'Submitted', by: 'Williem Halim', at: '2025-08-10 09:00' },
-                            { key: 'approval',  title: 'Approval', status: 'P', status_label: 'Waiting approval / in progress', by: null, at: null },
-                        ]);
+                            renderTimeline([{
+                                    key: 'submitted',
+                                    title: 'IMBudget',
+                                    status: 'C',
+                                    status_label: 'Submitted',
+                                    by: 'Williem Halim',
+                                    at: '2025-08-10 09:00'
+                                },
+                                {
+                                    key: 'approval',
+                                    title: 'Approval',
+                                    status: 'P',
+                                    status_label: 'Waiting approval / in progress',
+                                    by: null,
+                                    at: null
+                                },
+                            ]);
                         }
                     });
                 });
-
             </script>
 
 
@@ -606,7 +634,10 @@
                             }
                         },
 
-                        order: [[1, 'desc'], [0, 'desc']], // Date desc, lalu DocID desc
+                        order: [
+                            [1, 'desc'],
+                            [0, 'desc']
+                        ], // Date desc, lalu DocID desc
 
 
                         columns: [
@@ -614,23 +645,29 @@
                             {
                                 data: 'imbudgetid',
                                 render: function(data, type, row) {
-                                // default link ke show
-                                let url = `/showimbudgets/${encodeURIComponent(row.eid || row.imbudgetid)}`;
-                                let cls = 'inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-sm leading-tight font-medium text-white rounded text-center transition-colors duration-200 bg-gray-500 hover:bg-gray-700';
-                                const text = data || '-';
+                                    // default link ke show
+                                    let url =
+                                        `/showimbudgets/${encodeURIComponent(row.eid || row.imbudgetid)}`;
+                                    let cls =
+                                        'inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-base leading-tight font-semibold text-white rounded text-center transition-colors duration-200 bg-gray-500 hover:bg-gray-700';
+                                    const text = data || '-';
 
-                                // jika status Draft & milik current user → link ke edit
-                                if (row.status === 'D' && row.user_peminta === currentUser) {
-                                    url = `/editimbudgets/${encodeURIComponent(row.eid || row.imbudgetid)}`;
-                                    cls = 'inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-sm leading-tight font-medium text-white rounded text-center transition-colors duration-200 bg-yellow-500 hover:bg-yellow-700';
-                                }
+                                    // jika status Draft & milik current user → link ke edit
+                                    if (row.status === 'D' && row.user_peminta === currentUser) {
+                                        url =
+                                            `/editimbudgets/${encodeURIComponent(row.eid || row.imbudgetid)}`;
+                                        cls =
+                                            'inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-base leading-tight font-semibold text-white rounded text-center transition-colors duration-200 bg-yellow-500 hover:bg-yellow-700';
+                                    }
 
-                                if (row.status === 'H' && row.user_peminta === currentUser) {
-                                    url = `/editimbudgets/${encodeURIComponent(row.eid || row.imbudgetid)}`;
-                                    cls = 'inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-sm leading-tight font-medium text-white rounded text-center transition-colors duration-200 bg-yellow-500 hover:bg-yellow-700';
-                                }
+                                    if (row.status === 'H' && row.user_peminta === currentUser) {
+                                        url =
+                                            `/editimbudgets/${encodeURIComponent(row.eid || row.imbudgetid)}`;
+                                        cls =
+                                            'inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-base leading-tight font-semibold text-white rounded text-center transition-colors duration-200 bg-yellow-500 hover:bg-yellow-700';
+                                    }
 
-                                return `
+                                    return `
                                     <div class="flex items-left gap-2 whitespace-nowrap">
                                     <a href="${url}" class="${cls}">${text}</a>
                                     <button type="button"
@@ -642,28 +679,68 @@
                                 `;
                                 }
                             },
-                            { data: 'imbudgetdate', className: 'text-left' },
-                            { data: 'csid',        className: 'text-center w-32', defaultContent: '-' },
-                            { data: 'sppbjktid',   className: 'text-center w-32', defaultContent: '-' },
-                            { data: 'cpny_id',     className: 'text-center w-32', defaultContent: '-' },
-                            { data: 'user_peminta',className: 'text-center',      defaultContent: '-' },
+                            {
+                                data: 'imbudgetdate',
+                                className: 'text-left'
+                            },
+                            {
+                                data: 'csid',
+                                className: 'text-center w-32',
+                                defaultContent: '-'
+                            },
+                            {
+                                data: 'sppbjktid',
+                                className: 'text-center w-32',
+                                defaultContent: '-'
+                            },
+                            {
+                                data: 'cpny_id',
+                                className: 'text-center w-32',
+                                defaultContent: '-'
+                            },
+                            {
+                                data: 'user_peminta',
+                                className: 'text-center',
+                                defaultContent: '-'
+                            },
 
                             // Status (badge)
                             {
                                 data: 'status',
                                 className: 'text-left',
                                 render: function(data) {
-                                const map = {
-                                    'D': { t: 'Revise',     c: 'bg-gray-300/30 text-gray-600'  },
-                                    'P': { t: 'On Progress',c: 'bg-blue-300/30 text-blue-600'  },
-                                    'H': { t: 'Hold',       c: 'bg-amber-300/30 text-amber-700'}, // NEW
-                                    'C': { t: 'Completed',  c: 'bg-green-300/30 text-green-600'},
-                                    'X': { t: 'Cancel',     c: 'bg-red-300/30 text-red-600'    },
-                                    'R': { t: 'Rejected',   c: 'bg-red-300/30 text-red-600'    },
-                                };
+                                    const map = {
+                                        'D': {
+                                            t: 'Revise',
+                                            c: 'bg-gray-300/30 text-gray-600'
+                                        },
+                                        'P': {
+                                            t: 'On Progress',
+                                            c: 'bg-blue-300/30 text-blue-600'
+                                        },
+                                        'H': {
+                                            t: 'Hold',
+                                            c: 'bg-amber-300/30 text-amber-700'
+                                        }, // NEW
+                                        'C': {
+                                            t: 'Completed',
+                                            c: 'bg-green-300/30 text-green-600'
+                                        },
+                                        'X': {
+                                            t: 'Cancel',
+                                            c: 'bg-red-300/30 text-red-600'
+                                        },
+                                        'R': {
+                                            t: 'Rejected',
+                                            c: 'bg-red-300/30 text-red-600'
+                                        },
+                                    };
 
-                                const it = map[data] || { t: data || '-', c: 'bg-gray-300/30 text-gray-600' };
-                                return `<span class="w-32 inline-block ${it.c} font-semibold px-4 py-2 text-center rounded">${it.t}</span>`;
+                                    const it = map[data] || {
+                                        t: data || '-',
+                                        c: 'bg-gray-300/30 text-gray-600'
+                                    };
+                                    return `<span class="w-32 inline-block ${it.c} font-semibold px-3 py-1.5 text-base text-center rounded">${it.t}</span>`;
                                 }
                             }
                         ],

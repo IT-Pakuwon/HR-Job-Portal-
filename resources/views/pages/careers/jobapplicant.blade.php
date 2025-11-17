@@ -657,7 +657,7 @@
                                 data: 'docid',
                                 name: 'docid',
                                 render: function(data, type, row) {
-                                    return `<a href="/showcareers/${row.eid}" target="_blank" class= 'inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-sm leading-tight font-medium text-white rounded text-center transition-colors duration-200 bg-gray-500 hover:bg-gray-700'>${data}</a>`;
+                                    return `<a href="/showcareers/${row.eid}" target="_blank" class= 'inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-base leading-tight font-semibold text-white rounded text-center transition-colors duration-200 bg-gray-500 hover:bg-gray-700'>${data}</a>`;
                                 }
                             },
                             {
@@ -700,7 +700,7 @@
                                 name: 'prev_apply_step',
                                 render: function(data) {
                                     const label = stepLabelMap[data] || data;
-                                    return `<span class="inline-flex justify-center items-center w-[120px] bg-blue-300/30 text-blue-600 text-base font-semibold px-4 py-2 text-center rounded whitespace-normal break-words">
+                                    return `<span class="inline-flex justify-center items-center w-[120px] bg-blue-300/30 text-blue-600 text-base font-semibold px-3 py-1.5 text-center rounded whitespace-normal break-words">
     ${label}
 </span>`;
 

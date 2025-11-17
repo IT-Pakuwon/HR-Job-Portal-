@@ -43,14 +43,17 @@
             </div>
         </div>
         <div class="flex w-full flex-col gap-2 overflow-hidden sm:col-span-1 lg:row-span-1 xl:row-span-1 xl:flex-row">
-            <div class="flex flex-col gap-6 sm:w-1/2 md:w-full">
-                <div class="rounded-xl bg-white duration-300 dark:bg-gray-800">
+            <div class="flex flex-col gap-6 rounded-xl bg-white duration-300 sm:w-1/2 md:w-full dark:bg-gray-800">
+                <div>
                     <header
-                        class="flex items-center justify-between rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
+                        class="sticky top-0 z-10 flex items-center justify-between rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
                         {{-- Rounded-t-xl, stronger border, and darker background for header --}}
-                        <h1 class="flex items-center gap-2 text-2xl font-bold text-gray-800 dark:text-gray-100">
+                        <h1 class="flex items-center gap-2 text-lg font-bold text-gray-800 dark:text-gray-100">
                             {{-- Larger, bolder title --}}
-                            <span class="text-indigo-500">🆔</span> {{-- Iconic color for the ID icon --}}
+                            <span
+                                class="inline-flex items-center rounded-md bg-purple-100 px-2 py-1 text-sm font-semibold text-purple-700">
+                                ID
+                            </span> {{-- Iconic color for the ID icon --}}
                             {{ $changesto->changerequest_id }}
                         </h1>
                         @php
@@ -84,65 +87,88 @@
                             {{ $statusText }}
                         </span>
                     </header>
+                    <div class="flex flex-1 flex-col overflow-y-auto p-4">
+                        <div class="grid grid-cols-1 gap-x-8 gap-y-4 text-sm sm:grid-cols-2">
 
-                    <div class="space-y-4 p-4"> {{-- Increased padding and consistent vertical spacing --}}
-                        <div class="grid grid-cols-3 gap-4 sm:grid-cols-3"> {{-- Increased gap --}}
                             @php
-                                $jobDetails = [
-                                    [
-                                        'label' => 'Company',
-                                        'value' => $changesto->cpnyid,
-                                    ],
-                                    [
-                                        'label' => 'Department',
-                                        'value' => $changesto->departementid,
-                                    ],
-                                    [
-                                        'label' => 'Date',
-                                        'value' => $changesto->changerequest_date,
-                                    ],
-                                    [
-                                        'label' => 'Sub Department',
-                                        'value' => $changesto->departement_name,
-                                    ],
-                                    [
-                                        'label' => 'Subgrade Name',
-                                        'value' => $changesto->subgrade_name,
-                                    ],
-                                    [
-                                        'label' => 'Created By',
-                                        'value' => $changesto->user,
-                                    ],
-                                ];
+                                $row = 'flex flex-col gap-1 p-2 sm:flex-row sm:items-center sm:gap-3';
+                                $label = 'flex items-center gap-2 text-gray-500 sm:min-w-40';
+                                $value = 'font-medium text-gray-900 sm:flex-1 break-words';
                             @endphp
-                            @foreach ($jobDetails as $detail)
-                                <div
-                                    class="transition- hover:-md flex flex-row items-center gap-4 rounded-lg border border-gray-200 bg-gray-50 p-4 duration-200 dark:border-gray-700 dark:bg-gray-800">
-                                    {{-- Rounded-lg, subtle background, , and hover effect --}}
-                                    <div>
-                                        <p class="text-xs font-medium text-gray-500 dark:text-gray-400">
-                                            {{ $detail['label'] }}</p> {{-- Label above value, smaller text --}}
-                                        <p class="text-base font-semibold text-gray-900 dark:text-gray-100">
-                                            {{ $detail['value'] }}</p> {{-- Bolder value --}}
-                                    </div>
-                                </div>
-                            @endforeach
-                        </div>
 
-                        <div
-                            class="rounded-xl border border-gray-200 bg-gray-50 p-6 dark:border-gray-700 dark:bg-gray-800">
-                            {{-- Rounded-xl, stronger  --}}
-                            <h3 class="mb-3 flex items-center gap-2 text-xl font-bold text-gray-800 dark:text-gray-100">
-                                {{-- Larger, bolder title --}}
-                                <span class="text-pink-500">🤔</span> Note
-                            </h3>
-                            <p class="text-base leading-relaxed text-gray-700 dark:text-gray-300">
-                                {{ $changesto->changerequest_note }}</p> {{-- Adjusted text color and line height --}}
+                            {{-- Company --}}
+                            <div class="{{ $row }}">
+                                <div class="{{ $label }}">
+                                    <x-heroicon-o-building-office class="h-5 w-5 text-gray-400" />
+                                    <span>Company</span>
+                                </div>
+                                <span class="{{ $value }}">{{ $changesto->cpnyid }}</span>
+                            </div>
+
+                            {{-- Department --}}
+                            <div class="{{ $row }}">
+                                <div class="{{ $label }}">
+                                    <x-heroicon-o-rectangle-group class="h-5 w-5 text-gray-400" />
+                                    <span>Department</span>
+                                </div>
+                                <span class="{{ $value }}">{{ $changesto->departementid }}</span>
+                            </div>
+
+                            {{-- Date --}}
+                            <div class="{{ $row }}">
+                                <div class="{{ $label }}">
+                                    <x-heroicon-o-calendar class="h-5 w-5 text-gray-400" />
+                                    <span>Date</span>
+                                </div>
+                                <span class="{{ $value }}">
+                                    {{ \Carbon\Carbon::parse($changesto->changerequest_date)->translatedFormat('d F Y') }}
+                                </span>
+                            </div>
+
+                            {{-- Sub Department --}}
+                            <div class="{{ $row }}">
+                                <div class="{{ $label }}">
+                                    <x-heroicon-o-squares-2x2 class="h-5 w-5 text-gray-400" />
+                                    <span>Sub Department</span>
+                                </div>
+                                <span class="{{ $value }}">{{ $changesto->departement_name }}</span>
+                            </div>
+
+                            {{-- Subgrade Name --}}
+                            <div class="{{ $row }}">
+                                <div class="{{ $label }}">
+                                    <x-heroicon-o-adjustments-horizontal class="h-5 w-5 text-gray-400" />
+                                    <span>Subgrade Name</span>
+                                </div>
+                                <span class="{{ $value }}">{{ $changesto->subgrade_name }}</span>
+                            </div>
+
+                            {{-- Created By --}}
+                            <div class="{{ $row }}">
+                                <div class="{{ $label }}">
+                                    <x-heroicon-o-user-circle class="h-5 w-5 text-gray-400" />
+                                    <span>Created By</span>
+                                </div>
+                                <span class="{{ $value }}">{{ $changesto->user }}</span>
+                            </div>
+
+                            {{-- Note --}}
+                            <div class="col-span-2 flex flex-col gap-2 rounded-md bg-gray-50 p-3 dark:bg-gray-700">
+                                <div class="flex items-center gap-2 text-gray-500">
+                                    <x-heroicon-o-question-mark-circle class="h-5 w-5 text-pink-400" />
+                                    <span>Note</span>
+                                </div>
+                                <span class="font-medium text-gray-900">
+                                    {{ $changesto->changerequest_note ?: '-' }}
+                                </span>
+                            </div>
+
                         </div>
                     </div>
+
                 </div>
             </div>
-            <div class="flex flex-col gap-4 sm:w-1/2 md:w-full">
+            <div class="flex flex-col gap-4 rounded-xl sm:w-1/2 md:w-full">
                 <div x-data="{ activeTab: 'approval' }" class="rounded-xl bg-white duration-300 dark:bg-gray-800">
                     <header
                         class="flex items-center rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
