@@ -268,84 +268,115 @@
     </style>
 
     <div class="max-w-9xl mx-auto w-full px-4 py-4 sm:px-6 lg:px-8">
-        <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-7">
-            <a href="#" class="scope-filter group" data-scope="hold">
+        <div class="grid auto-rows-fr grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-7">
+
+            {{-- Hold --}}
+            <a href="#" class="scope-filter group block h-full" data-scope="hold">
                 <div
-                    class="scope-card flex items-center gap-2 rounded-md border border-blue-700/60 bg-blue-50/40 p-2 text-blue-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-blue-50 hover:shadow-md active:scale-95">
-                    <span class="text-base group-hover:animate-pulse">🧊</span>
-                    <div class="flex w-full items-center justify-between">
-                        <p class="text-sm font-medium">Hold</p>
-                        <p class="text-right text-lg font-extrabold">{{ $hold }}</p>
+                    class="scope-card flex h-full items-center gap-3 rounded-md border border-blue-700/60 bg-blue-50/40 p-3 text-blue-700 transition-all duration-300 hover:-translate-y-1 hover:bg-blue-50 hover:shadow-md active:scale-95">
+
+                    <div class="flex h-6 w-6 shrink-0 items-center justify-center text-lg">🧊</div>
+
+                    <div class="flex min-w-0 flex-grow flex-col leading-tight">
+                        <p class="break-words text-sm font-medium">Hold</p>
                     </div>
+
+                    <p class="shrink-0 text-lg font-extrabold">{{ $hold }}</p>
                 </div>
             </a>
 
-            <a href="#" class="scope-filter group" data-scope="purchase">
+            {{-- Purchase --}}
+            <a href="#" class="scope-filter group block h-full" data-scope="purchase">
                 <div
-                    class="scope-card flex items-center gap-2 rounded-md border border-indigo-700/60 bg-indigo-50/40 p-2 text-indigo-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-indigo-50 hover:shadow-md active:scale-95">
-                    <span class="text-base group-hover:animate-pulse">🛒</span>
-                    <div class="flex w-full items-center justify-between">
-                        <p class="text-sm font-medium">Purchase</p>
-                        <p class="text-right text-lg font-extrabold">{{ $purchase }}</p>
+                    class="scope-card flex h-full items-center gap-3 rounded-md border border-indigo-700/60 bg-indigo-50/40 p-3 text-indigo-700 transition-all duration-300 hover:-translate-y-1 hover:bg-indigo-50 hover:shadow-md active:scale-95">
+
+                    <div class="flex h-6 w-6 shrink-0 items-center justify-center text-lg">🛒</div>
+
+                    <div class="flex min-w-0 flex-grow flex-col leading-tight">
+                        <p class="break-words text-sm font-medium">Purchase</p>
                     </div>
+
+                    <p class="shrink-0 text-lg font-extrabold">{{ $purchase }}</p>
                 </div>
             </a>
 
-            <a href="#" class="scope-filter group" data-scope="partial">
+            {{-- Partial --}}
+            <a href="#" class="scope-filter group block h-full" data-scope="partial">
                 <div
-                    class="scope-card flex items-center gap-2 rounded-md border border-amber-700/60 bg-amber-50/40 p-2 text-amber-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-amber-50 hover:shadow-md active:scale-95">
-                    <span class="text-base group-hover:animate-pulse">📦</span>
-                    <div class="flex w-full items-center justify-between">
-                        <p class="text-sm font-medium">Partial</p>
-                        <p class="text-right text-lg font-extrabold">{{ $partial }}</p>
+                    class="scope-card flex h-full items-center gap-3 rounded-md border border-amber-700/60 bg-amber-50/40 p-3 text-amber-700 transition-all duration-300 hover:-translate-y-1 hover:bg-amber-50 hover:shadow-md active:scale-95">
+
+                    <div class="flex h-6 w-6 shrink-0 items-center justify-center text-lg">📦</div>
+
+                    <div class="flex min-w-0 flex-grow flex-col leading-tight">
+                        <p class="break-words text-sm font-medium">Partial</p>
                     </div>
+
+                    <p class="shrink-0 text-lg font-extrabold">{{ $partial }}</p>
                 </div>
             </a>
 
-            <a href="#" class="scope-filter group" data-scope="completed">
+            {{-- Completed --}}
+            <a href="#" class="scope-filter group block h-full" data-scope="completed">
                 <div
-                    class="scope-card flex items-center gap-2 rounded-md border border-green-700/60 bg-green-50/40 p-2 text-green-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-green-50 hover:shadow-md active:scale-95">
-                    <span class="text-base group-hover:animate-pulse">✅</span>
-                    <div class="flex w-full items-center justify-between">
-                        <p class="text-sm font-medium">Completed</p>
-                        <p class="text-right text-lg font-extrabold">{{ $completed }}</p>
+                    class="scope-card flex h-full items-center gap-3 rounded-md border border-green-700/60 bg-green-50/40 p-3 text-green-700 transition-all duration-300 hover:-translate-y-1 hover:bg-green-50 hover:shadow-md active:scale-95">
+
+                    <div class="flex h-6 w-6 shrink-0 items-center justify-center text-lg">✅</div>
+
+                    <div class="flex min-w-0 flex-grow flex-col leading-tight">
+                        <p class="break-words text-sm font-medium">Completed</p>
                     </div>
+
+                    <p class="shrink-0 text-lg font-extrabold">{{ $completed }}</p>
                 </div>
             </a>
 
-            <a href="#" class="scope-filter group" data-scope="cancel">
+            {{-- Cancel --}}
+            <a href="#" class="scope-filter group block h-full" data-scope="cancel">
                 <div
-                    class="scope-card flex items-center gap-2 rounded-md border border-red-700/60 bg-red-50/40 p-2 text-red-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-red-50 hover:shadow-md active:scale-95">
-                    <span class="text-base group-hover:animate-pulse">✖️</span>
-                    <div class="flex w-full items-center justify-between">
-                        <p class="text-sm font-medium">Cancel</p>
-                        <p class="text-right text-lg font-extrabold">{{ $cancel }}</p>
+                    class="scope-card flex h-full items-center gap-3 rounded-md border border-red-700/60 bg-red-50/40 p-3 text-red-700 transition-all duration-300 hover:-translate-y-1 hover:bg-red-50 hover:shadow-md active:scale-95">
+
+                    <div class="flex h-6 w-6 shrink-0 items-center justify-center text-lg">✖️</div>
+
+                    <div class="flex min-w-0 flex-grow flex-col leading-tight">
+                        <p class="break-words text-sm font-medium">Cancel</p>
                     </div>
+
+                    <p class="shrink-0 text-lg font-extrabold">{{ $cancel }}</p>
                 </div>
             </a>
 
-            <a href="#" class="scope-filter group" data-scope="reuse">
+            {{-- Reuse --}}
+            <a href="#" class="scope-filter group block h-full" data-scope="reuse">
                 <div
-                    class="scope-card flex items-center gap-2 rounded-md border border-gray-700/60 bg-gray-50/40 p-2 text-gray-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-gray-50 hover:shadow-md active:scale-95 dark:border-gray-400 dark:bg-gray-700/30 dark:text-gray-200 dark:hover:bg-gray-700/40">
-                    <span class="text-base group-hover:animate-pulse">♻️</span>
-                    <div class="flex w-full items-center justify-between">
-                        <p class="text-sm font-medium">Reuse</p>
-                        <p class="text-right text-lg font-extrabold">{{ $reuse }}</p>
+                    class="scope-card flex h-full items-center gap-3 rounded-md border border-gray-700/60 bg-gray-50/40 p-3 text-gray-700 transition-all duration-300 hover:-translate-y-1 hover:bg-gray-50 hover:shadow-md active:scale-95 dark:border-gray-400 dark:bg-gray-700/30 dark:text-gray-200 dark:hover:bg-gray-700/40">
+
+                    <div class="flex h-6 w-6 shrink-0 items-center justify-center text-lg">♻️</div>
+
+                    <div class="flex min-w-0 flex-grow flex-col leading-tight">
+                        <p class="break-words text-sm font-medium">Reuse</p>
                     </div>
+
+                    <p class="shrink-0 text-lg font-extrabold">{{ $reuse }}</p>
                 </div>
             </a>
 
-            <a href="#" class="scope-filter group" data-scope="all">
+            {{-- All --}}
+            <a href="#" class="scope-filter group block h-full" data-scope="all">
                 <div
-                    class="scope-card flex items-center gap-2 rounded-md border border-slate-700/60 bg-slate-50/40 p-2 text-slate-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-slate-50 hover:shadow-md active:scale-95 dark:border-white/50 dark:text-white dark:hover:bg-gray-700/40">
-                    <span class="text-base group-hover:animate-pulse">🧾</span>
-                    <div class="flex w-full items-center justify-between">
-                        <p class="text-sm font-medium">All PO</p>
-                        <p class="text-right text-lg font-extrabold">{{ $all }}</p>
+                    class="scope-card flex h-full items-center gap-3 rounded-md border border-slate-700/60 bg-slate-50/40 p-3 text-slate-700 transition-all duration-300 hover:-translate-y-1 hover:bg-slate-50 hover:shadow-md active:scale-95 dark:border-white/50 dark:text-white dark:hover:bg-gray-700/40">
+
+                    <div class="flex h-6 w-6 shrink-0 items-center justify-center text-lg">🧾</div>
+
+                    <div class="flex min-w-0 flex-grow flex-col leading-tight">
+                        <p class="break-words text-sm font-medium">All PO</p>
                     </div>
+
+                    <p class="shrink-0 text-lg font-extrabold">{{ $all }}</p>
                 </div>
             </a>
+
         </div>
+
 
         <div class="grid">
             <style>

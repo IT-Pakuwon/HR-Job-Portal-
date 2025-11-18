@@ -239,106 +239,115 @@
 
 
     <div class="max-w-9xl mx-auto w-full px-4 py-4 sm:px-6 lg:px-8">
-        <div class="grid-col-1 grid gap-6 xl:grid-cols-7 xl:grid-rows-1">
+        <div class="grid auto-rows-fr grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-7">
+
             {{-- Receipt Jobs --}}
-            <button>
-                <a href="#" class="scope-filter group block" data-scope="receiptjobs">
-                    <div
-                        class="scope-card flex items-center gap-4 rounded-lg border border-orange-700 bg-orange-200/20 p-3 text-orange-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-orange-100 hover:shadow-lg active:scale-95">
-                        <span class="text-xl group-hover:animate-pulse">📦</span>
-                        <div class="flex flex-grow items-center justify-between">
-                            <p class="text-lg font-medium">Receipt Jobs</p>
-                            <p class="text-right text-xl font-extrabold">{{ $receiptjobs }}</p>
-                        </div>
+            <a href="#" class="scope-filter group block h-full" data-scope="receiptjobs">
+                <div
+                    class="scope-card flex h-full items-center gap-3 rounded-lg border border-orange-700 bg-orange-200/20 p-3 text-orange-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-orange-100 hover:shadow-lg active:scale-95">
+
+                    <div class="flex h-7 w-7 shrink-0 items-center justify-center text-xl">📦</div>
+
+                    <div class="flex min-w-0 flex-grow flex-col leading-tight">
+                        <p class="break-words text-base font-medium">Receipt Jobs</p>
                     </div>
-                </a>
-            </button>
+
+                    <p class="shrink-0 text-xl font-extrabold">{{ $receiptjobs }}</p>
+                </div>
+            </a>
 
             {{-- Return Jobs --}}
-            <button>
-                <a href="#" class="scope-filter group block" data-scope="returnjobs">
-                    <div
-                        class="scope-card flex items-center gap-4 rounded-lg border border-purple-700 bg-purple-200/20 p-3 text-purple-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-purple-100 hover:shadow-lg active:scale-95">
-                        <span class="text-xl group-hover:animate-pulse">↩️</span>
-                        <div class="flex flex-grow items-center justify-between">
-                            <p class="text-lg font-medium">Return Jobs</p>
-                            <p class="text-right text-xl font-extrabold">{{ $returnjobs }}</p>
-                        </div>
-                    </div>
-                </a>
-            </button>
+            <a href="#" class="scope-filter group block h-full" data-scope="returnjobs">
+                <div
+                    class="scope-card flex h-full items-center gap-3 rounded-lg border border-purple-700 bg-purple-200/20 p-3 text-purple-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-purple-100 hover:shadow-lg active:scale-95">
 
+                    <div class="flex h-7 w-7 shrink-0 items-center justify-center text-xl">↩️</div>
+
+                    <div class="flex min-w-0 flex-grow flex-col leading-tight">
+                        <p class="break-words text-base font-medium">Return Jobs</p>
+                    </div>
+
+                    <p class="shrink-0 text-xl font-extrabold">{{ $returnjobs }}</p>
+                </div>
+            </a>
 
             {{-- On Progress --}}
-            <button>
-                <a href="#" class="scope-filter group block" data-scope="onprogress">
-                    <div
-                        class="scope-card flex items-center gap-4 rounded-lg border border-blue-700 bg-blue-200/20 p-3 text-blue-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-blue-100 hover:shadow-lg active:scale-95">
-                        <span class="text-xl group-hover:animate-pulse">⏳</span>
-                        <div class="flex flex-grow items-center justify-between">
-                            <p class="text-lg font-medium">On Progress</p>
-                            <p class="text-right text-xl font-extrabold">{{ $onProgress }}</p>
-                        </div>
-                    </div>
-                </a>
-            </button>
+            <a href="#" class="scope-filter group block h-full" data-scope="onprogress">
+                <div
+                    class="scope-card flex h-full items-center gap-3 rounded-lg border border-blue-700 bg-blue-200/20 p-3 text-blue-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-blue-100 hover:shadow-lg active:scale-95">
 
-            {{-- Rejected - NEW --}}
-            <button>
-                <a href="#" class="scope-filter group block" data-scope="rejected">
-                    <div
-                        class="scope-card flex items-center gap-4 rounded-lg border border-red-700 bg-red-200/20 p-3 text-red-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-red-100 hover:shadow-lg active:scale-95">
-                        <span class="text-xl group-hover:animate-pulse">❌</span>
-                        <div class="flex flex-grow items-center justify-between">
-                            <p class="text-lg font-medium">Rejected</p>
-                            <p class="text-right text-xl font-extrabold">{{ $rejected }}</p>
-                        </div>
-                    </div>
-                </a>
-            </button>
+                    <div class="flex h-7 w-7 shrink-0 items-center justify-center text-xl">⏳</div>
 
-            {{-- Revise - NEW --}}
-            <button>
-                <a href="#" class="scope-filter group block" data-scope="revise">
-                    <div
-                        class="scope-card flex items-center gap-4 rounded-lg border border-yellow-700 bg-yellow-200/20 p-3 text-yellow-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-yellow-100 hover:shadow-lg active:scale-95">
-                        <span class="text-xl group-hover:animate-pulse">🛠️</span>
-                        <div class="flex flex-grow items-center justify-between">
-                            <p class="text-lg font-medium">Revise</p>
-                            <p class="text-right text-xl font-extrabold">{{ $revise }}</p>
-                        </div>
+                    <div class="flex min-w-0 flex-grow flex-col leading-tight">
+                        <p class="break-words text-base font-medium">On Progress</p>
                     </div>
-                </a>
-            </button>
+
+                    <p class="shrink-0 text-xl font-extrabold">{{ $onProgress }}</p>
+                </div>
+            </a>
+
+            {{-- Rejected --}}
+            <a href="#" class="scope-filter group block h-full" data-scope="rejected">
+                <div
+                    class="scope-card flex h-full items-center gap-3 rounded-lg border border-red-700 bg-red-200/20 p-3 text-red-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-red-100 hover:shadow-lg active:scale-95">
+
+                    <div class="flex h-7 w-7 shrink-0 items-center justify-center text-xl">❌</div>
+
+                    <div class="flex min-w-0 flex-grow flex-col leading-tight">
+                        <p class="break-words text-base font-medium">Rejected</p>
+                    </div>
+
+                    <p class="shrink-0 text-xl font-extrabold">{{ $rejected }}</p>
+                </div>
+            </a>
+
+            {{-- Revise --}}
+            <a href="#" class="scope-filter group block h-full" data-scope="revise">
+                <div
+                    class="scope-card flex h-full items-center gap-3 rounded-lg border border-yellow-700 bg-yellow-200/20 p-3 text-yellow-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-yellow-100 hover:shadow-lg active:scale-95">
+
+                    <div class="flex h-7 w-7 shrink-0 items-center justify-center text-xl">🛠️</div>
+
+                    <div class="flex min-w-0 flex-grow flex-col leading-tight">
+                        <p class="break-words text-base font-medium">Revise</p>
+                    </div>
+
+                    <p class="shrink-0 text-xl font-extrabold">{{ $revise }}</p>
+                </div>
+            </a>
 
             {{-- Completed --}}
-            <button>
-                <a href="#" class="scope-filter group block" data-scope="completed">
-                    <div
-                        class="scope-card flex items-center gap-4 rounded-lg border border-green-700 bg-green-200/20 p-3 text-green-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-green-100 hover:shadow-lg active:scale-95">
-                        <span class="text-xl group-hover:animate-pulse">✅</span>
-                        <div class="flex flex-grow items-center justify-between">
-                            <p class="text-lg font-medium">Completed</p>
-                            <p class="text-right text-xl font-extrabold">{{ $completed }}</p>
-                        </div>
+            <a href="#" class="scope-filter group block h-full" data-scope="completed">
+                <div
+                    class="scope-card flex h-full items-center gap-3 rounded-lg border border-green-700 bg-green-200/20 p-3 text-green-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-green-100 hover:shadow-lg active:scale-95">
+
+                    <div class="flex h-7 w-7 shrink-0 items-center justify-center text-xl">✅</div>
+
+                    <div class="flex min-w-0 flex-grow flex-col leading-tight">
+                        <p class="break-words text-base font-medium">Completed</p>
                     </div>
-                </a>
-            </button>
+
+                    <p class="shrink-0 text-xl font-extrabold">{{ $completed }}</p>
+                </div>
+            </a>
 
             {{-- All --}}
-            <button>
-                <a href="#" class="scope-filter group block" data-scope="all">
-                    <div
-                        class="scope-card flex items-center gap-4 rounded-lg border border-gray-700 bg-gray-200/20 p-3 text-gray-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-gray-100 hover:shadow-lg active:scale-95 dark:border-white dark:text-white dark:hover:bg-gray-700">
-                        <span class="text-xl group-hover:animate-pulse">🧾</span>
-                        <div class="flex flex-grow items-center justify-between">
-                            <p class="text-lg font-medium">All</p>
-                            <p class="text-right text-xl font-extrabold">{{ $all }}</p>
-                        </div>
+            <a href="#" class="scope-filter group block h-full" data-scope="all">
+                <div
+                    class="scope-card flex h-full items-center gap-3 rounded-lg border border-gray-700 bg-gray-200/20 p-3 text-gray-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-gray-100 hover:shadow-lg active:scale-95 dark:border-white dark:text-white dark:hover:bg-gray-700">
+
+                    <div class="flex h-7 w-7 shrink-0 items-center justify-center text-xl">🧾</div>
+
+                    <div class="flex min-w-0 flex-grow flex-col leading-tight">
+                        <p class="break-words text-base font-medium">All</p>
                     </div>
-                </a>
-            </button>
+
+                    <p class="shrink-0 text-xl font-extrabold">{{ $all }}</p>
+                </div>
+            </a>
+
         </div>
+
 
         <div class="grid">
             <div class="mt-6 rounded-2xl bg-white dark:bg-gray-800">
