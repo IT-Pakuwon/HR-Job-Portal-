@@ -12,7 +12,7 @@ use App\Models\TrSPPK;
 use App\Models\TrSPPT;
 use Vinkla\Hashids\Facades\Hashids;
 use Illuminate\Support\Str;
-use App\Models\TrPo;
+use App\Models\TrPO;
 
 class BastListController extends Controller
 {

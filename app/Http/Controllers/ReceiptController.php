@@ -86,7 +86,7 @@ class ReceiptController extends Controller
         ]);
     }
     
-   public function storeReceipt(Request $request)
+    public function storeReceipt(Request $request)
     {
         $user     = $request->user();
         $username = $user->username ?? 'system';
@@ -112,6 +112,8 @@ class ReceiptController extends Controller
             $qtyReceiptInput = (array) $request->input('qty_received', []);
         }
 
+        $detailNoteInput = (array) $request->input('detail_note', []);
+        
         $hasAnyQty = false;
         foreach ($qtyReceiptInput as $k => $v) {
             $qty = (float) str_replace(',', '.', (string)$v);
@@ -190,6 +192,10 @@ class ReceiptController extends Controller
                 $lineNo++;
                 $siteFromForm = isset($siteInput[$srcId]) ? trim((string)$siteInput[$srcId]) : null;
 
+                // ambil note per detail (boleh kosong)
+                $lineNoteRaw = $detailNoteInput[$srcId] ?? null;
+                $lineNote    = is_null($lineNoteRaw) ? null : trim((string)$lineNoteRaw);
+
                 $det = new TrReceiptdetail();
                 $det->receiptnbr              = $receiptnbr;
                 $det->receipt_no              = $lineNo;
@@ -230,6 +236,7 @@ class ReceiptController extends Controller
                 $det->budget_account_id       = $src->budget_account_id ?? null;
                 $det->budget_activity_id      = $src->budget_activity_id ?? null;
                 $det->budget_activity_descr   = $src->budget_activity_descr ?? null;
+                $det->receiptdetail_note      = $lineNote;
                 $det->status                  = 'P';
                 $det->created_by              = $username;
                 $det->created_at              = $now;

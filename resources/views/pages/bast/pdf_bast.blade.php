@@ -34,9 +34,7 @@
         .right-header th:last-child {
             width: 30%;
             text-align: right;
-            /* optional */
         }
-
 
         .left-body th {
             text-align: left;
@@ -53,11 +51,26 @@
             width: 50%;
         }
 
-        /* Make only the label bold */
+        /* Hanya label bold */
         .label {
             font-weight: bold;
         }
 
+        /* Alignment label : value */
+        .field-label {
+            display: inline-block;
+            min-width: 100px; /* atur sesuai kebutuhan */
+        }
+
+        .field-colon {
+            display: inline-block;
+            width: 10px;
+            text-align: center;
+        }
+
+        .field-value {
+            display: inline-block;
+        }
 
         /* Signature / approval table */
         .sig-table {
@@ -123,8 +136,6 @@
                 <span style="font-weight:bold;">No :</span>
                 <span style="font-weight:normal;">{{ $docid }}</span>
             </th>
-
-
         </tr>
         <tr class="right-header">
             <th style="text-align: left">{{ $title }}</th>
@@ -141,97 +152,126 @@
     <table>
         <tr class="left-body">
             <th>
-                <span class="#">No SPPJ :</span>
-                <span>PJ25100024</span>
+                <span class="field-label">No SPPJ</span>
+                <span class="field-colon">:</span>
+                <span class="field-value">{{ $bast->sppbjktid }}</span>
             </th>
             <th>
-                <span class="#">Garansi :</span>
-                <span></span>
-            </th>
-        </tr>
-
-        <tr class="left-body">
-            <th>
-                <span class="#">No CS :</span>
-                <span>CS25100100</span>
-            </th>
-            <th>
-                <span class="#">Keterangan :</span>
-                <span>Pengangkutan Limbah B3 Gandaria City Superblok tahun 2025</span>
+                <span class="field-label">Garansi</span>
+                <span class="field-colon">:</span>
+                <span class="field-value">{{ $spkwarranty }}</span>
             </th>
         </tr>
 
         <tr class="left-body">
             <th>
-                <span class="#">Po Nbr :</span>
-                <span>8000006261</span>
+                <span class="field-label">No CS</span>
+                <span class="field-colon">:</span>
+                <span class="field-value">{{ $bast->csid }}</span>
             </th>
             <th>
-                <span class="#">Penalty/hari :</span>
-                <span>250,000.00</span>
-            </th>
-        </tr>
-
-        <tr class="left-body">
-            <th>
-                <span class="#">Vendor Name :</span>
-                <span>PRASADHA PAMUNAH LIMBAH INDUSTRI, PT</span>
-            </th>
-            <th>
-                <span class="#">Total Penalty :</span>
-                <span>0.00</span>
+                <span class="field-label">Keterangan</span>
+                <span class="field-colon">:</span>
+                <span class="field-value">{{ $bast->keperluan }}</span>
             </th>
         </tr>
 
         <tr class="left-body">
             <th>
-                <span class="#">Status :</span>
-                <span>Completed</span>
+                <span class="field-label">PO Nbr</span>
+                <span class="field-colon">:</span>
+                <span class="field-value">{{ $bast->ponbr }}</span>
             </th>
             <th>
-                <span class="#">Lokasi :</span>
-                <span>LANTAI B2</span>
-            </th>
-        </tr>
-
-        <tr class="left-body">
-            <th>
-                <span class="#">Start Date :</span>
-                <span>9/27/2025</span>
-            </th>
-            <th>
-                <span class="#">Lokasi :</span>
-                <span>LANTAI B2</span>
+                <span class="field-label">Penalty/hari</span>
+                <span class="field-colon">:</span>
+                <span class="field-value">
+                    {{ number_format($penalty_per_day ?? 0, 0, ',', '.') }}
+                </span>
             </th>
         </tr>
 
         <tr class="left-body">
             <th>
-                <span class="#">End Date :</span>
-                <span>12/12/2025</span>
+                <span class="field-label">Vendor Name</span>
+                <span class="field-colon">:</span>
+                <span class="field-value">{{ $bast->vendorname }}</span>
             </th>
             <th>
-                <span class="#">Sub Lokasi :</span>
-                <span>RUANG LIMBAH B3</span>
+                <span class="field-label">Total Penalty</span>
+                <span class="field-colon">:</span>
+                <span class="field-value">
+                    {{ number_format($total_penalty ?? 0, 0, ',', '.') }}
+                </span>
             </th>
         </tr>
 
         <tr class="left-body">
             <th>
-                <span class="#">HO date :</span>
-                <span>11/3/2025 10:12 AM</span>
+                <span class="field-label">Status</span>
+                <span class="field-colon">:</span>
+                <span class="field-value">{{ $status_doc }}</span>
             </th>
-            <th></th>
+            <th>
+                <span class="field-label">Lokasi</span>
+                <span class="field-colon">:</span>
+                <span class="field-value">{{ $location_name }}</span>
+            </th>
         </tr>
 
         <tr class="left-body">
             <th>
-                <span class="label">Created by :</span>
-                <span>Andre Febriadi</span>
+                <span class="field-label">Start Date</span>
+                <span class="field-colon">:</span>
+                <span class="field-value">{{ $startdate_fmt }}</span>
             </th>
             <th>
-                <span class="label">On :</span>
-                <span>10/31/2025 6:48 PM</span>
+                <span class="field-label">Sub Lokasi</span>
+                <span class="field-colon">:</span>
+                <span class="field-value">{{ $sub_location_name }}</span>
+            </th>
+        </tr>
+
+        <tr class="left-body">
+            <th>
+                <span class="field-label">End Date</span>
+                <span class="field-colon">:</span>
+                <span class="field-value">{{ $enddate_fmt }}</span>
+            </th>
+            <th>
+                <span class="field-label">BAST Amount</span>
+                <span class="field-colon">:</span>
+                <span class="field-value">
+                    {{ number_format($bast_amount ?? 0, 0, ',', '.') }}
+                </span>
+            </th>
+        </tr>
+
+        <tr class="left-body">
+            <th>
+                <span class="field-label">HO date</span>
+                <span class="field-colon">:</span>
+                <span class="field-value">{{ $handoverdate_fmt }}</span>
+            </th>
+            <th>
+                <span class="field-label">Realisasi</span>
+                <span class="field-colon">:</span>
+                <span class="field-value">
+                    {{ number_format($realize_amount ?? 0, 0, ',', '.') }}
+                </span>
+            </th>
+        </tr>
+
+        <tr class="left-body">
+            <th>
+                <span class="field-label label">Created by</span>
+                <span class="field-colon">:</span>
+                <span class="field-value">{{ $created_by_name ?? $created_by_username }}</span>
+            </th>
+            <th>
+                <span class="field-label label">On</span>
+                <span class="field-colon">:</span>
+                <span class="field-value">{{ $req_date_fmt }}</span>
             </th>
         </tr>
     </table>
@@ -312,5 +352,4 @@
         </tbody>
     </table>
 </body>
-
 </html>

@@ -61,5 +61,16 @@ class TrBast extends Model
         return $this->belongsTo(User::class, 'user_peminta', 'username');
     }
 
+     public function location()
+    {
+        return $this->belongsTo(MsLocationPG::class, 'location_id', 'location_id');
+    }
+
+    
+    public function subLocation()
+    {
+        return $this->belongsTo(MsSubLocationPG::class, 'sub_location_id', 'sub_location_id');
+    }
+
     
 }

@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -32,7 +33,6 @@
             font-weight: normal;
         }
 
-
         .body th:first-child {
             width: 50%;
         }
@@ -59,23 +59,59 @@
             padding: 2px 0;
         }
 
-        /* nomor otomatis */
+        /* nomor otomatis */      
         .detail-table td.label {
+            width: 25%;
+            vertical-align: top;
+            padding: 2px 0;
             position: relative;
-            padding-left: 20px;
-            /* jarak teks setelah nomor */
+            padding-left: 20px; /* jarak setelah nomor */
         }
 
+        /* nomor otomatis 1., 2., dst */
         .detail-table td.label::before {
             content: counter(item) ".";
             position: absolute;
             left: 0;
         }
 
+        /* kolom titik dua */
+        .detail-table td.colon {
+            width: 10px;          /* bikin sempit supaya dekat kiri */
+            vertical-align: top;
+        }
+
+        /* kolom value */
+        .detail-table td.value {
+            width: auto;
+            vertical-align: top;
+        }
+
+        /* baris sub label (Sub Lokasi Kerja) */
+        .detail-table td.label.indent {
+            padding-left: 35px;   /* sedikit menjorok */
+        }
+
         /* sub-baris di bawah label (Sub Lokasi dsb) */
         .detail-table .indent {
             display: inline-block;
             margin-left: 15px;
+        }
+
+        /* alignment "Label : Value" */
+        .field-label {
+            display: inline-block;
+            min-width: 90px;   /* atur sesuai selera */
+        }
+
+        .field-colon {
+            display: inline-block;
+            width: 10px;
+            text-align: center;
+        }
+
+        .field-value {
+            display: inline-block;
         }
     </style>
 </head>
@@ -93,46 +129,58 @@
         </tr>
         <tr>
             <th>
-                <span>BAST No : {{ $docid }}</span>
-            </th>
-        </tr>
-    </table>
-    <hr>
-    {{-- Body --}}
-    <table class="body">
-        <tr>
-            <th>
-                <span>SPK No :</span>
-                <span>8000006261</span>
-            </th>
-            <th>
-                <span>Date :</span>
-                <span>{{ $bastdate }}</span>
-            </th>
-        </tr>
-        <tr>
-            <th>
-                <span>CS No :</span>
-                <span>CS25100100</span>
-            </th>
-            <th>
-                <span>SPPJ/T No :</span>
-                <span>PJ25100024</span>
+                <span class="field-label">BAST No</span>
+                <span class="field-colon">:</span>
+                <span class="field-value">{{ $docid }}</span>
             </th>
         </tr>
     </table>
 
+    <hr>
+
+    {{-- Body: header SPK / CS / SPPJ --}}
+    <table class="body">
+        <tr>
+            <th>
+                <span class="field-label">SPK No</span>
+                <span class="field-colon">:</span>
+                <span class="field-value">{{ $bast->ponbr }}</span>
+            </th>
+            <th>
+                <span class="field-label">Date</span>
+                <span class="field-colon">:</span>
+                <span class="field-value">{{ $bastdate }}</span>
+            </th>
+        </tr>
+        <tr>
+            <th>
+                <span class="field-label">CS No</span>
+                <span class="field-colon">:</span>
+                <span class="field-value">{{ $bast->csid }}</span>
+            </th>
+            <th>
+                <span class="field-label">SPPJ/T No</span>
+                <span class="field-colon">:</span>
+                <span class="field-value">{{ $bast->sppbjktid }}</span>
+            </th>
+        </tr>
+    </table>
+
+    {{-- Pihak pertama & kedua --}}
     <table class="body" style="margin-top: 20px">
+        {{-- PIHAK PERTAMA --}}
         <tr>
             <th colspan="2">
-                <span>Nama :</span>
-                <span>Molyvia</span>
+                <span class="field-label">Nama</span>
+                <span class="field-colon">:</span>
+                <span class="field-value">{{ $created_by_name ?? $created_by_username }}</span>
             </th>
         </tr>
         <tr>
             <th colspan="2">
-                <span>Perusahaan :</span>
-                <span>Molyvia</span>
+                <span class="field-label">Perusahaan</span>
+                <span class="field-colon">:</span>
+                <span class="field-value">{{ $cpnyname }}</span>
             </th>
         </tr>
         <tr>
@@ -140,16 +188,20 @@
                 <span>Selanjutnya disebut PIHAK PERTAMA</span>
             </th>
         </tr>
+
+        {{-- PIHAK KEDUA --}}
         <tr>
             <th colspan="2">
-                <span>Nama :</span>
-                <span>Molyvia</span>
+                <span class="field-label">Nama</span>
+                <span class="field-colon">:</span>
+                <span class="field-value">{{ $bast->vendorname }}</span>
             </th>
         </tr>
         <tr>
             <th colspan="2">
-                <span>Perusahaan :</span>
-                <span>PRASADHA PAMUNAH LIMBAH INDUSTRI, PT</span>
+                <span class="field-label">Perusahaan</span>
+                <span class="field-colon">:</span>
+                <span class="field-value">{{ $bast->vendorname }}</span>
             </th>
         </tr>
         <tr>
@@ -159,6 +211,7 @@
         </tr>
     </table>
 
+    {{-- Detail pekerjaan --}}
     <table class="detail-table">
         <tr class="item-row">
             <td class="label">
@@ -166,55 +219,62 @@
                 <span class="indent">Sub Lokasi Kerja</span>
             </td>
             <td class="value">
-                : LANTAI B2<br>
-                : RUANG LIMBAH B3
+                : {{ $location_name }}<br>
+                : {{ $sub_location_name }}
             </td>
         </tr>
 
         <tr class="item-row">
             <td class="label">Jenis Pekerjaan</td>
             <td class="value">
-                : Pengangkutan Limbah B3 Gandaria City Superblok tahun 2025
+                : {{ $bast->keperluan }}
             </td>
         </tr>
 
         <tr class="item-row">
             <td class="label">Periode Pekerjaan</td>
-            <td class="value">: 9/27/2025 s/d 12/12/2025</td>
+            <td class="value">
+                : {{ $startdate_fmt }} s/d {{ $enddate_fmt }}
+            </td>
         </tr>
 
         <tr class="item-row">
             <td class="label">Penalty / Hari</td>
-            <td class="value">: 250,000.00</td>
+            <td class="value">
+                : {{ number_format($penalty_per_day ?? 0, 0, ',', '.') }}
+            </td>
         </tr>
 
         <tr class="item-row">
             <td class="label">Garansi</td>
             <td class="value">
-                : Terhitung dari Tanggal Serah Terima Pekerjaan dan disetujui
-                BAST ini oleh kedua belah pihak.
+                : {{ $spkwarranty }}
             </td>
         </tr>
 
         <tr class="item-row">
             <td class="label">Serah Terima</td>
-            <td class="value">: 11/3/2025 10:12 AM</td>
+            <td class="value">
+                : {{ $handoverdate_fmt }}
+            </td>
         </tr>
 
         <tr class="item-row">
             <td class="label">Total Penalty</td>
-            <td class="value">: 0.00</td>
+            <td class="value">
+                : {{ number_format($total_penalty ?? 0, 0, ',', '.') }}
+            </td>
         </tr>
     </table>
 
-    <!-- NOTE TITLE -->
+    {{-- NOTE TITLE --}}
     <table style="width:100%; border-collapse:collapse; font-size:12px;margin-top:20px;">
         <tr>
             <td style="width:60px; vertical-align:top;">Note :</td>
         </tr>
     </table>
 
-    <!-- NOTE BOX -->
+    {{-- NOTE BOX --}}
     <div style="border:1px solid #000; padding:10px; margin-top:5px; font-size:11px; line-height:1.4;">
         <ol style="margin:0; padding-left:18px;">
             <li>
@@ -234,41 +294,42 @@
         </ol>
     </div>
 
-    <!-- CREATED BY -->
+    {{-- CREATED BY --}}
     <table style="width:100%; font-size:12px; line-height:1.4; border-collapse:collapse; margin-top:25px;">
         <tr>
             <td style="width:50%; vertical-align:top;">
-                Dibuat Oleh Purchasing &nbsp; : &nbsp; Andre Febriadi - 10 November 2025
+                Dibuat Oleh Purchasing &nbsp; : &nbsp;
+                {{ $created_by_name ?? $created_by_username }} - {{ $req_date_fmt }}
             </td>
             <td style="width:50%;"></td>
         </tr>
     </table>
 
-    <!-- TITLE ROW: DISERAHKAN & MENYETUJUI -->
-    <table style="width:100%; font-size:12px; text-align:center;  border-collapse:collapse; margin-top:25px;">
+    {{-- TITLE ROW: DISERAHKAN & MENYETUJUI --}}
+    <table style="width:100%; font-size:12px; text-align:center; border-collapse:collapse; margin-top:25px;">
         <tr>
             <td style="width:50%;">Diserahkan Oleh</td>
             <td style="width:50%;">Menyetujui</td>
         </tr>
     </table>
 
-    <!-- SIGNATURE BOXES -->
+    {{-- SIGNATURE BOXES --}}
     <table style="width:100%; font-size:12px; text-align:center; border-collapse:collapse; margin-top:60px;">
         <tr>
             <td style="width:50%;">
                 ( Nama dan Stempel Perusahaan )
             </td>
             <td style="width:50%;">
-                ( Molyvia )
+                ( {{ $created_by_name ?? $created_by_username }} )
             </td>
         </tr>
     </table>
 
-    <!-- PRINTED DATE -->
+    {{-- PRINTED DATE --}}
     <table style="width:100%; font-size:11px; border-collapse:collapse; margin-top:20px;">
         <tr>
             <td style="text-align:left;">
-                Printed &nbsp; : &nbsp; 11/13/2025 8:59:14 AM
+                Printed &nbsp; : &nbsp; {{ now()->format('m/d/Y h:i:s A') }}
             </td>
         </tr>
     </table>

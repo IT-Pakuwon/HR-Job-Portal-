@@ -168,6 +168,17 @@
                                     class="mt-1 w-full rounded-lg border border-gray-300 bg-gray-50 p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
                             </div>
                         </div>
+
+                        {{-- Receipt Note Header --}}
+                        <div class="mt-4 flex flex-col gap-2">
+                            <label for="receiptnote"
+                                   class="block text-sm font-medium text-gray-600 dark:text-gray-300">
+                                Receipt Note
+                            </label>
+                            <textarea id="receiptnote" name="receiptnote" rows="3"
+                                      class="mt-1 w-full rounded-lg border border-gray-300 bg-white p-2 text-sm text-gray-800 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
+                                      placeholder="Catatan umum untuk receipt (opsional)"></textarea>
+                        </div>
                     </div>
 
                     {{-- ===== Detail ===== --}}
@@ -206,6 +217,9 @@
                                                 <th
                                                     class="px-4 py-2 text-right font-semibold text-gray-600 dark:text-gray-300">
                                                     Site</th>
+                                                <th
+                                                    class="px-4 py-2 text-left font-semibold text-gray-600 dark:text-gray-300">
+                                                    Note</th>
                                             </tr>
                                         </thead>
                                         <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
@@ -223,7 +237,6 @@
                                                             class="qtyReceipt w-28 rounded border border-gray-300 p-1 text-right dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
                                                             inputmode="decimal" autocomplete="off" placeholder="0,00" />
                                                     </td>
-                                                    {{-- <td class="px-4 py-2">{{ $d->siteid }}</td> --}}
                                                     <td class="px-4 py-2">
                                                         <select name="siteid[{{ $d->id }}]"
                                                             class="siteSelect w-40 rounded border border-gray-300 p-1 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
@@ -239,11 +252,18 @@
                                                             @endif
                                                         </select>
                                                     </td>
+                                                    <td class="px-4 py-2">
+                                                        <input type="text"
+                                                            name="detail_note[{{ $d->id }}]"
+                                                            class="w-48 rounded border border-gray-300 p-1 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
+                                                            placeholder="Catatan item (opsional)">
+                                                    </td>
                                                 </tr>
                                             @empty
                                                 <tr>
-                                                    <td colspan="5" class="px-4 py-4 text-center text-gray-500">No PO
-                                                        detail</td>
+                                                    <td colspan="7" class="px-4 py-4 text-center text-gray-500">
+                                                        No PO detail
+                                                    </td>
                                                 </tr>
                                             @endforelse
                                         </tbody>
@@ -346,7 +366,7 @@
                 }
             }
             // Hapus error saat input berubah
-            $(document).on('input change', '#receiptForm input, #receiptForm select', function() {
+            $(document).on('input change', '#receiptForm input, #receiptForm select, #receiptForm textarea', function() {
                 $(this).removeClass('is-invalid').removeAttr('aria-invalid');
                 $(this).next('.error-feedback').remove();
             });
@@ -512,13 +532,8 @@
 
                 $sel.data('loaded', 1);
             });
-
-            // Kalau mau pre-load semua select di awal halaman (opsional):
-            // const cpnyIdInit = $('.siteSelect:first').data('cpny-id');
-            // if (cpnyIdInit) fetchSites(cpnyIdInit);
         });
     </script>
-
 
     {{-- Toastr CDN (butuh jQuery di layout) --}}
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">

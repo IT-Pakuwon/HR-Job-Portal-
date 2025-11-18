@@ -722,19 +722,21 @@ class BastController extends Controller
             return redirect()->route('login');
         }
 
-        // Ambil BAST + relasi yang dibutuhkan
-        $bast = TrBAST::findOrFail($id);
-      
+        // Ambil BAST + relasi
+        $bast = TrBast::with(['creator', 'userpeminta', 'location', 'subLocation'])
+            ->findOrFail($id);
+
+        // Approval list
         $approval = TrApproval::query()
-            ->where('refnbr', $bast->bastid)          // dulu: docid
-            ->where('status', '<>', 'X')           
+            ->where('refnbr', $bast->bastid)
+            ->where('status', '<>', 'X')
             ->orderByRaw('CAST(aprv_leveling AS numeric) ASC')
-            ->orderBy('created_at', 'ASC')            // tie-breaker kalau leveling sama
+            ->orderBy('created_at', 'ASC')
             ->get();
 
         $approve_count = $approval->count();
 
-        // Company (handle null)
+        // Company
         $company = Company::where('cpnyid', $bast->cpny_id)->first();
 
         // Mapping status dokumen
@@ -764,28 +766,56 @@ class BastController extends Controller
             'cpnyname'            => optional($company)->cpnyname,
             'parent'              => optional($company)->parent,
             'project'             => optional($company)->project,
+
             // identitas & tanggal
             'created_by_username' => $bast->created_by,
-            'created_by_name'     => ucwords(strtolower(optional($bast->creator)->name)),
+            'created_by_name'     => ucwords(strtolower(optional($bast->creator)->name ?? $bast->created_by)),
             'created_at_fmt'      => optional($bast->created_at)->format('d F Y'),
             'req_date_fmt'        => optional($bast->created_at)->format('d M Y H:i'),
-            'bastdate'            => \Carbon\Carbon::parse($bast->bastdate)->format('d F Y'),
-            // konten
+            'bastdate'            => $bast->bastdate
+                                        ? Carbon::parse($bast->bastdate)->format('d F Y')
+                                        : '',
+
+            // konten utama
             'keperluan'           => $bast->keperluan,
             'status_doc'          => $status_doc,
-            'requesttype_name'    => optional($bast->requestType)->requesttype_name,
+            // kalau nanti ada relasi requestType, tetap aman
+            'requesttype_name'    => optional($bast->requestType ?? null)->requesttype_name,
+
+            // tanggal pekerjaan
+            'startdate_fmt'       => $bast->startdate
+                                        ? Carbon::parse($bast->startdate)->format('d/m/Y')
+                                        : '',
+            'enddate_fmt'         => $bast->enddate
+                                        ? Carbon::parse($bast->enddate)->format('d/m/Y')
+                                        : '',
+            'handoverdate_fmt'    => $bast->handoverdate
+                                        ? Carbon::parse($bast->handoverdate)->format('d/m/Y H:i')
+                                        : '',
+
+            // lokasi
+            'location_name'       => optional($bast->location)->location_name ?? $bast->location_id,
+            'sub_location_name'   => optional($bast->subLocation)->sub_location_name ?? $bast->sub_location_id,
+
+            // angka2
+            'penalty_per_day'     => $bast->penalty,
+            'days_penalty'        => $bast->days_penalty,
+            'total_penalty'       => $bast->total_penalty,
+            'bast_amount'         => $bast->bast_amount,
+            'realize_amount'      => $bast->realize_amount,
+            'spkpic'              => $bast->spkpic,
+            'spkwarranty'         => $bast->spkwarranty,
         ];
 
-        // Kirim ke view
         $pdf = \PDF::loadView(
             'pages.bast.pdf_bast',
-            array_merge($data, [                
-                'approval'       => $approval,
-                'approve_count'  => $approve_count,
+            array_merge($data, [
+                'bast'          => $bast,
+                'approval'      => $approval,
+                'approve_count' => $approve_count,
             ])
         );
 
-        // // Portrait jika <= 5 approver, else landscape
         // $pdf->setPaper('A4', ($approve_count <= 5) ? 'portrait' : 'landscape');
 
         return $pdf->stream("pdf_bast_{$bast->bastid}.pdf");
@@ -802,19 +832,21 @@ class BastController extends Controller
             return redirect()->route('login');
         }
 
-        // Ambil BAST + relasi yang dibutuhkan
-        $bast = TrBAST::findOrFail($id);
-      
+        // Ambil BAST + relasi
+        $bast = TrBast::with(['creator', 'userpeminta', 'location', 'subLocation'])
+            ->findOrFail($id);
+
+        // Approval list
         $approval = TrApproval::query()
-            ->where('refnbr', $bast->bastid)          // dulu: docid
-            ->where('status', '<>', 'X')           
+            ->where('refnbr', $bast->bastid)
+            ->where('status', '<>', 'X')
             ->orderByRaw('CAST(aprv_leveling AS numeric) ASC')
-            ->orderBy('created_at', 'ASC')            // tie-breaker kalau leveling sama
+            ->orderBy('created_at', 'ASC')
             ->get();
 
         $approve_count = $approval->count();
 
-        // Company (handle null)
+        // Company
         $company = Company::where('cpnyid', $bast->cpny_id)->first();
 
         // Mapping status dokumen
@@ -844,29 +876,59 @@ class BastController extends Controller
             'cpnyname'            => optional($company)->cpnyname,
             'parent'              => optional($company)->parent,
             'project'             => optional($company)->project,
+
             // identitas & tanggal
             'created_by_username' => $bast->created_by,
-            'created_by_name'     => ucwords(strtolower(optional($bast->creator)->name)),
+            'created_by_name'     => ucwords(strtolower(optional($bast->creator)->name ?? $bast->created_by)),
             'created_at_fmt'      => optional($bast->created_at)->format('d F Y'),
             'req_date_fmt'        => optional($bast->created_at)->format('d M Y H:i'),
-            'bastdate'            => \Carbon\Carbon::parse($bast->bastdate)->format('d F Y'),
-            // konten
+            'bastdate'            => $bast->bastdate
+                                        ? Carbon::parse($bast->bastdate)->format('d F Y')
+                                        : '',
+
+            // konten utama
             'keperluan'           => $bast->keperluan,
             'status_doc'          => $status_doc,
-            'requesttype_name'    => optional($bast->requestType)->requesttype_name,
+            // kalau nanti ada relasi requestType, tetap aman
+            'requesttype_name'    => optional($bast->requestType ?? null)->requesttype_name,
+
+            // tanggal pekerjaan
+            'startdate_fmt'       => $bast->startdate
+                                        ? Carbon::parse($bast->startdate)->format('d/m/Y')
+                                        : '',
+            'enddate_fmt'         => $bast->enddate
+                                        ? Carbon::parse($bast->enddate)->format('d/m/Y')
+                                        : '',
+            'handoverdate_fmt'    => $bast->handoverdate
+                                        ? Carbon::parse($bast->handoverdate)->format('d/m/Y H:i')
+                                        : '',
+
+            // lokasi
+            'location_name'       => optional($bast->location)->location_name ?? $bast->location_id,
+            'sub_location_name'   => optional($bast->subLocation)->sub_location_name ?? $bast->sub_location_id,
+
+            // angka2
+            'penalty_per_day'     => $bast->penalty,
+            'days_penalty'        => $bast->days_penalty,
+            'total_penalty'       => $bast->total_penalty,
+            'bast_amount'         => $bast->bast_amount,
+            'realize_amount'      => $bast->realize_amount,
+            'spkpic'              => $bast->spkpic,
+            'spkwarranty'         => $bast->spkwarranty,
         ];
 
         // Kirim ke view
         $pdf = \PDF::loadView(
             'pages.bast.pdf_bast_vendor',
             array_merge($data, [                
+                'bast'          => $bast,
                 'approval'       => $approval,
                 'approve_count'  => $approve_count,
             ])
         );
 
         // Portrait jika <= 5 approver, else landscape
-        $pdf->setPaper('A4', ($approve_count <= 5) ? 'portrait' : 'landscape');
+        // $pdf->setPaper('A4', ($approve_count <= 5) ? 'portrait' : 'landscape');
 
         return $pdf->stream("pdf_bast_vendor_{$bast->bastid}.pdf");
     }

@@ -49,7 +49,7 @@ use App\Http\Controllers\AssignListController;
 use App\Http\Controllers\CsJobController;
 use App\Http\Controllers\CsListController;
 use App\Http\Controllers\CanvassController;
-use App\Http\Controllers\BqCSController;
+use App\Http\Controllers\BQCSController;
 use App\Http\Controllers\PoListController;
 use App\Http\Controllers\PoController;
 use App\Http\Controllers\ReceiptListController;
@@ -576,7 +576,7 @@ Route::post('/logout', function () {
     Route::get('/bqcs/edit/{hash}', [BQCSController::class, 'EditBQCS'])->name('bqcs.edit');
     // Route::post('/bqcs/update/{hash}', [BQCSController::class, 'updateBQCS'])->name('bqcs.update');
     Route::put('bqcs/update/{hash}', [BQCSController::class, 'updateBQCS'])->name('bqcs.update');
-    Route::get('/bqcs/show/{hash}', [BQCSController::class, 'showBQCS'])->name('bqcs.show');
+    Route::get('/showbqcs/{hash}', [BQCSController::class, 'showBQCS'])->name('bqcs.show');
 
 
 
