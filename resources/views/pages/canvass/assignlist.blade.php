@@ -267,77 +267,95 @@
         $currentPage = Route::currentRouteName() == 'canvass' ? 'HR' : '';
     @endphp
     <div class="max-w-9xl mx-auto w-full px-4 py-4 sm:px-6 lg:px-8">
-        <div class="grid-col-1 grid gap-6 xl:grid-cols-5 xl:grid-rows-1">
+        <div class="grid auto-rows-fr grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5">
+
             {{-- All --}}
-            <button>
-                <a href="#" class="status-filter group block" data-doc="">
+            <button type="button" class="text-left">
+                <a href="#" class="status-filter group block h-full" data-doc="">
                     <div
-                        class="status-card flex items-center gap-4 rounded-lg border border-orange-700 bg-orange-200/20 p-3 text-orange-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-orange-100 hover:shadow-lg active:scale-95">
-                        <span class="text-xl group-hover:animate-pulse">📄</span>
-                        <div class="flex flex-grow items-center justify-between">
-                            <p class="text-lg font-medium">All</p>
-                            <p class="text-right text-xl font-extrabold">{{ $all }}</p>
+                        class="status-card flex h-full items-center gap-3 rounded-lg border border-orange-700 bg-orange-200/20 p-3 text-orange-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-orange-100 hover:shadow-lg active:scale-95">
+
+                        <div class="flex h-6 w-6 shrink-0 items-center justify-center text-lg">📄</div>
+
+                        <div class="flex min-w-0 flex-grow flex-col leading-tight">
+                            <p class="break-words text-base font-medium">All</p>
                         </div>
+
+                        <p class="shrink-0 text-xl font-bold">{{ $all }}</p>
                     </div>
                 </a>
             </button>
 
             {{-- SPPB --}}
-            <button>
-                <a href="#" class="status-filter group block" data-doc="SPPB">
+            <button type="button" class="text-left">
+                <a href="#" class="status-filter group block h-full" data-doc="SPPB">
                     <div
-                        class="status-card flex items-center gap-4 rounded-lg border border-blue-700 bg-blue-200/20 p-3 text-blue-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-blue-100 hover:shadow-lg active:scale-95">
-                        <span class="text-xl group-hover:animate-pulse">⏳</span>
-                        <div class="flex flex-grow items-center justify-between">
-                            <p class="text-lg font-medium">SPPB</p>
-                            <p class="text-right text-xl font-extrabold">{{ $sppb }}</p>
+                        class="status-card flex h-full items-center gap-3 rounded-lg border border-blue-700 bg-blue-200/20 p-3 text-blue-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-blue-100 hover:shadow-lg active:scale-95">
+
+                        <div class="flex h-6 w-6 shrink-0 items-center justify-center text-lg">⏳</div>
+
+                        <div class="flex min-w-0 flex-grow flex-col leading-tight">
+                            <p class="break-words text-base font-medium">SPPB</p>
                         </div>
+
+                        <p class="shrink-0 text-xl font-bold">{{ $sppb }}</p>
                     </div>
                 </a>
             </button>
 
             {{-- SPPJ --}}
-            <button>
-                <a href="#" class="status-filter group block" data-doc="SPPJ">
+            <button type="button" class="text-left">
+                <a href="#" class="status-filter group block h-full" data-doc="SPPJ">
                     <div
-                        class="status-card flex items-center gap-4 rounded-lg border border-red-700 bg-red-200/20 p-3 text-red-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-red-100 hover:shadow-lg active:scale-95">
-                        <span class="text-xl group-hover:animate-pulse">⛔️</span>
-                        <div class="flex flex-grow items-center justify-between">
-                            <p class="text-lg font-medium">SPPJ</p>
-                            <p class="text-right text-xl font-extrabold">{{ $sppj }}</p>
+                        class="status-card flex h-full items-center gap-3 rounded-lg border border-red-700 bg-red-200/20 p-3 text-red-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-red-100 hover:shadow-lg active:scale-95">
+
+                        <div class="flex h-6 w-6 shrink-0 items-center justify-center text-lg">⛔️</div>
+
+                        <div class="flex min-w-0 flex-grow flex-col leading-tight">
+                            <p class="break-words text-base font-medium">SPPJ</p>
                         </div>
+
+                        <p class="shrink-0 text-xl font-bold">{{ $sppj }}</p>
                     </div>
                 </a>
             </button>
 
             {{-- SPPK --}}
-            <button>
-                <a href="#" class="status-filter group block" data-doc="SPPK">
+            <button type="button" class="text-left">
+                <a href="#" class="status-filter group block h-full" data-doc="SPPK">
                     <div
-                        class="status-card flex items-center gap-4 rounded-lg border border-gray-700 bg-gray-200/20 p-3 text-gray-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-gray-100 hover:shadow-lg active:scale-95 dark:border-white dark:text-white dark:hover:bg-gray-700">
-                        <span class="text-xl group-hover:animate-pulse">✏️</span>
-                        <div class="flex flex-grow items-center justify-between">
-                            <p class="text-lg font-medium">SPPK</p>
-                            <p class="text-right text-xl font-extrabold">{{ $sppk }}</p>
+                        class="status-card flex h-full items-center gap-3 rounded-lg border border-gray-700 bg-gray-200/20 p-3 text-gray-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-gray-100 hover:shadow-lg active:scale-95 dark:border-white dark:text-white dark:hover:bg-gray-700">
+
+                        <div class="flex h-6 w-6 shrink-0 items-center justify-center text-lg">✏️</div>
+
+                        <div class="flex min-w-0 flex-grow flex-col leading-tight">
+                            <p class="break-words text-base font-medium">SPPK</p>
                         </div>
+
+                        <p class="shrink-0 text-xl font-bold">{{ $sppk }}</p>
                     </div>
                 </a>
             </button>
 
             {{-- SPPT --}}
-            <button>
-                <a href="#" class="status-filter group block" data-doc="SPPT">
+            <button type="button" class="text-left">
+                <a href="#" class="status-filter group block h-full" data-doc="SPPT">
                     <div
-                        class="status-card flex items-center gap-4 rounded-lg border border-green-700 bg-green-200/20 p-3 text-green-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-green-100 hover:shadow-lg active:scale-95">
-                        <span class="text-xl group-hover:animate-pulse">✅</span>
-                        <div class="flex flex-grow items-center justify-between">
-                            <p class="text-lg font-medium">SPPT</p>
-                            <p class="text-right text-xl font-extrabold">{{ $sppt }}</p>
+                        class="status-card flex h-full items-center gap-3 rounded-lg border border-green-700 bg-green-200/20 p-3 text-green-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-green-100 hover:shadow-lg active:scale-95">
+
+                        <div class="flex h-6 w-6 shrink-0 items-center justify-center text-lg">✅</div>
+
+                        <div class="flex min-w-0 flex-grow flex-col leading-tight">
+                            <p class="break-words text-base font-medium">SPPT</p>
                         </div>
+
+                        <p class="shrink-0 text-xl font-bold">{{ $sppt }}</p>
                     </div>
                 </a>
             </button>
+
         </div>
+
 
         <div class="grid">
             <div class="mt-6 rounded-2xl bg-white dark:bg-gray-800">

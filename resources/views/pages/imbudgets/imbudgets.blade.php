@@ -51,94 +51,100 @@
         }
     </style>
     <div class="max-w-9xl mx-auto w-full px-4 py-4 sm:px-6 lg:px-8">
-        <div class="grid-col-1 grid gap-6 xl:grid-cols-6 xl:grid-rows-1">
-            {{-- All Status --}}
-            <button>
-                <a href="#" class="status-filter group block" data-status="">
-                    <div
-                        class="status-card flex items-center gap-4 rounded-lg border border-orange-700 bg-orange-200/20 p-3 text-orange-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-orange-100 hover:shadow-lg active:scale-95">
-                        <span class="text-xl group-hover:animate-pulse">📄</span>
-                        <div class="flex flex-grow items-center justify-between">
-                            <p class="text-lg font-medium">All</p>
-                            <p class="text-right text-xl font-extrabold">{{ $all }}</p>
-                        </div>
+        <div class="grid auto-rows-fr grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-6">
+
+            {{-- All --}}
+            <button type="button" class="status-filter group block h-full" data-status="">
+                <div
+                    class="status-card flex h-full items-center gap-3 rounded-lg border border-orange-700 bg-orange-200/20 p-3 text-orange-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-orange-100 hover:shadow-lg active:scale-95">
+
+                    <div class="flex h-7 w-7 shrink-0 items-center justify-center text-xl">📄</div>
+
+                    <div class="flex min-w-0 flex-grow flex-col">
+                        <p class="break-words text-base font-medium leading-tight">All</p>
                     </div>
-                </a>
+
+                    <p class="shrink-0 text-xl font-bold">{{ $all }}</p>
+                </div>
             </button>
 
-            {{-- Hold/Revise Status --}}
-            <button>
-                <a href="#" class="status-filter group block" data-status="H,D">
-                    <div
-                        class="status-card flex items-center gap-4 rounded-lg border border-amber-700 bg-amber-200/20 p-3 text-amber-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-amber-100 hover:shadow-lg active:scale-95">
-                        <span class="text-xl group-hover:animate-pulse">🛠️</span>
-                        <div class="flex flex-grow items-center justify-between">
-                            <p class="text-lg font-medium">Hold/Revise</p>
-                            <p class="text-right text-xl font-extrabold">{{ ($hold ?? 0) + ($revise ?? 0) }}</p>
-                        </div>
+            {{-- Hold / Revise --}}
+            <button type="button" class="status-filter group block h-full" data-status="H,D">
+                <div
+                    class="status-card flex h-full items-center gap-3 rounded-lg border border-amber-700 bg-amber-200/20 p-3 text-amber-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-amber-100 hover:shadow-lg active:scale-95">
+
+                    <div class="flex h-7 w-7 shrink-0 items-center justify-center text-xl">🛠️</div>
+
+                    <div class="flex min-w-0 flex-grow flex-col">
+                        <p class="break-words text-base font-medium leading-tight">Hold / Revise</p>
                     </div>
-                </a>
+
+                    <p class="shrink-0 text-xl font-bold">{{ ($hold ?? 0) + ($revise ?? 0) }}</p>
+                </div>
             </button>
 
+            {{-- On Progress --}}
+            <button type="button" class="status-filter group block h-full" data-status="P">
+                <div
+                    class="status-card flex h-full items-center gap-3 rounded-lg border border-blue-700 bg-blue-200/20 p-3 text-blue-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-blue-100 hover:shadow-lg active:scale-95">
 
+                    <div class="flex h-7 w-7 shrink-0 items-center justify-center text-xl">⏳</div>
 
-            {{-- On Progress Status --}}
-            <button>
-                <a href="#" class="status-filter group block" data-status="P">
-                    <div
-                        class="status-card flex items-center gap-4 rounded-lg border border-blue-700 bg-blue-200/20 p-3 text-blue-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-blue-100 hover:shadow-lg active:scale-95">
-                        <span class="text-xl group-hover:animate-pulse">⏳</span>
-                        <div class="flex flex-grow items-center justify-between">
-                            <p class="text-lg font-medium">On Progress</p>
-                            <p class="text-right text-xl font-extrabold">{{ $onProgress }}</p>
-                        </div>
+                    <div class="flex min-w-0 flex-grow flex-col">
+                        <p class="break-words text-base font-medium leading-tight">On Progress</p>
                     </div>
-                </a>
+
+                    <p class="shrink-0 text-xl font-bold">{{ $onProgress }}</p>
+                </div>
             </button>
 
-            {{-- Reject Status --}}
-            <button>
-                <a href="#" class="status-filter group block" data-status="R">
-                    <div
-                        class="status-card flex items-center gap-4 rounded-lg border border-red-700 bg-red-200/20 p-3 text-red-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-red-100 hover:shadow-lg active:scale-95">
-                        <span class="text-xl group-hover:animate-pulse">⛔️</span>
-                        <div class="flex flex-grow items-center justify-between">
-                            <p class="text-lg font-medium">Reject</p>
-                            <p class="text-right text-xl font-extrabold">{{ $reject }}</p>
-                        </div>
+            {{-- Reject --}}
+            <button type="button" class="status-filter group block h-full" data-status="R">
+                <div
+                    class="status-card flex h-full items-center gap-3 rounded-lg border border-red-700 bg-red-200/20 p-3 text-red-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-red-100 hover:shadow-lg active:scale-95">
+
+                    <div class="flex h-7 w-7 shrink-0 items-center justify-center text-xl">⛔️</div>
+
+                    <div class="flex min-w-0 flex-grow flex-col">
+                        <p class="break-words text-base font-medium leading-tight">Reject</p>
                     </div>
-                </a>
+
+                    <p class="shrink-0 text-xl font-bold">{{ $reject }}</p>
+                </div>
             </button>
 
             {{-- Cancel --}}
-            <button>
-                <a href="#" class="status-filter group block" data-status="X">
-                    <div
-                        class="status-card flex items-center gap-4 rounded-lg border border-red-700 bg-red-200/20 p-3 text-red-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-red-100 hover:shadow-lg active:scale-95">
-                        <span class="text-xl group-hover:animate-pulse">🛑</span>
-                        <div class="flex flex-grow items-center justify-between">
-                            <p class="text-lg font-medium">Cancel</p>
-                            <p class="text-right text-xl font-extrabold">{{ $cancel }}</p>
-                        </div>
+            <button type="button" class="status-filter group block h-full" data-status="X">
+                <div
+                    class="status-card flex h-full items-center gap-3 rounded-lg border border-red-700 bg-red-200/20 p-3 text-red-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-red-100 hover:shadow-lg active:scale-95">
+
+                    <div class="flex h-7 w-7 shrink-0 items-center justify-center text-xl">🛑</div>
+
+                    <div class="flex min-w-0 flex-grow flex-col">
+                        <p class="break-words text-base font-medium leading-tight">Cancel</p>
                     </div>
-                </a>
+
+                    <p class="shrink-0 text-xl font-bold">{{ $cancel }}</p>
+                </div>
             </button>
 
+            {{-- Completed --}}
+            <button type="button" class="status-filter group block h-full" data-status="C">
+                <div
+                    class="status-card flex h-full items-center gap-3 rounded-lg border border-green-700 bg-green-200/20 p-3 text-green-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-green-100 hover:shadow-lg active:scale-95">
 
-            {{-- Completed Status --}}
-            <button>
-                <a href="#" class="status-filter group block" data-status="C">
-                    <div
-                        class="status-card flex items-center gap-4 rounded-lg border border-green-700 bg-green-200/20 p-3 text-green-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-green-100 hover:shadow-lg active:scale-95">
-                        <span class="text-xl group-hover:animate-pulse">✅</span>
-                        <div class="flex flex-grow items-center justify-between">
-                            <p class="text-lg font-medium">Completed</p>
-                            <p class="text-right text-xl font-extrabold">{{ $completed }}</p>
-                        </div>
+                    <div class="flex h-7 w-7 shrink-0 items-center justify-center text-xl">✅</div>
+
+                    <div class="flex min-w-0 flex-grow flex-col">
+                        <p class="break-words text-base font-medium leading-tight">Completed</p>
                     </div>
-                </a>
+
+                    <p class="shrink-0 text-xl font-bold">{{ $completed }}</p>
+                </div>
             </button>
+
         </div>
+
         <div class="grid">
             <style>
                 .no-border {

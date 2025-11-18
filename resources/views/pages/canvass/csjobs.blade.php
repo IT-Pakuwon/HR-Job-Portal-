@@ -336,47 +336,70 @@
         }
     </style>
     <div class="max-w-9xl mx-auto w-full px-4 py-4 sm:px-6 lg:px-8">
-        <div class="grid-col-1 grid gap-6 xl:grid-cols-4 xl:grid-rows-1">
+        <div class="grid auto-rows-fr grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
+
             {{-- CS Jobs --}}
-            <div id="btn-mine"
-                class="filter-card flex items-center gap-4 rounded-lg border border-indigo-700 bg-indigo-200/20 p-3 text-indigo-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-indigo-100 hover:shadow-lg active:scale-95">
-                <span class="text-xl">🗂️</span>
-                <div class="flex flex-grow items-center justify-between">
-                    <p class="text-lg font-medium">CS Jobs</p>
-                    <p id="count-mine" class="text-right text-xl font-extrabold">{{ $mine }}</p>
+            <button type="button" class="w-full text-left">
+                <div id="btn-mine"
+                    class="filter-card flex h-full items-center gap-3 rounded-lg border border-indigo-700 bg-indigo-200/20 p-3 text-indigo-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-indigo-100 hover:shadow-lg active:scale-95">
+
+                    <div class="flex h-6 w-6 shrink-0 items-center justify-center text-lg">🗂️</div>
+
+                    <div class="flex min-w-0 flex-grow flex-col leading-tight">
+                        <p class="break-words text-base font-medium">CS Jobs</p>
+                    </div>
+
+                    <p id="count-mine" class="shrink-0 text-xl font-bold">{{ $mine }}</p>
                 </div>
-            </div>
+            </button>
 
             {{-- CS Revision --}}
-            <div id="btn-revision"
-                class="filter-card flex items-center gap-4 rounded-lg border border-amber-700 bg-amber-200/20 p-3 text-amber-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-amber-100 hover:shadow-lg active:scale-95">
-                <span class="text-xl">📝</span>
-                <div class="flex flex-grow items-center justify-between">
-                    <p class="text-lg font-medium">CS Revision</p>
-                    <p id="count-revision" class="text-right text-xl font-extrabold">{{ $revision }}</p>
+            <button type="button" class="w-full text-left">
+                <div id="btn-revision"
+                    class="filter-card flex h-full items-center gap-3 rounded-lg border border-amber-700 bg-amber-200/20 p-3 text-amber-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-amber-100 hover:shadow-lg active:scale-95">
+
+                    <div class="flex h-6 w-6 shrink-0 items-center justify-center text-lg">📝</div>
+
+                    <div class="flex min-w-0 flex-grow flex-col leading-tight">
+                        <p class="break-words text-base font-medium">CS Revision</p>
+                    </div>
+
+                    <p id="count-revision" class="shrink-0 text-xl font-bold">{{ $revision }}</p>
                 </div>
-            </div>
+            </button>
 
             {{-- All CS Jobs --}}
-            <div id="btn-all"
-                class="filter-card flex items-center gap-4 rounded-lg border border-gray-700 bg-gray-200/20 p-3 text-gray-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-gray-100 hover:shadow-lg active:scale-95 dark:border-white dark:text-white dark:hover:bg-gray-700">
-                <span class="text-xl">🌐</span>
-                <div class="flex flex-grow items-center justify-between">
-                    <p class="text-lg font-medium">All CS Jobs</p>
-                    <p id="count-all" class="text-right text-xl font-extrabold">{{ $all }}</p>
+            <button type="button" class="w-full text-left">
+                <div id="btn-all"
+                    class="filter-card flex h-full items-center gap-3 rounded-lg border border-gray-700 bg-gray-200/20 p-3 text-gray-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-gray-100 hover:shadow-lg active:scale-95 dark:border-white dark:text-white dark:hover:bg-gray-700">
+
+                    <div class="flex h-6 w-6 shrink-0 items-center justify-center text-lg">🌐</div>
+
+                    <div class="flex min-w-0 flex-grow flex-col leading-tight">
+                        <p class="break-words text-base font-medium">All CS Jobs</p>
+                    </div>
+
+                    <p id="count-all" class="shrink-0 text-xl font-bold">{{ $all }}</p>
                 </div>
-            </div>
+            </button>
 
             {{-- SPPBJKT IN Progress --}}
-            <div id="btn-sppbjkt"
-                class="filter-card flex items-center gap-4 rounded-lg border border-green-700 bg-green-200/20 p-3 text-green-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-green-100 hover:shadow-lg active:scale-95">
-                <span class="text-xl">🚦</span>
-                <div class="flex flex-grow items-center justify-between">
-                    <p class="text-lg font-medium">SPPBJKT IN Progress</p>
-                    <p id="count-sppbjkt" class="text-right text-xl font-extrabold">{{ $sppbjkt }}</p>
+            <button type="button" class="w-full text-left">
+                <div id="btn-sppbjkt"
+                    class="filter-card flex h-full items-center gap-3 rounded-lg border border-green-700 bg-green-200/20 p-3 text-green-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-green-100 hover:shadow-lg active:scale-95">
+
+                    <div class="flex h-6 w-6 shrink-0 items-center justify-center text-lg">🚦</div>
+
+                    <div class="flex min-w-0 flex-grow flex-col leading-tight">
+                        <p class="break-words text-base font-medium">SPPBJKT IN Progress</p>
+                    </div>
+
+                    <p id="count-sppbjkt" class="shrink-0 text-xl font-bold">{{ $sppbjkt }}</p>
                 </div>
-            </div>
+            </button>
+
         </div>
+
 
 
         {{-- ====== PANES (tanpa tab) ====== --}}
