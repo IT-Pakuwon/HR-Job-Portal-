@@ -247,12 +247,23 @@
                             ];
 
                             if ($cs->bqid) {
+                                $bqUrl  = route('bqcs.show', $eid_bq);
+                                $bqLink = '<a href="' . e($bqUrl) . '" 
+                                                target="_blank"
+                                                class="inline-flex items-center gap-1 text-sm font-semibold text-indigo-600 hover:underline dark:text-indigo-400">'
+                                            . e($srcHeader->bqid) .
+                                        '</a>';
+
                                 $fields[] = [
-                                    'icon' => 'hashtag',
-                                    'label' => 'BQ ID',
-                                    'value' => $srcHeader->bqid,
+                                    'icon'   => 'hashtag',
+                                    'label'  => 'BQ ID',
+                                    'value'  => $bqLink,
+                                    'is_raw' => true, // <-- ini yang penting
                                 ];
                             }
+
+
+
                         @endphp
 
                         <div class="grid grid-cols-2 gap-x-8 gap-y-3 text-sm sm:grid-cols-2">
