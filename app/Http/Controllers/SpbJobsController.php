@@ -25,7 +25,7 @@ class SpbJobsController extends Controller
         // Count untuk header/kartu ringkasan
         $issuejobs = TrSPB::when($cpny_id, fn($q) => $q->where('cpny_id', $cpny_id))
             ->where('status', 'C')
-            ->where('totalspbopenqty', '<>', 0)
+            ->where('totalspbqty', '<>', 0)
             ->count();
 
         $onProgress = TrIssue::where('created_by', $u)->where('status', 'P')->count();
@@ -67,7 +67,7 @@ class SpbJobsController extends Controller
             // === TrSPB list untuk issuejobs ===
             $base = TrSPB::when($cpny_id, fn($q) => $q->where('cpny_id', $cpny_id))
                 ->where('status', 'C')
-                ->where('totalspbopenqty', '<>', 0)
+                ->where('totalspbqty', '<>', 0)
                 ->select([
                     'id', 'spbid', 'spbdate', 'cpny_id', 'keperluan', 'created_by', 'status',
                 ]);
