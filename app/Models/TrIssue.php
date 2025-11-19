@@ -28,9 +28,11 @@ class TrIssue extends Model
         // 'created_by',
         // 'updated_by',
         // 'completed_by'
-        'issueid' , 'issuedate' , 'issuetype' , 'spbid' , 'woid' , 'cpny_id' , 'department_id' , 'user_peminta' , 'issuenote' , 
-        'budget_perpost' , 'grandtotalcost' , 'totalissueqty' , 'totalreturnissueqty' , 'totalamountissue' , 'status' , 
-        'created_by' , 'created_at' , 'updated_by' , 'updated_at' , 'deleted_by' , 'deleted_at' , 'completed_by' , 'completed_at'
+
+        'issueid' , 'issuedate' , 'issuetype' , 'spbid' , 'ref_issuenbr' , 'woid' , 'cpny_id' , 'department_id' , 
+        'user_peminta' , 'issuenote' , 'budget_perpost' , 'grandtotalcost' , 'totalissueqty' , 'totalreturnissueqty' , 
+        'status' , 'created_by' , 'created_at' , 'updated_by' , 'updated_at' , 'deleted_by' , 'deleted_at' , 
+        'completed_by' , 'completed_at'
     ];
     
 

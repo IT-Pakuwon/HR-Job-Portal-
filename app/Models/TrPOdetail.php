@@ -55,13 +55,14 @@ class TrPOdetail extends Model
         // 'created_by',
         // 'updated_by',
         // 'deleted_by',
+
         'ponbr' , 'po_no' , 'csid' , 'cs_no' , 'sppbjktid' , 'sppbjktid_no' , 'inventory_type' , 'inventory_sub_type' , 
-        'inventory_category' , 'inventoryid' , 'inventory_descr' , 'ponote_detail' , 'qty' , 'uom' , 'siteid' , 
-        'type_multiplier' , 'base_multiplier' , 'base_qty' , 'base_uom' , 'unitcost' , 'taxcodeid' , 'taxamt' , 'totalcost' , 
-        'qty_received' , 'base_qty_received' , 'qty_return' , 'base_qty_return' , 'qty_completed' , 'base_qty_completed' , 
-        'received' , 'completed' , 'canceled' , 'budget_perpost' , 'budget_cpny_id' , 'budget_business_unit_id' , 
-        'budget_department_fin_id' , 'budget_account_id' , 'budget_activity_id' , 'budget_activity_descr' , 'status' , 
-        'created_by' , 'created_at' , 'updated_by' , 'updated_at' , 'deleted_by' , 'deleted_at'
+        'inventory_category' , 'inventoryid' , 'inventory_descr' , 'ponote_detail' , 'qty' , 'uom' , 'siteid' , 'type_multiplier' ,
+         'base_multiplier' , 'base_qty' , 'base_uom' , 'unitcost' , 'taxcodeid' , 'taxamt' , 'totalcost' , 'qty_received' , 
+         'base_qty_received' , 'qty_return' , 'base_qty_return' , 'qty_completed' , 'base_qty_completed' , 'received' , 'completed' , 
+         'canceled' , 'budget_perpost' , 'budget_cpny_id' , 'budget_business_unit_id' , 'budget_department_fin_id' , 
+         'budget_account_id' , 'budget_activity_id' , 'budget_activity_descr' , 'status' , 'created_by' , 'created_at' , 
+         'updated_by' , 'updated_at' , 'deleted_by' , 'deleted_at'
     ];
 
     protected $casts = [
