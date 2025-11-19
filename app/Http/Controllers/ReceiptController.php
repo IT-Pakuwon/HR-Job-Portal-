@@ -222,8 +222,8 @@ class ReceiptController extends Controller
                 $det->totalcost               = $src->totalcost ?? 0;
                 $det->receipttype             = 'PR';
                 $det->siteid                  = $siteFromForm !== '' ? $siteFromForm : ($src->siteid ?? null);
-                $det->qty_open_ordered        = $qtyRec;
-                $det->base_qty_open_ordered   = $det->base_qty;
+                // $det->qty_open_ordered        = $qtyRec;
+                // $det->base_qty_open_ordered   = $det->base_qty;
                 $det->qty_received            = $qtyRec;
                 $det->base_qty_received       = $det->base_qty;
                 $det->qty_return              = 0;
@@ -635,8 +635,8 @@ class ReceiptController extends Controller
                     $det->base_qty_received = $qtyNew * $bm;
 
                     // open ordered tampilkan sisa di baris ini (opsional sesuai desain)
-                    $det->qty_open_ordered      = $qtyNew;
-                    $det->base_qty_open_ordered = $det->base_qty_received;
+                    // $det->qty_open_ordered      = $qtyNew;
+                    // $det->base_qty_open_ordered = $det->base_qty_received;
                 } else {
                     $qtyNew = array_key_exists($detId, $qtyReturnInput)
                         ? (float) str_replace(',', '.', (string)$qtyReturnInput[$detId])
@@ -1893,8 +1893,8 @@ class ReceiptController extends Controller
                 $det->receipttype             = $hdr->receipttype;
 
                 // open ordered (tidak relevan utk return)
-                $det->qty_open_ordered        = 0;
-                $det->base_qty_open_ordered   = 0;
+                // $det->qty_open_ordered        = 0;
+                // $det->base_qty_open_ordered   = 0;
 
                 // return qty
                 $det->qty_received            = 0;

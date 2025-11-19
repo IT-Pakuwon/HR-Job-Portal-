@@ -35,9 +35,11 @@ class TrReceipt extends Model
         // 'deleted_by',
         // 'completed_by',
         // 'completed_at',
+
         'receiptnbr' , 'receiptdate' , 'receipttype' , 'ponbr' , 'ref_receiptnbr' , 'cpny_id' , 'csid' , 'sppbjktid' , 
-        'department_id' , 'user_peminta' , 'receiptnote' , 'vendorid' , 'vendorname' , 'totalqty_received' , 'status' , 
-        'created_by' , 'created_at' , 'updated_by' , 'updated_at' , 'deleted_by' , 'deleted_at' , 'completed_by' , 'completed_at'
+        'department_id' , 'user_peminta' , 'receiptnote' , 'vendorid' , 'vendorname' , 'totalqty_received' , 'totalqty_return' , 
+        'status' , 'created_by' , 'created_at' , 'updated_by' , 'updated_at' , 'deleted_by' , 'deleted_at' , 'completed_by' , 
+        'completed_at'
     ];
 
     // Dates (agar otomatis di-cast ke Carbon)
