@@ -175,6 +175,7 @@ class SppbController extends Controller
         $coaIds        = $request->input('coa_id', []); // account_id
         $item_types    = $request->input('item_type', []);
         // $item_categories = $request->input('item_category', []);
+        $siteids        = $request->input('siteid', []);        
 
         $purchaseUnits    = $request->input('purchase_unit', []);     // dari hidden purchase_unit[]
         $uomMultDivs      = $request->input('uom_unitmultdiv', []);   // 'M' atau 'D'
@@ -339,6 +340,7 @@ class SppbController extends Controller
                 $detail->sppb_no                  = $i + 1;   // nomor urut detail
                 $detail->inventoryid              = $invId;
                 $detail->inventory_descr          = $productName;
+                $detail->siteid                   = $siteids[$i] ?? null;
                 $detail->qty                      = $qty;
                 $detail->uom                      = $uom;
                 $detail->note                     = $notes[$i]   ?? null;
@@ -757,6 +759,7 @@ class SppbController extends Controller
         $coaIds       = array_values($request->input('coa_id', []));
         $itemTypes    = array_values($request->input('item_type', []));
         $itemCats     = array_values($request->input('item_category', []));
+        $siteids     = array_values($request->input('siteid', []));
         
         $inventorySubTypes   = $request->input('item_sub_type', []);
 
@@ -799,6 +802,7 @@ class SppbController extends Controller
                 $data = [
                     'inventoryid'              => $invId,
                     'inventory_descr'          => $productNames[$i] ?? null,
+                    'siteid'                   => $siteids[$i] ?? null,
                     'qty'                      => $qty,
                     'uom'                      => $displayUom,
                     'note'                     => $notes[$i] ?? null,

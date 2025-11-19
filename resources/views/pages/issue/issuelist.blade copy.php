@@ -368,21 +368,7 @@
 
 
                     function headerFor(sc) {
-
-                        if (sc === 'returnjobs') {
-                            return `
-                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Action</th>
-                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Issue ID</th>
-                                <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">Issue Date</th>
-                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Issue Type</th>
-                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">SPB ID</th>
-                                <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">Company</th>
-                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Created By</th>
-                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Status</th>
-                            `;
-                        }
-
-                        // Default scopes
+                        // semua scope pakai TrIssue + kolom status di paling kanan
                         return `
                             <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Issue ID</th>
                             <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">Issue Date</th>
@@ -393,7 +379,6 @@
                             <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Status</th>
                         `;
                     }
-
 
                     function renderIssueLinkCell(_value, _type, row) {
                         const label = row.issueid ?? '';
@@ -418,63 +403,8 @@
                         return `<a href="${url}" class="inline-flex items-center justify-center px-3 py-1.5 text-sm font-semibold rounded bg-gray-600 text-white hover:bg-gray-700">${label}</a>`;
                     }
 
-                    function renderReturnPlusButton(row) {
-                        const issueHash = row.issue_eid ?? row.eid ?? row.hash ?? row.id;
-                        const url = `{{ route('issue.return.create') }}` + `?id=${encodeURIComponent(issueHash)}`;
-
-                        return `
-                            <a href="${url}" 
-                            class="inline-flex justify-center items-center px-3 py-1.5 text-sm font-medium 
-                                    text-white rounded bg-purple-600 hover:bg-purple-700">
-                                <i class="fas fa-plus"></i>
-                            </a>
-                        `;
-                    }
-
-
-
                     function columnsFor(sc) {
-
-                        // === RETURN JOBS (dengan kolom ACTION paling kiri) ===
-                        if (sc === 'returnjobs') {
-                            return [
-                                {
-                                    data: null,
-                                    orderable: false,
-                                    searchable: false,
-                                    render: (_v, _t, row) => renderReturnPlusButton(row)
-                                },
-                                {
-                                    data: 'issueid',
-                                    defaultContent: '',
-                                    render: renderIssueLinkCell
-                                },
-                                {
-                                    data: 'issuedate',
-                                    defaultContent: '',
-                                    render: (_v, _t, row) => row.issuedate_fmt ?? row.issuedate ?? '',
-                                    className: 'text-center'
-                                },
-                                {
-                                    data: 'issuetype'
-                                },
-                                {
-                                    data: 'spbid'
-                                },
-                                {
-                                    data: 'cpny_id',
-                                    className: 'text-center'
-                                },
-                                {
-                                    data: 'created_by'
-                                },
-                                {
-                                    data: 'status'
-                                }
-                            ];
-                        }
-
-                        // === DEFAULT UNTUK SCOPES LAIN ===
+                        // 7 kolom: IssueID, IssueDate, IssueType, SPBID, Company, CreatedBy, Status
                         return [
                             {
                                 data: 'issueid',
@@ -488,24 +418,57 @@
                                 className: 'text-center'
                             },
                             {
-                                data: 'issuetype'
+                                data: 'issuetype',
+                                defaultContent: ''
                             },
                             {
-                                data: 'spbid'
+                                data: 'spbid',
+                                defaultContent: ''
                             },
                             {
                                 data: 'cpny_id',
+                                defaultContent: '',
                                 className: 'text-center'
                             },
                             {
-                                data: 'created_by'
+                                data: 'created_by',
+                                defaultContent: ''
                             },
                             {
-                                data: 'status'
-                            }
+                                data: 'status',
+                                className: 'text-left',
+                                render: function(data) {
+                                    const map = {
+                                        'D': {
+                                            t: 'Revise',
+                                            c: 'bg-gray-300/30 text-gray-600'
+                                        },
+                                        'P': {
+                                            t: 'On Progress',
+                                            c: 'bg-blue-300/30 text-blue-600'
+                                        },
+                                        'C': {
+                                            t: 'Completed',
+                                            c: 'bg-green-300/30 text-green-600'
+                                        },
+                                        'X': {
+                                            t: 'Cancel',
+                                            c: 'bg-red-300/30 text-red-600'
+                                        },
+                                        'R': {
+                                            t: 'Rejected',
+                                            c: 'bg-red-300/30 text-red-600'
+                                        },
+                                    };
+                                    const it = map[data] || {
+                                        t: data || '-',
+                                        c: 'bg-gray-300/30 text-gray-600'
+                                    };
+                                    return `<span class="w-32 inline-block ${it.c} font-semibold px-3 py-1.5 text-base text-center rounded">${it.t}</span>`;
+                                }
+                            },
                         ];
                     }
-
 
                     function orderFor(sc) {
                         // issuedate desc, issueid desc

@@ -264,34 +264,7 @@ class IssueController extends Controller
             $header->totalissueqty = $totalIssueQty;
             $header->save();
 
-            // ===== TIDAK ADA UPDATE KE TrSPB / TrSPBdetail DI SINI =====
-            // Posting Qty akan dilakukan di approveIssue FINAL.
-
-            // ===== Generate approval instance (T_approval) =====
-            // $datestamp = $now->toDateTimeString();
-            // $approvals = M_approval::where([
-            //     ['status',      '=', 'A'],
-            //     ['aprvcpnyid',  '=', $cpnyid],
-            //     ['aprvdeptid',  '=', $deptid],
-            //     ['aprvdoctype', '=', $doctype],
-            // ])->orderBy('aprvid')->get();
-
-            // foreach ($approvals as $a) {
-            //     T_approval::create([
-            //         'docid'          => $issueid,
-            //         'aprvid'         => $a->aprvid,
-            //         'aprvdoctype'    => $a->aprvdoctype,
-            //         'aprvcpnyid'     => $a->aprvcpnyid,
-            //         'aprvdeptid'     => $a->aprvdeptid,
-            //         'aprvusername'   => $a->aprvusername,
-            //         'name'           => $a->name,
-            //         'aprvdatebefore' => $a->aprvid == 1 ? $datestamp : null,
-            //         'aprvtotalday'   => 1,
-            //         'status'         => 'P',
-            //         'created_by'     => $username,
-            //     ]);
-            // }
-
+           
             // === Generate TrApproval (GR tidak cek nominal)
             $ctx = ['ignore_nominal' => true];
 
@@ -996,7 +969,7 @@ class IssueController extends Controller
                     // ambil detail issue yang barusan di-approve
                     $issDetails = TrIssuedetail::where('issueid', $issue->issueid)->get();
                     // fungsi akan throw exception jika SPB tidak ada → otomatis rollback transaksi approveStep scope ini
-                    $this->applyIssuePostingToSpb($issue, $issDetails, $user, $now);
+                    // $this->applyIssuePostingToSpb($issue, $issDetails, $user, $now);
 
                     // notifikasi requester: selesai
                     app(\App\Http\Controllers\ApprovalController::class)->notifyRequesterOnStatus(
