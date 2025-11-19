@@ -21,7 +21,7 @@ class TrSPB extends Model
         // 'budget_perpost',
         // 'woid',
         // 'totalspbqty',
-        // 'totalspbopenqty',
+        // 'totalspbqty',
         // 'totalissueqty',
         // 'totalcompleteqty',
         // 'status',

@@ -12,7 +12,7 @@ use Illuminate\Support\Str;
 use App\Models\TrIssue;
 
 
-class IssueListController extends Controller
+class SpbJobsController extends Controller
 {
     public function index()
     {
@@ -40,7 +40,7 @@ class IssueListController extends Controller
             ->where('issuetype', 'issue')
             ->count();
 
-        return view('pages.issue.issuelist', compact(
+        return view('pages.spbjobs.issuelist', compact(
             'issuejobs', 'onProgress', 'completed', 'all', 'returnjobs','rejected','revise'
         ));
     }

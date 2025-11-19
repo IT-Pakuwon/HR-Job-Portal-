@@ -1238,12 +1238,12 @@ class IssueController extends Controller
             ->first();
 
         $spb->totalspbqty      = (float) $agg->total_qty;
-        $spb->totalspbopenqty  = (float) $agg->total_open;
+        $spb->totalspbqty  = (float) $agg->total_open;
         $spb->totalissueqty    = (float) $agg->total_issue;
         $spb->totalcompleteqty = (float) $agg->total_complete;
 
         // header complete jika semua open = 0
-        $spb->status     = ($spb->totalspbopenqty <= 0) ? 'C' : 'P';
+        $spb->status     = ($spb->totalspbqty <= 0) ? 'C' : 'P';
         $spb->updated_by = $user->username ?? 'system';
         $spb->updated_at = $now;
         $spb->save();
@@ -1382,11 +1382,11 @@ class IssueController extends Controller
 
     //             if ($agg) {
     //                 $spb->totalissueqty     = (float)$agg->total_issue;
-    //                 $spb->totalspbopenqty   = (float)$agg->total_open;
+    //                 $spb->totalspbqty   = (float)$agg->total_open;
     //                 $spb->totalcompleteqty  = (float)$agg->total_complete;
     //             }
 
-    //             if ((float)($spb->totalspbopenqty ?? 0) <= 0) {
+    //             if ((float)($spb->totalspbqty ?? 0) <= 0) {
     //                 $spb->status       = 'C';
     //                 $spb->completed_by = $user->username;
     //                 $spb->completed_at = $now;
@@ -1838,12 +1838,12 @@ class IssueController extends Controller
                     ->first();
 
                 $spb->totalspbqty       = (float) $totals->total_spbqty;
-                $spb->totalspbopenqty   = (float) $totals->total_spbopenqty;
+                $spb->totalspbqty   = (float) $totals->total_spbopenqty;
                 $spb->totalissueqty     = (float) $totals->total_issueqty;
                 $spb->totalcompleteqty  = (float) $totals->total_completeqty;
 
                 // Close SPB jika semua open = 0
-                if ($spb->totalspbopenqty <= 0.0000001) {
+                if ($spb->totalspbqty <= 0.0000001) {
                     $spb->status       = 'C';
                     $spb->completed_by = $uname;
                     // jika punya kolom completed_at di DB, set di sini; jika tidak, hapus baris ini
@@ -1873,7 +1873,7 @@ class IssueController extends Controller
                         'spbid'               => $iss->spbid,
                         'added_issue_qty'     => $sumIssueThisDoc,
                         'spb_total_issueqty'  => (float) $spb->totalissueqty,
-                        'spb_total_openqty'   => (float) $spb->totalspbopenqty,
+                        'spb_total_openqty'   => (float) $spb->totalspbqty,
                         'spb_status'          => $spb->status,
                     ],
                 ]);
@@ -1931,12 +1931,12 @@ class IssueController extends Controller
                     ->first();
 
                 $spb->totalspbqty       = (float) $totals->total_spbqty;
-                $spb->totalspbopenqty   = (float) $totals->total_spbopenqty;
+                $spb->totalspbqty   = (float) $totals->total_spbopenqty;
                 $spb->totalissueqty     = (float) $totals->total_issueqty;
                 $spb->totalcompleteqty  = (float) $totals->total_completeqty;
 
                 // Status SPB setelah return
-                if ($spb->totalspbopenqty <= 0.0000001) {
+                if ($spb->totalspbqty <= 0.0000001) {
                     $spb->status       = 'C';
                     $spb->completed_by = $uname;
                     // $spb->completed_at = $now; // jika kolom ada
@@ -1963,7 +1963,7 @@ class IssueController extends Controller
                         'spbid'                  => $iss->spbid,
                         'returned_issue_qty'     => $sumReturnThisDoc,
                         'spb_total_issueqty'     => (float) $spb->totalissueqty,
-                        'spb_total_openqty'      => (float) $spb->totalspbopenqty,
+                        'spb_total_openqty'      => (float) $spb->totalspbqty,
                         'spb_status'             => $spb->status,
                     ],
                 ]);

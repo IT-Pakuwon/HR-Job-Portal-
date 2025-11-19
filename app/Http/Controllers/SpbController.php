@@ -282,7 +282,7 @@ class SpbController extends Controller
             $header->woid              = $nullIfEmpty($request->input('woid'));
 
             $header->totalspbqty       = 0;
-            $header->totalspbopenqty   = 0;
+            $header->totalspbqty   = 0;
             $header->totalissueqty     = 0;
             $header->totalcompleteqty  = 0;
             $header->status            = 'P';
@@ -357,7 +357,7 @@ class SpbController extends Controller
 
             // === Update total header ===
             $header->totalspbqty      = $totalQty;
-            $header->totalspbopenqty  = $totalQty;
+            $header->totalspbqty  = $totalQty;
             $header->totalissueqty    = 0;
             $header->totalcompleteqty = 0;
             $header->save();
@@ -675,7 +675,7 @@ class SpbController extends Controller
 
             $header->fill([
                 'totalspbqty'       => $totalQty,
-                'totalspbopenqty'   => $totalQty,  // sama dengan qty saat baru/diupdate
+                'totalspbqty'   => $totalQty,  // sama dengan qty saat baru/diupdate
                 'totalissueqty'     => 0,
                 'totalcompleteqty'  => 0,
                 'updated_by'        => $username,

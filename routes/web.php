@@ -59,6 +59,7 @@ use App\Http\Controllers\TrAttachmentController;
 use App\Http\Controllers\SpbController;  
 use App\Http\Controllers\IssueListController;
 use App\Http\Controllers\IssueController;
+use App\Http\Controllers\SpbJobsController;
 use App\Http\Controllers\IMBudgetController;
 use App\Http\Controllers\SendCommentController;
 use App\Http\Controllers\ApprovalController;
@@ -666,7 +667,7 @@ Route::post('/logout', function () {
     // Route::get('/editissues/{hash}', [IssueController::class, 'editIssue']);
     // Route::put('/issues/{id}', [IssueController::class, 'updateIssue'])->name('issue.update');
     Route::get('/editissues/{hash}', [IssueController::class, 'editIssue'])->name('issue.edit');
-    Route::put('/issues/{hash}', [IssueController::class, 'updateIssue'])->name('issue.update');
+    Route::put('/issues/{hash}', [IssueController::class, 'updateIssue'])->name('issue.update');    
 
     Route::put('/issues/remove-attachment/{id}', [IssueController::class, 'removeAttachment']);    
     Route::get('/issue/{id}/check-approval/{action}', [IssueController::class, 'checkApproval']);  
@@ -674,6 +675,9 @@ Route::post('/logout', function () {
     Route::get('/issue-return/create', [IssueController::class, 'createReturn'])->name('issue.return.create');
     Route::post('/issue-return', [IssueController::class, 'storeReturn'])->name('issue.return.store');
     Route::get('/pdf_issues/{hash}', [IssueController::class, 'printIssue']);
+
+    Route::get('/spbjobs', [SpbJobsController::class, 'index'])->name('spbjobs');
+    Route::get('/spbjobs/json', [SpbJobsController::class, 'json'])->name('spbjobs.json');
 
     Route::get('/imbudgets', [IMBudgetController::class, 'index'])->name('imbudgets');
     Route::get('/imbudgets/json', [IMBudgetController::class, 'json'])->name('imbudgets.json');
