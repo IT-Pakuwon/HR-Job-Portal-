@@ -158,22 +158,36 @@
 
     <div class="max-w-9xl mx-auto w-full py-6">
         <div class="max-w-9xl mx-auto w-full px-4">
-            <div class="gap-6">
-                <div class="flex flex-col gap-10">
+            <div class="gap-4">
+                <div class="flex flex-col gap-4">
                     {{-- Form Import --}}
                     <form id="budgetForm" action="{{ route('budgets.import') }}" method="POST"
                         enctype="multipart/form-data" class="flex flex-col gap-4">
                         @csrf
-                        <div class="rounded-2xl border bg-white p-4 shadow dark:bg-gray-800">
-                            <div class="mb-4 flex items-center justify-between border-b pb-2 dark:border-gray-600">
+                        <div class="w-full rounded-xl bg-white p-6 shadow-md dark:bg-gray-800">
+
+                            <!-- HEADER -->
+                            <div class="mb-4 flex items-center justify-between border-b pb-3 dark:border-gray-600">
                                 <h2 class="text-xl font-bold">📥 Import Budget</h2>
+
+                                <!-- ONLY Template button here -->
+                                <a href="{{ asset('templates/import_budget.xlsx') }}" target="_blank" rel="noopener"
+                                    download
+                                    class="inline-flex items-center gap-2 rounded-md border border-green-600 bg-green-600 px-4 py-2 text-white hover:bg-green-700 dark:border-green-500 dark:bg-green-700 dark:hover:bg-green-600">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"
+                                        viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2
+                       M7 10l5 5m0 0l5-5m-5 5V4" />
+                                    </svg>
+                                    Template Budget
+                                </a>
                             </div>
 
-                            <!-- Header fields: rapi & sejajar -->
-                            <div class="grid grid-cols-1 items-end gap-4 md:grid-cols-6">
+                            <!-- FORM FIELDS GRID -->
+                            <div class="grid grid-cols-1 gap-4 md:grid-cols-4">
 
                                 <!-- Company -->
-                                <div class="col-span-1">
+                                <div>
                                     <label
                                         class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Company</label>
                                     <select name="cpny_id" required
@@ -186,7 +200,7 @@
                                 </div>
 
                                 <!-- Business Unit -->
-                                <div class="col-span-1">
+                                <div>
                                     <label
                                         class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Business
                                         Unit</label>
@@ -196,8 +210,8 @@
                                     </select>
                                 </div>
 
-                                <!-- Department (Select2) -->
-                                <div class="col-span-1">
+                                <!-- Department -->
+                                <div>
                                     <label
                                         class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Department</label>
                                     <select name="department_fin_id" id="department_select" required
@@ -208,167 +222,177 @@
                                     </select>
                                 </div>
 
-                                <!-- File -->
-                                <div class="col-span-1">
+                                <!-- File Upload -->
+                                <div>
                                     <label
                                         class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Import
                                         Excel</label>
                                     <input type="file" name="file" id="file" required
-                                        class="h-[42px] w-full rounded-md border border-gray-300 bg-white px-3 py-2 focus:ring focus:ring-blue-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
+                                        class="block h-[40px] w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-700 file:mr-4 file:rounded-md file:border-0 file:bg-gray-100 file:px-3 file:py-1.5 file:text-gray-700 focus:ring focus:ring-blue-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 dark:file:bg-gray-700 dark:file:text-gray-200" />
+
                                 </div>
 
-                                <!-- Import Button -->
-                                <div class="col-span-1 flex justify-end">
-                                    <button type="submit" id="importBtn"
-                                        class="inline-flex h-[42px] items-center rounded-md bg-blue-600 px-6 text-white hover:bg-blue-700">
-                                        Import
-                                    </button>
-                                </div>
+                            </div>
 
-                                <!-- Download Template -->
-                                <div class="col-span-1 flex justify-end">
-                                    <a href="{{ asset('templates/import_budget.xlsx') }}" target="_blank" rel="noopener"
-                                        download
-                                        class="inline-flex h-[42px] items-center rounded-md border border-green-600 bg-green-600 px-4 text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 dark:border-green-500 dark:bg-green-700 dark:hover:bg-green-600">
-                                        Download Template Budget
-                                    </a>
-                                </div>
+                            <!-- IMPORT button stays below grid -->
+                            <div class="mt-4 flex justify-end">
+                                <button type="submit" id="importBtn"
+                                    class="inline-flex items-center rounded-md bg-blue-600 px-6 py-2 text-white hover:bg-blue-700">
+                                    Import
+                                </button>
                             </div>
 
                         </div>
+
 
                     </form>
 
                     {{-- Table Preview Import --}}
                     @if (isset($tempData) && count($tempData) > 0)
-                        <div class="rounded-2xl border bg-white p-4 shadow dark:bg-gray-800">
-                            <h2 class="mb-4 text-lg font-bold">📊 Import<span class="text-lg font-normal text-red-600">
-                                    (preview import)</span></h2>
+                        <div class="flex flex-col gap-4">
+                            <div class="flex-1 gap-4 rounded-xl bg-white p-6 shadow-md dark:bg-gray-800">
+                                <div class="mb-4 flex items-center justify-between border-b pb-2 dark:border-gray-600">
+                                    <h2 class="flex items-center gap-2 text-lg font-bold">
+                                        📊 Budget Details
+                                    </h2>
+                                    <h5
+                                        class="rounded-xl bg-red-100/50 px-4 py-1.5 text-base font-semibold text-red-600">
+                                        Preview
+                                    </h5>
+                                </div>
 
-                            {{-- ✅ Scroll Container --}}
-                            <div class="w-full overflow-x-auto">
-                                <table
-                                    class="w-full min-w-[1500px] table-auto whitespace-nowrap border text-left text-sm">
-                                    <thead class="bg-gray-100 font-bold text-gray-700">
-                                        <tr>
-                                            <th class="px-4 py-2">Perpost</th>
-                                            <th class="px-4 py-2">Cpny ID</th>
-                                            <th class="px-4 py-2">Business Unit</th>
-                                            <th class="px-4 py-2">Department</th>
-                                            <th class="px-4 py-2">Account</th>
-                                            <th class="px-4 py-2">Activity ID</th>
-                                            <th class="px-4 py-2">Activity Description</th>
-                                            <th class="px-4 py-2">Activity Detail</th>
-                                            <th class="px-4 py-2">Qty</th>
-                                            <th class="px-4 py-2">Unit Price</th>
-                                            <th class="px-4 py-2 text-right">Total Budget</th>
-                                            @for ($i = 1; $i <= 12; $i++)
-                                                <th class="px-4 py-2 text-right">
-                                                    Period{{ str_pad($i, 2, '0', STR_PAD_LEFT) }}</th>
-                                            @endfor
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @foreach ($tempData as $item)
-                                            <tr class="border-t hover:bg-gray-50">
-                                                <td class="px-4 py-2">{{ $item->perpost }}</td>
-                                                <td class="px-4 py-2">{{ $item->cpny_id }}</td>
-                                                <td class="px-4 py-2">{{ $item->business_unit_id }}</td>
-                                                <td class="px-4 py-2">{{ $item->department_fin_id }}</td>
-                                                <td class="px-4 py-2">{{ $item->account_id }}</td>
-                                                <td class="px-4 py-2">{{ $item->activity_id }}</td>
-                                                <td class="px-4 py-2">{{ $item->activity_descr }}</td>
-                                                <td class="px-4 py-2">{{ $item->activity_detail }}</td>
-                                                <td class="px-4 py-2">{{ $item->qty_budget }}</td>
-                                                <td class="px-4 py-2">{{ $item->unit_price_budget }}</td>
-                                                <td class="px-4 py-2 text-right">
-                                                    {{ number_format($item->totalbudget) }}</td>
+                                <div class="w-full overflow-x-auto">
+                                    <table
+                                        class="w-full min-w-[1500px] table-auto whitespace-nowrap border text-left text-sm">
+                                        <thead class="bg-gray-100 font-bold text-gray-700">
+                                            <tr>
+                                                <th class="px-4 py-2">Perpost</th>
+                                                <th class="px-4 py-2">Cpny ID</th>
+                                                <th class="px-4 py-2">Business Unit</th>
+                                                <th class="px-4 py-2">Department</th>
+                                                <th class="px-4 py-2">Account</th>
+                                                <th class="px-4 py-2">Activity ID</th>
+                                                <th class="px-4 py-2">Activity Description</th>
+                                                <th class="px-4 py-2">Activity Detail</th>
+                                                <th class="px-4 py-2">Qty</th>
+                                                <th class="px-4 py-2">Unit Price</th>
+                                                <th class="px-4 py-2 text-right">Total Budget</th>
                                                 @for ($i = 1; $i <= 12; $i++)
-                                                    @php
-                                                        $period =
-                                                            'period' . str_pad($i, 2, '0', STR_PAD_LEFT) . '_budget';
-                                                    @endphp
-                                                    <td class="px-4 py-2 text-right">
-                                                        {{ number_format($item->$period) }}</td>
+                                                    <th class="px-4 py-2 text-right">
+                                                        Period{{ str_pad($i, 2, '0', STR_PAD_LEFT) }}</th>
                                                 @endfor
                                             </tr>
-                                        @endforeach
-                                    </tbody>
-                                </table>
+                                        </thead>
+                                        <tbody>
+                                            @foreach ($tempData as $item)
+                                                <tr class="border-t hover:bg-gray-50">
+                                                    <td class="px-4 py-2">{{ $item->perpost }}</td>
+                                                    <td class="px-4 py-2">{{ $item->cpny_id }}</td>
+                                                    <td class="px-4 py-2">{{ $item->business_unit_id }}</td>
+                                                    <td class="px-4 py-2">{{ $item->department_fin_id }}</td>
+                                                    <td class="px-4 py-2">{{ $item->account_id }}</td>
+                                                    <td class="px-4 py-2">{{ $item->activity_id }}</td>
+                                                    <td class="px-4 py-2">{{ $item->activity_descr }}</td>
+                                                    <td class="px-4 py-2">{{ $item->activity_detail }}</td>
+                                                    <td class="px-4 py-2">{{ $item->qty_budget }}</td>
+                                                    <td class="px-4 py-2">{{ $item->unit_price_budget }}</td>
+                                                    <td class="px-4 py-2 text-right">
+                                                        {{ number_format($item->totalbudget) }}</td>
+                                                    @for ($i = 1; $i <= 12; $i++)
+                                                        @php
+                                                            $period =
+                                                                'period' .
+                                                                str_pad($i, 2, '0', STR_PAD_LEFT) .
+                                                                '_budget';
+                                                        @endphp
+                                                        <td class="px-4 py-2 text-right">
+                                                            {{ number_format($item->$period) }}</td>
+                                                    @endfor
+                                                </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                </div>
                             </div>
-                            <form id="submitApprovalForm" method="POST" action="{{ route('budgets.store') }}">
-                                @csrf
 
-                                <div class="flex w-full flex-col gap-2 rounded-2xl border-b bg-white dark:bg-gray-800">
-                                    <div class="flex w-1/2 w-full flex-col border-b p-4">
-                                        <details class="group mb-4" open>
-                                            <summary
-                                                class="mb-4 flex cursor-pointer items-center justify-between rounded">
-                                                <span class="text-lg font-semibold">Attachments</span>
-                                                <span class="transition-all group-open:hidden">See details</span>
-                                                <span class="hidden transition-all group-open:inline">Hide
-                                                    details</span>
-                                            </summary>
-                                            <div class="flex h-auto flex-col justify-start">
-                                                <div id="attachmentsContainer">
-                                                    <div class="attachment-row flex items-center gap-2">
-                                                        <input type="file" name="attachments[]" {{-- class="mt-4 w-full border p-3 text-lg"> --}}
-                                                            class="flex-grow rounded-md border border-gray-200 bg-white px-4 py-2 text-sm text-gray-700 file:mr-4 file:rounded-full file:border-0 file:bg-indigo-100 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-indigo-700 hover:file:bg-indigo-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:file:bg-indigo-700 dark:file:text-white dark:hover:file:bg-indigo-600">
-                                                        <button type="button"
-                                                            class="removeAttachment mt-4 hidden rounded border border-red-600 bg-red-200/30 p-3 text-red-600 transition hover:bg-red-600 hover:text-white">
-                                                            🗑️
-                                                        </button>
+
+                            <div class="flex-1 gap-4 rounded-xl bg-white p-6 shadow-md dark:bg-gray-800">
+                                <form id="submitApprovalForm" method="POST" action="{{ route('budgets.store') }}">
+                                    @csrf
+                                    <div class="flex w-full flex-col gap-4">
+                                        <div class="flex w-full flex-col border-b">
+                                            <details class="group mb-4" open>
+                                                <summary
+                                                    class="mb-4 flex cursor-pointer items-center justify-between rounded">
+                                                    <span class="text-lg font-semibold">Attachments</span>
+                                                    <span class="transition-all group-open:hidden">See details</span>
+                                                    <span class="hidden transition-all group-open:inline">Hide
+                                                        details</span>
+                                                </summary>
+                                                <div class="flex h-auto flex-col justify-start">
+                                                    <div id="attachmentsContainer">
+                                                        <div class="attachment-row flex items-center gap-2">
+                                                            <input type="file" name="attachments[]"
+                                                                {{-- class="mt-4 w-full border p-3 text-lg"> --}}
+                                                                class="flex-grow rounded-md border border-gray-200 bg-white px-4 py-2 text-sm text-gray-700 file:mr-4 file:rounded-full file:border-0 file:bg-indigo-100 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-indigo-700 hover:file:bg-indigo-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:file:bg-indigo-700 dark:file:text-white dark:hover:file:bg-indigo-600">
+                                                            <button type="button"
+                                                                class="removeAttachment mt-4 hidden rounded border border-red-600 bg-red-200/30 p-3 text-red-600 transition hover:bg-red-600 hover:text-white">
+                                                                🗑️
+                                                            </button>
+                                                        </div>
                                                     </div>
+                                                    <button type="button" id="addAttachment"
+                                                        class="mb-4 mt-4 flex items-center justify-center gap-2 rounded border border-gray-700 bg-gray-200/10 p-2 text-gray-800 hover:border-red-700 hover:bg-red-200/10 hover:font-medium hover:text-red-800">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5"
+                                                            viewBox="0 0 20 20" fill="currentColor">
+                                                            <path fill-rule="evenodd"
+                                                                d="M10 2a1 1 0 011 1v6h6a1 1 0 110 2h-6v6a1 1 0 11-2 0v-6H3a1 1 0 110-2h6V3a1 1 0 011-1z"
+                                                                clip-rule="evenodd" />
+                                                        </svg> Add Attachment
+                                                    </button>
                                                 </div>
-                                                <button type="button" id="addAttachment"
-                                                    class="mb-4 mt-4 flex items-center justify-center gap-2 rounded border border-gray-700 bg-gray-200/10 p-2 text-gray-800 hover:border-red-700 hover:bg-red-200/10 hover:font-medium hover:text-red-800">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5"
-                                                        viewBox="0 0 20 20" fill="currentColor">
-                                                        <path fill-rule="evenodd"
-                                                            d="M10 2a1 1 0 011 1v6h6a1 1 0 110 2h-6v6a1 1 0 11-2 0v-6H3a1 1 0 110-2h6V3a1 1 0 011-1z"
-                                                            clip-rule="evenodd" />
-                                                    </svg> Add Attachment
+                                            </details>
+                                        </div>
+                                        <div class="flex h-auto w-full flex-row justify-end gap-4 pl-4 pr-4">
+                                            <div class="w-1/8 flex flex-col justify-start">
+                                                <button id="cancelBtn"
+                                                    class="mb-4 mt-4 flex items-center justify-center gap-2 rounded border border-red-700 bg-red-200/10 p-2 text-red-700 hover:border-red-700 hover:bg-red-700 hover:font-medium hover:text-white">
+                                                    <span id="cancelText">Cancel</span>
+                                                    <svg id="cancelSpinner"
+                                                        class="hidden h-5 w-5 animate-spin text-white"
+                                                        xmlns="http://www.w3.org/2000/svg" fill="none"
+                                                        viewBox="0 0 24 24">
+                                                        <circle class="opacity-25" cx="12" cy="12"
+                                                            r="10" stroke="currentColor" stroke-width="4"></circle>
+                                                        <path class="opacity-75" fill="currentColor"
+                                                            d="M4 12a8 8 0 018-8v8z">
+                                                        </path>
+                                                    </svg>
                                                 </button>
                                             </div>
-                                        </details>
-                                    </div>
-                                    <div class="flex h-auto w-full flex-row justify-end gap-4 pl-4 pr-4">
-                                        <div class="w-1/8 flex flex-col justify-start">
-                                            <button id="cancelBtn"
-                                                class="mb-4 mt-4 flex items-center justify-center gap-2 rounded border border-red-700 bg-red-200/10 p-2 text-red-700 hover:border-red-700 hover:bg-red-700 hover:font-medium hover:text-white">
-                                                <span id="cancelText">Cancel</span>
-                                                <svg id="cancelSpinner" class="hidden h-5 w-5 animate-spin text-white"
-                                                    xmlns="http://www.w3.org/2000/svg" fill="none"
-                                                    viewBox="0 0 24 24">
-                                                    <circle class="opacity-25" cx="12" cy="12" r="10"
-                                                        stroke="currentColor" stroke-width="4"></circle>
-                                                    <path class="opacity-75" fill="currentColor"
-                                                        d="M4 12a8 8 0 018-8v8z">
-                                                    </path>
-                                                </svg>
-                                            </button>
-                                        </div>
 
-                                        <input type="hidden" name="temp_id" value="{{ $temp_id }}">
-                                        <div class="w-1/8 flex flex-col justify-start">
-                                            <button type="submit" id="submitBtn"
-                                                class="mb-4 mt-4 flex items-center justify-center gap-2 rounded border border-blue-700 bg-blue-200/10 p-2 text-blue-700 hover:border-blue-700 hover:bg-blue-700 hover:font-medium hover:text-white">
-                                                <span id="btnText">Submit Approval</span>
-                                                <svg id="loadingSpinner"
-                                                    class="hidden h-5 w-5 animate-spin text-white"
-                                                    xmlns="http://www.w3.org/2000/svg" fill="none"
-                                                    viewBox="0 0 24 24">
-                                                    <circle class="opacity-25" cx="12" cy="12" r="10"
-                                                        stroke="currentColor" stroke-width="4">
-                                                    </circle>
-                                                    <path class="opacity-75" fill="currentColor"
-                                                        d="M4 12a8 8 0 018-8v8z"></path>
-                                                </svg>
-                                            </button>
+                                            <input type="hidden" name="temp_id" value="{{ $temp_id }}">
+                                            <div class="w-1/8 flex flex-col justify-start">
+                                                <button type="submit" id="submitBtn"
+                                                    class="mb-4 mt-4 flex items-center justify-center gap-2 rounded border border-blue-700 bg-blue-200/10 p-2 text-blue-700 hover:border-blue-700 hover:bg-blue-700 hover:font-medium hover:text-white">
+                                                    <span id="btnText">Submit Approval</span>
+                                                    <svg id="loadingSpinner"
+                                                        class="hidden h-5 w-5 animate-spin text-white"
+                                                        xmlns="http://www.w3.org/2000/svg" fill="none"
+                                                        viewBox="0 0 24 24">
+                                                        <circle class="opacity-25" cx="12" cy="12"
+                                                            r="10" stroke="currentColor" stroke-width="4">
+                                                        </circle>
+                                                        <path class="opacity-75" fill="currentColor"
+                                                            d="M4 12a8 8 0 018-8v8z"></path>
+                                                    </svg>
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            </form>
+                                </form>
+                            </div>
+
                         </div>
                     @endif
                 </div>
@@ -443,7 +467,7 @@
                             var businessUnitSelect = $('select[name="business_unit_id"]');
                             businessUnitSelect.empty(); // kosongkan dulu
 
-                            businessUnitSelect.append('<option value="">Pilih Unit</option>');
+                            businessUnitSelect.append('<option value="">Select Unit</option>');
                             $.each(data, function(key, value) {
                                 businessUnitSelect.append('<option value="' + value
                                     .business_unit_id + '">' + value

@@ -121,15 +121,17 @@
                                     <div class="flex flex-col gap-2">
                                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Job
                                             Level</label>
-                                            <input type="hidden" name="group_grade" id="group_grade">
+                                        <input type="hidden" name="group_grade" id="group_grade">
                                         {{-- <input type="hidden" name="subgrade_id" id="subgrade_id"> --}}
                                         {{-- <input type="text" name="job_level" id="job_level"
                                             class="pointer-events-none w-full rounded-lg border border-gray-300 bg-gray-100 p-2.5 text-gray-700 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                             readonly> --}}
-                                        <select class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                        <select
+                                            class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                             name="subgrade_id" id="subgrade_id" required>
                                             @foreach ($subgradings as $sg)
-                                                <option value="{{ $sg->subgrade_id }}" data-group="{{ $sg->group_grade }}">
+                                                <option value="{{ $sg->subgrade_id }}"
+                                                    data-group="{{ $sg->group_grade }}">
                                                     {{ $sg->subgrade_id }} - {{ $sg->subgrade_name }}
                                                 </option>
                                             @endforeach
@@ -338,7 +340,8 @@
                     </div> --}}
                     <div class="flex w-full flex-col gap-2 rounded-2xl border-b bg-white dark:bg-gray-800">
                         <div class="flex w-full flex-col gap-4 p-4">
-                            <details class="group" open>
+                            <details class="group w-full min-w-0 max-w-full px-1" open>
+
                                 <summary class="mb-4 flex cursor-pointer items-center justify-between rounded">
                                     <span class="text-lg font-semibold">Job Qualification</span>
                                     <span class="transition-all group-open:hidden">See details</span>
@@ -406,6 +409,7 @@
                                                     <td class="border p-3 text-center">
                                                         <button type="button"
                                                             class="removeQualification hidden rounded border border-red-700 bg-red-200/10 px-3 py-3 text-white hover:border-red-700 hover:bg-red-400/30 dark:bg-red-700/30">🗑️</button>
+                                                    </td>
                                                 </tr>
                                             </tbody>
                                         </table>
@@ -421,12 +425,18 @@
                                     </button>
                                 </div>
                                 <!-- Tags -->
-                                <div class="mt-4">
-                                    <label class="mb-2 font-semibold">🔹 Tags</label>
+                                <div class="mt-4 w-full min-w-0">
+                                    <label
+                                        class="mb-2 flex items-center gap-1 font-semibold text-gray-700 dark:text-gray-200">
+                                        <span>🔹</span>
+                                        <span>Tags</span>
+                                    </label>
+
                                     <select name="tags[]" id="tags" multiple
-                                        class="tags-input w-full rounded-lg border border-gray-300 bg-white p-3 text-gray-700 shadow-sm focus:ring-2 focus:ring-blue-400 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200">
+                                        class="tags-input block w-full min-w-0 rounded-lg border border-gray-300 bg-white p-3 text-gray-700 shadow-sm focus:ring-2 focus:ring-blue-400 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200">
                                     </select>
                                 </div>
+
                             </details>
                         </div>
                     </div>
@@ -950,7 +960,7 @@
     </script>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
+        document.addEventListener('DOMContentLoaded', function() {
             const subgradeSelect = document.getElementById("subgrade_id");
             const hiddenGroupInput = document.getElementById("group_grade");
 
