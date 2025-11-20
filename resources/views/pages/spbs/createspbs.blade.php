@@ -1496,8 +1496,8 @@
                         const rows = data.map(item => `
                             <tr>
                                 <td class="border p-2">${item.account_id ?? ''}</td>
-                                <td class="border p-2">${item.activity_descr ?? ''}</td>
-                                <td class="border p-2">${item.totalbudget ?? ''}</td>
+                                <td class="border p-2">${item.activity_descr ?? ''}</td>                                
+                                <td class="border p-2">${formatNumber(item.totalbudget)}</td> 
                                 <td class="border p-2 text-center">
                                     <button type="button" class="chooseCoa rounded border px-2 py-1 hover:bg-gray-100"
                                         data-id="${item.account_id}"

@@ -251,6 +251,7 @@
                                                     <th class="req w-[25%] border p-3">Product Name</th>
                                                     <th class="req w-28 w-[6%] border p-3 text-center">Qty</th>
                                                     <th class="req w-28 w-[8%] border p-3">UoM</th>
+                                                    <th class="req w-28 w-[8%] border p-3 siteid-header hidden">SiteID</th>
                                                     <th class="w-[15%] border p-3">Note</th>
                                                     <th class="req border p-3">Location</th>
                                                     {{-- <th class="req border p-3">Sub Location</th> --}}
@@ -329,6 +330,28 @@
                                                                     class="openUomModal rounded border border-gray-500 px-1 py-1 hover:bg-gray-100 dark:hover:bg-gray-700"
                                                                     title="Lookup">🔎</button>
                                                             </div>
+                                                        </td>
+
+                                                        {{-- SiteID --}}
+                                                        <td class="border p-3 siteid-column hidden">
+                                                            <div class="siteid-wrapper hidden">
+                                                                <select 
+                                                                    name="siteid[]" 
+                                                                    class="siteSelect w-40 rounded border border-gray-300 p-1 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
+                                                                    data-cpny-id="{{ $usercpny2->cpnyid ?? '' }}"
+                                                                    data-current-site="{{ $d->siteid ?? '' }}" 
+                                                                    data-loaded="0"
+                                                                >
+                                                                    @if (!empty($d->siteid))
+                                                                        <option value="{{ $d->siteid }}" selected>{{ $d->siteid }}</option>
+                                                                    @else
+                                                                        <option value="" selected disabled>Select site…</option>
+                                                                    @endif
+                                                                </select>
+                                                            </div>
+
+                                                            {{-- Hidden input untuk case item_type != GI --}}
+                                                            <input type="hidden" name="siteid[]" class="siteid-hidden" value="">
                                                         </td>
 
                                                         {{-- Note --}}
@@ -582,6 +605,8 @@
                                             <th class="border p-2">Inventory ID</th>
                                             <th class="border p-2">Description</th>
                                             <th class="border p-2">UoM</th>
+                                            <th class="border p-2">SiteID</th>
+                                            <th class="border p-2">Stock</th> 
                                             <th class="w-24 border p-2 text-center">Action</th>
                                         </tr>
                                     </thead>
@@ -1042,6 +1067,27 @@
                                     title="Lookup">🔎</button>
                         </div>
                     </td>
+                    {{-- SiteID --}}
+                    <td class="border p-3 siteid-column hidden">
+                        <div class="siteid-wrapper hidden">
+                            <select 
+                                name="siteid[]" 
+                                class="siteSelect w-40 rounded border border-gray-300 p-1 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
+                                data-cpny-id="{{ $usercpny2->cpnyid ?? '' }}"
+                                data-current-site="{{ $d->siteid ?? '' }}" 
+                                data-loaded="0"
+                            >
+                                @if (!empty($d->siteid))
+                                    <option value="{{ $d->siteid }}" selected>{{ $d->siteid }}</option>
+                                @else
+                                    <option value="" selected disabled>Select site…</option>
+                                @endif
+                            </select>
+                        </div>
+
+                        {{-- Hidden input untuk case item_type != GI --}}
+                        <input type="hidden" name="siteid[]" class="siteid-hidden" value="">
+                    </td>
                     <td class="p-3 border"><input type="text" name="note[]" class="w-full border-none bg-transparent p-2" placeholder="Note"></td>
                     <td class="border p-3">
                         <div class="flex items-center gap-2">
@@ -1272,7 +1318,18 @@
         });
     </script>
 
+    <script>
+        function formatNumber(num, isCost = false) {
+            if (num === null || num === undefined || num === '') return '';
 
+            num = parseFloat(num);
+
+            return new Intl.NumberFormat('id-ID', {
+                minimumFractionDigits: isCost ? 2 : 0,
+                maximumFractionDigits: isCost ? 2 : 0
+            }).format(num);
+        }
+    </script>
     <script>
         // ===== SPB Detail =====
         $(function() {
@@ -1348,87 +1405,156 @@
 
             // Load Inventory from API
             function loadInventory() {
-                $tbody.html(`<tr><td colspan="4" class="p-3 text-center">Loading...</td></tr>`);
-                $.getJSON("{{ route('inventory.list') }}", {
-                        type: invState.type, // 'stock' 
-                        search: invState.search,
-                        page: invState.page,
-                        per_page: invState.per_page
-                    })
-                    .done(function(res) {
-                        // Expected format:
-                        // { data: [{inventoryid, inventory_descr, stock_unit}], total: 123, page:1, per_page:10 }
-                        const rows = (res.data || []).map(item => `
-                <tr>
-                    <td class="border p-2">${item.inventoryid}</td>
-                    <td class="border p-2">${item.inventory_descr}</td>
-                    <td class="border p-2">${item.stock_unit || ''}</td>
-                    <td class="border p-2 text-center">
-                    <button type="button" class="chooseInventory rounded border px-2 py-1 hover:bg-gray-100"
-                        data-id="${item.inventoryid}"
-                        data-name="${$('<div>').text(item.inventory_descr).html()}"
-                        data-stock_unit="${item.stock_unit || ''}"
-                        data-account_id="${item.account_id || ''}"
-                        data-item_type="${$('<div>').text(item.item_type || '').html()}"         
-                        data-purchase_unit="${item.purchase_unit || item.purchaseunit || ''}"
-                        data-item_category="${$('<div>').text(item.item_category || '').html()}">
-                        Choose
-                    </button>
-                    </td>
-                </tr>
-                `).join('');
+                $tbody.html(`<tr><td colspan="7" class="p-3 text-center">Loading...</td></tr>`);
 
-                        $tbody.html(rows || `<tr><td colspan="4" class="p-3 text-center">No data</td></tr>`);
-                        invState.total = res.total || 0;
-                        $invCount.text(`Showing ${rows ? (res.data.length) : 0} of ${invState.total} items`);
-                        // toggle prev/next disabled
-                        const maxPage = Math.ceil((invState.total || 0) / invState.per_page) || 1;
-                        $('#invPrev').prop('disabled', invState.page <= 1);
-                        $('#invNext').prop('disabled', invState.page >= maxPage);
-                    })
-                    .fail(function() {
-                        $tbody.html(
-                            `<tr><td colspan="4" class="p-3 text-center text-red-600">Failed to load inventory</td></tr>`
-                        );
-                        $invCount.text('');
-                        $('#invPrev, #invNext').prop('disabled', true);
-                    });
+                $.getJSON("{{ route('inventory.byWorktype') }}", {
+                    type: (invState.type || 'gi'),                // 'stock' | 'nonstock' (backend akan strtoupper)
+                    search: invState.search,
+                    page: invState.page,
+                    per_page: invState.per_page,
+                    worktypeid: ($('#worktypeid').val() || '').trim(), // <-- kirim worktypeid
+                    cpnyid: ($('select[name="cpnyid"]').val() || '').trim()
+                })
+                .done(function(res) {
+                    console.log('inventory.byWorktype result sample:', res.data?.[0]);
+                    const rows = (res.data || []).map(item => `
+                        <tr>
+                            <td class="border p-2">${item.inventoryid}</td>
+                            <td class="border p-2">${item.inventory_descr}</td>
+                            <td class="border p-2">${item.stock_unit || ''}</td>
+                            <td class="border p-2">${item.siteid || ''}</td>
+                            <td class="border p-2">${formatNumber(item.stock)}</td>                          
+                            <td class="border p-2 text-center">
+                            <button type="button" class="chooseInventory rounded border px-2 py-1 hover:bg-gray-100"
+                                data-id="${item.inventoryid}"
+                                data-name="${$('<div>').text(item.inventory_descr).html()}"
+                                data-stock_unit="${item.stock_unit || ''}"
+                                data-item_type="${$('<div>').text(item.item_type || '').html()}"
+                                data-purchase_unit="${item.purchase_unit || item.purchaseunit || ''}"
+                                data-item_category="${$('<div>').text(item.item_category || '').html()}"
+                                data-siteid="${item.siteid ?? ''}"
+                                data-stock="${item.stock ?? ''}"                
+                                data-cost="${item.cost ?? ''}">                  
+                                Choose
+                            </button>
+                            </td>
+                        </tr>
+                    `).join('');
+
+
+                    $tbody.html(rows || `<tr><td colspan="7" class="p-3 text-center">No data</td></tr>`);
+                    invState.total = res.total || 0;
+                    $invCount.text(`Showing ${rows ? (res.data.length) : 0} of ${invState.total} items`);
+
+                    const maxPage = Math.ceil((invState.total || 0) / invState.per_page) || 1;
+                    $('#invPrev').prop('disabled', invState.page <= 1);
+                    $('#invNext').prop('disabled', invState.page >= maxPage);
+                })
+                .fail(function() {
+                    $tbody.html(`<tr><td colspan="7" class="p-3 text-center text-red-600">Failed to load inventory</td></tr>`);
+                    $invCount.text('');
+                    $('#invPrev, #invNext').prop('disabled', true);
+                });
             }
 
             // Choose Inventory -> fill current row
+            // $(document).on('click', '.chooseInventory', function() {
+            //     if (!currentRow) return;
+
+            //     const id = $(this).data('id');
+            //     const name = $(this).data('name');
+            //     const stock_unit = $(this).data('stock_unit');
+            //     const account_id = ($(this).data('account_id') || '').toString().trim();
+
+            //     // NEW: item meta dari inventory
+            //     const item_type = $(this).data('item_type') || '';
+            //     const item_category = $(this).data('item_category') || '';
+            //     const purchase_unit = $(this).data('purchase_unit') || '';
+
+            //     currentRow.find('.inventoryIdField').val(id);
+            //     currentRow.find('.productNameField').val(name);
+            //     currentRow.find('.stock_unitField').val(stock_unit || '-');
+            //     currentRow.find('.purchaseUnitField').val(purchase_unit);
+
+            //     // simpan hidden baru
+            //     currentRow.find('.prodItemTypeField').val(item_type);
+            //     currentRow.find('.prodItemCategoryField').val(item_category);
+
+            //     currentRow.find('.coaIdField').val('');
+            //     currentRow.find('.coaNameField').val('');
+
+            //     // //opsional: auto-isi COA bila inventory bawa default account_id (seperti sebelumnya)
+            //     // if (account_id) {
+            //     //     currentRow.find('.coaIdField').val(account_id);
+            //     //     currentRow.find('.coaNameField').val(account_id);
+            //     // } else {
+            //     //     currentRow.find('.coaIdField').val('');
+            //     //     currentRow.find('.coaNameField').val('');
+            //     // }
+
+            //     closeModal();
+            // });
             $(document).on('click', '.chooseInventory', function() {
                 if (!currentRow) return;
 
-                const id = $(this).data('id');
-                const name = $(this).data('name');
-                const stock_unit = $(this).data('stock_unit');
-                const account_id = ($(this).data('account_id') || '').toString().trim();
+                const $btn = $(this);
 
-                // NEW: item meta dari inventory
-                const item_type = $(this).data('item_type') || '';
-                const item_category = $(this).data('item_category') || '';
-                const purchase_unit = $(this).data('purchase_unit') || '';
+                const id          = $btn.data('id');
+                const name        = $btn.data('name');
+                const stock_unit  = $btn.data('stock_unit');
 
+                // item meta dari inventory (ambil dari data-* di tombol)
+                const item_type_attr      = $btn.attr('data-item_type') || '';
+                const item_type_data      = $btn.data('item_type') || '';   // jQuery baca data-item_type
+                const item_type_normalized = String(item_type_data || item_type_attr || '')
+                    .toUpperCase()
+                    .trim();
+
+                const item_sub_type  = $btn.data('item_sub_type') || '';
+                const item_category  = $btn.data('item_category') || '';
+                const purchase_unit  = $btn.data('purchase_unit') || '';
+
+                // DEBUG: lihat apa yang sebenarnya kebaca dari tombol
+                console.log('chooseInventory CLICKED →', {
+                    id,
+                    name,
+                    stock_unit,
+                    item_type_attr,
+                    item_type_data,
+                    item_type_normalized,
+                    item_sub_type,
+                    item_category,
+                    purchase_unit
+                });
+
+                // isi field-field di row
                 currentRow.find('.inventoryIdField').val(id);
                 currentRow.find('.productNameField').val(name);
                 currentRow.find('.stock_unitField').val(stock_unit || '-');
                 currentRow.find('.purchaseUnitField').val(purchase_unit);
 
                 // simpan hidden baru
-                currentRow.find('.prodItemTypeField').val(item_type);
+                currentRow.find('.prodItemTypeField').val(item_type_normalized);
+                currentRow.find('.prodItemSubTypeField').val(item_sub_type);
                 currentRow.find('.prodItemCategoryField').val(item_category);
 
+                // BERSIHKAN COA
                 currentRow.find('.coaIdField').val('');
                 currentRow.find('.coaNameField').val('');
 
-                // //opsional: auto-isi COA bila inventory bawa default account_id (seperti sebelumnya)
-                // if (account_id) {
-                //     currentRow.find('.coaIdField').val(account_id);
-                //     currentRow.find('.coaNameField').val(account_id);
-                // } else {
-                //     currentRow.find('.coaIdField').val('');
-                //     currentRow.find('.coaNameField').val('');
-                // }
+                // bersihkan error
+                currentRow.find('.productNameField')
+                    .removeClass('is-invalid')
+                    .next('.error-feedback').remove();
+                currentRow.find('.stock_unitField')
+                    .removeClass('is-invalid')
+                    .next('.error-feedback').remove();
+
+                // 🔴 PENTING: trigger change supaya updateSiteVisibility jalan
+                currentRow.find('.prodItemTypeField').trigger('change');
+
+                // opsional: langsung panggil juga sebagai jaga-jaga
+                // updateSiteVisibility(currentRow);
 
                 closeModal();
             });
@@ -1996,7 +2122,7 @@
                             const actId = item.activity_id ?? '';
                             const buId = item.business_unit_id ?? '';
                             const deptFinId = item.department_fin_id ?? '';
-                            const actDetail = item.activity_detail ?? '';
+                            const actDetail = item.activity_descr ?? '';
                             const totalbudget = item.totalbudget ?? '';
                             const label = id; // atau `${id} - ${actDetail}`
 
@@ -2536,6 +2662,156 @@
             if (currentLocRow) openLokasiModal(currentLocRow);
             }
         });
+        });
+    </script>
+
+    <script>
+        $(function() {
+            // Cache hasil fetch per cpny_id agar efisien (sekali fetch)
+            const siteCacheByCpny = {};
+
+            async function fetchSites(cpnyId) {
+                if (siteCacheByCpny[cpnyId]) return siteCacheByCpny[cpnyId];
+
+                try {
+                    const url = @json(route('sites.index'));
+                    const res = await $.ajax({
+                        url: url,
+                        method: 'GET',
+                        data: {
+                            cpny_id: cpnyId
+                        },
+                        dataType: 'json'
+                    });
+
+                    if (!res.ok) throw new Error(res.message || 'Failed to load sites.');
+                    siteCacheByCpny[cpnyId] = res.data || [];
+                    return siteCacheByCpny[cpnyId];
+                } catch (err) {
+                    if (window.toastr) toastr.error(err.message || 'Gagal mengambil data site.');
+                    return [];
+                }
+            }
+
+            // Populate select options untuk elemen select tertentu
+            function populateSelectOptions($sel, sites, currentValue) {
+                const hasCurrent = currentValue && sites.some(s => s.siteid === currentValue);
+                const options = [];
+
+                if (!hasCurrent) {
+                    options.push(new Option('Select site…', '', true, true));
+                }
+
+                sites.forEach(s => {
+                    const opt = new Option(s.siteid, s.siteid, false, s.siteid === currentValue);
+                    options.push(opt);
+                });
+
+                $sel.empty();
+                options.forEach(opt => $sel.append(opt));
+            }
+
+            // Event: saat select di-FOCUS atau di-KLIK → load data jika belum loaded
+            $(document).on('focus click', '.siteSelect', async function() {
+                const $sel = $(this);
+                if ($sel.data('loaded') === 1) return;
+
+                const cpnyId = $sel.data('cpny-id');
+                const current = $sel.data('current-site') || $sel.val() || '';
+
+                // Optional UX: tampilkan placeholder loading
+                const prevHtml = $sel.html();
+                $sel.html('<option disabled selected>Loading…</option>');
+
+                const sites = await fetchSites(cpnyId);
+                populateSelectOptions($sel, sites, current);
+
+                $sel.data('loaded', 1);
+            });
+        });
+    </script>
+
+    <script>
+        function refreshSiteHeaderVisibility() {
+            // Kalau ada minimal 1 row dengan item_type = GI → header SiteID tampil
+            const anyGI = $('.spb-row').toArray().some(function (tr) {
+                return $(tr).find('.prodItemTypeField').val() === 'GI';
+            });
+
+            const $header = $('.siteid-header');
+            if (anyGI) {
+                $header.removeClass('hidden');
+            } else {
+                $header.addClass('hidden');
+            }
+        }
+
+        // Fungsi show/hide SiteID berdasarkan item_type
+        function updateSiteVisibility($row) {
+            const raw = $row.find('.prodItemTypeField').val() || '';
+            const itemType = raw.toUpperCase().trim();
+
+            console.log('updateSiteVisibility → item_type raw =', raw, ', normalized =', itemType, ', row index =', $row.index());
+
+            const $col     = $row.find('.siteid-column');
+            const $wrapper = $row.find('.siteid-wrapper');
+            const $select  = $wrapper.find('.siteSelect');
+            const $hidden  = $row.find('.siteid-hidden');
+
+            if (itemType === 'GI') {
+                console.log('→ SHOW SiteID for row', $row.index());
+                $col.removeClass('hidden');
+                $wrapper.removeClass('hidden');
+                $select.prop('disabled', false);
+                $hidden.prop('disabled', true);
+            } else {
+                console.log('→ HIDE SiteID for row', $row.index());
+                $col.addClass('hidden');
+                $wrapper.addClass('hidden');
+                $select.prop('disabled', true);
+                $select.val('');
+                $hidden.prop('disabled', false);
+            }
+
+            refreshSiteHeaderVisibility();
+        }
+
+
+        // Saat product dipilih dari modal → update item_type → cek visibility
+        $(document).on('change', '.prodItemTypeField', function () {
+            const $row = $(this).closest('.spb-row');
+            const itemType = $(this).val();
+
+            console.log('Item Type Changed:', itemType, 'Row:', $row.index());
+
+            updateSiteVisibility($row);
+        });
+
+
+        // Saat halaman pertama load (edit mode)
+        $(function () {
+            $('.spb-row').each(function() {
+                updateSiteVisibility($(this));
+            });
+        });
+    </script>
+
+
+    <script>
+        // Ketika company header berubah → update cpny_id semua siteSelect
+        $(document).on('change', '.headerCpnySelect', function () {
+            const cpnyId = $(this).val() || '';
+
+            $('.siteSelect').each(function () {
+                $(this).data('cpny-id', cpnyId);
+                $(this).attr('data-cpny-id', cpnyId); // jaga2
+
+                // reset loaded supaya fetch ulang sesuai company baru
+                $(this).data('loaded', 0);
+
+                // reset isi dropdown
+                $(this).html('<option value="" selected disabled>Select site…</option>');
+            });
         });
     </script>
 

@@ -1649,7 +1649,7 @@
 
             //     closeModal();
             // });
-             $(document).on('click', '.chooseInventory', function() {
+            $(document).on('click', '.chooseInventory', function() {
                 if (!currentRow) return;
 
                 const $btn = $(this);
@@ -2200,6 +2200,19 @@
     </script>
 
     <script>
+        function formatNumber(num, isCost = false) {
+            if (num === null || num === undefined || num === '') return '';
+
+            num = parseFloat(num);
+
+            return new Intl.NumberFormat('id-ID', {
+                minimumFractionDigits: isCost ? 2 : 0,
+                maximumFractionDigits: isCost ? 2 : 0
+            }).format(num);
+        }
+    </script>
+
+    <script>
         $(function() {
             // ===== COA modal state =====
             const $coaModal = $('#coaModal');
@@ -2311,7 +2324,7 @@
                             const buId = item.business_unit_id ?? '';
                             const deptFinId = item.department_fin_id ?? '';
                             const actDescr = item.activity_descr ?? '';
-                            const totalbudget = item.totalbudget ?? '';
+                            const totalbudget = formatNumber(item.totalbudget) ?? '';
                             const label = id; // atau `${id} - ${actDetail}`
 
                             return `
