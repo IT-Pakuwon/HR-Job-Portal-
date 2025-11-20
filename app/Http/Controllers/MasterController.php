@@ -701,7 +701,6 @@ class MasterController extends Controller
             return response()->json(['message' => 'WOID is required.'], 422);
         }
 
-        // Ambil 1 row WO (header)
         $wo = TrWO::query()
             ->select([
                 'woid',
@@ -713,7 +712,7 @@ class MasterController extends Controller
                 'budget_activity_descr',
                 'budget_business_unit_id',
                 'budget_department_fin_id',
-                'budget_use', // kalau kamu nanti mau pakai sbg totalbudget
+                'budget_use',
             ])
             ->where('woid', $woid)
             ->first();
@@ -722,27 +721,25 @@ class MasterController extends Controller
             return response()->json(['message' => 'WO not found.'], 404);
         }
 
-        // Bentukkan 1 baris sesuai struktur frontend
+        // ⚠️ Samakan nama field dengan CoaBudget
         $row = (object) [
             'account_id'        => $wo->budget_account_id,
             'activity_id'       => $wo->budget_activity_id,
-            'activity_detail'   => $wo->budget_activity_descr,
+            'activity_descr'    => $wo->budget_activity_descr,   // ← GANTI: activity_detail ➜ activity_descr
             'business_unit_id'  => $wo->budget_business_unit_id,
             'department_fin_id' => $wo->budget_department_fin_id,
-            // pakai null agar UI tetap konsisten; kalau mau dari WO:
-            // 'totalbudget'    => (float) $wo->budget_use,
-            'totalbudget'       => null,
+            'totalbudget'       => $wo->budget_use,              // ← kalau mau isi dari WO, atau 0/null sesuai kebutuhan
         ];
 
-        // Karena sumbernya 1 header row, lakukan filter search manual (case-insensitive)
         if ($search !== '') {
             $haystack = implode(' ', [
                 (string) $row->account_id,
                 (string) $row->activity_id,
-                (string) $row->activity_detail,
+                (string) $row->activity_descr,   // ← GANTI juga di sini
                 (string) $row->business_unit_id,
                 (string) $row->department_fin_id,
             ]);
+
             if (stripos($haystack, $search) === false) {
                 return response()->json([
                     'meta'      => [
@@ -772,6 +769,7 @@ class MasterController extends Controller
             'per_page'  => $perPage,
         ]);
     }
+
 
 
 
