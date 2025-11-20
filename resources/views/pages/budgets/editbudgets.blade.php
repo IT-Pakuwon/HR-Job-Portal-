@@ -206,7 +206,7 @@
                                 <div class="flex items-center gap-4">
                                     <label
                                         class="block w-40 font-medium text-gray-700 dark:text-gray-300">Department</label>
-                                    <select name="department_fin_id" required
+                                    <select name="department_fin_id" id="department_select" required
                                         class="w-full rounded-sm border border-gray-200/50 bg-gray-200/10 p-3 focus:ring focus:ring-blue-300 dark:bg-gray-800">
                                         @foreach ($departements as $d)
                                             <option value="{{ $d->deptname }}"
@@ -679,5 +679,90 @@
             });
         });
     </script>
+
+
+<script>
+        $(function() {
+            // Init Select2 sekali
+            $('#department_select').select2({
+                width: '100%',
+                placeholder: 'Select',
+                allowClear: true,
+                // dropdownAutoWidth: true
+            });
+
+            function loadDepartmentsByCompany(cpnyId, selectedVal = '') {
+                const $dept = $('#department_select');
+
+                // kosongkan opsi dulu
+                $dept.empty().append(new Option('Memuat...', '', true, true)).trigger('change');
+
+                if (!cpnyId) {
+                    $dept.empty().append(new Option('Pilih Department', '', false, false)).trigger('change');
+                    return;
+                }
+
+                $.ajax({
+                        url: '/departments/' + encodeURIComponent(cpnyId),
+                        type: 'GET',
+                        dataType: 'json'
+                    })
+                    .done(function(list) {
+                        $dept.empty().append(new Option('Pilih Department', '', false, false));
+                        if (Array.isArray(list) && list.length) {
+                            list.forEach(function(row) {
+                                // value = department_fin_id, text = department_name
+                                const opt = new Option(row.department_name, row.department_fin_id,
+                                    false, false);
+                                $dept.append(opt);
+                            });
+                            if (selectedVal) {
+                                $dept.val(String(selectedVal)).trigger('change');
+                            } else {
+                                $dept.trigger('change');
+                            }
+                        } else {
+                            $dept.append(new Option('Tidak ada department', '', false, false)).trigger(
+                                'change');
+                        }
+                    })
+                    .fail(function() {
+                        $dept.empty().append(new Option('Gagal memuat', '', false, false)).trigger('change');
+                    });
+            }
+
+            // Saat Company berubah → reload Department (dan opsional: kosongkan business unit bila perlu)
+            $('select[name="cpny_id"]').on('change', function() {
+                const cpnyId = $(this).val();
+                loadDepartmentsByCompany(cpnyId);
+
+                // (opsional) kosongkan business unit juga
+                const $bu = $('select[name="business_unit_id"]');
+                $bu.empty().append('<option value="">Pilih Unit</option>');
+            });
+
+            // Load awal (kalau cpny sudah preselected dari server)
+            const initialCpny = $('select[name="cpny_id"]').val();
+            if (initialCpny) {
+                // kalau old() kosong, pakai $budget->department_fin_id
+                const selectedDept = '{{ old('department_fin_id', $budget->department_fin_id) }}';
+                loadDepartmentsByCompany(initialCpny, selectedDept);
+            } else {
+                $('#department_select')
+                    .empty()
+                    .append(new Option('Pilih Department', '', false, false))
+                    .trigger('change');
+            }
+
+            // (opsional) dark mode tweak untuk select2
+            if (document.documentElement.classList.contains('dark')) {
+                $('.select2-container--default .select2-selection--single')
+                    .addClass('bg-gray-800 text-gray-200 border-gray-600');
+                $('.select2-container--default .select2-results>.select2-results__options')
+                    .addClass('bg-gray-800 text-gray-200');
+            }
+        });
+    </script>
+
 
 </x-app-layout>
