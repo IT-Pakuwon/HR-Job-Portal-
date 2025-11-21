@@ -1,7 +1,5 @@
 <?php
 
-use Vinkla\Hashids\HashidsServiceProvider;
-use Vinkla\Hashids\Facades\Hashids;
 /*
 |--------------------------------------------------------------------------
 | Create The Application
@@ -43,10 +41,6 @@ $app->singleton(
     App\Exceptions\Handler::class
 );
 
-$app->register(HashidsServiceProvider::class);   // <--- TAMBAHKAN INI
-
-// (opsional) kalau mau alias global "Hashids" bisa dipakai di mana saja:
-class_alias(Hashids::class, 'Hashids');  
 
 /*
 |--------------------------------------------------------------------------

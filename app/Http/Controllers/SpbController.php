@@ -156,6 +156,7 @@ class SpbController extends Controller
         
     public function storeSpb(Request $request)
     {
+        // dd($request->all());
         $doctype  = 'RB';
         $user     = $request->user();
         $username = $user->username ?? 'system';
@@ -169,6 +170,12 @@ class SpbController extends Controller
         $qtys           = (array) $request->input('qty', []);
         $uoms           = (array) $request->input('stock_unit',   $request->input('uom', []));
         $notes          = (array) $request->input('note', []);
+        $siteids        = (array) $request->input('siteid', []); 
+
+        // stock dan harga per unit dari form
+        $stockQtys      = (array) $request->input('stock_qty', []);   // dari screenshot
+        $unitCosts      = (array) $request->input('unitcost', []);    // dari screenshot
+
 
         // lokasi gabungan (modal baru)
         $locationIds    = (array) $request->input('location_id',      $request->input('locationid', []));
@@ -179,6 +186,8 @@ class SpbController extends Controller
         $busUnitIds     = (array) $request->input('business_unit_id', []);
         $deptFinIds     = (array) $request->input('department_fin_id', []);
         $coaIds         = (array) $request->input('coa_id', []);
+
+        $actDescrs     = (array) $request->input('activity_descr', []);
 
         // UoM konversi
         $purchaseUnits  = (array) $request->input('purchase_unit', []);
@@ -192,9 +201,14 @@ class SpbController extends Controller
             $hasComma = strpos($s, ',') !== false;
             $hasDot   = strpos($s, '.') !== false;
             if ($hasComma && $hasDot) {
-                $lastComma = strrpos($s, ','); $lastDot = strrpos($s, '.');
-                if ($lastComma > $lastDot) { $s = str_replace('.', '', $s); $s = str_replace(',', '.', $s); }
-                else { $s = str_replace(',', '', $s); }
+                $lastComma = strrpos($s, ','); 
+                $lastDot   = strrpos($s, '.');
+                if ($lastComma > $lastDot) { 
+                    $s = str_replace('.', '', $s); 
+                    $s = str_replace(',', '.', $s); 
+                } else { 
+                    $s = str_replace(',', '', $s); 
+                }
             } elseif ($hasComma) {
                 $s = str_replace(',', '.', $s);
             } elseif ($hasDot && substr_count($s, '.') > 1) {
@@ -203,7 +217,7 @@ class SpbController extends Controller
             return is_numeric($s) ? (float)$s : null;
         };
 
-        // normalisasi: '' → null (biar tidak kepotong sebagai string kosong)
+        // normalisasi: '' → null
         $nullIfEmpty = fn($x) => ($x === '' || $x === null) ? null : $x;
         $locationIds = array_map($nullIfEmpty, $locationIds);
         $subLocIds   = array_map($nullIfEmpty, $subLocIds);
@@ -216,11 +230,18 @@ class SpbController extends Controller
         try {
             // === Nomor otomatis (YYMM + running) ===
             $autonbr = Autonbr::lockForUpdate()
-                ->where('doctype', $doctype)->where('year', $year)->where('month', $month)->first();
+                ->where('doctype', $doctype)
+                ->where('year', $year)
+                ->where('month', $month)
+                ->first();
 
             if (!$autonbr) {
                 $autonbr = Autonbr::create([
-                    'doctype' => $doctype, 'year' => $year, 'month' => $month, 'status' => 'A', 'number' => 1,
+                    'doctype' => $doctype,
+                    'year'    => $year,
+                    'month'   => $month,
+                    'status'  => 'A',
+                    'number'  => 1,
                 ]);
                 $urutan = 1;
             } else {
@@ -251,7 +272,7 @@ class SpbController extends Controller
                     continue;
                 }
 
-                // lokasi wajib (sesuai UI validation)
+                // lokasi wajib
                 if (empty($loc)) $errors[] = "Row ".($i+1).": Location wajib.";
                 if (empty($sub)) $errors[] = "Row ".($i+1).": Sub Location wajib.";
 
@@ -267,7 +288,7 @@ class SpbController extends Controller
                 return response()->json(['message' => implode(" ", $errors)], 422);
             }
 
-            // === Header ===
+            // === Header (TrSPB) ===
             $header = new TrSPB();
             $header->spbid             = $docid;
             $header->spbdate           = $dt->toDateString();
@@ -277,20 +298,28 @@ class SpbController extends Controller
             $header->subworktypeid     = $request->input('subworktypeid');
             $header->keperluan         = $request->input('keperluan');
             $header->budget_perpost    = $request->input('perpost');
-
-            // ✅ pastikan WOID terisi dari request (fallback null)
             $header->woid              = $nullIfEmpty($request->input('woid'));
 
+            // field numeric baru di header
+            $header->grandtotalcost    = 0;
             $header->totalspbqty       = 0;
-            $header->totalspbqty   = 0;
             $header->totalissueqty     = 0;
+            $header->totalreturnqty    = 0;
+            $header->totalsppbqty      = 0;
             $header->totalcompleteqty  = 0;
-            $header->status            = 'P';
+
+            // status header
+            $header->status            = 'P';       // Pending / Process
+            $header->status_issue      = 'Open';    // sesuai rule: issueQty=0
+            $header->status_sppb       = 'Open';    // sesuai rule: sppbqty=0
+
             $header->created_by        = $username;
             $header->save();
 
-            // === Detail ===
-            $totalQty = 0;
+            // === Detail (TrSPBdetail) ===
+            $totalQty       = 0;
+            $grandTotalCost = 0;
+
             for ($i = 0; $i < $rowCount; $i++) {
                 $invId       = $inventoryIds[$i] ?? null;
                 $productName = $productNames[$i] ?? null;
@@ -304,12 +333,24 @@ class SpbController extends Controller
                 $baseUom        = $purchaseUnits[$i] ?? null;
                 $typeMultiplier = strtoupper(trim((string)($uomMultDivs[$i] ?? '')));
                 $rate           = $toFloat($uomRates[$i] ?? null) ?? 1.0;
-                if ($rate <= 0) { $rate = 1.0; $typeMultiplier = ''; }
+                if ($rate <= 0) { 
+                    $rate = 1.0; 
+                    $typeMultiplier = ''; 
+                }
                 $baseQty = $qty;
-                if ($typeMultiplier === 'M')      $baseQty = $qty * $rate;
-                elseif ($typeMultiplier === 'D')  $baseQty = $qty / $rate;
+                if ($typeMultiplier === 'M') {
+                    $baseQty = $qty * $rate;
+                } elseif ($typeMultiplier === 'D') {
+                    $baseQty = $qty / $rate;
+                }
 
-                // ✅ pastikan lokasi terset (sudah divalidasi di atas)
+                // --- stock & harga per unit ---
+                $stockQty = $toFloat($stockQtys[$i] ?? null) ?? 0.0;
+                $unitCost = $toFloat($unitCosts[$i] ?? null) ?? 0.0;
+
+                // kalau unitcost per UOM input (qty), pakai qty
+                $lineTotalCost = $unitCost * $qty;
+
                 $locId = $locationIds[$i] ?? null;
                 $subId = $subLocIds[$i]   ?? null;
 
@@ -318,36 +359,59 @@ class SpbController extends Controller
                 $detail->spb_no                     = $i + 1;
                 $detail->inventoryid                = $invId;
                 $detail->inventory_descr            = $productName;
-                $detail->siteid                     = null;
+                $detail->siteid                     = $siteids[$i] ?? null;
+
                 $detail->qty                        = $qty;
                 $detail->uom                        = $uom;
                 $detail->type_multiplier            = $typeMultiplier ?: null;
                 $detail->base_multiplier            = $rate;
                 $detail->base_qty                   = $baseQty;
                 $detail->base_uom                   = $baseUom;
+
+                // biaya (kalau suatu saat ada harga di form)               
+                $detail->unitcost                   = $unitCost;
+                $detail->totalcost                  = $lineTotalCost;
+
                 $detail->note                       = $notes[$i]           ?? null;
 
-                // ✅ lokasi & sub lokasi TERSIMPAN
+                // lokasi
                 $detail->location_id                = $locId ?: null;
                 $detail->sub_location_id            = $subId ?: null;
 
+                // budget / COA chain
                 $detail->budget_perpost             = $request->input('perpost');
                 $detail->budget_cpny_id             = $request->input('cpnyid');
                 $detail->budget_business_unit_id    = $busUnitIds[$i]      ?? null;
                 $detail->budget_department_fin_id   = $deptFinIds[$i]      ?? null;
                 $detail->budget_account_id          = $coaIds[$i]          ?? null;
                 $detail->budget_activity_id         = $activityIds[$i]     ?? null;
+                $detail->budget_activity_descr      = $actDescrs[$i] ?? null; 
 
-                $detail->stock_qty                  = 0;
-                $detail->spb_openqty                = $qty;
+                // stok & qty turunannya di model baru
+                $detail->reason_code                = null;
+                $detail->stock_qty                  = $stockQty;
+                $detail->base_stock_qty             = $stockQty; 
+
                 $detail->issue_qty                  = 0;
+                $detail->base_issue_qty             = 0;
+
+                $detail->return_qty                 = 0;
+                $detail->base_return_qty            = 0;
+
+                $detail->sppb_qty                   = 0;
+                $detail->base_sppb_qty              = 0;
+
                 $detail->spb_completeqty            = 0;
+                $detail->base_spb_completeqty       = 0;
+
+                $detail->sppbid                     = null;
 
                 $detail->status                     = 'P';
                 $detail->created_by                 = $username;
                 $detail->save();
-
-                $totalQty += $qty;
+                
+                $totalQty       += $qty;
+                $grandTotalCost += $lineTotalCost;
             }
 
             if ($totalQty <= 0) {
@@ -355,11 +419,17 @@ class SpbController extends Controller
                 return response()->json(['message' => 'Tidak ada detail valid untuk disimpan.'], 422);
             }
 
-            // === Update total header ===
-            $header->totalspbqty      = $totalQty;
-            $header->totalspbqty  = $totalQty;
-            $header->totalissueqty    = 0;
-            $header->totalcompleteqty = 0;
+            // === Update total header + status issue/SPPB ===
+            $header->totalspbqty       = $totalQty;
+            $header->totalissueqty     = 0;
+            $header->totalreturnqty    = 0;
+            $header->totalsppbqty      = 0;
+            $header->totalcompleteqty  = 0;
+            $header->grandtotalcost    = $grandTotalCost;
+
+            // Status awal masih Open untuk issue & sppb
+            $header->status_issue      = 'Open';
+            $header->status_sppb       = 'Open';
             $header->save();
 
             // === Approval generate ===
@@ -417,6 +487,7 @@ class SpbController extends Controller
             ], 500);
         }
     }
+
 
 
    
