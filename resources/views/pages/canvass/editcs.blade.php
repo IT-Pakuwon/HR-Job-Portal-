@@ -263,14 +263,14 @@
                                         value="{{ ucwords(strtolower(optional($header->purchaser)->name)) }}" readonly
                                         class="mt-1 w-full rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
                                 </div>
-                         
+
                                 {{-- BQ ID --}}
                                 @if (in_array($doc, ['SPPJ', 'SPPT']))
                                     <div class="flex items-end gap-2">
                                         <div class="flex-1">
-                                            <label class="text-sm font-medium text-gray-600 dark:text-gray-400">BQ ID</label>
-                                            <input type="text"
-                                                value="{{ $bq?->bqid ?? ($header->bqid ?? '') }}"
+                                            <label class="text-sm font-medium text-gray-600 dark:text-gray-400">BQ
+                                                ID</label>
+                                            <input type="text" value="{{ $bq?->bqid ?? ($header->bqid ?? '') }}"
                                                 readonly
                                                 class="mt-1 w-full rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
                                         </div>
@@ -283,17 +283,17 @@
                                         {{-- Kondisi: jika BQ SUDAH ADA → tombol Open BQ, kalau BELUM → tombol Create BQ --}}
                                         @if ($bq && $bq_eid)
                                             <a href="{{ route('bqcs.edit', $bq_eid) }}"
-                                            class="mt-6 inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700">
+                                                class="mt-6 inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700">
                                                 Open BQ
                                             </a>
                                         @elseif ($csidForBQ)
                                             <a href="{{ route('bqcs.createFromCS', $csidForBQ) }}"
-                                            class="mt-6 inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700">
+                                                class="mt-6 inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700">
                                                 Create BQ
                                             </a>
                                         @else
                                             <button type="button" title="Simpan CS dulu, baru buat BQ"
-                                                    class="mt-6 inline-flex cursor-not-allowed items-center gap-2 rounded-lg bg-gray-400 px-4 py-2 text-sm font-semibold text-white">
+                                                class="mt-6 inline-flex cursor-not-allowed items-center gap-2 rounded-lg bg-gray-400 px-4 py-2 text-sm font-semibold text-white">
                                                 Create BQ
                                             </button>
                                         @endif
@@ -428,22 +428,27 @@
                                                 </tr>
                                             @endforeach --}}
                                             @foreach ($attachment as $at)
-                                                <tr class="border-b border-gray-100 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700">
+                                                <tr
+                                                    class="border-b border-gray-100 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700">
                                                     <td class="p-3">
                                                         @if ($at->url)
                                                             <a href="{{ $at->url }}" target="_blank"
-                                                            class="flex items-center gap-2 font-medium text-indigo-600 hover:underline dark:text-indigo-400">
+                                                                class="flex items-center gap-2 font-medium text-indigo-600 hover:underline dark:text-indigo-400">
                                                                 📎 {{ $at->display_name }}
                                                             </a>
                                                         @else
-                                                            <span class="flex items-center gap-2 text-gray-500 dark:text-gray-300"
+                                                            <span
+                                                                class="flex items-center gap-2 text-gray-500 dark:text-gray-300"
                                                                 title="Signed URL tidak tersedia/expired">
-                                                                📎 {{ $at->display_name }} <em class="text-xs">(no link)</em>
+                                                                📎 {{ $at->display_name }} <em class="text-xs">(no
+                                                                    link)</em>
                                                             </span>
                                                         @endif
                                                     </td>
                                                     <td class="p-3">{{ $at->created_by }}</td>
-                                                    <td class="p-3">{{ \Carbon\Carbon::parse($at->created_at)->format('d M Y') }}</td>
+                                                    <td class="p-3">
+                                                        {{ \Carbon\Carbon::parse($at->created_at)->format('d M Y') }}
+                                                    </td>
                                                 </tr>
                                             @endforeach
 
@@ -487,19 +492,23 @@
                                             </div>
                                         @endforeach --}}
                                         @foreach ($attachmentCS as $attach)
-                                            <div class="attachment-row flex items-center gap-2" data-attachid="{{ $attach->id }}">
+                                            <div class="attachment-row flex items-center gap-2"
+                                                data-attachid="{{ $attach->id }}">
                                                 @if ($attach->url)
-                                                    <a href="{{ $attach->url }}" target="_blank" class="mt-4 w-full border p-3 text-lg">
+                                                    <a href="{{ $attach->url }}" target="_blank"
+                                                        class="mt-4 w-full border p-3 text-lg">
                                                         📎 {{ $attach->display_name }}
                                                     </a>
                                                 @else
-                                                    <div class="mt-4 w-full border p-3 text-lg text-gray-500 dark:text-gray-300" title="Signed URL tidak tersedia/expired">
-                                                        📎 {{ $attach->display_name }} <em class="text-xs">(no link)</em>
+                                                    <div class="mt-4 w-full border p-3 text-lg text-gray-500 dark:text-gray-300"
+                                                        title="Signed URL tidak tersedia/expired">
+                                                        📎 {{ $attach->display_name }} <em class="text-xs">(no
+                                                            link)</em>
                                                     </div>
                                                 @endif
                                                 <button type="button"
-                                                        class="removeAttachment2 mt-4 rounded border border-red-700 bg-red-200/10 px-3 py-3 text-white hover:border-red-700 hover:bg-red-400/30 dark:bg-red-700/30"
-                                                        data-id="{{ $attach->id }}">🗑️
+                                                    class="removeAttachment2 mt-4 rounded border border-red-700 bg-red-200/10 px-3 py-3 text-white hover:border-red-700 hover:bg-red-400/30 dark:bg-red-700/30"
+                                                    data-id="{{ $attach->id }}">🗑️
                                                 </button>
                                             </div>
                                         @endforeach
@@ -516,40 +525,59 @@
                                 </button>
                             </details>
                             <!-- Action Buttons -->
-                            <div class="mt-6 flex w-full justify-end gap-4">
-                                <button type="button" id="cancelBtn"
-                                    class="inline-flex items-center justify-center rounded-lg bg-red-600 px-6 py-3 text-sm font-semibold text-white shadow-md transition hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">
-                                    <span id="cancelText">Cancel</span>
-                                    <svg id="cancelSpinner" class="ml-2 hidden h-5 w-5 animate-spin text-white"
-                                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                        <circle class="opacity-25" cx="12" cy="12" r="10"
-                                            stroke="currentColor" stroke-width="4"></circle>
-                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
-                                    </svg>
-                                </button>
-                                <button type="button" id="saveBtn"
-                                    class="inline-flex items-center justify-center rounded-lg bg-gray-600 px-6 py-3 text-sm font-semibold text-white shadow-md transition hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2">
-                                    <span>Save CS</span>
-                                    <svg id="saveSpinner" class="ml-2 hidden h-5 w-5 animate-spin text-white"
-                                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                        <circle class="opacity-25" cx="12" cy="12" r="10"
-                                            stroke="currentColor" stroke-width="4"></circle>
-                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
-                                    </svg>
-                                </button>
-                                <button type="submit" id="submitBtn"
-                                    class="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-6 py-3 text-sm font-semibold text-white shadow-md transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
-                                    <span id="btnText">Submit Approval</span>
-                                    <svg id="loadingSpinner" class="ml-2 hidden h-5 w-5 animate-spin text-white"
-                                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                        <circle class="opacity-25" cx="12" cy="12" r="10"
-                                            stroke="currentColor" stroke-width="4"></circle>
-                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
-                                    </svg>
-                                </button>
+                            <div class="w-full px-4">
+                                <div class="grid grid-cols-2 justify-between gap-4 md:flex md:flex-row xl:justify-end">
+
+                                    <!-- Cancel -->
+                                    <div class="flex justify-start">
+                                        <button type="button" id="cancelBtn"
+                                            class="mb-4 mt-4 flex w-full items-center justify-center gap-2 rounded border border-red-700 bg-red-200/10 p-2 text-red-700 hover:border-red-700 hover:bg-red-700 hover:font-medium hover:text-white md:w-auto">
+                                            <span id="cancelText">Cancel</span>
+                                            <svg id="cancelSpinner" class="hidden h-5 w-5 animate-spin text-white"
+                                                xmlns="http://www.w3.org/2000/svg" fill="none"
+                                                viewBox="0 0 24 24">
+                                                <circle class="opacity-25" cx="12" cy="12" r="10"
+                                                    stroke="currentColor" stroke-width="4"></circle>
+                                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z">
+                                                </path>
+                                            </svg>
+                                        </button>
+                                    </div>
+
+                                    <!-- Save -->
+                                    <div class="flex justify-start">
+                                        <button type="button" id="saveBtn"
+                                            class="mb-4 mt-4 flex w-full items-center justify-center gap-2 rounded border border-gray-700 bg-gray-200/10 p-2 text-gray-700 hover:border-gray-700 hover:bg-gray-700 hover:font-medium hover:text-white md:w-auto">
+                                            <span id="saveText">Save CS</span>
+                                            <svg id="saveSpinner" class="hidden h-5 w-5 animate-spin text-white"
+                                                xmlns="http://www.w3.org/2000/svg" fill="none"
+                                                viewBox="0 0 24 24">
+                                                <circle class="opacity-25" cx="12" cy="12" r="10"
+                                                    stroke="currentColor" stroke-width="4"></circle>
+                                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z">
+                                                </path>
+                                            </svg>
+                                        </button>
+                                    </div>
+
+                                    <!-- Submit Approval -->
+                                    <div class="flex justify-start md:justify-end">
+                                        <button type="submit" id="submitBtn"
+                                            class="mb-4 mt-4 flex w-full items-center justify-center gap-2 rounded border border-blue-700 bg-blue-200/10 p-2 text-blue-700 hover:border-blue-700 hover:bg-blue-700 hover:font-medium hover:text-white md:w-auto">
+                                            <span id="btnText">Submit Approval</span>
+                                            <svg id="loadingSpinner" class="hidden h-5 w-5 animate-spin text-white"
+                                                xmlns="http://www.w3.org/2000/svg" fill="none"
+                                                viewBox="0 0 24 24">
+                                                <circle class="opacity-25" cx="12" cy="12" r="10"
+                                                    stroke="currentColor" stroke-width="4"></circle>
+                                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z">
+                                                </path>
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-
                     </div>
                 </form>
             </div>
@@ -595,32 +623,39 @@
 
             <!-- MISMATCH POPUP -->
             <div id="bqcsMismatchModal" class="fixed inset-0 z-[3500] hidden">
-            <div class="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
-            <div class="absolute left-1/2 top-1/2 w-[92vw] max-w-3xl -translate-x-1/2 -translate-y-1/2 rounded-xl bg-white p-4 shadow-xl dark:bg-gray-800">
-                <div class="mb-3 flex items-center justify-between border-b pb-2 dark:border-gray-700">
-                <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-100">Tidak bisa Submit — Perbedaan Nilai BQ vs CS</h3>
-                <button id="bqcsMismatchClose" class="rounded px-2 py-1 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700">✖</button>
+                <div class="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
+                <div
+                    class="absolute left-1/2 top-1/2 w-[92vw] max-w-3xl -translate-x-1/2 -translate-y-1/2 rounded-xl bg-white p-4 shadow-xl dark:bg-gray-800">
+                    <div class="mb-3 flex items-center justify-between border-b pb-2 dark:border-gray-700">
+                        <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-100">Tidak bisa Submit —
+                            Perbedaan Nilai BQ vs CS</h3>
+                        <button id="bqcsMismatchClose"
+                            class="rounded px-2 py-1 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700">✖</button>
+                    </div>
+                    <p class="mb-3 text-sm text-gray-700 dark:text-gray-300">
+                        Terdapat vendor dengan nilai berbeda antara <b>(BQ: Total BQ)</b> dan <b>(CS: Total CS)</b>.
+                        Periksa tabel di bawah ini:
+                    </p>
+                    <div class="max-h-[60vh] overflow-auto">
+                        <table class="min-w-full divide-y divide-gray-200 text-sm dark:divide-gray-700">
+                            <thead class="bg-gray-50 dark:bg-gray-700">
+                                <tr>
+                                    <th class="px-3 py-2 text-left font-semibold">Vendor</th>
+                                    <th class="px-3 py-2 text-right font-semibold">Total BQ </th>
+                                    <th class="px-3 py-2 text-right font-semibold">Total CS</th>
+                                    <th class="px-3 py-2 text-right font-semibold">Selisih</th>
+                                </tr>
+                            </thead>
+                            <tbody id="bqcsMismatchBody"
+                                class="divide-y divide-gray-100 bg-white dark:divide-gray-700 dark:bg-gray-800">
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="mt-4 text-right">
+                        <button id="bqcsMismatchOk"
+                            class="rounded bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700">OK</button>
+                    </div>
                 </div>
-                <p class="mb-3 text-sm text-gray-700 dark:text-gray-300">
-                Terdapat vendor dengan nilai berbeda antara <b>(BQ: Total BQ)</b> dan <b>(CS: Total CS)</b>. Periksa tabel di bawah ini:
-                </p>
-                <div class="max-h-[60vh] overflow-auto">
-                <table class="min-w-full divide-y divide-gray-200 text-sm dark:divide-gray-700">
-                    <thead class="bg-gray-50 dark:bg-gray-700">
-                    <tr>
-                        <th class="px-3 py-2 text-left font-semibold">Vendor</th>
-                        <th class="px-3 py-2 text-right font-semibold">Total BQ </th>
-                        <th class="px-3 py-2 text-right font-semibold">Total CS</th>
-                        <th class="px-3 py-2 text-right font-semibold">Selisih</th>
-                    </tr>
-                    </thead>
-                    <tbody id="bqcsMismatchBody" class="divide-y divide-gray-100 bg-white dark:divide-gray-700 dark:bg-gray-800"></tbody>
-                </table>
-                </div>
-                <div class="mt-4 text-right">
-                <button id="bqcsMismatchOk" class="rounded bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700">OK</button>
-                </div>
-            </div>
             </div>
 
 
@@ -918,12 +953,12 @@
                         // if (v.sel_total != null) $sum.find('.sum-selected').text((+v.sel_total)
                         //     .toLocaleString('id-ID'));
                         if (v.sel_total != null) {
-                            const selTotal = +v.sel_total || 0;           // NET (tanpa pajak) dari server
+                            const selTotal = +v.sel_total || 0; // NET (tanpa pajak) dari server
                             const ppn = +(v.ppn ?? 11) / 100;
-                            const pph = +(v.pph ?? 0)  / 100;
-                            const selGrand = selTotal * (1 + ppn + pph);  // GROSS utk tampilan
+                            const pph = +(v.pph ?? 0) / 100;
+                            const selGrand = selTotal * (1 + ppn + pph); // GROSS utk tampilan
                             $sum.find('.sum-selected')
-                                .attr('data-raw', String(selTotal))       // simpan NET untuk payload
+                                .attr('data-raw', String(selTotal)) // simpan NET untuk payload
                                 .text(selGrand.toLocaleString('id-ID'));
                         }
                     }
@@ -996,11 +1031,11 @@
                 });
                 // $sumCell.find('.sum-selected').text((+selTotal || 0).toLocaleString('id-ID'));
                 // tampilkan TERMASUK pajak (seperti Grand Total)
-                    const selGrand = selTotal * (1 + ppn + pph);
-                    const $sel = $sumCell.find('.sum-selected');
-                    $sel.text((+selGrand || 0).toLocaleString('id-ID'));
-                    // simpan raw (tanpa pajak) agar payload tidak double count
-                    $sel.attr('data-raw', String(selTotal || 0));
+                const selGrand = selTotal * (1 + ppn + pph);
+                const $sel = $sumCell.find('.sum-selected');
+                $sel.text((+selGrand || 0).toLocaleString('id-ID'));
+                // simpan raw (tanpa pajak) agar payload tidak double count
+                $sel.attr('data-raw', String(selTotal || 0));
             };
 
             /* ========== 8) Hapus kolom vendor ========== */
@@ -1373,18 +1408,19 @@
                 // const selTotal = numFromText($sum.find('.sum-selected').text());
                 let selTotal = Number($sum.find('.sum-selected').attr('data-raw') || 0);
                 if (!selTotal) {
-                // fallback aman kalau attr belum ada (mis. data lama)
-                let tmp = 0;
-                $('#cvBody tr').each(function () {
-                    const picked = String($(this).find('input.pick-vendor:checked').val() || '');
-                    if (picked === vid) {
-                    const lbl = $(this)
-                        .find(`input.price-input[data-vendor="${CSS.escape(vid)}"]`)
-                        .closest('td').find('.total-label');
-                    tmp += Number((lbl.text() || '0').replace(/[^0-9]/g, ''));
-                    }
-                });
-                selTotal = tmp;
+                    // fallback aman kalau attr belum ada (mis. data lama)
+                    let tmp = 0;
+                    $('#cvBody tr').each(function() {
+                        const picked = String($(this).find('input.pick-vendor:checked').val() ||
+                            '');
+                        if (picked === vid) {
+                            const lbl = $(this)
+                                .find(`input.price-input[data-vendor="${CSS.escape(vid)}"]`)
+                                .closest('td').find('.total-label');
+                            tmp += Number((lbl.text() || '0').replace(/[^0-9]/g, ''));
+                        }
+                    });
+                    selTotal = tmp;
                 }
 
                 const selTax = selTotal * (ppn / 100) + selTotal * (pph / 100);
@@ -1598,20 +1634,21 @@
                 // const selTotal = numFromText($sum.find('.sum-selected').text());
                 let selTotal = Number($sum.find('.sum-selected').attr('data-raw') || 0);
                 if (!selTotal) {
-                // fallback aman kalau attr belum ada (mis. data lama)
-                let tmp = 0;
-                $('#cvBody tr').each(function () {
-                    const picked = String($(this).find('input.pick-vendor:checked').val() || '');
-                    if (picked === vid) {
-                    const lbl = $(this)
-                        .find(`input.price-input[data-vendor="${CSS.escape(vid)}"]`)
-                        .closest('td').find('.total-label');
-                    tmp += Number((lbl.text() || '0').replace(/[^0-9]/g, ''));
-                    }
-                });
-                selTotal = tmp;
+                    // fallback aman kalau attr belum ada (mis. data lama)
+                    let tmp = 0;
+                    $('#cvBody tr').each(function() {
+                        const picked = String($(this).find('input.pick-vendor:checked').val() ||
+                            '');
+                        if (picked === vid) {
+                            const lbl = $(this)
+                                .find(`input.price-input[data-vendor="${CSS.escape(vid)}"]`)
+                                .closest('td').find('.total-label');
+                            tmp += Number((lbl.text() || '0').replace(/[^0-9]/g, ''));
+                        }
+                    });
+                    selTotal = tmp;
                 }
-                const selTax   = selTotal * (ppn / 100) + selTotal * (pph / 100);
+                const selTax = selTotal * (ppn / 100) + selTotal * (pph / 100);
                 const selGrand = selTotal + selTax;
 
                 vendors.push({
@@ -1786,24 +1823,27 @@
     <script>
         const CS_VENDOR_TOTALS = @json($csVendorTotals ?? []);
         const BQ_VENDOR_TOTALS = @json($bqVendorTotals ?? []);
-        const BQ_EXISTS        = @json(!!($bq ?? null));
+        const BQ_EXISTS = @json(!!($bq ?? null));
     </script>
 
     <script>
         (function() {
-        // toleransi perbandingan (mis. 1 rupiah)
-        const EPS = 1;
+            // toleransi perbandingan (mis. 1 rupiah)
+            const EPS = 1;
 
-        function fmtIDR(n) {
-            return (Number(n) || 0).toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-        }
+            function fmtIDR(n) {
+                return (Number(n) || 0).toLocaleString('id-ID', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                });
+            }
 
-        // Render isi modal mismatch
-        function showMismatchTable(rows) {
-            const $tbody = $('#bqcsMismatchBody').empty();
-            rows.forEach(r => {
-            const cls = 'text-red-600 dark:text-red-400 font-semibold';
-            $tbody.append(`
+            // Render isi modal mismatch
+            function showMismatchTable(rows) {
+                const $tbody = $('#bqcsMismatchBody').empty();
+                rows.forEach(r => {
+                    const cls = 'text-red-600 dark:text-red-400 font-semibold';
+                    $tbody.append(`
                 <tr>
                 <td class="px-3 py-2">${_.escape(r.vendor_label)}</td>
                 <td class="px-3 py-2 text-right ${cls}">${fmtIDR(r.bq)}</td>
@@ -1811,79 +1851,85 @@
                 <td class="px-3 py-2 text-right ${cls}">${fmtIDR(r.diff)}</td>
                 </tr>
             `);
-            });
-            $('#bqcsMismatchModal').removeClass('hidden');
-        }
-
-        $('#bqcsMismatchClose, #bqcsMismatchOk').on('click', function() {
-            $('#bqcsMismatchModal').addClass('hidden');
-        });
-
-        // validasi utama — dipanggil sebelum submit
-        window.validateBQvsCS = function() {
-            // kalau bukan SPPJ/SPPT, aturan ini optional — kalau kamu mau hanya berlaku utk dok tsb:
-            const docType = "{{ $doc }}";
-            const requiresBQ = (docType === 'SPPJ' || docType === 'SPPT');
-
-            if (requiresBQ && !BQ_EXISTS) {
-            toastr.error('BQ belum dibuat untuk dokumen ini. Buat/isi BQ terlebih dahulu sebelum submit.');
-            return false;
-            }
-
-            // jika tidak ada data perbandingan, anggap lolos
-            if (!requiresBQ) return true;
-            if (!CS_VENDOR_TOTALS || !BQ_VENDOR_TOTALS) return true;
-
-            const mismatches = [];
-
-            // loop index 1..6
-            for (let i = 1; i <= 6; i++) {
-            const csRow = CS_VENDOR_TOTALS[i];
-            const bqRow = BQ_VENDOR_TOTALS[i];
-
-            // Jika vendor tidak ada di keduanya, lewati
-            if (!csRow && !bqRow) continue;
-
-            const vendorName = (csRow?.vendorname || csRow?.vendorid || `Vendor ${i}`);
-            const csTotal = Number(csRow?.total_cs || 0);
-            const bqSum   = Number(bqRow?.sum_bq   || 0);
-
-            // Kalau dua-duanya 0, anggap cocok
-            const diff = Math.abs(bqSum - csTotal);
-            if (diff > EPS) {
-                mismatches.push({
-                idx: i,
-                vendor_label: vendorName,
-                bq: bqSum,
-                cs: csTotal,
-                diff: bqSum - csTotal
                 });
-            }
-            }
-
-            if (mismatches.length > 0) {
-            showMismatchTable(mismatches);
-            return false;
+                $('#bqcsMismatchModal').removeClass('hidden');
             }
 
-            return true;
-        };
+            $('#bqcsMismatchClose, #bqcsMismatchOk').on('click', function() {
+                $('#bqcsMismatchModal').addClass('hidden');
+            });
+
+            // validasi utama — dipanggil sebelum submit
+            window.validateBQvsCS = function() {
+                // kalau bukan SPPJ/SPPT, aturan ini optional — kalau kamu mau hanya berlaku utk dok tsb:
+                const docType = "{{ $doc }}";
+                const requiresBQ = (docType === 'SPPJ' || docType === 'SPPT');
+
+                if (requiresBQ && !BQ_EXISTS) {
+                    toastr.error('BQ belum dibuat untuk dokumen ini. Buat/isi BQ terlebih dahulu sebelum submit.');
+                    return false;
+                }
+
+                // jika tidak ada data perbandingan, anggap lolos
+                if (!requiresBQ) return true;
+                if (!CS_VENDOR_TOTALS || !BQ_VENDOR_TOTALS) return true;
+
+                const mismatches = [];
+
+                // loop index 1..6
+                for (let i = 1; i <= 6; i++) {
+                    const csRow = CS_VENDOR_TOTALS[i];
+                    const bqRow = BQ_VENDOR_TOTALS[i];
+
+                    // Jika vendor tidak ada di keduanya, lewati
+                    if (!csRow && !bqRow) continue;
+
+                    const vendorName = (csRow?.vendorname || csRow?.vendorid || `Vendor ${i}`);
+                    const csTotal = Number(csRow?.total_cs || 0);
+                    const bqSum = Number(bqRow?.sum_bq || 0);
+
+                    // Kalau dua-duanya 0, anggap cocok
+                    const diff = Math.abs(bqSum - csTotal);
+                    if (diff > EPS) {
+                        mismatches.push({
+                            idx: i,
+                            vendor_label: vendorName,
+                            bq: bqSum,
+                            cs: csTotal,
+                            diff: bqSum - csTotal
+                        });
+                    }
+                }
+
+                if (mismatches.length > 0) {
+                    showMismatchTable(mismatches);
+                    return false;
+                }
+
+                return true;
+            };
         })();
     </script>
     <script>
         function recalcAllVendors() {
-        $('#cvTable thead th[id^="th-vendor-"]').each(function () {
-            const vid = String($(this).data('vendor-id'));
-            recalcSummaryVendor(vid);
-        });
+            $('#cvTable thead th[id^="th-vendor-"]').each(function() {
+                const vid = String($(this).data('vendor-id'));
+                recalcSummaryVendor(vid);
+            });
         }
     </script>
 
     <script>
-    window.htmlEscape = function (s) {
-        s = String(s ?? '');
-        return s.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
-    };
+        window.htmlEscape = function(s) {
+            s = String(s ?? '');
+            return s.replace(/[&<>"']/g, m => ({
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#39;'
+            } [m]));
+        };
     </script>
 
     <script>
@@ -1893,32 +1939,36 @@
             // reset state lama
             $('#cvTable thead th[id^="th-vendor-"] select.cara-bayar').removeClass('is-invalid');
 
-            $('#cvTable thead th[id^="th-vendor-"]').each(function () {
-            const $th = $(this);
-            const $top = $th.find('select.cara-bayar');
-            const val  = $top.val();
+            $('#cvTable thead th[id^="th-vendor-"]').each(function() {
+                const $th = $(this);
+                const $top = $th.find('select.cara-bayar');
+                const val = $top.val();
 
-            if (!val) {
-                ok = false;
-                $top.addClass('is-invalid');               // tampilkan border merah
-                // scroll ke kolom vendor yang belum diisi
-                const th = $th.get(0);
-                if (th && th.scrollIntoView) th.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
-                // fokuskan ke select agar langsung bisa dipilih
-                setTimeout(() => $top.trigger('focus'), 150);
-                // break dari .each
-                return false;
-            }
+                if (!val) {
+                    ok = false;
+                    $top.addClass('is-invalid'); // tampilkan border merah
+                    // scroll ke kolom vendor yang belum diisi
+                    const th = $th.get(0);
+                    if (th && th.scrollIntoView) th.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'nearest',
+                        inline: 'center'
+                    });
+                    // fokuskan ke select agar langsung bisa dipilih
+                    setTimeout(() => $top.trigger('focus'), 150);
+                    // break dari .each
+                    return false;
+                }
             });
 
             if (!ok) {
-            toastr.error('Payment Term (TOP) wajib diisi untuk semua vendor.');
+                toastr.error('Payment Term (TOP) wajib diisi untuk semua vendor.');
             }
             return ok;
         }
 
         // hilangkan merah ketika user memilih nilai
-        $(document).on('change', 'select.cara-bayar', function () {
+        $(document).on('change', 'select.cara-bayar', function() {
             if ($(this).val()) $(this).removeClass('is-invalid');
         });
     </script>

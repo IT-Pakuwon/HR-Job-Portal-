@@ -57,7 +57,7 @@
             {{-- All Status --}}
             <a href="#" class="status-filter group block h-full" data-status="">
                 <div
-                    class="status-card flex h-full items-center gap-3 rounded-lg border border-orange-700 bg-orange-200/20 p-3 text-orange-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-orange-100 hover:shadow-lg active:scale-95">
+                    class="status-card flex h-full items-center gap-3 rounded-lg border border-orange-700 bg-orange-200/20 p-3 text-orange-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-orange-100 hover:shadow-md active:scale-95">
 
                     <div class="flex h-6 w-6 shrink-0 items-center justify-center text-lg">📄</div>
 
@@ -72,7 +72,7 @@
             {{-- Unchecked --}}
             <a href="#" class="status-filter group block h-full" data-status="is_read_N">
                 <div
-                    class="status-card flex h-full items-center gap-3 rounded-lg border border-blue-700 bg-blue-200/20 p-3 text-blue-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-blue-100 hover:shadow-lg active:scale-95">
+                    class="status-card flex h-full items-center gap-3 rounded-lg border border-blue-700 bg-blue-200/20 p-3 text-blue-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-blue-100 hover:shadow-md active:scale-95">
 
                     <div class="flex h-6 w-6 shrink-0 items-center justify-center text-lg">⏳</div>
 
@@ -87,7 +87,7 @@
             {{-- Checked --}}
             <a href="#" class="status-filter group block h-full" data-status="is_read_Y">
                 <div
-                    class="status-card flex h-full items-center gap-3 rounded-lg border border-gray-700 bg-gray-200/20 p-3 text-gray-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-gray-100 hover:shadow-lg active:scale-95 dark:border-white dark:text-white dark:hover:bg-gray-700">
+                    class="status-card flex h-full items-center gap-3 rounded-lg border border-gray-700 bg-gray-200/20 p-3 text-gray-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-gray-100 hover:shadow-md active:scale-95 dark:border-white dark:text-white dark:hover:bg-gray-700">
 
                     <div class="flex h-6 w-6 shrink-0 items-center justify-center text-lg">✏️</div>
 
@@ -102,7 +102,7 @@
             {{-- Reject --}}
             <a href="#" class="status-filter group block h-full" data-status="R">
                 <div
-                    class="status-card flex h-full items-center gap-3 rounded-lg border border-red-700 bg-red-200/20 p-3 text-red-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-red-100 hover:shadow-lg active:scale-95">
+                    class="status-card flex h-full items-center gap-3 rounded-lg border border-red-700 bg-red-200/20 p-3 text-red-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-red-100 hover:shadow-md active:scale-95">
 
                     <div class="flex h-6 w-6 shrink-0 items-center justify-center text-lg">⛔️</div>
 
@@ -117,7 +117,7 @@
             {{-- Approved --}}
             <a href="#" class="status-filter group block h-full" data-status="C">
                 <div
-                    class="status-card flex h-full items-center gap-3 rounded-lg border border-green-700 bg-green-200/20 p-3 text-green-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-green-100 hover:shadow-lg active:scale-95">
+                    class="status-card flex h-full items-center gap-3 rounded-lg border border-green-700 bg-green-200/20 p-3 text-green-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-green-100 hover:shadow-md active:scale-95">
 
                     <div class="flex h-6 w-6 shrink-0 items-center justify-center text-lg">✅</div>
 

@@ -213,7 +213,7 @@
                                 </button>
 
                                 <div id="printMenu"
-                                    class="absolute right-0 z-20 mt-2 hidden w-56 overflow-hidden rounded-md border border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-gray-800"
+                                    class="absolute right-0 z-20 mt-2 hidden w-56 overflow-hidden rounded-md border border-gray-200 bg-white shadow-md dark:border-gray-700 dark:bg-gray-800"
                                     role="menu" aria-labelledby="printMenuBtn">
                                     <a href="{{ url('/pdf_bast') }}/{{ $hash }}" target="_blank"
                                         class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700"
@@ -663,7 +663,7 @@
 
     {{-- Rating Modal --}}
     {{-- <div id="ratingModal" class="fixed inset-0 z-[3000] hidden items-center justify-center bg-black/50">
-        <div class="w-full max-w-sm rounded-xl bg-white p-5 shadow-lg dark:bg-gray-800">
+        <div class="w-full max-w-sm rounded-xl bg-white p-5 shadow-md dark:bg-gray-800">
             <h3 class="mb-3 text-lg font-semibold text-gray-800 dark:text-gray-100">
             Give Vendor Rating
             </h3>
@@ -693,7 +693,7 @@
 
     {{-- Rating Modal (TrBASTRating sliders) --}}
     <div id="ratingModal" class="fixed inset-0 z-[3000] hidden items-center justify-center bg-black/50">
-        <div class="w-full max-w-2xl rounded-xl bg-white p-5 shadow-lg dark:bg-gray-800">
+        <div class="w-full max-w-2xl rounded-xl bg-white p-5 shadow-md dark:bg-gray-800">
             <h3 class="mb-4 text-lg font-semibold text-gray-800 dark:text-gray-100">
                 Vendor Rating (1–10 per kriteria)
             </h3>

@@ -341,7 +341,7 @@
             {{-- CS Jobs --}}
             <button type="button" class="w-full text-left">
                 <div id="btn-mine"
-                    class="filter-card flex h-full items-center gap-3 rounded-lg border border-indigo-700 bg-indigo-200/20 p-3 text-indigo-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-indigo-100 hover:shadow-lg active:scale-95">
+                    class="filter-card flex h-full items-center gap-3 rounded-lg border border-indigo-700 bg-indigo-200/20 p-3 text-indigo-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-indigo-100 hover:shadow-md active:scale-95">
 
                     <div class="flex h-6 w-6 shrink-0 items-center justify-center text-lg">🗂️</div>
 
@@ -356,7 +356,7 @@
             {{-- CS Revision --}}
             <button type="button" class="w-full text-left">
                 <div id="btn-revision"
-                    class="filter-card flex h-full items-center gap-3 rounded-lg border border-amber-700 bg-amber-200/20 p-3 text-amber-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-amber-100 hover:shadow-lg active:scale-95">
+                    class="filter-card flex h-full items-center gap-3 rounded-lg border border-amber-700 bg-amber-200/20 p-3 text-amber-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-amber-100 hover:shadow-md active:scale-95">
 
                     <div class="flex h-6 w-6 shrink-0 items-center justify-center text-lg">📝</div>
 
@@ -371,7 +371,7 @@
             {{-- All CS Jobs --}}
             <button type="button" class="w-full text-left">
                 <div id="btn-all"
-                    class="filter-card flex h-full items-center gap-3 rounded-lg border border-gray-700 bg-gray-200/20 p-3 text-gray-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-gray-100 hover:shadow-lg active:scale-95 dark:border-white dark:text-white dark:hover:bg-gray-700">
+                    class="filter-card flex h-full items-center gap-3 rounded-lg border border-gray-700 bg-gray-200/20 p-3 text-gray-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-gray-100 hover:shadow-md active:scale-95 dark:border-white dark:text-white dark:hover:bg-gray-700">
 
                     <div class="flex h-6 w-6 shrink-0 items-center justify-center text-lg">🌐</div>
 
@@ -386,7 +386,7 @@
             {{-- SPPBJKT IN Progress --}}
             <button type="button" class="w-full text-left">
                 <div id="btn-sppbjkt"
-                    class="filter-card flex h-full items-center gap-3 rounded-lg border border-green-700 bg-green-200/20 p-3 text-green-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-green-100 hover:shadow-lg active:scale-95">
+                    class="filter-card flex h-full items-center gap-3 rounded-lg border border-green-700 bg-green-200/20 p-3 text-green-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-green-100 hover:shadow-md active:scale-95">
 
                     <div class="flex h-6 w-6 shrink-0 items-center justify-center text-lg">🚦</div>
 

@@ -25,7 +25,7 @@
 
                     <!-- Dropdown -->
                     <ul x-show="open" @click.away="open = false"
-                        class="absolute right-0 z-10 mt-2 w-48 rounded border border-gray-300 bg-white shadow-lg dark:border-gray-700 dark:bg-gray-800">
+                        class="absolute right-0 z-10 mt-2 w-48 rounded border border-gray-300 bg-white shadow-md dark:border-gray-700 dark:bg-gray-800">
                         {{-- <li><a href="{{ route('account') }}" class="block px-4 py-2 hover:bg-gray-200 dark:hover:bg-gray-700">My Account</a></li>
                         <li><a href="{{ route('screens') }}" class="block px-4 py-2 hover:bg-gray-200 dark:hover:bg-gray-700">Master Screen</a></li>
                         <li><a href="{{ route('applications') }}" class="block px-4 py-2 hover:bg-gray-200 dark:hover:bg-gray-700">Master Application</a></li>

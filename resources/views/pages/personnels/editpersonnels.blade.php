@@ -417,62 +417,74 @@
                             </button>
                         </details> --}}
                         <details class="group" open>
-                            <summary class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-xl font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
+                            <summary
+                                class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-xl font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
                                 <span>Attachments</span>
-                                <span class="text-sm font-medium text-gray-500 transition-all group-open:hidden">See details &rarr;</span>
-                                <span class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline">Hide details &darr;</span>
+                                <span class="text-sm font-medium text-gray-500 transition-all group-open:hidden">See
+                                    details &rarr;</span>
+                                <span
+                                    class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline">Hide
+                                    details &darr;</span>
                             </summary>
 
                             <div class="flex max-h-[125px] flex-col overflow-y-auto pt-6">
                                 <div id="attachmentsContainer">
-                                @foreach ($attachment as $attach)
-                                    @php
-                                    $fileUrl = route('attachments.view', ['id' => $attach->id]);
-                                    @endphp
-                                    <div class="attachment-row flex items-center gap-2" data-attachid="{{ $attach->id }}">
-                                    <a href="{{ $fileUrl }}" target="_blank" class="mt-4 w-full border p-3 text-lg">
-                                        📎 {{ $attach->attachment_name ?? basename($attach->filename) }}
-                                    </a>
-                                    <button
-                                        type="button"
-                                        class="removeAttachment2 mt-4 rounded border border-red-700 bg-red-200/10 px-3 py-3 text-white hover:border-red-700 hover:bg-red-400/30 dark:bg-red-700/30"
-                                        data-id="{{ $attach->id }}">🗑️
-                                    </button>
-                                    </div>
-                                @endforeach
+                                    @foreach ($attachment as $attach)
+                                        @php
+                                            $fileUrl = route('attachments.view', ['id' => $attach->id]);
+                                        @endphp
+                                        <div class="attachment-row flex items-center gap-2"
+                                            data-attachid="{{ $attach->id }}">
+                                            <a href="{{ $fileUrl }}" target="_blank"
+                                                class="mt-4 w-full border p-3 text-lg">
+                                                📎 {{ $attach->attachment_name ?? basename($attach->filename) }}
+                                            </a>
+                                            <button type="button"
+                                                class="removeAttachment2 mt-4 rounded border border-red-700 bg-red-200/10 px-3 py-3 text-white hover:border-red-700 hover:bg-red-400/30 dark:bg-red-700/30"
+                                                data-id="{{ $attach->id }}">🗑️
+                                            </button>
+                                        </div>
+                                    @endforeach
                                 </div>
                             </div>
 
                             <button type="button" id="addAttachment"
                                 class="mt-4 flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 bg-gray-50 px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                <path fill-rule="evenodd" d="M10 2a1 1 0 011 1v6h6a1 1 0 110 2h-6v6a1 1 0 11-2 0v-6H3a1 1 0 110-2h6V3a1 1 0 011-1z" clip-rule="evenodd" />
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20"
+                                    fill="currentColor">
+                                    <path fill-rule="evenodd"
+                                        d="M10 2a1 1 0 011 1v6h6a1 1 0 110 2h-6v6a1 1 0 11-2 0v-6H3a1 1 0 110-2h6V3a1 1 0 011-1z"
+                                        clip-rule="evenodd" />
                                 </svg> Add Attachment
                             </button>
                         </details>
 
+                        <div class="grid grid-cols-2 justify-between gap-4 md:flex md:flex-row xl:justify-end">
+                            <div class="flex justify-start">
+                                <button type="submit" id="submitBtn"
+                                    class="mb-4 mt-4 flex w-full items-center justify-center gap-2 rounded border border-blue-700 bg-blue-200/10 p-2 text-blue-700 hover:border-blue-700 hover:bg-blue-700 hover:font-medium hover:text-white">
+                                    <span id="btnText">Submit Approval</span>
+                                    <svg id="loadingSpinner" class="ml-2 hidden h-5 w-5 animate-spin text-white"
+                                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10"
+                                            stroke="currentColor" stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+                                    </svg>
+                                </button>
+                            </div>
 
-                        <div class="flex w-full justify-end gap-4 pt-4">
-                            <button type="button" id="cancelBtn"
-                                class="inline-flex items-center justify-center rounded-lg bg-red-600 px-6 py-3 text-base font-semibold text-white shadow-md transition-colors hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">
-                                <span id="cancelText">Cancel</span>
-                                <svg id="cancelSpinner" class="ml-2 hidden h-5 w-5 animate-spin text-white"
-                                    xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                    <circle class="opacity-25" cx="12" cy="12" r="10"
-                                        stroke="currentColor" stroke-width="4"></circle>
-                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
-                                </svg>
-                            </button>
-                            <button type="submit" id="submitBtn"
-                                class="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-6 py-3 text-base font-semibold text-white shadow-md transition-colors hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
-                                <span id="btnText">Submit Approval</span>
-                                <svg id="loadingSpinner" class="ml-2 hidden h-5 w-5 animate-spin text-white"
-                                    xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                    <circle class="opacity-25" cx="12" cy="12" r="10"
-                                        stroke="currentColor" stroke-width="4"></circle>
-                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
-                                </svg>
-                            </button>
+                            <div class="flex justify-start md:justify-end">
+                                <button type="button" id="cancelBtn"
+                                    class="mb-4 mt-4 flex w-full items-center justify-center gap-2 rounded border border-red-700 bg-red-200/10 p-2 text-red-700 hover:border-red-700 hover:bg-red-700 hover:font-medium hover:text-white">
+                                    <span id="cancelText">Cancel</span>
+                                    <svg id="cancelSpinner" class="ml-2 hidden h-5 w-5 animate-spin text-white"
+                                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10"
+                                            stroke="currentColor" stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+                                    </svg>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </form>
@@ -491,7 +503,7 @@
 
                 let formData = new FormData(this);
                 // let personnelId = "{{ $personnel->id }}"; // pastikan ID tersedia di view
-                let personnelHash = @json($hash); 
+                let personnelHash = @json($hash);
                 let updateUrl = `/personnels/${personnelHash}`;
 
                 // Tampilkan Loading, Disable Button

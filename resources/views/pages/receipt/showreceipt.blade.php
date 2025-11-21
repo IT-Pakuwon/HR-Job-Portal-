@@ -211,7 +211,7 @@
                                 </button>
 
                                 <div id="printMenu"
-                                    class="absolute right-0 z-20 mt-2 hidden w-56 overflow-hidden rounded-md border border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-gray-800"
+                                    class="absolute right-0 z-20 mt-2 hidden w-56 overflow-hidden rounded-md border border-gray-200 bg-white shadow-md dark:border-gray-700 dark:bg-gray-800"
                                     role="menu" aria-labelledby="printMenuBtn">
                                     <a href="{{ route('receipts.print', ['hash' => $hash]) }}?type=sttb" target="_blank"
                                         class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700"

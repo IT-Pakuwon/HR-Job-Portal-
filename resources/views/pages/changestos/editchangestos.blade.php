@@ -6,7 +6,8 @@
                     @csrf
                     <div class="w-full rounded-xl bg-white p-6 shadow-md dark:bg-gray-800">
                         <div class="mb-6 border-b border-gray-200 pb-4 dark:border-gray-700">
-                            <h2 class="text-xl font-extrabold text-gray-800 dark:text-white">Edit Request Additional - {{ $changesto->changerequest_id ?? '' }}
+                            <h2 class="text-xl font-extrabold text-gray-800 dark:text-white">Edit Request Additional -
+                                {{ $changesto->changerequest_id ?? '' }}
                             </h2>
                         </div>
                         <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
@@ -22,7 +23,7 @@
                                             {{ $p->cpnyid }}</option>
                                     @endforeach
                                 </select>
-                            </div>                            
+                            </div>
                             <div class="flex flex-col gap-2">
                                 <label
                                     class="block text-sm font-medium text-gray-700 dark:text-gray-300">Department</label>
@@ -37,24 +38,32 @@
                                 </select>
                             </div>
                             <div class="flex flex-col gap-2">
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Sub Departement</label>
-                                <input type="text" name="departement_name" id="departement_name" class="w-full rounded-lg border border-white-300 bg-white-100 p-2.5 text-gray-700 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300" value="{{ $changesto->departement_name }}" required>
-                            </div>             
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Sub
+                                    Departement</label>
+                                <input type="text" name="departement_name" id="departement_name"
+                                    class="border-white-300 bg-white-100 w-full rounded-lg border p-2.5 text-gray-700 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                    value="{{ $changesto->departement_name }}" required>
+                            </div>
                             <div class="flex flex-col gap-2">
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Grading</label>
-                                <select class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300" name="subgrade_name" required>
+                                <label
+                                    class="block text-sm font-medium text-gray-700 dark:text-gray-300">Grading</label>
+                                <select
+                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                    name="subgrade_name" required>
                                     <option value="" disabled selected>Select Sub Grading</option>
-                                    @foreach ($subgrading as $p)                                       
+                                    @foreach ($subgrading as $p)
                                         <option value="{{ $p->subgrade_name }}"
                                             {{ $p->subgrade_name == $changesto->subgrade_name ? 'selected' : '' }}>
                                             {{ $p->subgrade_name }}</option>
                                     @endforeach
                                 </select>
-                            </div>   
+                            </div>
                         </div>
-                        <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">                           
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mt-2">Note</label>
-                            <textarea name="changerequest_note" id="changerequest_note" class="w-full rounded-sm border border-gray-200/50 bg-gray-200/10 p-3 focus:ring focus:ring-blue-300 dark:bg-gray-800" required>{{ $changesto->changerequest_note }}</textarea>
+                        <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
+                            <label class="mt-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Note</label>
+                            <textarea name="changerequest_note" id="changerequest_note"
+                                class="w-full rounded-sm border border-gray-200/50 bg-gray-200/10 p-3 focus:ring focus:ring-blue-300 dark:bg-gray-800"
+                                required>{{ $changesto->changerequest_note }}</textarea>
                         </div>
                     </div>
 
@@ -74,8 +83,8 @@
                                     @foreach ($attachment as $attach)
                                         <div class="attachment-row flex items-center gap-2"
                                             data-attachid="{{ $attach->id }}">
-                                            <a href="{{ url('/attachments/' . $attach->attachfile) }}"
-                                                target="_blank" class="mt-4 w-full border p-3 text-lg">📎
+                                            <a href="{{ url('/attachments/' . $attach->attachfile) }}" target="_blank"
+                                                class="mt-4 w-full border p-3 text-lg">📎
                                                 {{ $attach->name }}</a>
                                             <button type="button"
                                                 class="removeAttachment2 mt-4 rounded border border-red-700 bg-red-200/10 px-3 py-3 text-white hover:border-red-700 hover:bg-red-400/30 dark:bg-red-700/30"
@@ -96,27 +105,35 @@
                             </button>
                         </details>
 
-                        <div class="flex w-full justify-end gap-4 pt-4">
-                            <button type="button" id="cancelBtn"
-                                class="inline-flex items-center justify-center rounded-lg bg-red-600 px-6 py-3 text-base font-semibold text-white shadow-md transition-colors hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">
-                                <span id="cancelText">Cancel</span>
-                                <svg id="cancelSpinner" class="ml-2 hidden h-5 w-5 animate-spin text-white"
-                                    xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                    <circle class="opacity-25" cx="12" cy="12" r="10"
-                                        stroke="currentColor" stroke-width="4"></circle>
-                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
-                                </svg>
-                            </button>
-                            <button type="submit" id="submitBtn"
-                                class="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-6 py-3 text-base font-semibold text-white shadow-md transition-colors hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
-                                <span id="btnText">Submit Approval</span>
-                                <svg id="loadingSpinner" class="ml-2 hidden h-5 w-5 animate-spin text-white"
-                                    xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                    <circle class="opacity-25" cx="12" cy="12" r="10"
-                                        stroke="currentColor" stroke-width="4"></circle>
-                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
-                                </svg>
-                            </button>
+                        <div class="grid grid-cols-2 justify-between gap-4 md:flex md:flex-row xl:justify-end">
+                            <!-- Cancel Button-->
+                            <div class="flex justify-start">
+                                <button id="cancelBtn"
+                                    class="mb-4 mt-4 flex w-full items-center justify-center gap-2 rounded border border-red-700 bg-red-200/10 p-2 text-red-700 hover:border-red-700 hover:bg-red-700 hover:font-medium hover:text-white">
+                                    <span id="cancelText">Cancel</span>
+                                    <svg id="cancelSpinner" class="hidden h-5 w-5 animate-spin text-white"
+                                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10"
+                                            stroke="currentColor" stroke-width="4">
+                                        </circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z">
+                                        </path>
+                                    </svg>
+                                </button>
+                            </div>
+                            <div class="flex justify-start md:justify-end">
+                                <button type="submit" id="submitBtn"
+                                    class="mb-4 mt-4 flex w-full items-center justify-center gap-2 rounded border border-blue-700 bg-blue-200/10 p-2 text-blue-700 hover:border-blue-700 hover:bg-blue-700 hover:font-medium hover:text-white">
+                                    <span id="btnText">Submit Approval</span>
+                                    <svg id="loadingSpinner" class="hidden h-5 w-5 animate-spin text-white"
+                                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10"
+                                            stroke="currentColor" stroke-width="4">
+                                        </circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+                                    </svg>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </form>
@@ -178,7 +195,6 @@
                 }
             });
         });
-
     </script>
 
     <script>
@@ -244,18 +260,18 @@
             });
         });
     </script>
-      
 
-    
+
+
     <!-- Toastr CSS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
     <!-- Toastr JS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 
-    
-    
-    
 
-   
+
+
+
+
 
 </x-app-layout>

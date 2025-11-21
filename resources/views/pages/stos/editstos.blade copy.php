@@ -9,7 +9,7 @@
 <<<<<<< Updated upstream
                         <div class="flex w-full flex-col gap-8 rounded-xl bg-white p-6   dark:bg-gray-800">
 =======
-                        <div class="flex w-full flex-col gap-8 rounded-xl bg-white p-6 shadow-lg dark:bg-gray-800">
+                        <div class="flex w-full flex-col gap-8 rounded-xl bg-white p-6 shadow-md dark:bg-gray-800">
 >>>>>>> Stashed changes
                             <div class="mb-6 border-b border-gray-200 pb-4 dark:border-gray-700">
                                 <h2 class="text-xl font-extrabold text-gray-800 dark:text-white">Edit ORG Structure</h2>
@@ -65,7 +65,7 @@
 <<<<<<< Updated upstream
                     <div class="flex w-full flex-col gap-8 rounded-xl bg-white p-6   dark:bg-gray-800">
 =======
-                    <div class="flex w-full flex-col gap-8 rounded-xl bg-white p-6 shadow-lg dark:bg-gray-800">
+                    <div class="flex w-full flex-col gap-8 rounded-xl bg-white p-6 shadow-md dark:bg-gray-800">
 >>>>>>> Stashed changes
                         <details class="group" open>
                             <summary
@@ -141,7 +141,7 @@
 <<<<<<< Updated upstream
                 <details class="group w-full rounded-xl bg-white p-6   dark:bg-gray-800" open>
 =======
-                <details class="group w-full rounded-xl bg-white p-6 shadow-lg dark:bg-gray-800" open>
+                <details class="group w-full rounded-xl bg-white p-6 shadow-md dark:bg-gray-800" open>
 >>>>>>> Stashed changes
                     <summary
                         class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-xl font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">

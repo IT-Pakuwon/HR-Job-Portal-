@@ -359,8 +359,10 @@
                     <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
                         <!-- Existing Attachments -->
                         <div class="w-full rounded-xl bg-white p-6 shadow-md dark:bg-gray-800">
-                            <div class="flex items-center justify-between border-b border-gray-200 pb-4 dark:border-gray-700">
-                                <h3 class="text-lg font-bold text-gray-800 dark:text-white">Attachments {{ $doc }}</h3>
+                            <div
+                                class="flex items-center justify-between border-b border-gray-200 pb-4 dark:border-gray-700">
+                                <h3 class="text-lg font-bold text-gray-800 dark:text-white">Attachments
+                                    {{ $doc }}</h3>
                             </div>
 
                             @if (($attachment ?? collect())->count())
@@ -375,18 +377,21 @@
                                         </thead>
                                         <tbody>
                                             @foreach ($attachment as $at)
-                                                <tr class="border-b border-gray-100 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700">
+                                                <tr
+                                                    class="border-b border-gray-100 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700">
                                                     <td class="p-3">
                                                         @if (!empty($at->url))
                                                             <a href="{{ $at->url }}" target="_blank"
-                                                            class="flex items-center gap-2 font-medium text-indigo-600 hover:underline dark:text-indigo-400">
+                                                                class="flex items-center gap-2 font-medium text-indigo-600 hover:underline dark:text-indigo-400">
                                                                 📎 {{ $at->display_name }}
                                                             </a>
                                                         @else
-                                                            <span class="flex items-center gap-2 font-medium text-gray-700 dark:text-gray-300">
+                                                            <span
+                                                                class="flex items-center gap-2 font-medium text-gray-700 dark:text-gray-300">
                                                                 📎 {{ $at->display_name }}
                                                             </span>
-                                                            <span class="ml-2 text-xs text-red-500">(link unavailable)</span>
+                                                            <span class="ml-2 text-xs text-red-500">(link
+                                                                unavailable)</span>
                                                         @endif
                                                     </td>
                                                     <td class="p-3">{{ $at->created_by }}</td>
@@ -436,40 +441,63 @@
                             </button>
 
                             <!-- Action Buttons -->
-                            <div class="mt-6 flex w-full justify-end gap-4">
-                                <button type="button" id="cancelBtn"
-                                    class="inline-flex items-center justify-center rounded-lg bg-red-600 px-6 py-3 text-sm font-semibold text-white shadow-md transition hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">
-                                    <span id="cancelText">Cancel</span>
-                                    <svg id="cancelSpinner" class="ml-2 hidden h-5 w-5 animate-spin text-white"
-                                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                        <circle class="opacity-25" cx="12" cy="12" r="10"
-                                            stroke="currentColor" stroke-width="4"></circle>
-                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
-                                    </svg>
-                                </button>
-                                <button type="button" id="saveBtn"
-                                    class="inline-flex items-center justify-center rounded-lg bg-gray-600 px-6 py-3 text-sm font-semibold text-white shadow-md transition hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2">
-                                    <span>Save CS</span>
-                                    <svg id="saveSpinner" class="ml-2 hidden h-5 w-5 animate-spin text-white"
-                                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                        <circle class="opacity-25" cx="12" cy="12" r="10"
-                                            stroke="currentColor" stroke-width="4"></circle>
-                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
-                                    </svg>
-                                </button>
-                                @if (in_array($doc, ['SPPB', 'SPPK']))
-                                <button type="submit" id="submitBtn"
-                                    class="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-6 py-3 text-sm font-semibold text-white shadow-md transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
-                                    <span id="btnText">Submit Approval</span>
-                                    <svg id="loadingSpinner" class="ml-2 hidden h-5 w-5 animate-spin text-white"
-                                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                        <circle class="opacity-25" cx="12" cy="12" r="10"
-                                            stroke="currentColor" stroke-width="4"></circle>
-                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
-                                    </svg>
-                                </button>
-                                @endif
+                            <div class="w-full px-4">
+                                <div class="grid grid-cols-2 justify-between gap-4 md:flex md:flex-row xl:justify-end">
+
+                                    <!-- Cancel Button -->
+                                    <div class="flex justify-start">
+                                        <button id="cancelBtn"
+                                            class="mb-4 mt-4 flex w-full items-center justify-center gap-2 rounded border border-red-700 bg-red-200/10 p-2 text-red-700 hover:border-red-700 hover:bg-red-700 hover:font-medium hover:text-white md:w-auto">
+                                            <span id="cancelText">Cancel</span>
+                                            <svg id="cancelSpinner" class="hidden h-5 w-5 animate-spin text-white"
+                                                xmlns="http://www.w3.org/2000/svg" fill="none"
+                                                viewBox="0 0 24 24">
+                                                <circle class="opacity-25" cx="12" cy="12" r="10"
+                                                    stroke="currentColor" stroke-width="4"></circle>
+                                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z">
+                                                </path>
+                                            </svg>
+                                        </button>
+                                    </div>
+
+                                    <!-- Save Button -->
+                                    <div class="flex justify-start">
+                                        <button id="saveBtn"
+                                            class="mb-4 mt-4 flex w-full items-center justify-center gap-2 rounded border border-gray-700 bg-gray-200/10 p-2 text-gray-700 hover:border-gray-700 hover:bg-gray-700 hover:font-medium hover:text-white md:w-auto">
+                                            <span id="saveText">Save CS</span>
+                                            <svg id="saveSpinner" class="hidden h-5 w-5 animate-spin text-white"
+                                                xmlns="http://www.w3.org/2000/svg" fill="none"
+                                                viewBox="0 0 24 24">
+                                                <circle class="opacity-25" cx="12" cy="12" r="10"
+                                                    stroke="currentColor" stroke-width="4"></circle>
+                                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z">
+                                                </path>
+                                            </svg>
+                                        </button>
+                                    </div>
+
+                                    <!-- Submit Approval (conditional) -->
+                                    @if (in_array($doc, ['SPPB', 'SPPK']))
+                                        <div class="flex justify-start md:justify-end">
+                                            <button type="submit" id="submitBtn"
+                                                class="mb-4 mt-4 flex w-full items-center justify-center gap-2 rounded border border-blue-700 bg-blue-200/10 p-2 text-blue-700 hover:border-blue-700 hover:bg-blue-700 hover:font-medium hover:text-white md:w-auto">
+                                                <span id="btnText">Submit Approval</span>
+                                                <svg id="loadingSpinner"
+                                                    class="hidden h-5 w-5 animate-spin text-white"
+                                                    xmlns="http://www.w3.org/2000/svg" fill="none"
+                                                    viewBox="0 0 24 24">
+                                                    <circle class="opacity-25" cx="12" cy="12" r="10"
+                                                        stroke="currentColor" stroke-width="4"></circle>
+                                                    <path class="opacity-75" fill="currentColor"
+                                                        d="M4 12a8 8 0 018-8v8z"></path>
+                                                </svg>
+                                            </button>
+                                        </div>
+                                    @endif
+
+                                </div>
                             </div>
+
                         </div>
 
                     </div>
@@ -706,9 +734,9 @@
                 </button>
                     </th>
                 `);
-                                $('#cvTable thead tr').append($th);
+                $('#cvTable thead tr').append($th);
 
-                                const $sumTd = $(`
+                const $sumTd = $(`
                     <td id="td-sum-${id}" 
                         class="border px-3 py-2 text-xs align-top"
                         style="width:${colWidth}; max-width:${colWidth};">
@@ -895,39 +923,39 @@
             //     $sumCell.find('.sum-selected-base').text(String(selBase));
             // }
 
-            window.recalcSummaryVendor = function (vendorId) {
+            window.recalcSummaryVendor = function(vendorId) {
                 vendorId = String(vendorId); // <- pastikan string
 
                 // Total semua baris (harga x qty) utk vendor ini
                 let total = 0;
-                $(`input.price-input[data-vendor="${vendorId}"]`).each(function () {
+                $(`input.price-input[data-vendor="${vendorId}"]`).each(function() {
                     const price = parsePrice($(this).val());
-                    const qty   = parseQty($(this).closest('tr').find('.qty-input').val());
+                    const qty = parseQty($(this).closest('tr').find('.qty-input').val());
                     total += qty * price;
                 });
 
                 const $sumCell = $(`#td-sum-${CSS.escape(vendorId)}`);
                 $sumCell.find('.sum-total').text(formatNum(total));
 
-                const ppn  = Number($sumCell.find('.sum-ppn').val() || 0) / 100;
-                const pph  = Number($sumCell.find('.sum-pph').val() || 0) / 100;
+                const ppn = Number($sumCell.find('.sum-ppn').val() || 0) / 100;
+                const pph = Number($sumCell.find('.sum-pph').val() || 0) / 100;
                 const grand = total * (1 + ppn + pph);
                 $sumCell.find('.sum-grand').text(formatNum(grand));
 
                 // Total baris TERPILIH utk vendor ini
                 let selTotal = 0;
-                $('#cvBody tr').each(function () {
+                $('#cvBody tr').each(function() {
                     const picked = String($(this).find('input.pick-vendor:checked').val() || '');
                     if (picked === vendorId) {
-                    const lbl = $(this)
-                        .find(`input.price-input[data-vendor="${vendorId}"]`)
-                        .closest('td').find('.total-label');
-                    selTotal += Number((lbl.text() || '0').replace(/[^0-9]/g, ''));
+                        const lbl = $(this)
+                            .find(`input.price-input[data-vendor="${vendorId}"]`)
+                            .closest('td').find('.total-label');
+                        selTotal += Number((lbl.text() || '0').replace(/[^0-9]/g, ''));
                     }
                 });
 
                 // Jika "G.Total Selected" harus termasuk PPN/PPh, pakai ini:
-                const selTax   = selTotal * (ppn + pph);
+                const selTax = selTotal * (ppn + pph);
                 const selGrand = selTotal + selTax;
                 $sumCell.find('.sum-selected').text(formatNum(selGrand));
 
@@ -1268,7 +1296,7 @@
                 // const selTax = selTotal * (ppn / 100) + selTotal * (pph / 100);
                 // const selGrand = selTotal + selTax;
                 const selBase = numFromText($sum.find('.sum-selected-base').text());
-                const selTax  = selBase * (ppn / 100) + selBase * (pph / 100);
+                const selTax = selBase * (ppn / 100) + selBase * (pph / 100);
                 const selGrand = selBase + selTax;
 
                 vendors.push({
@@ -1470,7 +1498,7 @@
                 // const selTax = selTotal * (ppn / 100) + selTotal * (pph / 100);
                 // const selGrand = selTotal + selTax;
                 const selBase = numFromText($sum.find('.sum-selected-base').text());
-                const selTax  = selBase * (ppn / 100) + selBase * (pph / 100);
+                const selTax = selBase * (ppn / 100) + selBase * (pph / 100);
                 const selGrand = selBase + selTax;
 
                 vendors.push({
@@ -1639,10 +1667,10 @@
     </script>
     <script>
         function recalcAllVendors() {
-        $('#cvTable thead th[id^="th-vendor-"]').each(function () {
-            const vid = String($(this).data('vendor-id'));            
-            recalcSummaryVendor(vid);
-        });
+            $('#cvTable thead th[id^="th-vendor-"]').each(function() {
+                const vid = String($(this).data('vendor-id'));
+                recalcSummaryVendor(vid);
+            });
         }
     </script>
 
@@ -1653,32 +1681,36 @@
             // reset state lama
             $('#cvTable thead th[id^="th-vendor-"] select.cara-bayar').removeClass('is-invalid');
 
-            $('#cvTable thead th[id^="th-vendor-"]').each(function () {
-            const $th = $(this);
-            const $top = $th.find('select.cara-bayar');
-            const val  = $top.val();
+            $('#cvTable thead th[id^="th-vendor-"]').each(function() {
+                const $th = $(this);
+                const $top = $th.find('select.cara-bayar');
+                const val = $top.val();
 
-            if (!val) {
-                ok = false;
-                $top.addClass('is-invalid');               // tampilkan border merah
-                // scroll ke kolom vendor yang belum diisi
-                const th = $th.get(0);
-                if (th && th.scrollIntoView) th.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
-                // fokuskan ke select agar langsung bisa dipilih
-                setTimeout(() => $top.trigger('focus'), 150);
-                // break dari .each
-                return false;
-            }
+                if (!val) {
+                    ok = false;
+                    $top.addClass('is-invalid'); // tampilkan border merah
+                    // scroll ke kolom vendor yang belum diisi
+                    const th = $th.get(0);
+                    if (th && th.scrollIntoView) th.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'nearest',
+                        inline: 'center'
+                    });
+                    // fokuskan ke select agar langsung bisa dipilih
+                    setTimeout(() => $top.trigger('focus'), 150);
+                    // break dari .each
+                    return false;
+                }
             });
 
             if (!ok) {
-            toastr.error('Payment Term (TOP) wajib diisi untuk semua vendor.');
+                toastr.error('Payment Term (TOP) wajib diisi untuk semua vendor.');
             }
             return ok;
         }
 
         // hilangkan merah ketika user memilih nilai
-        $(document).on('change', 'select.cara-bayar', function () {
+        $(document).on('change', 'select.cara-bayar', function() {
             if ($(this).val()) $(this).removeClass('is-invalid');
         });
     </script>

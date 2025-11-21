@@ -155,10 +155,11 @@
                                             {{ $p->deptname }}</option>
                                     @endforeach
                                 </select>
-                            </div> 
+                            </div>
                             <!-- WOTYPE (MsCategory: doctype=WO, categoryid=wotype) -->
                             <div class="flex flex-col gap-2">
-                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">WO Type</label>
+                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">WO
+                                    Type</label>
                                 <select name="wotype" id="wotype"
                                     class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                     required>
@@ -167,7 +168,8 @@
                             </div>
                             <!-- WOREQUEST (MsCategory: doctype=WO, categoryid=worequest) -->
                             <div class="flex flex-col gap-2">
-                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">WO Request</label>
+                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">WO
+                                    Request</label>
                                 <select name="worequest" id="worequest"
                                     class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                     required>
@@ -175,10 +177,11 @@
                                 </select>
                             </div>
                         </div>
-                        <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">                      
+                        <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
                             <!-- Jenis pekerjaan (modal trigger) -->
                             <div class="flex flex-col gap-2">
-                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Jenis Pekerjaan</label>
+                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Jenis
+                                    Pekerjaan</label>
                                 <div class="flex gap-2">
                                     <input type="text" id="jenis_pekerjaan_display"
                                         class="flex-1 rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-gray-600 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
@@ -191,19 +194,20 @@
                                 <input type="hidden" name="subworktypeid" id="subworktypeid">
                             </div>
                             <div class="flex flex-col gap-2">
-                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Lokasi</label>
+                                <label
+                                    class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Lokasi</label>
                                 <div class="flex gap-2">
-                                <input type="text" id="lokasi_display"
+                                    <input type="text" id="lokasi_display"
                                         class="flex-1 rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-gray-600 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                         placeholder="Pilih Location & Sub Location" readonly>
-                                <button type="button" id="btnLokasi"
+                                    <button type="button" id="btnLokasi"
                                         class="rounded-lg bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700">Pilih</button>
                                 </div>
                                 <!-- hidden fields to submit -->
                                 <input type="hidden" name="location_id" id="location_id">
                                 <input type="hidden" name="sub_location_id" id="sub_location_id">
                             </div>
-                             <div class="flex flex-col gap-2">
+                            <div class="flex flex-col gap-2">
                                 <label
                                     class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Perpost</label>
                                 <select id="perpost" name="perpost"
@@ -216,14 +220,15 @@
                                     <option value="{{ $year + 1 }}">{{ $year + 1 }}</option>
                                 </select>
                             </div>
-                            
+
                         </div>
-                        
+
                         <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
 
                             <!-- PIC REQUESTER -->
                             <div class="flex flex-col gap-2">
-                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">PIC Requester</label>
+                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">PIC
+                                    Requester</label>
                                 <input type="text" name="picrequester" id="picrequester"
                                     class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                     value="{{ auth()->user()->username ?? '' }}" required>
@@ -231,24 +236,20 @@
 
                             <!-- BIAYA WO -->
                             <div class="flex flex-col gap-2">
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Biaya WO</label>
-                                <input
-                                    type="text"
-                                    inputmode="decimal"
-                                    name="biaya_wo"
-                                    id="biaya_wo"
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Biaya
+                                    WO</label>
+                                <input type="text" inputmode="decimal" name="biaya_wo" id="biaya_wo"
                                     class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
-                                    placeholder="0,00"
-                                    autocomplete="off"
-                                    />
-                                    <small id="biaya_wo_error" class="error-feedback" style="display:none;"></small>
+                                    placeholder="0,00" autocomplete="off" />
+                                <small id="biaya_wo_error" class="error-feedback" style="display:none;"></small>
 
                             </div>
 
 
                             <!-- Budget -->
                             <div class="flex flex-col gap-2">
-                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Budget</label>
+                                <label
+                                    class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Budget</label>
                                 <select name="wobudget" id="wobudget"
                                     class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                     required>
@@ -258,28 +259,29 @@
 
                                 </select>
                             </div>
-                            
+
                             <!-- COA (tampilkan hanya saat Budget = Pemberi Kerja / "Internal") -->
                             <div id="coaGroup" class="flex flex-col gap-2">
-                            <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">COA</label>
-                            <div class="flex gap-2">
-                                <!-- hidden fields to submit -->
-                                <input type="hidden" name="activity_id" id="activity_id">
-                                <input type="hidden" name="business_unit_id" id="business_unit_id">
-                                <input type="hidden" name="department_fin_id" id="department_fin_id">
-                                <input type="hidden" name="coa_id" id="coa_id">
-                                <input type="hidden" name="activity_descr" id="activity_descr">
+                                <label
+                                    class="req block text-sm font-medium text-gray-700 dark:text-gray-300">COA</label>
+                                <div class="flex gap-2">
+                                    <!-- hidden fields to submit -->
+                                    <input type="hidden" name="activity_id" id="activity_id">
+                                    <input type="hidden" name="business_unit_id" id="business_unit_id">
+                                    <input type="hidden" name="department_fin_id" id="department_fin_id">
+                                    <input type="hidden" name="coa_id" id="coa_id">
+                                    <input type="hidden" name="activity_descr" id="activity_descr">
 
-                                <input type="text" id="budget_display"
-                                    class="flex-1 rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-gray-600 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
-                                    placeholder="Pilih Budget" readonly>
-                                <button type="button" id="btnBudget"
+                                    <input type="text" id="budget_display"
+                                        class="flex-1 rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-gray-600 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                        placeholder="Pilih Budget" readonly>
+                                    <button type="button" id="btnBudget"
                                         class="rounded-lg bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700">Pilih</button>
-                            </div>
+                                </div>
                             </div>
 
-                        </div>            
-                       
+                        </div>
+
                         <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
                             <div class="flex flex-col gap-2 lg:col-span-4">
                                 <label for="keperluan"
@@ -293,36 +295,43 @@
                     </div>
 
                     <!-- Modal -->
-                    <div id="modalJenisPekerjaan" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50">
+                    <div id="modalJenisPekerjaan"
+                        class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50">
                         <div class="w-[95vw] max-w-2xl rounded-2xl bg-white p-6 dark:bg-gray-800">
                             <div class="mb-4 flex items-center justify-between">
-                            <h3 class="text-lg font-semibold text-gray-800 dark:text-white">Pilih Jenis Pekerjaan</h3>
-                            <button type="button" id="closeJenisPekerjaan" class="text-2xl leading-none text-gray-400 hover:text-gray-600">×</button>
+                                <h3 class="text-lg font-semibold text-gray-800 dark:text-white">Pilih Jenis Pekerjaan
+                                </h3>
+                                <button type="button" id="closeJenisPekerjaan"
+                                    class="text-2xl leading-none text-gray-400 hover:text-gray-600">×</button>
                             </div>
 
                             <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-                            <!-- Kiri: Worktype -->
-                            <div>
-                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Worktype</label>
-                                <select id="modal_worktypeid"
-                                class="mt-1 w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
-                                <option value="">-- choose --</option>
-                                </select>
-                            </div>
+                                <!-- Kiri: Worktype -->
+                                <div>
+                                    <label
+                                        class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Worktype</label>
+                                    <select id="modal_worktypeid"
+                                        class="mt-1 w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
+                                        <option value="">-- choose --</option>
+                                    </select>
+                                </div>
 
-                            <!-- Kanan: Subworktype (dependent) -->
-                            <div>
-                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Sub Worktype</label>
-                                <select id="modal_subworktypeid"
-                                class="mt-1 w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
-                                <option value="">-- choose --</option>
-                                </select>
-                            </div>
+                                <!-- Kanan: Subworktype (dependent) -->
+                                <div>
+                                    <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Sub
+                                        Worktype</label>
+                                    <select id="modal_subworktypeid"
+                                        class="mt-1 w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
+                                        <option value="">-- choose --</option>
+                                    </select>
+                                </div>
                             </div>
 
                             <div class="mt-6 flex justify-end gap-3">
-                            <button type="button" id="cancelJenisPekerjaan" class="rounded-lg border px-4 py-2 hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700">Cancel</button>
-                            <button type="button" id="saveJenisPekerjaan" class="rounded-lg bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700">Save</button>
+                                <button type="button" id="cancelJenisPekerjaan"
+                                    class="rounded-lg border px-4 py-2 hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700">Cancel</button>
+                                <button type="button" id="saveJenisPekerjaan"
+                                    class="rounded-lg bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700">Save</button>
                             </div>
                         </div>
                     </div>
@@ -331,33 +340,38 @@
                     <div id="modalLokasi" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50">
                         <div class="w-[95vw] max-w-2xl rounded-2xl bg-white p-6 dark:bg-gray-800">
                             <div class="mb-4 flex items-center justify-between">
-                            <h3 class="text-lg font-semibold text-gray-800 dark:text-white">Pilih Lokasi</h3>
-                            <button type="button" id="closeLokasi" class="text-2xl leading-none text-gray-400 hover:text-gray-600">×</button>
+                                <h3 class="text-lg font-semibold text-gray-800 dark:text-white">Pilih Lokasi</h3>
+                                <button type="button" id="closeLokasi"
+                                    class="text-2xl leading-none text-gray-400 hover:text-gray-600">×</button>
                             </div>
 
                             <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-                            <!-- Kiri: Location -->
-                            <div>
-                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Location</label>
-                                <select id="modal_location_id"
+                                <!-- Kiri: Location -->
+                                <div>
+                                    <label
+                                        class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Location</label>
+                                    <select id="modal_location_id"
                                         class="mt-1 w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
-                                <option value="">-- choose --</option>
-                                </select>
-                            </div>
+                                        <option value="">-- choose --</option>
+                                    </select>
+                                </div>
 
-                            <!-- Kanan: Sub Location (dependent) -->
-                            <div>
-                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Sub Location</label>
-                                <select id="modal_sub_location_id"
+                                <!-- Kanan: Sub Location (dependent) -->
+                                <div>
+                                    <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Sub
+                                        Location</label>
+                                    <select id="modal_sub_location_id"
                                         class="mt-1 w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
-                                <option value="">-- choose --</option>
-                                </select>
-                            </div>
+                                        <option value="">-- choose --</option>
+                                    </select>
+                                </div>
                             </div>
 
                             <div class="mt-6 flex justify-end gap-3">
-                            <button type="button" id="cancelLokasi" class="rounded-lg border px-4 py-2 hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700">Cancel</button>
-                            <button type="button" id="saveLokasi" class="rounded-lg bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700">Save</button>
+                                <button type="button" id="cancelLokasi"
+                                    class="rounded-lg border px-4 py-2 hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700">Cancel</button>
+                                <button type="button" id="saveLokasi"
+                                    class="rounded-lg bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700">Save</button>
                             </div>
                         </div>
                     </div>
@@ -365,8 +379,8 @@
                     <!-- ===== Modal Lookup COA ===== -->
                     <div id="coaModal"
                         class="fixed inset-0 z-[1000] hidden items-center justify-center bg-black/40 p-4">
-                        <div class="w-full max-w-4xl rounded-xl bg-white p-4 shadow-lg dark:bg-gray-800">
-                            <div class="mb-3 flex items-center justify-between">
+                        <div class="w-full max-w-4xl rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
+                            <div class="mb-3 flex items-center justify-between border-b pb-2">
                                 <h3 class="text-lg font-bold text-gray-800 dark:text-white">Select COA</h3>
                                 <button type="button" id="closeCoaModal"
                                     class="rounded px-3 py-1 hover:bg-gray-100 dark:hover:bg-gray-700">✖</button>
@@ -447,27 +461,35 @@
                             </button>
                         </details>
 
-                        <div class="flex w-full justify-end gap-4 pt-4">
-                            <button type="button" id="cancelBtn"
-                                class="inline-flex items-center justify-center rounded-lg bg-red-600 px-6 py-3 text-base font-semibold text-white shadow-md transition-colors hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">
-                                <span id="cancelText">Cancel</span>
-                                <svg id="cancelSpinner" class="ml-2 hidden h-5 w-5 animate-spin text-white"
-                                    xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                    <circle class="opacity-25" cx="12" cy="12" r="10"
-                                        stroke="currentColor" stroke-width="4"></circle>
-                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
-                                </svg>
-                            </button>
-                            <button type="submit" id="submitBtn"
-                                class="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-6 py-3 text-base font-semibold text-white shadow-md transition-colors hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
-                                <span id="btnText">Submit Approval</span>
-                                <svg id="loadingSpinner" class="ml-2 hidden h-5 w-5 animate-spin text-white"
-                                    xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                    <circle class="opacity-25" cx="12" cy="12" r="10"
-                                        stroke="currentColor" stroke-width="4"></circle>
-                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
-                                </svg>
-                            </button>
+                        <div class="grid grid-cols-2 justify-between gap-4 md:flex md:flex-row xl:justify-end">
+                            <!-- Cancel Button-->
+                            <div class="flex justify-start">
+                                <button id="cancelBtn"
+                                    class="mb-4 mt-4 flex w-full items-center justify-center gap-2 rounded border border-red-700 bg-red-200/10 p-2 text-red-700 hover:border-red-700 hover:bg-red-700 hover:font-medium hover:text-white">
+                                    <span id="cancelText">Cancel</span>
+                                    <svg id="cancelSpinner" class="hidden h-5 w-5 animate-spin text-white"
+                                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10"
+                                            stroke="currentColor" stroke-width="4">
+                                        </circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z">
+                                        </path>
+                                    </svg>
+                                </button>
+                            </div>
+                            <div class="flex justify-start md:justify-end">
+                                <button type="submit" id="submitBtn"
+                                    class="mb-4 mt-4 flex w-full items-center justify-center gap-2 rounded border border-blue-700 bg-blue-200/10 p-2 text-blue-700 hover:border-blue-700 hover:bg-blue-700 hover:font-medium hover:text-white">
+                                    <span id="btnText">Submit Approval</span>
+                                    <svg id="loadingSpinner" class="hidden h-5 w-5 animate-spin text-white"
+                                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10"
+                                            stroke="currentColor" stroke-width="4">
+                                        </circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+                                    </svg>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </form>
@@ -506,247 +528,295 @@
     </script>
 
     <script>
-        $(function () {
-        const $cpny   = $('select[name="cpnyid"]');
-        const $dept   = $('select[name="departementid"]');
-
-        // ====== Load Categories (wotype & worequest) ======
-        function loadCategories($select, categoryid) {
-            $select.empty().append('<option value="">-- choose --</option>');
-            $.getJSON(`/wos/ajax/categories/${encodeURIComponent(categoryid)}?doctype=WO`)
-                .done(function(list){
-                list.forEach(function(it){
-                    // value & text sama = category_name
-                    $select.append(new Option(it.text, it.text));
-                });
-                })
-                .fail(function(){
-                toastr.error('Gagal memuat data kategori.');
-                });
-            }
-
-        loadCategories($('#wotype'), 'wotype');
-        loadCategories($('#worequest'), 'worequest');
-
-       
-        // ====== Modal Jenis Pekerjaan ======
-        function openJenisModal(){ $('#modalJenisPekerjaan').removeClass('hidden').addClass('flex'); }
-        function closeJenisModal(){ $('#modalJenisPekerjaan').addClass('hidden').removeClass('flex'); }
-
-        $('#btnJenisPekerjaan').on('click', function(){
-            // load worktypes (optional: kirim departementid sebagai filter)
-            const params = $.param({ departementid: $dept.val() || '' });
-            $('#modal_worktypeid').empty().append('<option value="">-- choose --</option>');
-            $('#modal_subworktypeid').empty().append('<option value="">-- choose --</option>');
-            $.getJSON(`/wos/ajax/worktypes?${params}`, function(list){
-            list.forEach(it => $('#modal_worktypeid').append(new Option(it.text, it.value)));
-            openJenisModal();
-            });
-        });
-
-        $('#closeJenisPekerjaan, #cancelJenisPekerjaan').on('click', closeJenisModal);
-
-        // when worktype selected → load subworktypes
-        // $('#modal_worktypeid').on('change', function(){
-        //     const wt = $(this).val();
-        //     const $sub = $('#modal_subworktypeid');
-        //     $sub.empty().append('<option value="">-- choose --</option>');
-        //     if (!wt) return;
-        //     $.getJSON(`/wos/ajax/subworktypes/${encodeURIComponent(wt)}`, function(list){
-        //     list.forEach(it => $sub.append(new Option(it.text, it.value)));
-        //     });
-        // });
-        // ketika worktype dipilih → load subworktypes (doctype=WO)
-        $('#modal_worktypeid').on('change', function(){
-        const wt = $(this).val();
-        const $sub = $('#modal_subworktypeid');
-        $sub.empty().append('<option value="">-- choose --</option>');
-        if (!wt) return;
-
-        const doctype = 'WO'; // kirim dari view
-        $.getJSON(`/wos/ajax/subworktypes/${encodeURIComponent(wt)}?doctype=${encodeURIComponent(doctype)}`, function(list){
-            list.forEach(it => $sub.append(new Option(it.text, it.value)));
-        });
-        });
-
-
-        // Save modal selection → write to hidden fields
-        $('#saveJenisPekerjaan').on('click', function(){
-            const wtVal = $('#modal_worktypeid').val();
-            const wtTxt = $('#modal_worktypeid option:selected').text();
-            const swVal = $('#modal_subworktypeid').val();
-            const swTxt = $('#modal_subworktypeid option:selected').text();
-
-            if (!wtVal || !swVal) {
-            toastr.error('Pilih Worktype dan Sub Worktype.');
-            return;
-            }
-            $('#worktypeid').val(wtVal);
-            $('#subworktypeid').val(swVal);
-            $('#jenis_pekerjaan_display').val(`${wtTxt} — ${swTxt}`);
-            closeJenisModal();
-        });
-        });
-    </script>
-
-    <script>
-        $(function () {
-        const $cpny = $('select[name="cpnyid"]');
-
-        function openLokasiModal(){ $('#modalLokasi').removeClass('hidden').addClass('flex'); }
-        function closeLokasiModal(){ $('#modalLokasi').addClass('hidden').removeClass('flex'); }
-
-        // buka modal & load locations berdasarkan company
-        $('#btnLokasi').on('click', function(){
-            const cpny = $cpny.val();
-            if (!cpny) {
-            toastr.error('Pilih Company terlebih dahulu.');
-            return;
-            }
-            // reset
-            $('#modal_location_id').empty().append('<option value="">-- choose --</option>');
-            $('#modal_sub_location_id').empty().append('<option value="">-- choose --</option>');
-            // load locations
-            $.getJSON(`/wos/ajax/locations/${encodeURIComponent(cpny)}`, function(list){
-            list.forEach(it => $('#modal_location_id').append(new Option(it.text, it.value)));
-            openLokasiModal();
-            });
-        });
-
-        $('#closeLokasi, #cancelLokasi').on('click', closeLokasiModal);
-
-        // ketika pilih location -> load sub locations
-        $('#modal_location_id').on('change', function(){
-            const cpny = $cpny.val();
-            const loc  = $(this).val();
-            const $sub = $('#modal_sub_location_id');
-            $sub.empty().append('<option value="">-- choose --</option>');
-            if (!cpny || !loc) return;
-            $.getJSON(`/wos/ajax/sublocations/${encodeURIComponent(cpny)}/${encodeURIComponent(loc)}`, function(list){
-            list.forEach(it => $sub.append(new Option(it.text, it.value)));
-            });
-        });
-
-        // simpan pilihan -> tulis ke hidden & display
-        $('#saveLokasi').on('click', function(){
-            const locVal = $('#modal_location_id').val();
-            const locTxt = $('#modal_location_id option:selected').text();
-            const subVal = $('#modal_sub_location_id').val();
-            const subTxt = $('#modal_sub_location_id option:selected').text();
-
-            if (!locVal || !subVal) {
-            toastr.error('Pilih Location dan Sub Location.');
-            return;
-            }
-            $('#location_id').val(locVal);
-            $('#sub_location_id').val(subVal);
-            $('#lokasi_display').val(`${locTxt} — ${subTxt}`);
-            closeLokasiModal();
-        });
-
-        // jika company berubah, kosongkan pilihan lokasi sebelumnya (karena depend on cpny)
-        $cpny.on('change', function(){
-            $('#location_id, #sub_location_id, #lokasi_display').val('');
-        });
-        });
-    </script>
-
-    <script>
-        $(function(){
-        function clearAllErrors(scope = '#woForm') {
-            $(scope).find('.is-invalid').removeClass('is-invalid').removeAttr('aria-invalid');
-            $(scope).find('.error-feedback').remove();
-        }
-        function addError($el, message) {
-            if (!$el || !$el.length) return;
-            $el.addClass('is-invalid').attr('aria-invalid', 'true');
-            if ($el.next('.error-feedback').length === 0) {
-            $el.after('<small class="error-feedback">' + message + '</small>');
-            }
-        }
-
-        $('#woForm').on('submit', function(e){
-            e.preventDefault();
-            clearAllErrors();
-
+        $(function() {
             const $cpny = $('select[name="cpnyid"]');
             const $dept = $('select[name="departementid"]');
-            const $wotype = $('#wotype');
-            const $worequest = $('#worequest');
-            const $wt = $('#worktypeid');
-            const $swt = $('#subworktypeid');
-            const $loc = $('#location_id');
-            const $subloc = $('#sub_location_id');
-            const $pic = $('#picrequester');
-            const $biaya = $('#biaya_wo');
 
-            let ok = true;
-            if(!$cpny.val())     { addError($cpny, 'Company wajib.'); ok=false; }
-            if(!$dept.val())     { addError($dept, 'Department wajib.'); ok=false; }
-            if(!$wotype.val())   { addError($wotype, 'WO Type wajib.'); ok=false; }
-            if(!$worequest.val()){ addError($worequest, 'WO Request wajib.'); ok=false; }
-            if(!$wt.val())       { addError($('#jenis_pekerjaan_display'), 'Pilih Worktype.'); ok=false; }
-            if(!$swt.val())      { addError($('#jenis_pekerjaan_display'), 'Pilih Sub Worktype.'); ok=false; }
-            if(!$loc.val())      { addError($('#lokasi_display'), 'Location wajib.'); ok=false; }
-            if(!$subloc.val())   { addError($('#lokasi_display'), 'Sub Location wajib.'); ok=false; }
-            if(!$pic.val())      { addError($pic, 'PIC Requester wajib.'); ok=false; }
-            if($biaya.val() && isNaN(parseFloat($biaya.val()))) {
-                addError($biaya, 'Biaya WO tidak valid.'); ok=false;
+            // ====== Load Categories (wotype & worequest) ======
+            function loadCategories($select, categoryid) {
+                $select.empty().append('<option value="">-- choose --</option>');
+                $.getJSON(`/wos/ajax/categories/${encodeURIComponent(categoryid)}?doctype=WO`)
+                    .done(function(list) {
+                        list.forEach(function(it) {
+                            // value & text sama = category_name
+                            $select.append(new Option(it.text, it.text));
+                        });
+                    })
+                    .fail(function() {
+                        toastr.error('Gagal memuat data kategori.');
+                    });
             }
 
-            if(!ok){
-            toastr.error('Mohon lengkapi input yang wajib.');
-            const $first = $('#woForm .is-invalid').first();
-            if ($first.length) $('html,body').animate({scrollTop: $first.offset().top - 120}, 300);
-            return;
+            loadCategories($('#wotype'), 'wotype');
+            loadCategories($('#worequest'), 'worequest');
+
+
+            // ====== Modal Jenis Pekerjaan ======
+            function openJenisModal() {
+                $('#modalJenisPekerjaan').removeClass('hidden').addClass('flex');
             }
 
-            const $wobudget = $('#wobudget');
-            const needsCoa = $wobudget.val() === 'Internal';
-            if (needsCoa && !$('#coa_id').val()) {
-            addError($('#budget_display'), 'Silakan pilih COA.');
-            ok = false;
+            function closeJenisModal() {
+                $('#modalJenisPekerjaan').addClass('hidden').removeClass('flex');
             }
 
-            $('#submitBtn').prop('disabled', true);
-            $('#cancelBtn').prop('disabled', true);
-            $('#btnText').text('Processing...');
-            showOverlay('Submitting');
-
-            const formData = new FormData(document.getElementById('woForm'));
-            $.ajax({
-            url: "{{ route('wos.store') }}",
-            type: "POST",
-            data: formData,
-            processData: false,
-            contentType: false
-            })
-            .done(function(res){
-            toastr.success(res.message || "WO created successfully!");
-            window.location.href = "/wos";
-            })
-            .fail(function(xhr){
-            if (xhr.status === 422 && xhr.responseJSON?.errors) {
-                let msg = 'Mohon periksa input:<br>';
-                Object.keys(xhr.responseJSON.errors).forEach(k => {
-                msg += `- ${xhr.responseJSON.errors[k].join(', ')}<br>`;
+            $('#btnJenisPekerjaan').on('click', function() {
+                // load worktypes (optional: kirim departementid sebagai filter)
+                const params = $.param({
+                    departementid: $dept.val() || ''
                 });
-                toastr.error(msg);
-            } else if (xhr.responseJSON?.message) {
-                toastr.error(xhr.responseJSON.message);
-            } else {
-                toastr.error('Error! Please check the input.');
-            }
-            })
-            .always(function(){
-            $('#submitBtn').prop('disabled', false);
-            $('#cancelBtn').prop('disabled', false);
-            $('#btnText').text('Submit Approval');
-            hideOverlay();
+                $('#modal_worktypeid').empty().append('<option value="">-- choose --</option>');
+                $('#modal_subworktypeid').empty().append('<option value="">-- choose --</option>');
+                $.getJSON(`/wos/ajax/worktypes?${params}`, function(list) {
+                    list.forEach(it => $('#modal_worktypeid').append(new Option(it.text, it
+                        .value)));
+                    openJenisModal();
+                });
+            });
+
+            $('#closeJenisPekerjaan, #cancelJenisPekerjaan').on('click', closeJenisModal);
+
+            // when worktype selected → load subworktypes
+            // $('#modal_worktypeid').on('change', function(){
+            //     const wt = $(this).val();
+            //     const $sub = $('#modal_subworktypeid');
+            //     $sub.empty().append('<option value="">-- choose --</option>');
+            //     if (!wt) return;
+            //     $.getJSON(`/wos/ajax/subworktypes/${encodeURIComponent(wt)}`, function(list){
+            //     list.forEach(it => $sub.append(new Option(it.text, it.value)));
+            //     });
+            // });
+            // ketika worktype dipilih → load subworktypes (doctype=WO)
+            $('#modal_worktypeid').on('change', function() {
+                const wt = $(this).val();
+                const $sub = $('#modal_subworktypeid');
+                $sub.empty().append('<option value="">-- choose --</option>');
+                if (!wt) return;
+
+                const doctype = 'WO'; // kirim dari view
+                $.getJSON(
+                    `/wos/ajax/subworktypes/${encodeURIComponent(wt)}?doctype=${encodeURIComponent(doctype)}`,
+                    function(list) {
+                        list.forEach(it => $sub.append(new Option(it.text, it.value)));
+                    });
+            });
+
+
+            // Save modal selection → write to hidden fields
+            $('#saveJenisPekerjaan').on('click', function() {
+                const wtVal = $('#modal_worktypeid').val();
+                const wtTxt = $('#modal_worktypeid option:selected').text();
+                const swVal = $('#modal_subworktypeid').val();
+                const swTxt = $('#modal_subworktypeid option:selected').text();
+
+                if (!wtVal || !swVal) {
+                    toastr.error('Pilih Worktype dan Sub Worktype.');
+                    return;
+                }
+                $('#worktypeid').val(wtVal);
+                $('#subworktypeid').val(swVal);
+                $('#jenis_pekerjaan_display').val(`${wtTxt} — ${swTxt}`);
+                closeJenisModal();
             });
         });
+    </script>
+
+    <script>
+        $(function() {
+            const $cpny = $('select[name="cpnyid"]');
+
+            function openLokasiModal() {
+                $('#modalLokasi').removeClass('hidden').addClass('flex');
+            }
+
+            function closeLokasiModal() {
+                $('#modalLokasi').addClass('hidden').removeClass('flex');
+            }
+
+            // buka modal & load locations berdasarkan company
+            $('#btnLokasi').on('click', function() {
+                const cpny = $cpny.val();
+                if (!cpny) {
+                    toastr.error('Pilih Company terlebih dahulu.');
+                    return;
+                }
+                // reset
+                $('#modal_location_id').empty().append('<option value="">-- choose --</option>');
+                $('#modal_sub_location_id').empty().append('<option value="">-- choose --</option>');
+                // load locations
+                $.getJSON(`/wos/ajax/locations/${encodeURIComponent(cpny)}`, function(list) {
+                    list.forEach(it => $('#modal_location_id').append(new Option(it.text, it
+                        .value)));
+                    openLokasiModal();
+                });
+            });
+
+            $('#closeLokasi, #cancelLokasi').on('click', closeLokasiModal);
+
+            // ketika pilih location -> load sub locations
+            $('#modal_location_id').on('change', function() {
+                const cpny = $cpny.val();
+                const loc = $(this).val();
+                const $sub = $('#modal_sub_location_id');
+                $sub.empty().append('<option value="">-- choose --</option>');
+                if (!cpny || !loc) return;
+                $.getJSON(`/wos/ajax/sublocations/${encodeURIComponent(cpny)}/${encodeURIComponent(loc)}`,
+                    function(list) {
+                        list.forEach(it => $sub.append(new Option(it.text, it.value)));
+                    });
+            });
+
+            // simpan pilihan -> tulis ke hidden & display
+            $('#saveLokasi').on('click', function() {
+                const locVal = $('#modal_location_id').val();
+                const locTxt = $('#modal_location_id option:selected').text();
+                const subVal = $('#modal_sub_location_id').val();
+                const subTxt = $('#modal_sub_location_id option:selected').text();
+
+                if (!locVal || !subVal) {
+                    toastr.error('Pilih Location dan Sub Location.');
+                    return;
+                }
+                $('#location_id').val(locVal);
+                $('#sub_location_id').val(subVal);
+                $('#lokasi_display').val(`${locTxt} — ${subTxt}`);
+                closeLokasiModal();
+            });
+
+            // jika company berubah, kosongkan pilihan lokasi sebelumnya (karena depend on cpny)
+            $cpny.on('change', function() {
+                $('#location_id, #sub_location_id, #lokasi_display').val('');
+            });
         });
-        </script>
+    </script>
+
+    <script>
+        $(function() {
+            function clearAllErrors(scope = '#woForm') {
+                $(scope).find('.is-invalid').removeClass('is-invalid').removeAttr('aria-invalid');
+                $(scope).find('.error-feedback').remove();
+            }
+
+            function addError($el, message) {
+                if (!$el || !$el.length) return;
+                $el.addClass('is-invalid').attr('aria-invalid', 'true');
+                if ($el.next('.error-feedback').length === 0) {
+                    $el.after('<small class="error-feedback">' + message + '</small>');
+                }
+            }
+
+            $('#woForm').on('submit', function(e) {
+                e.preventDefault();
+                clearAllErrors();
+
+                const $cpny = $('select[name="cpnyid"]');
+                const $dept = $('select[name="departementid"]');
+                const $wotype = $('#wotype');
+                const $worequest = $('#worequest');
+                const $wt = $('#worktypeid');
+                const $swt = $('#subworktypeid');
+                const $loc = $('#location_id');
+                const $subloc = $('#sub_location_id');
+                const $pic = $('#picrequester');
+                const $biaya = $('#biaya_wo');
+
+                let ok = true;
+                if (!$cpny.val()) {
+                    addError($cpny, 'Company wajib.');
+                    ok = false;
+                }
+                if (!$dept.val()) {
+                    addError($dept, 'Department wajib.');
+                    ok = false;
+                }
+                if (!$wotype.val()) {
+                    addError($wotype, 'WO Type wajib.');
+                    ok = false;
+                }
+                if (!$worequest.val()) {
+                    addError($worequest, 'WO Request wajib.');
+                    ok = false;
+                }
+                if (!$wt.val()) {
+                    addError($('#jenis_pekerjaan_display'), 'Pilih Worktype.');
+                    ok = false;
+                }
+                if (!$swt.val()) {
+                    addError($('#jenis_pekerjaan_display'), 'Pilih Sub Worktype.');
+                    ok = false;
+                }
+                if (!$loc.val()) {
+                    addError($('#lokasi_display'), 'Location wajib.');
+                    ok = false;
+                }
+                if (!$subloc.val()) {
+                    addError($('#lokasi_display'), 'Sub Location wajib.');
+                    ok = false;
+                }
+                if (!$pic.val()) {
+                    addError($pic, 'PIC Requester wajib.');
+                    ok = false;
+                }
+                if ($biaya.val() && isNaN(parseFloat($biaya.val()))) {
+                    addError($biaya, 'Biaya WO tidak valid.');
+                    ok = false;
+                }
+
+                if (!ok) {
+                    toastr.error('Mohon lengkapi input yang wajib.');
+                    const $first = $('#woForm .is-invalid').first();
+                    if ($first.length) $('html,body').animate({
+                        scrollTop: $first.offset().top - 120
+                    }, 300);
+                    return;
+                }
+
+                const $wobudget = $('#wobudget');
+                const needsCoa = $wobudget.val() === 'Internal';
+                if (needsCoa && !$('#coa_id').val()) {
+                    addError($('#budget_display'), 'Silakan pilih COA.');
+                    ok = false;
+                }
+
+                $('#submitBtn').prop('disabled', true);
+                $('#cancelBtn').prop('disabled', true);
+                $('#btnText').text('Processing...');
+                showOverlay('Submitting');
+
+                const formData = new FormData(document.getElementById('woForm'));
+                $.ajax({
+                        url: "{{ route('wos.store') }}",
+                        type: "POST",
+                        data: formData,
+                        processData: false,
+                        contentType: false
+                    })
+                    .done(function(res) {
+                        toastr.success(res.message || "WO created successfully!");
+                        window.location.href = "/wos";
+                    })
+                    .fail(function(xhr) {
+                        if (xhr.status === 422 && xhr.responseJSON?.errors) {
+                            let msg = 'Mohon periksa input:<br>';
+                            Object.keys(xhr.responseJSON.errors).forEach(k => {
+                                msg += `- ${xhr.responseJSON.errors[k].join(', ')}<br>`;
+                            });
+                            toastr.error(msg);
+                        } else if (xhr.responseJSON?.message) {
+                            toastr.error(xhr.responseJSON.message);
+                        } else {
+                            toastr.error('Error! Please check the input.');
+                        }
+                    })
+                    .always(function() {
+                        $('#submitBtn').prop('disabled', false);
+                        $('#cancelBtn').prop('disabled', false);
+                        $('#btnText').text('Submit Approval');
+                        hideOverlay();
+                    });
+            });
+        });
+    </script>
 
 
     <script>
@@ -781,38 +851,38 @@
     </script>
 
     <script>
-        $(function(){
-        $('#cancelBtn').on('click', function(){
-            if (confirm('Batalkan pembuatan WO ini? Perubahan belum disimpan.')) {
-            // sesuaikan: history back atau route index
-            if (document.referrer) {
-                window.history.back();
-            } else {
-                window.location.href = "/wos";
-            }
-            }
-        });
+        $(function() {
+            $('#cancelBtn').on('click', function() {
+                if (confirm('Batalkan pembuatan WO ini? Perubahan belum disimpan.')) {
+                    // sesuaikan: history back atau route index
+                    if (document.referrer) {
+                        window.history.back();
+                    } else {
+                        window.location.href = "/wos";
+                    }
+                }
+            });
         });
     </script>
 
     <script>
-        $(function () {
+        $(function() {
             const $wobudget = $('#wobudget');
             const $coaGroup = $('#coaGroup');
 
             function clearCoaFields() {
-            $('#coa_id, #activity_id, #business_unit_id, #department_fin_id, #activity_descr').val('');
-            $('#budget_display').val('');
+                $('#coa_id, #activity_id, #business_unit_id, #department_fin_id, #activity_descr').val('');
+                $('#budget_display').val('');
             }
 
             function applyBudgetVisibility() {
-            const val = $wobudget.val();
-            if (val === 'Internal') {            // Pemberi Kerja
-                $coaGroup.slideDown(120);
-            } else {                             // External = Penerima Kerja
-                $coaGroup.slideUp(120);
-                clearCoaFields();
-            }
+                const val = $wobudget.val();
+                if (val === 'Internal') { // Pemberi Kerja
+                    $coaGroup.slideDown(120);
+                } else { // External = Penerima Kerja
+                    $coaGroup.slideUp(120);
+                    clearCoaFields();
+                }
             }
 
             // init on load
@@ -839,50 +909,56 @@
     <script>
         $(function() {
             // ===== COA modal state =====
-            const $coaModal   = $('#coaModal');
-            const $coaTbody   = $('#coaTableBody');
-            const $coaCount   = $('#coaCount');
-            const $coaCpny    = $('#coaCpnyBadge');
-            const $coaDept    = $('#coaDeptBadge');
+            const $coaModal = $('#coaModal');
+            const $coaTbody = $('#coaTableBody');
+            const $coaCount = $('#coaCount');
+            const $coaCpny = $('#coaCpnyBadge');
+            const $coaDept = $('#coaDeptBadge');
             const $coaPerpost = $('#coaPerpostBadge');
 
-            const $btnBudget  = $('#btnBudget');
+            const $btnBudget = $('#btnBudget');
 
             let coaState = {
-            search: '',
-            page: 1,
-            per_page: 10,
-            total: 0,
-            cpnyid: null,
-            deptid: null,
-            perpost: null,
+                search: '',
+                page: 1,
+                per_page: 10,
+                total: 0,
+                cpnyid: null,
+                deptid: null,
+                perpost: null,
             };
 
             function openCoaModal() {
-            const cpny    = $('select[name="cpnyid"]').val();
-            const dept    = $('select[name="departementid"]').val();
-            const perpost = $('#perpost').val();
+                const cpny = $('select[name="cpnyid"]').val();
+                const dept = $('select[name="departementid"]').val();
+                const perpost = $('#perpost').val();
 
-            if (!cpny)  { if (window.toastr) toastr.warning('Pilih Company terlebih dahulu.'); return; }
-            if (!dept)  { if (window.toastr) toastr.warning('Pilih Department terlebih dahulu.'); return; }
+                if (!cpny) {
+                    if (window.toastr) toastr.warning('Pilih Company terlebih dahulu.');
+                    return;
+                }
+                if (!dept) {
+                    if (window.toastr) toastr.warning('Pilih Department terlebih dahulu.');
+                    return;
+                }
 
-            coaState.cpnyid  = cpny;
-            coaState.deptid  = dept;
-            coaState.perpost = perpost;
-            coaState.page    = 1;
-            coaState.search  = '';
+                coaState.cpnyid = cpny;
+                coaState.deptid = dept;
+                coaState.perpost = perpost;
+                coaState.page = 1;
+                coaState.search = '';
 
-            $coaCpny.text(coaState.cpnyid);
-            $coaDept.text(coaState.deptid);
-            $coaPerpost.text(coaState.perpost || '');
-            $('#coaSearch').val('');
+                $coaCpny.text(coaState.cpnyid);
+                $coaDept.text(coaState.deptid);
+                $coaPerpost.text(coaState.perpost || '');
+                $('#coaSearch').val('');
 
-            $coaModal.removeClass('hidden').addClass('flex');
-            loadCoa();
+                $coaModal.removeClass('hidden').addClass('flex');
+                loadCoa();
             }
 
             function closeCoaModal() {
-            $coaModal.addClass('hidden').removeClass('flex');
+                $coaModal.addClass('hidden').removeClass('flex');
             }
 
             // open via button in COA block
@@ -891,62 +967,63 @@
             // close modal
             $('#closeCoaModal').on('click', closeCoaModal);
             $(document).on('keydown', function(e) {
-            if (e.key === 'Escape' && $coaModal.is(':visible')) closeCoaModal();
+                if (e.key === 'Escape' && $coaModal.is(':visible')) closeCoaModal();
             });
 
             // Search & refresh
             $('#coaSearch').on('input', function() {
-            coaState.search = $(this).val().trim();
-            coaState.page = 1;
-            loadCoa();
+                coaState.search = $(this).val().trim();
+                coaState.page = 1;
+                loadCoa();
             });
             $('#coaRefresh').on('click', function() {
-            $('#coaSearch').val('');
-            coaState.search = '';
-            coaState.page = 1;
-            loadCoa();
+                $('#coaSearch').val('');
+                coaState.search = '';
+                coaState.page = 1;
+                loadCoa();
             });
 
             // Pagination
             $('#coaPrev').on('click', function() {
-            if (coaState.page > 1) {
-                coaState.page--;
-                loadCoa();
-            }
+                if (coaState.page > 1) {
+                    coaState.page--;
+                    loadCoa();
+                }
             });
             $('#coaNext').on('click', function() {
-            const maxPage = Math.ceil(coaState.total / coaState.per_page);
-            if (coaState.page < maxPage) {
-                coaState.page++;
-                loadCoa();
-            }
+                const maxPage = Math.ceil(coaState.total / coaState.per_page);
+                if (coaState.page < maxPage) {
+                    coaState.page++;
+                    loadCoa();
+                }
             });
 
             // Load COA from API
             function loadCoa() {
-            $coaTbody.html('<tr><td colspan="4" class="p-3 text-center">Loading...</td></tr>');
-            $.getJSON("{{ route('coa.byDept') }}", {
-                cpnyid : coaState.cpnyid,
-                deptid : coaState.deptid,
-                perpost: coaState.perpost,
-                search : coaState.search,
-                page   : coaState.page,
-                per_page: coaState.per_page
-            })
-            .done(function(res) {
-                // Expected: { data: [{account_id, activity_id, business_unit_id, department_fin_id, activity_descr, totalbudget}], total }
-                const rows = (res.data || []).map(item => {
-                const id          = item.account_id ?? '';
-                const actId       = item.activity_id ?? '';
-                const buId        = item.business_unit_id ?? '';
-                const deptFinId   = item.department_fin_id ?? '';
-                const actDetail   = item.activity_descr ?? '';
-                const totalbudget = formatNumber(item.totalbudget) ?? '';
+                $coaTbody.html('<tr><td colspan="4" class="p-3 text-center">Loading...</td></tr>');
+                $.getJSON("{{ route('coa.byDept') }}", {
+                        cpnyid: coaState.cpnyid,
+                        deptid: coaState.deptid,
+                        perpost: coaState.perpost,
+                        search: coaState.search,
+                        page: coaState.page,
+                        per_page: coaState.per_page
+                    })
+                    .done(function(res) {
+                        // Expected: { data: [{account_id, activity_id, business_unit_id, department_fin_id, activity_descr, totalbudget}], total }
+                        const rows = (res.data || []).map(item => {
+                            const id = item.account_id ?? '';
+                            const actId = item.activity_id ?? '';
+                            const buId = item.business_unit_id ?? '';
+                            const deptFinId = item.department_fin_id ?? '';
+                            const actDetail = item.activity_descr ?? '';
+                            const totalbudget = formatNumber(item.totalbudget) ?? '';
 
-                // label yang tampil di input display
-                const label = id ? `${id}${actDetail ? ' - ' + actDetail : ''}` : (actDetail || '');
+                            // label yang tampil di input display
+                            const label = id ? `${id}${actDetail ? ' - ' + actDetail : ''}` : (
+                                actDetail || '');
 
-                return `
+                            return `
                     <tr>
                     <td class="border p-2">${id}</td>
                     <td class="border p-2">${actDetail}</td>
@@ -964,172 +1041,177 @@
                     </td>
                     </tr>
                 `;
-                }).join('');
+                        }).join('');
 
-                $coaTbody.html(rows || '<tr><td colspan="4" class="p-3 text-center">No data</td></tr>');
-                coaState.total = res.total || 0;
-                const shown = rows ? (res.data || []).length : 0;
-                $coaCount.text(`Showing ${shown} of ${coaState.total} items`);
+                        $coaTbody.html(rows || '<tr><td colspan="4" class="p-3 text-center">No data</td></tr>');
+                        coaState.total = res.total || 0;
+                        const shown = rows ? (res.data || []).length : 0;
+                        $coaCount.text(`Showing ${shown} of ${coaState.total} items`);
 
-                const maxPage = Math.ceil((coaState.total || 0) / coaState.per_page) || 1;
-                $('#coaPrev').prop('disabled', coaState.page <= 1);
-                $('#coaNext').prop('disabled', coaState.page >= maxPage);
-            })
-            .fail(function() {
-                $coaTbody.html('<tr><td colspan="4" class="p-3 text-center text-red-600">Failed to load</td></tr>');
-                $coaCount.text('');
-                $('#coaPrev, #coaNext').prop('disabled', true);
-            });
+                        const maxPage = Math.ceil((coaState.total || 0) / coaState.per_page) || 1;
+                        $('#coaPrev').prop('disabled', coaState.page <= 1);
+                        $('#coaNext').prop('disabled', coaState.page >= maxPage);
+                    })
+                    .fail(function() {
+                        $coaTbody.html(
+                            '<tr><td colspan="4" class="p-3 text-center text-red-600">Failed to load</td></tr>'
+                        );
+                        $coaCount.text('');
+                        $('#coaPrev, #coaNext').prop('disabled', true);
+                    });
             }
 
             // Choose -> isi field by ID (single COA di form)
             $(document).on('click', '.chooseCoa', function() {
-            const id        = $(this).data('id') || '';
-            const actId     = $(this).data('activity_id') || '';
-            const buId      = $(this).data('business_unit_id') || '';
-            const deptFinId = $(this).data('department_fin_id') || '';
-            const actDescr  = $(this).data('activity_descr') || '';
-            const label     = $(this).data('label') || '';
+                const id = $(this).data('id') || '';
+                const actId = $(this).data('activity_id') || '';
+                const buId = $(this).data('business_unit_id') || '';
+                const deptFinId = $(this).data('department_fin_id') || '';
+                const actDescr = $(this).data('activity_descr') || '';
+                const label = $(this).data('label') || '';
 
-            $('#coa_id').val(id);
-            $('#activity_id').val(actId);
-            $('#business_unit_id').val(buId);
-            $('#department_fin_id').val(deptFinId);
-            $('#activity_descr').val(actDescr);
-            $('#budget_display').val($('<div>').html(label).text()); // unescape label untuk display
+                $('#coa_id').val(id);
+                $('#activity_id').val(actId);
+                $('#business_unit_id').val(buId);
+                $('#department_fin_id').val(deptFinId);
+                $('#activity_descr').val(actDescr);
+                $('#budget_display').val($('<div>').html(label).text()); // unescape label untuk display
 
-            // bersihkan error jika ada
-            $('#budget_display').removeClass('is-invalid').next('.error-feedback').remove();
+                // bersihkan error jika ada
+                $('#budget_display').removeClass('is-invalid').next('.error-feedback').remove();
 
-            closeCoaModal();
+                closeCoaModal();
             });
 
             // Jika cpny/dept/perpost berubah saat modal terbuka → refresh
             $('select[name="cpnyid"], select[name="departementid"], #perpost').on('change', function() {
-            if ($coaModal.is(':visible')) {
-                coaState.cpnyid  = $('select[name="cpnyid"]').val();
-                coaState.deptid  = $('select[name="departementid"]').val();
-                coaState.perpost = $('#perpost').val();
-                $coaCpny.text(coaState.cpnyid || '-');
-                $coaDept.text(coaState.deptid || '-');
-                $coaPerpost.text(coaState.perpost || '-');
-                coaState.page = 1;
-                loadCoa();
-            }
+                if ($coaModal.is(':visible')) {
+                    coaState.cpnyid = $('select[name="cpnyid"]').val();
+                    coaState.deptid = $('select[name="departementid"]').val();
+                    coaState.perpost = $('#perpost').val();
+                    $coaCpny.text(coaState.cpnyid || '-');
+                    $coaDept.text(coaState.deptid || '-');
+                    $coaPerpost.text(coaState.perpost || '-');
+                    coaState.page = 1;
+                    loadCoa();
+                }
             });
         });
     </script>
 
     <script>
-        $(function () {
-        const $biaya = $("#biaya_wo");
-        const $err   = $("#biaya_wo_error");
+        $(function() {
+            const $biaya = $("#biaya_wo");
+            const $err = $("#biaya_wo_error");
 
-        // 1) Matikan semua listener lama yg mungkin nempel & buang maxlength
-        $biaya.off(); 
-        $biaya.removeAttr("maxlength");
+            // 1) Matikan semua listener lama yg mungkin nempel & buang maxlength
+            $biaya.off();
+            $biaya.removeAttr("maxlength");
 
-        // Helper: format integer -> ribuan id-ID
-        function formatIntID(intDigits) {
-            if (!intDigits) return "0";
-            intDigits = intDigits.replace(/^0+(?!$)/, ""); // trim leading zero berlebih
-            const n = parseInt(intDigits, 10);
-            return isNaN(n) ? "0" : n.toLocaleString("id-ID");
-        }
-
-        // Bersihkan value menjadi: [digits][,digits<=2], TANPA titik ribuan
-        function sanitizeLive(val) {
-            val = (val || "").replace(/[^0-9,]/g, "");   // hanya angka & koma
-            const parts = val.split(",");
-            let intPart = parts[0] || "";
-            let fracPart = parts[1] || "";
-
-            // buang titik apapun yg mungkin tersisa + non-digit
-            intPart = intPart.replace(/\./g, "").replace(/[^0-9]/g, "");
-            fracPart = fracPart.replace(/[^0-9]/g, "");
-
-            // Batasi 2 digit desimal
-            if (fracPart.length > 2) fracPart = fracPart.slice(0, 2);
-
-            return fracPart.length ? `${intPart},${fracPart}` : intPart;
-        }
-
-        // Validasi tampilan (boleh tanpa titik saat ngetik; titik baru saat blur)
-        function isDisplayValid(v) {
-            // valid jika: "123456", "123456,7", "123456,78" ATAU yg sudah terformat "1.234.567,89"
-            return /^[0-9]+(,[0-9]{1,2})?$/.test(v) || /^[0-9]{1,3}(\.[0-9]{3})*(,[0-9]{1,2})?$/.test(v);
-        }
-
-        function showError(msg) {
-            $err.text(msg).show();
-            $biaya.addClass("is-invalid").attr("aria-invalid", "true");
-        }
-        function clearError() {
-            $err.hide().text("");
-            $biaya.removeClass("is-invalid").removeAttr("aria-invalid");
-        }
-
-        // 2) Saat ketik: hanya sanitasi (tanpa format ribuan). Tidak membatasi jumlah digit.
-        $biaya.on("input", function () {
-            const caret = this.selectionStart;
-            const before = $biaya.val();
-            const after  = sanitizeLive(before);
-            if (before !== after) {
-            $biaya.val(after);
-            // coba pertahankan caret kira-kira
-            const delta = before.length - after.length;
-            const newPos = Math.max(0, caret - Math.max(0, delta));
-            this.setSelectionRange(newPos, newPos);
+            // Helper: format integer -> ribuan id-ID
+            function formatIntID(intDigits) {
+                if (!intDigits) return "0";
+                intDigits = intDigits.replace(/^0+(?!$)/, ""); // trim leading zero berlebih
+                const n = parseInt(intDigits, 10);
+                return isNaN(n) ? "0" : n.toLocaleString("id-ID");
             }
-            if (!isDisplayValid(after)) {
-            showError("Format tidak valid (contoh: 1.000.000,25)");
-            } else {
-            clearError();
+
+            // Bersihkan value menjadi: [digits][,digits<=2], TANPA titik ribuan
+            function sanitizeLive(val) {
+                val = (val || "").replace(/[^0-9,]/g, ""); // hanya angka & koma
+                const parts = val.split(",");
+                let intPart = parts[0] || "";
+                let fracPart = parts[1] || "";
+
+                // buang titik apapun yg mungkin tersisa + non-digit
+                intPart = intPart.replace(/\./g, "").replace(/[^0-9]/g, "");
+                fracPart = fracPart.replace(/[^0-9]/g, "");
+
+                // Batasi 2 digit desimal
+                if (fracPart.length > 2) fracPart = fracPart.slice(0, 2);
+
+                return fracPart.length ? `${intPart},${fracPart}` : intPart;
             }
-        });
 
-        // 3) Saat paste: paksa lewat sanitizer
-        $biaya.on("paste", function (e) {
-            e.preventDefault();
-            const t = (e.originalEvent || e).clipboardData.getData("text/plain") || "";
-            $biaya.val(sanitizeLive(t)).trigger("input");
-        });
-
-        // 4) Saat focus: hilangkan titik ribuan jika ada (biar enak edit)
-        $biaya.on("focus", function () {
-            const v = $biaya.val().replace(/\./g, "");
-            $biaya.val(v);
-            clearError();
-        });
-
-        // 5) Saat blur: baru format ribuan
-        $biaya.on("blur", function () {
-            let v = $biaya.val();
-            if (!v) return;
-            v = sanitizeLive(v);                 // pastikan bersih
-            const hasComma = v.includes(",");
-            let [i, f = ""] = v.split(",");
-            const iFmt = formatIntID(i || "0"); // tambah ribuan
-            const final = hasComma ? `${iFmt},${f}` : iFmt;
-            $biaya.val(final);
-
-            if (!isDisplayValid(final)) {
-            showError("Format tidak valid (contoh: 1.000.000,25)");
-            } else {
-            clearError();
+            // Validasi tampilan (boleh tanpa titik saat ngetik; titik baru saat blur)
+            function isDisplayValid(v) {
+                // valid jika: "123456", "123456,7", "123456,78" ATAU yg sudah terformat "1.234.567,89"
+                return /^[0-9]+(,[0-9]{1,2})?$/.test(v) || /^[0-9]{1,3}(\.[0-9]{3})*(,[0-9]{1,2})?$/.test(v);
             }
-        });
 
-        // 6) Cek terakhir sebelum submit
-        $("#woForm").on("submit", function () {
-            const v = $biaya.val().trim();
-            if (v && !isDisplayValid(v)) {
-            showError("Format tidak valid (contoh: 1.000.000,25)");
-            $("html,body").animate({ scrollTop: $biaya.offset().top - 120 }, 300);
-            return false;
+            function showError(msg) {
+                $err.text(msg).show();
+                $biaya.addClass("is-invalid").attr("aria-invalid", "true");
             }
-            return true;
-        });
+
+            function clearError() {
+                $err.hide().text("");
+                $biaya.removeClass("is-invalid").removeAttr("aria-invalid");
+            }
+
+            // 2) Saat ketik: hanya sanitasi (tanpa format ribuan). Tidak membatasi jumlah digit.
+            $biaya.on("input", function() {
+                const caret = this.selectionStart;
+                const before = $biaya.val();
+                const after = sanitizeLive(before);
+                if (before !== after) {
+                    $biaya.val(after);
+                    // coba pertahankan caret kira-kira
+                    const delta = before.length - after.length;
+                    const newPos = Math.max(0, caret - Math.max(0, delta));
+                    this.setSelectionRange(newPos, newPos);
+                }
+                if (!isDisplayValid(after)) {
+                    showError("Format tidak valid (contoh: 1.000.000,25)");
+                } else {
+                    clearError();
+                }
+            });
+
+            // 3) Saat paste: paksa lewat sanitizer
+            $biaya.on("paste", function(e) {
+                e.preventDefault();
+                const t = (e.originalEvent || e).clipboardData.getData("text/plain") || "";
+                $biaya.val(sanitizeLive(t)).trigger("input");
+            });
+
+            // 4) Saat focus: hilangkan titik ribuan jika ada (biar enak edit)
+            $biaya.on("focus", function() {
+                const v = $biaya.val().replace(/\./g, "");
+                $biaya.val(v);
+                clearError();
+            });
+
+            // 5) Saat blur: baru format ribuan
+            $biaya.on("blur", function() {
+                let v = $biaya.val();
+                if (!v) return;
+                v = sanitizeLive(v); // pastikan bersih
+                const hasComma = v.includes(",");
+                let [i, f = ""] = v.split(",");
+                const iFmt = formatIntID(i || "0"); // tambah ribuan
+                const final = hasComma ? `${iFmt},${f}` : iFmt;
+                $biaya.val(final);
+
+                if (!isDisplayValid(final)) {
+                    showError("Format tidak valid (contoh: 1.000.000,25)");
+                } else {
+                    clearError();
+                }
+            });
+
+            // 6) Cek terakhir sebelum submit
+            $("#woForm").on("submit", function() {
+                const v = $biaya.val().trim();
+                if (v && !isDisplayValid(v)) {
+                    showError("Format tidak valid (contoh: 1.000.000,25)");
+                    $("html,body").animate({
+                        scrollTop: $biaya.offset().top - 120
+                    }, 300);
+                    return false;
+                }
+                return true;
+            });
         });
     </script>
 
@@ -1138,7 +1220,7 @@
 
 
 
- 
+
 
     <!-- Toastr CSS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">

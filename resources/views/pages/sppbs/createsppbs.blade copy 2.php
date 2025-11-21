@@ -449,8 +449,8 @@
                     <!-- ===== Modal Lookup Inventory ===== -->
                     <div id="inventoryModal"
                         class="fixed inset-0 z-[1000] hidden items-center justify-center bg-black/40 p-4">
-                        <div class="w-full max-w-5xl rounded-xl bg-white p-4 shadow-lg dark:bg-gray-800">
-                            <div class="mb-3 flex items-center justify-between">
+                        <div class="w-full max-w-5xl rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
+                            <div class="mb-3 flex items-center justify-between border-b pb-2">
                                 <h3 class="text-lg font-bold text-gray-800 dark:text-white">Select Inventory</h3>
                                 <button type="button" id="closeInventoryModal"
                                     class="rounded px-3 py-1 hover:bg-gray-100 dark:hover:bg-gray-700">✖</button>
@@ -502,8 +502,8 @@
                     <!-- ===== Modal Lookup Location ===== -->
                     {{-- <div id="locationModal"
                         class="fixed inset-0 z-[1000] hidden items-center justify-center bg-black/40 p-4">
-                        <div class="w-full max-w-3xl rounded-xl bg-white p-4 shadow-lg dark:bg-gray-800">
-                            <div class="mb-3 flex items-center justify-between">
+                        <div class="w-full max-w-3xl rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
+                            <div class="mb-3 flex items-center justify-between border-b pb-2">
                                 <h3 class="text-lg font-bold text-gray-800 dark:text-white">Select Location</h3>
                                 <button type="button" id="closeLocationModal"
                                     class="rounded px-3 py-1 hover:bg-gray-100 dark:hover:bg-gray-700">✖</button>
@@ -546,8 +546,8 @@
                     <!-- ===== Modal Lookup Sub Location ===== -->
                     {{-- <div id="subLocationModal"
                         class="fixed inset-0 z-[1000] hidden items-center justify-center bg-black/40 p-4">
-                        <div class="w-full max-w-3xl rounded-xl bg-white p-4 shadow-lg dark:bg-gray-800">
-                            <div class="mb-3 flex items-center justify-between">
+                        <div class="w-full max-w-3xl rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
+                            <div class="mb-3 flex items-center justify-between border-b pb-2">
                                 <h3 class="text-lg font-bold text-gray-800 dark:text-white">Select Sub Location</h3>
                                 <button type="button" id="closeSubLocationModal"
                                     class="rounded px-3 py-1 hover:bg-gray-100 dark:hover:bg-gray-700">✖</button>
@@ -644,8 +644,8 @@
                     <!-- ===== Modal Lookup COA ===== -->
                     <div id="coaModal"
                         class="fixed inset-0 z-[1000] hidden items-center justify-center bg-black/40 p-4">
-                        <div class="w-full max-w-4xl rounded-xl bg-white p-4 shadow-lg dark:bg-gray-800">
-                            <div class="mb-3 flex items-center justify-between">
+                        <div class="w-full max-w-4xl rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
+                            <div class="mb-3 flex items-center justify-between border-b pb-2">
                                 <h3 class="text-lg font-bold text-gray-800 dark:text-white">Select COA</h3>
                                 <button type="button" id="closeCoaModal"
                                     class="rounded px-3 py-1 hover:bg-gray-100 dark:hover:bg-gray-700">✖</button>
@@ -692,8 +692,8 @@
                     <!-- ===== Modal Lookup UoM ===== -->
                     <div id="uomModal"
                         class="fixed inset-0 z-[1000] hidden items-center justify-center bg-black/40 p-4">
-                        <div class="w-full max-w-3xl rounded-xl bg-white p-4 shadow-lg dark:bg-gray-800">
-                            <div class="mb-3 flex items-center justify-between">
+                        <div class="w-full max-w-3xl rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
+                            <div class="mb-3 flex items-center justify-between border-b pb-2">
                                 <h3 class="text-lg font-bold text-gray-800 dark:text-white">Select UoM</h3>
                                 <button type="button" id="closeUomModal"
                                     class="rounded px-3 py-1 hover:bg-gray-100 dark:hover:bg-gray-700">✖</button>
@@ -739,8 +739,8 @@
                     {{-- MODAL PILIH WO --}}                    
                     <div id="woModal"
                         class="fixed inset-0 z-[1000] hidden items-center justify-center bg-black/40 p-4">
-                        <div class="w-full max-w-4xl rounded-xl bg-white p-4 shadow-lg dark:bg-gray-800">
-                            <div class="mb-3 flex items-center justify-between">
+                        <div class="w-full max-w-4xl rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
+                            <div class="mb-3 flex items-center justify-between border-b pb-2">
                                 <h3 class="text-lg font-bold text-gray-800 dark:text-white">Select Work Order</h3>
                                 <button type="button" id="closeWoModal"
                                     class="rounded px-3 py-1 hover:bg-gray-100 dark:hover:bg-gray-700">✖</button>
@@ -821,27 +821,35 @@
                             </button>
                         </details>
 
-                        <div class="flex w-full justify-end gap-4 pt-4">
-                            <button type="button" id="cancelBtn"
-                                class="inline-flex items-center justify-center rounded-lg bg-red-600 px-6 py-3 text-base font-semibold text-white shadow-md transition-colors hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">
-                                <span id="cancelText">Cancel</span>
-                                <svg id="cancelSpinner" class="ml-2 hidden h-5 w-5 animate-spin text-white"
-                                    xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                    <circle class="opacity-25" cx="12" cy="12" r="10"
-                                        stroke="currentColor" stroke-width="4"></circle>
-                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
-                                </svg>
-                            </button>
-                            <button type="submit" id="submitBtn"
-                                class="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-6 py-3 text-base font-semibold text-white shadow-md transition-colors hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
-                                <span id="btnText">Submit Approval</span>
-                                <svg id="loadingSpinner" class="ml-2 hidden h-5 w-5 animate-spin text-white"
-                                    xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                    <circle class="opacity-25" cx="12" cy="12" r="10"
-                                        stroke="currentColor" stroke-width="4"></circle>
-                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
-                                </svg>
-                            </button>
+                        <div class="grid grid-cols-2 justify-between gap-4 md:flex md:flex-row xl:justify-end">
+                            <!-- Cancel Button-->
+                            <div class="flex justify-start">
+                                <button id="cancelBtn"
+                                    class="mb-4 mt-4 flex w-full items-center justify-center gap-2 rounded border border-red-700 bg-red-200/10 p-2 text-red-700 hover:border-red-700 hover:bg-red-700 hover:font-medium hover:text-white">
+                                    <span id="cancelText">Cancel</span>
+                                    <svg id="cancelSpinner" class="hidden h-5 w-5 animate-spin text-white"
+                                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10"
+                                            stroke="currentColor" stroke-width="4">
+                                        </circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z">
+                                        </path>
+                                    </svg>
+                                </button>
+                            </div>
+                            <div class="flex justify-start md:justify-end">
+                                <button type="submit" id="submitBtn"
+                                    class="mb-4 mt-4 flex w-full items-center justify-center gap-2 rounded border border-blue-700 bg-blue-200/10 p-2 text-blue-700 hover:border-blue-700 hover:bg-blue-700 hover:font-medium hover:text-white">
+                                    <span id="btnText">Submit Approval</span>
+                                    <svg id="loadingSpinner" class="hidden h-5 w-5 animate-spin text-white"
+                                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10"
+                                            stroke="currentColor" stroke-width="4">
+                                        </circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+                                    </svg>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </form>

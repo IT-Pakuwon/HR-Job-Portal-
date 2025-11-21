@@ -125,11 +125,17 @@
             <div class="flex flex-col gap-8 lg:col-span-2 lg:row-span-1">
                 <form id="sppjForm" class="flex flex-col gap-4" enctype="multipart/form-data">
                     @csrf
-                    <div class="w-full rounded-xl bg-white p-6 dark:bg-gray-800">
+                    <div class="w-full rounded-xl bg-white p-6 shadow-md dark:bg-gray-800">
+
+                        <!-- Header -->
                         <div class="mb-6 border-b border-gray-200 pb-4 dark:border-gray-700">
                             <h2 class="text-xl font-extrabold text-gray-800 dark:text-white">Create SPPJ</h2>
                         </div>
+
+                        <!-- Row 1 -->
                         <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
+
+                            <!-- Company -->
                             <div class="flex flex-col gap-2">
                                 <label
                                     class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Company</label>
@@ -139,10 +145,13 @@
                                     @foreach ($usercpny as $p)
                                         <option value="{{ $p->cpnyid }}"
                                             {{ $p->cpnyid == $usercpny2->cpnyid ? 'selected' : '' }}>
-                                            {{ $p->cpnyid }}</option>
+                                            {{ $p->cpnyid }}
+                                        </option>
                                     @endforeach
                                 </select>
                             </div>
+
+                            <!-- Department -->
                             <div class="flex flex-col gap-2">
                                 <label
                                     class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Department</label>
@@ -152,16 +161,13 @@
                                     @foreach ($userdept as $p)
                                         <option value="{{ $p->deptname }}"
                                             {{ $p->deptname == $userdept2->deptname ? 'selected' : '' }}>
-                                            {{ $p->deptname }}</option>
+                                            {{ $p->deptname }}
+                                        </option>
                                     @endforeach
                                 </select>
                             </div>
-                            {{-- <div class="flex flex-col gap-2">
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Wo ID</label>
-                                <select class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300" name="woid" required>
-                                  
-                                </select>
-                            </div>    --}}
+
+                            <!-- Request Type -->
                             <div class="flex flex-col gap-2">
                                 <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Request
                                     Type</label>
@@ -171,55 +177,46 @@
                                     <option value="" disabled selected>Loading...</option>
                                 </select>
                             </div>
+
+                            <!-- Perpost -->
                             <div class="flex flex-col gap-2">
                                 <label
                                     class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Perpost</label>
                                 <select id="perpost" name="perpost"
                                     class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                     required>
-                                    @php
-                                        $year = \Carbon\Carbon::now()->year;
-                                    @endphp
+                                    @php $year = \Carbon\Carbon::now()->year; @endphp
                                     <option value="{{ $year }}">{{ $year }}</option>
                                     <option value="{{ $year + 1 }}">{{ $year + 1 }}</option>
                                 </select>
                             </div>
                         </div>
-                        <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">                            
-                            <div class="flex flex-col gap-2">
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                    SPPJ Emergency
-                                </label>
-                                <div class="mt-2 flex items-center gap-2">
-                                    <input type="checkbox"
-                                        id="is_urgent"
-                                        name="is_urgent"
-                                        value="1"
+
+                        <!-- Row 2 -->
+                        <div class="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
+
+                            <!-- Emergency -->
+                            <div class="flex flex-row justify-between gap-2 xl:flex-col xl:justify-start">
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">SPPJ
+                                    Emergency</label>
+                                <div class="flex items-center gap-2">
+                                    <input type="checkbox" id="is_urgent" name="is_urgent" value="1"
                                         class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
-                                    <label for="is_urgent"
-                                        class="text-sm text-gray-700 dark:text-gray-300">
-                                        Tandai sebagai emergency
-                                    </label>
+                                    <label for="is_urgent" class="text-sm text-gray-700 dark:text-gray-300">Tandai
+                                        sebagai emergency</label>
                                 </div>
                             </div>
-                            <div class="flex flex-col gap-2">
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                    WO ID
-                                </label>
-                                <div class="flex">
-                                    <input type="text"
-                                        name="woid"
-                                        id="woid"
-                                        class="w-full rounded-l-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
-                                        readonly>
 
-                                    <button type="button"
-                                            id="btnSearchWo"
-                                            class="inline-flex items-center rounded-r-lg border border-l-0 border-gray-300 bg-gray-100 px-3 text-gray-600 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-600 dark:text-gray-200">
-                                        {{-- Icon kaca pembesar (heroicons style) --}}
-                                        <svg xmlns="http://www.w3.org/2000/svg"
-                                            class="h-5 w-5"
-                                            viewBox="0 0 20 20"
+                            <!-- WO ID -->
+                            <div class="flex flex-col gap-2">
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">WO ID</label>
+                                <div class="flex w-full">
+                                    <input type="text" name="woid" id="woid" readonly
+                                        class="w-full rounded-l-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
+
+                                    <button type="button" id="btnSearchWo"
+                                        class="inline-flex items-center rounded-r-lg border border-l-0 border-gray-300 bg-gray-100 px-3 text-gray-600 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-600 dark:text-gray-200">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20"
                                             fill="currentColor">
                                             <path fill-rule="evenodd"
                                                 d="M8.5 3a5.5 5.5 0 014.384 8.832l3.147 3.147a.75.75 0 11-1.06 1.06l-3.147-3.146A5.5 5.5 0 118.5 3zm0 1.5a4 4 0 100 8 4 4 0 000-8z"
@@ -227,22 +224,23 @@
                                         </svg>
                                     </button>
                                 </div>
-                            </div>                            
-                            <div class="flex flex-col gap-2 lg:col-span-2" >
+                            </div>
+
+                            <!-- Description -->
+                            <div class="flex flex-col gap-2 lg:col-span-2">
                                 <label for="keperluan"
-                                    class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                    Description
-                                </label>
-                                <textarea name="keperluan" id="keperluan"
-                                    class="w-full rounded-lg border border-gray-300 bg-white p-3 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
-                                    rows="3"></textarea>
-                            </div>          
+                                    class="block text-sm font-medium text-gray-700 dark:text-gray-300">Description</label>
+                                <textarea name="keperluan" id="keperluan" rows="3"
+                                    class="w-full rounded-lg border border-gray-300 bg-white p-3 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"></textarea>
+                            </div>
+
                         </div>
 
                     </div>
 
+
                     <!-- ... header & form atas tetap ... -->
-                    <div class="flex w-full flex-col gap-2 rounded-2xl border-b bg-white dark:bg-gray-800">
+                    <div class="flex w-full flex-col gap-2 rounded-2xl border-b bg-white shadow-md dark:bg-gray-800">
                         <div class="flex w-full flex-col rounded-2xl p-4">
                             <details class="group" open>
                                 <summary
@@ -368,24 +366,31 @@
 
                                                     <td class="border p-3">
                                                         <div class="flex items-center gap-2">
-                                                            <input type="hidden" name="location_id[]"     class="locationIdField">
-                                                            <input type="hidden" name="sub_location_id[]" class="subLocationIdField">
-                                                            <input type="text"  name="location_combo_display[]" 
+                                                            <input type="hidden" name="location_id[]"
+                                                                class="locationIdField">
+                                                            <input type="hidden" name="sub_location_id[]"
+                                                                class="subLocationIdField">
+                                                            <input type="text" name="location_combo_display[]"
                                                                 class="locationDisplayField w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0"
-                                                                placeholder="Select location & sub location..." readonly>
+                                                                placeholder="Select location & sub location..."
+                                                                readonly>
                                                             <button type="button"
-                                                                    class="openLokasiPicker rounded border border-gray-500 px-1 py-1 hover:bg-gray-100 dark:hover:bg-gray-700"
-                                                                    title="Lookup">🔎</button>
+                                                                class="openLokasiPicker rounded border border-gray-500 px-1 py-1 hover:bg-gray-100 dark:hover:bg-gray-700"
+                                                                title="Lookup">🔎</button>
                                                         </div>
                                                     </td>
 
                                                     <!-- Coa (lookup modal) -->
                                                     <td class="border p-3">
                                                         <div class="flex items-center gap-2">
-                                                            <input type="hidden" name="activity_id[]" class="activityIdField">
-                                                            <input type="hidden" name="business_unit_id[]" class="businessUnitIdField">
-                                                            <input type="hidden" name="department_fin_id[]" class="departmentFinIdField">
-                                                            <input type="hidden" name="activity_descr[]"  class="actDescrField">
+                                                            <input type="hidden" name="activity_id[]"
+                                                                class="activityIdField">
+                                                            <input type="hidden" name="business_unit_id[]"
+                                                                class="businessUnitIdField">
+                                                            <input type="hidden" name="department_fin_id[]"
+                                                                class="departmentFinIdField">
+                                                            <input type="hidden" name="activity_descr[]"
+                                                                class="actDescrField">
                                                             <input type="hidden" name="coa_id[]" class="coaIdField">
                                                             <input type="text" name="coa[]"
                                                                 class="coaNameField w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0"
@@ -423,25 +428,32 @@
                     <!-- ===== Modal Lookup Inventory ===== -->
                     <div id="inventoryModal"
                         class="fixed inset-0 z-[1000] hidden items-center justify-center bg-black/40 p-4">
-                        <div class="w-full max-w-5xl rounded-xl bg-white p-4 shadow-lg dark:bg-gray-800">
-                            <div class="mb-3 flex items-center justify-between">
+                        <div class="w-full max-w-5xl rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
+                            <div class="mb-3 flex items-center justify-between border-b pb-2">
                                 <h3 class="text-lg font-bold text-gray-800 dark:text-white">Select Inventory</h3>
                                 <button type="button" id="closeInventoryModal"
                                     class="rounded px-3 py-1 hover:bg-gray-100 dark:hover:bg-gray-700">✖</button>
                             </div>
 
                             <!-- Tabs -->
-                            <div class="mb-3 flex border-b border-gray-200 dark:border-gray-700">
-                                {{-- <button type="button" class="invTab px-4 py-2 font-semibold border-b-2 border-indigo-600" data-type="stock">Stock</button> --}}
-                                <button type="button"
+                            {{-- <div class="mb-3 flex"> --}}
+                            {{-- <button type="button" class="invTab px-4 py-2 font-semibold border-b-2 border-indigo-600" data-type="stock">Stock</button> --}}
+                            {{-- <button type="button"
                                     class="invTab border-b-2 border-transparent px-4 py-2 font-semibold"
-                                    data-type="se">Jasa</button>
-                                <div class="ml-auto flex items-center gap-2">
+                                    data-type="se">Jasa</button> --}}
+                            {{-- <div class="ml-auto flex items-center justify-between gap-2">
                                     <input id="invSearch" type="text" placeholder="Search..."
                                         class="rounded border border-gray-300 bg-white px-3 py-1 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
                                     <button id="invRefresh" type="button"
                                         class="rounded border px-3 py-1 hover:bg-gray-100 dark:hover:bg-gray-700">↻</button>
                                 </div>
+                            </div> --}}
+
+                            <div class="mb-4 ml-auto flex items-center justify-between gap-2">
+                                <input id="invSearch" type="text" placeholder="Search..."
+                                    class="rounded border border-gray-300 bg-white px-3 py-1 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
+                                <button id="invRefresh" type="button"
+                                    class="rounded border px-3 py-1 hover:bg-gray-100 dark:hover:bg-gray-700">↻</button>
                             </div>
 
                             <div class="max-h-[60vh] overflow-auto">
@@ -474,8 +486,8 @@
                     <!-- ===== Modal Lookup Location ===== -->
                     {{-- <div id="locationModal"
                         class="fixed inset-0 z-[1000] hidden items-center justify-center bg-black/40 p-4">
-                        <div class="w-full max-w-3xl rounded-xl bg-white p-4 shadow-lg dark:bg-gray-800">
-                            <div class="mb-3 flex items-center justify-between">
+                        <div class="w-full max-w-3xl rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
+                            <div class="mb-3 flex items-center justify-between border-b pb-2">
                                 <h3 class="text-lg font-bold text-gray-800 dark:text-white">Select Location</h3>
                                 <button type="button" id="closeLocationModal"
                                     class="rounded px-3 py-1 hover:bg-gray-100 dark:hover:bg-gray-700">✖</button>
@@ -518,8 +530,8 @@
                     <!-- ===== Modal Lookup Sub Location ===== -->
                     {{-- <div id="subLocationModal"
                         class="fixed inset-0 z-[1000] hidden items-center justify-center bg-black/40 p-4">
-                        <div class="w-full max-w-3xl rounded-xl bg-white p-4 shadow-lg dark:bg-gray-800">
-                            <div class="mb-3 flex items-center justify-between">
+                        <div class="w-full max-w-3xl rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
+                            <div class="mb-3 flex items-center justify-between border-b pb-2">
                                 <h3 class="text-lg font-bold text-gray-800 dark:text-white">Select Sub Location</h3>
                                 <button type="button" id="closeSubLocationModal"
                                     class="rounded px-3 py-1 hover:bg-gray-100 dark:hover:bg-gray-700">✖</button>
@@ -562,54 +574,59 @@
                     </div> --}}
 
                     <!-- Modal: Location + Sub Location -->
-                    <div id="modalLokasi" class="fixed inset-0 z-[1000] hidden items-center justify-center bg-black/50 p-4">
-                        <div class="w-full max-w-2xl rounded-2xl bg-white shadow-xl dark:bg-gray-800">
+                    <div id="modalLokasi"
+                        class="fixed inset-0 z-[1000] hidden items-center justify-center bg-black/50 p-4">
+                        <div class="w-full max-w-4xl rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
                             <!-- Header -->
-                            <div class="flex items-center justify-between border-b border-gray-200 px-5 py-4 dark:border-gray-700">
-                            <div class="flex items-center gap-3">
-                                <h3 class="text-lg font-bold text-gray-800 dark:text-gray-100">Pilih Location & Sub Location</h3>
-                                <div class="text-xs text-gray-500 dark:text-gray-400">                            
-                                </div>
-                            </div>
-                            <button type="button" id="closeLokasi"
-                                    class="rounded p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-700 dark:text-gray-300">✖</button>
+                            <div class="mb-3 flex items-center justify-between border-b pb-2">
+                                <h3 class="text-lg font-bold text-gray-800 dark:text-white">Pilih Location & Sub
+                                    Location</h3>
+
+                                <button type="button" id="closeLokasi"
+                                    class="rounded p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:text-gray-300 dark:hover:bg-gray-700">✖</button>
                             </div>
 
                             <!-- Body -->
                             <div class="px-5 py-5">
-                            <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-                                <!-- Location -->
-                                <div>
-                                <label class="req mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Location</label>
-                                <select id="modal_location_id"
-                                        class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
-                                    <option value="">-- choose --</option>
-                                </select>
-                                <small class="mt-1 block text-xs text-gray-500 dark:text-gray-400">Wajib memilih Location.</small>
-                                </div>
+                                <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                                    <!-- Location -->
+                                    <div>
+                                        <label
+                                            class="req mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Location</label>
+                                        <select id="modal_location_id"
+                                            class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
+                                            <option value="">-- choose --</option>
+                                        </select>
+                                        <small class="mt-1 block text-xs text-gray-500 dark:text-gray-400">Wajib
+                                            memilih Location.</small>
+                                    </div>
 
-                                <!-- Sub Location -->
-                                <div>
-                                <label class="req mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Sub Location</label>
-                                <select id="modal_sub_location_id"
-                                        class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
-                                    <option value="">-- choose --</option>
-                                </select>
-                                <small class="mt-1 block text-xs text-gray-500 dark:text-gray-400">Wajib memilih sub location.</small>
+                                    <!-- Sub Location -->
+                                    <div>
+                                        <label
+                                            class="req mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Sub
+                                            Location</label>
+                                        <select id="modal_sub_location_id"
+                                            class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
+                                            <option value="">-- choose --</option>
+                                        </select>
+                                        <small class="mt-1 block text-xs text-gray-500 dark:text-gray-400">Wajib
+                                            memilih sub location.</small>
+                                    </div>
                                 </div>
-                            </div>
                             </div>
 
                             <!-- Footer -->
-                            <div class="flex items-center justify-end gap-3 border-t border-gray-200 px-5 py-4 dark:border-gray-700">
-                            <button type="button" id="cancelLokasi"
+                            <div
+                                class="flex items-center justify-end gap-3 border-t border-gray-200 px-5 py-4 dark:border-gray-700">
+                                <button type="button" id="cancelLokasi"
                                     class="rounded-lg border px-4 py-2 text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700">
-                                Cancel
-                            </button>
-                            <button type="button" id="saveLokasi"
+                                    Cancel
+                                </button>
+                                <button type="button" id="saveLokasi"
                                     class="rounded-lg bg-indigo-600 px-4 py-2 font-semibold text-white hover:bg-indigo-700">
-                                Save
-                            </button>
+                                    Save
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -617,8 +634,8 @@
                     <!-- ===== Modal Lookup COA ===== -->
                     <div id="coaModal"
                         class="fixed inset-0 z-[1000] hidden items-center justify-center bg-black/40 p-4">
-                        <div class="w-full max-w-4xl rounded-xl bg-white p-4 shadow-lg dark:bg-gray-800">
-                            <div class="mb-3 flex items-center justify-between">
+                        <div class="w-full max-w-4xl rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
+                            <div class="mb-3 flex items-center justify-between border-b pb-2">
                                 <h3 class="text-lg font-bold text-gray-800 dark:text-white">Select COA</h3>
                                 <button type="button" id="closeCoaModal"
                                     class="rounded px-3 py-1 hover:bg-gray-100 dark:hover:bg-gray-700">✖</button>
@@ -665,8 +682,8 @@
                     <!-- ===== Modal Lookup UoM ===== -->
                     <div id="uomModal"
                         class="fixed inset-0 z-[1000] hidden items-center justify-center bg-black/40 p-4">
-                        <div class="w-full max-w-3xl rounded-xl bg-white p-4 shadow-lg dark:bg-gray-800">
-                            <div class="mb-3 flex items-center justify-between">
+                        <div class="w-full max-w-3xl rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
+                            <div class="mb-3 flex items-center justify-between border-b pb-2">
                                 <h3 class="text-lg font-bold text-gray-800 dark:text-white">Select UoM</h3>
                                 <button type="button" id="closeUomModal"
                                     class="rounded px-3 py-1 hover:bg-gray-100 dark:hover:bg-gray-700">✖</button>
@@ -709,11 +726,11 @@
                         </div>
                     </div>
 
-                    {{-- MODAL PILIH WO --}}                    
+                    {{-- MODAL PILIH WO --}}
                     <div id="woModal"
                         class="fixed inset-0 z-[1000] hidden items-center justify-center bg-black/40 p-4">
-                        <div class="w-full max-w-4xl rounded-xl bg-white p-4 shadow-lg dark:bg-gray-800">
-                            <div class="mb-3 flex items-center justify-between">
+                        <div class="w-full max-w-4xl rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
+                            <div class="mb-3 flex items-center justify-between border-b pb-2">
                                 <h3 class="text-lg font-bold text-gray-800 dark:text-white">Select Work Order</h3>
                                 <button type="button" id="closeWoModal"
                                     class="rounded px-3 py-1 hover:bg-gray-100 dark:hover:bg-gray-700">✖</button>
@@ -759,7 +776,7 @@
 
 
                     {{-- ===== Attachment ===== --}}
-                    <div class="w-full rounded-xl bg-white p-6 dark:bg-gray-800">
+                    <div class="w-full rounded-xl bg-white p-6 shadow-md dark:bg-gray-800">
                         <details class="group" open>
                             <summary
                                 class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-xl font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
@@ -792,27 +809,36 @@
                             </button>
                         </details>
 
-                        <div class="flex w-full justify-end gap-4 pt-4">
-                            <button type="button" id="cancelBtn"
-                                class="inline-flex items-center justify-center rounded-lg bg-red-600 px-6 py-3 text-base font-semibold text-white transition-colors hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">
-                                <span id="cancelText">Cancel</span>
-                                <svg id="cancelSpinner" class="ml-2 hidden h-5 w-5 animate-spin text-white"
-                                    xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                    <circle class="opacity-25" cx="12" cy="12" r="10"
-                                        stroke="currentColor" stroke-width="4"></circle>
-                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
-                                </svg>
-                            </button>
-                            <button type="submit" id="submitBtn"
-                                class="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-6 py-3 text-base font-semibold text-white transition-colors hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
-                                <span id="btnText">Submit Approval</span>
-                                <svg id="loadingSpinner" class="ml-2 hidden h-5 w-5 animate-spin text-white"
-                                    xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                    <circle class="opacity-25" cx="12" cy="12" r="10"
-                                        stroke="currentColor" stroke-width="4"></circle>
-                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
-                                </svg>
-                            </button>
+
+                        <div class="grid grid-cols-2 justify-between gap-4 md:flex md:flex-row xl:justify-end">
+                            <!-- Cancel Button-->
+                            <div class="flex justify-start">
+                                <button id="cancelBtn"
+                                    class="mb-4 mt-4 flex w-full items-center justify-center gap-2 rounded border border-red-700 bg-red-200/10 p-2 text-red-700 hover:border-red-700 hover:bg-red-700 hover:font-medium hover:text-white">
+                                    <span id="cancelText">Cancel</span>
+                                    <svg id="cancelSpinner" class="hidden h-5 w-5 animate-spin text-white"
+                                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10"
+                                            stroke="currentColor" stroke-width="4">
+                                        </circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z">
+                                        </path>
+                                    </svg>
+                                </button>
+                            </div>
+                            <div class="flex justify-start md:justify-end">
+                                <button type="submit" id="submitBtn"
+                                    class="mb-4 mt-4 flex w-full items-center justify-center gap-2 rounded border border-blue-700 bg-blue-200/10 p-2 text-blue-700 hover:border-blue-700 hover:bg-blue-700 hover:font-medium hover:text-white">
+                                    <span id="btnText">Submit Approval</span>
+                                    <svg id="loadingSpinner" class="hidden h-5 w-5 animate-spin text-white"
+                                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10"
+                                            stroke="currentColor" stroke-width="4">
+                                        </circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+                                    </svg>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </form>
@@ -2070,113 +2096,116 @@
     </script>
 
     <script>
-        $(function () {
-        const $lokasiModal = $('#modalLokasi');
-        const $selLoc  = $('#modal_location_id');
-        const $selSub  = $('#modal_sub_location_id');
-        let currentLocRow = null;
+        $(function() {
+            const $lokasiModal = $('#modalLokasi');
+            const $selLoc = $('#modal_location_id');
+            const $selSub = $('#modal_sub_location_id');
+            let currentLocRow = null;
 
-        function openLokasiModal(forRow) {
-            currentLocRow = forRow;
+            function openLokasiModal(forRow) {
+                currentLocRow = forRow;
 
-            const cpny = $('select[name="cpnyid"]').val();
-            if (!cpny) { toastr.warning('Pilih Company terlebih dahulu.'); return; }
-
-            // reset dropdown
-            $selLoc.empty().append('<option value="">-- choose --</option>');
-            $selSub.empty().append('<option value="">-- choose --</option>');
-
-            // load locations
-            $.getJSON(`/wos/ajax/locations/${encodeURIComponent(cpny)}`)
-            .done(function(list){
-                list.forEach(it => $selLoc.append(new Option(it.text, it.value)));
-
-                // preselect jika row sudah punya value
-                const curLoc = currentLocRow.find('.locationIdField').val();
-                if (curLoc) {
-                $selLoc.val(curLoc).trigger('change');
+                const cpny = $('select[name="cpnyid"]').val();
+                if (!cpny) {
+                    toastr.warning('Pilih Company terlebih dahulu.');
+                    return;
                 }
-            })
-            .fail(function(){
-                toastr.error('Gagal memuat lokasi.');
-            });
 
-            $lokasiModal.removeClass('hidden').addClass('flex');
-        }
+                // reset dropdown
+                $selLoc.empty().append('<option value="">-- choose --</option>');
+                $selSub.empty().append('<option value="">-- choose --</option>');
 
-        function closeLokasiModal() {
-            $lokasiModal.addClass('hidden').removeClass('flex');
-        }
+                // load locations
+                $.getJSON(`/wos/ajax/locations/${encodeURIComponent(cpny)}`)
+                    .done(function(list) {
+                        list.forEach(it => $selLoc.append(new Option(it.text, it.value)));
 
-        // Open modal dari tombol di row
-        $(document).on('click', '.openLokasiPicker', function(){
-            openLokasiModal($(this).closest('tr'));
-        });
+                        // preselect jika row sudah punya value
+                        const curLoc = currentLocRow.find('.locationIdField').val();
+                        if (curLoc) {
+                            $selLoc.val(curLoc).trigger('change');
+                        }
+                    })
+                    .fail(function() {
+                        toastr.error('Gagal memuat lokasi.');
+                    });
 
-        // Close modal
-        $('#closeLokasi, #cancelLokasi').on('click', closeLokasiModal);
-
-        // Ketika location dipilih → load sublocations
-        $selLoc.on('change', function(){
-            const cpny = $('select[name="cpnyid"]').val();
-            const loc  = $(this).val();
-            $selSub.empty().append('<option value="">-- choose --</option>');
-
-            if (!loc) return;
-
-            $.getJSON(`/wos/ajax/sublocations/${encodeURIComponent(cpny)}/${encodeURIComponent(loc)}`)
-            .done(function(list){
-                list.forEach(it => $selSub.append(new Option(it.text, it.value)));
-
-                // preselect jika row sudah punya sub_location_id
-                if (currentLocRow) {
-                const curSub = currentLocRow.find('.subLocationIdField').val();
-                if (curSub) $selSub.val(curSub);
-                }
-            })
-            .fail(function(){
-                toastr.error('Gagal memuat sub location.');
-            });
-        });
-
-        // Save ke row aktif
-        $('#saveLokasi').on('click', function(){
-            const locId   = $selLoc.val();
-            const locText = $('#modal_location_id option:selected').text();
-            const subId   = $selSub.val();
-            const subText = $('#modal_sub_location_id option:selected').text();
-
-            if (!locId || !subId) {
-            toastr.error('Pilih Location dan Sub Location.');
-            return;
+                $lokasiModal.removeClass('hidden').addClass('flex');
             }
 
-            // Tulis ke hidden + tampilan
-            currentLocRow.find('.locationIdField').val(locId);
-            currentLocRow.find('.subLocationIdField').val(subId);
-            currentLocRow.find('.locationDisplayField').val(`${locText} — ${subText}`);
-
-            // bersihkan error UI jika ada
-            currentLocRow.find('.locationDisplayField').removeClass('is-invalid')
-            .next('.error-feedback').remove();
-
-            closeLokasiModal();
-        });
-
-        // Jika company berubah dan modal terbuka → reload lokasi
-        $('select[name="cpnyid"]').on('change', function(){
-            if ($lokasiModal.is(':visible')) {
-            // reset dan panggil open ulang dengan row yang sama
-            $selLoc.empty().append('<option value="">-- choose --</option>');
-            $selSub.empty().append('<option value="">-- choose --</option>');
-            if (currentLocRow) openLokasiModal(currentLocRow);
+            function closeLokasiModal() {
+                $lokasiModal.addClass('hidden').removeClass('flex');
             }
-        });
+
+            // Open modal dari tombol di row
+            $(document).on('click', '.openLokasiPicker', function() {
+                openLokasiModal($(this).closest('tr'));
+            });
+
+            // Close modal
+            $('#closeLokasi, #cancelLokasi').on('click', closeLokasiModal);
+
+            // Ketika location dipilih → load sublocations
+            $selLoc.on('change', function() {
+                const cpny = $('select[name="cpnyid"]').val();
+                const loc = $(this).val();
+                $selSub.empty().append('<option value="">-- choose --</option>');
+
+                if (!loc) return;
+
+                $.getJSON(`/wos/ajax/sublocations/${encodeURIComponent(cpny)}/${encodeURIComponent(loc)}`)
+                    .done(function(list) {
+                        list.forEach(it => $selSub.append(new Option(it.text, it.value)));
+
+                        // preselect jika row sudah punya sub_location_id
+                        if (currentLocRow) {
+                            const curSub = currentLocRow.find('.subLocationIdField').val();
+                            if (curSub) $selSub.val(curSub);
+                        }
+                    })
+                    .fail(function() {
+                        toastr.error('Gagal memuat sub location.');
+                    });
+            });
+
+            // Save ke row aktif
+            $('#saveLokasi').on('click', function() {
+                const locId = $selLoc.val();
+                const locText = $('#modal_location_id option:selected').text();
+                const subId = $selSub.val();
+                const subText = $('#modal_sub_location_id option:selected').text();
+
+                if (!locId || !subId) {
+                    toastr.error('Pilih Location dan Sub Location.');
+                    return;
+                }
+
+                // Tulis ke hidden + tampilan
+                currentLocRow.find('.locationIdField').val(locId);
+                currentLocRow.find('.subLocationIdField').val(subId);
+                currentLocRow.find('.locationDisplayField').val(`${locText} — ${subText}`);
+
+                // bersihkan error UI jika ada
+                currentLocRow.find('.locationDisplayField').removeClass('is-invalid')
+                    .next('.error-feedback').remove();
+
+                closeLokasiModal();
+            });
+
+            // Jika company berubah dan modal terbuka → reload lokasi
+            $('select[name="cpnyid"]').on('change', function() {
+                if ($lokasiModal.is(':visible')) {
+                    // reset dan panggil open ulang dengan row yang sama
+                    $selLoc.empty().append('<option value="">-- choose --</option>');
+                    $selSub.empty().append('<option value="">-- choose --</option>');
+                    if (currentLocRow) openLokasiModal(currentLocRow);
+                }
+            });
         });
     </script>
 
     <script>
-        $(function () {
+        $(function() {
             // ===== WO modal state =====
             const $woModal = $('#woModal');
             const $woTbody = $('#woTableBody');
@@ -2230,24 +2259,24 @@
             }
 
             // Buka modal dari tombol kaca pembesar
-            $('#btnSearchWo').on('click', function () {
+            $('#btnSearchWo').on('click', function() {
                 openWoModal();
             });
 
             $('#closeWoModal').on('click', closeWoModal);
-            $(document).on('keydown', function (e) {
+            $(document).on('keydown', function(e) {
                 if (e.key === 'Escape' && $woModal.is(':visible')) closeWoModal();
             });
 
             // Search auto saat diketik
-            $('#woSearch').on('input', function () {
+            $('#woSearch').on('input', function() {
                 woState.search = $(this).val().trim();
                 woState.page = 1;
                 loadWo();
             });
 
             // Refresh (reset search)
-            $('#woRefresh').on('click', function () {
+            $('#woRefresh').on('click', function() {
                 $('#woSearch').val('');
                 woState.search = '';
                 woState.page = 1;
@@ -2255,14 +2284,14 @@
             });
 
             // Pagination
-            $('#woPrev').on('click', function () {
+            $('#woPrev').on('click', function() {
                 if (woState.page > 1) {
                     woState.page--;
                     loadWo();
                 }
             });
 
-            $('#woNext').on('click', function () {
+            $('#woNext').on('click', function() {
                 const maxPage = Math.ceil(woState.total / woState.per_page) || 1;
                 if (woState.page < maxPage) {
                     woState.page++;
@@ -2274,14 +2303,14 @@
             function loadWo() {
                 $woTbody.html('<tr><td colspan="4" class="p-3 text-center">Loading...</td></tr>');
                 $.getJSON("{{ route('wos.ajax.completed-wo') }}", {
-                    cpnyid: woState.cpnyid,
-                    deptid: woState.deptid,
-                    perpost: woState.perpost,
-                    search: woState.search,
-                    page: woState.page,
-                    per_page: woState.per_page
-                })
-                    .done(function (res) {
+                        cpnyid: woState.cpnyid,
+                        deptid: woState.deptid,
+                        perpost: woState.perpost,
+                        search: woState.search,
+                        page: woState.page,
+                        per_page: woState.per_page
+                    })
+                    .done(function(res) {
                         const rowsArr = (res.data || []).map(item => {
                             const woid = item.woid ?? '';
                             const wodate = item.wodate ?? '';
@@ -2304,7 +2333,8 @@
                         });
 
                         const rowsHtml = rowsArr.join('');
-                        $woTbody.html(rowsHtml || '<tr><td colspan="4" class="p-3 text-center">No data</td></tr>');
+                        $woTbody.html(rowsHtml ||
+                            '<tr><td colspan="4" class="p-3 text-center">No data</td></tr>');
 
                         woState.total = res.total || 0;
                         const showing = rowsArr.length;
@@ -2314,7 +2344,7 @@
                         $('#woPrev').prop('disabled', woState.page <= 1);
                         $('#woNext').prop('disabled', woState.page >= maxPage);
                     })
-                    .fail(function () {
+                    .fail(function() {
                         $woTbody.html(
                             '<tr><td colspan="4" class="p-3 text-center text-red-600">Failed to load</td></tr>'
                         );
@@ -2324,14 +2354,14 @@
             }
 
             // Choose -> isi input woid di form utama
-            $(document).on('click', '.chooseWo', function () {
+            $(document).on('click', '.chooseWo', function() {
                 const woid = $(this).data('woid');
                 $('#woid').val(woid);
                 closeWoModal();
             });
 
             // Jika company/department/perpost berubah saat modal terbuka → refresh
-            $('select[name="cpnyid"], select[name="departementid"], #perpost').on('change', function () {
+            $('select[name="cpnyid"], select[name="departementid"], #perpost').on('change', function() {
                 if ($woModal.is(':visible')) {
                     woState.cpnyid = $('select[name="cpnyid"]').val();
                     woState.deptid = $('select[name="departementid"]').val();

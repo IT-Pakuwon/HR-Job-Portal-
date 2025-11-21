@@ -50,7 +50,7 @@
             {{-- On Hold --}}
             <button type="button" class="job-filter group block h-full" data-job="H">
                 <div
-                    class="status-card flex h-full items-center gap-3 rounded-lg border border-purple-700 bg-purple-200/20 p-3 text-purple-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-purple-100 hover:shadow-lg active:scale-95">
+                    class="status-card flex h-full items-center gap-3 rounded-lg border border-purple-700 bg-purple-200/20 p-3 text-purple-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-purple-100 hover:shadow-md active:scale-95">
 
                     <div class="flex h-7 w-7 shrink-0 items-center justify-center text-xl">🕒</div>
 
@@ -65,7 +65,7 @@
             {{-- On Progress --}}
             <button type="button" class="status-filter group block h-full" data-status="P">
                 <div
-                    class="status-card flex h-full items-center gap-3 rounded-lg border border-blue-700 bg-blue-200/20 p-3 text-blue-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-blue-100 hover:shadow-lg active:scale-95">
+                    class="status-card flex h-full items-center gap-3 rounded-lg border border-blue-700 bg-blue-200/20 p-3 text-blue-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-blue-100 hover:shadow-md active:scale-95">
 
                     <div class="flex h-7 w-7 shrink-0 items-center justify-center text-xl">⏳</div>
 
@@ -80,7 +80,7 @@
             {{-- Reject --}}
             <button type="button" class="status-filter group block h-full" data-status="R">
                 <div
-                    class="status-card flex h-full items-center gap-3 rounded-lg border border-red-700 bg-red-200/20 p-3 text-red-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-red-100 hover:shadow-lg active:scale-95">
+                    class="status-card flex h-full items-center gap-3 rounded-lg border border-red-700 bg-red-200/20 p-3 text-red-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-red-100 hover:shadow-md active:scale-95">
 
                     <div class="flex h-7 w-7 shrink-0 items-center justify-center text-xl">⛔️</div>
 
@@ -95,7 +95,7 @@
             {{-- Completed --}}
             <button type="button" class="status-filter group block h-full" data-status="C">
                 <div
-                    class="status-card flex h-full items-center gap-3 rounded-lg border border-green-700 bg-green-200/20 p-3 text-green-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-green-100 hover:shadow-lg active:scale-95">
+                    class="status-card flex h-full items-center gap-3 rounded-lg border border-green-700 bg-green-200/20 p-3 text-green-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-green-100 hover:shadow-md active:scale-95">
 
                     <div class="flex h-7 w-7 shrink-0 items-center justify-center text-xl">✅</div>
 
@@ -110,7 +110,7 @@
             {{-- All --}}
             <button type="button" class="status-filter group block h-full" data-status="">
                 <div
-                    class="status-card flex h-full items-center gap-3 rounded-lg border border-orange-700 bg-orange-200/20 p-3 text-orange-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-orange-100 hover:shadow-lg active:scale-95">
+                    class="status-card flex h-full items-center gap-3 rounded-lg border border-orange-700 bg-orange-200/20 p-3 text-orange-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-orange-100 hover:shadow-md active:scale-95">
 
                     <div class="flex h-7 w-7 shrink-0 items-center justify-center text-xl">📄</div>
 

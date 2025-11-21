@@ -243,7 +243,7 @@
             {{-- Bast Jobs --}}
             <button type="button" class="scope-filter group block h-full" data-scope="bastjobs">
                 <div
-                    class="scope-card flex h-full items-center gap-3 rounded-lg border border-orange-700 bg-orange-200/20 p-3 text-orange-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-orange-100 hover:shadow-lg active:scale-95">
+                    class="scope-card flex h-full items-center gap-3 rounded-lg border border-orange-700 bg-orange-200/20 p-3 text-orange-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-orange-100 hover:shadow-md active:scale-95">
 
                     <div class="flex h-7 w-7 shrink-0 items-center justify-center text-xl">📦</div>
 
@@ -258,7 +258,7 @@
             {{-- On Progress --}}
             <button type="button" class="scope-filter group block h-full" data-scope="onprogress">
                 <div
-                    class="scope-card flex h-full items-center gap-3 rounded-lg border border-blue-700 bg-blue-200/20 p-3 text-blue-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-blue-100 hover:shadow-lg active:scale-95">
+                    class="scope-card flex h-full items-center gap-3 rounded-lg border border-blue-700 bg-blue-200/20 p-3 text-blue-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-blue-100 hover:shadow-md active:scale-95">
 
                     <div class="flex h-7 w-7 shrink-0 items-center justify-center text-xl">⏳</div>
 
@@ -273,7 +273,7 @@
             {{-- Rejected --}}
             <button type="button" class="scope-filter group block h-full" data-scope="rejected">
                 <div
-                    class="scope-card flex h-full items-center gap-3 rounded-lg border border-red-700 bg-red-200/20 p-3 text-red-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-red-100 hover:shadow-lg active:scale-95">
+                    class="scope-card flex h-full items-center gap-3 rounded-lg border border-red-700 bg-red-200/20 p-3 text-red-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-red-100 hover:shadow-md active:scale-95">
 
                     <div class="flex h-7 w-7 shrink-0 items-center justify-center text-xl">❌</div>
 
@@ -288,7 +288,7 @@
             {{-- Revise --}}
             <button type="button" class="scope-filter group block h-full" data-scope="revise">
                 <div
-                    class="scope-card flex h-full items-center gap-3 rounded-lg border border-yellow-700 bg-yellow-200/20 p-3 text-yellow-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-yellow-100 hover:shadow-lg active:scale-95">
+                    class="scope-card flex h-full items-center gap-3 rounded-lg border border-yellow-700 bg-yellow-200/20 p-3 text-yellow-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-yellow-100 hover:shadow-md active:scale-95">
 
                     <div class="flex h-7 w-7 shrink-0 items-center justify-center text-xl">🛠️</div>
 
@@ -303,7 +303,7 @@
             {{-- Completed --}}
             <button type="button" class="scope-filter group block h-full" data-scope="completed">
                 <div
-                    class="scope-card flex h-full items-center gap-3 rounded-lg border border-green-700 bg-green-200/20 p-3 text-green-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-green-100 hover:shadow-lg active:scale-95">
+                    class="scope-card flex h-full items-center gap-3 rounded-lg border border-green-700 bg-green-200/20 p-3 text-green-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-green-100 hover:shadow-md active:scale-95">
 
                     <div class="flex h-7 w-7 shrink-0 items-center justify-center text-xl">✅</div>
 
@@ -318,7 +318,7 @@
             {{-- All --}}
             <button type="button" class="scope-filter group block h-full" data-scope="all">
                 <div
-                    class="scope-card flex h-full items-center gap-3 rounded-lg border border-gray-700 bg-gray-200/20 p-3 text-gray-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-gray-100 hover:shadow-lg active:scale-95 dark:border-white dark:text-white dark:hover:bg-gray-700">
+                    class="scope-card flex h-full items-center gap-3 rounded-lg border border-gray-700 bg-gray-200/20 p-3 text-gray-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-gray-100 hover:shadow-md active:scale-95 dark:border-white dark:text-white dark:hover:bg-gray-700">
 
                     <div class="flex h-7 w-7 shrink-0 items-center justify-center text-xl">🧾</div>
 

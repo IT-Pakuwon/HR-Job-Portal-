@@ -6,11 +6,11 @@
 
         .select2-container--default .select2-selection--single {
             height: 40px !important;
-            border: 1px solid #d1d5db;
+            border: 1px solid #e9e9ea;
             /* = border-gray-300 */
             border-radius: 0.375rem;
             /* = rounded-md */
-            background-color: #fff;
+            /* background-color: #c4c4c4; */
         }
 
         .select2-container--default .select2-selection--single .select2-selection__rendered {
@@ -166,7 +166,7 @@
                         @csrf
                         <div class="w-full rounded-xl bg-white p-6 shadow-md dark:bg-gray-800">
 
-                            <!-- HEADER -->
+                            <!-- header -->
                             <div class="mb-4 flex items-center justify-between border-b pb-3 dark:border-gray-600">
                                 <h2 class="text-xl font-bold">📥 Import Budget</h2>
 
@@ -176,8 +176,8 @@
                                     class="inline-flex items-center gap-2 rounded-md border border-green-600 bg-green-600 px-4 py-2 text-white hover:bg-green-700 dark:border-green-500 dark:bg-green-700 dark:hover:bg-green-600">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"
                                         viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2
-                       M7 10l5 5m0 0l5-5m-5 5V4" />
+                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                            d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5m0 0l5-5m-5 5V4" />
                                     </svg>
                                     Template Budget
                                 </a>
@@ -191,7 +191,7 @@
                                     <label
                                         class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Company</label>
                                     <select name="cpny_id" required
-                                        class="h-[42px] w-full rounded-md border border-gray-300 bg-white px-3 focus:ring focus:ring-blue-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
+                                        class="h-[40px] w-full rounded-md border border-gray-200 bg-white px-3 focus:ring focus:ring-blue-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
                                         <option value="" disabled selected>Select</option>
                                         @foreach ($companies as $p)
                                             <option value="{{ $p->cpny_id }}">{{ $p->cpny_name }}</option>
@@ -205,7 +205,7 @@
                                         class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Business
                                         Unit</label>
                                     <select name="business_unit_id" required
-                                        class="h-[42px] w-full rounded-md border border-gray-300 bg-white px-3 focus:ring focus:ring-blue-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
+                                        class="h-[40px] w-full rounded-md border border-gray-200 bg-white px-3 focus:ring focus:ring-blue-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
                                         <option value="">Select</option>
                                     </select>
                                 </div>
@@ -215,7 +215,7 @@
                                     <label
                                         class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Department</label>
                                     <select name="department_fin_id" id="department_select" required
-                                        class="select2 h-[42px] w-full rounded-md border border-gray-300 bg-white px-3 focus:ring focus:ring-blue-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
+                                        class="select2 h-[42px] w-full rounded-md border border-gray-200 bg-white px-3 focus:ring focus:ring-blue-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
                                         @foreach ($departements as $p)
                                             <option value="{{ $p->deptname }}">{{ $p->deptname }}</option>
                                         @endforeach
@@ -228,10 +228,9 @@
                                         class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Import
                                         Excel</label>
                                     <input type="file" name="file" id="file" required
-                                        class="block h-[40px] w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-700 file:mr-4 file:rounded-md file:border-0 file:bg-gray-100 file:px-3 file:py-1.5 file:text-gray-700 focus:ring focus:ring-blue-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 dark:file:bg-gray-700 dark:file:text-gray-200" />
+                                        class="block h-[40px] w-full rounded-md border border-gray-200 bg-white px-3 py-2 text-gray-700 file:mr-4 file:rounded-md file:border-0 file:bg-gray-100 file:px-3 file:py-1.5 file:text-gray-700 focus:ring focus:ring-blue-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 dark:file:bg-gray-700 dark:file:text-gray-200" />
 
                                 </div>
-
                             </div>
 
                             <!-- IMPORT button stays below grid -->
@@ -241,10 +240,7 @@
                                     Import
                                 </button>
                             </div>
-
                         </div>
-
-
                     </form>
 
                     {{-- Table Preview Import --}}
@@ -323,7 +319,7 @@
                                         <div class="flex w-full flex-col border-b">
                                             <details class="group mb-4" open>
                                                 <summary
-                                                    class="mb-4 flex cursor-pointer items-center justify-between rounded">
+                                                    class="mb-4 flex cursor-pointer items-center justify-between rounded border-b pb-2">
                                                     <span class="text-lg font-semibold">Attachments</span>
                                                     <span class="transition-all group-open:hidden">See details</span>
                                                     <span class="hidden transition-all group-open:inline">Hide
@@ -336,7 +332,7 @@
                                                                 {{-- class="mt-4 w-full border p-3 text-lg"> --}}
                                                                 class="flex-grow rounded-md border border-gray-200 bg-white px-4 py-2 text-sm text-gray-700 file:mr-4 file:rounded-full file:border-0 file:bg-indigo-100 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-indigo-700 hover:file:bg-indigo-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:file:bg-indigo-700 dark:file:text-white dark:hover:file:bg-indigo-600">
                                                             <button type="button"
-                                                                class="removeAttachment mt-4 hidden rounded border border-red-600 bg-red-200/30 p-3 text-red-600 transition hover:bg-red-600 hover:text-white">
+                                                                class="removeAttachment mt-4 hidden rounded border border-red-600 bg-red-200/30 px-4 py-2 text-red-600 transition hover:bg-red-600 hover:text-white">
                                                                 🗑️
                                                             </button>
                                                         </div>
@@ -353,40 +349,50 @@
                                                 </div>
                                             </details>
                                         </div>
-                                        <div class="flex h-auto w-full flex-row justify-end gap-4 pl-4 pr-4">
-                                            <div class="w-1/8 flex flex-col justify-start">
-                                                <button id="cancelBtn"
-                                                    class="mb-4 mt-4 flex items-center justify-center gap-2 rounded border border-red-700 bg-red-200/10 p-2 text-red-700 hover:border-red-700 hover:bg-red-700 hover:font-medium hover:text-white">
-                                                    <span id="cancelText">Cancel</span>
-                                                    <svg id="cancelSpinner"
-                                                        class="hidden h-5 w-5 animate-spin text-white"
-                                                        xmlns="http://www.w3.org/2000/svg" fill="none"
-                                                        viewBox="0 0 24 24">
-                                                        <circle class="opacity-25" cx="12" cy="12"
-                                                            r="10" stroke="currentColor" stroke-width="4"></circle>
-                                                        <path class="opacity-75" fill="currentColor"
-                                                            d="M4 12a8 8 0 018-8v8z">
-                                                        </path>
-                                                    </svg>
-                                                </button>
-                                            </div>
+                                        <div class="w-full px-4">
+                                            <div
+                                                class="grid grid-cols-2 justify-between gap-4 md:flex md:flex-row xl:justify-end">
+                                                <!-- Cancel Button-->
+                                                <div class="flex justify-start">
+                                                    <button id="cancelBtn"
+                                                        class="mb-4 mt-4 flex w-full items-center justify-center gap-2 rounded border border-red-700 bg-red-200/10 p-2 text-red-700 hover:border-red-700 hover:bg-red-700 hover:font-medium hover:text-white">
+                                                        <span id="cancelText">Cancel</span>
+                                                        <svg id="cancelSpinner"
+                                                            class="hidden h-5 w-5 animate-spin text-white"
+                                                            xmlns="http://www.w3.org/2000/svg" fill="none"
+                                                            viewBox="0 0 24 24">
+                                                            <circle class="opacity-25" cx="12" cy="12"
+                                                                r="10" stroke="currentColor" stroke-width="4">
+                                                            </circle>
+                                                            <path class="opacity-75" fill="currentColor"
+                                                                d="M4 12a8 8 0 018-8v8z">
+                                                            </path>
+                                                        </svg>
+                                                    </button>
+                                                </div>
 
-                                            <input type="hidden" name="temp_id" value="{{ $temp_id }}">
-                                            <div class="w-1/8 flex flex-col justify-start">
-                                                <button type="submit" id="submitBtn"
-                                                    class="mb-4 mt-4 flex items-center justify-center gap-2 rounded border border-blue-700 bg-blue-200/10 p-2 text-blue-700 hover:border-blue-700 hover:bg-blue-700 hover:font-medium hover:text-white">
-                                                    <span id="btnText">Submit Approval</span>
-                                                    <svg id="loadingSpinner"
-                                                        class="hidden h-5 w-5 animate-spin text-white"
-                                                        xmlns="http://www.w3.org/2000/svg" fill="none"
-                                                        viewBox="0 0 24 24">
-                                                        <circle class="opacity-25" cx="12" cy="12"
-                                                            r="10" stroke="currentColor" stroke-width="4">
-                                                        </circle>
-                                                        <path class="opacity-75" fill="currentColor"
-                                                            d="M4 12a8 8 0 018-8v8z"></path>
-                                                    </svg>
-                                                </button>
+                                                <!-- Hidden Button-->
+
+                                                <input type="hidden" name="temp_id" value="{{ $temp_id }}">
+
+                                                <!-- Submit -->
+                                                <div class="flex justify-start md:justify-end">
+                                                    <button type="submit" id="submitBtn"
+                                                        class="mb-4 mt-4 flex w-full items-center justify-center gap-2 rounded border border-blue-700 bg-blue-200/10 p-2 text-blue-700 hover:border-blue-700 hover:bg-blue-700 hover:font-medium hover:text-white">
+                                                        <span id="btnText">Submit Approval</span>
+                                                        <svg id="loadingSpinner"
+                                                            class="hidden h-5 w-5 animate-spin text-white"
+                                                            xmlns="http://www.w3.org/2000/svg" fill="none"
+                                                            viewBox="0 0 24 24">
+                                                            <circle class="opacity-25" cx="12" cy="12"
+                                                                r="10" stroke="currentColor" stroke-width="4">
+                                                            </circle>
+                                                            <path class="opacity-75" fill="currentColor"
+                                                                d="M4 12a8 8 0 018-8v8z"></path>
+                                                        </svg>
+                                                    </button>
+                                                </div>
+
                                             </div>
                                         </div>
                                     </div>

@@ -168,7 +168,8 @@
                                                             class="inline-flex items-center gap-1 rounded-md bg-yellow-500/15 px-3 py-1.5 text-xs font-medium text-yellow-700 transition hover:bg-yellow-600 hover:text-white focus:outline-none">
                                                             Rollback
                                                         </button> --}}
-                                                        <button class="rollbackBtn inline-flex items-center gap-1 rounded-md bg-yellow-500/15 px-3 py-1.5 text-xs font-medium text-yellow-700 transition hover:bg-yellow-600 hover:text-white focus:outline-none">
+                                                        <button
+                                                            class="rollbackBtn inline-flex items-center gap-1 rounded-md bg-yellow-500/15 px-3 py-1.5 text-xs font-medium text-yellow-700 transition hover:bg-yellow-600 hover:text-white focus:outline-none">
                                                             Rollback
                                                         </button>
 
@@ -183,7 +184,8 @@
                                                             class="inline-flex items-center gap-1 rounded-md bg-yellow-500/15 px-3 py-1.5 text-xs font-medium text-yellow-700 transition hover:bg-yellow-600 hover:text-white focus:outline-none">
                                                             Rollback
                                                         </button> --}}
-                                                        <button class="rollbackBtn inline-flex items-center gap-1 rounded-md bg-yellow-500/15 px-3 py-1.5 text-xs font-medium text-yellow-700 transition hover:bg-yellow-600 hover:text-white focus:outline-none">
+                                                        <button
+                                                            class="rollbackBtn inline-flex items-center gap-1 rounded-md bg-yellow-500/15 px-3 py-1.5 text-xs font-medium text-yellow-700 transition hover:bg-yellow-600 hover:text-white focus:outline-none">
                                                             Rollback
                                                         </button>
                                                     </div>
@@ -351,7 +353,7 @@
     </div>
 
     <div id="rejectTaskModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50">
-        <div class="w-full max-w-md rounded-lg bg-white p-4 shadow-lg dark:bg-gray-800">
+        <div class="w-full max-w-md rounded-lg bg-white p-4 shadow-md dark:bg-gray-800">
             <h2 class="mb-4 text-xl font-semibold text-gray-800 dark:text-white">Reject Task</h2>
             <textarea id="rejectReason"
                 class="w-full rounded-lg border border-gray-300 p-3 focus:border-red-500 focus:outline-none focus:ring-red-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
@@ -371,7 +373,7 @@
     </div>
 
     <div id="rollbackTaskModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50">
-        <div class="w-full max-w-md rounded-lg bg-white p-4 shadow-lg dark:bg-gray-800">
+        <div class="w-full max-w-md rounded-lg bg-white p-4 shadow-md dark:bg-gray-800">
             <h2 class="mb-4 text-xl font-semibold text-gray-800 dark:text-white">Rollback Task</h2>
             <textarea id="rollbackReason"
                 class="w-full rounded-lg border border-gray-300 p-3 focus:border-red-500 focus:outline-none focus:ring-red-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
@@ -751,7 +753,6 @@
             }
         });
     }
-
 </script>
 <style>
     /* Styling untuk loading spinner di kanan bawah */
