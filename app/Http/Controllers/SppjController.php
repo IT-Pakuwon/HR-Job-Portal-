@@ -1916,29 +1916,29 @@ class SppjController extends Controller
             return redirect()->route('login');
         }
 
-        // $sppj = TrSPPJ::findOrFail($id);
-        $bq = Bq::with([            
+        $bq = Bq::with([
             'creator:username,name'
-        ])
-        ->findOrFail($id);     
-        
-        $canEdit = T_approval::where('docid', $bq->sppjtid)
+        ])->findOrFail($id);     
+
+        $canEdit = TrApproval::where('refnbr', $bq->sppjtid)
             ->where('status', 'P')
-            ->whereNotNull('aprvdatebefore')
+            ->whereNotNull('aprv_datebefore')
             ->where(function ($q) use ($user) {
-                $q->where('created_user', $user->id)               // kalau stored id
-                  ->orWhere('created_user', $user->name)            // kalau stored name
-                  ->orWhere('created_user', $user->username ?? ''); // kalau stored username
+                $u = $user->username;
+
+                $q->where('aprv_username', $u) 
+                ->orWhere('aprv_username', 'like', $u . ',%')      
+                ->orWhere('aprv_username', 'like', '%,' . $u . ',%') 
+                ->orWhere('aprv_username', 'like', '%,' . $u);     
             })
             ->exists();
-           
-        $bqdetail = BqDetail::where('bqid', $bq->bqid)
-            ->get();      
-              
+
+        $bqdetail = BqDetail::where('bqid', $bq->bqid)->get();      
+            
         $attachment = Attachment::where('docid', $bq->bqid)    
             ->where('status','A')        
             ->get();    
-       
+    
         return view('pages.sppjs.showbqsppjs', compact('bq','attachment','bqdetail','canEdit'));
     }
 
@@ -2280,45 +2280,6 @@ class SppjController extends Controller
             // ===== Hapus temp batch =====
             BqDetailTemp::where('temp_id', $temp_id)->delete();
 
-            // ===== Attachments (optional): simpan ke /public/attachments/{year} =====
-           
-            // if ($request->hasFile('attachments')) {
-            //     foreach ($request->file('attachments') as $file) {
-            //         if (!$file || !$file->isValid()) continue;
-
-            //         // ambil nama asli dan extension
-            //         $original   = $file->getClientOriginalName();
-            //         $baseName   = pathinfo($original, PATHINFO_FILENAME);
-            //         $ext        = strtolower($file->getClientOriginalExtension());
-
-            //         // sanitasi nama untuk disimpan di kolom "name"
-            //         $safeName   = Str::limit(preg_replace('/[^A-Za-z0-9_\- ]/', '', $baseName), 120, '');
-
-            //         // buat nama file unik untuk disimpan di folder & kolom "attachfile"
-            //         $unique     = md5(uniqid('', true));
-            //         $storedName = $unique . '-' . ($safeName !== '' ? Str::slug($safeName, '_') : 'photo') . '.' . $ext;
-
-            //         // pastikan folder ada
-            //         $folder = public_path('attachments/' . $year);
-            //         if (!is_dir($folder)) {
-            //             @mkdir($folder, 0755, true);
-            //         }
-
-            //         // pindahkan file
-            //         $file->move($folder, $storedName);
-
-            //         // simpan ke DB tanpa mass assignment
-            //         $attach = new Attachment();
-            //         $attach->docid        = $bqid;      // relasi ke dokumen BQ
-            //         $attach->name         = $safeName;  // nama (tanpa ext)
-            //         $attach->attachfile   = $storedName; // nama file di server (dengan ext)
-            //         $attach->status       = 'A';
-            //         $attach->extention    = $ext;        // kolommu memang "extention"
-            //         $attach->created_user = $username;
-            //         $attach->save();
-            //     }
-            // }
-
             if ($request->hasFile('attachments')) {
                 $meta = [
                     'refnbr'        => $bqid,
@@ -2364,6 +2325,8 @@ class SppjController extends Controller
             // 'attachments.*' => 'file|mimes:jpg,jpeg,png,webp,gif,bmp,svg|max:5120', // opsional validasi file
         ]);
 
+        $doctype  = 'BQ';
+        $user     = $request->user();
         $username = Auth::user()->username ?? 'system';
         $now      = Carbon::now();
 
@@ -2445,38 +2408,7 @@ class SppjController extends Controller
                 BqDetailTemp::where('temp_id', $tempId)->delete();
             }
 
-            // ===================== ATTACHMENTS (tambahan) =====================
-            // if ($request->hasFile('attachments')) {
-            //     $year = $now->year;
-            //     $folder = public_path('attachments/' . $year);
-            //     if (!is_dir($folder)) {
-            //         @mkdir($folder, 0755, true);
-            //     }
-
-            //     foreach ($request->file('attachments') as $file) {
-            //         if (!$file || !$file->isValid()) continue;
-
-            //         $original   = $file->getClientOriginalName();
-            //         $baseName   = pathinfo($original, PATHINFO_FILENAME);
-            //         $ext        = strtolower($file->getClientOriginalExtension());
-
-            //         $safeName   = Str::limit(preg_replace('/[^A-Za-z0-9_\- ]/', '', $baseName), 120, '');
-            //         $unique     = md5(uniqid('', true));
-            //         $storedName = $unique . '-' . ($safeName !== '' ? Str::slug($safeName, '_') : 'photo') . '.' . $ext;
-
-            //         $file->move($folder, $storedName);
-
-            //         $attach = new Attachment();
-            //         $attach->docid        = $bqid;
-            //         $attach->name         = $safeName;
-            //         $attach->attachfile   = $storedName;
-            //         $attach->status       = 'A';
-            //         $attach->extention    = $ext;
-            //         $attach->created_user = $username;
-            //         $attach->save();
-            //     }
-            // }
-
+            
             if ($request->hasFile('attachments')) {
                 $meta = [
                     'refnbr'        => $bqid,
