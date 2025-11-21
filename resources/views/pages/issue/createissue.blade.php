@@ -145,13 +145,38 @@
                             </div>
                         </div>
 
-                        <div class="mt-4 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+                        {{-- <div class="mt-4 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
                             <div class="flex flex-col gap-2 lg:col-span-2">
                                 <label class="block text-sm font-medium text-gray-600 dark:text-gray-300">Keperluan</label>
                                 <input type="text" value="{{ $spb->keperluan }}" readonly
                                     class="mt-1 w-full rounded-lg border border-gray-300 bg-gray-50 p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
                             </div>
+                        </div> --}}
+                        <div class="mt-4 grid grid-cols-1 gap-6 md:grid-cols-2">
+
+                            {{-- ===== Keperluan ===== --}}
+                            <div class="flex flex-col gap-2">
+                                <label class="block text-sm font-medium text-gray-600 dark:text-gray-300">Keperluan</label>
+                                <textarea type="text" readonly
+                                    rows="3"
+                                    class="mt-1 w-full rounded-lg border border-gray-300 bg-gray-50 p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">{{ $spb->keperluan }}</textarea>
+                            </div>
+
+                            {{-- ===== Header Issue Note ===== --}}
+                            <div class="flex flex-col gap-2">
+                                <label for="issuenote" class="block text-sm font-medium text-gray-600 dark:text-gray-300">
+                                    Issue Note
+                                </label>
+                                <textarea id="issuenote" name="issuenote" rows="3"
+                                    class="mt-1 w-full rounded-lg border border-gray-300 p-2 text-sm text-gray-800
+                                        focus:border-indigo-500 focus:ring-indigo-500
+                                        dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
+                                    placeholder="Tuliskan catatan issue (opsional)...">{{ old('issuenote') }}</textarea>
+                            </div>
+
                         </div>
+
+
                     </div>
 
                     {{-- ===== Detail ===== --}}
@@ -173,6 +198,7 @@
                                                 <th class="px-4 py-2 text-right font-semibold text-gray-600 dark:text-gray-300">Qty (Open)</th>
                                                 <th class="px-4 py-2 text-center font-semibold text-gray-600 dark:text-gray-300">UoM</th>
                                                 <th class="px-4 py-2 text-right font-semibold text-gray-600 dark:text-gray-300">Qty Issue</th>
+                                                <th class="px-4 py-2 text-left font-semibold text-gray-600 dark:text-gray-300">Note</th>      {{-- NEW --}}
                                                 <th class="px-4 py-2 text-right font-semibold text-gray-600 dark:text-gray-300">Site</th>
                                             </tr>
                                         </thead>
@@ -189,6 +215,17 @@
                                                             class="qtyIssue w-28 rounded border border-gray-300 p-1 text-right dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
                                                             inputmode="decimal" autocomplete="off" placeholder="0,00" />
                                                     </td>
+
+                                                    {{-- ===== Detail Issue Note per baris ===== --}}
+                                                    <td class="px-4 py-2">
+                                                        <input type="text"
+                                                            name="issuenote_detail[{{ $d->id }}]"
+                                                            value="{{ old('issuenote_detail.' . $d->id) }}"
+                                                            class="w-full rounded border border-gray-300 p-1 text-sm
+                                                                dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
+                                                            placeholder="Catatan detail (opsional)">
+                                                    </td>
+
                                                     <td class="px-4 py-2">
                                                         <select name="siteid[{{ $d->id }}]"
                                                             class="siteSelect w-40 rounded border border-gray-300 p-1 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
@@ -205,7 +242,7 @@
                                                 </tr>
                                             @empty
                                                 <tr>
-                                                    <td colspan="6" class="px-4 py-4 text-center text-gray-500">No SPB detail</td>
+                                                    <td colspan="7" class="px-4 py-4 text-center text-gray-500">No SPB detail</td>
                                                 </tr>
                                             @endforelse
                                         </tbody>

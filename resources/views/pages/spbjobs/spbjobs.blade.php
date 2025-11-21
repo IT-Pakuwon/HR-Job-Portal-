@@ -5,60 +5,50 @@
             transform: scale(1.02);
         }
 
-        /* Issue Jobs */
-        .scope-filter[data-scope="issuejobs"].active .scope-card {
+        /* Issue New Jobs */
+        .scope-filter[data-scope="issuejobsnew"].active .scope-card {
             background-color: rgb(254 215 170);
             border-color: rgb(194 65 12);
             color: rgb(194 65 12);
         }
 
-        /* On Progress */
+        /* Issue Jobs */
+        .scope-filter[data-scope="issuejobs"].active .scope-card {
+            background-color: rgb(221 214 254);
+            border-color: rgb(91 33 182);
+            color: rgb(91 33 182);
+        }
+
+        /* SPPB Jobs */
         .scope-filter[data-scope="onprogress"].active .scope-card {
             background-color: rgb(191 219 254);
             border-color: rgb(29 78 216);
             color: rgb(29 78 216);
         }
 
-        /* Completed */
-        .scope-filter[data-scope="completed"].active .scope-card {
-            background-color: rgb(187 247 208);
-            border-color: rgb(21 128 61);
-            color: rgb(21 128 61);
+        /* Issue On Progress */
+        .scope-filter[data-scope="issueprogress"].active .scope-card {
+            background-color: rgb(254 202 202);
+            border-color: rgb(185 28 28);
+            color: rgb(185 28 28);
         }
 
-        /* All */
-        .scope-filter[data-scope="all"].active .scope-card {
-            background-color: rgb(229 231 235);
-            border-color: rgb(31 41 55);
-            color: rgb(31 41 55);
+        /* SPPB On Progress */
+        .scope-filter[data-scope="sppbprogress"].active .scope-card {
+            background-color: rgb(254 249 195);
+            border-color: rgb(133 77 14);
+            color: rgb(133 77 14);
         }
 
-        .no-border {
-            border: none !important;
-        }
+        .no-border { border: none !important; }
+        .grid { width: 100%; }
 
-        .grid {
-            width: 100%;
-        }
-
-        select,
-        textarea,
-        input {
-            width: 100%;
-        }
-
-        table.dataTable {
-            width: 100% !important;
-        }
-
-        .dataTables_wrapper {
-            width: 100%;
-        }
+        select, textarea, input { width: 100%; }
+        table.dataTable { width: 100% !important; }
+        .dataTables_wrapper { width: 100%; }
 
         @media (max-width: 600px) {
-            .dataTables_wrapper {
-                padding: 0 10px;
-            }
+            .dataTables_wrapper { padding: 0 10px; }
         }
 
         /* === Filter Section === */
@@ -69,9 +59,7 @@
             align-items: center;
         }
 
-        #issueTable_filter label {
-            margin-right: 2px;
-        }
+        #issueTable_filter label { margin-right: 2px; }
 
         #issueTable_filter input {
             width: auto;
@@ -82,9 +70,7 @@
             background-color: #f9fafb;
         }
 
-        #issueTable_wrapper {
-            width: 100%;
-        }
+        #issueTable_wrapper { width: 100%; }
 
         #issueTable td {
             white-space: nowrap;
@@ -114,13 +100,8 @@
             background-color: #f9fafb;
         }
 
-        #issueTable_info {
-            margin: 10px 0;
-        }
-
-        .dataTables_paginate {
-            margin: 10px 0;
-        }
+        #issueTable_info { margin: 10px 0; }
+        .dataTables_paginate { margin: 10px 0; }
 
         #issueTable tbody tr {
             transition: background-color 0.3s ease, color 0.3s ease;
@@ -145,9 +126,7 @@
         }
 
         /* Group row (optional style kept) */
-        #issueTable tbody tr.collapsed-group-row {
-            display: none;
-        }
+        #issueTable tbody tr.collapsed-group-row { display: none; }
 
         #issueTable tr.group-row {
             background-color: #e6e6e6;
@@ -157,9 +136,7 @@
             color: #333;
         }
 
-        #issueTable tr.group-row:hover {
-            background-color: #d4d4d4;
-        }
+        #issueTable tr.group-row:hover { background-color: #d4d4d4; }
 
         #issueTable tr.group-row .fas {
             margin-right: 8px;
@@ -172,9 +149,7 @@
             border-bottom: 1px solid #ddd;
         }
 
-        #issueTable tr.group-row td:first-child {
-            border-left: none;
-        }
+        #issueTable tr.group-row td:first-child { border-left: none; }
 
         /* Switch */
         .switch {
@@ -184,19 +159,12 @@
             height: 22px;
         }
 
-        .switch input {
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
+        .switch input { opacity: 0; width: 0; height: 0; }
 
         .slider {
             position: absolute;
             cursor: pointer;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
+            top: 0; left: 0; right: 0; bottom: 0;
             background-color: #ccc;
             transition: .4s;
             border-radius: 34px;
@@ -214,29 +182,44 @@
             border-radius: 50%;
         }
 
-        input:checked+.slider {
-            background-color: #4CAF50;
-        }
-
-        input:checked+.slider:before {
-            transform: translateX(18px);
-        }
+        input:checked + .slider { background-color: #4CAF50; }
+        input:checked + .slider:before { transform: translateX(18px); }
     </style>
 
     <div class="max-w-9xl mx-auto w-full px-4 py-4 sm:px-6 lg:px-8">
-        <div class="grid auto-rows-fr grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-7">
+        <div class="grid auto-rows-fr grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5">
 
+            {{-- 1. Issue New Jobs (TrSPB) --}}
+            <button type="button" class="text-left">
+                <a href="#" class="scope-filter group block h-full" data-scope="issuejobsnew">
+                    <div
+                        class="scope-card flex items-center gap-3 rounded-lg border border-orange-700 bg-orange-200/20 p-3 text-orange-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-orange-100 hover:shadow-lg active:scale-95">
 
-            {{-- Issue Jobs --}}
+                        <div class="flex h-6 w-6 shrink-0 items-center justify-center text-lg">🆕</div>
+
+                        <div class="flex min-w-0 flex-grow flex-col leading-tight">
+                            <p class="whitespace-normal break-words text-base font-medium leading-tight">
+                                Issue New Jobs
+                            </p>
+                        </div>
+
+                        <p class="shrink-0 text-xl font-bold">{{ $issuejobsnew }}</p>
+                    </div>
+                </a>
+            </button>
+
+            {{-- 2. Issue Jobs (TrSPB) --}}
             <button type="button" class="text-left">
                 <a href="#" class="scope-filter group block h-full" data-scope="issuejobs">
                     <div
-                        class="scope-card flex items-center gap-3 rounded-lg border border-orange-700 bg-orange-200/20 p-3 text-orange-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-orange-100 hover:shadow-lg active:scale-95">
+                        class="scope-card flex items-center gap-3 rounded-lg border border-purple-700 bg-purple-200/20 p-3 text-purple-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-purple-100 hover:shadow-lg active:scale-95">
 
                         <div class="flex h-6 w-6 shrink-0 items-center justify-center text-lg">📦</div>
 
                         <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                            <p class="whitespace-normal break-words text-base font-medium leading-tight">Issue Jobs</p>
+                            <p class="whitespace-normal break-words text-base font-medium leading-tight">
+                                Issue Jobs
+                            </p>
                         </div>
 
                         <p class="shrink-0 text-xl font-bold">{{ $issuejobs }}</p>
@@ -244,110 +227,64 @@
                 </a>
             </button>
 
-            {{-- Return Jobs --}}
-            <button type="button" class="text-left">
-                <a href="#" class="scope-filter group block h-full" data-scope="returnjobs">
-                    <div
-                        class="scope-card flex items-center gap-3 rounded-lg border border-purple-700 bg-purple-200/20 p-3 text-purple-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-purple-100 hover:shadow-lg active:scale-95">
-
-                        <div class="flex h-6 w-6 shrink-0 items-center justify-center text-lg">↩️</div>
-
-                        <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                            <p class="whitespace-normal break-words text-base font-medium leading-tight">Return Jobs</p>
-                        </div>
-
-                        <p class="shrink-0 text-xl font-bold">{{ $returnjobs }}</p>
-                    </div>
-                </a>
-            </button>
-
-            {{-- On Progress --}}
+            {{-- 3. SPPB Jobs (TrSPB) --}}
             <button type="button" class="text-left">
                 <a href="#" class="scope-filter group block h-full" data-scope="onprogress">
                     <div
                         class="scope-card flex items-center gap-3 rounded-lg border border-blue-700 bg-blue-200/20 p-3 text-blue-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-blue-100 hover:shadow-lg active:scale-95">
 
-                        <div class="flex h-6 w-6 shrink-0 items-center justify-center text-lg">⏳</div>
+                        <div class="flex h-6 w-6 shrink-0 items-center justify-center text-lg">📑</div>
 
                         <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                            <p class="whitespace-normal break-words text-base font-medium leading-tight">On Progress</p>
+                            <p class="whitespace-normal break-words text-base font-medium leading-tight">
+                                SPPB Jobs
+                            </p>
                         </div>
 
-                        <p class="shrink-0 text-xl font-bold">{{ $onProgress }}</p>
+                        <p class="shrink-0 text-xl font-bold">{{ $sppbjobs }}</p>
                     </div>
                 </a>
             </button>
 
-            {{-- Rejected --}}
+            {{-- 4. Issue On Progress (TrIssue) --}}
             <button type="button" class="text-left">
-                <a href="#" class="scope-filter group block h-full" data-scope="rejected">
+                <a href="#" class="scope-filter group block h-full" data-scope="issueprogress">
                     <div
                         class="scope-card flex items-center gap-3 rounded-lg border border-red-700 bg-red-200/20 p-3 text-red-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-red-100 hover:shadow-lg active:scale-95">
 
-                        <div class="flex h-6 w-6 shrink-0 items-center justify-center text-lg">❌</div>
+                        <div class="flex h-6 w-6 shrink-0 items-center justify-center text-lg">⏳</div>
 
                         <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                            <p class="whitespace-normal break-words text-base font-medium leading-tight">Rejected</p>
+                            <p class="whitespace-normal break-words text-base font-medium leading-tight">
+                                Issue On Progress
+                            </p>
                         </div>
 
-                        <p class="shrink-0 text-xl font-bold">{{ $rejected }}</p>
+                        <p class="shrink-0 text-xl font-bold">{{ $issueprogress }}</p>
                     </div>
                 </a>
             </button>
 
-            {{-- Revise --}}
+            {{-- 5. SPPB On Progress (TrIssue) --}}
             <button type="button" class="text-left">
-                <a href="#" class="scope-filter group block h-full" data-scope="revise">
+                <a href="#" class="scope-filter group block h-full" data-scope="sppbprogress">
                     <div
                         class="scope-card flex items-center gap-3 rounded-lg border border-yellow-700 bg-yellow-200/20 p-3 text-yellow-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-yellow-100 hover:shadow-lg active:scale-95">
 
-                        <div class="flex h-6 w-6 shrink-0 items-center justify-center text-lg">🛠️</div>
+                        <div class="flex h-6 w-6 shrink-0 items-center justify-center text-lg">📌</div>
 
                         <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                            <p class="whitespace-normal break-words text-base font-medium leading-tight">Revise</p>
+                            <p class="whitespace-normal break-words text-base font-medium leading-tight">
+                                SPPB On Progress
+                            </p>
                         </div>
 
-                        <p class="shrink-0 text-xl font-bold">{{ $revise }}</p>
-                    </div>
-                </a>
-            </button>
-
-            {{-- Completed --}}
-            <button type="button" class="text-left">
-                <a href="#" class="scope-filter group block h-full" data-scope="completed">
-                    <div
-                        class="scope-card flex items-center gap-3 rounded-lg border border-green-700 bg-green-200/20 p-3 text-green-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-green-100 hover:shadow-lg active:scale-95">
-
-                        <div class="flex h-6 w-6 shrink-0 items-center justify-center text-lg">✅</div>
-
-                        <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                            <p class="whitespace-normal break-words text-base font-medium leading-tight">Completed</p>
-                        </div>
-
-                        <p class="shrink-0 text-xl font-bold">{{ $completed }}</p>
-                    </div>
-                </a>
-            </button>
-
-            {{-- All --}}
-            <button type="button" class="text-left">
-                <a href="#" class="scope-filter group block h-full" data-scope="all">
-                    <div
-                        class="scope-card flex items-center gap-3 rounded-lg border border-gray-700 bg-gray-200/20 p-3 text-gray-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-gray-100 hover:shadow-lg active:scale-95 dark:border-white dark:text-white dark:hover:bg-gray-700">
-
-                        <div class="flex h-6 w-6 shrink-0 items-center justify-center text-lg">🧾</div>
-
-                        <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                            <p class="whitespace-normal break-words text-base font-medium leading-tight">All</p>
-                        </div>
-
-                        <p class="shrink-0 text-xl font-bold">{{ $all }}</p>
+                        <p class="shrink-0 text-xl font-bold">{{ $sppbprogress }}</p>
                     </div>
                 </a>
             </button>
 
         </div>
-
 
         <div class="grid">
             <div class="mt-6 rounded-2xl bg-white dark:bg-gray-800">
@@ -370,22 +307,34 @@
                 const currentUser = @json(auth()->user()->username ?? '');
 
                 $(function() {
-                    let scope = 'issuejobs';
+                    let scope = 'issuejobsnew';
                     const $title = $('h1.text-xl.font-extrabold');
                     const $thead = $('#issueTable thead');
 
                     const titleMap = {
+                        issuejobsnew: 'Issue - New Jobs',
                         issuejobs: 'Issue - Jobs',
-                        returnjobs: 'Issue - Return Jobs',
-                        onprogress: 'Issue - On Progress',
-                        rejected: 'Issue - Rejected',
-                        revise: 'Issue - Revise',
-                        completed: 'Issue - Completed',
-                        all: 'Issue - All',
+                        onprogress: 'SPPB - Jobs',
+                        issueprogress: 'Issue - On Progress',
+                        sppbprogress: 'SPPB - On Progress',
                     };
 
+                    const spbScopes   = ['issuejobsnew', 'issuejobs', 'onprogress'];
+                    const issueScopes = ['issueprogress'];
+                    const sppbScopes  = ['sppbprogress'];
+                    const allowedScopes = [...spbScopes, ...issueScopes, ...sppbScopes];
+
+                    function scopeType(sc) {
+                        if (spbScopes.includes(sc))   return 'spb';
+                        if (issueScopes.includes(sc)) return 'issue';
+                        if (sppbScopes.includes(sc))  return 'sppb';
+                        return 'spb';
+                    }
+
                     function headerFor(sc) {
-                        if (sc === 'issuejobs') {
+                        const type = scopeType(sc);
+                        if (type === 'spb') {
+                            // TrSPB header
                             return `
                                 <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Action</th>
                                 <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">SPB ID</th>
@@ -395,14 +344,26 @@
                                 <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Created By</th>
                             `;
                         }
-                        // scopes TrIssue (6 kolom)
+                        if (type === 'issue') {
+                            // TrIssue header
+                            return `
+                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Issue ID</th>
+                                <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">Issue Date</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Issue Type</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">SPB ID</th>
+                                <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">Company</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Created By</th>
+                            `;
+                        }
+                        // SPPB (TrSPPB) header
                         return `
-                            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Issue ID</th>
-                            <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">Issue Date</th>
-                            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Issue Type</th>
-                            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">SPB ID</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">SPPB ID</th>
+                            <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">SPPB Date</th>
                             <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">Company</th>
-                            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Created By</th>
+                            <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">Department</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Request Type</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Description</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Status</th>
                         `;
                     }
 
@@ -414,13 +375,20 @@
                         return `<a href="${url}" class="inline-flex items-center justify-center px-3 py-1.5 text-sm font-semibold rounded bg-gray-600 text-white hover:bg-gray-700">${label}</a>`;
                     }
 
+                    function renderSppbLink(row) {
+                        const label = row.sppbid ?? '';
+                        const hash = row.eid || row.sppb_hash || row.hash || row.id;
+                        if (!label) return '';
+                        const url = `/showsppbs/${encodeURIComponent(hash ?? '')}`; // sesuaikan dengan route detail SPPB-mu
+                        return `<a href="${url}" class="inline-flex items-center justify-center px-3 py-1.5 text-sm font-semibold rounded bg-gray-600 text-white hover:bg-gray-700">${label}</a>`;
+                    }
+
                     function renderIssueLinkCell(_value, _type, row) {
                         const label = row.issueid ?? '';
                         const hash = row.eid || row.issue_eid || row.issue_hash || row.hash || row.id;
 
                         if (!label) return '';
                         if (!hash) {
-                            // aman meski hash tidak ada
                             return `<span class="inline-flex items-center px-3 py-1.5 text-sm font-semibold rounded bg-gray-400 text-white">${label}</span>`;
                         }
 
@@ -429,14 +397,6 @@
 
                         const isRevise = statusRaw === 'D';
                         const isOwner = creator === (currentUser ?? '');
-                        console.log({
-                            statusRaw,
-                            isRevise,
-                            creator,
-                            currentUser,
-                            isOwner
-                        });
-
                         if (isRevise && isOwner) {
                             const url = `/editissues/${encodeURIComponent(hash)}`;
                             return `<a href="${url}" class="inline-flex items-center justify-center px-3 py-1.5 text-sm font-semibold rounded bg-amber-600 text-white hover:bg-amber-700">${label}</a>`;
@@ -445,9 +405,18 @@
                         return `<a href="${url}" class="inline-flex items-center justify-center px-3 py-1.5 text-sm font-semibold rounded bg-gray-600 text-white hover:bg-gray-700">${label}</a>`;
                     }
 
+                    function renderPlusCreate(row) {
+                        const url = `{{ route('issue.create') }}` + `?spbid=${encodeURIComponent(row.spb_eid ?? '')}`;
+                        return `<a href="${url}" class="inline-flex justify-center items-center px-3 py-1.5 text-sm font-medium text-white rounded bg-blue-600 hover:bg-blue-700">
+                            <i class="fas fa-plus"></i>
+                        </a>`;
+                    }
+
                     function columnsFor(sc) {
-                        if (sc === 'issuejobs') {
-                            return [{
+                        const type = scopeType(sc);
+                        if (type === 'spb') {
+                            return [
+                                {
                                     data: null,
                                     orderable: false,
                                     searchable: false,
@@ -461,7 +430,7 @@
                                 {
                                     data: 'spbdate',
                                     defaultContent: '',
-                                    render: (_v, _t, row) => row.spbdate_fmt ?? row.spbdate ?? '',
+                                    render: (value, _t, row) => value || row.spbdate_fmt || '',
                                     className: 'text-center'
                                 },
                                 {
@@ -479,25 +448,50 @@
                                 },
                             ];
                         }
-                        // TrIssue scopes (6 kolom)
-                        return [{
-                                data: 'issueid',
+                        if (type === 'issue') {
+                            return [
+                                {
+                                    data: 'issueid',
+                                    defaultContent: '',
+                                    render: renderIssueLinkCell
+                                },
+                                {
+                                    data: 'issuedate',
+                                    defaultContent: '',
+                                    render: (_v, _t, row) => row.issuedate_fmt ?? row.issuedate ?? '',
+                                    className: 'text-center'
+                                },
+                                {
+                                    data: 'issuetype',
+                                    defaultContent: ''
+                                },
+                                {
+                                    data: 'spbid',
+                                    defaultContent: ''
+                                },
+                                {
+                                    data: 'cpny_id',
+                                    defaultContent: '',
+                                    className: 'text-center'
+                                },
+                                {
+                                    data: 'created_by',
+                                    defaultContent: ''
+                                },
+                            ];
+                        }
+                        // SPPB (sppbprogress)
+                        return [
+                            {
+                                data: 'sppbid',
                                 defaultContent: '',
-                                render: renderIssueLinkCell
+                                render: (_v, _t, row) => renderSppbLink(row)
                             },
                             {
-                                data: 'issuedate',
+                                data: 'sppbdate',
                                 defaultContent: '',
-                                render: (_v, _t, row) => row.issuedate_fmt ?? row.issuedate ?? '',
+                                render: (_v, _t, row) => row.sppbdate_fmt ?? row.sppbdate ?? '',
                                 className: 'text-center'
-                            },
-                            {
-                                data: 'issuetype',
-                                defaultContent: ''
-                            },
-                            {
-                                data: 'spbid',
-                                defaultContent: ''
                             },
                             {
                                 data: 'cpny_id',
@@ -505,28 +499,44 @@
                                 className: 'text-center'
                             },
                             {
-                                data: 'created_by',
+                                data: 'department_id',
+                                defaultContent: '',
+                                className: 'text-center'
+                            },
+                            {
+                                data: 'requesttype_name',
+                                defaultContent: ''
+                            },
+                            {
+                                data: 'keperluan',
+                                defaultContent: ''
+                            },
+                            {
+                                data: 'status',
                                 defaultContent: ''
                             },
                         ];
                     }
 
-                    function renderPlusCreate(row) {
-                        const url = `{{ route('issue.create') }}` + `?spbid=${encodeURIComponent(row.spbid ?? '')}`;
-                        return `<a href="${url}" class="inline-flex justify-center items-center px-3 py-1.5 text-sm font-medium text-white rounded bg-blue-600 hover:bg-blue-700">
-                            <i class="fas fa-plus"></i>
-                        </a>`;
-                    }
-
                     function orderFor(sc) {
-                        if (sc === 'issuejobs') return [
-                            [2, 'desc'],
-                            [1, 'desc']
-                        ]; // spbdate desc, spbid desc
+                        const type = scopeType(sc);
+                        if (type === 'spb') {
+                            return [
+                                [2, 'desc'], // spbdate
+                                [1, 'desc']  // spbid
+                            ];
+                        }
+                        if (type === 'issue') {
+                            return [
+                                [1, 'desc'], // issuedate
+                                [0, 'desc']  // issueid
+                            ];
+                        }
+                        // sppb
                         return [
-                            [1, 'desc'],
-                            [0, 'desc']
-                        ]; // issuedate desc, issueid desc
+                            [1, 'desc'], // sppbdate
+                            [0, 'desc']  // sppbid
+                        ];
                     }
 
                     function updateTitle(sc) {
@@ -559,7 +569,7 @@
                             lengthMenu: [10, 25, 50, 100, 250],
                             order: orderFor(sc),
                             ajax: {
-                                url: "{{ route('issuelist.json') }}",
+                                url: "{{ route('spbjobs.json') }}",
                                 type: "GET",
                                 data: function(d) {
                                     d.scope = sc;
@@ -574,7 +584,9 @@
 
                     // init
                     const savedScope = localStorage.getItem('activeIssueScope');
-                    if (savedScope) scope = savedScope;
+                    if (savedScope && allowedScopes.includes(savedScope)) {
+                        scope = savedScope;
+                    }
 
                     updateTitle(scope);
                     highlightActive(scope);
@@ -583,7 +595,8 @@
                     // switch scope
                     $('.scope-filter').on('click', function(e) {
                         e.preventDefault();
-                        scope = $(this).data('scope') || 'issuejobs';
+                        scope = $(this).data('scope') || 'issuejobsnew';
+                        if (!allowedScopes.includes(scope)) scope = 'issuejobsnew';
                         localStorage.setItem('activeIssueScope', scope);
                         updateTitle(scope);
                         highlightActive(scope);
@@ -591,6 +604,7 @@
                     });
                 });
             </script>
+
         </div>
     </div>
 </x-app-layout>

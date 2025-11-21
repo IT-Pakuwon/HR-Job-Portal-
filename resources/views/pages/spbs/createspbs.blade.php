@@ -257,6 +257,8 @@
                                                                 class="purchaseUnitField">
                                                             <input type="hidden" name="inv_stock[]" class="invStockField">
                                                             <input type="hidden" name="inv_cost[]"  class="invCostField">
+                                                            <input type="hidden" name="stock_qty[]" class="prodItemStockField">
+                                                            <input type="hidden" name="unitcost[]" class="prodItemCostField">
                                                             <input type="text" name="product_name[]"
                                                                 class="productNameField w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0"
                                                                 placeholder="Select product..." readonly>
@@ -346,6 +348,7 @@
                                                             <input type="hidden" name="department_fin_id[]"
                                                                 class="departmentFinIdField">
                                                             <input type="hidden" name="coa_id[]" class="coaIdField">
+                                                            <input type="hidden" name="activity_descr[]"  class="actDescrField">
                                                             <input type="text" name="coa[]"
                                                                 class="coaNameField w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0"
                                                                 placeholder="Select COA..." readonly>
@@ -960,6 +963,8 @@
                     <input type="hidden" name="inv_stock[]" class="invStockField">
                     <input type="hidden" name="inv_cost[]"  class="invCostField">
                     <input type="hidden" name="siteid[]"  class="siteIdField">
+                    <input type="hidden" name="stock_qty[]" class="prodItemStockField">
+                    <input type="hidden" name="unitcost[]" class="prodItemCostField">
                     <input type="text" name="product_name[]" class="productNameField w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0" placeholder="Select product..." readonly>
                     <button type="button" class="openInventoryModal rounded border border-gray-500 px-1 py-1 hover:bg-gray-100 dark:hover:bg-gray-700" title="Lookup">🔎</button>
                 </div>
@@ -1022,7 +1027,8 @@
                     <div class="flex items-center gap-2">
                         <input type="hidden" name="activity_id[]" class="activityIdField">
                         <input type="hidden" name="business_unit_id[]"   class="businessUnitIdField">
-                        <input type="hidden" name="department_fin_id[]"  class="departmentFinIdField">                      
+                        <input type="hidden" name="department_fin_id[]"  class="departmentFinIdField">       
+                        <input type="hidden" name="activity_descr[]"  class="actDescrField">               
                         <input type="hidden" name="coa_id[]" class="coaIdField">
                         <input type="text"   name="coa[]"    class="coaNameField w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0" placeholder="Select COA..." readonly>
                         <button type="button" class="openCoaModal rounded border border-gray-500 px-1 py-1 hover:bg-gray-100 dark:hover:bg-gray-700" title="Lookup">🔎</button>
@@ -1242,6 +1248,8 @@
                 const item_sub_type  = $btn.data('item_sub_type') || '';
                 const item_category  = $btn.data('item_category') || '';
                 const purchase_unit  = $btn.data('purchase_unit') || '';
+                const stock  = $btn.data('stock') || '';
+                const cost  = $btn.data('cost') || '';
 
                 // DEBUG: lihat apa yang sebenarnya kebaca dari tombol
                 console.log('chooseInventory CLICKED →', {
@@ -1253,6 +1261,8 @@
                     item_type_normalized,
                     item_sub_type,
                     item_category,
+                    stock,
+                    cost,
                     purchase_unit
                 });
 
@@ -1266,6 +1276,9 @@
                 currentRow.find('.prodItemTypeField').val(item_type_normalized);
                 currentRow.find('.prodItemSubTypeField').val(item_sub_type);
                 currentRow.find('.prodItemCategoryField').val(item_category);
+
+                currentRow.find('.prodItemStockField').val(stock);
+                currentRow.find('.prodItemCostField').val(cost);
 
                 // BERSIHKAN COA
                 currentRow.find('.coaIdField').val('');
@@ -1504,6 +1517,7 @@
                                         data-activity_id="${item.activity_id}"
                                         data-business_unit_id="${item.business_unit_id}"
                                         data-department_fin_id="${item.department_fin_id}"
+                                        data-activity_descr="${item.activity_descr}"
                                         data-label="${item.account_id}">
                                         Choose
                                     </button>
@@ -1564,6 +1578,7 @@
                 currentCoaRow.find('.activityIdField').val($(this).data('activity_id'));
                 currentCoaRow.find('.businessUnitIdField').val($(this).data('business_unit_id'));
                 currentCoaRow.find('.departmentFinIdField').val($(this).data('department_fin_id'));
+                currentCoaRow.find('.actDescrField').val($(this).data('activity_descr'));
                 currentCoaRow.find('.coaNameField').val($(this).data('label'));
 
                 currentCoaRow.find('.coaNameField')
