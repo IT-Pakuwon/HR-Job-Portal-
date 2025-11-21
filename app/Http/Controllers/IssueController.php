@@ -1115,7 +1115,7 @@ class IssueController extends Controller
         $user    = $request->user();
         $doctype = 'IS';
 
-        $issue = \App\Models\TrIssue::with('creator')->where('issueid', $docid)->first();
+        $issue = TrIssue::with('creator')->where('issueid', $docid)->first();
         if (!$issue) return response()->json(['success'=>false,'message'=>'Issue not found'],404);
 
         $eid      = \Vinkla\Hashids\Facades\Hashids::encode($issue->id);
@@ -1128,36 +1128,43 @@ class IssueController extends Controller
             $user->username,
             $user->name,
 
-            function (string $refnbr, \Carbon\Carbon $now) use ($issue, $fullname, $docUrl) {
-                $issue->status       = 'R';
-                $issue->completed_by = auth()->user()->username;
-                $issue->completed_at = $now;
-                $issue->save();
+            function (string $refnbr, \Carbon\Carbon $now) use ($issue, $fullname, $docUrl, $user) {
+                DB::transaction(function () use ($issue, $fullname, $docUrl, $now, $user) {
+                    // 1) Rollback qty ke SPB
+                    $this->rollbackIssuePostingToSpb($issue, $user, $now);
 
-                // optional: tandai detail R
-                // \App\Models\TrIssuedetail::where('issueid', $issue->issueid)->update(['status' => 'R']);
+                    // 2) Update status Issue
+                    $issue->status       = 'R';
+                    $issue->completed_by = $user->username ?? auth()->user()->username;
+                    $issue->completed_at = $now;
+                    $issue->save();
 
-                app(\App\Http\Controllers\ApprovalController::class)->notifyRequesterOnStatus(
-                    $issue->issueid,
-                    'Issue',
-                    'R',
-                    $issue->created_by,
-                    $docUrl,
-                    [
-                        'cpnyid'   => $issue->cpny_id ?? $issue->cpnyid ?? '',
-                        'deptname' => $issue->department_id ?? $issue->departementid ?? '',
-                        'date'     => $now->toDateString(),
-                        'info'     => $issue->keperluan,
-                        'fullname' => $fullname,
-                        'name'     => $fullname,
-                        'createdby'=> $fullname, 
-                    ]
-                );
+                    // (opsional) detail jadi R
+                    // TrIssuedetail::where('issueid', $issue->issueid)->update(['status' => 'R']);
 
-                // simpan komentar (jika ada)
-                try {
-                    app('App\Http\Controllers\SendCommentController')->sendmsg($issue->id, 'IS', request());
-                } catch (\Throwable $e) {}
+                    // 3) Notif requester
+                    app(\App\Http\Controllers\ApprovalController::class)->notifyRequesterOnStatus(
+                        $issue->issueid,
+                        'Issue',
+                        'R',
+                        $issue->created_by,
+                        $docUrl,
+                        [
+                            'cpnyid'   => $issue->cpny_id ?? $issue->cpnyid ?? '',
+                            'deptname' => $issue->department_id ?? $issue->departementid ?? '',
+                            'date'     => $now->toDateString(),
+                            'info'     => $issue->issuenote,
+                            'fullname' => $fullname,
+                            'name'     => $fullname,
+                            'createdby'=> $fullname,
+                        ]
+                    );
+
+                    // 4) Simpan komentar (jika ada)
+                    try {
+                        app('App\Http\Controllers\SendCommentController')->sendmsg($issue->id, 'IS', request());
+                    } catch (\Throwable $e) {}
+                });
             }
         );
 
@@ -1168,12 +1175,13 @@ class IssueController extends Controller
         return response()->json(['success'=>true,'message'=>'Issue rejected successfully']);
     }
 
+
     public function reviseIssue(Request $request, $docid)
     {
         $user    = $request->user();
         $doctype = 'IS';
 
-        $issue = \App\Models\TrIssue::with('creator')->where('issueid', $docid)->first();
+        $issue = TrIssue::with('creator')->where('issueid', $docid)->first();
         if (!$issue) return response()->json(['success'=>false,'message'=>'Issue not found'],404);
 
         $eid      = \Vinkla\Hashids\Facades\Hashids::encode($issue->id);
@@ -1181,43 +1189,48 @@ class IssueController extends Controller
         $fullname = data_get($issue, 'creator.name') ?: $issue->created_by;
 
         $result = app(\App\Http\Controllers\ApprovalController::class)->reviseStep(
-            $issue->issueid,            // refnbr
-            $doctype,                 // PT
-            $user->username,          // actor
-            $user->name,              // actor
-            function (string $refnbr, \Carbon\Carbon $now) use ($issue, $fullname, $docUrl) {
-                // === HEADER Issue -> D ===
-                $issue->status       = 'D';
-                $issue->completed_by = auth()->user()->username;
-                $issue->completed_at = $now;
-                $issue->save();
+            $issue->issueid,
+            $doctype,
+            $user->username,
+            $user->name,
 
-                // (opsional) DETAIL -> D
-                // \App\Models\TrIssuedetail::where('issueid', $issue->issueid)->update(['status' => 'D']);
+            function (string $refnbr, \Carbon\Carbon $now) use ($issue, $fullname, $docUrl, $user) {
+                DB::transaction(function () use ($issue, $fullname, $docUrl, $now, $user) {
+                    // 1) Rollback qty ke SPB
+                    $this->rollbackIssuePostingToSpb($issue, $user, $now);
 
-                // === Email ke requester ===
-                app(\App\Http\Controllers\ApprovalController::class)->notifyRequesterOnStatus(
-                    $issue->issueid,
-                    'Issue',
-                    'D',
-                    $issue->created_by,
-                    $docUrl,
-                    [
-                        'cpnyid'   => $issue->cpny_id ?? $issue->cpnyid ?? '',
-                        'deptname' => $issue->department_id ?? $issue->departementid ?? '',
-                        'date'     => $now->toDateString(),
-                        'info'     => $issue->keperluan,
-                        'fullname' => $fullname,
-                        'name'     => $fullname,
-                        'createdby'=> $fullname,   // <<< tambahkan ini
-                    ]
-                );
+                    // 2) HEADER Issue -> D
+                    $issue->status       = 'D';
+                    $issue->completed_by = $user->username ?? auth()->user()->username;
+                    $issue->completed_at = $now;
+                    $issue->save();
 
+                    // (opsional) DETAIL -> D
+                    // TrIssuedetail::where('issueid', $issue->issueid)->update(['status' => 'D']);
 
-                // === Simpan komentar (jika ada) ===
-                try {
-                    app('App\Http\Controllers\SendCommentController')->sendmsg($issue->id, 'IS', request());
-                } catch (\Throwable $e) {}
+                    // 3) Email ke requester
+                    app(\App\Http\Controllers\ApprovalController::class)->notifyRequesterOnStatus(
+                        $issue->issueid,
+                        'Issue',
+                        'D',
+                        $issue->created_by,
+                        $docUrl,
+                        [
+                            'cpnyid'   => $issue->cpny_id ?? $issue->cpnyid ?? '',
+                            'deptname' => $issue->department_id ?? $issue->departementid ?? '',
+                            'date'     => $now->toDateString(),
+                            'info'     => $issue->issuenote,
+                            'fullname' => $fullname,
+                            'name'     => $fullname,
+                            'createdby'=> $fullname,
+                        ]
+                    );
+
+                    // 4) Simpan komentar (jika ada)
+                    try {
+                        app('App\Http\Controllers\SendCommentController')->sendmsg($issue->id, 'IS', request());
+                    } catch (\Throwable $e) {}
+                });
             }
         );
 
@@ -1230,6 +1243,7 @@ class IssueController extends Controller
 
         return response()->json(['success'=>true,'message'=>'Issue revised successfully']);
     }
+
 
     protected function applyIssuePostingToSpb(TrIssue $issue, Collection $issueDetails, User $user, Carbon $now): void
     {
