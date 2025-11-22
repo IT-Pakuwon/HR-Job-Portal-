@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+use App\Models\Autonbr;
 use App\Models\User;
 use App\Models\TrPO;
 use App\Models\TrPOdetail;
@@ -30,7 +31,7 @@ use Google\Cloud\Storage\StorageClient;
 use Illuminate\Support\Str;
 use App\Models\MsTopdetail;
 use App\Models\TrPOterm;
-
+use App\Models\TrRfca;
 
 class PoController extends Controller
 {
@@ -231,7 +232,12 @@ class PoController extends Controller
             $po->status = 'P';
             $po->save();
 
+            // 1. Sync term dari TOP
             $this->syncPoTermsFromTop($po);
+
+            // 2. Generate RFCA dari term DP
+            $this->generateRfcaFromPo($po);
+
         });
 
         return response()->json([
@@ -1150,6 +1156,100 @@ class PoController extends Controller
                 'status'        => 'A',
                 'created_by'    => $username,
                 'updated_by'    => $username,
+            ]);
+        }
+    }
+
+    private function generateRfcaFromPo(TrPO $po): void
+    {
+        // Ambil semua term DP pada PO ini
+        $dpTerms = TrPOterm::where('ponbr', $po->ponbr)
+            ->where('terms_type', 'DP')
+            ->orderBy('order_term')
+            ->get();
+
+        if ($dpTerms->isEmpty()) {
+            return;
+        }
+
+        $now      = Carbon::now();
+        $year     = (int) $now->format('Y');
+        $month    = $now->format('m');
+        $doctype  = 'RC'; // kode dokumen RFCA (mengikuti konvensi yang sudah ada)
+        $user     = Auth::user();
+        $username = $user->username ?? 'system';
+
+        foreach ($dpTerms as $term) {
+
+            // === Generate nomor RFCA (rfcaid) pakai tabel autonbr, lockForUpdate ===
+            $autonbr = Autonbr::lockForUpdate()
+                ->where('doctype', $doctype)
+                ->where('year', $year)
+                ->where('month', $month)
+                ->first();
+
+            if (!$autonbr) {
+                $autonbr = Autonbr::create([
+                    'doctype' => $doctype,
+                    'year'    => $year,
+                    'month'   => $month,
+                    'status'  => 'A',
+                    'number'  => 1,
+                ]);
+                $urutan = 1;
+            } else {
+                $urutan = (int) $autonbr->number + 1;
+                $autonbr->update(['number' => $urutan]);
+            }
+
+            $tglbln = substr((string) $year, 2) . $month;      // YYMM
+            $docid  = $doctype . $tglbln . sprintf("%04d", $urutan);
+            $rfcaid = $docid;
+
+            // Nominal: pakai data dari term PO
+            $poAmount    = $term->poamount ?? ($po->grandtotalamt ?? 0);
+            $rfcaAmount  = $term->bastamount ?? 0;  // utk DP biasanya = payment_pct * total PO
+
+            TrRfca::create([
+                'rfcaid'          => $rfcaid,
+                'rfcadate'        => $now,                 // tanggal RFCA = sekarang
+                'ponbr'           => $po->ponbr,
+                'cpny_id'         => $po->cpny_id,
+                'csid'            => $po->csid,
+                'sppbjktid'       => $po->sppbjktid,
+                'department_id'   => $po->department_id,
+                'user_peminta'    => $po->user_peminta,
+                'keperluan'       => $po->keperluan,
+
+                'order_term'      => $term->order_term,
+                'terms_id'        => $term->terms_id,
+                'topid'           => $term->topid,
+                'payment_pct'     => $term->payment_pct,
+
+                'vendorid'        => $po->vendorid,
+                'vendorname'      => $po->vendorname,
+
+                'po_amount'       => $poAmount,
+                'rfca_amount'     => $rfcaAmount,
+
+                // Untuk RFCA pertama, previous info dikosongkan dulu
+                'prev_rfcaid'       => null,
+                'prev_ponbr'        => null,
+                'prev_csid'         => null,
+                'prev_rfca_amount'  => 0,
+                'add_rfca_amount'   => 0,
+
+                'required_date'   => $now->copy()->addDays(9),   
+                'calr_date'       => null,
+
+                'status'          => 'A',    
+                'rfca_type'       => '', 
+                'rfca_step_order' => null,
+                'rfca_step_id'    => null,
+                'status_rfca'     => null,   
+
+                'created_by'      => $username,
+                'updated_by'      => $username,
             ]);
         }
     }

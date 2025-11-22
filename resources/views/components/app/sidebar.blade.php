@@ -955,6 +955,46 @@
                                     </div>
                                 </a>
                             </li>
+                            <li
+                                class="bg-linear-to-r @if (in_array(Request::segment(1), ['rfcalist', 'showrfca', 'editrfcas', 'rfca', 'pdf_rfca', 'pdf_rfca_vendor'])) {{ 'from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]' }} @endif mb-0.5 rounded-lg py-2 pl-4 pr-3 last:mb-0">
+                                <a class="@if (!in_array(Request::segment(1), ['rfcalist', 'showrfca', 'editrfcas', 'rfca', 'pdf_rfca', 'pdf_rfca_vendor'])) {{ 'hover:text-gray-900 dark:hover:text-white' }} @endif block truncate text-gray-800 transition dark:text-gray-100"
+                                    href="{{ route('rfcalist') }}">
+                                    <div class="flex items-center">
+                                        <svg class="{{ in_array(Request::segment(1), ['rfcalist', 'showrfca', 'editrfcas', 'rfca', 'pdf_rfca', 'pdf_rfca_vendor'])
+                                            ? 'text-violet-500'
+                                            : 'text-gray-400 dark:text-gray-500' }} shrink-0"
+                                            xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                            stroke-width="1.5" stroke="currentColor" width="16" height="16">
+                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                d="M9 12l2 2 4-4m2-3H7a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2z" />
+                                        </svg>
+
+                                        <span
+                                            class="lg:sidebar-expanded:opacity-100 text-m ml-4 font-medium duration-200 lg:opacity-0 2xl:opacity-100">RFCA
+                                            List</span>
+                                    </div>
+                                </a>
+                            </li>
+                            <li
+                                class="bg-linear-to-r @if (in_array(Request::segment(1), ['calrlist', 'showcalr', 'editcalrs', 'calr', 'pdf_calr', 'pdf_calr_vendor'])) {{ 'from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]' }} @endif mb-0.5 rounded-lg py-2 pl-4 pr-3 last:mb-0">
+                                <a class="@if (!in_array(Request::segment(1), ['calrlist', 'showcalr', 'editcalrs', 'calr', 'pdf_calr', 'pdf_calr_vendor'])) {{ 'hover:text-gray-900 dark:hover:text-white' }} @endif block truncate text-gray-800 transition dark:text-gray-100"
+                                    href="{{ route('calrlist') }}">
+                                    <div class="flex items-center">
+                                        <svg class="{{ in_array(Request::segment(1), ['calrlist', 'showcalr', 'editcalrs', 'calr', 'pdf_calr', 'pdf_calr_vendor'])
+                                            ? 'text-violet-500'
+                                            : 'text-gray-400 dark:text-gray-500' }} shrink-0"
+                                            xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                            stroke-width="1.5" stroke="currentColor" width="16" height="16">
+                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                d="M9 12l2 2 4-4m2-3H7a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2z" />
+                                        </svg>
+
+                                        <span
+                                            class="lg:sidebar-expanded:opacity-100 text-m ml-4 font-medium duration-200 lg:opacity-0 2xl:opacity-100">CALR
+                                            List</span>
+                                    </div>
+                                </a>
+                            </li>
                         @endif
                     @endauth
                 </ul>

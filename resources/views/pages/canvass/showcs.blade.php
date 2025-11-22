@@ -245,22 +245,25 @@
                                     'value' => ucwords(strtolower(optional($srcHeader->purchaser)->name)),
                                 ],
                             ];
+                            if (in_array($prefix, ['PJ', 'PT'], true) && !empty($cs?->bqid)) {
 
-                            if ($cs->bqid) {
-                                $bqUrl  = route('bqcs.show', $eid_bq);
+                                // pakai bqid yang benar dari $cs
+                                $bqUrl = route('bqcs.show', $cs->bqid);
+
                                 $bqLink = '<a href="' . e($bqUrl) . '" 
                                                 target="_blank"
                                                 class="inline-flex items-center gap-1 text-sm font-semibold text-indigo-600 hover:underline dark:text-indigo-400">'
-                                            . e($srcHeader->bqid) .
+                                            . e($cs->bqid) .
                                         '</a>';
 
                                 $fields[] = [
                                     'icon'   => 'hashtag',
                                     'label'  => 'BQ ID',
                                     'value'  => $bqLink,
-                                    'is_raw' => true, // <-- ini yang penting
+                                    'is_raw' => true,
                                 ];
                             }
+
 
 
 

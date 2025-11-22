@@ -34,128 +34,7 @@ use Illuminate\Support\Collection;
 
 class IssueController extends Controller
 {
-    public function createIssue(Request $req) 
-    {
-        // dd($req->all());
-        // Ambil spbid (plain) dari query
-        $spbid = (string) $req->query('spbid', '');
-        $id = Hashids::decode($spbid);
-        abort_if($id === '', 404, 'SPB ID required');
         
-        // --- Ambil header SPB ---
-        $spb = TrSPB::select([
-                'id','spbid','spbdate','cpny_id','department_id','keperluan'
-            ])
-            ->where('id', $id)
-            ->first();
-
-        abort_if(!$spb, 404, 'SPB not found');
-
-        // =============================================
-        // Recalculate total qty di header + status
-        // =============================================
-        $this->recalcSpbHeaderAndStatus($spb->spbid);
-
-
-        // =============================================
-        // Ambil detail SPB sesuai struktur baru
-        // qty_sisa = qty - issue_qty + return_qty
-        // =============================================
-        $details = TrSPBdetail::select([
-                'id',
-                'spbid',
-                'spb_no',
-                'inventoryid',
-                'inventory_descr',
-                'siteid',
-                DB::raw("COALESCE(uom,'') AS uom"),
-                DB::raw("COALESCE(qty,0) AS qty_original"),
-                DB::raw("COALESCE(issue_qty,0) AS qty_issued"),
-                DB::raw("COALESCE(return_qty,0) AS qty_returned"),
-                DB::raw("(COALESCE(qty,0) - COALESCE(issue_qty,0) + COALESCE(return_qty,0)) AS qty_sisa")
-            ])
-            ->where('spbid', $spb->spbid)
-            ->orderBy('id')
-            ->get()
-            ->filter(fn($r) => (float)$r->qty_sisa > 0) // hanya yg masih ada sisa issue
-            ->map(function ($r) {
-                // kolom qty untuk form issue
-                $r->qty = (float) $r->qty_sisa;
-                return $r;
-            })
-            ->values();
-
-
-        // =============================================
-        // attachments masih kosong
-        // =============================================
-        $attachments = [];
-
-
-        // =============================================
-        // Kirim ke view
-        // =============================================
-        return view('pages.issue.createissue', [
-            'spb'         => $spb->fresh(), // ambil data terbaru setelah recalc
-            'details'     => $details,
-            'attachments' => $attachments,
-        ]);
-    }
-
-    protected function recalcSpbHeaderAndStatus(string $spbid): void
-    {
-        $spb = TrSPB::where('spbid', $spbid)->first();
-        if (!$spb) return;
-
-        $agg = TrSPBdetail::where('spbid', $spbid)
-            ->selectRaw('
-                COALESCE(SUM(qty),0)         AS total_spbqty,
-                COALESCE(SUM(issue_qty),0)   AS total_issueqty,
-                COALESCE(SUM(return_qty),0)  AS total_returnqty,
-                COALESCE(SUM(sppb_qty),0)    AS total_sppbqty
-            ')
-            ->first();
-
-        $spb->totalspbqty    = (float) $agg->total_spbqty;
-        $spb->totalissueqty  = (float) $agg->total_issueqty;
-        $spb->totalreturnqty = (float) $agg->total_returnqty;
-        $spb->totalsppbqty   = (float) $agg->total_sppbqty;
-
-        // update status juga
-        $this->updateSpbStatusFlags($spb);
-    }
-
-    protected function updateSpbStatusFlags(TrSPB $spb)
-    {
-        $spbqty   = (float) ($spb->totalspbqty ?? 0);
-        $issueQty = (float) ($spb->totalissueqty ?? 0);
-        $sppbQty  = (float) ($spb->totalsppbqty ?? 0);
-
-        // --- status_issue ---
-        if ($issueQty <= 0) {
-            $statusIssue = 'Open';
-        } elseif ($issueQty >= $spbqty) {
-            $statusIssue = 'Completed';
-        } else {
-            $statusIssue = 'Partial';
-        }
-
-        // --- status_sppb ---
-        if ($sppbQty <= 0) {
-            $statusSppb = 'Open';
-        } elseif ($sppbQty >= $spbqty) {
-            $statusSppb = 'Full';
-        } else {
-            $statusSppb = 'Partial';
-        }
-
-        $spb->status_issue = $statusIssue;
-        $spb->status_sppb  = $statusSppb;
-        $spb->save();
-    }
-
-
-    
     public function storeIssue(Request $request)
     {
         // dd($request->all());
@@ -584,35 +463,33 @@ class IssueController extends Controller
         ]);
     }
 
-    public function updateIssue(Request $request, $hash)
+   public function updateIssue(Request $request, $hash) 
     {
         // dd($request->all());
-        $now  = Carbon::now();
-        $user = $request->user();
+        $now      = Carbon::now();
+        $user     = $request->user();
         $username = $user->username ?? 'system';
 
         // ===== Temukan Issue by hash (eid) atau fallback ke issueid langsung =====
-        $ids = Hashids::decode($hash);
-        
+        $ids = \Vinkla\Hashids\Facades\Hashids::decode($hash);
+
         if (!empty($ids)) {
-            // $iss = TrIssue::with('details')->find($ids[0]);
-            $iss = TrIssue::find($ids[0]);
+            $iss = TrIssue::where('id', $ids[0])->first();
         } else {
             // fallback: jika {hash} ternyata issueid
-            // $iss = TrIssue::with('details')->where('issueid', $hash)->first();
-            $detailRows = TrIssuedetail::where('issueid', $iss->issueid)->get()->keyBy('id');
+            $iss = TrIssue::where('issueid', $hash)->first();
         }
 
         if (!$iss) {
             return response()->json(['message' => 'Issue not found'], 404);
         }
 
-        // Batasan: hanya creator yang boleh update saat status revise (D) — opsional
+        // Batasan: hanya creator yang boleh update saat status revise (D)
         if (strtoupper((string)$iss->status) !== 'D' || (string)$iss->created_by !== (string)$username) {
             return response()->json(['message' => "You can't update this document"], 403);
         }
 
-        // ===== Ambil SPB header & detail untuk validasi (TANPA update) =====
+        // ===== Ambil SPB header & detail untuk validasi (TANPA update dulu) =====
         $spbid = $iss->spbid;
         if (!$spbid) {
             return response()->json(['message' => 'SPB not found on Issue'], 422);
@@ -625,144 +502,184 @@ class IssueController extends Controller
         }
 
         /** @var \Illuminate\Support\Collection|TrSPBdetail[] $spbDetails */
-        $spbDetails = TrSPBdetail::where('spbid', $spbid)->get()->keyBy('inventoryid'); // key by inventoryid untuk cocokkan
+        $spbDetails = TrSPBdetail::where('spbid', $spbid)->get();
 
-        // ===== Input arrays =====
-        $qtyIssueInput = (array) $request->input('qty_issue', []); // key = detail id (TrIssuedetail.id)
-        $siteInput     = (array) $request->input('siteid',    []); // key = detail id
+        // ===== Ambil detail ISSUE yang ada sekarang (keyBy id detail issue) =====
+        /** @var \Illuminate\Support\Collection|TrIssuedetail[] $issDetails */
+        $issDetails = TrIssuedetail::where('issueid', $iss->issueid)->get()->keyBy('id');
 
-        // Minimal satu baris terisi (boleh 0, tapi harus ada kunci)
-        if (count($qtyIssueInput) === 0) {
-            return response()->json(['message' => 'Tidak ada qty yang dikirim.'], 422);
+        // ===== Ambil input sama seperti di form editIssue =====
+        // DIHARAPKAN: name="qty_issue[{{ $issue_detail_id }}]"
+        $qtyIssueInput    = (array) $request->input('qty_issue', []);        // [issue_detail_id => qty]
+        $siteInput        = (array) $request->input('siteid',    []);        // [issue_detail_id => siteid]
+        $noteDetailsInput = (array) $request->input('issuenote_detail', []); // [issue_detail_id => note]
+
+        // Minimal satu baris >= 0 (boleh 0 tapi harus ada baris)
+        $hasAnyQty = false;
+        foreach ($qtyIssueInput as $k => $v) {
+            $qty = (float) str_replace(',', '.', (string)$v);
+            if ($qty >= 0) { $hasAnyQty = true; break; }
+        }
+        if (!$hasAnyQty) {
+            return response()->json(['message' => 'Qty Issue minimal satu baris harus diisi (boleh 0).'], 422);
         }
 
-        // ===== Validasi per-baris:
-        // qty_edit >= 0 dan qty_edit <= (spb_openqty + qty_lama_di_issue_baris_ini)
-        // agar tidak melampaui sisa SPB ketika di-post saat approve final.
-        // $detailRows = $iss->details()->get()->keyBy('id'); // TrIssuedetail keyed by its id (from form)
-        $detailRows = TrIssuedetail::where('issueid', $iss->issueid)->get()->keyBy('id');
+        // ===== VALIDASI per baris terhadap SPB =====
         foreach ($qtyIssueInput as $detailId => $v) {
-            $qtyNew = (float) str_replace(',', '.', (string)$v);
-            if ($qtyNew < 0) {
-                return response()->json(['message' => "Qty Issue untuk detail {$detailId} tidak boleh negatif."], 422);
-            }
+            $qty = (float) str_replace(',', '.', (string)$v);
+            if ($qty <= 0) continue;
 
             /** @var TrIssuedetail|null $det */
-            $det = $detailRows->get((int)$detailId);
+            $det = $issDetails->get((int)$detailId);
             if (!$det) {
                 return response()->json(['message' => "Detail Issue (ID: {$detailId}) tidak ditemukan."], 422);
             }
 
-            // Cocokkan ke SPB detail by inventory (lebih aman; bisa juga pakai linkage lain jika ada)
-            $spbDet = $spbDetails->get($det->inventoryid);
-            if (!$spbDet) {
-                return response()->json(['message' => "SPB Detail untuk item {$det->inventoryid} tidak ditemukan."], 422);
+            // Cari pasangan SPB detail berdasarkan inventory + uom
+            /** @var TrSPBdetail|null $src */
+            $src = $spbDetails->first(function ($row) use ($det) {
+                return (string)$row->inventoryid === (string)$det->inventoryid
+                    && (string)$row->uom === (string)$det->uom;
+            });
+
+            if (!$src) {
+                return response()->json([
+                    'message' => "Tidak bisa menemukan pasangan SPB untuk item {$det->inventoryid} (UOM {$det->uom})."
+                ], 422);
             }
 
-            $openSpb  = (float) ($spbDet->spb_openqty ?? 0);
-            $oldQty   = (float) ($det->issue_qty ?? 0);
-            $ceiling  = $openSpb + $oldQty; // batas maksimum revisi saat ini
+            $spbQty   = (float) ($src->qty ?? 0);
+            $issued   = (float) ($src->issue_qty ?? 0);
+            $returned = (float) ($src->return_qty ?? 0);
 
-            if ($qtyNew > $ceiling + 1e-9) {
+            // open untuk ISSUE = qty - issue_qty + return_qty
+            $open = $spbQty - $issued + $returned;
+            if ($open < 0) $open = 0;
+
+            if ($qty > $open + 1e-9) {
                 return response()->json([
-                    'message' => "Qty Issue item {$det->inventoryid} melebihi sisa open SPB ({$openSpb}) + qty saat ini ({$oldQty}). Maks: {$ceiling}"
+                    'message' => "Qty Issue untuk item {$src->inventoryid} melebihi sisa open ({$open})."
                 ], 422);
             }
         }
 
-        // ===== Siapkan approval line yg aktif untuk dokumen ini (akan direset) =====
-        $doctype = 'IS'; // pertahankan issuetype (IS/RI)
-        $cpnyid  = $iss->cpny_id;
-        // $deptid  = $iss->department_id;
+        // ===== Siapkan info approval line =====
+        $doctype = 'IS'; // issuetype Issue
+        $cpnyid  = $spb->cpny_id ?? $iss->cpny_id;
         $deptid  = 'WAREHOUSE';
 
-       
-        // ===== Approval controller =====
         $approvalCtl = app(\App\Http\Controllers\ApprovalController::class);
         $approvalCtl->loadLines($doctype, $cpnyid, $deptid);
 
-
         // ====== EXEC UPDATE DALAM TRANSAKSI ======
-        return DB::connection('pgsql')->transaction(function () use (
-            $request, $now, $iss, $spb, $detailRows, $qtyIssueInput, $siteInput, $doctype, $cpnyid, $deptid, $username
+        return \DB::connection('pgsql')->transaction(function () use (
+            $request,
+            $now,
+            $user,
+            $iss,
+            $spb,
+            $spbid,
+            $spbDetails,
+            $issDetails,
+            $qtyIssueInput,
+            $siteInput,
+            $noteDetailsInput,
+            $doctype,
+            $cpnyid,
+            $deptid,
+            $username,
+            $approvalCtl
         ) {
             $issueid = $iss->issueid;
 
-            // === Update tiap baris TrIssuedetail (qty + optional site) ===
-            $totalIssueQty = 0.0;
+            // (Opsional) bisa rollback dulu ke SPB di tempat lain sebelum status D,
+            // di sini kita anggap SPB sudah "bersih" dari issue ini.
 
-            foreach ($detailRows as $detId => $det) {
-                // Jika baris tidak dikirim di form (mis. di-hide), pertahankan qty lama
-                $qtyNew = array_key_exists($detId, $qtyIssueInput)
-                    ? (float) str_replace(',', '.', (string)$qtyIssueInput[$detId])
-                    : (float) ($det->issue_qty ?? 0);
+            $totalIssueQty  = 0.0;
+            $grandTotalCost = 0.0;
+            $createdDetails = collect();
 
-                // Normalisasi minimal 0
-                if ($qtyNew < 0) $qtyNew = 0;
+            /** @var TrIssuedetail $det */
+            foreach ($issDetails as $detailId => $det) {
+                // qty baru dari form; jika tidak ada di form, pakai qty lama
+                $qtyRecRaw = $qtyIssueInput[$detailId] ?? $det->issue_qty ?? 0;
+                $qtyIssue  = (float) str_replace(',', '.', (string)$qtyRecRaw);
+                if ($qtyIssue < 0) $qtyIssue = 0;
 
-                // Site baru (jika ada)
-                $newSite = null;
-                if (array_key_exists($detId, $siteInput)) {
-                    $newSite = trim((string)$siteInput[$detId]);
-                    if ($newSite === '') $newSite = null;
+                $siteFromForm = isset($siteInput[$detailId]) ? trim((string)$siteInput[$detailId]) : null;
+                $noteFromForm = $noteDetailsInput[$detailId] ?? null;
+
+                // Cari pasangan SPB detail dari inventory + uom
+                $src = $spbDetails->first(function ($row) use ($det) {
+                    return (string)$row->inventoryid === (string)$det->inventoryid
+                        && (string)$row->uom === (string)$det->uom;
+                });
+
+                // Kalau tidak ketemu (harusnya sudah dicek di atas), skip saja
+                if (!$src) {
+                    continue;
                 }
 
-                // Update fields yang diperlukan saja
-                $det->issue_qty       = $qtyNew;
-                $det->qty             = $qtyNew;
-                $det->base_qty        = $qtyNew;
-                if (!is_null($newSite)) {
-                    $det->siteid = $newSite;
+                $unitCost = (float) ($src->unitcost ?? $det->unitcost ?? 0);
+                $baseMult = $src->base_multiplier ?? $det->base_multiplier ?? 1;
+
+                $lineCost = $unitCost * $qtyIssue;
+
+                // Update detail issue
+                $det->spbid           = $spbid;
+                $det->spb_no          = $src->spb_no ?? $det->spb_no;
+
+                $det->qty             = $qtyIssue;
+                $det->issue_qty       = $qtyIssue;
+                $det->uom             = $src->uom ?? $det->uom;
+
+                $det->base_multiplier = $baseMult;
+                $det->base_qty        = $qtyIssue * $baseMult;
+                $det->base_uom        = $src->base_uom ?? $det->base_uom ?? $det->uom;
+
+                $det->unitcost        = $unitCost;
+                $det->totalcost       = $lineCost;
+
+                if (!is_null($siteFromForm) && $siteFromForm !== '') {
+                    $det->siteid = $siteFromForm;
                 }
-                // status detail tetap P (menunggu approve setelah revise)
-                $det->status          = 'P';
-                $det->updated_by      = $username;
-                $det->updated_at      = $now;
+
+                $det->issuenote_detail = $noteFromForm;
+
+                $det->status      = 'P';
+                $det->updated_by  = $username;
+                $det->updated_at  = $now;
                 $det->save();
 
-                $totalIssueQty += $qtyNew;
+                if ($qtyIssue > 0) {
+                    $createdDetails->push($det);
+                    $totalIssueQty  += $qtyIssue;
+                    $grandTotalCost += $lineCost;
+                }
             }
 
-            if ($totalIssueQty < 0) {
-                throw new \RuntimeException('Total qty tidak valid.');
+            if ($totalIssueQty <= 0) {
+                throw new \RuntimeException('Qty Issue minimal satu baris harus > 0.');
             }
 
-            // === Update header minimal: total, status kembali ke P, cap "last edited" ===
-            $iss->totalissueqty = $totalIssueQty;
-            $iss->status        = 'P';              // kembali ke Waiting Approval setelah revise
-            $iss->completed_by  = null;
-            $iss->completed_at  = null;
-            $iss->updated_by    = $username;
-            $iss->updated_at    = $now;
+            // 3) UPDATE HEADER Issue
+            $iss->issuenote            = (string) $request->input('issuenote', '');
+            $iss->grandtotalcost       = $grandTotalCost;
+            $iss->totalissueqty        = $totalIssueQty;
+            $iss->totalreturnissueqty  = 0;
+            $iss->status               = 'P';      // kembali ke Waiting Approval
+            $iss->completed_by         = null;
+            $iss->completed_at         = null;
+            $iss->updated_by           = $username;
+            $iss->updated_at           = $now;
             $iss->save();
 
-            
-            // $datestamp = $now->toDateTimeString();
-            // $approvals = M_approval::where([
-            //     ['status',      '=', 'A'],
-            //     ['aprvcpnyid',  '=', $cpnyid],
-            //     ['aprvdeptid',  '=', $deptid],
-            //     ['aprvdoctype', '=', $doctype],
-            // ])->orderBy('aprvid')->get();
+            // 4) POSTING KE SPB LAGI BERDASARKAN DETAIL BARU
+            $this->applyIssuePostingToSpb($iss, $createdDetails, $user, $now);
 
-            // foreach ($approvals as $a) {
-            //     T_approval::create([
-            //         'docid'          => $issueid,
-            //         'aprvid'         => $a->aprvid,
-            //         'aprvdoctype'    => $a->aprvdoctype,
-            //         'aprvcpnyid'     => $a->aprvcpnyid,
-            //         'aprvdeptid'     => $a->aprvdeptid,
-            //         'aprvusername'   => $a->aprvusername,
-            //         'name'           => $a->name,
-            //         'aprvdatebefore' => $a->aprvid == 1 ? $datestamp : null,
-            //         'aprvtotalday'   => 1,
-            //         'status'         => 'P',
-            //         'created_by'     => $username,
-            //     ]);
-            // }
-
-            // Generate TrApproval (GR tidak cek nominal)
+            // 5) Regenerate approval line untuk Issue revisi ini
             $ctx = ['ignore_nominal' => true];
+
             [$firstApprovalUsernames, $linesCount] = $approvalCtl->generateForDocument(
                 $issueid,
                 $doctype,
@@ -779,8 +696,7 @@ class IssueController extends Controller
                 $iss->save();
             }
 
-
-            // === Attachment baru (opsional) ===
+            // 6) Attachment baru (opsional)
             if ($request->hasFile('attachments')) {
                 $meta = [
                     'refnbr'        => $issueid,
@@ -795,45 +711,7 @@ class IssueController extends Controller
                 $uploader->uploadInternal($meta, $files);
             }
 
-            // // === Email ke approver pertama ===
-            // $firstApproval = T_approval::where('docid', $issueid)
-            //     ->where('status', 'P')->orderBy('aprvid')->first();
-
-            // if ($firstApproval) {
-            //     $status     = $iss->status; // 'P'
-            //     $subjectMap = ['P'=>'Waiting Approval','R'=>'Rejected Approval','D'=>'Revise Approval','A'=>'Approved','C'=>'Completed'];
-            //     $eid        = Hashids::encode($iss->id);
-
-            //     $data = [
-            //         'docid'     => $firstApproval->docid,
-            //         'cpnyid'    => $firstApproval->aprvcpnyid,
-            //         'deptname'  => $firstApproval->aprvdeptid,
-            //         'date'      => $firstApproval->aprvdatebefore,
-            //         'name'      => $firstApproval->name,
-            //         'createdby' => $iss->created_by,
-            //         'info'      => 'Revised by user '.$username,
-            //         'status'    => $status,
-            //         'docname'   => 'Issue',
-            //         'url'       => url('/showissue/' . $eid),
-            //     ];
-
-            //     $approvers = array_filter(array_map('trim', explode(',', (string)$firstApproval->aprvusername)));
-            //     $emails    = User::whereIn('username', $approvers)->where('status', 'A')->pluck('test_email');
-
-            //     foreach ($emails as $email) {
-            //         try {
-            //             Mail::send('emails.mailapprovenew', $data, function ($message) use ($email, $data, $subjectMap, $status) {
-            //                 $message->to($email)
-            //                     ->subject($data['docid'].' - '.($subjectMap[$status] ?? 'Notification').' '.$data['docname'])
-            //                     ->from('digitalserver@pakuwon.com', 'Pakuwon System');
-            //             });
-            //         } catch (\Throwable $e) {
-            //             Log::error('Failed sending Issue revised waiting-approval email', ['error' => $e->getMessage()]);
-            //         }
-            //     }
-            // }
-
-            // Email approver pertama
+            // 7) Email / notif approver pertama
             $eid = \Vinkla\Hashids\Facades\Hashids::encode($iss->id);
             $approvalCtl->notifyFirstApprover(
                 $issueid,
@@ -1375,13 +1253,13 @@ class IssueController extends Controller
         }
 
         // ===== status_sppb (Open / Partial / Full) =====
-        if ($totalSppbQty <= 0) {
-            $spb->status_sppb = 'Open';
-        } elseif ($totalSpbQty > 0 && $totalSppbQty >= $totalSpbQty) {
-            $spb->status_sppb = 'Full';
-        } else {
-            $spb->status_sppb = 'Partial';
-        }
+        // if ($totalSppbQty <= 0) {
+        //     $spb->status_sppb = 'Open';
+        // } elseif ($totalSpbQty > 0 && $totalSppbQty >= $totalSpbQty) {
+        //     $spb->status_sppb = 'Full';
+        // } else {
+        //     $spb->status_sppb = 'Partial';
+        // }
 
         // NOTE: status utama SPB (field `status`) tidak disentuh di sini,
         // supaya tetap mewakili lifecycle SPB sendiri (approve/reject, dll).

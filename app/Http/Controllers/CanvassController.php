@@ -1735,11 +1735,16 @@ class CanvassController extends Controller
         }   
        
         $eid_sppbjkt = Hashids::encode($srcHeader->id);
-        $bqcs = TrBQCS::where('bqid', $cs->bqid)           
-            ->first();
-        
-        $eid_bq = Hashids::encode($bqcs->id);
-            
+
+        $eid_bq = null; // <-- tambahkan ini dulu
+
+        if (in_array($prefix, ['PJ', 'PT'], true)) {
+            $bqcs = TrBQCS::where('bqid', $cs->bqid)->first();
+
+            if ($bqcs) {
+                $eid_bq = Hashids::encode($bqcs->id);
+            }
+        }
 
         // ---- susun vendor header: maksimal 6 kolom ----
         $vendors = [];

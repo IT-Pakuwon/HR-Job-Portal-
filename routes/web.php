@@ -65,7 +65,9 @@ use App\Http\Controllers\SendCommentController;
 use App\Http\Controllers\ApprovalController;
 use App\Http\Controllers\BastListController;
 use App\Http\Controllers\BastController;
-
+use App\Http\Controllers\RfcaListController;
+use App\Http\Controllers\CalrListController;
+use App\Http\Controllers\CalrController;
 
 use App\Http\Controllers\CanvassxController;
 
@@ -656,8 +658,7 @@ Route::post('/logout', function () {
     Route::get('/pdf_spbs/{hash}', [SpbController::class, 'printSpb']);
 
     Route::get('/issuelist', [IssueListController::class, 'index'])->name('issuelist');
-    Route::get('/issuelist/json', [IssueListController::class, 'json'])->name('issuelist.json');
-    Route::get('/issue/create', [IssueController::class, 'createIssue'])->name('issue.create');    
+    Route::get('/issuelist/json', [IssueListController::class, 'json'])->name('issuelist.json');        
     Route::post('/issues', [IssueController::class, 'storeIssue'])->name('issue.store'); 
     Route::get('/showissue/{hash}', [IssueController::class, 'showIssue']);     
     // Route::post('/issues/{id}/approve', [IssueController::class, 'approveIssue'])->name('issues.approve');
@@ -678,6 +679,9 @@ Route::post('/logout', function () {
 
     Route::get('/spbjobs', [SpbJobsController::class, 'index'])->name('spbjobs');
     Route::get('/spbjobs/json', [SpbJobsController::class, 'json'])->name('spbjobs.json');
+    Route::get('/issue/create', [SpbJobsController::class, 'createIssue'])->name('issue.create');
+    Route::get('/sppb/create', [SpbJobsController::class, 'createSPPB'])->name('sppb.create');
+    Route::post('/sppb', [SpbJobsController::class, 'storeSPPB'])->name('sppb.store');
 
     Route::get('/imbudgets', [IMBudgetController::class, 'index'])->name('imbudgets');
     Route::get('/imbudgets/json', [IMBudgetController::class, 'json'])->name('imbudgets.json');
@@ -713,6 +717,15 @@ Route::post('/logout', function () {
     Route::get('/pdf_bast_vendor/{hash}', [BastController::class, 'printBastVendor'])->name('basts.printvendor');
 
     Route::get('/bast/{bastid}/ratings', [BastController::class, 'getBastRatings'])->name('bast.ratings');
+
+    Route::get('/rfcalist', [RfcaListController::class, 'index'])->name('rfcalist');
+    Route::get('/rfcalist/json', [RfcaListController::class, 'json'])->name('rfcalist.json');
+    Route::get('/showrfca/{hash}', [RfcaListController::class, 'showRfca']);
+    Route::post('/rfca/{hash}/submit-type', [RfcaListController::class, 'submitType'])->name('rfca.submitType');
+
+
+    Route::get('/calrlist', [CalrListController::class, 'index'])->name('calrlist');
+    Route::get('/calrlist/json', [CalrListController::class, 'json'])->name('calrlist.json');
 
 
     Route::get('/inventory/list', [MasterController::class, 'InventoryList'])->name('inventory.list');

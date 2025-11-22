@@ -35,7 +35,7 @@
                     <div class="w-full rounded-xl bg-white p-6 shadow-md dark:bg-gray-800">
                         <div class="mb-6 border-b border-gray-200 pb-4 dark:border-gray-700">
                             <h2 class="text-xl font-extrabold text-gray-800 dark:text-white">Edit Issue</h2>
-                            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Hanya Qty & Attachment yang dapat diubah.</p>
+                            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400"></p>
                         </div>
 
                         <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
@@ -58,6 +58,18 @@
                                 <label class="block text-sm font-medium text-gray-600 dark:text-gray-300">Company</label>
                                 <input type="text" value="{{ $iss->cpny_id }}" readonly
                                        class="mt-1 w-full rounded-lg border border-gray-300 bg-gray-50 p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200"/>
+                            </div>                           
+                        </div>
+                        <div class="mt-4 grid grid-cols-1 gap-6 md:grid-cols-2">
+                            <div class="flex flex-col gap-2">
+                                <label for="issuenote" class="block text-sm font-medium text-gray-600 dark:text-gray-300">
+                                    Issue Note
+                                </label>
+                                <textarea id="issuenote" name="issuenote" rows="3"
+                                        class="mt-1 w-full rounded-lg border border-gray-300 p-2 text-sm text-gray-800
+                                                focus:border-indigo-500 focus:ring-indigo-500
+                                                dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
+                                        placeholder="Tuliskan catatan issue (opsional)...">{{ old('issuenote', $iss->issuenote) }}</textarea>
                             </div>
                         </div>
                         
@@ -76,52 +88,74 @@
                                 <div class="mt-6 overflow-x-auto">
                                     <table class="min-w-full divide-y divide-gray-200 text-sm dark:divide-gray-700">
                                         <thead class="bg-gray-50 dark:bg-gray-700">
-                                        <tr>
-                                            <th class="px-4 py-2 text-left font-semibold text-gray-600 dark:text-gray-300">Line</th>
-                                            <th class="px-4 py-2 text-left font-semibold text-gray-600 dark:text-gray-300">Inventory ID</th>
-                                            <th class="px-4 py-2 text-left font-semibold text-gray-600 dark:text-gray-300">Description</th>
-                                            <th class="px-4 py-2 text-right font-semibold text-gray-600 dark:text-gray-300">Qty (Current)</th>
-                                            <th class="px-4 py-2 text-center font-semibold text-gray-600 dark:text-gray-300">UoM</th>
-                                            <th class="px-4 py-2 text-right font-semibold text-gray-600 dark:text-gray-300">Qty Edit</th>
-                                            <th class="px-4 py-2 text-left font-semibold text-gray-600 dark:text-gray-300">Site</th>
-                                        </tr>
+                                            <tr>
+                                                <th class="px-4 py-2 text-left font-semibold text-gray-600 dark:text-gray-300">Line</th>
+                                                <th class="px-4 py-2 text-left font-semibold text-gray-600 dark:text-gray-300">Inventory ID</th>
+                                                <th class="px-4 py-2 text-left font-semibold text-gray-600 dark:text-gray-300">Description</th>
+                                                <th class="px-4 py-2 text-right font-semibold text-gray-600 dark:text-gray-300">Qty (Current)</th>
+                                                <th class="px-4 py-2 text-center font-semibold text-gray-600 dark:text-gray-300">UoM</th>
+                                                <th class="px-4 py-2 text-right font-semibold text-gray-600 dark:text-gray-300">Qty Edit</th>
+                                                <th class="px-4 py-2 text-left font-semibold text-gray-600 dark:text-gray-300">Note</th>
+                                                <th class="px-4 py-2 text-left font-semibold text-gray-600 dark:text-gray-300">Site</th>
+                                            </tr>
                                         </thead>
                                         <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
                                         @forelse($issdetail as $d)
-                                            <tr>
-                                                <td class="px-4 py-2">{{ $d->issue_no ?? $loop->iteration }}</td>
-                                                <td class="px-4 py-2">{{ $d->inventoryid }}</td>
-                                                <td class="px-4 py-2">{{ $d->inventory_descr }}</td>
-                                                <td class="px-4 py-2 text-right">{{ number_format((float)($d->issue_qty ?? $d->qty ?? 0), 2) }}</td>
-                                                <td class="px-4 py-2 text-center">{{ $d->uom }}</td>
-                                                <td class="px-4 py-2 text-right">
-                                                    <input type="hidden" name="detail_id[]" value="{{ $d->id }}">
-                                                    <input type="text" name="qty_issue[{{ $d->id }}]"
-                                                           value="{{ rtrim(rtrim(number_format((float)($d->issue_qty ?? 0), 2, '.', ''), '0'), '.') }}"
-                                                           class="qtyIssue w-28 rounded border border-gray-300 p-1 text-right dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
-                                                           inputmode="decimal" autocomplete="off" placeholder="0.00"/>
-                                                </td>
-                                                <td class="px-4 py-2">
-                                                    <select name="siteid[{{ $d->id }}]"
-                                                        class="siteSelect w-40 rounded border border-gray-300 p-1 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
-                                                        data-cpny-id="{{ $iss->cpny_id }}"
-                                                        data-current-site="{{ $d->siteid }}"
-                                                        data-loaded="0"
-                                                        aria-label="Select site for {{ $d->inventoryid }}">
-                                                        @if ($d->siteid)
-                                                            <option value="{{ $d->siteid }}" selected>{{ $d->siteid }}</option>
-                                                        @else
-                                                            <option value="" selected disabled>Select site…</option>
-                                                        @endif
-                                                    </select>
-                                                </td>
+                                                @php
+                                                    // pastikan punya id detail SPB; sesuaikan nama field jika beda
+                                                    $spbDetailId = $d->id ?? null;
+                                                @endphp
+                                                <tr>
+                                                    <td class="px-4 py-2">{{ $d->issue_no ?? $loop->iteration }}</td>
+                                                    <td class="px-4 py-2">{{ $d->inventoryid }}</td>
+                                                    <td class="px-4 py-2">{{ $d->inventory_descr }}</td>
+                                                    <td class="px-4 py-2 text-right">
+                                                        {{ number_format((float)($d->issue_qty ?? $d->qty ?? 0), 2) }}
+                                                    </td>
+                                                    <td class="px-4 py-2 text-center">{{ $d->uom }}</td>
 
-                                            </tr>
-                                        @empty
-                                            <tr>
-                                                <td colspan="7" class="px-4 py-4 text-center text-gray-500">No issue detail</td>
-                                            </tr>
-                                        @endforelse
+                                                    {{-- Qty Edit: index pakai ID detail SPB, sama seperti createIssue --}}
+                                                    <td class="px-4 py-2 text-right">
+                                                        <input type="hidden" name="detail_id[]" value="{{ $spbDetailId }}">
+                                                        <input type="text"
+                                                            name="qty_issue[{{ $spbDetailId }}]"
+                                                            value="{{ rtrim(rtrim(number_format((float)($d->issue_qty ?? 0), 2, '.', ''), '0'), '.') }}"
+                                                            class="qtyIssue w-28 rounded border border-gray-300 p-1 text-right dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
+                                                            inputmode="decimal" autocomplete="off" placeholder="0.00"/>
+                                                    </td>
+
+                                                    {{-- Note per detail: issuenote_detail[...] (sama seperti createIssue) --}}
+                                                    <td class="px-4 py-2">
+                                                        <input type="text"
+                                                            name="issuenote_detail[{{ $spbDetailId }}]"
+                                                            value="{{ old('issuenote_detail.' . $spbDetailId, $d->issuenote_detail) }}"
+                                                            class="w-full rounded border border-gray-300 p-1 text-sm
+                                                                    dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
+                                                            placeholder="Catatan detail (opsional)">
+                                                    </td>
+
+                                                    {{-- Site: index pakai ID detail SPB juga --}}
+                                                    <td class="px-4 py-2">
+                                                        <select name="siteid[{{ $spbDetailId }}]"
+                                                                class="siteSelect w-40 rounded border border-gray-300 p-1 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
+                                                                data-cpny-id="{{ $iss->cpny_id }}"
+                                                                data-current-site="{{ $d->siteid }}"
+                                                                data-loaded="0"
+                                                                aria-label="Select site for {{ $d->inventoryid }}">
+                                                            @if ($d->siteid)
+                                                                <option value="{{ $d->siteid }}" selected>{{ $d->siteid }}</option>
+                                                            @else
+                                                                <option value="" selected disabled>Select site…</option>
+                                                            @endif
+                                                        </select>
+                                                    </td>
+                                                </tr>
+                                            @empty
+                                                <tr>
+                                                    <td colspan="8" class="px-4 py-4 text-center text-gray-500">No issue detail</td>
+                                                </tr>
+                                            @endforelse
+
                                         </tbody>
                                     </table>
                                 </div>

@@ -24,51 +24,57 @@
         <div class="grid grid-cols-1 gap-8 lg:grid-cols-2 lg:grid-rows-[minmax(0,auto)_1fr]">
             <div class="flex flex-col gap-8 lg:col-span-2 lg:row-span-1">
 
-                {{-- ====== FORM EDIT ISSUE ====== --}}
-                <form id="issueEditForm" class="flex flex-col gap-4" enctype="multipart/form-data">
+                {{-- ====== FORM EDIT RECEIPT ====== --}}
+                <form id="receiptEditForm" class="flex flex-col gap-4" enctype="multipart/form-data">
                     @csrf
                     @method('PUT')
-                    <input type="hidden" name="issueid" value="{{ $iss->issueid }}">
-                    <input type="hidden" name="spbid" value="{{ $iss->spbid }}">
+                    <input type="hidden" name="receiptnbr" value="{{ $rcp->receiptnbr }}">
+                    <input type="hidden" name="ponbr" value="{{ $rcp->ponbr }}">
+                    <input type="hidden" name="receipttype" value="{{ $rcp->receipttype }}">
 
                     {{-- ===== Header (readonly) ===== --}}
                     <div class="w-full rounded-xl bg-white p-6 shadow-md dark:bg-gray-800">
                         <div class="mb-6 border-b border-gray-200 pb-4 dark:border-gray-700">
-                            <h2 class="text-xl font-extrabold text-gray-800 dark:text-white">Edit Issue</h2>
-                            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Hanya Qty & Attachment yang dapat diubah.</p>
+                            <h2 class="text-xl font-extrabold text-gray-800 dark:text-white">
+                                Edit Receipt
+                                <span class="text-sm font-medium ml-2 rounded bg-gray-100 px-2 py-0.5 dark:bg-gray-700">
+                                    ({{ strtoupper($rcp->receipttype) }})
+                                </span>
+                            </h2>
+                            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Hanya Qty & Attachment yang dapat diubah saat status Revise.</p>
                         </div>
 
                         <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
                             <div class="flex flex-col gap-2">
-                                <label class="block text-sm font-medium text-gray-600 dark:text-gray-300">Issue ID</label>
-                                <input type="text" value="{{ $iss->issueid }}" readonly
+                                <label class="block text-sm font-medium text-gray-600 dark:text-gray-300">Receipt Nbr</label>
+                                <input type="text" value="{{ $rcp->receiptnbr }}" readonly
                                        class="mt-1 w-full rounded-lg border border-gray-300 bg-gray-50 p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200"/>
                             </div>
                             <div class="flex flex-col gap-2">
-                                <label class="block text-sm font-medium text-gray-600 dark:text-gray-300">Issue Date</label>
-                                <input type="text" value="{{ \Carbon\Carbon::parse($iss->issuedate)->format('Y-m-d') }}" readonly
+                                <label class="block text-sm font-medium text-gray-600 dark:text-gray-300">Receipt Date</label>
+                                <input type="text" value="{{ \Carbon\Carbon::parse($rcp->receiptdate)->format('Y-m-d') }}" readonly
                                        class="mt-1 w-full rounded-lg border border-gray-300 bg-gray-50 p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200"/>
                             </div>
                             <div class="flex flex-col gap-2">
-                                <label class="block text-sm font-medium text-gray-600 dark:text-gray-300">SPB ID</label>
-                                <input type="text" value="{{ $iss->spbid }}" readonly
+                                <label class="block text-sm font-medium text-gray-600 dark:text-gray-300">PO Nbr</label>
+                                <input type="text" value="{{ $rcp->ponbr }}" readonly
                                        class="mt-1 w-full rounded-lg border border-gray-300 bg-gray-50 p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200"/>
                             </div>
                             <div class="flex flex-col gap-2">
                                 <label class="block text-sm font-medium text-gray-600 dark:text-gray-300">Company</label>
-                                <input type="text" value="{{ $iss->cpny_id }}" readonly
+                                <input type="text" value="{{ $rcp->cpny_id }}" readonly
                                        class="mt-1 w-full rounded-lg border border-gray-300 bg-gray-50 p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200"/>
                             </div>
                         </div>
-                        
                     </div>
 
                     {{-- ===== Detail (Qty editable) ===== --}}
+                    @php $isReturn = strtolower((string)$rcp->receipttype) === 'return'; @endphp
                     <div class="flex w-full flex-col gap-2 rounded-2xl border-b bg-white dark:bg-gray-800">
                         <div class="flex w-full flex-col rounded-2xl p-4">
                             <details class="group" open>
                                 <summary class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-xl font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
-                                    <span>Issue Detail</span>
+                                    <span>Receipt Detail</span>
                                     <span class="text-sm font-medium text-gray-500 transition-all group-open:hidden">See details &rarr;</span>
                                     <span class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline">Hide details &darr;</span>
                                 </summary>
@@ -80,31 +86,38 @@
                                             <th class="px-4 py-2 text-left font-semibold text-gray-600 dark:text-gray-300">Line</th>
                                             <th class="px-4 py-2 text-left font-semibold text-gray-600 dark:text-gray-300">Inventory ID</th>
                                             <th class="px-4 py-2 text-left font-semibold text-gray-600 dark:text-gray-300">Description</th>
-                                            <th class="px-4 py-2 text-right font-semibold text-gray-600 dark:text-gray-300">Qty (Current)</th>
+                                            <th class="px-4 py-2 text-right font-semibold text-gray-600 dark:text-gray-300">{{ $isReturn ? 'Qty Return (Current)' : 'Qty Received (Current)' }}</th>
                                             <th class="px-4 py-2 text-center font-semibold text-gray-600 dark:text-gray-300">UoM</th>
-                                            <th class="px-4 py-2 text-right font-semibold text-gray-600 dark:text-gray-300">Qty Edit</th>
+                                            <th class="px-4 py-2 text-right font-semibold text-gray-600 dark:text-gray-300">{{ $isReturn ? 'Qty Return Edit' : 'Qty Received Edit' }}</th>
                                             <th class="px-4 py-2 text-left font-semibold text-gray-600 dark:text-gray-300">Site</th>
                                         </tr>
                                         </thead>
                                         <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
-                                        @forelse($issdetail as $d)
+                                        @forelse($details as $d)
+                                            @php
+                                                $currentQty = $isReturn ? (float)($d->qty_return ?? 0) : (float)($d->qty_received ?? 0);
+                                                $currentQtyStr = rtrim(rtrim(number_format($currentQty, 2, '.', ''), '0'), '.');
+                                            @endphp
                                             <tr>
-                                                <td class="px-4 py-2">{{ $d->issue_no ?? $loop->iteration }}</td>
+                                                <td class="px-4 py-2">{{ $d->receipt_no ?? $loop->iteration }}</td>
                                                 <td class="px-4 py-2">{{ $d->inventoryid }}</td>
                                                 <td class="px-4 py-2">{{ $d->inventory_descr }}</td>
-                                                <td class="px-4 py-2 text-right">{{ number_format((float)($d->issue_qty ?? $d->qty ?? 0), 2) }}</td>
+                                                <td class="px-4 py-2 text-right">{{ number_format($currentQty, 2) }}</td>
                                                 <td class="px-4 py-2 text-center">{{ $d->uom }}</td>
                                                 <td class="px-4 py-2 text-right">
                                                     <input type="hidden" name="detail_id[]" value="{{ $d->id }}">
-                                                    <input type="text" name="qty_issue[{{ $d->id }}]"
-                                                           value="{{ rtrim(rtrim(number_format((float)($d->issue_qty ?? 0), 2, '.', ''), '0'), '.') }}"
-                                                           class="qtyIssue w-28 rounded border border-gray-300 p-1 text-right dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
-                                                           inputmode="decimal" autocomplete="off" placeholder="0.00"/>
+                                                    <input
+                                                        type="text"
+                                                        name="{{ $isReturn ? "qty_return[$d->id]" : "qty_received[$d->id]" }}"
+                                                        value="{{ $currentQtyStr }}"
+                                                        class="qtyEdit w-28 rounded border border-gray-300 p-1 text-right dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
+                                                        inputmode="decimal" autocomplete="off" placeholder="0.00"
+                                                    />
                                                 </td>
                                                 <td class="px-4 py-2">
                                                     <select name="siteid[{{ $d->id }}]"
                                                         class="siteSelect w-40 rounded border border-gray-300 p-1 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
-                                                        data-cpny-id="{{ $iss->cpny_id }}"
+                                                        data-cpny-id="{{ $rcp->cpny_id }}"
                                                         data-current-site="{{ $d->siteid }}"
                                                         data-loaded="0"
                                                         aria-label="Select site for {{ $d->inventoryid }}">
@@ -115,11 +128,10 @@
                                                         @endif
                                                     </select>
                                                 </td>
-
                                             </tr>
                                         @empty
                                             <tr>
-                                                <td colspan="7" class="px-4 py-4 text-center text-gray-500">No issue detail</td>
+                                                <td colspan="7" class="px-4 py-4 text-center text-gray-500">No receipt detail</td>
                                             </tr>
                                         @endforelse
                                         </tbody>
@@ -149,7 +161,7 @@
                                             <div class="min-w-0">
                                                 @if ($att->url)
                                                     <a href="{{ $att->url }}" target="_blank"
-                                                    class="block truncate font-medium text-indigo-700 hover:underline dark:text-indigo-300">
+                                                       class="block truncate font-medium text-indigo-700 hover:underline dark:text-indigo-300">
                                                         {{ $att->display_name }}
                                                     </a>
                                                 @else
@@ -200,7 +212,7 @@
                         </details>
 
                         <div class="flex w-full justify-end gap-4 pt-4">
-                            <a href="{{ route('issuelist') }}"
+                            <a href="{{ route('receiptlist') }}"
                                class="inline-flex items-center justify-center rounded-lg bg-red-600 px-6 py-3 text-base font-semibold text-white shadow-md transition-colors hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">Cancel</a>
                             <button type="submit" id="submitBtn"
                                     class="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-6 py-3 text-base font-semibold text-white shadow-md transition-colors hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
@@ -241,11 +253,12 @@
     {{-- ===== Submit + Validasi Qty ===== --}}
     <script>
         $(function() {
-            const updateUrl = @json(route('issue.update', $hash));
+            const updateUrl = @json(route('receipt.update', $hash));
+            const isReturn  = @json(strtolower((string)$rcp->receipttype) === 'return');
 
             function clearFormErrors() {
-                $('#issueEditForm .is-invalid').removeClass('is-invalid').removeAttr('aria-invalid');
-                $('#issueEditForm .error-feedback').remove();
+                $('#receiptEditForm .is-invalid').removeClass('is-invalid').removeAttr('aria-invalid');
+                $('#receiptEditForm .error-feedback').remove();
             }
             function addError($el, msg) {
                 if (!$el || !$el.length) return;
@@ -254,14 +267,15 @@
                     $el.after('<small class="error-feedback">' + msg + '</small>');
                 }
             }
+
             // bersihkan error on change
-            $(document).on('input change', '#issueEditForm input, #issueEditForm select', function() {
+            $(document).on('input change', '#receiptEditForm input, #receiptEditForm select', function() {
                 $(this).removeClass('is-invalid').removeAttr('aria-invalid');
                 $(this).next('.error-feedback').remove();
             });
 
             // allow digit + . ,
-            $(document).on('keypress', '.qtyIssue', function(e) {
+            $(document).on('keypress', '.qtyEdit', function(e) {
                 const code = e.which || e.keyCode;
                 const ch = String.fromCharCode(code);
                 if ([8,9,13,27,37,38,39,40,46].includes(code)) return;
@@ -269,24 +283,24 @@
                 const v = this.value;
                 if ((ch === '.' && v.includes('.')) || (ch === ',' && v.includes(','))) e.preventDefault();
             });
-            $(document).on('input', '.qtyIssue', function() { this.value = this.value.replace(/[^0-9.,]/g, ''); });
+            $(document).on('input', '.qtyEdit', function() { this.value = this.value.replace(/[^0-9.,]/g, ''); });
 
             function hasAtLeastOneQty() {
                 let ok = false;
-                $('.qtyIssue').each(function() {
+                $('.qtyEdit').each(function() {
                     const raw = (this.value || '').replace(',', '.');
                     const n = parseFloat(raw);
-                    if (!isNaN(n) && n >= 0) { ok = true; return false; }
+                    if (!isNaN(n)) { ok = true; return false; } // boleh 0
                 });
                 return ok;
             }
 
-            $('#issueEditForm').on('submit', function(e) {
+            $('#receiptEditForm').on('submit', function(e) {
                 e.preventDefault();
                 clearFormErrors();
 
                 if (!hasAtLeastOneQty()) {
-                    const $first = $('.qtyIssue').first();
+                    const $first = $('.qtyEdit').first();
                     addError($first, 'Isi Qty (boleh 0) pada minimal satu baris.');
                     $first.focus();
                     if (window.toastr) toastr.error('Minimal satu baris Qty harus diisi.');
@@ -294,13 +308,13 @@
                 }
 
                 // normalisasi qty ke titik
-                $('.qtyIssue').each(function(){ this.value = (this.value || '').replace(/,/g, '.'); });
+                $('.qtyEdit').each(function(){ this.value = (this.value || '').replace(/,/g, '.'); });
 
                 $('#submitBtn').prop('disabled', true);
                 $('#btnText').text('Saving...');
                 showOverlay('Saving');
 
-                const formData = new FormData(document.getElementById('issueEditForm'));
+                const formData = new FormData(document.getElementById('receiptEditForm'));
                 formData.set('_method', 'PUT');
 
                 $.ajax({
@@ -311,8 +325,8 @@
                     contentType: false
                 })
                 .done(function(res) {
-                    if (window.toastr) toastr.success(res.message || 'Issue updated.');
-                    window.location.href = "{{ route('issuelist') }}";
+                    if (window.toastr) toastr.success(res.message || 'Receipt updated.');
+                    window.location.href = "{{ route('receiptlist') }}";
                 })
                 .fail(function(xhr) {
                     if (xhr.status === 422 && xhr.responseJSON && xhr.responseJSON.errors) {
@@ -333,31 +347,27 @@
                     hideOverlay();
                 });
             });
-
-           
         });
     </script>
 
     <script>
+        // Tambah / Hapus attachment (baru)
         $(document).ready(function() {
-            // Fungsi Tambah Attachment
             $('#addAttachment').click(function() {
                 $('#attachmentsContainer').append(`
-            <div class="attachment-row flex items-center gap-2">
-                <input type="file" name="attachments[]" class="mt-2 flex-grow rounded-md border border-gray-200 bg-white px-4 py-2 text-sm text-gray-700 file:mr-4 file:rounded-full file:border-0 file:bg-indigo-100 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-indigo-700 hover:file:bg-indigo-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:file:bg-indigo-700 dark:file:text-white dark:hover:file:bg-indigo-600">
-                    <button type="button" class="removeAttachment rounded border border-red-600 bg-red-200/30 p-3 text-red-600 transition hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">🗑️</button>
-            </div>
-        `);
+                    <div class="attachment-row flex items-center gap-2">
+                        <input type="file" name="attachments[]" class="mt-2 flex-grow rounded-md border border-gray-200 bg-white px-4 py-2 text-sm text-gray-700 file:mr-4 file:rounded-full file:border-0 file:bg-indigo-100 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-indigo-700 hover:file:bg-indigo-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:file:bg-indigo-700 dark:file:text-white dark:hover:file:bg-indigo-600">
+                        <button type="button" class="removeAttachment rounded border border-red-600 bg-red-200/30 p-3 text-red-600 transition hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">🗑️</button>
+                    </div>
+                `);
                 toggleDeleteButton();
             });
 
-            // Fungsi Hapus Attachment
             $(document).on('click', '.removeAttachment', function() {
                 $(this).closest('.attachment-row').remove();
                 toggleDeleteButton();
             });
 
-            // Fungsi untuk Menampilkan atau Menyembunyikan Tombol Delete
             function toggleDeleteButton() {
                 if ($('.attachment-row').length > 1) {
                     $('.removeAttachment').removeClass('hidden');
@@ -365,11 +375,11 @@
                     $('.removeAttachment').addClass('hidden');
                 }
             }
-           
         });
     </script>
 
     <script>
+        // Hapus attachment existing (server endpoint silakan sesuaikan)
         $(document).on('click', '.removeAttachment2', function () {
             const $btn = $(this);
             const $row = $btn.closest('.attachment-row');
@@ -379,10 +389,8 @@
                 toastr.error('Attachment ID tidak ditemukan.');
                 return;
             }
-
             if (!confirm('Are you sure you want to remove this attachment?')) return;
 
-            // lock UI kecil pada tombol
             const originalHtml = $btn.html();
             $btn.prop('disabled', true).html(`
                 <svg class="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
@@ -393,13 +401,12 @@
             `);
 
             $.ajax({
-                url: "/remove-attachment/" + attachmentId,
+                url: "/remove-attachment/" + attachmentId, // <— sesuaikan route mu
                 type: "POST",
                 data: { _method: "PUT", _token: "{{ csrf_token() }}" }
             })
             .done(function (res) {
                 if (res && res.success) {
-                    // animasi keluar biar halus
                     $row.slideUp(180, function(){ $(this).remove(); });
                     toastr.success('Attachment removed.');
                 } else {
@@ -416,8 +423,8 @@
     </script>
 
     <script>
+        // Lazy load site select (sama seperti view create)
         $(function () {
-            // Cache per company biar hemat request
             const siteCacheByCpny = {};
 
             async function fetchSites(cpnyId) {
@@ -426,9 +433,7 @@
 
                 try {
                     const url = @json(route('sites.index'));
-                    const res = await $.ajax({
-                        url, method: 'GET', data: { cpny_id: cpnyId }, dataType: 'json'
-                    });
+                    const res = await $.ajax({ url, method:'GET', data:{ cpny_id: cpnyId }, dataType:'json' });
                     if (!res || res.ok === false) throw new Error(res?.message || 'Failed to load sites.');
                     const data = Array.isArray(res.data) ? res.data : [];
                     siteCacheByCpny[cpnyId] = data;
@@ -453,7 +458,6 @@
                 opts.forEach(o => $sel.append(o));
             }
 
-            // Lazy load saat fokus/klik
             $(document).on('focus click', '.siteSelect', async function () {
                 const $sel = $(this);
                 if ($sel.data('loaded') === 1) return;
@@ -469,17 +473,15 @@
                 $sel.data('loaded', 1);
             });
 
-            // OPTIONAL: prefetch semua select sekali (biar UX lebih cepat)
+            // OPTIONAL: Prefill semua select sekali
             (async function prefillAllSiteSelects() {
                 const $all = $('.siteSelect');
                 if ($all.length === 0) return;
-
-                // Ambil cpny_id dari baris pertama (semua baris sama company-nya)
                 const cpnyId = $all.first().data('cpny-id');
                 const sites = await fetchSites(cpnyId);
                 $all.each(function () {
                     const $sel = $(this);
-                    if ($sel.data('loaded') === 1) return; // skip kalau sudah di-load
+                    if ($sel.data('loaded') === 1) return;
                     const current = $sel.data('current-site') || $sel.val() || '';
                     populateSelectOptions($sel, sites, current);
                     $sel.data('loaded', 1);
@@ -487,7 +489,6 @@
             })();
         });
     </script>
-
 
     {{-- Toastr CDN --}}
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">

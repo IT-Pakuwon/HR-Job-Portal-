@@ -112,14 +112,14 @@
    <div class="max-w-9xl mx-auto w-full px-4 py-4 sm:px-6 lg:px-8">
         <div class="grid grid-cols-1 gap-8 lg:grid-cols-2 lg:grid-rows-[minmax(0,auto)_1fr]">
             <div class="flex flex-col gap-8 lg:col-span-2 lg:row-span-1">
-                <form id="issueForm" class="flex flex-col gap-4" enctype="multipart/form-data">
+                <form id="sppbForm" class="flex flex-col gap-4" enctype="multipart/form-data">
                     @csrf
                     <input type="hidden" name="spbid" value="{{ $spb->spbid }}">
 
                     {{-- ===== Header ===== --}}
                     <div class="w-full rounded-xl bg-white p-6 shadow-md dark:bg-gray-800">
                         <div class="mb-6 border-b border-gray-200 pb-4 dark:border-gray-700">
-                            <h2 class="text-xl font-extrabold text-gray-800 dark:text-white">Create Issue</h2>
+                            <h2 class="text-xl font-extrabold text-gray-800 dark:text-white">Create SPPB - SPB</h2>
                         </div>
 
                         <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
@@ -162,16 +162,16 @@
                                     class="mt-1 w-full rounded-lg border border-gray-300 bg-gray-50 p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">{{ $spb->keperluan }}</textarea>
                             </div>
 
-                            {{-- ===== Header Issue Note ===== --}}
+                            {{-- ===== Header SPPB Note ===== --}}
                             <div class="flex flex-col gap-2">
-                                <label for="issuenote" class="block text-sm font-medium text-gray-600 dark:text-gray-300">
-                                    Issue Note
+                                <label for="sppbnote" class="block text-sm font-medium text-gray-600 dark:text-gray-300">
+                                    SPPB Note
                                 </label>
-                                <textarea id="issuenote" name="issuenote" rows="3"
+                                <textarea id="sppbnote" name="sppbnote" rows="3"
                                     class="mt-1 w-full rounded-lg border border-gray-300 p-2 text-sm text-gray-800
                                         focus:border-indigo-500 focus:ring-indigo-500
                                         dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
-                                    placeholder="Tuliskan catatan issue (opsional)...">{{ old('issuenote') }}</textarea>
+                                    placeholder="Tuliskan catatan sppb (opsional)...">{{ old('sppbnote') }}</textarea>
                             </div>
 
                         </div>
@@ -184,7 +184,7 @@
                         <div class="flex w-full flex-col rounded-2xl p-4">
                             <details class="group" open>
                                 <summary class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-xl font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
-                                    <span>Issue Detail</span>
+                                    <span>SPPB Detail</span>
                                     <span class="text-sm font-medium text-gray-500 transition-all group-open:hidden">See details &rarr;</span>
                                     <span class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline">Hide details &darr;</span>
                                 </summary>
@@ -197,7 +197,7 @@
                                                 <th class="px-4 py-2 text-left font-semibold text-gray-600 dark:text-gray-300">Description</th>
                                                 <th class="px-4 py-2 text-right font-semibold text-gray-600 dark:text-gray-300">Qty (Open)</th>
                                                 <th class="px-4 py-2 text-center font-semibold text-gray-600 dark:text-gray-300">UoM</th>
-                                                <th class="px-4 py-2 text-right font-semibold text-gray-600 dark:text-gray-300">Qty Issue</th>
+                                                <th class="px-4 py-2 text-right font-semibold text-gray-600 dark:text-gray-300">Qty SPPB</th>
                                                 <th class="px-4 py-2 text-left font-semibold text-gray-600 dark:text-gray-300">Note</th>      {{-- NEW --}}
                                                 <th class="px-4 py-2 text-right font-semibold text-gray-600 dark:text-gray-300">Site</th>
                                             </tr>
@@ -211,16 +211,16 @@
                                                     <td class="px-4 py-2 text-center">{{ $d->uom }}</td>
                                                     <td class="px-4 py-2 text-right">
                                                         <input type="hidden" name="detail_id[]" value="{{ $d->id }}">
-                                                        <input type="text" name="qty_issue[{{ $d->id }}]"
-                                                            class="qtyIssue w-28 rounded border border-gray-300 p-1 text-right dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
+                                                        <input type="text" name="qty_sppb[{{ $d->id }}]"
+                                                            class="qtySPPB w-28 rounded border border-gray-300 p-1 text-right dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
                                                             inputmode="decimal" autocomplete="off" placeholder="0,00" />
                                                     </td>
 
-                                                    {{-- ===== Detail Issue Note per baris ===== --}}
+                                                    {{-- ===== Detail SPPB Note per baris ===== --}}
                                                     <td class="px-4 py-2">
                                                         <input type="text"
-                                                            name="issuenote_detail[{{ $d->id }}]"
-                                                            value="{{ old('issuenote_detail.' . $d->id) }}"
+                                                            name="sppbnote_detail[{{ $d->id }}]"
+                                                            value="{{ old('sppbnote_detail.' . $d->id) }}"
                                                             class="w-full rounded border border-gray-300 p-1 text-sm
                                                                 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
                                                             placeholder="Catatan detail (opsional)">
@@ -319,12 +319,12 @@
         function hideOverlay() { $('#loadingSpinnerContainer').stop(true, true).fadeOut(120); }
     </script>
 
-    {{-- ===== Submit + Validasi Qty Issue ===== --}}
+    {{-- ===== Submit + Validasi Qty SPPB ===== --}}
     <script>
         $(function() {
             function clearFormErrors() {
-                $('#issueForm .is-invalid').removeClass('is-invalid').removeAttr('aria-invalid');
-                $('#issueForm .error-feedback').remove();
+                $('#sppbForm .is-invalid').removeClass('is-invalid').removeAttr('aria-invalid');
+                $('#sppbForm .error-feedback').remove();
             }
             function addError($el, msg) {
                 if (!$el || !$el.length) return;
@@ -334,13 +334,13 @@
                 }
             }
             // Hapus error saat input berubah
-            $(document).on('input change', '#issueForm input, #issueForm select', function() {
+            $(document).on('input change', '#sppbForm input, #sppbForm select', function() {
                 $(this).removeClass('is-invalid').removeAttr('aria-invalid');
                 $(this).next('.error-feedback').remove();
             });
 
             // Hanya angka + koma/titik, tidak boleh huruf
-            $(document).on('keypress', '.qtyIssue', function(e) {
+            $(document).on('keypress', '.qtySPPB', function(e) {
                 const code = e.which || e.keyCode;
                 const ch = String.fromCharCode(code);
                 if ([8,9,13,27,37,38,39,40,46].includes(code)) return; // control keys
@@ -348,11 +348,11 @@
                 const v = this.value;
                 if ((ch === '.' && v.includes('.')) || (ch === ',' && v.includes(','))) e.preventDefault();
             });
-            $(document).on('input', '.qtyIssue', function() { this.value = this.value.replace(/[^0-9.,]/g, ''); });
+            $(document).on('input', '.qtySPPB', function() { this.value = this.value.replace(/[^0-9.,]/g, ''); });
 
             function hasAtLeastOneQty() {
                 let ok = false;
-                $('.qtyIssue').each(function() {
+                $('.qtySPPB').each(function() {
                     const raw = (this.value || '').replace(',', '.');
                     const n = parseFloat(raw);
                     if (!isNaN(n) && n > 0) { ok = true; return false; }
@@ -360,36 +360,36 @@
                 return ok;
             }
 
-            $('#issueForm').on('submit', function(e) {
+            $('#sppbForm').on('submit', function(e) {
                 e.preventDefault();
                 clearFormErrors();
 
                 if (!hasAtLeastOneQty()) {
-                    const $first = $('.qtyIssue').first();
-                    addError($first, 'Isi Qty Issue > 0 pada minimal satu baris.');
+                    const $first = $('.qtySPPB').first();
+                    addError($first, 'Isi Qty SPPB > 0 pada minimal satu baris.');
                     $first.focus();
-                    if (window.toastr) toastr.error('Minimal satu baris Qty Issue harus > 0.');
+                    if (window.toastr) toastr.error('Minimal satu baris Qty SPPB harus > 0.');
                     return;
                 }
 
                 // Normalisasi semua qty ke titik
-                $('.qtyIssue').each(function() { this.value = (this.value || '').replace(/,/g, '.'); });
+                $('.qtySPPB').each(function() { this.value = (this.value || '').replace(/,/g, '.'); });
 
                 $('#submitBtn').prop('disabled', true);
                 $('#btnText').text('Processing...');
                 showOverlay('Submitting');
 
-                const formData = new FormData(document.getElementById('issueForm'));
+                const formData = new FormData(document.getElementById('sppbForm'));
                 $.ajax({
-                    url: "{{ route('issue.store') }}",
+                    url: "{{ route('sppb.store') }}",
                     type: "POST",
                     data: formData,
                     processData: false,
                     contentType: false
                 })
                 .done(function(res) {
-                    if (window.toastr) toastr.success(res.message || 'Issue created successfully!');
-                    window.location.href = "{{ route('issuelist') }}";
+                    if (window.toastr) toastr.success(res.message || 'SPPB created successfully!');
+                    window.location.href = "{{ route('spbjobs') }}";
                 })
                 .fail(function(xhr) {
                     if (xhr.status === 422 && xhr.responseJSON && xhr.responseJSON.errors) {

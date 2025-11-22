@@ -251,7 +251,7 @@
                                                     <th class="req w-[25%] border p-3">Product Name</th>
                                                     <th class="req w-28 w-[6%] border p-3 text-center">Qty</th>
                                                     <th class="req w-28 w-[8%] border p-3">UoM</th>
-                                                    <th class="req w-28 w-[8%] border p-3 siteid-header hidden">SiteID</th>
+                                                    <th class="req w-28 w-[8%] border p-3 siteid-header">SiteID</th>
                                                     <th class="w-[15%] border p-3">Note</th>
                                                     <th class="req border p-3">Location</th>
                                                     {{-- <th class="req border p-3">Sub Location</th> --}}
@@ -333,7 +333,7 @@
                                                         </td>
 
                                                         {{-- SiteID --}}
-                                                        <td class="border p-3 siteid-column hidden">
+                                                        {{-- <td class="border p-3 siteid-column hidden">
                                                             <div class="siteid-wrapper hidden">
                                                                 <select 
                                                                     name="siteid[]" 
@@ -349,9 +349,19 @@
                                                                     @endif
                                                                 </select>
                                                             </div>
-
-                                                            {{-- Hidden input untuk case item_type != GI --}}
+                                                            
                                                             <input type="hidden" name="siteid[]" class="siteid-hidden" value="">
+                                                        </td> --}}
+                                                        <td class="border p-3 siteid-column">
+                                                            <div class="siteid-wrapper">
+                                                                <input type="hidden" name="siteid[]" class="siteid-hidden" value="">
+                                                                <input
+                                                                    type="text"
+                                                                    class="siteid-display w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0"
+                                                                    placeholder="-"
+                                                                    readonly value="{{ $d->siteid }}"
+                                                                >
+                                                            </div>
                                                         </td>
 
                                                         {{-- Note --}}
@@ -1068,25 +1078,16 @@
                         </div>
                     </td>
                     {{-- SiteID --}}
-                    <td class="border p-3 siteid-column hidden">
-                        <div class="siteid-wrapper hidden">
-                            <select 
-                                name="siteid[]" 
-                                class="siteSelect w-40 rounded border border-gray-300 p-1 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
-                                data-cpny-id="{{ $usercpny2->cpnyid ?? '' }}"
-                                data-current-site="{{ $d->siteid ?? '' }}" 
-                                data-loaded="0"
+                    <td class="border p-3 siteid-column">
+                        <div class="siteid-wrapper">
+                            <input type="hidden" name="siteid[]" class="siteid-hidden" value="">
+                            <input
+                                type="text"
+                                class="siteid-display w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0"
+                                placeholder="-"
+                                readonly
                             >
-                                @if (!empty($d->siteid))
-                                    <option value="{{ $d->siteid }}" selected>{{ $d->siteid }}</option>
-                                @else
-                                    <option value="" selected disabled>Select site…</option>
-                                @endif
-                            </select>
                         </div>
-
-                        {{-- Hidden input untuk case item_type != GI --}}
-                        <input type="hidden" name="siteid[]" class="siteid-hidden" value="">
                     </td>
                     <td class="p-3 border"><input type="text" name="note[]" class="w-full border-none bg-transparent p-2" placeholder="Note"></td>
                     <td class="border p-3">
@@ -1513,6 +1514,10 @@
                 const item_sub_type  = $btn.data('item_sub_type') || '';
                 const item_category  = $btn.data('item_category') || '';
                 const purchase_unit  = $btn.data('purchase_unit') || '';
+                const stock  = $btn.data('stock') || '';
+                const cost  = $btn.data('cost') || '';
+                const siteid         = $btn.data('siteid') || '';
+
 
                 // DEBUG: lihat apa yang sebenarnya kebaca dari tombol
                 console.log('chooseInventory CLICKED →', {
@@ -1541,6 +1546,10 @@
                 // BERSIHKAN COA
                 currentRow.find('.coaIdField').val('');
                 currentRow.find('.coaNameField').val('');
+
+                // 🔹 isi SiteID (hidden + display)
+                currentRow.find('.siteid-hidden').val(siteid);
+                currentRow.find('.siteid-display').val(siteid || '-');
 
                 // bersihkan error
                 currentRow.find('.productNameField')
@@ -2729,92 +2738,7 @@
                 $sel.data('loaded', 1);
             });
         });
-    </script>
-
-    <script>
-        function refreshSiteHeaderVisibility() {
-            // Kalau ada minimal 1 row dengan item_type = GI → header SiteID tampil
-            const anyGI = $('.spb-row').toArray().some(function (tr) {
-                return $(tr).find('.prodItemTypeField').val() === 'GI';
-            });
-
-            const $header = $('.siteid-header');
-            if (anyGI) {
-                $header.removeClass('hidden');
-            } else {
-                $header.addClass('hidden');
-            }
-        }
-
-        // Fungsi show/hide SiteID berdasarkan item_type
-        function updateSiteVisibility($row) {
-            const raw = $row.find('.prodItemTypeField').val() || '';
-            const itemType = raw.toUpperCase().trim();
-
-            console.log('updateSiteVisibility → item_type raw =', raw, ', normalized =', itemType, ', row index =', $row.index());
-
-            const $col     = $row.find('.siteid-column');
-            const $wrapper = $row.find('.siteid-wrapper');
-            const $select  = $wrapper.find('.siteSelect');
-            const $hidden  = $row.find('.siteid-hidden');
-
-            if (itemType === 'GI') {
-                console.log('→ SHOW SiteID for row', $row.index());
-                $col.removeClass('hidden');
-                $wrapper.removeClass('hidden');
-                $select.prop('disabled', false);
-                $hidden.prop('disabled', true);
-            } else {
-                console.log('→ HIDE SiteID for row', $row.index());
-                $col.addClass('hidden');
-                $wrapper.addClass('hidden');
-                $select.prop('disabled', true);
-                $select.val('');
-                $hidden.prop('disabled', false);
-            }
-
-            refreshSiteHeaderVisibility();
-        }
-
-
-        // Saat product dipilih dari modal → update item_type → cek visibility
-        $(document).on('change', '.prodItemTypeField', function () {
-            const $row = $(this).closest('.spb-row');
-            const itemType = $(this).val();
-
-            console.log('Item Type Changed:', itemType, 'Row:', $row.index());
-
-            updateSiteVisibility($row);
-        });
-
-
-        // Saat halaman pertama load (edit mode)
-        $(function () {
-            $('.spb-row').each(function() {
-                updateSiteVisibility($(this));
-            });
-        });
-    </script>
-
-
-    <script>
-        // Ketika company header berubah → update cpny_id semua siteSelect
-        $(document).on('change', '.headerCpnySelect', function () {
-            const cpnyId = $(this).val() || '';
-
-            $('.siteSelect').each(function () {
-                $(this).data('cpny-id', cpnyId);
-                $(this).attr('data-cpny-id', cpnyId); // jaga2
-
-                // reset loaded supaya fetch ulang sesuai company baru
-                $(this).data('loaded', 0);
-
-                // reset isi dropdown
-                $(this).html('<option value="" selected disabled>Select site…</option>');
-            });
-        });
-    </script>
-
+    </script>    
 
     <!-- Toastr CSS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">

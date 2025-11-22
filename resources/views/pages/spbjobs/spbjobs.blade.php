@@ -405,22 +405,45 @@
                         return `<a href="${url}" class="inline-flex items-center justify-center px-3 py-1.5 text-sm font-semibold rounded bg-gray-600 text-white hover:bg-gray-700">${label}</a>`;
                     }
 
-                    function renderPlusCreate(row) {
+                    // function renderPlusCreate(row) {
+                    //     const url = `{{ route('issue.create') }}` + `?spbid=${encodeURIComponent(row.spb_eid ?? '')}`;
+                    //     return `<a href="${url}" class="inline-flex justify-center items-center px-3 py-1.5 text-sm font-medium text-white rounded bg-blue-600 hover:bg-blue-700">
+                    //         <i class="fas fa-plus"></i>
+                    //     </a>`;
+                    // }
+                    function renderIssueCreate(row) {
                         const url = `{{ route('issue.create') }}` + `?spbid=${encodeURIComponent(row.spb_eid ?? '')}`;
                         return `<a href="${url}" class="inline-flex justify-center items-center px-3 py-1.5 text-sm font-medium text-white rounded bg-blue-600 hover:bg-blue-700">
                             <i class="fas fa-plus"></i>
                         </a>`;
                     }
 
+                    function renderSppbCreate(row) {
+                        const url = `{{ route('sppb.create') }}` + `?spbid=${encodeURIComponent(row.spb_eid ?? '')}`;
+                        return `<a href="${url}" class="inline-flex justify-center items-center px-3 py-1.5 text-sm font-medium text-white rounded bg-amber-600 hover:bg-amber-700">
+                            <i class="fas fa-plus"></i>
+                        </a>`;
+                    }
+
+
                     function columnsFor(sc) {
                         const type = scopeType(sc);
                         if (type === 'spb') {
+                            const isSppbJobs = (sc === 'onprogress'); // scope SPPB Jobs
+
                             return [
                                 {
                                     data: null,
                                     orderable: false,
                                     searchable: false,
-                                    render: (_v, t, row) => renderPlusCreate(row)
+                                    render: (_v, _t, row) => {
+                                        // ⬇️ kalau scope SPPB Jobs → pakai route('sppb.create')
+                                        if (isSppbJobs) {
+                                            return renderSppbCreate(row);
+                                        }
+                                        // selain itu (Issue New Jobs / Issue Jobs) → route('issue.create')
+                                        return renderIssueCreate(row);
+                                    }
                                 },
                                 {
                                     data: 'spbid',
@@ -448,6 +471,7 @@
                                 },
                             ];
                         }
+
                         if (type === 'issue') {
                             return [
                                 {
