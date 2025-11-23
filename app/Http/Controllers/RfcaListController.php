@@ -27,28 +27,28 @@ class RfcaListController extends Controller
 
         $cpny_id = $user->cpny_id ?? '';
 
-        // Rfca Jobs: rfca_type = '' dan status_rfca IS NULL
+        // Rfca Jobs: rfca_type = '' dan rfca_step_order IS NULL
         $rfcajobs = TrRfca::when($cpny_id, fn($q) => $q->where('cpny_id', $cpny_id))
             ->where('rfca_type', '')
-            ->whereNull('status_rfca')
+            ->whereNull('rfca_step_order')
             ->count();
 
-        // Finance Received: status_rfca = 'FR'
+        // Finance Received: rfca_step_order = '1'
         $financeReceived = TrRfca::when($cpny_id, fn($q) => $q->where('cpny_id', $cpny_id))
-            ->where('status_rfca', 'FR')
+            ->where('rfca_step_order', '1')
             ->count();
 
-        // Treasury Payment: status_rfca = 'TP'
+        // Treasury Payment: rfca_step_order = '2'
         $treasuryPayment = TrRfca::when($cpny_id, fn($q) => $q->where('cpny_id', $cpny_id))
-            ->where('status_rfca', 'TP')
+            ->where('rfca_step_order', '2')
             ->count();
 
-        // Rfca Completed: status_rfca = 'C'
+        // Rfca Completed: rfca_step_order = '3'
         $completed = TrRfca::when($cpny_id, fn($q) => $q->where('cpny_id', $cpny_id))
-            ->where('status_rfca', 'C')
+            ->where('rfca_step_order', '3')
             ->count();
 
-        // All Rfca (tanpa where status_rfca)
+        // All Rfca (tanpa where rfca_step_order)
         $all = TrRfca::when($cpny_id, fn($q) => $q->where('cpny_id', $cpny_id))
             ->count();
 
@@ -80,29 +80,29 @@ class RfcaListController extends Controller
         // Scope filter
         switch ($scope) {
             case 'rfcajobs':
-                // Rfca Jobs: rfca_type = '' dan status_rfca IS NULL
+                // Rfca Jobs: rfca_type = '' dan rfca_step_order IS NULL
                 $base->where('rfca_type', '')
-                    ->whereNull('status_rfca');
+                    ->whereNull('rfca_step_order');
                 break;
 
             case 'financereceived':
                 // Finance Received
-                $base->where('status_rfca', 'FR');
+                $base->where('rfca_step_order', '1');
                 break;
 
             case 'treasurypayment':
                 // Treasury Payment
-                $base->where('status_rfca', 'TP');
+                $base->where('rfca_step_order', '2');
                 break;
 
             case 'completed':
                 // Rfca Completed
-                $base->where('status_rfca', 'C');
+                $base->where('rfca_step_order', '3');
                 break;
 
             case 'all':
             default:
-                // All Rfca: tidak ada filter status_rfca tambahan
+                // All Rfca: tidak ada filter rfca_step_order tambahan
                 break;
         }
 
@@ -144,7 +144,7 @@ class RfcaListController extends Controller
                     'cpny_id',
                     'created_by',
                     'status',       // status lama (P/C/R/D) masih dipakai untuk logic revise
-                    'status_rfca',  // status pipeline baru (FR/TP/C/...)
+                    'rfca_step_id',  // status pipeline baru (FR/TP/C/...)
                     'rfca_type',
                 ])
                 ->orderBy($orderCol, $orderDir)
@@ -304,6 +304,8 @@ class RfcaListController extends Controller
 
         $rfcaType = $request->input('rfca_type');
 
+        $now      = Carbon::now();
+
         $rfca = TrRfca::findOrFail($id);
 
         try {
@@ -323,7 +325,7 @@ class RfcaListController extends Controller
                 }
 
                 // optional: hapus step lama dulu kalau perlu
-                TrRfcaStep::where('rfcaid', $rfca->rfcaid)->delete();
+                // TrRfcaStep::where('rfcaid', $rfca->rfcaid)->delete();
 
                 foreach ($steps as $step) {
                     TrRfcaStep::create([
@@ -336,11 +338,11 @@ class RfcaListController extends Controller
                         'rfca_step_department_id'  => $step->rfca_step_department_id,
                         'rfca_type'                => $step->rfca_type,
                         'calr_gen'                 => $step->calr_gen,
-                        'rfca_step_user'           => null,
-                        'rfca_step_date'           => null,
-                        'status_rfca'              => null,
+                        'rfca_step_user'           => $username,
+                        'rfca_step_date'           => $now,
+                        'status_rfca'              => 'A',
                         'created_by'               => $username,
-                        'updated_by'               => $username,
+                        'updated_by'               => null,
                     ]);
                 }
 
@@ -363,6 +365,64 @@ class RfcaListController extends Controller
             ], 500);
         }
     }
+
+    public function approveStep(Request $request, $hash)
+    {
+        $id = Hashids::decode($hash)[0] ?? null;
+        abort_if(!$id, 404);
+
+        $user = Auth::user();
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthenticated',
+            ], 401);
+        }
+
+        $rfca = TrRfca::findOrFail($id);
+
+        try {
+            DB::transaction(function () use ($rfca, $user) {
+                $username = $user->username ?? 'system';
+
+                // Cari "active step": step pertama yang belum Approved/Rejected
+                $activeStep = TrRfcaStep::where('rfcaid', $rfca->rfcaid)
+                    ->orderBy('rfca_step_order')
+                    ->whereNull('status_rfca')
+                    ->first();
+
+                if (!$activeStep) {
+                    throw new \RuntimeException('No active RFCA Step to approve.');
+                }
+
+                // Update detail step
+                $activeStep->rfca_step_user = $username;
+                $activeStep->rfca_step_date = Carbon::now();
+                $activeStep->status_rfca    = 'A';
+                $activeStep->updated_by     = $username;
+                $activeStep->save();
+
+                // 🔼 Update header TrRfca mengikuti step yang baru di-approve
+                $rfca->rfca_step_order = $activeStep->rfca_step_order;
+                $rfca->rfca_step_id    = $activeStep->rfca_step_id;
+                $rfca->status_rfca     = $activeStep->status_rfca; // 'A'
+                $rfca->updated_by      = $username;
+                $rfca->save();
+            });
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Active RFCA Step approved.',
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to approve RFCA Step: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+
 
 
 }

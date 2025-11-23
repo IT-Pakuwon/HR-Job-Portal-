@@ -722,10 +722,23 @@ Route::post('/logout', function () {
     Route::get('/rfcalist/json', [RfcaListController::class, 'json'])->name('rfcalist.json');
     Route::get('/showrfca/{hash}', [RfcaListController::class, 'showRfca']);
     Route::post('/rfca/{hash}/submit-type', [RfcaListController::class, 'submitType'])->name('rfca.submitType');
+    Route::post('/rfca/{hash}/approve-step', [RfcaListController::class, 'approveStep'])->name('rfca.approveStep');
 
 
     Route::get('/calrlist', [CalrListController::class, 'index'])->name('calrlist');
     Route::get('/calrlist/json', [CalrListController::class, 'json'])->name('calrlist.json');
+
+    Route::get('/calr/create', [CalrController::class, 'createCalr'])->name('calr.create');
+    Route::post('/calr', [CalrController::class, 'storeCalr'])->name('calr.store'); 
+    Route::get('/showcalr/{hash}', [CalrController::class, 'showCalr']);     
+    Route::post('/calr/{id}/approve', [CalrController::class, 'approveCalr']);
+    Route::post('/calr/{id}/reject', [CalrController::class, 'rejectCalr']);
+    Route::post('/calr/{id}/revise', [CalrController::class, 'reviseCalr']);
+    // Route::get('/calr/{id}/check-approval/{action}', [CalrController::class, 'checkApproval']);    
+    Route::get('/editcalrs/{hash}', [CalrController::class, 'editCalr'])->name('calr.edit');
+    Route::put('/editcalrs/{hash}', [CalrController::class, 'updateCalr'])->name('calr.update');
+    Route::get('/pdf_calr/{hash}', [CalrController::class, 'printCalr'])->name('calrs.print');
+    Route::get('/pdf_calr_vendor/{hash}', [CalrController::class, 'printCalrVendor'])->name('calrs.printvendor');
 
 
     Route::get('/inventory/list', [MasterController::class, 'InventoryList'])->name('inventory.list');

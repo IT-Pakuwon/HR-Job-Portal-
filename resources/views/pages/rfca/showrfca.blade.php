@@ -104,18 +104,18 @@
 
 
     @php
-        $statusRfcaText = match ($rfca->status_rfca) {
-            'FR' => 'Finance Received',
-            'TP' => 'Treasury Payment',
-            'C'  => 'RFCA Completed',
+        $statusRfcaText = match ($rfca->rfca_step_order) {
+            1 => 'Finance Received',
+            2 => 'Treasury Payment',
+            3  => 'RFCA Completed',
             null, '' => 'RFCA Jobs',
-            default => $rfca->status_rfca,
+            default => $rfca->rfca_step_order,
         };
 
-        $statusRfcaClass = match ($rfca->status_rfca) {
-            'FR' => 'bg-blue-100 text-blue-700 dark:bg-blue-800/30 dark:text-blue-300',
-            'TP' => 'bg-yellow-100 text-yellow-700 dark:bg-yellow-800/30 dark:text-yellow-300',
-            'C'  => 'bg-emerald-100 text-emerald-700 dark:bg-emerald-800/30 dark:text-emerald-300',
+        $statusRfcaClass = match ($rfca->rfca_step_order) {
+            1 => 'bg-blue-100 text-blue-700 dark:bg-blue-800/30 dark:text-blue-300',
+            2 => 'bg-yellow-100 text-yellow-700 dark:bg-yellow-800/30 dark:text-yellow-300',
+            3  => 'bg-emerald-100 text-emerald-700 dark:bg-emerald-800/30 dark:text-emerald-300',
             null, '' => 'bg-gray-100 text-gray-700 dark:bg-gray-800/30 dark:text-gray-300',
             default => 'bg-gray-100 text-gray-700 dark:bg-gray-800/30 dark:text-gray-300',
         };
@@ -502,17 +502,37 @@
                             </div>
                         </div>
                     </div>     
-
+                   
                     {{-- RFCA Steps Table --}}
-                    
                     <div class="mt-4 rounded-xl bg-white p-4 shadow-sm dark:bg-gray-800">
                         <div class="mb-3 flex items-center justify-between">
-                            <h2 class="text-base font-semibold text-gray-800 dark:text-gray-100">
-                                RFCA Steps
-                            </h2>
-                            @if ($rfca->rfca_type)
-                                <span class="rounded-full bg-indigo-100 px-3 py-1 text-xs font-semibold text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-200">
-                                    Type: {{ $rfca->rfca_type }}
+                            <div class="flex items-center gap-3">
+                                <h2 class="text-base font-semibold text-gray-800 dark:text-gray-100">
+                                    RFCA Steps
+                                </h2>
+                                @if ($rfca->rfca_type)
+                                    <span class="rounded-full bg-indigo-100 px-3 py-1 text-xs font-semibold text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-200">
+                                        Type: {{ $rfca->rfca_type }}
+                                    </span>
+                                @endif
+                            </div>
+
+                            {{-- Global Approve button (aktif kalau masih ada active step) --}}
+                            @php
+                                $activeStep = $rfcaSteps->first(function ($s) {
+                                    return !in_array($s->status_rfca, ['A', 'R'], true);
+                                });
+                            @endphp
+
+                            @if ($activeStep)
+                                <button type="button" id="rfcaStepApproveBtn"
+                                    class="inline-flex items-center gap-1 rounded-md bg-green-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2">
+                                    <x-heroicon-o-check class="h-4 w-4" />
+                                    Approve Step
+                                </button>
+                            @else
+                                <span class="text-xs italic text-gray-500 dark:text-gray-400">
+                                    All steps already processed.
                                 </span>
                             @endif
                         </div>
@@ -522,10 +542,7 @@
                                 <thead class="border-b border-gray-200 text-gray-600 dark:border-gray-700 dark:text-gray-300">
                                     <tr>
                                         <th class="p-2 text-left font-semibold">Order</th>
-                                        <th class="p-2 text-left font-semibold">Step ID</th>
                                         <th class="p-2 text-left font-semibold">Description</th>
-                                        <th class="p-2 text-left font-semibold">Department</th>
-                                        <th class="p-2 text-left font-semibold">CALR Gen</th>
                                         <th class="p-2 text-left font-semibold">User</th>
                                         <th class="p-2 text-left font-semibold">Date</th>
                                         <th class="p-2 text-left font-semibold">Status</th>
@@ -533,22 +550,21 @@
                                 </thead>
                                 <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
                                     @forelse ($rfcaSteps as $step)
-                                        <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                                        @php
+                                            $isActiveRow = $activeStep && $activeStep->id === $step->id;
+
+                                            $st = $step->status_rfca;
+                                            [$lbl, $cls] = match ($st) {
+                                                'P' => ['Pending', 'bg-yellow-100 text-yellow-700 dark:bg-yellow-800/40 dark:text-yellow-300'],
+                                                'A' => ['Approved', 'bg-green-100 text-green-700 dark:bg-green-800/40 dark:text-green-300'],
+                                                'R' => ['Rejected', 'bg-red-100 text-red-700 dark:bg-red-800/40 dark:text-red-300'],
+                                                'S' => ['Revise', 'bg-blue-100 text-blue-700 dark:bg-blue-800/40 dark:text-blue-300'],
+                                                default => ['-', 'bg-gray-100 text-gray-700 dark:bg-gray-800/40 dark:text-gray-300'],
+                                            };
+                                        @endphp
+                                        <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50 {{ $isActiveRow ? 'bg-indigo-50/60 dark:bg-indigo-900/20' : '' }}">
                                             <td class="p-2 align-top">{{ $step->rfca_step_order }}</td>
-                                            <td class="p-2 align-top">{{ $step->rfca_step_id }}</td>
                                             <td class="p-2 align-top">{{ $step->rfca_step_descr }}</td>
-                                            <td class="p-2 align-top">{{ $step->rfca_step_department_id }}</td>
-                                            <td class="p-2 align-top">
-                                                @if ($step->calr_gen === 'Y' || $step->calr_gen === true)
-                                                    <span class="inline-flex rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-semibold text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-200">
-                                                        Yes
-                                                    </span>
-                                                @else
-                                                    <span class="inline-flex rounded-full bg-gray-100 px-2 py-0.5 text-xs font-semibold text-gray-600 dark:bg-gray-700/40 dark:text-gray-300">
-                                                        No
-                                                    </span>
-                                                @endif
-                                            </td>
                                             <td class="p-2 align-top">
                                                 {{ $step->rfca_step_user ?? '-' }}
                                             </td>
@@ -560,24 +576,21 @@
                                                 @endif
                                             </td>
                                             <td class="p-2 align-top">
-                                                @php
-                                                    $st = $step->status_rfca;
-                                                    [$lbl, $cls] = match ($st) {
-                                                        'P' => ['Pending', 'bg-yellow-100 text-yellow-700 dark:bg-yellow-800/40 dark:text-yellow-300'],
-                                                        'A' => ['Approved', 'bg-green-100 text-green-700 dark:bg-green-800/40 dark:text-green-300'],
-                                                        'R' => ['Rejected', 'bg-red-100 text-red-700 dark:bg-red-800/40 dark:text-red-300'],
-                                                        'D' => ['Revise', 'bg-blue-100 text-blue-700 dark:bg-blue-800/40 dark:text-blue-300'],
-                                                        default => ['-', 'bg-gray-100 text-gray-700 dark:bg-gray-800/40 dark:text-gray-300'],
-                                                    };
-                                                @endphp
-                                                <span class="inline-flex rounded-full px-2 py-0.5 text-xs font-semibold {{ $cls }}">
-                                                    {{ $lbl }}
-                                                </span>
+                                                @if ($isActiveRow && !in_array($step->status_rfca, ['A', 'R'], true))
+                                                    {{-- Active step → status text plus info --}}
+                                                    <span class="inline-flex rounded-full bg-indigo-100 px-2 py-0.5 text-xs font-semibold text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-200">
+                                                        Active
+                                                    </span>
+                                                @else
+                                                    <span class="inline-flex rounded-full px-2 py-0.5 text-xs font-semibold {{ $cls }}">
+                                                        {{ $lbl }}
+                                                    </span>
+                                                @endif
                                             </td>
                                         </tr>
                                     @empty
                                         <tr>
-                                            <td colspan="8" class="p-3 text-center text-sm italic text-gray-500 dark:text-gray-400">
+                                            <td colspan="5" class="p-3 text-center text-sm italic text-gray-500 dark:text-gray-400">
                                                 No RFCA steps generated yet. Click <strong>Submit</strong> to choose RFCA Type and generate steps.
                                             </td>
                                         </tr>
@@ -586,6 +599,7 @@
                             </table>
                         </div>
                     </div>
+
 
                 </div>     
 
@@ -996,6 +1010,55 @@
             });
         });
     </script>
+
+    <script>
+        $(function () {
+            const approveStepUrl = @json(route('rfca.approveStep', ['hash' => $hash]));
+
+            $('#rfcaStepApproveBtn').on('click', function (e) {
+                e.preventDefault();
+
+                Swal.fire({
+                    title: 'Approve Active Step?',
+                    text: 'This will mark the current active RFCA step as Approved.',
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonText: 'Yes, Approve',
+                    cancelButtonText: 'Cancel',
+                    confirmButtonColor: '#16a34a',
+                }).then((result) => {
+                    if (!result.isConfirmed) return;
+
+                    $spinner.fadeIn();
+
+                    $.ajax({
+                        url: approveStepUrl,
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                        },
+                        success: function (res) {
+                            if (res.success) {
+                                toastr.success(res.message || 'Active RFCA Step approved.');
+                                // reload supaya table & header update
+                                setTimeout(() => window.location.reload(), 600);
+                            } else {
+                                toastr.error(res.message || 'Failed to approve RFCA Step.');
+                            }
+                        },
+                        error: function (xhr) {
+                            let msg = xhr.responseJSON?.message || 'Failed to approve RFCA Step.';
+                            toastr.error(msg);
+                        },
+                        complete: function () {
+                            $spinner.fadeOut();
+                        }
+                    });
+                });
+            });
+        });
+    </script>
+
 
 
 
