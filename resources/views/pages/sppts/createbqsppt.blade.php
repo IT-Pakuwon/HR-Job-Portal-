@@ -285,6 +285,14 @@
             // Submit Approval via AJAX
             $('#submitApprovalForm').submit(function(e) {
                 e.preventDefault();
+
+                // 🔍 CEK: minimal 1 foto
+                const attachmentsCount = $('#hiddenInputs input[name="attachments[]"]').length;
+                if (attachmentsCount === 0) {
+                    toastr.error('Photo Before wajib diisi minimal 1 foto.');
+                    return; // stop, jangan kirim AJAX
+                }
+                
                 let formData = new FormData(this);
                 $('#submitBtn').attr('disabled', true);
                 $('#cancelBtn').prop('disabled', true);

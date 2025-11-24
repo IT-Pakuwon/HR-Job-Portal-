@@ -42,9 +42,20 @@ class TrRfca extends Model
         'rfca_step_order',
         'rfca_step_id',
         'status_rfca',
+        'calrid',
         'created_by',
         'updated_by',        
     ];
+
+    public function creator()
+    {
+        return $this->belongsTo(User::class, 'created_by', 'username');
+    }
+
+    public function userpeminta()
+    {
+        return $this->belongsTo(User::class, 'user_peminta', 'username');
+    }
 
     
 }

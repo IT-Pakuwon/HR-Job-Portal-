@@ -707,7 +707,7 @@ class CanvassController extends Controller
 
     public function saveCS(Request $request)
     {
-            
+        //  dd($request->all());   
         // ==== Ambil input dasar dari form (hidden + payload JSON) ====
         $doc          = strtoupper($request->input('doc'));          // SPPB|SPPJ|SPPK|SPPT
         $srcId        = $request->input('src_id');                   // id sumber doc
@@ -1219,6 +1219,7 @@ class CanvassController extends Controller
 
     public function updateCS(Request $request, $csid)
     {
+        // dd($request->all());
         // 1) Validasi payload dasar
         $request->validate([
             'doc'             => 'required|string',     // SPPB|SPPJ|SPPK|SPPT
@@ -1383,7 +1384,7 @@ class CanvassController extends Controller
                 $det->inventory_category = $d['inventory_category'] ?? ($src->inventory_category ?? null);
 
                 $det->qty   = $round2($d['qty'] ?? ($src->qty ?? 0));
-                $det->uom   = $d['uom'] ?? ($src->uom ?? null);
+                $det->uom   = $d['uom'] ?? ($src->uom ?? null);               
 
                 // konversi dari sumber (jika ada)
                 $det->type_multiplier = $src->type_multiplier ?? null;

@@ -353,6 +353,13 @@
         $(document).ready(function() {
             $('#submitApprovalForm').submit(function(e) {
                 e.preventDefault();
+
+                // 🔍 CEK: minimal 1 foto
+                const attachmentsCount = $('#hiddenInputs input[name="attachments[]"]').length;
+                if (attachmentsCount === 0) {
+                    toastr.error('Photo Before wajib diisi minimal 1 foto.');
+                    return; // stop, jangan kirim AJAX
+                }
                 
                 const formData = new FormData(this);
                 formData.append('_method', 'PUT');          // spoof → PUT
@@ -447,105 +454,286 @@
             });
     </script>
     <script>
-(function() {
-  // === NEW attachments (client-side preview + hidden file inputs) ===
-  const gridNew      = document.getElementById('newAttachmentsGrid');
-  const addTile      = document.getElementById('addAttachmentTile');
-  const picker       = document.getElementById('hiddenPicker');
-  const hiddenInputs = document.getElementById('hiddenInputs');
+        (function() {
+        // === NEW attachments (client-side preview + hidden file inputs) ===
+        const gridNew      = document.getElementById('newAttachmentsGrid');
+        const addTile      = document.getElementById('addAttachmentTile');
+        const picker       = document.getElementById('hiddenPicker');
+        const hiddenInputs = document.getElementById('hiddenInputs');
 
-  const MAX_SIZE  = 5 * 1024 * 1024; // 5MB
-  const MAX_FILES = 24;
-  const chosenKeys = new Set();
+        const MAX_SIZE  = 5 * 1024 * 1024; // 5MB
+        const MAX_FILES = 24;
+        const chosenKeys = new Set();
 
-  addTile?.addEventListener('click', () => picker.click());
+        addTile?.addEventListener('click', () => picker.click());
 
-  picker?.addEventListener('change', function() {
-    const files = Array.from(this.files || []);
-    files.forEach(file => tryAddFile(file));
-    this.value = '';
-  });
+        picker?.addEventListener('change', function() {
+            const files = Array.from(this.files || []);
+            files.forEach(file => tryAddFile(file));
+            this.value = '';
+        });
 
-  function tryAddFile(file) {
-    if (!file || !file.type.startsWith('image/')) { toastr?.error?.('File bukan gambar.'); return; }
-    if (file.size > MAX_SIZE) { toastr?.error?.(`Ukuran melebihi 5MB: ${file.name}`); return; }
-    if (hiddenInputs.querySelectorAll('input[type="file"][name="attachments[]"]').length >= MAX_FILES) {
-      toastr?.error?.(`Maksimal ${MAX_FILES} foto.`); return;
-    }
-    const key = `${file.name}::${file.size}`;
-    if (chosenKeys.has(key)) { toastr?.warning?.(`Lewati duplikat: ${file.name}`); return; }
-    chosenKeys.add(key);
-    addPhotoCard(file, key);
-  }
+        function tryAddFile(file) {
+            if (!file || !file.type.startsWith('image/')) { toastr?.error?.('File bukan gambar.'); return; }
+            if (file.size > MAX_SIZE) { toastr?.error?.(`Ukuran melebihi 5MB: ${file.name}`); return; }
+            if (hiddenInputs.querySelectorAll('input[type="file"][name="attachments[]"]').length >= MAX_FILES) {
+            toastr?.error?.(`Maksimal ${MAX_FILES} foto.`); return;
+            }
+            const key = `${file.name}::${file.size}`;
+            if (chosenKeys.has(key)) { toastr?.warning?.(`Lewati duplikat: ${file.name}`); return; }
+            chosenKeys.add(key);
+            addPhotoCard(file, key);
+        }
 
-  function addPhotoCard(file, key) {
-    // hidden input (agar ikut submit form)
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.name = 'attachments[]';
-    input.accept = 'image/*';
-    input.className = 'hidden';
+        function addPhotoCard(file, key) {
+            // hidden input (agar ikut submit form)
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.name = 'attachments[]';
+            input.accept = 'image/*';
+            input.className = 'hidden';
 
-    const dt = new DataTransfer();
-    dt.items.add(file);
-    input.files = dt.files;
+            const dt = new DataTransfer();
+            dt.items.add(file);
+            input.files = dt.files;
 
-    const id = 'att_' + Math.random().toString(36).slice(2);
-    input.dataset.ref = id;
-    hiddenInputs.appendChild(input);
+            const id = 'att_' + Math.random().toString(36).slice(2);
+            input.dataset.ref = id;
+            hiddenInputs.appendChild(input);
 
-    // preview card
-    const url = URL.createObjectURL(file);
-    const card = document.createElement('div');
-    card.className = 'relative group rounded-xl border overflow-hidden';
-    card.dataset.ref = id;
-    card.innerHTML = `
-      <img src="${url}" alt="attachment" class="w-full h-40 object-cover" />
-      <div class="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition"></div>
-      <button type="button" title="Remove"
-              class="absolute top-2 right-2 bg-white/90 rounded-full p-1 shadow hover:bg-white">✕</button>
-    `;
+            // preview card
+            const url = URL.createObjectURL(file);
+            const card = document.createElement('div');
+            card.className = 'relative group rounded-xl border overflow-hidden';
+            card.dataset.ref = id;
+            card.innerHTML = `
+            <img src="${url}" alt="attachment" class="w-full h-40 object-cover" />
+            <div class="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition"></div>
+            <button type="button" title="Remove"
+                    class="absolute top-2 right-2 bg-white/90 rounded-full p-1 shadow hover:bg-white">✕</button>
+            `;
 
-    // remove (new)
-    card.querySelector('button').addEventListener('click', () => {
-      const ref = card.dataset.ref;
-    //   const hidden = hiddenInputs.querySelector(\`input[data-ref="\${ref}"]\`);
-      const hidden = hiddenInputs.querySelector(`input[data-ref="${ref}"]`);
+            // remove (new)
+            card.querySelector('button').addEventListener('click', () => {
+            const ref = card.dataset.ref;
+            //   const hidden = hiddenInputs.querySelector(\`input[data-ref="\${ref}"]\`);
+            const hidden = hiddenInputs.querySelector(`input[data-ref="${ref}"]`);
 
-      hidden && hidden.remove();
-      chosenKeys.delete(key);
-      URL.revokeObjectURL(url);
-      card.remove();
-    });
+            hidden && hidden.remove();
+            chosenKeys.delete(key);
+            URL.revokeObjectURL(url);
+            card.remove();
+            });
 
-    gridNew.insertBefore(card, addTile);
-  }
+            gridNew.insertBefore(card, addTile);
+        }
 
-  // === EXISTING attachments: delete via AJAX ===
-  $(document).on('click', '.removeAttachmentExisting', function(){
-    const id   = $(this).data('id');
-    const $box = $(this).closest('.group');
+        // === EXISTING attachments: delete via AJAX ===
+        $(document).on('click', '.removeAttachmentExisting', function(){
+            const id   = $(this).data('id');
+            const $box = $(this).closest('.group');
 
-    if(!confirm('Remove this attachment?')) return;
+            if(!confirm('Remove this attachment?')) return;
 
-    $.ajax({
-      url: "/bqs/remove-attachment/" + id, // sesuaikan route remove milik bq
-      type: "POST",
-      data: { _method: "PUT", _token: "{{ csrf_token() }}" }
-    }).done(function(resp){
-      if (resp?.success) {
-        $box.remove();
-        toastr.success('Attachment removed.');
-      } else {
-        toastr.error(resp?.message || 'Failed to remove attachment.');
-      }
-    }).fail(function(xhr){
-      toastr.error('Error removing attachment.');
-      console.error(xhr.responseText);
-    });
-  });
-})();
-</script>
+            $.ajax({
+            url: "/bqs/remove-attachment/" + id, // sesuaikan route remove milik bq
+            type: "POST",
+            data: { _method: "PUT", _token: "{{ csrf_token() }}" }
+            }).done(function(resp){
+            if (resp?.success) {
+                $box.remove();
+                toastr.success('Attachment removed.');
+            } else {
+                toastr.error(resp?.message || 'Failed to remove attachment.');
+            }
+            }).fail(function(xhr){
+            toastr.error('Error removing attachment.');
+            console.error(xhr.responseText);
+            });
+        });
+        })();
+    </script>
+
+    <script>
+        (function() {
+        // === URL LIST ATTACHMENT DARI BACKEND ===
+        const listUrl = @json(route('attachments.list', ['doctype' => 'BQ', 'refnbr' => $bq->bqid]));
+
+        // === CONTAINER EXISTING + NEW ATTACHMENTS ===
+        const existingGrid = document.getElementById('existingAttachments');
+
+        // === NEW attachments (client-side preview + hidden file inputs) ===
+        const gridNew      = document.getElementById('newAttachmentsGrid');
+        const addTile      = document.getElementById('addAttachmentTile');
+        const picker       = document.getElementById('hiddenPicker');
+        const hiddenInputs = document.getElementById('hiddenInputs');
+
+        const MAX_SIZE  = 5 * 1024 * 1024; // 5MB
+        const MAX_FILES = 24;
+        const chosenKeys = new Set();
+
+        // ---------- FUNGSI RENDER EXISTING ATTACHMENT DARI API ----------
+        function renderExistingAttachments(rows) {
+            // bersihkan isi grid
+            existingGrid.innerHTML = '';
+
+            if (!rows || !rows.length) {
+            existingGrid.innerHTML = `
+                <p class="col-span-full text-center italic text-gray-500 dark:text-gray-400">
+                No attachments found.
+                </p>
+            `;
+            return;
+            }
+
+            rows.forEach(function(at) {
+            const year    = (at.created_at ?? '').slice(0, 4) || '';
+            const href    = at.url || '#';
+            const name    = at.name || at.display_name || '(no name)';
+            const ext     = (at.extention || '').toLowerCase();
+            const isImg   = ['jpg','jpeg','png','gif','webp','bmp','svg','avif'].includes(ext);
+
+            const thumb = isImg && href
+                ? `<img src="${href}" alt="${name}"
+                        class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                        loading="lazy" referrerpolicy="no-referrer">`
+                : `<div class="flex h-full w-full items-center justify-center bg-gray-50 dark:bg-gray-700">
+                    <span class="text-4xl">${ext === 'pdf' ? '📕' : '📄'}</span>
+                </div>`;
+
+            const card = document.createElement('div');
+            card.className = 'relative group rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden';
+            card.innerHTML = `
+                <a href="${href}" target="_blank" class="block aspect-[4/3]">
+                ${thumb}
+                </a>
+
+                <div class="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition"></div>
+
+                <div class="absolute inset-x-0 bottom-0 bg-black/40 px-2 py-1">
+                <div class="truncate text-xs text-white" title="${name}">${name}</div>
+                </div>
+
+                <button type="button"
+                        class="absolute top-2 right-2 bg-white/90 hover:bg-white rounded-full p-1 shadow removeAttachmentExisting"
+                        data-id="${at.id}">
+                ✕
+                </button>
+            `;
+
+            existingGrid.appendChild(card);
+            });
+        }
+
+        function fetchExistingAttachments() {
+            $.get(listUrl)
+            .done(function(res) {
+                if (res && res.success) {
+                renderExistingAttachments(res.attachments || []);
+                } else {
+                toastr.error(res?.message || 'Failed to load attachments.');
+                renderExistingAttachments([]);
+                }
+            })
+            .fail(function() {
+                toastr.error('Failed to load attachments.');
+                renderExistingAttachments([]);
+            });
+        }
+
+        // ---------- NEW ATTACHMENTS (CLIENT SIDE) ----------
+        addTile?.addEventListener('click', () => picker.click());
+
+        picker?.addEventListener('change', function() {
+            const files = Array.from(this.files || []);
+            files.forEach(file => tryAddFile(file));
+            this.value = '';
+        });
+
+        function tryAddFile(file) {
+            if (!file || !file.type.startsWith('image/')) { toastr?.error?.('File bukan gambar.'); return; }
+            if (file.size > MAX_SIZE) { toastr?.error?.(`Ukuran melebihi 5MB: ${file.name}`); return; }
+            if (hiddenInputs.querySelectorAll('input[type="file"][name="attachments[]"]').length >= MAX_FILES) {
+            toastr?.error?.(`Maksimal ${MAX_FILES} foto.`); return;
+            }
+            const key = `${file.name}::${file.size}`;
+            if (chosenKeys.has(key)) { toastr?.warning?.(`Lewati duplikat: ${file.name}`); return; }
+            chosenKeys.add(key);
+            addPhotoCard(file, key);
+        }
+
+        function addPhotoCard(file, key) {
+            // hidden input (agar ikut submit form)
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.name = 'attachments[]';
+            input.accept = 'image/*';
+            input.className = 'hidden';
+
+            const dt = new DataTransfer();
+            dt.items.add(file);
+            input.files = dt.files;
+
+            const id = 'att_' + Math.random().toString(36).slice(2);
+            input.dataset.ref = id;
+            hiddenInputs.appendChild(input);
+
+            // preview card
+            const url = URL.createObjectURL(file);
+            const card = document.createElement('div');
+            card.className = 'relative group rounded-xl border overflow-hidden';
+            card.dataset.ref = id;
+            card.innerHTML = `
+            <img src="${url}" alt="attachment" class="w-full h-40 object-cover" />
+            <div class="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition"></div>
+            <button type="button" title="Remove"
+                    class="absolute top-2 right-2 bg-white/90 rounded-full p-1 shadow hover:bg-white">✕</button>
+            `;
+
+            // remove (new)
+            card.querySelector('button').addEventListener('click', () => {
+            const ref = card.dataset.ref;
+            const hidden = hiddenInputs.querySelector(`input[data-ref="${ref}"]`);
+            hidden && hidden.remove();
+            chosenKeys.delete(key);
+            URL.revokeObjectURL(url);
+            card.remove();
+            });
+
+            gridNew.insertBefore(card, addTile);
+        }
+
+        // === EXISTING attachments: delete via AJAX ===
+        $(document).on('click', '.removeAttachmentExisting', function(){
+            const id   = $(this).data('id');
+            const $box = $(this).closest('.group');
+
+            if(!confirm('Remove this attachment?')) return;
+
+            $.ajax({
+            url: "/bqs/remove-attachment/" + id, // sesuaikan dengan route yang sudah ada
+            type: "POST",
+            data: { _method: "PUT", _token: "{{ csrf_token() }}" }
+            }).done(function(resp){
+            if (resp?.success) {
+                $box.remove();
+                toastr.success('Attachment removed.');
+                // (opsional) refresh ulang dari server:
+                // fetchExistingAttachments();
+            } else {
+                toastr.error(resp?.message || 'Failed to remove attachment.');
+            }
+            }).fail(function(xhr){
+            toastr.error('Error removing attachment.');
+            console.error(xhr.responseText);
+            });
+        });
+
+        // 🔁 initial load existing attachment via attachments.list
+        fetchExistingAttachments();
+
+        })();
+    </script>
 
 
 </x-app-layout>

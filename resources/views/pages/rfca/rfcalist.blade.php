@@ -354,16 +354,17 @@
 
 
                     function headerFor(sc) {
-                        // Semua scope sekarang pakai header yang sama (TrRfca)
                         return `
                             <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Rfca ID</th>
-                            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Rfca Date</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Rfca Date</th>                            
                             <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">PO Nbr</th>
                             <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">SPPB/J/K/T</th>
                             <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Company</th>
                             <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Created By</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Rfca Status</th>
                         `;
                     }
+
 
 
                     function columnsFor(sc) {
@@ -376,7 +377,7 @@
                                 data: 'rfcadate',
                                 render: (_v, _t, row) => row.rfcadate_fmt ?? '',
                                 className: 'text-left'
-                            },
+                            },                            
                             {
                                 data: 'ponbr',
                                 className: 'text-left'
@@ -391,6 +392,19 @@
                             },
                             {
                                 data: 'created_by'
+                            },
+                            {
+                                data: 'current_step_id',
+                                className: 'text-left',
+                                render: (v) => {
+                                    const map = {
+                                        'PS': 'RFCA Jobs',
+                                        'FR': 'Finance Received',
+                                        'TP': 'Treasury Payment',
+                                        'PC': 'RFCA Completed'
+                                    };
+                                    return map[v] ?? '-';
+                                }
                             },
                         ];
                     }

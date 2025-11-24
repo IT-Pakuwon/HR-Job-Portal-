@@ -24,6 +24,7 @@ class TrRfcaStep extends Model
         'calr_gen',
         'rfca_step_user',
         'rfca_step_date',
+        'progress_approval',
         'status_rfca',        
         'created_by',
         'updated_by',        

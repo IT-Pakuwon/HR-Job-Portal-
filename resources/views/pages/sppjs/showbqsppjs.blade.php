@@ -228,59 +228,7 @@
                         class="flex items-center rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
                         <h2 class="text-lg font-semibold text-gray-800 dark:text-gray-100">📸 Photo Before</h2>
                     </header>
-                    {{-- <div class="flex-1 overflow-y-auto px-4 py-3">
-                        <div class="grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8">
-                            @forelse ($attachment as $at)
-                                @php
-                                    $year = $at->created_at->year;
-                                    $fileUrl = url('/attachments/' . $year . '/' . $at->attachfile);
-                                    $ext = strtolower(pathinfo($at->attachfile, PATHINFO_EXTENSION));
-                                    $isImg = in_array($ext, ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'svg']);
-                                @endphp
-
-                                <div
-                                    class="group relative flex flex-col overflow-hidden rounded-md border border-gray-200 bg-white transition hover:border-gray-500 dark:border-gray-700 dark:bg-gray-800">
-                                    
-                                    <a href="{{ $fileUrl }}" target="_blank"
-                                        class="relative block aspect-square overflow-hidden">
-                                        @if ($isImg)
-                                            <img src="{{ $fileUrl }}" alt="{{ $at->name }}"
-                                                class="h-full w-full object-cover transition group-hover:scale-105"
-                                                loading="lazy" referrerpolicy="no-referrer">
-                                        @else
-                                            <div
-                                                class="flex h-full w-full items-center justify-center bg-gray-100 dark:bg-gray-700">
-                                                <span class="text-2xl">📄</span>
-                                            </div>
-                                        @endif
-                                      
-                                        <div class="absolute inset-0 bg-black/0 transition group-hover:bg-black/20">
-                                        </div>
-                                       
-                                        <div
-                                            class="absolute right-1 top-1 flex gap-1 opacity-0 transition group-hover:opacity-100">
-                                            <a href="{{ $fileUrl }}" target="_blank"
-                                                class="rounded bg-white p-1 text-xs shadow hover:bg-gray-100 dark:bg-gray-700">🔍</a>
-                                            <a href="{{ $fileUrl }}" download
-                                                class="rounded bg-white p-1 text-xs shadow hover:bg-gray-100 dark:bg-gray-700">⬇️</a>
-                                        </div>
-                                    </a>
-                                    
-                                    <div class="px-2 py-1">
-                                        <div class="truncate text-xs font-medium text-gray-900 dark:text-gray-100"
-                                            title="{{ $at->name }}">
-                                            {{ $at->name }}
-                                        </div>
-                                    </div>
-                                </div>
-                            @empty
-                                <p class="col-span-full py-6 text-center italic text-gray-500 dark:text-gray-400">
-                                    No attachments found.
-                                </p>
-                            @endforelse
-                        </div>
-                    </div> --}}
-
+                    
                     {{-- Attachment (div grid) --}}
                     <div class="flex-1 overflow-y-auto px-4 py-3">
                         <div id="bqAttachmentGrid"

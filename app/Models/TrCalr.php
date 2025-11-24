@@ -34,5 +34,14 @@ class TrCalr extends Model
         'updated_by',        
     ];
 
+    public function creator()
+    {
+        return $this->belongsTo(User::class, 'created_by', 'username');
+    }
+
+    public function userpeminta()
+    {
+        return $this->belongsTo(User::class, 'user_peminta', 'username');
+    }
     
 }

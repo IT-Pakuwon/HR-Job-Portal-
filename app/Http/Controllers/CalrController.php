@@ -160,12 +160,12 @@ class CalrController extends Controller
             ]);
 
             // Flag di RFCA supaya tidak muncul lagi di jobs (kalau memang pakai kolom ini)
-            // if (property_exists($rfca, 'calrid') || $rfca->getAttribute('calrid') !== null || $rfca->getAttribute('calrid') === null) {
-            //     $rfca->calrid     = $calrid;
-            //     $rfca->updated_by = $username;
-            //     $rfca->updated_at = $datestamp;
-            //     $rfca->save();
-            // }
+            if (property_exists($rfca, 'calrid') || $rfca->getAttribute('calrid') !== null || $rfca->getAttribute('calrid') === null) {
+                $rfca->calrid     = $calrid;
+                $rfca->updated_by = $username;
+                $rfca->updated_at = $datestamp;
+                $rfca->save();
+            }
 
             // === generate TrApproval ===
             $ctx = [
@@ -251,9 +251,10 @@ class CalrController extends Controller
         $user = Auth::user();
         if (!$user) return redirect()->route('login');
 
-        // ===== Header Calr
+        // ===== Header Calr (pakai model baru)
+        /** @var \App\Models\TrCalr $calr */
         $calr = TrCalr::findOrFail($id);
-              
+
         // ===== Link ke PO (opsional)
         $poUrl = null;
         if (!empty($calr->ponbr)) {
@@ -264,11 +265,20 @@ class CalrController extends Controller
             }
         }
 
-       
+        // ===== Link ke RFCA (baru)
+        $rfcaUrl = null;
+        if (!empty($calr->rfcaid)) {
+            $rfcaId = TrRfca::where('rfcaid', $calr->rfcaid)->value('id');
+            if ($rfcaId) {
+                $rfcaHash = Hashids::encode($rfcaId);
+                $rfcaUrl  = url("/showrfca/{$rfcaHash}");
+            }
+        }
+
         // ===== Link ke SPPB/J/K/T (opsional)
-        $sppbUrl = null;
-        $sppbjktid = (string)($calr->sppbjktid ?? '');
-        $prefix = strtoupper(substr($sppbjktid, 0, 2));
+        $sppbUrl   = null;
+        $sppbjktid = (string) ($calr->sppbjktid ?? '');
+        $prefix    = strtoupper(substr($sppbjktid, 0, 2));
 
         $routeMap = [
             'PB' => 'showsppbs',
@@ -280,7 +290,7 @@ class CalrController extends Controller
         if ($sppbjktid !== '' && isset($routeMap[$prefix])) {
             $docId = null;
 
-            if ($prefix === 'PB') {                
+            if ($prefix === 'PB') {
                 $docId = TrSPPB::where('sppbid', $sppbjktid)->value('id');
             } elseif ($prefix === 'PJ') {
                 $docId = TrSPPJ::where('sppjid', $sppbjktid)->value('id');
@@ -306,148 +316,35 @@ class CalrController extends Controller
             }
         }
 
-        // Untuk convenience (mis. kirim email dsb)
-        $eid_calrid = Hashids::encode($calr->calrid);
-
-        $ratingAvg = is_null($calr->rating_vendor) ? null : (float)$calr->rating_vendor;
-        $ratingLegendName = null;
-
-        if (!is_null($ratingAvg)) {
-            $legend = MsCALRRatingLegend::where('status', 'A')
-                ->where('rating_legend_from', '<=', $ratingAvg)
-                ->where('rating_legend_to', '>=', $ratingAvg)
-                ->orderBy('rating_legend_from', 'asc')
-                ->first();
-
-            $ratingLegendName = $legend->rating_legend_name ?? null;
+        // ===== Detail PO (TrPOdetail) berdasarkan PONBR
+        $details = collect();
+        if (!empty($calr->ponbr)) {
+            $details = TrPOdetail::where('ponbr', $calr->ponbr)
+                ->orderBy('po_no')
+                ->get();
         }
 
-        // --- detail rows TrCALRRating + legend name per baris ---
-        $calrRatingRows = TrCALRRating::from('tr_calr_rating as t')
-            ->leftJoin('ms_calr_rating_legend as l', function($join){
-                // Postgres: cocokkan score ke rentang legend; batasi legend aktif
-                // Jika rating_score bertipe integer/decimal, cast tidak wajib;
-                // kalau kolom text, pakai cast numeric.
-                $join->on(DB::raw('t.rating_score::numeric'), '>=', DB::raw('l.rating_legend_from::numeric'))
-                    ->on(DB::raw('t.rating_score::numeric'), '<=', DB::raw('l.rating_legend_to::numeric'))
-                    ->where('l.status', 'A');
-            })
-            ->where('t.calr_id', $calr->calrid)
-            ->orderBy('t.rating_no')
-            ->get([
-                't.id',
-                't.rating_no',
-                't.rating_name',
-                't.rating_score',
-                'l.rating_legend_name'
-            ]);
+        // Convenience: encode ID untuk email/dll
+        $eid_calrid = Hashids::encode((string) $calr->id);
 
         return view('pages.calr.showcalr', [
-            'calr'            => $calr,    
-            'hash'           => $hash,
-            'eid_calrid' => $eid_calrid,
-            'poUrl'          => $poUrl,
-            'sppbUrl'        => $sppbUrl,
-            'csUrl'          => $csUrl,    
-            'ratingLegendName'  => $ratingLegendName,        
-            'calrRatingRows'    => $calrRatingRows,
+            'calr'        => $calr,
+            'hash'        => $hash,
+            'eid_calrid'  => $eid_calrid,
+            'poUrl'       => $poUrl,
+            'rfcaUrl'     => $rfcaUrl,
+            'sppbUrl'     => $sppbUrl,
+            'csUrl'       => $csUrl,
+            'details'     => $details,
         ]);
     }
 
-    public function approveCalr_xxx(Request $request, $docid)
-    {
-        $user    = $request->user();
-        $doctype = 'BA';
 
-        $calr = \App\Models\TrCALR::with('creator')->where('calrid', $docid)->first();
-        if (!$calr) {
-            return response()->json(['success'=>false,'message'=>'CALR not found'],404);
-        }
-
-        $rating = (int) $request->input('rating_vendor', 0);
-
-        $eid      = \Vinkla\Hashids\Facades\Hashids::encode($calr->id);
-        $docUrl   = url('/showcalr/' . $eid);
-        $fullname = data_get($calr, 'creator.name') ?: $calr->created_by;
-
-        $result = app(\App\Http\Controllers\ApprovalController::class)->approveStep(
-            $calr->calrid,
-            $doctype,
-            $user->username,
-            $user->name,
-
-            // ✅ FINAL APPROVAL (C = Completed)
-            function (string $refnbr, \Carbon\Carbon $now) use ($calr, $fullname, $docUrl, $rating) {
-
-                // ✅ APPLY SIDE EFFECTS AGAIN (agar final tetap sync)
-                $this->applyCalrApprovalSideEffects($calr, $rating, $now);
-
-                $calr->status       = 'C';
-                $calr->completed_by = auth()->user()->username;
-                $calr->completed_at = $now;
-                $calr->save();
-
-                app(\App\Http\Controllers\ApprovalController::class)->notifyRequesterOnStatus(
-                    $calr->calrid,
-                    'CALR',
-                    'C',
-                    $calr->created_by,
-                    $docUrl,
-                    [
-                        'cpnyid'   => $calr->cpny_id ?? '',
-                        'deptname' => $calr->department_id ?? '',
-                        'date'     => $calr->calrdate,
-                        'info'     => $calr->keperluan,
-                        'fullname' => $fullname,
-                        'createdby'=> $fullname,
-                    ]
-                );
-            },
-
-            // ✅ NEXT APPROVER (P = Pending next approver)
-            function ($next, \Carbon\Carbon $now) use ($calr, $docUrl, $rating) {
-
-                /**
-                 * ✅ ONLY LEVEL 1.00 -> simpan rating & penalty!
-                 */
-                if (isset($next['aprv_leveling']) && $next['aprv_leveling'] === "2.00") {
-                    // berarti sekarang masih di approve level 1 (yang baru approve)
-                    $this->applyCalrApprovalSideEffects($calr, $rating, $now);
-                }
-
-                app(\App\Http\Controllers\ApprovalController::class)->notifyFirstApprover(
-                    $calr->calrid,
-                    'BA',
-                    'P',
-                    'CALR',
-                    $docUrl,
-                    [
-                        'info'      => $calr->keperluan,
-                        'createdby' => $calr->created_by,
-                        'date'      => $now->toDateTimeString(),
-                    ]
-                );
-
-                $calr->completed_by = auth()->user()->username;
-                $calr->completed_at = $now;
-                $calr->save();
-            }
-        );
-
-        if (!$result['ok']) {
-            return response()->json(['success'=>false,'message'=>$result['message'] ?? 'Approve failed'], 403);
-        }
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Task approved successfully'
-        ]);
-    }
-
+   
     public function approveCalr(Request $request, $docid)
     {
         $user    = $request->user();
-        $doctype = 'BA';
+        $doctype = 'CA';
 
         $calr = \App\Models\TrCALR::with('creator')->where('calrid', $docid)->first();
         if (!$calr) {
@@ -504,7 +401,7 @@ class CalrController extends Controller
                     }
 
                     app(\App\Http\Controllers\ApprovalController::class)->notifyFirstApprover(
-                        $calr->calrid, 'BA', 'P', 'CALR', $docUrl, [
+                        $calr->calrid, 'CA', 'P', 'CALR', $docUrl, [
                             'info'      => $calr->keperluan,
                             'createdby' => $calr->created_by,
                             'date'      => $now->toDateTimeString(),
@@ -533,7 +430,7 @@ class CalrController extends Controller
     public function rejectCalr(Request $request, $docid)
     {
         $user    = $request->user();
-        $doctype = 'BA';
+        $doctype = 'CA';
 
         $calr = \App\Models\TrCALR::with('creator')->where('calrid', $docid)->first();
         if (!$calr) return response()->json(['success'=>false,'message'=>'CALR not found'],404);
@@ -583,7 +480,7 @@ class CalrController extends Controller
 
                 // simpan komentar (jika ada)
                 try {
-                    app('App\Http\Controllers\SendCommentController')->sendmsg($calr->id, 'BA', request());
+                    app('App\Http\Controllers\SendCommentController')->sendmsg($calr->id, 'CA', request());
                 } catch (\Throwable $e) {}
             }
         );
@@ -598,7 +495,7 @@ class CalrController extends Controller
     public function reviseCalr(Request $request, $docid)
     {
         $user    = $request->user();
-        $doctype = 'BA';
+        $doctype = 'CA';
 
         $calr = \App\Models\TrCALR::with('creator')->where('calrid', $docid)->first();
         if (!$calr) return response()->json(['success'=>false,'message'=>'CALR not found'],404);
@@ -643,7 +540,7 @@ class CalrController extends Controller
 
                 // === Simpan komentar (jika ada) ===
                 try {
-                    app('App\Http\Controllers\SendCommentController')->sendmsg($calr->id, 'BA', request());
+                    app('App\Http\Controllers\SendCommentController')->sendmsg($calr->id, 'CA', request());
                 } catch (\Throwable $e) {}
             }
         );
@@ -879,167 +776,13 @@ class CalrController extends Controller
         return $pdf->stream("pdf_calr_vendor_{$calr->calrid}.pdf");
     }
 
-    private function extractRatings(Request $request): array
-    {
-        // 1) bentuk map langsung: rating_scores = { "<id>": <score>, "RATING01": <score>, "no:1": <score> }
-        $ratingScores = $request->input('rating_scores', []);
-        if (!is_array($ratingScores)) $ratingScores = [];
-
-        // 2) bentuk array: ratings = [ {id, rating_id, rating_no, rating_score/score}, ... ]
-        $ratingsItems = $request->input('ratings', []);
-        if (!is_array($ratingsItems)) $ratingsItems = [];
-
-        // 3) bentuk string json: ratings_json = "[{...}, {...}]"
-        if (empty($ratingsItems)) {
-            $ratingsJsonStr = $request->input('ratings_json');
-            if (is_string($ratingsJsonStr) && $ratingsJsonStr !== '') {
-                $decoded = json_decode($ratingsJsonStr, true);
-                if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
-                    $ratingsItems = $decoded;
-                }
-            }
-        }
-
-        // Normalisasi -> jadikan associative map unified
-        // Kunci yang didukung: baris id, rating_id, dan "no:<rating_no>"
-        foreach ($ratingsItems as $it) {
-            if (!is_array($it)) continue;
-
-            $score = $it['rating_score'] ?? $it['score'] ?? null;
-            if ($score === null) continue;
-
-            $score = (float)$score;
-            if ($score <= 0) continue;
-
-            if (!empty($it['id'])) {
-                $ratingScores[(string)$it['id']] = $score;
-            }
-            if (!empty($it['rating_id'])) {
-                $ratingScores[(string)$it['rating_id']] = $score;
-            }
-            if (!empty($it['rating_no'])) {
-                $ratingScores['no:'.(string)$it['rating_no']] = $score;
-            }
-        }
-
-        return $ratingScores; // unified map
-    }
+    
 
     
 
-    private function applyCalrApprovalSideEffects(TrCALR $calr, Carbon $approveAt, array $ratingScores = []): TrCALR
-    {
-        // === 1) Update skor per-baris TrCALRRating dari payload slider (1-10)
-        //      Terima kunci berupa row->id ATAU row->rating_id.
-        if (!empty($ratingScores)) {
-            $rows = TrCALRRating::where('calr_id', $calr->calrid)->get();
-
-            foreach ($rows as $row) {
-                // cari score by id
-                $score = null;
-
-                if (array_key_exists($row->id, $ratingScores)) {
-                    $score = $ratingScores[$row->id];
-                } elseif (!is_null($row->rating_id) && array_key_exists($row->rating_id, $ratingScores)) {
-                    $score = $ratingScores[$row->rating_id];
-                }
-
-                if (!is_null($score)) {
-                    // clamp 1..10
-                    $clamped = max(1, min(10, (float)$score));
-                    $row->rating_score = $clamped;
-                    $row->updated_by   = auth()->user()->username ?? 'system';
-                    $row->updated_at   = now('Asia/Jakarta');
-                    $row->save();
-                }
-            }
-        }
-
-        // === 2) Hitung rata-rata terbaru (abaikan null/0)
-        $agg = TrCALRRating::where('calr_id', $calr->calrid)
-            ->whereNotNull('rating_score')
-            ->where('rating_score', '>', 0)
-            ->selectRaw('AVG(rating_score)::numeric as avg_score, COUNT(*) as cnt')
-            ->first();
-
-        $avgScore = $agg && $agg->cnt > 0 ? (float) $agg->avg_score : 0.0;
-
-        // Simpan ke header. (Tetap pakai skala 1-10; kalau mau 1-5 bintang, tinggal dibagi 2.)
-        $calr->rating_vendor = $avgScore > 0 ? round($avgScore, 1) : null;
-
-        // === 3) Handover date = tanggal approve
-        $calr->handoverdate = $approveAt->toDateString();
-
-        // === 4) Days penalty (telat jika approve > enddate)
-        $daysPenalty = 0;
-        if (!empty($calr->enddate)) {
-            $end  = Carbon::parse($calr->enddate)->startOfDay();
-            $appr = $approveAt->copy()->startOfDay();
-            $diff = $end->diffInDays($appr, false);
-            $daysPenalty = $diff > 0 ? $diff : 0;
-        }
-        $calr->days_penalty = $daysPenalty;
-
-        // === 5) Total penalty = days * penalty_per_day
-        $perDay = (float) ($calr->penalty ?? 0); // kolom penalty dianggap tarif/hari
-        $calr->total_penalty = $daysPenalty > 0 ? ($daysPenalty * $perDay) : 0.0;
-
-        $calr->save();
-
-        return $calr;
-    }
     
-    private function applyCalrApprovalSideEffects_xxx(TrCALR $calr, ?int $ratingFromReq, Carbon $approveAt): TrCALR
-    {
-        // 1) Rating
-        if (!is_null($ratingFromReq) && $ratingFromReq > 0 && $ratingFromReq <= 5) {
-            $calr->rating_vendor = $ratingFromReq;
-        }
-
-        // 2) Handover date = tanggal approve (YYYY-MM-DD)
-        $calr->handoverdate = $approveAt->toDateString();
-
-        // 3) Days penalty (telat jika approve > enddate)
-        $daysPenalty = 0;
-        if (!empty($calr->enddate)) {
-            $end  = Carbon::parse($calr->enddate)->startOfDay();
-            $appr = $approveAt->copy()->startOfDay();
-
-            // Selisih hari (positif jika approve setelah enddate)
-            $diff = $end->diffInDays($appr, false);
-            $daysPenalty = $diff > 0 ? $diff : 0;
-        }
-        $calr->days_penalty = $daysPenalty;
-
-        // 4) Total penalty = days * penalty_per_day
-        $perDay = (float) ($calr->penalty ?? 0); // kolom penalty dianggap tarif/hari
-        $calr->total_penalty = $daysPenalty > 0 ? ($daysPenalty * $perDay) : 0.0;
-
-        $calr->save();
-
-        return $calr;
-    }
-
-    public function getCalrRatings(string $calrid)
-    {
-        // Optional: validasi hak akses lihat CALR di sini
-
-        $rows = TrCALRRating::where('calr_id', $calrid)
-            ->orderBy('rating_no')
-            ->get([
-                'id',
-                'rating_id',
-                'rating_no',
-                'rating_name',
-                'rating_descr',
-                'rating_score',
-            ]);
-
-        return response()->json([
-            'success' => true,
-            'data'    => $rows,
-        ]);
-    }
+    
+    
 
 
 }

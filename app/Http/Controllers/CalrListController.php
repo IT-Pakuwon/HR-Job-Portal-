@@ -36,7 +36,8 @@ class CalrListController extends Controller
                 ->on('c.ponbr',  'tr_rfca.ponbr');
             })
             ->when($cpny_id, fn($q) => $q->where('tr_rfca.cpny_id', $cpny_id))
-            ->where('s.calr_gen', 't')      // hanya step yang generate CALR
+            ->where('s.calr_gen', true)      // hanya step yang generate CALR
+            ->where('s.status_rfca', 'C')
             ->whereNull('c.calrid')         // belum ada CALR
             ->count();
 
@@ -78,6 +79,7 @@ class CalrListController extends Controller
                 })
                 ->when($cpny_id, fn($q)=>$q->where('tr_rfca.cpny_id', $cpny_id))
                 ->where('s.calr_gen', 't')
+                ->where('s.status_rfca', 'C')
                 ->whereNull('c.calrid')
                 ->select([
                     'tr_rfca.id',

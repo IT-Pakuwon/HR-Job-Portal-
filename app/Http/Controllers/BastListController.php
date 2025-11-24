@@ -99,7 +99,8 @@ class BastListController extends Controller
                 2=>'ponbr',
                 3=>'sppbjktid',
                 4=>'cpny_id',
-                5=>'created_by'
+                5=>'created_by',
+                6 => 'status'
             ];
 
             if ($search !== '') {

@@ -104,7 +104,7 @@
 
 
     @php
-        $statusText = match ($bast->status) {
+        $statusText = match ($calr->status) {
             'P' => 'Pending',
             'A' => 'Approved',
             'R' => 'Rejected',
@@ -112,7 +112,7 @@
             'X' => 'Canceled',
             default => 'Unknown',
         };
-        $statusClasses = match ($bast->status) {
+        $statusClasses = match ($calr->status) {
             'P' => 'bg-yellow-100 text-yellow-700 dark:bg-yellow-800/30 dark:text-yellow-300',
             'A' => 'bg-green-100 text-green-700 dark:bg-green-800/30 dark:text-green-300',
             'R' => 'bg-red-100 text-red-700 dark:bg-red-800/30 dark:text-red-300',
@@ -170,14 +170,14 @@
 
         <div class="flex w-full flex-col gap-6 overflow-hidden sm:col-span-1 lg:row-span-1 xl:row-span-1 xl:flex-col">
             <div class="flex flex-col gap-6 sm:w-1/2 md:w-full xl:flex-row">
-                {{-- Left card (Bast Info) --}}
+                {{-- Left card (Calr Info) --}}
                 <div class="rounded-xl bg-white duration-300 sm:w-1/2 md:w-full dark:bg-gray-800">
                     <header
                         class="sticky top-0 z-10 flex items-center justify-between rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
                         <h1 class="flex items-center gap-2 text-lg font-bold text-gray-800 dark:text-gray-100">
                             <span
                                 class="inline-flex items-center rounded-md bg-purple-100 px-2 py-1 text-sm font-semibold text-purple-700">ID</span>
-                            {{ $bast->bastid }}
+                            {{ $calr->calrid }}
                         </h1>
 
                         <div class="flex items-center gap-3">
@@ -185,20 +185,7 @@
                                 class="{{ $statusClasses }} inline-flex items-center rounded-full px-4 py-1 text-sm font-semibold transition-colors duration-200">
                                 {{ $statusText }}
                             </span>
-
-                            {{-- <a href="{{ url('/pdf_bast') }}/{{ $hash }}" target="_blank">
-                                <button
-                                    class="inline-flex cursor-pointer items-center gap-2 rounded-full bg-indigo-600 px-4 py-1 text-sm font-semibold text-white transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
-                                    Print PDF
-                                </button>
-                            </a>
-
-                            <a href="{{ url('/pdf_bast_vendor') }}/{{ $hash }}" target="_blank">
-                                <button
-                                    class="inline-flex cursor-pointer items-center gap-2 rounded-full bg-indigo-600 px-4 py-1 text-sm font-semibold text-white transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
-                                    Print PDF Vendor
-                                </button>
-                            </a> --}}
+                         
                             {{-- Dropdown Print --}}
                             <div class="relative">
                                 <button id="printMenuBtn"
@@ -215,15 +202,15 @@
                                 <div id="printMenu"
                                     class="absolute right-0 z-20 mt-2 hidden w-56 overflow-hidden rounded-md border border-gray-200 bg-white shadow-md dark:border-gray-700 dark:bg-gray-800"
                                     role="menu" aria-labelledby="printMenuBtn">
-                                    <a href="{{ url('/pdf_bast') }}/{{ $hash }}" target="_blank"
+                                    <a href="{{ url('/pdf_calr') }}/{{ $hash }}" target="_blank"
                                         class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700"
                                         role="menuitem">
-                                        Print BAST
+                                        Print CAST
                                     </a>
-                                    <a href="{{ url('/pdf_bast_vendor') }}/{{ $hash }}" target="_blank"
+                                    <a href="{{ url('/pdf_calr_vendor') }}/{{ $hash }}" target="_blank"
                                         class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700"
                                         role="menuitem">
-                                        Print BAST Vendor
+                                        Print CAST Vendor
                                     </a>
                                 </div>
                             </div>
@@ -231,17 +218,16 @@
                         </div>
                     </header>
 
-                    @php
+                   @php
                         $fmtDate = function ($v) {
                             return $v ? \Carbon\Carbon::parse($v)->format('d M Y') : '-';
                         };
                         $fmtMoney = function ($v) {
-                            return is_null($v) || $v === '' ? '-' : number_format((float) $v, 0, ',', '.');
-                        };
-                        $fmtPct = function ($v) {
-                            return is_null($v) || $v === ''
-                                ? '-'
-                                : rtrim(rtrim(number_format((float) $v, 2, ',', '.'), '0'), ',') . '%';
+                            if (is_null($v) || $v === '') return '-';
+                            $num = (float) $v;
+                            $sign = $num < 0 ? '-' : '';
+                            $num = abs($num);
+                            return $sign . number_format($num, 0, ',', '.');
                         };
                     @endphp
 
@@ -249,101 +235,124 @@
 
                         @php
                             // Reusable layout classes
-                            $row = 'flex flex-col gap-1 p-2 sm:flex-row sm:items-center sm:gap-3';
+                            $row   = 'flex flex-col gap-1 p-2 sm:flex-row sm:items-center sm:gap-3';
                             $label = 'flex items-center gap-2 text-gray-500 sm:min-w-40';
                             $value = 'break-words font-medium text-gray-900 dark:text-gray-300 sm:flex-1';
 
-                            // Helper number/date formats
-                            $money = fn($v) => $fmtMoney($v ?? null);
-                            $pct = fn($v) => $fmtPct($v ?? null);
-                            $date = fn($v) => $fmtDate($v ?? null);
-
                             $fields = [
                                 [
-                                    'icon' => 'calendar-days',
-                                    'label' => 'BAST Date',
-                                    'value' => \Carbon\Carbon::parse($bast->bastdate)->format('d M Y'),
+                                    'icon'  => 'calendar-days',
+                                    'label' => 'CALR Date',
+                                    'value' => $fmtDate($calr->calrdate),
                                 ],
                                 [
-                                    'icon' => 'hashtag',
+                                    'icon'  => 'identification',
+                                    'label' => 'RFCA ID',
+                                    'value' => !empty($rfcaUrl) && !empty($calr->rfcaid)
+                                        ? '<a href="' .
+                                            $rfcaUrl .
+                                            '" target="_blank" class="text-indigo-600 hover:underline dark:text-indigo-400">' .
+                                            e($calr->rfcaid) .
+                                            '</a>'
+                                        : ($calr->rfcaid ?? '-'),
+                                ],
+
+                                [
+                                    'icon'  => 'tag',
+                                    'label' => 'RFCA Type',
+                                    'value' => $calr->rfca_type ?? '-',
+                                ],
+                                [
+                                    'icon'  => 'hashtag',
                                     'label' => 'PO Nbr',
                                     'value' => !empty($poUrl)
                                         ? '<a href="' .
                                             $poUrl .
                                             '" target="_blank" class="text-indigo-600 hover:underline dark:text-indigo-400">' .
-                                            $bast->ponbr .
+                                            e($calr->ponbr) .
                                             '</a>'
-                                        : $bast->ponbr,
+                                        : ($calr->ponbr ?? '-'),
                                 ],
-                                ['icon' => 'building-office', 'label' => 'Company', 'value' => $bast->cpny_id],
-                                ['icon' => 'squares-2x2', 'label' => 'Department', 'value' => $bast->department_id],
-                                ['icon' => 'user', 'label' => 'Requester', 'value' => $bast->user_peminta],
-                                ['icon' => 'building-storefront', 'label' => 'Vendor', 'value' => $bast->vendorname],
                                 [
-                                    'icon' => 'document-duplicate',
+                                    'icon'  => 'building-office',
+                                    'label' => 'Company',
+                                    'value' => $calr->cpny_id ?? '-',
+                                ],
+                                [
+                                    'icon'  => 'squares-2x2',
+                                    'label' => 'Department',
+                                    'value' => $calr->department_id ?? '-',
+                                ],
+                                [
+                                    'icon'  => 'user',
+                                    'label' => 'Requester',
+                                    'value' => $calr->user_peminta ?? '-',
+                                ],
+                                [
+                                    'icon'  => 'building-storefront',
+                                    'label' => 'Vendor',
+                                    'value' => $calr->vendorname ?? '-',
+                                ],
+                                [
+                                    'icon'  => 'document-duplicate',
                                     'label' => 'CS ID',
-                                    'value' => !empty($csUrl)
+                                    'value' => !empty($csUrl) && !empty($calr->csid)
                                         ? '<a href="' .
                                             $csUrl .
                                             '" target="_blank" class="inline-flex items-center gap-1 text-indigo-600 hover:underline dark:text-indigo-400">' .
-                                            $bast->csid .
-                                            ' <x-heroicon-o-arrow-up-right class="h-4 w-4" /></a>'
-                                        : $bast->csid,
+                                            e($calr->csid) .
+                                            '</a>'
+                                        : ($calr->csid ?? '-'),
                                 ],
                                 [
-                                    'icon' => 'document-text',
+                                    'icon'  => 'document-text',
                                     'label' => 'SPPB/J/K/T',
-                                    'value' => !empty($sppbUrl)
+                                    'value' => !empty($sppbUrl) && !empty($calr->sppbjktid)
                                         ? '<a href="' .
                                             $sppbUrl .
                                             '" target="_blank" class="inline-flex items-center gap-1 text-indigo-600 hover:underline dark:text-indigo-400">' .
-                                            $bast->sppbjktid .
-                                            ' <x-heroicon-o-arrow-up-right class="h-4 w-4" /></a>'
-                                        : $bast->sppbjktid,
+                                            e($calr->sppbjktid) .
+                                            '</a>'
+                                        : ($calr->sppbjktid ?? '-'),
                                 ],
-                                ['icon' => 'queue-list', 'label' => 'BQ ID', 'value' => $bast->bqid ?? '-'],
+                                [
+                                    'icon'  => 'clipboard-document-list',
+                                    'label' => 'Purpose',
+                                    'value' => $calr->keperluan ?? '-',
+                                ],
 
                                 // Financials
                                 [
-                                    'icon' => 'currency-dollar',
-                                    'label' => 'BAST Amount',
-                                    'value' => 'Rp ' . $money($bast->bast_amount),
-                                ],
-                                ['icon' => 'chart-bar', 'label' => 'Progress', 'value' => $pct($bast->progress_pct)],
-                                ['icon' => 'banknotes', 'label' => 'Payment', 'value' => $pct($bast->payment_pct)],
-
-                                // Dates
-                                ['icon' => 'calendar', 'label' => 'Start Date', 'value' => $date($bast->startdate)],
-                                ['icon' => 'calendar', 'label' => 'End Date', 'value' => $date($bast->enddate)],
-                                ['icon' => 'hand-raised', 'label' => 'Handover', 'value' => $date($bast->handoverdate)],
-
-                                // Penalties
-                                ['icon' => 'clock', 'label' => 'Days Penalty', 'value' => $bast->days_penalty ?? '-'],
-                                [
-                                    'icon' => 'exclamation-triangle',
-                                    'label' => 'Penalty',
-                                    'value' => 'Rp ' . $money($bast->penalty),
+                                    'icon'  => 'currency-dollar',
+                                    'label' => 'RFCA Amount',
+                                    'value' => 'Rp ' . $fmtMoney($calr->rfca_amount),
                                 ],
                                 [
-                                    'icon' => 'exclamation-circle',
-                                    'label' => 'Total Penalty',
-                                    'value' => 'Rp ' . $money($bast->total_penalty),
+                                    'icon'  => 'currency-dollar',
+                                    'label' => 'CALR Amount',
+                                    'value' => 'Rp ' . $fmtMoney($calr->calr_amount),
                                 ],
-
-                                // Realization
                                 [
-                                    'icon' => 'receipt-percent',
-                                    'label' => 'Realize Amount',
-                                    'value' => 'Rp ' . $money($bast->realize_amount),
+                                    'icon'  => 'scale',
+                                    'label' => 'Balance Amount',
+                                    'value' => 'Rp ' . $fmtMoney($calr->balance_amount),
                                 ],
 
-                                // Rating Vendor → special rendering below
+                                // Audit info
+                                [
+                                    'icon'  => 'user-circle',
+                                    'label' => 'Created By',
+                                    'value' => $calr->created_by ?? '-',
+                                ],
+                                [
+                                    'icon'  => 'user-circle',
+                                    'label' => 'Updated By',
+                                    'value' => $calr->updated_by ?? '-',
+                                ],
                             ];
                         @endphp
 
                         <div class="grid grid-cols-2 gap-x-8 gap-y-3 text-sm sm:grid-cols-2">
-
-                            {{-- Render rows normally --}}
                             @foreach ($fields as $f)
                                 <div class="{{ $row }}">
                                     <div class="{{ $label }}">
@@ -353,51 +362,6 @@
                                     <span class="{!! $value !!}">{!! $f['value'] !!}</span>
                                 </div>
                             @endforeach
-
-                            {{-- ⭐ Vendor Rating (special layout with badges) --}}
-                            <div class="{{ $row }}">
-                                <div class="{{ $label }}">
-                                    <x-heroicon-o-star class="h-5 w-5 text-gray-400" />
-                                    <span>Rating Vendor</span>
-                                </div>
-
-                                <span class="flex items-center gap-2 font-medium text-gray-900 dark:text-gray-300">
-
-                                    <span
-                                        class="inline-flex items-center rounded-md bg-indigo-50 px-2 py-0.5 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300">
-                                        {{ $bast->rating_vendor ? number_format((float) $bast->rating_vendor, 1, ',', '.') : '-' }}
-                                    </span>
-
-                                    @if (!empty($ratingLegendName))
-                                        <span
-                                            class="inline-flex items-center rounded-md bg-emerald-100 px-2 py-0.5 text-emerald-700 dark:bg-emerald-800/30 dark:text-emerald-300">
-                                            {{ $ratingLegendName }}
-                                        </span>
-                                    @else
-                                        <span
-                                            class="inline-flex items-center rounded-md bg-gray-100 px-2 py-0.5 text-gray-600 dark:bg-gray-700/40 dark:text-gray-300">
-                                            -
-                                        </span>
-                                    @endif
-
-                                </span>
-                            </div>
-
-                            {{-- Note full width --}}
-                            @if (!empty($bast->bastnote))
-                                <div class="col-span-2">
-                                    <div class="flex items-start gap-2 rounded-md bg-gray-50 p-3 dark:bg-gray-700">
-                                        <x-heroicon-o-clipboard-document-list class="mt-0.5 h-5 w-5 text-gray-400" />
-                                        <div class="flex flex-col">
-                                            <span class="text-gray-500">Note</span>
-                                            <span class="break-words font-medium text-gray-900 dark:text-gray-300">
-                                                {{ $bast->bastnote }}
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
-                            @endif
-
                         </div>
                     </div>
 
@@ -477,9 +441,9 @@
                                                         </label>
                                                         <div class="flex items-center gap-3">
                                                             <input type="hidden" name="cpnyid"
-                                                                value="{{ $bast->cpny_id }}">
+                                                                value="{{ $calr->cpny_id }}">
                                                             <input type="hidden" name="departementid"
-                                                                value="{{ $bast->department_id }}">
+                                                                value="{{ $calr->department_id }}">
                                                             <input type="file" id="rcpAttachFiles"
                                                                 name="attachments[]" multiple
                                                                 class="block w-full cursor-pointer rounded-md border border-gray-300 bg-white px-2 py-[7px] text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" />
@@ -524,106 +488,58 @@
                         </div>
                     </div>
 
-                    {{-- Vendor Rating Breakdown --}}
-                    <div>
-                        <header
-                            class="sticky top-0 z-10 flex items-center rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
-                            <h3 class="text-base font-semibold text-gray-800 dark:text-gray-100">Vendor Rating
-                                Breakdown
-                            </h3>
-                        </header>
-
-                        <div class="overflow-auto rounded-b-xl bg-white">
-                            <table class="min-w-full text-sm">
-                                <thead class="bg-gray-50 dark:bg-gray-700">
-                                    <tr>
-                                        <th class="px-3 py-2 text-left font-semibold text-gray-700 dark:text-gray-200"
-                                            style="width: 60px;">No</th>
-                                        <th class="px-3 py-2 text-left font-semibold text-gray-700 dark:text-gray-200">
-                                            Kriteria</th>
-                                        <th class="px-3 py-2 text-right font-semibold text-gray-700 dark:text-gray-200"
-                                            style="width: 100px;">Score</th>
-                                        <th class="px-3 py-2 text-left font-semibold text-gray-700 dark:text-gray-200"
-                                            style="width: 220px;">Legend</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
-                                    @php
-                                        $fmt1 = fn($v) => is_null($v) ? '-' : number_format((float) $v, 1, ',', '.');
-                                    @endphp
-
-                                    @forelse ($bastRatingRows as $i => $row)
-                                        <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/40">
-                                            <td class="px-3 py-2 text-gray-800 dark:text-gray-100">
-                                                {{ $row->rating_no ?? $i + 1 }}</td>
-                                            <td class="px-3 py-2">
-                                                <div class="font-medium text-gray-900 dark:text-gray-100">
-                                                    {{ $row->rating_name ?? '-' }}
-                                                </div>
-                                            </td>
-                                            <td class="px-3 py-2 text-right text-gray-900 dark:text-gray-100">
-                                                {{ $fmt1($row->rating_score) }}
-                                            </td>
-                                            <td class="px-3 py-2">
-                                                @if (!empty($row->rating_legend_name))
-                                                    <span
-                                                        class="inline-flex items-center rounded-md bg-emerald-100 px-2 py-0.5 text-emerald-700 dark:bg-emerald-800/30 dark:text-emerald-300">
-                                                        {{ $row->rating_legend_name }}
-                                                    </span>
-                                                @else
-                                                    <span class="text-gray-500 dark:text-gray-400">-</span>
-                                                @endif
-                                            </td>
-                                        </tr>
-                                    @empty
-                                        <tr>
-                                            <td colspan="4"
-                                                class="px-3 py-4 text-center text-gray-500 dark:text-gray-400">
-                                                No rating rows found.
-                                            </td>
-                                        </tr>
-                                    @endforelse
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
+                    
                 </div>
 
             </div>
 
 
-            {{-- Bast Detail table --}}
-            <div class="flex w-full flex-col gap-4 rounded-2xl md:flex-row xl:flex-row">
-
-                {{-- Photo Before (by BQID) --}}
-                <div class="flex-1 rounded-xl bg-white dark:bg-gray-800">
-                    <header
-                        class="flex items-center rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
-                        <h2 class="text-lg font-semibold text-gray-800 dark:text-gray-100">📸 Photo Before</h3>
-                    </header>
-
-                    <div id="photoBeforeGrid"
-                        class="grid grid-cols-2 gap-3 px-4 py-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
-                        <p class="col-span-full py-6 text-center italic text-gray-500 dark:text-gray-400">Loading...
-                        </p>
-                    </div>
+            {{-- CALR / PO Detail (TrPOdetail) --}}
+            <div class="mt-6 rounded-xl bg-white p-6 shadow-md dark:bg-gray-800">
+                <div class="mb-4 border-b border-gray-200 pb-3 dark:border-gray-700">
+                    <h3 class="text-lg font-bold text-gray-800 dark:text-gray-100">
+                        PO Detail
+                        @if($calr->ponbr)
+                            <span class="ml-2 text-sm font-normal text-gray-500">({{ $calr->ponbr }})</span>
+                        @endif
+                    </h3>
                 </div>
 
-                {{-- Photo After (by BASTID) --}}
-                <div class="flex-1 rounded-xl bg-white dark:bg-gray-800">
-                    <header
-                        class="flex items-center rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
-                        <h2 class="text-lg font-semibold text-gray-800 dark:text-gray-100">📸 Photo After</h3>
-                    </header>
-
-                    <div id="photoAfterGrid"
-                        class="grid grid-cols-2 gap-3 px-4 py-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
-                        <p class="col-span-full py-6 text-center italic text-gray-500 dark:text-gray-400">Loading...
-                        </p>
-                    </div>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200 text-sm dark:divide-gray-700">
+                        <thead class="bg-gray-50 dark:bg-gray-700">
+                            <tr>
+                                <th class="px-3 py-2 text-left font-semibold">Inventory</th>
+                                <th class="px-3 py-2 text-right font-semibold">Qty</th>
+                                <th class="px-3 py-2 text-left font-semibold">UOM</th>
+                                <th class="px-3 py-2 text-right font-semibold">Total Cost</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100 bg-white dark:divide-gray-700 dark:bg-gray-800">
+                            @forelse ($details as $d)
+                                <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
+                                    <td class="px-3 py-2">{{ $d->inventory_descr }}</td>
+                                    <td class="px-3 py-2 text-right">
+                                        {{ number_format((float) $d->qty, 2, ',', '.') }}
+                                    </td>
+                                    <td class="px-3 py-2">{{ $d->uom }}</td>
+                                    <td class="px-3 py-2 text-right">
+                                        Rp {{ number_format((float) $d->totalcost, 0, ',', '.') }}
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="4" class="px-3 py-4 text-center text-gray-500">
+                                        No PO detail found.
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
                 </div>
-
             </div>
+
+           
 
 
         </div>
@@ -661,84 +577,7 @@
         </div>
     </div>
 
-    {{-- Rating Modal --}}
-    {{-- <div id="ratingModal" class="fixed inset-0 z-[3000] hidden items-center justify-center bg-black/50">
-        <div class="w-full max-w-sm rounded-xl bg-white p-5 shadow-md dark:bg-gray-800">
-            <h3 class="mb-3 text-lg font-semibold text-gray-800 dark:text-gray-100">
-            Give Vendor Rating
-            </h3>
-
-            <div id="ratingStars" class="mb-4 flex items-center gap-1">
-            @for ($i = 1; $i <= 5; $i++)
-                <button type="button" class="star-btn text-gray-300 dark:text-gray-600" data-value="{{ $i }}" aria-label="Rate {{ $i }}">               
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" viewBox="0 0 20 20" fill="currentColor">
-                    <path d="M9.049.927L7.09 6.333H1.5l4.724 3.436L3.97 15.5l5.079-3.597L14.129 15.5l-2.255-5.731L16.5 6.333h-5.59L9.049.927z"/>
-                </svg>
-                </button>
-            @endfor
-            </div>
-
-            <div class="mt-2 flex items-center justify-end gap-2">
-            <button id="ratingCancelBtn"
-                    class="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
-                Cancel
-            </button>
-            <button id="ratingOkBtn"
-                    class="rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700">
-                OK
-            </button>
-            </div>
-        </div>
-    </div> --}}
-
-    {{-- Rating Modal (TrBASTRating sliders) --}}
-    <div id="ratingModal" class="fixed inset-0 z-[3000] hidden items-center justify-center bg-black/50">
-        <div class="w-full max-w-2xl rounded-xl bg-white p-5 shadow-md dark:bg-gray-800">
-            <h3 class="mb-4 text-lg font-semibold text-gray-800 dark:text-gray-100">
-                Vendor Rating (1–10 per kriteria)
-            </h3>
-
-            <div class="max-h-[60vh] overflow-y-auto rounded-lg border border-gray-200 dark:border-gray-700">
-                <table class="min-w-full text-sm">
-                    <thead class="bg-gray-50 dark:bg-gray-700">
-                        <tr>
-                            <th class="px-4 py-2 text-left font-semibold text-gray-700 dark:text-gray-200">Kriteria
-                            </th>
-                            <th class="px-4 py-2 text-center font-semibold text-gray-700 dark:text-gray-200"
-                                style="width: 160px;">Score</th>
-                            <th class="px-4 py-2 text-center font-semibold text-gray-700 dark:text-gray-200"
-                                style="width: 90px;">Value</th>
-                        </tr>
-                    </thead>
-                    <tbody id="ratingTableBody" class="divide-y divide-gray-100 dark:divide-gray-700">
-                        <tr>
-                            <td colspan="3" class="px-4 py-4 text-center text-gray-500 dark:text-gray-400">Loading
-                                ratings…</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <div class="mt-4 flex items-center justify-between">
-                <div class="text-sm text-gray-600 dark:text-gray-300">
-                    <span class="font-semibold">Average:</span>
-                    <span id="ratingAvg" class="ml-1 inline-block min-w-[28px] text-center">0</span>
-                </div>
-                <div class="flex items-center gap-2">
-                    <button id="ratingCancelBtn"
-                        class="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
-                        Cancel
-                    </button>
-                    <button id="ratingOkBtn"
-                        class="rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700">
-                        OK
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-
+ 
 
     {{-- Overlay --}}
     <div id="loadingSpinnerContainer" role="status" aria-live="polite" aria-label="Loading">
@@ -768,10 +607,10 @@
     {{-- Comments --}}
     <script>
         $(document).ready(function() {
-            const bastid = "{{ $bast->bastid }}";
-            const doctype = "BA";
+            const calrid = "{{ $calr->calrid }}";
+            const doctype = "CA";
 
-            loadComments(bastid, doctype);
+            loadComments(calrid, doctype);
 
             function loadComments(refnbr, doctype) {
                 let commentList = $('#commentList');
@@ -823,7 +662,7 @@
                 $('#postCommentBtn').prop('disabled', true).text('Posting... 🚀');
 
                 $.ajax({
-                    url: `/comments/${doctype}/${bastid}`,
+                    url: `/comments/${doctype}/${calrid}`,
                     type: 'POST',
                     data: {
                         comment: input,
@@ -831,7 +670,7 @@
                     },
                     success: function(response) {
                         if (response.status === "success") {
-                            loadComments(bastid, doctype);
+                            loadComments(calrid, doctype);
                             $('#commentInput').val('');
                         }
                     },
@@ -864,122 +703,23 @@
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
-        // util modal
-        function openRatingModal() {
-            $('#ratingModal').removeClass('hidden').addClass('flex');
-        }
-
-        function closeRatingModal() {
-            $('#ratingModal').addClass('hidden').removeClass('flex');
-        }
-
-        // state rating
-        let ratingRows = []; // [{id, rating_id, rating_no, rating_name, rating_score}, ...]
-        const $ratingTbody = $('#ratingTableBody');
-        const $ratingAvg = $('#ratingAvg');
-
-        // render tbody dari ratingRows
-        function renderRatingTable() {
-            $ratingTbody.empty();
-
-            if (!ratingRows.length) {
-                $ratingTbody.append(`
-                <tr><td colspan="3" class="px-4 py-4 text-center text-gray-500 dark:text-gray-400">No rating rows found.</td></tr>
-            `);
-                $ratingAvg.text('0');
-                return;
-            }
-
-            ratingRows.forEach((r, idx) => {
-                const val = Number.isFinite(+r.rating_score) ? +r.rating_score : 0;
-                const row = `
-                <tr data-index="${idx}">
-                <td class="px-4 py-3">
-                    <div class="font-medium text-gray-800 dark:text-gray-100">${r.rating_name || '-'}</div>
-                    ${r.rating_descr ? `<div class="mt-0.5 text-xs text-gray-500 dark:text-gray-400">${r.rating_descr}</div>` : ''}
-                </td>
-                <td class="px-4 py-3">
-                    <input
-                    type="range"
-                    min="1" max="5" step="1"
-                    class="w-full"
-                    value="${val}"
-                    data-index="${idx}"
-                    aria-label="Score ${r.rating_name || ''}"
-                    />
-                </td>
-                <td class="px-4 py-3 text-center">
-                    <span class="inline-block min-w-[28px]" data-val="${idx}">${val}</span>
-                </td>
-                </tr>
-            `;
-                $ratingTbody.append(row);
-            });
-
-            recalcAverage();
-        }
-
-        function recalcAverage() {
-            if (!ratingRows.length) {
-                $ratingAvg.text('0');
-                return;
-            }
-            const sum = ratingRows.reduce((a, b) => a + (Number(b.rating_score) || 0), 0);
-            const avg = (sum / ratingRows.length);
-            $ratingAvg.text(avg.toFixed(1).replace(/\.0$/, ''));
-        }
-
-        // handle slider change (delegation)
-        $(document).on('input change', '#ratingTableBody input[type="range"]', function() {
-            const idx = +$(this).data('index') || 0;
-            const val = +$(this).val();
-            ratingRows[idx].rating_score = val;
-            $(`#ratingTableBody span[data-val="${idx}"]`).text(val);
-            recalcAverage();
-        });
-
-        // load rating rows dari server (TrBASTRating)
-        function loadRatings(bastid) {
-            // Endpoint asumsi: GET /bast/{bastid}/ratings
-            // Response contoh:
-            // { success: true, data: [{ id, rating_id, rating_no, rating_name, rating_descr, rating_score }, ...] }
-            return $.getJSON(`/bast/${encodeURIComponent(bastid)}/ratings`)
-                .then(res => {
-                    if (!res || !res.success) throw new Error(res?.message || 'Failed to load ratings');
-                    // pastikan score default 0 jika null
-                    ratingRows = (res.data || []).map(r => ({
-                        id: r.id ?? null,
-                        rating_id: r.rating_id ?? null,
-                        rating_no: r.rating_no ?? null,
-                        rating_name: r.rating_name ?? '',
-                        rating_descr: r.rating_descr ?? '',
-                        rating_score: Number.isFinite(+r.rating_score) ? +r.rating_score : 0
-                    }));
-                    renderRatingTable();
-                })
-                .catch(err => {
-                    console.error(err);
-                    $ratingTbody.html(
-                        `<tr><td colspan="3" class="px-4 py-4 text-center text-red-600">Failed to load ratings.</td></tr>`
-                    );
-                });
-        }
+              
 
         // Approve button -> cek authorize -> buka modal + load ratings
         $(document).on("click", "#approveBtn", function() {
-            const bastid = "{{ $bast->bastid }}";
+            const calrid = "{{ $calr->calrid }}";
             const $spinner = $("#loadingSpinnerContainer");
             $spinner.fadeIn();
 
             let authorized = false;
 
             $.ajax({
-                    url: `/approval/${encodeURIComponent(bastid)}/check/approve?doctype=BA`,
+                    url: `/approval/${encodeURIComponent(calrid)}/check/approve?doctype=CA`,
                     type: "GET"
                 })
                 .done(function(resp) {
                     authorized = !!(resp && resp.canPerformAction);
-                    if (!authorized) toastr.error("You are not authorized to approve this Bast.");
+                    if (!authorized) toastr.error("You are not authorized to approve this Calr.");
                 })
                 .fail(function() {
                     toastr.error("Error checking approval status.");
@@ -994,7 +734,7 @@
                                 `<tr><td colspan="3" class="px-4 py-4 text-center text-gray-500 dark:text-gray-400">Loading ratings…</td></tr>`
                             );
                             try {
-                                await loadRatings(bastid);
+                                await loadRatings(calrid);
                             } catch (_) {
                                 /* error sudah ditangani di loadRatings */
                             }
@@ -1002,182 +742,8 @@
                     });
                 });
         });
-
-        // Cancel modal
-        $(document).on('click', '#ratingCancelBtn', function() {
-            closeRatingModal();
-        });
-
-        // Submit rating → approve
-        $(document).on('click', '#ratingOkBtn', function() {
-            const bastid = "{{ $bast->bastid }}";
-
-            if (!ratingRows.length) {
-                toastr.warning('No rating rows to submit.');
-                return;
-            }
-
-            // validasi ringan: semua 1–10
-            const invalid = ratingRows.some(r => !(r.rating_score >= 1 && r.rating_score <= 10));
-            if (invalid) {
-                toastr.warning('Scores must be between 1 and 10.');
-                return;
-            }
-
-            // hitung average utk header.rating_vendor (opsional – backend boleh hitung sendiri)
-            const avg = ratingRows.reduce((a, b) => a + (+b.rating_score || 0), 0) / ratingRows.length;
-
-            const $spinner = $("#loadingSpinnerContainer");
-            $spinner.fadeIn();
-
-            // kirim ke approve: bawa ratings_json + optional rating_vendor
-            $.ajax({
-                    url: `/bast/${encodeURIComponent(bastid)}/approve`,
-                    type: "POST",
-                    data: {
-                        _token: "{{ csrf_token() }}",
-                        bastid: bastid,
-                        rating_vendor: avg.toFixed(2), // opsional kalau backend pakai
-                        ratings_json: JSON.stringify(
-                            ratingRows) // backend: json_decode($request->ratings_json, true)
-                    }
-                })
-                .done(function(response) {
-                    if (response?.success) {
-                        toastr.success("Bast approved successfully!");
-                        window.location.href = "/bastlist";
-                    } else {
-                        toastr.error(response?.message || "Failed to approve Bast.");
-                    }
-                })
-                .fail(function(xhr) {
-                    if (xhr.status === 403) {
-                        toastr.error("You are not authorized to approve this bast.");
-                    } else {
-                        toastr.error(xhr.responseJSON?.message || "Error: Unable to approve bast.");
-                    }
-                })
-                .always(function() {
-                    $spinner.fadeOut();
-                    closeRatingModal();
-                });
-        });
-    </script>
-
-
-    {{-- <script>
-        // helper: buka/tutup modal rating
-        function openRatingModal() {
-            $('#ratingModal').removeClass('hidden').addClass('flex');
-        }
-        function closeRatingModal() {
-            $('#ratingModal').addClass('hidden').removeClass('flex');
-        }
-
-        let selectedRating = 0;
-
-        // Interaksi bintang
-        $(document).on('mouseenter', '#ratingStars .star-btn', function(){
-            const val = parseInt($(this).data('value'), 10) || 0;
-            highlightStars(val);
-        });
-        $(document).on('mouseleave', '#ratingStars', function(){
-            // kembali ke state terpilih
-            highlightStars(selectedRating);
-        });
-        $(document).on('click', '#ratingStars .star-btn', function(){
-            selectedRating = parseInt($(this).data('value'), 10) || 0;
-            highlightStars(selectedRating);
-        });
-
-        function highlightStars(n){
-            $('#ratingStars .star-btn').each(function(_, el){
-            const v = parseInt($(el).data('value'), 10) || 0;
-            $(el).toggleClass('text-yellow-400', v <= n)
-                .toggleClass('text-gray-300 dark:text-gray-600', v > n);
-            });
-        }
-
-        // Cancel modal
-        $(document).on('click', '#ratingCancelBtn', function(){
-            selectedRating = 0;
-            highlightStars(0);
-            closeRatingModal();
-        });
-
-        // Klik Approve → cek akses → buka modal rating
-        $(document).on("click", "#approveBtn", function () {
-            const bastid  = "{{ $bast->bastid }}";
-            const $spinner = $("#loadingSpinnerContainer");
-            $spinner.fadeIn();
-
-            let authorized = false;
-
-            $.ajax({
-                url: `/approval/${bastid}/check/approve?doctype=BA`,
-                type: "GET"
-            })
-            .done(function(resp){
-                authorized = !!(resp && resp.canPerformAction);
-                if (!authorized) toastr.error("You are not authorized to approve this Bast.");
-            })
-            .fail(function(){
-                toastr.error("Error checking approval status.");
-            })
-            .always(function(){
-                // Pastikan spinner benar-benar hilang dulu, baru buka modal
-                $spinner.fadeOut(150, function () {
-                    if (authorized) {
-                        selectedRating = 0;
-                        highlightStars(0);
-                        openRatingModal();
-                    }
-                });
-            });
-        });
-
-
-        // OK pada modal rating → kirim approve dengan rating
-        $(document).on('click', '#ratingOkBtn', function(){
-            const bastid  = "{{ $bast->bastid }}";
-            if (!selectedRating || selectedRating < 1 || selectedRating > 5) {
-            toastr.warning('Please select a rating (1-5).');
-            return;
-            }
-
-            const $spinner = $("#loadingSpinnerContainer");
-            $spinner.fadeIn();
-
-            $.ajax({
-            url: `/bast/${bastid}/approve`,
-            type: "POST",
-            data: {
-                _token: "{{ csrf_token() }}",
-                bastid: bastid,
-                rating_vendor: selectedRating
-            }
-            }).done(function(response){
-            if (response?.success) {
-                toastr.success("Bast approved successfully!");
-                // optional update UI langsung:
-                // location reload/list
-                window.location.href = "/bastlist";
-            } else {
-                toastr.error(response?.message || "Failed to approve Bast.");
-            }
-            }).fail(function(xhr){
-            if (xhr.status === 403) {
-                toastr.error("You are not authorized to approve this bast.");
-            } else {
-                toastr.error(xhr.responseJSON?.message || "Error: Unable to approve bast.");
-            }
-            }).always(function(){
-            $spinner.fadeOut();
-            closeRatingModal();
-            });
-        });
-    </script> --}}
-
+       
+    </script> 
 
 
     <script>
@@ -1186,8 +752,8 @@
             $(document).on("click", "#rejectBtn", function() {
                 $("#rejectReason").val(""); // Reset alasan reject
                 // $("#rejectTaskModal").removeClass("hidden").css("z-index", "60");
-                let bastid = "{{ $bast->bastid }}";
-                checkApproval(bastid, "reject");
+                let calrid = "{{ $calr->calrid }}";
+                checkApproval(calrid, "reject");
 
             });
 
@@ -1198,7 +764,7 @@
 
             // Saat tombol "Reject" ditekan, proses perubahan status
             $(document).on("click", "#confirmRejectBtn", function() {
-                let bastid = "{{ $bast->bastid }}"; // Ambil ID tugas dari modal detail
+                let calrid = "{{ $calr->calrid }}"; // Ambil ID tugas dari modal detail
                 let rejectReason = $("#rejectReason").val().trim();
 
                 if (rejectReason === "") {
@@ -1211,28 +777,28 @@
                 $spinner.fadeIn();
 
                 $.ajax({
-                    url: `/bast/${bastid}/reject`,
+                    url: `/calr/${calrid}/reject`,
                     type: "POST",
                     data: {
                         _token: "{{ csrf_token() }}",
-                        docid: bastid,
+                        docid: calrid,
                         reason: rejectReason
                     },
                     success: function(response) {
                         if (response.success) {
                             // alert("Task has been rejected successfully.");
 
-                            // Update status di modal bast
+                            // Update status di modal calr
                             $("#xstatus").text("Rejected")
                                 .removeClass()
                                 .addClass(
                                     "w-full max-w-32 bg-red-300/30 dark:bg-red-300 text-red-600 flex justify-items-center focus:outline-none pointer-events-none    -none font-semibold px-2 py-0.5 rounded"
                                 );
                             $spinner.fadeOut();
-                            toastr.success("Bast Rejected successfully!");
-                            window.location.href = "/bastlist";
+                            toastr.success("Calr Rejected successfully!");
+                            window.location.href = "/calrlist";
                         } else {
-                            alert("Failed to reject bast.");
+                            alert("Failed to reject calr.");
                         }
                     },
                     error: function(xhr) {
@@ -1241,7 +807,7 @@
                         if (xhr.status === 403) {
                             alert("You Can't Rejected!"); // Popup jika user tidak berhak
                         } else {
-                            alert("Error: Unable to reject bast status.");
+                            alert("Error: Unable to reject calr status.");
                         }
                     },
                 });
@@ -1254,8 +820,8 @@
             $(document).on("click", "#reviseBtn", function() {
                 $("#reviseReason").val(""); // Reset alasan revise
                 // $("#reviseTaskModal").removeClass("hidden").css("z-index", "60");
-                let bastid = "{{ $bast->bastid }}";
-                checkApproval(bastid, "revise");
+                let calrid = "{{ $calr->calrid }}";
+                checkApproval(calrid, "revise");
 
             });
 
@@ -1266,7 +832,7 @@
 
             // Saat tombol "Revise" ditekan, proses perubahan status
             $(document).on("click", "#confirmReviseBtn", function() {
-                let bastid = "{{ $bast->bastid }}"; // Ambil ID tugas dari modal detail
+                let calrid = "{{ $calr->calrid }}"; // Ambil ID tugas dari modal detail
                 let reviseReason = $("#reviseReason").val().trim();
 
                 if (reviseReason === "") {
@@ -1278,28 +844,28 @@
                 $spinner.fadeIn();
 
                 $.ajax({
-                    url: `/bast/${bastid}/revise`,
+                    url: `/calr/${calrid}/revise`,
                     type: "POST",
                     data: {
                         _token: "{{ csrf_token() }}",
-                        docid: bastid,
+                        docid: calrid,
                         reason: reviseReason
                     },
                     success: function(response) {
                         if (response.success) {
                             // alert("Task has been reviseed successfully.");
 
-                            // Update status di modal bast
+                            // Update status di modal calr
                             $("#xstatus").text("Revised")
                                 .removeClass()
                                 .addClass(
                                     "w-full max-w-32 bg-red-300/30 dark:bg-red-300 text-red-600 flex justify-items-center focus:outline-none pointer-events-none    -none font-semibold px-2 py-0.5 rounded"
                                 );
                             $spinner.fadeOut();
-                            toastr.success("Bast Revised successfully!");
-                            window.location.href = "/bastlist";
+                            toastr.success("Calr Revised successfully!");
+                            window.location.href = "/calrlist";
                         } else {
-                            alert("Failed to revise bast.");
+                            alert("Failed to revise calr.");
                         }
                     },
                     error: function(xhr) {
@@ -1308,7 +874,7 @@
                         if (xhr.status === 403) {
                             alert("You Can't Revised!"); // Popup jika user tidak berhak
                         } else {
-                            alert("Error: Unable to revise bast status.");
+                            alert("Error: Unable to revise calr status.");
                         }
                     },
                 });
@@ -1317,9 +883,9 @@
     </script>
 
     <script>
-        function checkApproval(bastid, action) {
+        function checkApproval(calrid, action) {
             $.ajax({
-                url: `/approval/${bastid}/check/${action}?doctype=BA`,
+                url: `/approval/${calrid}/check/${action}?doctype=CA`,
                 type: "GET",
                 success: function(response) {
                     if (response.canPerformAction) {
@@ -1334,7 +900,7 @@
                         }
 
                     } else {
-                        toastr.error("You are not authorized to " + action + " this Bast.");
+                        toastr.error("You are not authorized to " + action + " this Calr.");
                     }
                 },
                 error: function() {
@@ -1344,13 +910,10 @@
         }
     </script>
 
-
-
-
     <script>
         $(function() {
-            const listUrl = @json(route('attachments.list', ['doctype' => 'BA', 'refnbr' => $bast->bastid]));
-            const uploadUrl = @json(route('attachments.upload', ['doctype' => 'BA', 'refnbr' => $bast->bastid]));
+            const listUrl = @json(route('attachments.list', ['doctype' => 'CA', 'refnbr' => $calr->calrid]));
+            const uploadUrl = @json(route('attachments.upload', ['doctype' => 'CA', 'refnbr' => $calr->calrid]));
 
             function $tbody() {
                 return $('#rcpAttachmentTbody');
@@ -1448,10 +1011,10 @@
     <script>
         document.addEventListener("DOMContentLoaded", function() {
 
-            const bastid = "{{ $bast->bastid }}"; // contoh: PB2501010001
-            const doctype = "BA";
+            const calrid = "{{ $calr->calrid }}"; // contoh: PB2501010001
+            const doctype = "CA";
 
-            loadApproval(bastid, doctype);
+            loadApproval(calrid, doctype);
         });
 
         function loadApproval(refnbr, doctype) {
@@ -1520,80 +1083,7 @@
         }
     </script>
 
-    <script>
-        $(function() {
-            // URL list
-            const beforeUrl = @json(route('attachments.list', ['doctype' => 'BQ', 'refnbr' => $bast->bqid]));
-            const afterUrl = @json(route('attachments.list', ['doctype' => 'BQ', 'refnbr' => $bast->bastid]));
-
-            const $before = $('#photoBeforeGrid');
-            const $after = $('#photoAfterGrid');
-
-            function cardTpl(at) {
-                const name = at.name || at.display_name || '(no name)';
-                const by = at.created_user ?? at.created_by ?? '-';
-                const dateStr = at.created_at ? dayjs(at.created_at).format("DD MMM 'YY") : '-';
-                const ext = (at.extention || '').toLowerCase();
-                const href = at.url || '#';
-                const isImg = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'svg', 'avif'].includes(ext);
-
-                const thumb = isImg && at.url ?
-                    `<img src="${href}" alt="${name}" class="h-full w-full object-cover transition group-hover:scale-105" loading="lazy" referrerpolicy="no-referrer">` :
-                    `<div class="flex h-full w-full items-center justify-center bg-gray-100 dark:bg-gray-700">
-                        <span class="text-2xl">${ ext === 'pdf' ? '📕' : '📄' }</span>
-                    </div>`;
-
-                return `
-                <div class="group relative flex flex-col overflow-hidden rounded-md border border-gray-200 bg-white transition hover:border-gray-500 dark:border-gray-700 dark:bg-gray-800 min-w-[120px]">
-                    <a ${at.url ? `href="${href}" target="_blank"` : ''} class="relative block aspect-square overflow-hidden">
-                        ${thumb}
-                        <div class="absolute inset-0 bg-black/0 transition group-hover:bg-black/20"></div>
-                    </a>
-                    <div class="px-2 py-2">
-                        <div class="truncate text-xs font-medium text-gray-900 dark:text-gray-100" title="${name}">
-                            ${name}${ext ? `<span class="text-gray-400">.${ext}</span>` : ''}
-                        </div>
-                        <div class="mt-0.5 space-y-0.5">
-                            <div class="truncate text-[11px] text-gray-500 dark:text-gray-400" title="${by}">${by}</div>
-                            <div class="text-[11px] text-gray-500 dark:text-gray-400 whitespace-nowrap">${dateStr}</div>
-                        </div>
-                    </div>
-                </div>`;
-            }
-
-            function renderGrid($el, rows) {
-                $el.empty();
-                if (!rows || !rows.length) {
-                    $el.append(`
-                        <p class="col-span-full py-6 text-center italic text-gray-500 dark:text-gray-400">
-                            No attachments found.
-                        </p>
-                    `);
-                    return;
-                }
-                rows.forEach(at => $el.append(cardTpl(at)));
-            }
-
-            function refreshBefore() {
-                $.get(beforeUrl)
-                    .done(res => res?.success ? renderGrid($before, res.attachments) : toastr.error(res?.message ||
-                        'Failed to load Photo Before.'))
-                    .fail(() => toastr.error('Failed to load Photo Before.'));
-            }
-
-            function refreshAfter() {
-                $.get(afterUrl)
-                    .done(res => res?.success ? renderGrid($after, res.attachments) : toastr.error(res?.message ||
-                        'Failed to load Photo After.'))
-                    .fail(() => toastr.error('Failed to load Photo After.'));
-            }
-
-            // initial load
-            refreshBefore();
-            refreshAfter();
-        });
-    </script>
-
+    
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const btn = document.getElementById('printMenuBtn');

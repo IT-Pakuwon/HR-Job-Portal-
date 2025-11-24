@@ -359,7 +359,7 @@
                                                 data-uom="{{ $row->uom }}"
                                                 data-lastprice="{{ $row->inventory_last_price ?? 0 }}"
                                                 data-original_qty="{{ (float) $row->qty }}"
-                                                data-note="{{ $row->note ?? '' }}">
+                                                data-note="{{ $row->csnote_detail ?? '' }}">
                                                 <td class="border px-3 py-2">{{ $row->inventory_descr }}</td>
                                                 <td class="border px-3 py-2 text-center">
                                                     <input type="text"
@@ -369,7 +369,17 @@
                                                         aria-label="Qty">
                                                 </td>
                                                 <td class="border px-3 py-2 text-center">{{ $row->uom }}</td>
-                                                <td class="border px-3 py-2 text-center">{{ $row->note }}</td>
+                                                {{-- <td class="border px-3 py-2 text-center">{{ $row->csnote_detail }}</td> --}}
+                                                <td class="border px-3 py-2 text-center">
+                                                    <textarea
+                                                        class="note-input w-full rounded-md border border-gray-400 px-2 py-1 shadow-sm
+                                                            focus:ring-2 focus:ring-indigo-400 resize-none
+                                                            dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200"
+                                                        rows="2"
+                                                        autocomplete="off"
+                                                        placeholder="Add note..."
+                                                        aria-label="Note">{{ $row->csnote_detail ?? '' }}</textarea>
+                                                </td>
                                             </tr>
                                         @endforeach
                                     </tbody>
@@ -1457,8 +1467,8 @@
                 const uom = $tr.data('uom') || '';
                 const invId = $tr.data('inventoryid') || '';
                 const invDescr = $tr.data('inventory_descr') || '';
-                const lastPrice = Number($tr.data('lastprice') || 0);
-                const csNote = String($tr.data('note') || '');
+                const lastPrice = Number($tr.data('lastprice') || 0);                
+                const csNote = String($tr.find('.note-input').val() || '');
 
                 const row = {
                     inventoryid: invId,
