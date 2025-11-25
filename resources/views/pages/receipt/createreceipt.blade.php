@@ -171,19 +171,18 @@
 
                         {{-- Receipt Note Header --}}
                         <div class="mt-4 flex flex-col gap-2">
-                            <label for="receiptnote"
-                                   class="block text-sm font-medium text-gray-600 dark:text-gray-300">
+                            <label for="receiptnote" class="block text-sm font-medium text-gray-600 dark:text-gray-300">
                                 Receipt Note
                             </label>
                             <textarea id="receiptnote" name="receiptnote" rows="3"
-                                      class="mt-1 w-full rounded-lg border border-gray-300 bg-white p-2 text-sm text-gray-800 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
-                                      placeholder="Catatan umum untuk receipt (opsional)"></textarea>
+                                class="mt-1 w-full rounded-lg border border-gray-300 bg-white p-2 text-sm text-gray-800 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
+                                placeholder="Catatan umum untuk receipt (opsional)"></textarea>
                         </div>
                     </div>
 
                     {{-- ===== Detail ===== --}}
-                    <div class="flex w-full flex-col gap-2 rounded-2xl border-b bg-white dark:bg-gray-800">
-                        <div class="flex w-full flex-col rounded-2xl p-4">
+                    <div class="flex w-full flex-col gap-2 rounded-2xl border-b">
+                        <div class="flex w-full flex-col rounded-2xl bg-white p-4 shadow-md dark:bg-gray-800">
                             <details class="group" open>
                                 <summary
                                     class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-xl font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
@@ -239,7 +238,7 @@
                                                     </td>
                                                     <td class="px-4 py-2">
                                                         <select name="siteid[{{ $d->id }}]"
-                                                            class="siteSelect w-40 rounded border border-gray-300 p-1 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
+                                                            class="siteSelect w-full rounded border border-gray-300 p-1 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
                                                             data-cpny-id="{{ $po->cpny_id }}"
                                                             data-current-site="{{ $d->siteid }}" data-loaded="0"
                                                             aria-label="Select site for {{ $d->inventoryid }}">
@@ -253,8 +252,7 @@
                                                         </select>
                                                     </td>
                                                     <td class="px-4 py-2">
-                                                        <input type="text"
-                                                            name="detail_note[{{ $d->id }}]"
+                                                        <input type="text" name="detail_note[{{ $d->id }}]"
                                                             class="w-48 rounded border border-gray-300 p-1 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
                                                             placeholder="Catatan item (opsional)">
                                                     </td>
@@ -309,13 +307,39 @@
                             </button>
                         </details>
 
-                        <div class="flex w-full justify-end gap-4 pt-4">
-                            <a href="{{ url()->previous() }}"
-                                class="inline-flex items-center justify-center rounded-lg bg-red-600 px-6 py-3 text-base font-semibold text-white shadow-md transition-colors hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">Cancel</a>
-                            <button type="submit" id="submitBtn"
-                                class="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-6 py-3 text-base font-semibold text-white shadow-md transition-colors hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
-                                <span id="btnText">Submit Approval</span>
-                            </button>
+                        <div class="w-full px-4">
+                            <div class="grid grid-cols-2 justify-between gap-4 md:flex md:flex-row xl:justify-end">
+                                <!--Cancel Button-->
+                                <div class="flex justify-start">
+                                    <a href="{{ url()->previous() }}"
+                                        class="mb-4 mt-4 flex w-full items-center justify-center gap-2 rounded border border-red-700 bg-red-200/10 p-2 text-red-700 hover:border-red-700 hover:bg-red-700 hover:font-medium hover:text-white">
+                                        <span id="cancelText">Cancel</span>
+                                        <svg id="cancelSpinner" class="hidden h-5 w-5 animate-spin text-white"
+                                            xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                            <circle class="opacity-25" cx="12" cy="12" r="10"
+                                                stroke="currentColor" stroke-width="4">
+                                            </circle>
+                                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z">
+                                            </path>
+                                        </svg>
+                                    </a>
+                                </div>
+                                <!--Submit Button-->
+                                <div class="flex justify-start md:justify-end">
+                                    <button type="submit" id="submitBtn"
+                                        class="mb-4 mt-4 flex w-full items-center justify-center gap-2 rounded border border-blue-700 bg-blue-200/10 p-2 text-blue-700 hover:border-blue-700 hover:bg-blue-700 hover:font-medium hover:text-white">
+                                        <span id="btnText">Submit Approval</span>
+                                        <svg id="loadingSpinner" class="hidden h-5 w-5 animate-spin text-white"
+                                            xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                            <circle class="opacity-25" cx="12" cy="12" r="10"
+                                                stroke="currentColor" stroke-width="4">
+                                            </circle>
+                                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z">
+                                            </path>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </form>
@@ -366,10 +390,11 @@
                 }
             }
             // Hapus error saat input berubah
-            $(document).on('input change', '#receiptForm input, #receiptForm select, #receiptForm textarea', function() {
-                $(this).removeClass('is-invalid').removeAttr('aria-invalid');
-                $(this).next('.error-feedback').remove();
-            });
+            $(document).on('input change', '#receiptForm input, #receiptForm select, #receiptForm textarea',
+                function() {
+                    $(this).removeClass('is-invalid').removeAttr('aria-invalid');
+                    $(this).next('.error-feedback').remove();
+                });
 
             // Hanya angka + koma/titik, tidak boleh huruf
             $(document).on('keypress', '.qtyReceipt', function(e) {

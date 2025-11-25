@@ -250,7 +250,7 @@
                             <!-- Button Submit -->
                             <div class="mt-4 flex justify-end">
                                 <button type="submit" id="importBtn"
-                                    class="inline-flex items-center rounded-md bg-blue-600 px-6 py-2 text-white hover:bg-blue-700">
+                                    class="rounded bg-blue-600 px-6 py-2 text-white transition hover:bg-blue-700">
                                     Import
                                 </button>
                             </div>

@@ -125,174 +125,164 @@
             <div class="flex flex-col gap-8 lg:col-span-2 lg:row-span-1">
                 <form id="woForm" class="flex flex-col gap-4" enctype="multipart/form-data">
                     @csrf
-                    <div class="w-full rounded-xl bg-white p-6 shadow-md dark:bg-gray-800">
-                        <div class="mb-6 border-b border-gray-200 pb-4 dark:border-gray-700">
-                            <h2 class="text-xl font-extrabold text-gray-800 dark:text-white">Create WO</h2>
+                    <div class="w-full rounded-2xl bg-white p-6 shadow-md dark:bg-gray-800">
+                        <!-- Header -->
+                        <div class="mb-6 flex items-center justify-between border-b pb-3 dark:border-gray-700">
+                            <h2 class="text-xl font-bold text-gray-800 dark:text-white">📄 Create WO</h2>
                         </div>
+
+                        <!-- Row 1 -->
                         <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
+                            <!-- Company -->
                             <div class="flex flex-col gap-2">
-                                <label
-                                    class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Company</label>
-                                <select
-                                    class="req w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
-                                    name="cpnyid" required>
+                                <label class="req text-sm font-medium text-gray-700 dark:text-gray-300">Company</label>
+                                <select name="cpnyid" required
+                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
                                     @foreach ($usercpny as $p)
                                         <option value="{{ $p->cpnyid }}"
-                                            {{ $p->cpnyid == $usercpny2->cpnyid ? 'selected' : '' }}>
-                                            {{ $p->cpnyid }}</option>
+                                            {{ $p->cpnyid == $usercpny2->cpnyid ? 'selected' : '' }}>{{ $p->cpnyid }}
+                                        </option>
                                     @endforeach
                                 </select>
                             </div>
+
+                            <!-- Department -->
                             <div class="flex flex-col gap-2">
                                 <label
-                                    class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Department</label>
-                                <select
-                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
-                                    name="departementid" required>
+                                    class="req text-sm font-medium text-gray-700 dark:text-gray-300">Department</label>
+                                <select name="departementid" required
+                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
                                     @foreach ($userdept as $p)
                                         <option value="{{ $p->deptname }}"
                                             {{ $p->deptname == $userdept2->deptname ? 'selected' : '' }}>
-                                            {{ $p->deptname }}</option>
+                                            {{ $p->deptname }}
+                                        </option>
                                     @endforeach
                                 </select>
                             </div>
-                            <!-- WOTYPE (MsCategory: doctype=WO, categoryid=wotype) -->
+
+                            <!-- WO Type -->
                             <div class="flex flex-col gap-2">
-                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">WO
-                                    Type</label>
-                                <select name="wotype" id="wotype"
-                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
-                                    required>
+                                <label class="req text-sm font-medium text-gray-700 dark:text-gray-300">WO Type</label>
+                                <select name="wotype" id="wotype" required
+                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
                                     <option value="">-- choose --</option>
                                 </select>
                             </div>
-                            <!-- WOREQUEST (MsCategory: doctype=WO, categoryid=worequest) -->
+
+                            <!-- WO Request -->
                             <div class="flex flex-col gap-2">
-                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">WO
+                                <label class="req text-sm font-medium text-gray-700 dark:text-gray-300">WO
                                     Request</label>
-                                <select name="worequest" id="worequest"
-                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
-                                    required>
+                                <select name="worequest" id="worequest" required
+                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
                                     <option value="">-- choose --</option>
                                 </select>
                             </div>
                         </div>
-                        <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-                            <!-- Jenis pekerjaan (modal trigger) -->
+
+                        <!-- Row 2 -->
+                        <div class="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-2">
+                            <!-- Jenis Pekerjaan -->
                             <div class="flex flex-col gap-2">
-                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Jenis
+                                <label class="req text-sm font-medium text-gray-700 dark:text-gray-300">Jenis
                                     Pekerjaan</label>
                                 <div class="flex gap-2">
-                                    <input type="text" id="jenis_pekerjaan_display"
+                                    <input id="jenis_pekerjaan_display" readonly
                                         class="flex-1 rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-gray-600 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
-                                        placeholder="Pilih Worktype & Subworktype" readonly>
-                                    <button type="button" id="btnJenisPekerjaan"
+                                        placeholder="Pilih Worktype & Subworktype">
+                                    <button id="btnJenisPekerjaan" type="button"
                                         class="rounded-lg bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700">Pilih</button>
                                 </div>
-                                <!-- hidden fields to submit -->
                                 <input type="hidden" name="worktypeid" id="worktypeid">
                                 <input type="hidden" name="subworktypeid" id="subworktypeid">
                             </div>
+
+                            <!-- Lokasi -->
                             <div class="flex flex-col gap-2">
-                                <label
-                                    class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Lokasi</label>
+                                <label class="req text-sm font-medium text-gray-700 dark:text-gray-300">Lokasi</label>
                                 <div class="flex gap-2">
-                                    <input type="text" id="lokasi_display"
+                                    <input id="lokasi_display" readonly
                                         class="flex-1 rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-gray-600 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
-                                        placeholder="Pilih Location & Sub Location" readonly>
-                                    <button type="button" id="btnLokasi"
+                                        placeholder="Pilih Location & Sub Location">
+                                    <button id="btnLokasi" type="button"
                                         class="rounded-lg bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700">Pilih</button>
                                 </div>
-                                <!-- hidden fields to submit -->
                                 <input type="hidden" name="location_id" id="location_id">
                                 <input type="hidden" name="sub_location_id" id="sub_location_id">
                             </div>
+
+                        </div>
+
+                        <!-- Row 3 -->
+                        <div class="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
+                            <!-- Perpost -->
                             <div class="flex flex-col gap-2">
-                                <label
-                                    class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Perpost</label>
+                                <label class="req text-sm font-medium text-gray-700 dark:text-gray-300">Perpost</label>
                                 <select id="perpost" name="perpost"
-                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
-                                    required>
-                                    @php
-                                        $year = \Carbon\Carbon::now()->year;
-                                    @endphp
+                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
+                                    @php $year = now()->year; @endphp
                                     <option value="{{ $year }}">{{ $year }}</option>
                                     <option value="{{ $year + 1 }}">{{ $year + 1 }}</option>
                                 </select>
                             </div>
-
-                        </div>
-
-                        <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
-
-                            <!-- PIC REQUESTER -->
+                            <!-- PIC Requester -->
                             <div class="flex flex-col gap-2">
-                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">PIC
+                                <label class="req text-sm font-medium text-gray-700 dark:text-gray-300">PIC
                                     Requester</label>
                                 <input type="text" name="picrequester" id="picrequester"
                                     class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
-                                    value="{{ auth()->user()->username ?? '' }}" required>
+                                    value="{{ auth()->user()->username }}" required>
                             </div>
 
-                            <!-- BIAYA WO -->
+                            <!-- Biaya WO -->
                             <div class="flex flex-col gap-2">
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Biaya
-                                    WO</label>
-                                <input type="text" inputmode="decimal" name="biaya_wo" id="biaya_wo"
+                                <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Biaya WO</label>
+                                <input type="text" name="biaya_wo" id="biaya_wo" inputmode="decimal"
                                     class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
-                                    placeholder="0,00" autocomplete="off" />
-                                <small id="biaya_wo_error" class="error-feedback" style="display:none;"></small>
-
+                                    placeholder="0,00">
+                                <small id="biaya_wo_error" class="text-red-600" style="display:none;"></small>
                             </div>
-
 
                             <!-- Budget -->
                             <div class="flex flex-col gap-2">
-                                <label
-                                    class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Budget</label>
-                                <select name="wobudget" id="wobudget"
-                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
-                                    required>
+                                <label class="req text-sm font-medium text-gray-700 dark:text-gray-300">Budget</label>
+                                <select name="wobudget" id="wobudget" required
+                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
                                     <option value="">-- choose --</option>
                                     <option value="Internal">Pemberi Kerja</option>
                                     <option value="External">Penerima Kerja</option>
-
                                 </select>
                             </div>
 
-                            <!-- COA (tampilkan hanya saat Budget = Pemberi Kerja / "Internal") -->
+                            <!-- COA -->
                             <div id="coaGroup" class="flex flex-col gap-2">
-                                <label
-                                    class="req block text-sm font-medium text-gray-700 dark:text-gray-300">COA</label>
+                                <label class="req text-sm font-medium text-gray-700 dark:text-gray-300">COA</label>
                                 <div class="flex gap-2">
-                                    <!-- hidden fields to submit -->
-                                    <input type="hidden" name="activity_id" id="activity_id">
-                                    <input type="hidden" name="business_unit_id" id="business_unit_id">
-                                    <input type="hidden" name="department_fin_id" id="department_fin_id">
-                                    <input type="hidden" name="coa_id" id="coa_id">
-                                    <input type="hidden" name="activity_descr" id="activity_descr">
-
-                                    <input type="text" id="budget_display"
+                                    <input type="text" id="budget_display" readonly
                                         class="flex-1 rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-gray-600 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
-                                        placeholder="Pilih Budget" readonly>
-                                    <button type="button" id="btnBudget"
+                                        placeholder="Pilih Budget">
+                                    <button id="btnBudget" type="button"
                                         class="rounded-lg bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700">Pilih</button>
                                 </div>
-                            </div>
 
-                        </div>
-
-                        <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
-                            <div class="flex flex-col gap-2 lg:col-span-4">
-                                <label for="keperluan"
-                                    class="block text-sm font-medium text-gray-700 dark:text-gray-300">Description</label>
-                                <textarea name="keperluan" id="keperluan"
-                                    class="w-full rounded-lg border border-gray-300 bg-white p-3 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
-                                    rows="3"></textarea>
+                                <!-- hidden -->
+                                <input type="hidden" name="activity_id" id="activity_id">
+                                <input type="hidden" name="business_unit_id" id="business_unit_id">
+                                <input type="hidden" name="department_fin_id" id="department_fin_id">
+                                <input type="hidden" name="coa_id" id="coa_id">
+                                <input type="hidden" name="activity_descr" id="activity_descr">
                             </div>
                         </div>
 
+                        <!-- Description -->
+                        <div class="mt-6">
+                            <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Description</label>
+                            <textarea name="keperluan" id="keperluan" rows="3"
+                                class="mt-2 w-full rounded-lg border border-gray-300 bg-white p-3 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"></textarea>
+                        </div>
                     </div>
+
 
                     <!-- Modal -->
                     <div id="modalJenisPekerjaan"
