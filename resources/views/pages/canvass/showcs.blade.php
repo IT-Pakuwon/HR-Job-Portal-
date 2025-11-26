@@ -246,26 +246,25 @@
                                 ],
                             ];
                             if (in_array($prefix, ['PJ', 'PT'], true) && !empty($cs?->bqid)) {
-
                                 // pakai bqid yang benar dari $cs
                                 $bqUrl = route('bqcs.show', $cs->bqid);
 
-                                $bqLink = '<a href="' . e($bqUrl) . '" 
+                                $bqLink =
+                                    '<a href="' .
+                                    e($bqUrl) .
+                                    '" 
                                                 target="_blank"
-                                                class="inline-flex items-center gap-1 text-sm font-semibold text-indigo-600 hover:underline dark:text-indigo-400">'
-                                            . e($cs->bqid) .
-                                        '</a>';
+                                                class="inline-flex items-center gap-1 text-sm font-semibold text-indigo-600 hover:underline dark:text-indigo-400">' .
+                                    e($cs->bqid) .
+                                    '</a>';
 
                                 $fields[] = [
-                                    'icon'   => 'hashtag',
-                                    'label'  => 'BQ ID',
-                                    'value'  => $bqLink,
+                                    'icon' => 'hashtag',
+                                    'label' => 'BQ ID',
+                                    'value' => $bqLink,
                                     'is_raw' => true,
                                 ];
                             }
-
-
-
 
                         @endphp
 
@@ -291,7 +290,7 @@
                                 <div class="flex flex-1 items-start gap-3 rounded-md bg-gray-50 p-3 dark:bg-gray-700">
                                     <x-heroicon-o-clipboard-document-list class="h-5 w-5 text-gray-400" />
                                     <div>
-                                        <p class="text-xs text-gray-500 dark:text-gray-400">Purpose</p>
+                                        <p class="text-sm text-gray-500 dark:text-gray-400">Purpose</p>
                                         <p class="text-sm font-medium text-gray-900 dark:text-gray-100">
                                             {{ $srcHeader->keperluan }}
                                         </p>
@@ -301,7 +300,7 @@
                                 <div class="flex flex-1 items-start gap-3 rounded-md bg-gray-50 p-3 dark:bg-gray-700">
                                     <x-heroicon-o-clipboard-document-check class="h-5 w-5 text-gray-400" />
                                     <div>
-                                        <p class="text-xs text-gray-500 dark:text-gray-400">Note CS</p>
+                                        <p class="text-sm text-gray-500 dark:text-gray-400">Note CS</p>
                                         <p class="text-sm font-medium text-gray-900 dark:text-gray-100">
                                             {{ $cs->csnote }}
                                         </p>
@@ -398,7 +397,7 @@
                                                         }
                                                     @endphp
                                                     <span
-                                                        class="{{ $statusClass }} inline-block rounded-full px-3 py-1 text-xs font-semibold">
+                                                        class="{{ $statusClass }} inline-block rounded-full px-3 py-1 text-sm font-semibold">
                                                         {{ $statusText }}
                                                     </span>
                                                 </td>
@@ -447,7 +446,7 @@
                                                         <span class="font-medium text-gray-700 dark:text-gray-300">
                                                             📎 {{ $at->display_name }}
                                                         </span>
-                                                        <span class="ml-2 text-xs text-red-500">(link unavailable)</span>
+                                                        <span class="ml-2 text-sm text-red-500">(link unavailable)</span>
                                                     @endif
                                                 </td>
                                                 <td class="px-3 py-2">{{ $at->type }}</td>
@@ -493,7 +492,7 @@
                                                         Reset
                                                     </button>
                                                 </div>
-                                                <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">PDF / gambar
+                                                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">PDF / gambar
                                                     disarankan.</p>
                                             </div>
                                         </div>
@@ -531,38 +530,66 @@
                     class="flex items-center justify-between rounded-t-xl border-b border-gray-200 bg-white px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
                     <h2 class="text-xl font-semibold text-gray-800 dark:text-gray-100">📝 CS Detail</h2>
                 </header>
-                <div class="mt-4 overflow-x-auto">
+                {{-- <div class="mt-4 overflow-x-auto">
                     <table class="min-w-full border-separate border-spacing-0 text-sm">
-                        <!-- Table Head -->
+
+                        <!-- Table Header (Summary) -->
                         <thead class="sticky top-0 z-20 bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300">
                             <tr>
                                 <th class="w-64 px-3 py-2 text-left">Inventory Descr</th>
                                 <th class="w-20 px-3 py-2 text-center">Qty</th>
                                 <th class="w-16 px-3 py-2 text-center">UOM</th>
                                 <th class="w-40 px-3 py-2 text-left">Note</th>
+
                                 @foreach ($vendors as $v)
-                                    <th class="max-w-xs px-3 py-2 text-left align-top">
-                                        <div class="font-semibold">{{ $v['vendorname'] }}</div>
-                                        <div class="mt-0.5 space-y-0.5 text-sm text-gray-500 dark:text-gray-400">
-                                            <div>👤 {{ $v['vendorcp'] ?: '-' }}</div>
-                                            <div>☎️ {{ $v['vendortelp'] ?: '-' }}</div>
-                                            <div>🏠 {{ $v['vendoralamat'] ?: '-' }}</div>
+                                    <th class="align-center max-w-xs px-3 py-2 text-left">
+
+                                        <div class="flex items-start justify-between gap-2">
+
+                                            <!-- Left: Vendor Name + Payment Term -->
+                                            <div class="space-y-0.5">
+                                                <div class="text-sm font-semibold">
+                                                    {{ $v['vendorname'] }}
+                                                </div>
+
+                                                @if ($v['vendortop'])
+                                                    <div class="text-sm text-gray-600 dark:text-gray-300">
+                                                        <span class="font-semibold">Payment Term:</span>
+                                                        {{ $v['vendortop'] }}
+                                                    </div>
+                                                @endif
+                                            </div>
+
+                                            <!-- Right: Info Tooltip -->
+                                            <div class="group relative">
+                                                <span
+                                                    class="inline-flex h-4 w-4 cursor-pointer items-center justify-center rounded-full bg-gray-300 text-[10px] font-bold text-gray-700 dark:bg-gray-600 dark:text-gray-200">
+                                                    i
+                                                </span>
+
+                                                <!-- Tooltip -->
+                                                <div
+                                                    class="absolute right-0 top-5 z-30 hidden w-56 rounded-md border border-gray-300 bg-white p-3 text-sm shadow-lg group-hover:block dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200">
+
+                                                    <div class="space-y-1">
+                                                        <div><span class="font-semibold">Contact:</span>
+                                                            {{ $v['vendorcp'] ?: '-' }}</div>
+                                                        <div><span class="font-semibold">Phone:</span>
+                                                            {{ $v['vendortelp'] ?: '-' }}</div>
+                                                        <div><span class="font-semibold">Address:</span>
+                                                            {{ $v['vendoralamat'] ?: '-' }}</div>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
-                                        @if ($v['vendortop'])
-                                            <span
-                                                class="text-sm font-semibold text-gray-600 dark:text-gray-300">Payment
-                                                Term:</span>
-                                            <span
-                                                class="inline-block rounded-full border px-2 py-0.5 text-xs text-gray-700 dark:text-gray-300">
-                                                {{ $v['vendortop'] }}
-                                            </span>
-                                        @endif
                                     </th>
                                 @endforeach
                             </tr>
                         </thead>
 
+
                         <!-- Table Body -->
+
                         <tbody id="cvBody" class="divide-y divide-gray-100 dark:divide-gray-700">
                             @foreach ($csdetail as $row)
                                 <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50">
@@ -587,11 +614,14 @@
                                                 <input type="text" readonly
                                                     class="w-full rounded border bg-gray-50 px-1 text-right text-sm dark:bg-gray-700"
                                                     value="{{ number_format($prc, 2, ',', '.') }}">
-                                                <div class="text-xs font-semibold text-gray-600 dark:text-gray-300">
-                                                    {{ number_format($tot, 0, ',', '.') }}
+                                                <div class="flex items-center justify-center gap-3">
+                                                    <input type="radio" class="h-3 w-3 text-indigo-600"
+                                                        {{ $sel ? 'checked' : '' }} disabled>
+
+                                                    <div class="text-sm font-bold text-gray-600 dark:text-gray-300">
+                                                        Total : {{ number_format($tot, 2, ',', '.') }}
+                                                    </div>
                                                 </div>
-                                                <input type="radio" class="h-3 w-3 text-indigo-600"
-                                                    {{ $sel ? 'checked' : '' }} disabled>
                                             </div>
                                         </td>
                                     @endforeach
@@ -599,9 +629,11 @@
                             @endforeach
                         </tbody>
 
+
+
                         <!-- Table Footer (Summary) -->
                         <tfoot
-                            class="sticky bottom-0 z-10 bg-gray-50 text-xs text-gray-700 dark:bg-gray-700/40 dark:text-gray-300">
+                            class="sticky bottom-0 z-10 bg-gray-50 text-sm text-gray-700 dark:bg-gray-700/40 dark:text-gray-300">
                             <tr class="text-sm">
                                 <!-- Summary label -->
                                 <td colspan="4"
@@ -615,36 +647,204 @@
                                         $ppn = (float) ($v['ppn'] ?? 11);
                                         $pph = (float) ($v['pph'] ?? 0);
                                     @endphp
-                                    <td class="max-w-xs space-y-1 px-3 py-2">
+                                    <td class="max-w-xs space-y-2 px-3 py-2">
+
+                                        <!-- Total -->
                                         <div class="flex justify-between">
-                                            <span class="font-semibold">Total:</span>
+                                            <span class="font-semibold text-gray-700 dark:text-gray-300">Total:</span>
                                             <span>{{ number_format($v['total'], 0, ',', '.') }}</span>
                                         </div>
 
-                                        <div
-                                            class="flex justify-between gap-2 font-semibold text-gray-700 dark:text-gray-300">
-                                            <span>PPN:</span>
-                                            <span>{{ number_format($ppn, 2, ',', '.') }}%</span>
+                                        <!-- Taxes block -->
+                                        <div class="space-y-1 rounded-md bg-gray-50 py-1 dark:bg-gray-700/40">
+                                            <div class="flex justify-between text-sm">
+                                                <span class="font-medium text-gray-600 dark:text-gray-300">PPN:</span>
+                                                <span>{{ number_format($ppn, 2, ',', '.') }}%</span>
+                                            </div>
 
-                                            <span>PPh:</span>
-                                            <span>{{ number_format($pph, 2, ',', '.') }}%</span>
+                                            <div class="flex justify-between text-sm">
+                                                <span class="font-medium text-gray-600 dark:text-gray-300">PPh:</span>
+                                                <span>{{ number_format($pph, 2, ',', '.') }}%</span>
+                                            </div>
                                         </div>
 
+                                        <!-- Grand total -->
                                         <div class="flex justify-between">
-                                            <span class="font-semibold">Grand:</span>
+                                            <span class="font-semibold text-gray-700 dark:text-gray-300">Grand
+                                                Total:</span>
                                             <span>{{ number_format($v['grand'], 0, ',', '.') }}</span>
                                         </div>
 
+                                        <!-- Selected grand -->
                                         <div class="flex justify-between">
-                                            <span class="font-semibold">G.Total Sel:</span>
+                                            <span class="font-semibold text-gray-700 dark:text-gray-300">G. Total
+                                                Sel:</span>
                                             <span>{{ number_format($v['selected_grand'] ?: $v['selected_total'], 0, ',', '.') }}</span>
                                         </div>
+
                                     </td>
                                 @endforeach
                             </tr>
                         </tfoot>
                     </table>
+                </div> --}}
+                <div class="overflow-x-auto">
+
+                    <table class="w-full min-w-max border-separate border-spacing-0 text-sm">
+
+                        <!-- HEADER -->
+                        <thead class="sticky top-0 z-20 bg-gray-100 dark:bg-gray-700">
+                            <tr>
+                                <th class="w-64 px-3 py-2 text-left">Inventory Descr</th>
+                                <th class="w-20 px-3 py-2 text-center">Qty</th>
+                                <th class="w-16 px-3 py-2 text-center">UOM</th>
+                                <th class="w-40 px-3 py-2 text-left">Note</th>
+
+                                @foreach ($vendors as $v)
+                                    <th class="px-3 py-2 text-left align-top">
+
+                                        <div class="flex items-start justify-between gap-1">
+                                            <div class="space-y-0.5">
+                                                <div class="text-sm font-semibold">
+                                                    {{ $v['vendorname'] }}
+                                                </div>
+
+                                                @if ($v['vendortop'])
+                                                    <div class="text-xs text-gray-600 dark:text-gray-300">
+                                                        Payment Term: <span
+                                                            class="font-semibold">{{ $v['vendortop'] }}</span>
+                                                    </div>
+                                                @endif
+                                            </div>
+
+                                            <!-- Tooltip -->
+                                            <div class="group relative">
+                                                <span
+                                                    class="inline-flex h-4 w-4 cursor-pointer items-center justify-center rounded-full bg-gray-300 text-[10px] font-bold">i</span>
+
+                                                <div
+                                                    class="absolute right-0 top-5 z-40 hidden w-56 rounded-md border bg-white p-3 text-xs shadow-lg group-hover:block">
+                                                    <div><strong>Contact:</strong> {{ $v['vendorcp'] ?: '-' }}</div>
+                                                    <div><strong>Phone:</strong> {{ $v['vendortelp'] ?: '-' }}</div>
+                                                    <div><strong>Address:</strong> {{ $v['vendoralamat'] ?: '-' }}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                    </th>
+                                @endforeach
+                            </tr>
+                        </thead>
+
+
+                        <!-- SCROLL BODY WRAPPER -->
+                        <tbody>
+                            <tr>
+                                <td colspan="{{ 4 + count($vendors) }}" class="p-0">
+
+                                    <!-- BODY SCROLL -->
+                                    <div class="max-h-[200px] overflow-y-auto">
+
+                                        <table class="w-full min-w-max border-separate border-spacing-0 text-sm">
+                                            <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
+
+                                                @foreach ($csdetail as $row)
+                                                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50">
+
+                                                        <td class="w-64 px-3 py-2">
+                                                            {{ $row->inventory_descr }}
+                                                        </td>
+
+                                                        <td class="w-20 px-3 py-2 text-center">
+                                                            <input type="text" readonly
+                                                                class="w-16 rounded border bg-gray-50 text-center dark:bg-gray-700"
+                                                                value="{{ number_format($row->qty, 2, ',', '.') }}">
+                                                        </td>
+
+                                                        <td class="w-16 px-3 py-2 text-center">{{ $row->uom }}
+                                                        </td>
+
+                                                        <td class="w-40 px-3 py-2">{{ $row->csnote_detail }}</td>
+
+                                                        @foreach ($vendors as $v)
+                                                            @php
+                                                                $i = $v['i'];
+                                                                $prc = (float) $row->{"vendorprice{$i}"};
+                                                                $tot = (float) $row->{"vendortotalprice{$i}"};
+                                                                $sel = (bool) $row->{"vendor{$i}selected"};
+                                                            @endphp
+
+                                                            <td class="w-48 px-3 py-2">
+                                                                <div class="space-y-1">
+                                                                    <input type="text" readonly
+                                                                        class="w-full rounded border bg-gray-50 px-1 text-right text-sm dark:bg-gray-700"
+                                                                        value="{{ number_format($prc, 2, ',', '.') }}">
+
+                                                                    <div
+                                                                        class="flex items-center justify-center gap-2">
+                                                                        <input type="radio"
+                                                                            class="h-3 w-3 text-indigo-600"
+                                                                            {{ $sel ? 'checked' : '' }} disabled>
+                                                                        <span class="text-xs font-semibold">
+                                                                            Total :
+                                                                            {{ number_format($tot, 2, ',', '.') }}
+                                                                        </span>
+                                                                    </div>
+                                                                </div>
+                                                            </td>
+                                                        @endforeach
+
+                                                    </tr>
+                                                @endforeach
+
+                                            </tbody>
+                                        </table>
+
+                                    </div>
+
+                                </td>
+                            </tr>
+                        </tbody>
+
+
+                        <!-- FOOTER -->
+                        <tfoot class="sticky bottom-0 z-20 bg-gray-50 dark:bg-gray-700/40">
+                            <tr>
+
+                                <td colspan="4" class="px-3 py-2 text-right font-semibold">
+                                    Summary
+                                </td>
+
+                                @foreach ($vendors as $v)
+                                    <td class="w-48 space-y-1 px-3 py-2">
+                                        <div class="flex justify-between"><span>Total:</span>
+                                            <span>{{ $v['total'] }}</span>
+                                        </div>
+                                        <div class="flex justify-between">
+                                            <div class="flex justify-between"><span>PPN:</span>
+                                                <span>{{ $v['ppn'] }}%</span>
+                                            </div>
+                                            <div class="flex justify-between"><span>PPh:</span>
+                                                <span>{{ $v['pph'] }}%</span>
+                                            </div>
+                                        </div>
+                                        <div class="flex justify-between"><span>Grand:</span>
+                                            <span>{{ $v['grand'] }}</span>
+                                        </div>
+                                        <div class="flex justify-between"><span>Selected:</span>
+                                            <span>{{ $v['selected_grand'] }}</span>
+                                        </div>
+                                    </td>
+                                @endforeach
+
+                            </tr>
+                        </tfoot>
+
+                    </table>
+
                 </div>
+
             </div>
         </div>
     </div>
@@ -738,7 +938,7 @@
                                 <div class="p-3 bg-gray-100 dark:bg-gray-800 rounded-lg mb-2">
                                     <p class="text-sm font-semibold">
                                         ${comment.username}
-                                        <span class="text-xs text-gray-500">(${timeAgo})</span>
+                                        <span class="text-sm text-gray-500">(${timeAgo})</span>
                                     </p>
                                     <p class="text-gray-800 dark:text-gray-200">${comment.message}</p>
                                 </div>
@@ -1221,7 +1421,7 @@
                         `<a href="${at.url}" target="_blank"
                     class="font-medium text-indigo-600 hover:underline dark:text-indigo-400">📎 ${fileName}</a>` :
                         `<span class="font-medium text-gray-700 dark:text-gray-300">📎 ${fileName}</span>
-                <span class="ml-2 text-xs text-red-500">(link unavailable)</span>`;
+                <span class="ml-2 text-sm text-red-500">(link unavailable)</span>`;
 
                     $tb.append(`
                 <tr class="border-b border-gray-200 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700">
@@ -1361,7 +1561,7 @@
                     statusClass = "bg-gray-500 text-white";
             }
 
-            return `<span class="${statusClass} inline-block rounded-full px-3 py-1 text-xs font-semibold">${statusText}</span>`;
+            return `<span class="${statusClass} inline-block rounded-full px-3 py-1 text-sm font-semibold">${statusText}</span>`;
         }
     </script>
 

@@ -8,13 +8,15 @@
 
     <style>
         @page {
-            size: A4;
-            margin: 15mm 15mm 18mm 15mm;
+            size: 8.5in 5.5in;
+            /* HALF LETTER */
+            margin: 10mm 10mm 12mm 10mm;
         }
 
         body {
             font-family: Arial, sans-serif;
-            font-size: 12px;
+            font-size: 11px;
+            /* smaller for half letter */
             color: #000;
         }
 
@@ -23,24 +25,24 @@
             border-collapse: collapse;
         }
 
-        /* Header */
+        /* HEADER */
         .left-header th:first-child {
-            width: 70%;
+            width: 65%;
             text-align: left;
         }
 
         .left-header th:last-child {
-            width: 30%;
+            width: 35%;
             text-align: right;
         }
 
         .right-header th:first-child {
-            width: 70%;
+            width: 65%;
             text-align: left;
         }
 
         .right-header th:last-child {
-            width: 30%;
+            width: 35%;
             text-align: right;
         }
 
@@ -48,21 +50,22 @@
             font-weight: bold;
         }
 
-        /* Body fields */
+        /* BODY FIELDS */
         .left-body th {
             text-align: left;
             vertical-align: top;
-            padding: 4px 0;
+            padding: 2px 0;
             font-weight: normal;
         }
 
         .field-row {
             display: flex;
-            gap: 6px;
+            gap: 4px;
         }
 
         .field-label {
-            min-width: 120px;
+            min-width: 100px;
+            /* smaller for half-letter */
             /* font-weight: bold; */
         }
 
@@ -72,39 +75,41 @@
             word-wrap: break-word;
         }
 
-        /* Expense table */
+        /* EXPENSE TABLE */
         .exp-table {
             width: 100%;
             border: 1px solid #000;
-            margin-top: 15px;
+            margin-top: 10px;
         }
 
         .exp-table th {
             border: 1px solid #000;
-            padding: 6px;
+            padding: 5px;
             background: #f7f7f7;
             font-weight: bold;
             text-align: left;
+            font-size: 10.5px;
         }
 
         .exp-table td {
             border: 1px solid #000;
-            padding: 6px;
+            padding: 5px;
+            font-size: 10.5px;
         }
 
-        /* Approval Table */
+        /* APPROVAL TABLE */
         .sig-table {
             width: 100%;
             border: 1px solid #000;
-            margin-top: 15px;
+            margin-top: 12px;
         }
 
         .sig-table th,
         .sig-table td {
             border: 1px solid #000;
-            padding: 6px;
+            padding: 5px;
+            font-size: 10px;
             text-align: left;
-            font-size: 11px;
             word-wrap: break-word;
         }
 
@@ -114,7 +119,7 @@
 
         .sig-status {
             margin-top: 2px;
-            font-size: 11px;
+            font-size: 10px;
         }
 
         .sig-num {
@@ -143,18 +148,19 @@
 <body>
 
     <!-- HEADER -->
-    <table style="margin-bottom:10px;">
+    <table style="margin-bottom:6px;">
         <tr class="left-header">
             <th>AW - Artisan Wahyu, PT</th>
             <th><span class="label">No</span> : CR25110015</th>
         </tr>
+
         <tr class="right-header">
-            <th style="padding-top:6px;">Cash Advance Liquidation Report (CALR)</th>
-            <th style="padding-top:6px;"><span class="label">Date</span> : 11/21/2025</th>
+            <th style="padding-top:4px;">Cash Advance Liquidation Report (CALR)</th>
+            <th style="padding-top:4px;"><span class="label">Date</span> : 11/21/2025</th>
         </tr>
     </table>
 
-    <hr style="border:0; border-top:2px solid #000; margin-bottom:12px;">
+    <hr style="border:0; border-top:1.5px solid #000; margin-bottom:10px;">
 
 
     <!-- BODY FIELDS -->
@@ -166,6 +172,7 @@
                     <span class="field-value-wrap">IBU CAS</span>
                 </div>
             </th>
+
             <th>
                 <div class="field-row">
                     <span class="field-label">Lokasi :</span>
@@ -205,7 +212,6 @@
             </th>
         </tr>
 
-
         <tr class="left-body">
             <th>
                 <div class="field-row">
@@ -226,6 +232,7 @@
                 <th style="width:30%;">Amount</th>
             </tr>
         </thead>
+
         <tbody>
             <tr>
                 <td>STOCKING</td>
@@ -235,8 +242,7 @@
     </table>
 
 
-    <!-- CREATED BY FOOTER IS HANDLED INSIDE APPROVALS -->
-    {{-- Approvals --}}
+    {{-- APPROVALS --}}
     @php
         $stColor = match (true) {
             in_array($status_doc, ['Approved', 'Completed']) => 'blue',
@@ -245,7 +251,7 @@
             default => 'black',
         };
 
-        // Creator becomes approval #1
+        // Creator becomes #1 approver
         $prepared = collect([
             (object) [
                 'aprv_name' => $created_by_name ?? $created_by_username,
@@ -309,7 +315,7 @@
                         </td>
                     @endforeach
 
-                    {{-- Fill empty cells --}}
+                    {{-- Empty cells --}}
                     @for ($i = $chunk->count(); $i < $colsPerRow; $i++)
                         <td style="width:20%;">&nbsp;</td>
                     @endfor
