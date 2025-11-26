@@ -141,7 +141,7 @@
             <th style="text-align: left">{{ $title }}</th>
             <th style="text-align:left;">
                 <span style="font-weight:bold;">Date :</span>
-                <span style="font-weight:normal;">{{ $bastdate }}</span>
+                <span style="font-weight:normal;">{{ $calrdate }}</span>
             </th>
         </tr>
     </table>
@@ -154,7 +154,7 @@
             <th>
                 <span class="field-label">No SPPJ</span>
                 <span class="field-colon">:</span>
-                <span class="field-value">{{ $bast->sppbjktid }}</span>
+                <span class="field-value">{{ $calr->sppbjktid }}</span>
             </th>
             <th>
                 <span class="field-label">Garansi</span>
@@ -167,12 +167,12 @@
             <th>
                 <span class="field-label">No CS</span>
                 <span class="field-colon">:</span>
-                <span class="field-value">{{ $bast->csid }}</span>
+                <span class="field-value">{{ $calr->csid }}</span>
             </th>
             <th>
                 <span class="field-label">Keterangan</span>
                 <span class="field-colon">:</span>
-                <span class="field-value">{{ $bast->keperluan }}</span>
+                <span class="field-value">{{ $calr->keperluan }}</span>
             </th>
         </tr>
 
@@ -180,7 +180,7 @@
             <th>
                 <span class="field-label">PO Nbr</span>
                 <span class="field-colon">:</span>
-                <span class="field-value">{{ $bast->ponbr }}</span>
+                <span class="field-value">{{ $calr->ponbr }}</span>
             </th>
             <th>
                 <span class="field-label">Penalty/hari</span>
@@ -195,7 +195,7 @@
             <th>
                 <span class="field-label">Vendor Name</span>
                 <span class="field-colon">:</span>
-                <span class="field-value">{{ $bast->vendorname }}</span>
+                <span class="field-value">{{ $calr->vendorname }}</span>
             </th>
             <th>
                 <span class="field-label">Total Penalty</span>
@@ -242,7 +242,7 @@
                 <span class="field-label">BAST Amount</span>
                 <span class="field-colon">:</span>
                 <span class="field-value">
-                    {{ number_format($bast_amount ?? 0, 0, ',', '.') }}
+                    {{ number_format($calr_amount ?? 0, 0, ',', '.') }}
                 </span>
             </th>
         </tr>

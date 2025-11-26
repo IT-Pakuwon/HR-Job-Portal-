@@ -59,7 +59,7 @@ class CsJobController extends Controller
         if (!$user) return redirect()->route('login');
 
         $mine     = vCsJobs::where('assignpurchasing', $user->username)->count();
-        $revision = vCsRevision::count();              // kalau mau “my” banget → where('created_by', $user->username)
+        $revision = vCsJobs::count();              // kalau mau “my” banget → where('created_by', $user->username)
         $all      = vCsJobs::count();
         $sppbjkt  = vSppbjktOnProgress::count();
 
@@ -72,7 +72,7 @@ class CsJobController extends Controller
 
         return response()->json([
             'mine'     => vCsJobs::where('assignpurchasing', $username)->count(),
-            'revision' => vCsRevision::count(),
+            'revision' => vCsJobs::count(),
             'all'      => vCsJobs::count(),
             'sppbjkt'  => vSppbjktOnProgress::count(),
         ]);
@@ -191,7 +191,7 @@ class CsJobController extends Controller
      */
     public function CsJobsRevisionJson(Request $request)
     {
-        $base = vCsRevision::query();
+        $base = vCsJobs::query();
         return $this->buildJobsJson($base, $request);
     }
 
@@ -214,7 +214,7 @@ class CsJobController extends Controller
             case 'all':
                 return vCsJobs::query();
             case 'revision':
-                return vCsRevision::query();
+                return vCsJobs::query();
             case 'sppbjkt':
                 return vSppbjktOnProgress::query();
             default:

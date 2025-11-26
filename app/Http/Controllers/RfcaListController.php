@@ -18,6 +18,8 @@ use App\Models\MsRfcaStep;
 use App\Models\TrRfcaStep;
 use Vinkla\Hashids\Facades\Hashids;
 use Illuminate\Support\Str;
+use App\Models\TrApproval;
+use App\Models\CompanyPG;
 
 
 class RfcaListController extends Controller
@@ -549,6 +551,115 @@ class RfcaListController extends Controller
                 'message' => 'Failed to approve RFCA Step: ' . $e->getMessage(),
             ], 500);
         }
+    }
+
+     public function printRfca($hash)
+    {
+        $id = Hashids::decode($hash)[0] ?? null;
+        abort_if(!$id, 404);
+
+        $authUser = Auth::user();
+        if (!$authUser) {
+            return redirect()->route('login');
+        }
+
+        // Ambil BAST + relasi
+        $rfca = TrRfca::with(['creator', 'userpeminta'])
+            ->findOrFail($id);
+
+        // Approval list
+        $approval = TrApproval::query()
+            ->where('refnbr', $rfca->csid)
+            ->where('status', '<>', 'X')
+            ->orderByRaw('CAST(aprv_leveling AS numeric) ASC')
+            ->orderBy('created_at', 'ASC')
+            ->get();
+
+        $approve_count = $approval->count();
+
+        // Company
+        $company = CompanyPG::where('cpny_id', $rfca->cpny_id)->first();
+
+        // Mapping status dokumen
+        switch ($rfca->status) {
+            case 'R':
+                $status_doc = 'Rejected';
+                break;
+            case 'C':
+                $status_doc = 'Completed';
+                break;
+            case 'D':
+                $status_doc = 'Hold';
+                break;
+            case 'X':
+                $status_doc = 'Cancel';
+                break;
+            default:
+                $status_doc = 'On Progress';
+                break;
+        }
+
+        $data = [
+            'title'               => 'REQUEST FOR CASH ADVANCE',
+            'doc_type'            => 'RFCA',
+            'docid'               => $rfca->rfcaid,
+            'department_id'       => $rfca->department_id,
+            'cpnyname'            => optional($company)->cpnyname,
+            'parent'              => optional($company)->parent,
+            'project'             => optional($company)->project,
+
+            // identitas & tanggal
+            'created_by_username' => $rfca->created_by,
+            'created_by_name'     => ucwords(strtolower(optional($rfca->creator)->name ?? $rfca->created_by)),
+            'created_at_fmt'      => optional($rfca->created_at)->format('d F Y'),
+            'req_date_fmt'        => optional($rfca->created_at)->format('d M Y H:i'),
+            'rfcadate'            => $rfca->rfcadate
+                                        ? Carbon::parse($rfca->rfcadate)->format('d F Y')
+                                        : '',
+
+            // konten utama
+            'keperluan'           => $rfca->keperluan,
+            'status_doc'          => $status_doc,
+            // kalau nanti ada relasi requestType, tetap aman
+            'requesttype_name'    => optional($rfca->requestType ?? null)->requesttype_name,
+
+            // tanggal pekerjaan
+            'startdate_fmt'       => $rfca->startdate
+                                        ? Carbon::parse($rfca->startdate)->format('d/m/Y')
+                                        : '',
+            'enddate_fmt'         => $rfca->enddate
+                                        ? Carbon::parse($rfca->enddate)->format('d/m/Y')
+                                        : '',
+            'handoverdate_fmt'    => $rfca->handoverdate
+                                        ? Carbon::parse($rfca->handoverdate)->format('d/m/Y H:i')
+                                        : '',
+
+            // lokasi
+            'location_name'       => optional($rfca->location)->location_name ?? $rfca->location_id,
+            'sub_location_name'   => optional($rfca->subLocation)->sub_location_name ?? $rfca->sub_location_id,
+
+            // angka2
+            'penalty_per_day'     => $rfca->penalty,
+            'days_penalty'        => $rfca->days_penalty,
+            'total_penalty'       => $rfca->total_penalty,
+            'rfca_amount'         => $rfca->rfca_amount,
+            'realize_amount'      => $rfca->realize_amount,
+            'spkpic'              => $rfca->spkpic,
+            'spkwarranty'         => $rfca->spkwarranty,
+        ];
+
+        $pdf = \PDF::loadView(
+            'pages.rfca.pdf_rfca',
+            array_merge($data, [
+                'rfca'          => $rfca,
+                'approval'      => $approval,
+                'approve_count' => $approve_count,
+            ])
+        );
+
+        // $pdf->setPaper('A4', ($approve_count <= 5) ? 'portrait' : 'landscape');
+
+        return $pdf->stream("pdf_rfca_{$rfca->rfcaid}.pdf");
     }
 
 }

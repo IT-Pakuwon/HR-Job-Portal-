@@ -146,7 +146,7 @@ class AssignListController extends Controller
         $qLower = mb_strtolower($q);
 
         $rows = User::query()
-            ->where('departmentid','PURCHASING') // kalau mau filter
+            ->where('department_id','PURCHASING') // kalau mau filter
             ->when($q !== '', function ($qq) use ($qLower) {
                 $qq->where(function ($w) use ($qLower) {
                     $w->whereRaw('LOWER(name) LIKE ?', ["%{$qLower}%"])

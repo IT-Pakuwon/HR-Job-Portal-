@@ -439,6 +439,7 @@ class CanvassController extends Controller
                 $det->budget_department_fin_id  = $src->budget_department_fin_id  ?? null;
                 $det->budget_account_id         = $src->budget_account_id         ?? null;
                 $det->budget_activity_id        = $src->budget_activity_id        ?? null;
+                $det->budget_activity_descr     = $src->budget_activity_descr     ?? null;
 
                 // Map harga per vendor (maks 6) + akumulasi selected per vendor
                 $selectedTotalThisRow = 0.0;
@@ -915,6 +916,7 @@ class CanvassController extends Controller
                 $det->budget_department_fin_id  = $src->budget_department_fin_id  ?? null;
                 $det->budget_account_id         = $src->budget_account_id         ?? null;
                 $det->budget_activity_id        = $src->budget_activity_id        ?? null;
+                $det->budget_activity_descr     = $src->budget_activity_descr     ?? null;
                 
 
                 // Map harga per vendor (maks 6)
@@ -1406,6 +1408,7 @@ class CanvassController extends Controller
                 $det->budget_department_fin_id  = $src->budget_department_fin_id  ?? null;
                 $det->budget_account_id         = $src->budget_account_id         ?? null;
                 $det->budget_activity_id        = $src->budget_activity_id        ?? null;
+                $det->budget_activity_descr     = $src->budget_activity_descr     ?? null;
 
                 // harga vendor + akumulasi selected
                 $selectedGrandThisRow = 0.0;
@@ -2889,9 +2892,15 @@ class CanvassController extends Controller
         ])->where('csid', $cs->csid)->orderBy('cs_no')->get();
 
         // Approval
-        $approval = T_approval::where('docid', $cs->csid)
-            ->where('status', '<>', 'X')
-            ->orderBy('aprvid')->orderBy('created_at')->get();
+        // $approval = T_approval::where('docid', $cs->csid)
+        //     ->where('status', '<>', 'X')
+        //     ->orderBy('aprvid')->orderBy('created_at')->get();
+         $approval = TrApproval::query()
+            ->where('refnbr', $cs->csid)          // dulu: docid
+            ->where('status', '<>', 'X')           
+            ->orderByRaw('CAST(aprv_leveling AS numeric) ASC')
+            ->orderBy('created_at', 'ASC')            // tie-breaker kalau leveling sama
+            ->get();
         $approve_count = $approval->count();
 
         // Company

@@ -723,7 +723,7 @@ Route::post('/logout', function () {
     Route::get('/showrfca/{hash}', [RfcaListController::class, 'showRfca']);
     Route::post('/rfca/{hash}/submit-type', [RfcaListController::class, 'submitType'])->name('rfca.submitType');
     Route::post('/rfca/{hash}/approve-step', [RfcaListController::class, 'approveStep'])->name('rfca.approveStep');
-
+    Route::get('/pdf_rfca/{hash}', [RfcaListController::class, 'printRfca'])->name('rfca.print');
 
     Route::get('/calrlist', [CalrListController::class, 'index'])->name('calrlist');
     Route::get('/calrlist/json', [CalrListController::class, 'json'])->name('calrlist.json');

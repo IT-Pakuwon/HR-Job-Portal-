@@ -1544,8 +1544,8 @@
                 const uom = $tr.data('uom') || '';
                 const invId = $tr.data('inventoryid') || '';
                 const invDescr = $tr.data('inventory_descr') || '';
-                const lastPrice = Number($tr.data('lastprice') || 0);
-                const csNote = String($tr.data('note') || '');
+                const lastPrice = Number($tr.data('lastprice') || 0);                
+                const csNote = String($tr.find('.note-input').val() || '');
 
                 const row = {
                     inventoryid: invId,

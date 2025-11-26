@@ -27,6 +27,7 @@ use App\Models\TrPo;
 use App\Models\TrPOdetail;
 use App\Models\TrRfca;
 use App\Models\TrRfcaStep;
+use App\Models\CompanyPG;
 
 
 
@@ -579,7 +580,7 @@ class CalrController extends Controller
         }
 
         // Ambil CALR + relasi
-        $calr = TrCalr::with(['creator', 'userpeminta', 'location', 'subLocation'])
+        $calr = TrCalr::with(['creator', 'userpeminta'])
             ->findOrFail($id);
 
         // Approval list
@@ -593,7 +594,7 @@ class CalrController extends Controller
         $approve_count = $approval->count();
 
         // Company
-        $company = Company::where('cpnyid', $calr->cpny_id)->first();
+        $company = CompanyPG::where('cpny_id', $calr->cpny_id)->first();
 
         // Mapping status dokumen
         switch ($calr->status) {
@@ -615,7 +616,7 @@ class CalrController extends Controller
         }
 
         $data = [
-            'title'               => 'Berita Acara Serah Terima',
+            'title'               => 'CASH ADVANCE LIQUIDATION REPORT',
             'doc_type'            => 'CALR',
             'docid'               => $calr->calrid,
             'department_id'       => $calr->department_id,
