@@ -140,9 +140,9 @@
                                 <select name="cpnyid" required
                                     class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
                                     @foreach ($usercpny as $p)
-                                        <option value="{{ $p->cpnyid }}"
-                                            {{ $p->cpnyid == $prefill['cpnyid'] ? 'selected' : '' }}>
-                                            {{ $p->cpnyid }}
+                                        <option value="{{ $p->cpny_id }}"
+                                            {{ $p->cpny_id == $prefill['cpnyid'] ? 'selected' : '' }}>
+                                            {{ $p->cpny_id }}
                                         </option>
                                     @endforeach
                                 </select>
@@ -155,9 +155,9 @@
                                 <select name="departementid" required
                                     class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
                                     @foreach ($userdept as $p)
-                                        <option value="{{ $p->deptname }}"
-                                            {{ $p->deptname == $prefill['departementid'] ? 'selected' : '' }}>
-                                            {{ $p->deptname }}
+                                        <option value="{{ $p->department_id }}"
+                                            {{ $p->department_id == $prefill['departementid'] ? 'selected' : '' }}>
+                                            {{ $p->department_id }}
                                         </option>
                                     @endforeach
                                 </select>
@@ -235,8 +235,8 @@
 
                         <!-- Description -->
                         <div class="mt-6">
-                            <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Description</label>
-                            <textarea name="keperluan" id="keperluan" rows="3"
+                            <label class="req text-sm font-medium text-gray-700 dark:text-gray-300">Description</label>
+                            <textarea name="keperluan" id="keperluan" rows="3" required
                                 class="mt-2 w-full rounded-lg border border-gray-300 bg-white p-3 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"></textarea>
                         </div>
 

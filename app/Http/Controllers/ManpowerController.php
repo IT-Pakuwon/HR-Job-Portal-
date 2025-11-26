@@ -268,7 +268,7 @@ class ManpowerController extends Controller
     
             foreach ($email_it as $emailsit) {
                 Mail::send('emails.mailapprove', $data, function ($message) use ($data, $emailsit) {
-                    $message->to($emailsit->test_email)->subject($data['docid'] . ' - Waiting Approval Manpower');
+                    $message->to($emailsit->notification_email)->subject($data['docid'] . ' - Waiting Approval Manpower');
                     $message->from('digitalserver@pakuwon.com', 'Pakuwon Smart System');
                 });
             }       
@@ -462,7 +462,7 @@ class ManpowerController extends Controller
     
             foreach ($email_it as $emailsit) {
                 Mail::send('emails.mailapprove', $data, function ($message) use ($data, $emailsit) {
-                    $message->to($emailsit->test_email)->subject($data['docid'] . ' - Waiting Approval Manpower');
+                    $message->to($emailsit->notification_email)->subject($data['docid'] . ' - Waiting Approval Manpower');
                     $message->from('digitalserver@pakuwon.com', 'Pakuwon Smart System');
                 });
             }
@@ -612,7 +612,7 @@ class ManpowerController extends Controller
             foreach ($email_it as $emailsit) {
                 Mail::send('emails.mailapprove', $data, function ($message) use ($data, $emailsit) {
 
-                    $message->to($emailsit->test_email)->subject($data['docid'] . ' - Waiting Approval Manpower');
+                    $message->to($emailsit->notification_email)->subject($data['docid'] . ' - Waiting Approval Manpower');
                     $message->from('digitalserver@pakuwon.com', 'Pakuwon Smart System');
                 });
             }
@@ -682,7 +682,7 @@ class ManpowerController extends Controller
         foreach ($email_it as $emailsit) {
             Mail::send('emails.mailapprove', $data, function ($message) use ($data, $emailsit) {
 
-                $message->to($emailsit->test_email)->subject($data['docid'] . ' - Rejected Manpower');
+                $message->to($emailsit->notification_email)->subject($data['docid'] . ' - Rejected Manpower');
                 $message->from('digitalserver@pakuwon.com', 'Pakuwon Smart System');
             });
         }
@@ -755,7 +755,7 @@ class ManpowerController extends Controller
         foreach ($email_it as $emailsit) {
             Mail::send('emails.mailapprove', $data, function ($message) use ($data, $emailsit) {
 
-                $message->to($emailsit->test_email)->subject($data['docid'] . ' - Revise Manpower');
+                $message->to($emailsit->notification_email)->subject($data['docid'] . ' - Revise Manpower');
                 $message->from('digitalserver@pakuwon.com', 'Pakuwon Smart System');
             });
         }

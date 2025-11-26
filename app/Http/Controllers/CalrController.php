@@ -26,6 +26,8 @@ use App\Models\Dept;
 use App\Models\TrPo;
 use App\Models\TrPOdetail;
 use App\Models\TrRfca;
+use App\Models\TrRfcaStep;
+
 
 
 class CalrController extends Controller
@@ -159,13 +161,24 @@ class CalrController extends Controller
                 'updated_by'    => $username,
             ]);
 
-            // Flag di RFCA supaya tidak muncul lagi di jobs (kalau memang pakai kolom ini)
-            if (property_exists($rfca, 'calrid') || $rfca->getAttribute('calrid') !== null || $rfca->getAttribute('calrid') === null) {
-                $rfca->calrid     = $calrid;
-                $rfca->updated_by = $username;
-                $rfca->updated_at = $datestamp;
-                $rfca->save();
-            }
+            // === update TrRfca & TrRfcaStep terkait ===
+            $rfcastep = TrRfcaStep::where('rfcaid', $rfca->rfcaid)
+                    ->where('ponbr', $rfca->ponbr)
+                    ->where('rfca_step_id', 'PC')
+                    ->first();
+
+            $rfcastep->rfca_step_user   = $username;      
+            $rfcastep->rfca_step_date   = $datestamp; 
+            $rfcastep->status_rfca      = 'C'; 
+            $rfcastep->updated_by = $username;
+            $rfcastep->save();
+
+            $rfca->calrid     = $calrid;
+            $rfca->rfca_step_order = $rfcastep->rfca_step_order; 
+            $rfca->rfca_step_id    = $rfcastep->rfca_step_id;
+            $rfca->updated_by = $username;
+            $rfca->updated_at = $datestamp;
+            $rfca->save(); 
 
             // === generate TrApproval ===
             $ctx = [
@@ -188,7 +201,7 @@ class CalrController extends Controller
             if ($request->hasFile('attachments')) {
                 $meta = [
                     'refnbr'        => $docid,
-                    'doctype'       => 'CA',
+                    'doctype'       => $doctype,
                     'cpnyid'        => $rfca->cpny_id,
                     'departementid' => $rfca->department_id,
                     'base_folder'   => 'att-purchasing-app/' . strtolower($doctype),
@@ -774,6 +787,158 @@ class CalrController extends Controller
         // $pdf->setPaper('A4', ($approve_count <= 5) ? 'portrait' : 'landscape');
 
         return $pdf->stream("pdf_calr_vendor_{$calr->calrid}.pdf");
+    }
+
+    public function editCalr($hash)
+    {
+        $id = Hashids::decode($hash)[0] ?? null;
+        abort_if(!$id, 404);
+
+        /** @var \App\Models\TrCalr $calr */
+        $calr = TrCalr::findOrFail($id);
+
+        // Detail PO tetap dari TrPOdetail
+        $details = TrPOdetail::where('ponbr', $calr->ponbr)->get();
+
+        // hash untuk passing balik ke view (dipakai di route update)
+        $calr_eid = Hashids::encode((string) $calr->id);
+
+        $rows = TrAttachment::where('refnbr', $calr->calrid)
+            ->where('status', 'A')
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        $config      = config('filesystems.disks.gcs');
+        $keyFilePath = $config['key_file'];
+        if (!Str::startsWith($keyFilePath, ['/','C:\\','D:\\'])) {
+            $keyFilePath = base_path($keyFilePath);
+        }
+        $storage = new StorageClient([
+            'projectId'   => $config['project_id'],
+            'keyFilePath' => $keyFilePath,
+        ]);
+        $bucket = $storage->bucket($config['bucket']);
+
+        $attachments = $rows->map(function ($r) use ($bucket) {
+            $objectPath = rtrim($r->folder, '/').'/'.$r->filename;
+            $object     = $bucket->object($objectPath);
+            $signedUrl  = null;
+            try {
+                $signedUrl = $object->signedUrl(
+                    new \DateTimeImmutable('+10 minutes'),
+                    ['version' => 'v4']
+                );
+            } catch (\Throwable $e) {
+                \Log::warning('Signed URL gagal', ['path' => $objectPath, 'error' => $e->getMessage()]);
+            }
+            return (object) [
+                'id'          => $r->id,
+                'display_name' => $r->attachment_name,
+                'created_by'   => $r->created_by,
+                'created_at'   => $r->created_at,
+                'url'          => $signedUrl,
+                'folder'       => $r->folder,
+                'filename'     => $r->filename,
+                'extention'    => $r->extention,
+                'size'         => $r->filesize,
+            ];
+        });
+
+        return view('pages.calr.editcalr', [
+            'calr'      => $calr,
+            'calr_eid'  => $calr_eid,
+            'hash'      => $hash,
+            'details'   => $details,
+            'attachments' => $attachments,
+        ]);
+    }
+
+    public function updateCalr(Request $request, $hash)
+    {
+        $id = Hashids::decode($hash)[0] ?? null;
+        abort_if(!$id, 404);
+
+        /** @var \App\Models\TrCalr $calr */
+        $calr = TrCalr::findOrFail($id);
+
+        $request->validate([
+            'calr_amount'   => 'required|numeric|min:0',
+            'attachments.*' => 'file|max:10240',
+        ]);
+
+        $doctype  = 'CA'; 
+        $user     = $request->user();
+        $username = $user->username ?? 'system';
+        $dt        = Carbon::now('Asia/Jakarta');
+
+        $rfcaAmount = (float) ($calr->rfca_amount ?? 0);
+        $calrAmount = (float) $request->input('calr_amount', 0);
+        $balance    = $rfcaAmount - $calrAmount;
+
+        /** @var \App\Http\Controllers\ApprovalController $approvalCtl */
+        $approvalCtl = app(ApprovalController::class);
+
+        // Pastikan line approval ada (pakai company & dept dari RFCA)
+        $approvalCtl->loadLines($doctype, $calr->cpny_id, $calr->department_id);
+
+        DB::beginTransaction();
+        try {
+            // === update header TrCalr ===
+            $calr->calr_amount    = $calrAmount;
+            $calr->balance_amount = $balance;
+            $calr->status    ='P';           
+            $calr->updated_by     = $username;
+            $calr->updated_at     = $dt;
+            $calr->save();
+
+            // === generate TrApproval ===
+            $ctx = [
+                'ignore_nominal' => true,
+            ];
+
+            [$firstApprovalUsernames, $linesCount] = $approvalCtl->generateForDocument(
+                $calr->calrid,
+                $doctype,
+                $calr->cpny_id,
+                $calr->department_id,
+                $username,
+                $ctx,
+                $dt
+            );
+
+            // === upload attachment baru (opsional) ===
+            if ($request->hasFile('attachments')) {
+                $meta = [
+                    'refnbr'        => $calr->calrid,          // pakai CALR ID yg sudah ada
+                    'doctype'       => $doctype,
+                    'cpnyid'        => $calr->cpny_id,
+                    'departementid' => $calr->department_id,
+                    'base_folder'   => 'att-purchasing-app/' . strtolower($doctype),
+                    'created_by'    => $username,
+                ];
+
+                $files = (array) $request->file('attachments');
+
+                /** @var \App\Http\Controllers\TrAttachmentController $uploader */
+                $uploader = app(TrAttachmentController::class);
+                $uploader->uploadInternal($meta, $files);
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'ok'      => true,
+                'message' => 'CALR updated successfully.',
+                'calrid'  => $calr->calrid,
+            ]);
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            report($e);
+
+            return response()->json([
+                'message' => 'Gagal mengupdate CALR.',
+            ], 500);
+        }
     }
 
     

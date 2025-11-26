@@ -16,8 +16,8 @@ class SendCommentController extends Controller
             'refnbr'        => $request->docid,          // menyesuaikan dengan nama field baru
             'doctype'       => $doctype,
             'message_date'  => Carbon::now(),
-            'cpnyid'        => $user->cpnyid ?? null,     // jika user memiliki cpnyid
-            'departementid' => $user->departementid ?? null, // jika user memiliki departementid
+            'cpny_id'        => $user->cpnyid ?? null,     // jika user memiliki cpnyid
+            'department_id' => $user->departementid ?? null, // jika user memiliki departementid
             'username'      => $user->username,
             'name'          => $user->name,
             'message'       => $request->reason,
@@ -58,8 +58,8 @@ class SendCommentController extends Controller
             'refnbr'        => $id,
             'doctype'       => $doctype,
             'message_date'  => Carbon::now(),
-            'cpnyid'        => $user->cpnyid ?? null,
-            'departementid' => $user->departementid ?? null,
+            'cpny_id'        => $user->cpnyid ?? null,
+            'department_id' => $user->departementid ?? null,
             'username'      => $user->username ?? ($user->email ?? 'system'),
             'name'          => $user->name ?? $user->username ?? 'System',
             'message'       => $request->comment,

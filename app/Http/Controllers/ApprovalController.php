@@ -243,7 +243,7 @@ class ApprovalController extends Controller
         $emails = User::query()
             ->whereIn('username', $approvers)
             ->where('status', 'A')
-            ->pluck('test_email')
+            ->pluck('notification_email')
             ->filter()
             ->values();
 
@@ -300,7 +300,7 @@ class ApprovalController extends Controller
 
         $payload = array_merge($defaults, $extra);
 
-        $to = $user->test_email ?? $user->email;
+        $to = $user->notification_email ?? $user->email;
         if (!$to) return 0;
 
         Mail::send('emails.mailapprovenew', $payload, function ($m) use ($payload, $to, $suffix) {

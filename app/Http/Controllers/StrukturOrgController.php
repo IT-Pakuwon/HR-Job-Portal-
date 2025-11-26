@@ -419,7 +419,7 @@ class StrukturOrgController extends Controller
     
             foreach ($email_it as $emailsit) {
                 Mail::send('emails.mailapprove', $data, function ($message) use ($data, $emailsit) {
-                    $message->to($emailsit->test_email)->subject($data['docid'] . ' - Waiting Approval STO');
+                    $message->to($emailsit->notification_email)->subject($data['docid'] . ' - Waiting Approval STO');
                     $message->from('digitalserver@pakuwon.com', 'Pakuwon System');
                 });
             }       
@@ -621,7 +621,7 @@ class StrukturOrgController extends Controller
     
             foreach ($email_it as $emailsit) {
                 Mail::send('emails.mailapprove', $data, function ($message) use ($data, $emailsit) {
-                    $message->to($emailsit->test_email)->subject($data['docid'] . ' - Waiting Approval STO');
+                    $message->to($emailsit->notification_email)->subject($data['docid'] . ' - Waiting Approval STO');
                     $message->from('digitalserver@pakuwon.com', 'Pakuwon System');
                 });
             }       
@@ -790,7 +790,7 @@ class StrukturOrgController extends Controller
             foreach ($email_it as $emailsit) {
                 Mail::send('emails.mailapprove', $data, function ($message) use ($data, $emailsit) {
 
-                    $message->to($emailsit->test_email)->subject($data['docid'] . ' - Waiting Approval STO');
+                    $message->to($emailsit->notification_email)->subject($data['docid'] . ' - Waiting Approval STO');
                     $message->from('digitalserver@pakuwon.com', 'Pakuwon System');
                 });
             }
@@ -861,7 +861,7 @@ class StrukturOrgController extends Controller
         foreach ($email_it as $emailsit) {
             Mail::send('emails.mailapprove', $data, function ($message) use ($data, $emailsit) {
 
-                $message->to($emailsit->test_email)->subject($data['docid'] . ' - Rejected STO');
+                $message->to($emailsit->notification_email)->subject($data['docid'] . ' - Rejected STO');
                 $message->from('digitalserver@pakuwon.com', 'Pakuwon System');
             });
         }
@@ -936,7 +936,7 @@ class StrukturOrgController extends Controller
         foreach ($email_it as $emailsit) {
             Mail::send('emails.mailapprove', $data, function ($message) use ($data, $emailsit) {
 
-                $message->to($emailsit->test_email)->subject($data['docid'] . ' - Revise STO');
+                $message->to($emailsit->notification_email)->subject($data['docid'] . ' - Revise STO');
                 $message->from('digitalserver@pakuwon.com', 'Pakuwon System');
             });
         }

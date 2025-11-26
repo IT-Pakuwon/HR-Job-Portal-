@@ -35,9 +35,9 @@
                                     class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                     name="cpnyid" required>
                                     @foreach ($usercpny as $p)
-                                        <option value="{{ $p->cpnyid }}"
-                                            {{ $p->cpnyid == $usercpny2->cpnyid ? 'selected' : '' }}>
-                                            {{ $p->cpnyid }}</option>
+                                        <option value="{{ $p->cpny_id }}"
+                                            {{ $p->cpny_id == $usercpny2->cpny_id ? 'selected' : '' }}>
+                                            {{ $p->cpny_id }}</option>
                                     @endforeach
                                 </select>
                             </div>

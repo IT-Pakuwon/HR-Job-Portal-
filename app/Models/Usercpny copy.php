@@ -7,14 +7,13 @@ use Illuminate\Database\Eloquent\Model;
 
 class Usercpny extends Model
 {
-    protected $connection = 'pgsql2';
-    protected $table = "ms_user_cpny";
+    protected $connection = 'mysql2';
+    protected $table = "usercpny";
     protected $primaryKey = 'id';
     protected $fillable = [
         'username',
-        'cpny_id',
+        'cpnyid',
         'status',
-        'created_by',
-        'updated_by',
+        'created_user'
     ];
 }

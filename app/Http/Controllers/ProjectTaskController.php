@@ -258,7 +258,7 @@ class ProjectTaskController extends Controller
     
             foreach ($email_it as $emailsit) {
                 Mail::send('emails.mailapprove', $data, function ($message) use ($data, $emailsit) {
-                    $message->to($emailsit->test_email)->subject($data['docid'] . ' - Waiting Approval Tasks');
+                    $message->to($emailsit->notification_email)->subject($data['docid'] . ' - Waiting Approval Tasks');
                     $message->from('digitalserver@pakuwon.com', 'Pakuwon Smart System');
                 });
             }       
@@ -432,7 +432,7 @@ class ProjectTaskController extends Controller
     
             foreach ($email_it as $emailsit) {
                 Mail::send('emails.mailapprove', $data, function ($message) use ($data, $emailsit) {
-                    $message->to($emailsit->test_email)->subject($data['docid'] . ' - Waiting Approval Tasks');
+                    $message->to($emailsit->notification_email)->subject($data['docid'] . ' - Waiting Approval Tasks');
                     $message->from('digitalserver@pakuwon.com', 'Pakuwon Smart System');
                 });
             }     
@@ -581,7 +581,7 @@ class ProjectTaskController extends Controller
             // foreach ($email_it as $emailsit) {
             //     Mail::send('emails.mailapprove', $data, function ($message) use ($data, $emailsit) {
 
-            //         $message->to($emailsit->test_email)->subject($data['docid'] . ' - Waiting Approval Usage');
+            //         $message->to($emailsit->notification_email)->subject($data['docid'] . ' - Waiting Approval Usage');
             //         $message->from('digitalserver@pakuwon.com', 'Digital Approval System');
             //     });
             // }
@@ -647,7 +647,7 @@ class ProjectTaskController extends Controller
 
         // foreach ($email_it as $emailsit) {
         //     Mail::send('emails.mailapprove', $data, function ($message) use ($data, $emailsit) {
-        //         $message->to($emailsit->test_email)->subject($data['docid'] . ' - Rejected Usage');
+        //         $message->to($emailsit->notification_email)->subject($data['docid'] . ' - Rejected Usage');
         //         $message->from('digitalserver@pakuwon.com', 'Digital Approval System');
         //     });
         // }
@@ -715,7 +715,7 @@ class ProjectTaskController extends Controller
 
         // foreach ($email_it as $emailsit) {
         //     Mail::send('emails.mailapprove', $data, function ($message) use ($data, $emailsit) {
-        //         $message->to($emailsit->test_email)->subject($data['docid'] . ' - Rejected Usage');
+        //         $message->to($emailsit->notification_email)->subject($data['docid'] . ' - Rejected Usage');
         //         $message->from('digitalserver@pakuwon.com', 'Digital Approval System');
         //     });
         // }

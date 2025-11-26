@@ -2398,7 +2398,7 @@ class CanvassController extends Controller
     //             foreach ($recipients as $rcp) {
     //                 try {
     //                     Mail::send('emails.mailapprovenew', $data, function ($message) use ($data, $rcp, $subjectSuffix) {
-    //                         $to = $rcp->test_email ?? $rcp->email; // pakai field yang memang ada
+    //                         $to = $rcp->notification_email ?? $rcp->email; // pakai field yang memang ada
     //                         $message->to($to)
     //                             ->subject($data['docid'] . ' - ' . $subjectSuffix . ' CS')
     //                             ->from('digitalserver@pakuwon.com', 'Pakuwon System');
@@ -2446,7 +2446,7 @@ class CanvassController extends Controller
     //                     foreach ($recipients as $rcp) {
     //                         try {
     //                             Mail::send('emails.mailapprovenew', $data, function ($message) use ($data, $rcp, $subjectSuffix) {
-    //                                 $to = $rcp->test_email ?? $rcp->email;
+    //                                 $to = $rcp->notification_email ?? $rcp->email;
     //                                 $message->to($to)
     //                                     ->subject($data['docid'] . ' - ' . $subjectSuffix . ' CS')
     //                                     ->from('digitalserver@pakuwon.com', 'Pakuwon System');
@@ -2571,7 +2571,7 @@ class CanvassController extends Controller
 
     //     foreach ($recipients as $rcp) {
     //         try {
-    //             $to = $rcp->test_email ?? $rcp->email; // sesuaikan field yang tersedia
+    //             $to = $rcp->notification_email ?? $rcp->email; // sesuaikan field yang tersedia
     //             Mail::send('emails.mailapprovenew', $data, function ($message) use ($data, $to, $subjectSuffix) {
     //                 $message->to($to)
     //                     ->subject($data['docid'] . ' - ' . $subjectSuffix . ' CS')
@@ -2702,7 +2702,7 @@ class CanvassController extends Controller
 
     //     foreach ($recipients as $rcp) {
     //         try {
-    //             $to = $rcp->test_email ?? $rcp->email; // sesuaikan dengan kolom yang ada
+    //             $to = $rcp->notification_email ?? $rcp->email; // sesuaikan dengan kolom yang ada
     //             Mail::send('emails.mailapprovenew', $data, function ($message) use ($data, $to, $subjectSuffix) {
     //                 $message->to($to)
     //                     ->subject($data['docid'] . ' - ' . $subjectSuffix . ' CS')

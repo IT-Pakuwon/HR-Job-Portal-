@@ -137,9 +137,9 @@
                                     class="req headerCpnySelect w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                     name="cpnyid" required>
                                     @foreach ($usercpny as $p)
-                                        <option value="{{ $p->cpnyid }}"
-                                            {{ $p->cpnyid == $usercpny2->cpnyid ? 'selected' : '' }}>
-                                            {{ $p->cpnyid }}</option>
+                                        <option value="{{ $p->cpny_id }}"
+                                            {{ $p->cpny_id == $usercpny2->cpny_id ? 'selected' : '' }}>
+                                            {{ $p->cpny_id }}</option>
                                     @endforeach
                                 </select>
                             </div>
@@ -150,9 +150,9 @@
                                     class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                     name="departementid" required>
                                     @foreach ($userdept as $p)
-                                        <option value="{{ $p->deptname }}"
-                                            {{ $p->deptname == $userdept2->deptname ? 'selected' : '' }}>
-                                            {{ $p->deptname }}</option>
+                                        <option value="{{ $p->department_id }}"
+                                            {{ $p->department_id == $userdept2->department_id ? 'selected' : '' }}>
+                                            {{ $p->department_id }}</option>
                                     @endforeach
                                 </select>
                             </div>
@@ -201,8 +201,8 @@
                         <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
                             <div class="flex flex-col gap-2 lg:col-span-4">
                                 <label for="keperluan"
-                                    class="block text-sm font-medium text-gray-700 dark:text-gray-300">Description</label>
-                                <textarea name="keperluan" id="keperluan"
+                                    class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Description</label>
+                                <textarea name="keperluan" id="keperluan" required
                                     class="w-full rounded-lg border border-gray-300 bg-white p-3 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                     rows="3"></textarea>
                             </div>
@@ -877,6 +877,10 @@
 
             $('#spbForm').on('submit', function(e) {
                 e.preventDefault();
+
+                 if (!$('#worktypeid').val() || !$('#subworktypeid').val()) {                    
+                    alert('Silakan pilih Jenis Pekerjaan dulu.');
+                }
 
                 // Validasi detail dulu
                 if (!validateDetails()) return;

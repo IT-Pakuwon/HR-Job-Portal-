@@ -209,9 +209,9 @@
                                     class="req w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                     required>
                                     @foreach ($usercpny as $p)
-                                        <option value="{{ $p->cpnyid }}"
-                                            {{ $p->cpnyid == $sppt->cpny_id ? 'selected' : '' }}>
-                                            {{ $p->cpnyid }}
+                                        <option value="{{ $p->cpny_id }}"
+                                            {{ $p->cpny_id == $sppt->cpny_id ? 'selected' : '' }}>
+                                            {{ $p->cpny_id }}
                                         </option>
                                     @endforeach
                                 </select>
@@ -225,9 +225,9 @@
                                     class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                     required>
                                     @foreach ($userdept as $p)
-                                        <option value="{{ $p->deptname }}"
-                                            {{ $p->deptname == $sppt->department_id ? 'selected' : '' }}>
-                                            {{ $p->deptname }}
+                                        <option value="{{ $p->department_id }}"
+                                            {{ $p->department_id == $sppt->department_id ? 'selected' : '' }}>
+                                            {{ $p->department_id }}
                                         </option>
                                     @endforeach
                                 </select>
@@ -267,13 +267,13 @@
                                 <label class="req text-sm font-medium text-gray-700 dark:text-gray-300">Nama
                                     Tenant</label>
 
-                                <input type="hidden" id="nama_tenant" name="nama_tenant"
+                                <input type="hidden" id="nama_tenant" name="nama_tenant" 
                                     value="{{ $sppt->nama_tenant }}">
                                 <input type="hidden" id="tenant_id" name="tenant_id" value="{{ $sppt->tenant_id }}">
                                 <input type="hidden" id="unit_id" name="unit_id" value="{{ $sppt->unit_id }}">
 
-                                <select id="tenant_select"
-                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
+                                <select id="tenant_select" name="tenant_select"
+                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300" required>
                                     @if ($sppt->tenant_name)
                                         <option value="{{ $sppt->nama_tenant }}" selected>{{ $sppt->tenant_name }}
                                         </option>
@@ -298,10 +298,10 @@
                             <!-- PIC -->
                             <div class="flex flex-col gap-2">
                                 <label class="req text-sm font-medium text-gray-700 dark:text-gray-300">PIC</label>
-                                <input type="hidden" id="pic_pengawas" name="pic_pengawas"
+                                <input type="hidden" id="pic_pengawas" name="pic_pengawas" 
                                     value="{{ $sppt->pic_pengawas }}">
-                                <select id="pic_select"
-                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
+                                <select id="pic_select" name="pic_select"
+                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300" required>
                                     @if ($sppt->pic_name)
                                         <option value="{{ $sppt->pic_pengawas }}" selected>{{ $sppt->pic_name }}
                                         </option>
@@ -378,8 +378,8 @@
 
                             <!-- Description -->
                             <div class="flex flex-col gap-2 lg:col-span-4">
-                                <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Description</label>
-                                <textarea id="keperluan" name="keperluan" rows="3"
+                                <label class="req text-sm font-medium text-gray-700 dark:text-gray-300">Description</label>
+                                <textarea id="keperluan" name="keperluan" rows="3" required
                                     class="w-full rounded-lg border border-gray-300 bg-white p-3 text-gray-700 shadow-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">{{ $sppt->keperluan }}</textarea>
                             </div>
 

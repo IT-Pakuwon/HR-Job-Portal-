@@ -71,13 +71,15 @@ class PoListController extends Controller
         $columns = [
             0 => "$poTable.ponbr",
             1 => "$poTable.podate",
-            2 => "$poTable.vendorname",
-            3 => "$poTable.podeliverydate",
-            4 => "$poTable.totalamt",
-            5 => "$poTable.taxamt",
-            6 => "$poTable.grandtotalamt",
-            7 => "$poTable.created_by",
+            2 => "$poTable.potype",       
+            3 => "$poTable.vendorname",
+            4 => "$poTable.podeliverydate",
+            5 => "$poTable.totalamt",
+            6 => "$poTable.taxamt",
+            7 => "$poTable.grandtotalamt",
+            8 => "$poTable.created_by",
         ];
+
 
         $orderIdx = (int) $req->input('order.0.column', 1);
         $orderDir = $req->input('order.0.dir', 'desc') === 'asc' ? 'asc' : 'desc';
@@ -100,21 +102,22 @@ class PoListController extends Controller
         $recordsFiltered = (clone $base)->count();
 
         $rows = $base->select(
-                    "$poTable.id",
-                    "$poTable.ponbr",
-                    "$poTable.podate",
-                    "$poTable.vendorname",
-                    "$poTable.podeliverydate",
-                    "$poTable.totalamt",
-                    "$poTable.taxamt",
-                    "$poTable.grandtotalamt",
-                    "$poTable.created_by",
-                    "$poTable.status"
-                )
-                ->orderBy($orderCol, $orderDir)
-                ->orderBy("$poTable.ponbr", 'desc')
-                ->skip($start)->take($length)
-                ->get();
+            "$poTable.id",
+            "$poTable.ponbr",
+            "$poTable.podate",
+            "$poTable.potype",         
+            "$poTable.vendorname",
+            "$poTable.podeliverydate",
+            "$poTable.totalamt",
+            "$poTable.taxamt",
+            "$poTable.grandtotalamt",
+            "$poTable.created_by",
+            "$poTable.status"
+        )
+        ->orderBy($orderCol, $orderDir)
+        ->orderBy("$poTable.ponbr", 'desc')
+        ->skip($start)->take($length)
+        ->get();
 
         $rows->transform(function($r){
             $r->eid = Hashids::encode($r->id);

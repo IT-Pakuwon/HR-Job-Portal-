@@ -498,10 +498,7 @@
             <div class="mt-6 rounded-xl bg-white p-6 shadow-md dark:bg-gray-800">
                 <div class="mb-4 border-b border-gray-200 pb-3 dark:border-gray-700">
                     <h3 class="text-lg font-bold text-gray-800 dark:text-gray-100">
-                        PO Detail
-                        @if($calr->ponbr)
-                            <span class="ml-2 text-sm font-normal text-gray-500">({{ $calr->ponbr }})</span>
-                        @endif
+                        PO Detail                       
                     </h3>
                 </div>
 

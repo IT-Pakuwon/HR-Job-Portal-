@@ -65,30 +65,28 @@ class BudgetController extends Controller
     
     public function json(Request $request)
     {
-        $status = $request->query('status', 'P');
+        $status = $request->query('status'); // tanpa default 'P'
 
         $query = Budget::with(['businessUnit', 'departmentFin']);
 
-        if (!empty($status)) {
+        if ($status && $status !== 'ALL') {
             $query->where('status', $status);
         }
 
         $budget = $query->orderBy('id', 'desc')->get();
 
-        // Tambahkan nama relasi langsung ke hasil
         $budget->transform(function ($row) {
             $row->eid = Hashids::encode($row->id);
-
-            // tampilkan nama relasi
             $row->business_unit_name = $row->businessUnit->business_unit_name ?? null;
-            $row->department_name     = $row->departmentFin->department_name ?? null;
+            $row->department_name    = $row->departmentFin->department_name ?? null;
 
-            unset($row->businessUnit, $row->departmentFin); // opsional: sembunyikan object relasi
+            unset($row->businessUnit, $row->departmentFin);
             return $row;
         });
 
         return response()->json(['data' => $budget]);
     }
+
 
 
    
@@ -1064,7 +1062,7 @@ class BudgetController extends Controller
 
     //             foreach ($recipients as $rcp) {
     //                 try {
-    //                     $to = $rcp->test_email ?? $rcp->email;
+    //                     $to = $rcp->notification_email ?? $rcp->email;
     //                     if ($to) {
     //                         Mail::send('emails.mailapprovenew', $data, function ($message) use ($data, $to, $subjectSuffix) {
     //                             $message->to($to)
@@ -1114,7 +1112,7 @@ class BudgetController extends Controller
 
     //                     foreach ($recipients as $rcp) {
     //                         try {
-    //                             $to = $rcp->test_email ?? $rcp->email;
+    //                             $to = $rcp->notification_email ?? $rcp->email;
     //                             if ($to) {
     //                                 Mail::send('emails.mailapprovenew', $data, function ($message) use ($data, $to, $subjectSuffix) {
     //                                     $message->to($to)
@@ -1223,7 +1221,7 @@ class BudgetController extends Controller
     //     foreach ($email_it as $emailsit) {
     //         Mail::send('emails.mailapprovenew', $data, function ($message) use ($data, $emailsit) {
 
-    //             $message->to($emailsit->test_email)->subject($data['docid'] . ' - Rejected Budget');
+    //             $message->to($emailsit->notification_email)->subject($data['docid'] . ' - Rejected Budget');
     //             $message->from('digitalserver@pakuwon.com', 'Pakuwon System');
     //         });
     //     }
@@ -1316,7 +1314,7 @@ class BudgetController extends Controller
     //     foreach ($email_it as $emailsit) {
     //         Mail::send('emails.mailapprovenew', $data, function ($message) use ($data, $emailsit) {
 
-    //             $message->to($emailsit->test_email)->subject($data['docid'] . ' - Revise Budget');
+    //             $message->to($emailsit->notification_email)->subject($data['docid'] . ' - Revise Budget');
     //             $message->from('digitalserver@pakuwon.com', 'Pakuwon System');
     //         });
     //     }

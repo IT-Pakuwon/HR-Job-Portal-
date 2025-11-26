@@ -27,84 +27,86 @@ class RfcaListController extends Controller
         $user = Auth::user();
         if (!$user) return redirect()->route('login');
 
-        $cpny_id = $user->cpny_id ?? '';
+        // bisa berisi "AW" atau "AW,GPS"
+        $cpnyRaw  = $user->cpny_id ?? '';
+        $cpnyList = $cpnyRaw !== '' ? array_map('trim', explode(',', $cpnyRaw)) : [];
 
         /**
          * Rfca Jobs:
          * - rfca_type masih kosong/null
          * - BELUM ada satupun step dengan progress_approval = 't'
          */
-        $rfcajobs = TrRfca::when($cpny_id, function ($q) use ($cpny_id) {
-                $q->where('cpny_id', $cpny_id);
-            })
-            ->where(function ($q) {
-                $q->whereNull('rfca_type')
-                  ->orWhere('rfca_type', '');
-            })
-            ->whereNotExists(function ($q) {
-                $q->select(DB::raw(1))
-                    ->from('tr_rfca_step as step')
-                    ->whereColumn('step.rfcaid', 'tr_rfca.rfcaid')
-                    ->where('step.progress_approval', 't');
-            })
-            ->count();
+        $rfcajobs = TrRfca::when(!empty($cpnyList), function ($q) use ($cpnyList) {
+                    $q->whereIn('cpny_id', $cpnyList);
+                })
+                ->where(function ($q) {
+                    $q->whereNull('rfca_type')
+                    ->orWhere('rfca_type', '');
+                })
+                ->whereNotExists(function ($q) {
+                    $q->select(DB::raw(1))
+                        ->from('tr_rfca_step as step')
+                        ->whereColumn('step.rfcaid', 'tr_rfca.rfcaid')
+                        ->where('step.progress_approval', 't');
+                })
+                ->count();
 
         /**
          * Finance Received:
          * - ada step dengan progress_approval = 't'
-         * - rfca_step_id = 'FR' (sesuaikan dengan master)
+         * - rfca_step_id = 'FR'
          */
-        $financeReceived = TrRfca::when($cpny_id, function ($q) use ($cpny_id) {
-                $q->where('cpny_id', $cpny_id);
-            })
-            ->whereExists(function ($q) {
-                $q->select(DB::raw(1))
-                    ->from('tr_rfca_step as step')
-                    ->whereColumn('step.rfcaid', 'tr_rfca.rfcaid')
-                    ->where('step.progress_approval', 't')
-                    ->where('step.rfca_step_id', 'FR'); // <- sesuaikan code step Finance
-            })
-            ->count();
+        $financeReceived = TrRfca::when(!empty($cpnyList), function ($q) use ($cpnyList) {
+                    $q->whereIn('cpny_id', $cpnyList);
+                })
+                ->whereExists(function ($q) {
+                    $q->select(DB::raw(1))
+                        ->from('tr_rfca_step as step')
+                        ->whereColumn('step.rfcaid', 'tr_rfca.rfcaid')
+                        ->where('step.progress_approval', 't')
+                        ->where('step.rfca_step_id', 'FR');
+                })
+                ->count();
 
         /**
          * Treasury Payment:
          * - step.progress_approval = 't'
-         * - step.rfca_step_id = 'TP' (sesuaikan)
+         * - step.rfca_step_id = 'TP'
          */
-        $treasuryPayment = TrRfca::when($cpny_id, function ($q) use ($cpny_id) {
-                $q->where('cpny_id', $cpny_id);
-            })
-            ->whereExists(function ($q) {
-                $q->select(DB::raw(1))
-                    ->from('tr_rfca_step as step')
-                    ->whereColumn('step.rfcaid', 'tr_rfca.rfcaid')
-                    ->where('step.progress_approval', 't')
-                    ->where('step.rfca_step_id', 'TP'); // <- sesuaikan code step Treasury
-            })
-            ->count();
+        $treasuryPayment = TrRfca::when(!empty($cpnyList), function ($q) use ($cpnyList) {
+                    $q->whereIn('cpny_id', $cpnyList);
+                })
+                ->whereExists(function ($q) {
+                    $q->select(DB::raw(1))
+                        ->from('tr_rfca_step as step')
+                        ->whereColumn('step.rfcaid', 'tr_rfca.rfcaid')
+                        ->where('step.progress_approval', 't')
+                        ->where('step.rfca_step_id', 'TP');
+                })
+                ->count();
 
         /**
          * Completed:
          * - step.progress_approval = 't'
-         * - step.rfca_step_id = 'PC' (atau sesuai master)
+         * - step.rfca_step_id = 'PC'
          */
-        $completed = TrRfca::when($cpny_id, function ($q) use ($cpny_id) {
-                $q->where('cpny_id', $cpny_id);
-            })
-            ->whereExists(function ($q) {
-                $q->select(DB::raw(1))
-                    ->from('tr_rfca_step as step')
-                    ->whereColumn('step.rfcaid', 'tr_rfca.rfcaid')
-                    ->where('step.progress_approval', 't')
-                    ->where('step.rfca_step_id', 'PC'); // <- sesuaikan code step Completed
-            })
-            ->count();
+        $completed = TrRfca::when(!empty($cpnyList), function ($q) use ($cpnyList) {
+                    $q->whereIn('cpny_id', $cpnyList);
+                })
+                ->whereExists(function ($q) {
+                    $q->select(DB::raw(1))
+                        ->from('tr_rfca_step as step')
+                        ->whereColumn('step.rfcaid', 'tr_rfca.rfcaid')
+                        ->where('step.progress_approval', 't')
+                        ->where('step.rfca_step_id', 'PC');
+                })
+                ->count();
 
         // All RFCA tanpa filter progress_approval
-        $all = TrRfca::when($cpny_id, function ($q) use ($cpny_id) {
-                $q->where('cpny_id', $cpny_id);
-            })
-            ->count();
+        $all = TrRfca::when(!empty($cpnyList), function ($q) use ($cpnyList) {
+                    $q->whereIn('cpny_id', $cpnyList);
+                })
+                ->count();
 
         return view('pages.rfca.rfcalist', compact(
             'rfcajobs',
@@ -115,12 +117,15 @@ class RfcaListController extends Controller
         ));
     }
 
+
     public function json(Request $req)
     {
         $scope   = strtolower((string) $req->query('scope', 'rfcajobs'));
         $user    = Auth::user();
         $u       = $user->username ?? '';
-        $cpny_id = $user->cpny_id ?? '';
+
+        $cpnyRaw  = $user->cpny_id ?? '';
+        $cpnyList = $cpnyRaw !== '' ? array_map('trim', explode(',', $cpnyRaw)) : [];
 
         $draw   = (int) $req->input('draw', 1);
         $start  = (int) $req->input('start', 0);
@@ -134,41 +139,40 @@ class RfcaListController extends Controller
                 $join->on('step.rfcaid', '=', 'tr_rfca.rfcaid')
                     ->where('step.progress_approval', 't');
             })
-            ->when($cpny_id, fn($q) => $q->where('tr_rfca.cpny_id', $cpny_id));
+            ->when(!empty($cpnyList), function ($q) use ($cpnyList) {
+                $q->whereIn('tr_rfca.cpny_id', $cpnyList);
+            });
 
-        // Scope filter (pakai step.rfca_step_id, progress_approval = 't')
+        // Scope filter
         switch ($scope) {
             case 'rfcajobs':
-                // Rfca Jobs: rfca_type kosong + belum ada step active (progress_approval='t')
                 $base->where(function ($q) {
                         $q->whereNull('tr_rfca.rfca_type')
-                          ->orWhere('tr_rfca.rfca_type', '');
+                        ->orWhere('tr_rfca.rfca_type', '');
                     })
                     ->whereNull('step.id');
                 break;
 
             case 'financereceived':
-                $base->where('step.rfca_step_id', 'FR'); // sesuaikan code Finance Received
+                $base->where('step.rfca_step_id', 'FR');
                 break;
 
             case 'treasurypayment':
-                $base->where('step.rfca_step_id', 'TP'); // sesuaikan code Treasury
+                $base->where('step.rfca_step_id', 'TP');
                 break;
 
             case 'completed':
-                $base->where('step.rfca_step_id', 'PC');  // sesuaikan code Completed
+                $base->where('step.rfca_step_id', 'PC');
                 break;
 
             case 'all':
             default:
-                // All RFCA: tidak tambah filter step
+                // no extra filter
                 break;
         }
 
-        // Simpan base untuk total sebelum search
         $baseForCount = clone $base;
 
-        // Kolom untuk order
         $orderColumns = [
             0 => 'tr_rfca.rfcaid',
             1 => 'tr_rfca.rfcadate',
@@ -178,7 +182,6 @@ class RfcaListController extends Controller
             5 => 'tr_rfca.created_by',
         ];
 
-        // Search
         if ($search !== '') {
             $base->where(function ($q) use ($search) {
                 $q->where('tr_rfca.rfcaid', 'ilike', "%{$search}%")
@@ -205,7 +208,7 @@ class RfcaListController extends Controller
                     'tr_rfca.sppbjktid',
                     'tr_rfca.cpny_id',
                     'tr_rfca.created_by',
-                    'tr_rfca.status',           // status lama (P/C/R/D) masih dipakai untuk logic revise
+                    'tr_rfca.status',
                     'tr_rfca.rfca_type',
                     'step.rfca_step_id as current_step_id',
                     'step.progress_approval',
@@ -215,8 +218,11 @@ class RfcaListController extends Controller
                 ->skip($start)->take($length)
                 ->get();
 
+        // map PO id untuk link, dll… (bagian bawah tetap sama seperti punya kamu)
+        // ...
+
+        // (biarkan bagian transform & return response apa adanya dari kode kamu sebelumnya)
         // ========= ENRICH / FORMAT =========
-        // Map PONBR -> id (TrPO) supaya link PO bisa dipakai
         $poIdMap = [];
         $ponbrsForMap = $rows->pluck('ponbr')->filter()->unique()->values()->all();
         if (!empty($ponbrsForMap)) {
@@ -227,11 +233,9 @@ class RfcaListController extends Controller
             $r->rfcadate_fmt = $r->rfcadate ? Carbon::parse($r->rfcadate)->format('Y-m-d') : null;
             $r->rfcaid_eid   = Hashids::encode((string) $r->id);
 
-            // 🔗 PO link via PONBR
             $poId = $poIdMap[$r->ponbr] ?? null;
             $r->ponbr_eid = $poId ? Hashids::encode((string) $poId) : null;
 
-            // 🔗 SPPB/J/K/T link (berdasar prefix)
             $r->sppb_route = null;
             $r->sppb_eid   = null;
             if (!empty($r->sppbjktid)) {
@@ -271,6 +275,7 @@ class RfcaListController extends Controller
             'data'            => $rows,
         ]);
     }
+
 
     public function showRfca($hash)
     {

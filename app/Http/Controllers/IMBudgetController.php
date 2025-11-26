@@ -459,7 +459,7 @@ class IMBudgetController extends Controller
             ];
 
             $approvers = array_filter(array_map('trim', explode(',', (string)$header->user_peminta)));
-            $emails    = User::whereIn('username', $approvers)->where('status', 'A')->pluck('test_email');
+            $emails    = User::whereIn('username', $approvers)->where('status', 'A')->pluck('notification_email');
 
             foreach ($emails as $email) {
                 \Mail::send('emails.mailapprovenew', $data, function ($message) use ($email, $data, $subjectMap, $status) {

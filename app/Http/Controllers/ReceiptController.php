@@ -1040,7 +1040,7 @@ class ReceiptController extends Controller
     //                     foreach ($recipients as $rcp) {
     //                         try {
     //                             \Mail::send('emails.mailapprovenew', $data, function ($message) use ($data, $rcp, $subjectSuffix) {
-    //                                 $to = $rcp->test_email ?? $rcp->email;
+    //                                 $to = $rcp->notification_email ?? $rcp->email;
     //                                 $message->to($to)
     //                                     ->subject($data['docid'] . ' - ' . $subjectSuffix . ' Receipt')
     //                                     ->from('digitalserver@pakuwon.com', 'Pakuwon System');
@@ -1087,7 +1087,7 @@ class ReceiptController extends Controller
     //         foreach ($recipients as $rcp) {
     //             try {
     //                 \Mail::send('emails.mailapprovenew', $data, function ($message) use ($data, $rcp, $subjectSuffix) {
-    //                     $to = $rcp->test_email ?? $rcp->email;
+    //                     $to = $rcp->notification_email ?? $rcp->email;
     //                     $message->to($to)
     //                         ->subject($data['docid'] . ' - ' . $subjectSuffix . ' Receipt')
     //                         ->from('digitalserver@pakuwon.com', 'Pakuwon System');
@@ -1196,7 +1196,7 @@ class ReceiptController extends Controller
 
     //     foreach ($recipients as $rcp) {
     //         try {
-    //             $to = $rcp->test_email ?? $rcp->email; // sesuaikan field yang tersedia
+    //             $to = $rcp->notification_email ?? $rcp->email; // sesuaikan field yang tersedia
     //             Mail::send('emails.mailapprovenew', $data, function ($message) use ($data, $to, $subjectSuffix) {
     //                 $message->to($to)
     //                     ->subject($data['docid'] . ' - ' . $subjectSuffix . ' Receipt')
@@ -1311,7 +1311,7 @@ class ReceiptController extends Controller
 
     //     foreach ($recipients as $rcp) {
     //         try {
-    //             $to = $rcp->test_email ?? $rcp->email; // sesuaikan dengan kolom yang ada
+    //             $to = $rcp->notification_email ?? $rcp->email; // sesuaikan dengan kolom yang ada
     //             Mail::send('emails.mailapprovenew', $data, function ($message) use ($data, $to, $subjectSuffix) {
     //                 $message->to($to)
     //                     ->subject($data['docid'] . ' - ' . $subjectSuffix . ' Receipt')

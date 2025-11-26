@@ -298,7 +298,7 @@ class PersonnelController extends Controller
                     'location' => $personnel->locationname,
                     'date' => $datenow,
                     'name' => $user->name,
-                    'email' => $user->test_email,             
+                    'email' => $user->notification_email,             
                     'job_title' => $request->job_title,
                     'job_level' => $personnel->title_level,
                     'url' => url('/showpersonnel_') . $personnel->id,
@@ -315,7 +315,7 @@ class PersonnelController extends Controller
 
                     Mail::send('emails.mailpersonnel', $data, function ($message) use ($data, $emailsit) {
 
-                        $message->to($emailsit->test_email, '-')->subject($data['docid'] . ' - Waiting Approval Personnel Requisition ');                    
+                        $message->to($emailsit->notification_email, '-')->subject($data['docid'] . ' - Waiting Approval Personnel Requisition ');                    
                         $message->from('digitalserver@pakuwon.com', 'Digital Approval System');
                     });
                 }
@@ -455,7 +455,7 @@ class PersonnelController extends Controller
                 'location' => $personnel->locationname,
                 'date' => $datenow,
                 'name' => $user->name,
-                'email' => $user->test_email,             
+                'email' => $user->notification_email,             
                 'job_title' => $request->job_title,
                 'job_level' => $personnel->title_level,
                 'url' => url('/showpersonnel_') . $personnel->id,
@@ -472,7 +472,7 @@ class PersonnelController extends Controller
 
                 Mail::send('emails.mailpersonnel', $data, function ($message) use ($data, $emailsit) {
 
-                    $message->to($emailsit->test_email, '-')->subject($data['docid'] . ' - Waiting Approval Personnel  ');                    
+                    $message->to($emailsit->notification_email, '-')->subject($data['docid'] . ' - Waiting Approval Personnel  ');                    
                     $message->from('digitalserver@pakuwon.com', 'Digital Approval System');
                 });
             }
@@ -570,7 +570,7 @@ class PersonnelController extends Controller
                     'location' => $personnelx->locationname,
                     'date' => $t_approval_next->aprvdatebefore,
                     'name' => $t_approval_next->created_user,
-                    'email' => $user->test_email,             
+                    'email' => $user->notification_email,             
                     'job_title' => $personnelx->job_title,
                     'job_level' => $personnelx->title_level,                    
                     'url' => url('/showpersonnel_') . $personnel->id,
@@ -583,7 +583,7 @@ class PersonnelController extends Controller
 
                     foreach ($email_it as $emailsit) {
                         Mail::send('emails.mailpersonnel', $data, function ($message) use ($data, $emailsit) {
-                            $message->to($emailsit->test_email, '-')->subject($data['docid'] . ' - Waiting Approval Personnel  ');
+                            $message->to($emailsit->notification_email, '-')->subject($data['docid'] . ' - Waiting Approval Personnel  ');
                             $message->from('digitalserver@pakuwon.com', 'Digital Approval System');
                         });
                     }
@@ -645,7 +645,7 @@ class PersonnelController extends Controller
                     'location' => $personnelx->locationname,
                     'date' => $t_approval->aprvdatebefore,
                     'name' => $personnelx->created_user,
-                    'email' => $user->test_email,             
+                    'email' => $user->notification_email,             
                     'job_title' => $personnelx->job_title,
                     'job_level' => $personnelx->title_level,                    
                     'url' => url('/showpersonnel_') . $personnel->id,
@@ -659,7 +659,7 @@ class PersonnelController extends Controller
 
                 foreach ($email_it as $emailsit) {
                     Mail::send('emails.mailpersonnel', $data, function ($message) use ($data, $emailsit) {
-                        $message->to($emailsit->test_email, '-')->subject($data['docid'] . ' - Rejected Personnel ');
+                        $message->to($emailsit->notification_email, '-')->subject($data['docid'] . ' - Rejected Personnel ');
                         $message->from('digitalserver@pakuwon.com', 'Digital Approval System');
                     });
                 }
@@ -720,7 +720,7 @@ class PersonnelController extends Controller
             'location' => $personnelx->locationname,
             'date' => $t_approval->aprvdatebefore,
             'name' => $personnelx->created_user,
-            'email' => $user->test_email,             
+            'email' => $user->notification_email,             
             'job_title' => $personnelx->job_title,
             'job_level' => $personnelx->title_level . ' (Silahkan Revisi dengan cara klik link dibawah ini lalu klik tombol Edit lalu Submit/Cancel Document, Thanks)',                    
             'url' => url('/showpersonnel_') . $personnel->id,
@@ -733,7 +733,7 @@ class PersonnelController extends Controller
 
                 foreach ($email_it as $emailsit) {
                     Mail::send('emails.mailpersonnel', $data, function ($message) use ($data, $emailsit) {
-                        $message->to($emailsit->test_email, '-')->subject($data['docid'] . ' - Revise Personnel');
+                        $message->to($emailsit->notification_email, '-')->subject($data['docid'] . ' - Revise Personnel');
                         $message->from('digitalserver@pakuwon.com', 'Digital Approval System');
                     });
                 }
@@ -1070,7 +1070,7 @@ class PersonnelController extends Controller
             'location' => $personnelx->locationname,
             'date' => $personnelx->date,
             'name' => $personnelx->created_user,
-            'email' => $email_to->test_email,             
+            'email' => $email_to->notification_email,             
             'job_title' => $personnelx->job_title,
             'job_level' => $personnelx->title_level,                    
             'url' => url('/showpersonnel_') . $personnelx->id,
@@ -1085,7 +1085,7 @@ class PersonnelController extends Controller
         foreach ($email_cc as $emailcc) {
             Mail::send('emails.mailpersonnel', $data, function ($message) use ($data, $emailcc) {
                 $message->to($data['email'], '-')->subject($data['docid'] . ' - Completed Personnel');
-                $message->cc($emailcc->test_email);
+                $message->cc($emailcc->notification_email);
                 $message->from('digitalserver@pakuwon.com', 'Digital Approval System');
             });
         }

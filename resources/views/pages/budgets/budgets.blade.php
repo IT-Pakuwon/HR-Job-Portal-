@@ -47,7 +47,7 @@
 
             {{-- All Status --}}
             <button type="button" class="text-left">
-                <a href="#" class="status-filter group block h-full" data-status="">
+                <a href="#" class="status-filter group block h-full" data-status="ALL">
                     <div
                         class="status-card flex h-full items-center gap-3 rounded-lg border border-orange-700 bg-orange-200/20 p-3 text-orange-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-orange-100 hover:shadow-md active:scale-95">
 
@@ -469,7 +469,7 @@
                     $('.status-filter').on('click', function(e) {
                         e.preventDefault();
 
-                        let selectedStatus = $(this).data('status');
+                        let selectedStatus = $(this).data('status') || 'ALL';
 
                         // URL baru dengan query param status
                         let newUrl = "{{ route('budgets.json') }}";

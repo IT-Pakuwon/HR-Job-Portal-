@@ -148,9 +148,9 @@
                                     class="req headerCpnySelect w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                     required>
                                     @foreach ($usercpny as $p)
-                                        <option value="{{ $p->cpnyid }}"
-                                            {{ $p->cpnyid == $sppb->cpny_id ? 'selected' : '' }}>
-                                            {{ $p->cpnyid }}
+                                        <option value="{{ $p->cpny_id }}"
+                                            {{ $p->cpny_id == $sppb->cpny_id ? 'selected' : '' }}>
+                                            {{ $p->cpny_id }}
                                         </option>
                                     @endforeach
                                 </select>
@@ -164,9 +164,9 @@
                                     class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                     required>
                                     @foreach ($userdept as $p)
-                                        <option value="{{ $p->deptname }}"
-                                            {{ $p->deptname == $sppb->department_id ? 'selected' : '' }}>
-                                            {{ $p->deptname }}
+                                        <option value="{{ $p->department_id }}"
+                                            {{ $p->department_id == $sppb->department_id ? 'selected' : '' }}>
+                                            {{ $p->department_id }}
                                         </option>
                                     @endforeach
                                 </select>
@@ -244,10 +244,10 @@
                             {{-- Description --}}
                             <div class="flex flex-col gap-2 lg:col-span-2">
                                 <label for="keperluan"
-                                    class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    class="req block text-sm font-medium text-gray-700 dark:text-gray-300">
                                     Description
                                 </label>
-                                <textarea name="keperluan" id="keperluan" rows="3"
+                                <textarea name="keperluan" id="keperluan" rows="3" required
                                     class="w-full rounded-lg border border-gray-300 bg-white p-3 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">{{ old('keperluan', $sppb->keperluan) }}</textarea>
                             </div>
 
@@ -369,7 +369,7 @@
                                                             <div class="siteid-wrapper hidden">
                                                                 <select name="siteid[]"
                                                                     class="siteSelect w-40 rounded border border-gray-300 p-1 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
-                                                                    data-cpny-id="{{ $usercpny2->cpnyid ?? '' }}"
+                                                                    data-cpny-id="{{ $usercpny2->cpny_id ?? '' }}"
                                                                     data-current-site="{{ $d->siteid ?? '' }}"
                                                                     data-loaded="0">
                                                                     @if (!empty($d->siteid))

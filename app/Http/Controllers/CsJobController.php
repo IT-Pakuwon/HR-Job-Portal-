@@ -1003,7 +1003,7 @@ class CsJobController extends Controller
 
     //             foreach ($users as $u) {
     //                 try {
-    //                     $to = $u->test_email ?? $u->email;
+    //                     $to = $u->notification_email ?? $u->email;
     //                     Mail::send('emails.mailapprovenew', $data, function ($message) use ($to, $data, $subjectSuffix) {
     //                         $message->to($to)
     //                             ->subject($data['docid'].' - '.$subjectSuffix.' '.$data['docname'])

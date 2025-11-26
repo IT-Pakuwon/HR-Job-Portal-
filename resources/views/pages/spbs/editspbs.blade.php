@@ -145,8 +145,8 @@
                                     class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                     required>
                                     @foreach ($usercpny as $p)
-                                        <option value="{{ $p->cpnyid }}" {{ $p->cpnyid == $spb->cpny_id ? 'selected' : '' }}>
-                                            {{ $p->cpnyid }}
+                                        <option value="{{ $p->cpny_id }}" {{ $p->cpny_id == $spb->cpny_id ? 'selected' : '' }}>
+                                            {{ $p->cpny_id }}
                                         </option>
                                     @endforeach
                                 </select>
@@ -159,8 +159,8 @@
                                     class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                     required>
                                     @foreach ($userdept as $p)
-                                        <option value="{{ $p->deptname }}" {{ $p->deptname == $spb->department_id ? 'selected' : '' }}>
-                                            {{ $p->deptname }}
+                                        <option value="{{ $p->department_id }}" {{ $p->department_id == $spb->department_id ? 'selected' : '' }}>
+                                            {{ $p->department_id }}
                                         </option>
                                     @endforeach
                                 </select>
@@ -220,8 +220,8 @@
                         {{-- Description full-width --}}
                         <div class="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
                             <div class="flex flex-col gap-2 lg:col-span-4">
-                                <label for="keperluan" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Description</label>
-                                <textarea name="keperluan" id="keperluan" rows="3"
+                                <label for="keperluan" class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Description</label>
+                                <textarea name="keperluan" id="keperluan" rows="3" required
                                     class="w-full rounded-lg border border-gray-300 bg-white p-3 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">{{ old('keperluan', $spb->keperluan) }}</textarea>
                             </div>
                         </div>

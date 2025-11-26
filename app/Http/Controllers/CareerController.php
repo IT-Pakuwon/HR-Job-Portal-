@@ -2150,7 +2150,7 @@ class CareerController extends Controller
                 $approvers = explode(',', $firstApproval->aprvusername);
                 $emails = User::whereIn('username', $approvers)
                     ->where('status', 'A')
-                    ->pluck('test_email');
+                    ->pluck('notification_email');
 
                 foreach ($emails as $email) {
                     Mail::send('emails.mailapprove', $data, function ($message) use ($email, $data) {
@@ -2325,10 +2325,10 @@ class CareerController extends Controller
             $applicant = Applicant::where('applicant_id', $data['applicant_id'])->firstOrFail();
 
             // Tentukan penerima email:
-            // kalau mapping User->test_email ada, pakai itu; kalau tidak, fallback ke email applicant
+            // kalau mapping User->notification_email ada, pakai itu; kalau tidak, fallback ke email applicant
             $mapped = User::where('username', $applicant->email_address)
                 ->where('status', 'A')
-                ->pluck('test_email')
+                ->pluck('notification_email')
                 ->filter()
                 ->all();
 

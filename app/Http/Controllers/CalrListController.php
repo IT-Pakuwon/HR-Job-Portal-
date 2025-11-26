@@ -21,11 +21,13 @@ class CalrListController extends Controller
     {
         $user = Auth::user();
         if (!$user) return redirect()->route('login');
+        
+        $u        = $user->username ?? '';
+        $cpnyRaw  = $user->cpny_id ?? '';
+        // bisa "AW" atau "AW,GPS"
+        $cpnyList = $cpnyRaw !== '' ? array_map('trim', explode(',', $cpnyRaw)) : [];
 
-        $u       = $user->username ?? '';
-        $cpny_id = $user->cpny_id ?? '';
-
-        // 🔁 Calr Jobs sekarang dari TrRfca + TrRfcaStep (calr_gen = 't') dan BELUM punya CALR
+        // 🔁 Calr Jobs: dari TrRfca + TrRfcaStep (calr_gen = true) dan BELUM punya CALR
         $calrjobs = TrRfca::query()
             ->join('tr_rfca_step as s', function ($q) {
                 $q->on('s.rfcaid', 'tr_rfca.rfcaid')
@@ -35,18 +37,35 @@ class CalrListController extends Controller
                 $q->on('c.rfcaid', 'tr_rfca.rfcaid')
                 ->on('c.ponbr',  'tr_rfca.ponbr');
             })
-            ->when($cpny_id, fn($q) => $q->where('tr_rfca.cpny_id', $cpny_id))
+            ->when(!empty($cpnyList), fn($q) => $q->whereIn('tr_rfca.cpny_id', $cpnyList))
             ->where('s.calr_gen', true)      // hanya step yang generate CALR
             ->where('s.status_rfca', 'C')
-            ->whereNull('c.calrid')         // belum ada CALR
+            ->whereNull('c.calrid')          // belum ada CALR
             ->count();
 
-        // Stat CALR existing tetap dari TrCalr
-        $onProgress = TrCalr::where('created_by', $u)->where('status','P')->count();
-        $completed  = TrCalr::where('created_by', $u)->where('status','C')->count();
-        $rejected   = TrCalr::where('created_by', $u)->where('status','R')->count();
-        $revise     = TrCalr::where('created_by', $u)->where('status','D')->count();
-        $all        = TrCalr::when($cpny_id, fn($q)=>$q->where('cpny_id',$cpny_id))->count();
+        // Stat CALR existing dari TrCalr
+        $onProgress = TrCalr::when(!empty($cpnyList), fn($q) => $q->whereIn('cpny_id', $cpnyList))
+            ->where('created_by', $u)
+            ->where('status','P')
+            ->count();
+
+        $completed  = TrCalr::when(!empty($cpnyList), fn($q) => $q->whereIn('cpny_id', $cpnyList))
+            ->where('created_by', $u)
+            ->where('status','C')
+            ->count();
+
+        $rejected   = TrCalr::when(!empty($cpnyList), fn($q) => $q->whereIn('cpny_id', $cpnyList))
+            ->where('created_by', $u)
+            ->where('status','R')
+            ->count();
+
+        $revise     = TrCalr::when(!empty($cpnyList), fn($q) => $q->whereIn('cpny_id', $cpnyList))
+            ->where('created_by', $u)
+            ->where('status','D')
+            ->count();
+
+        $all        = TrCalr::when(!empty($cpnyList), fn($q)=>$q->whereIn('cpny_id',$cpnyList))
+            ->count();
 
         return view('pages.calr.calrlist', compact(
             'calrjobs','onProgress','completed','all','rejected','revise'
@@ -54,12 +73,15 @@ class CalrListController extends Controller
     }
 
 
+
     public function json(Request $req)
     {
         $scope   = strtolower((string) $req->query('scope', 'calrjobs'));
         $user    = Auth::user();
         $u       = $user->username ?? '';
-        $cpny_id = $user->cpny_id ?? '';
+
+        $cpnyRaw  = $user->cpny_id ?? '';
+        $cpnyList = $cpnyRaw !== '' ? array_map('trim', explode(',', $cpnyRaw)) : [];
 
         $draw   = (int) $req->input('draw', 1);
         $start  = (int) $req->input('start', 0);
@@ -77,7 +99,7 @@ class CalrListController extends Controller
                     $q->on('c.rfcaid', 'tr_rfca.rfcaid')
                     ->on('c.ponbr',  'tr_rfca.ponbr');
                 })
-                ->when($cpny_id, fn($q)=>$q->where('tr_rfca.cpny_id', $cpny_id))
+                ->when(!empty($cpnyList), fn($q) => $q->whereIn('tr_rfca.cpny_id', $cpnyList))
                 ->where('s.calr_gen', 't')
                 ->where('s.status_rfca', 'C')
                 ->whereNull('c.calrid')
@@ -117,7 +139,7 @@ class CalrListController extends Controller
         } else {
             // Semua scope selain 'calrjobs' → dari TrCalr
             $base = TrCalr::query()
-                ->when($cpny_id, fn($q)=>$q->where('cpny_id',$cpny_id))
+                ->when(!empty($cpnyList), fn($q) => $q->whereIn('cpny_id', $cpnyList))
                 ->when($scope==='onprogress', fn($q)=>$q->where('created_by',$u)->where('status','P'))
                 ->when($scope==='completed',  fn($q)=>$q->where('created_by',$u)->where('status','C'))
                 ->when($scope==='rejected',   fn($q)=>$q->where('created_by',$u)->where('status','R'))
@@ -158,7 +180,6 @@ class CalrListController extends Controller
             }
         }
 
-
         $recordsTotal    = (clone $base)->count();
         $recordsFiltered = (clone $base)->count();
 
@@ -187,9 +208,7 @@ class CalrListController extends Controller
                 ->toArray();
         }
 
-
-        
-        $rows->transform(function($r) use ($scope, $poIdMap) {
+        $rows->transform(function($r) use ($scope, $poIdMap, $rfcaMap) {
             if ($scope === 'calrjobs') {
                 // Hash untuk ID RFCA (supaya bisa dipakai ke create CALR)
                 $r->rfca_eid = Hashids::encode((string)$r->id);
@@ -206,8 +225,6 @@ class CalrListController extends Controller
                 // link RFCA
                 $rfcaId = $rfcaMap[$r->rfcaid] ?? null;
                 $r->rfca_eid = $rfcaId ? Hashids::encode((string)$rfcaId) : null;
-
-                return $r;
             }
             return $r;
         });
@@ -219,5 +236,6 @@ class CalrListController extends Controller
             'data'            => $rows,
         ]);
     }
+
 
 }

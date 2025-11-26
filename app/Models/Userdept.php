@@ -7,14 +7,14 @@ use Illuminate\Database\Eloquent\Model;
 
 class Userdept extends Model
 {
-    protected $connection = 'mysql2';
-    protected $table = "userdept";
+    protected $connection = 'pgsql2';
+    protected $table = "ms_user_dept";
     protected $primaryKey = 'id';
     protected $fillable = [
         'username',
-        'deptname',
-        'show',
+        'department_id',       
         'status',
-        'created_user'
+        'created_by',
+        'updated_by',
     ];
 }

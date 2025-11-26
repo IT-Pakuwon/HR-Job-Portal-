@@ -281,7 +281,7 @@ class AgendaController extends Controller
                 
                         foreach ($email_it as $emailsit) {
                             Mail::send('emails.mailapprove', $data, function ($message) use ($data, $emailsit) {
-                                $message->to($emailsit->test_email)->subject($data['docid'] . ' - Waiting Approval Agendas');
+                                $message->to($emailsit->notification_email)->subject($data['docid'] . ' - Waiting Approval Agendas');
                                 $message->from('digitalserver@pakuwon.com', 'Pakuwon Smart System');
                             });
                         }
@@ -459,7 +459,7 @@ class AgendaController extends Controller
     
             foreach ($email_it as $emailsit) {
                 Mail::send('emails.mailapprove', $data, function ($message) use ($data, $emailsit) {
-                    $message->to($emailsit->test_email)->subject($data['docid'] . ' - Waiting Approval Agendas');
+                    $message->to($emailsit->notification_email)->subject($data['docid'] . ' - Waiting Approval Agendas');
                     $message->from('digitalserver@pakuwon.com', 'Pakuwon Smart System');
                 });
             }     
@@ -612,7 +612,7 @@ class AgendaController extends Controller
             // foreach ($email_it as $emailsit) {
             //     Mail::send('emails.mailapprove', $data, function ($message) use ($data, $emailsit) {
 
-            //         $message->to($emailsit->test_email)->subject($data['docid'] . ' - Waiting Approval Usage');
+            //         $message->to($emailsit->notification_email)->subject($data['docid'] . ' - Waiting Approval Usage');
             //         $message->from('digitalserver@pakuwon.com', 'Digital Approval System');
             //     });
             // }
@@ -731,7 +731,7 @@ class AgendaController extends Controller
 
         // foreach ($email_it as $emailsit) {
         //     Mail::send('emails.mailapprove', $data, function ($message) use ($data, $emailsit) {
-        //         $message->to($emailsit->test_email)->subject($data['docid'] . ' - Rejected Usage');
+        //         $message->to($emailsit->notification_email)->subject($data['docid'] . ' - Rejected Usage');
         //         $message->from('digitalserver@pakuwon.com', 'Digital Approval System');
         //     });
         // }
@@ -799,7 +799,7 @@ class AgendaController extends Controller
 
         // foreach ($email_it as $emailsit) {
         //     Mail::send('emails.mailapprove', $data, function ($message) use ($data, $emailsit) {
-        //         $message->to($emailsit->test_email)->subject($data['docid'] . ' - Rejected Usage');
+        //         $message->to($emailsit->notification_email)->subject($data['docid'] . ' - Rejected Usage');
         //         $message->from('digitalserver@pakuwon.com', 'Digital Approval System');
         //     });
         // }
@@ -1044,8 +1044,8 @@ class AgendaController extends Controller
 
             // Ambil email valid dari tabel User berdasarkan username
             $participants = User::whereIn('username', $participantUsernames)
-                ->whereNotNull('test_email')
-                ->pluck('test_email')
+                ->whereNotNull('notification_email')
+                ->pluck('notification_email')
                 ->toArray();
 
             // Gabungkan menjadi string email dengan koma
@@ -1208,9 +1208,9 @@ class AgendaController extends Controller
             'endx'=> $end_x,
             'zoom'=> $meeting->acc_name,
             'info_zoom'=> nl2br($info_zoom),
-            'email' => $email_to->test_email,                      
+            'email' => $email_to->notification_email,                      
             'url' => url('/showmeeting_') . $meeting->id,
-            'emailcc' => explode(',', $meeting->participantlist.','.$email_to->test_email),
+            'emailcc' => explode(',', $meeting->participantlist.','.$email_to->notification_email),
             'gen_ics'=> $gen_ics,
             'subject'=> $subject,
         );
@@ -1218,7 +1218,7 @@ class AgendaController extends Controller
         $multiapp = explode(',', $meeting->participantlist);       
         // dd($multiapp);        
         $email_bcc = User::where('status', 'A')
-            ->whereIN('test_email', $multiapp)            
+            ->whereIN('notification_email', $multiapp)            
             ->get();  
         // dd($email_bcc);    
         $emailbcc = [];

@@ -453,6 +453,9 @@
                                 <th
                                     class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
                                     PO Date</th>
+                                <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                                    PO Type
+                                </th>
                                 <th
                                     class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
                                     Vendor</th>
@@ -555,6 +558,10 @@
                                 data: 'podate',
                                 className: 'text-center',
                                 render: (v) => fmtDate(v)
+                            },
+                            {
+                                data: 'potype',              
+                                className: 'text-center'
                             },
                             {
                                 data: 'vendorname',

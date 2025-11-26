@@ -770,11 +770,11 @@ class PoController extends Controller
         $po = TrPO::where('ponbr', $ponbr)->firstOrFail();
 
         $eid = Hashids::encode($po->id);
-        // $emailfrom = User::where('username', $po->created_by)->value('test_email');
+        // $emailfrom = User::where('username', $po->created_by)->value('notification_email');
         $user = User::where('username', $po->created_by)
-            ->first(['name', 'test_email']);
+            ->first(['name', 'notification_email']);
 
-        $fromEmail = $user->test_email;
+        $fromEmail = $user->notification_email;
         $purchaser = ucwords(strtolower($user->name));
 
         // $emailto   = MsVendor::where('vendor_id', $po->vendorid)->value('email');
@@ -856,7 +856,7 @@ class PoController extends Controller
         ];
 
         // 3) Tentukan display name pengirim (sesudah $po ada)
-        $senderName = User::where('test_email', $data['from'])->value('name');
+        $senderName = User::where('notification_email', $data['from'])->value('name');
         if (!$senderName) {
             $senderName = User::where('username', $po->created_by)->value('name');
         }
@@ -979,7 +979,7 @@ class PoController extends Controller
         ];
 
         // 3) Tentukan display name pengirim
-        $senderName = User::where('test_email', $data['from'])->value('name')
+        $senderName = User::where('notification_email', $data['from'])->value('name')
             ?: User::where('username', $po->created_by)->value('name')
             ?: (Auth::check() ? (Auth::user()->name ?? Auth::user()->fullname) : null)
             ?: 'Pakuwon System';

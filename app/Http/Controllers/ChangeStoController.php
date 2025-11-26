@@ -253,7 +253,7 @@ class ChangestoController extends Controller
                 $approvers = explode(',', $firstApproval->aprvusername);
                 $emails = User::whereIn('username', $approvers)
                     ->where('status', 'A')
-                    ->pluck('test_email');
+                    ->pluck('notification_email');
 
                 foreach ($emails as $email) {
                     Mail::send('emails.mailapprove', $data, function ($message) use ($email, $data) {
@@ -425,7 +425,7 @@ class ChangestoController extends Controller
     
             foreach ($email_it as $emailsit) {
                 Mail::send('emails.mailapprove', $data, function ($message) use ($data, $emailsit) {
-                    $message->to($emailsit->test_email)->subject($data['docid'] . ' - Waiting Approval Change STOs');
+                    $message->to($emailsit->notification_email)->subject($data['docid'] . ' - Waiting Approval Change STOs');
                     $message->from('digitalserver@pakuwon.com', 'HR System');
                 });
             }
@@ -581,7 +581,7 @@ class ChangestoController extends Controller
             foreach ($email_it as $emailsit) {
                 Mail::send('emails.mailapprove', $data, function ($message) use ($data, $emailsit) {
 
-                    $message->to($emailsit->test_email)->subject($data['docid'] . ' - Waiting Approval Change STO');
+                    $message->to($emailsit->notification_email)->subject($data['docid'] . ' - Waiting Approval Change STO');
                     $message->from('digitalserver@pakuwon.com', 'HR System');
                 });
             }
@@ -653,7 +653,7 @@ class ChangestoController extends Controller
         foreach ($email_it as $emailsit) {
             Mail::send('emails.mailapprove', $data, function ($message) use ($data, $emailsit) {
 
-                $message->to($emailsit->test_email)->subject($data['docid'] . ' - Rejected Changesto');
+                $message->to($emailsit->notification_email)->subject($data['docid'] . ' - Rejected Changesto');
                 $message->from('digitalserver@pakuwon.com', 'HR System');
             });
         }
@@ -728,7 +728,7 @@ class ChangestoController extends Controller
         foreach ($email_it as $emailsit) {
             Mail::send('emails.mailapprove', $data, function ($message) use ($data, $emailsit) {
 
-                $message->to($emailsit->test_email)->subject($data['docid'] . ' - Revise Changesto');
+                $message->to($emailsit->notification_email)->subject($data['docid'] . ' - Revise Changesto');
                 $message->from('digitalserver@pakuwon.com', 'HR System');
             });
         }

@@ -486,7 +486,7 @@ class PersonnelController extends Controller
     
             // foreach ($email_it as $emailsit) {
             //     Mail::send('emails.mailapprove', $data, function ($message) use ($data, $emailsit) {
-            //         $message->to($emailsit->test_email)->subject($data['docid'] . ' - Waiting Approval Personnels');
+            //         $message->to($emailsit->notification_email)->subject($data['docid'] . ' - Waiting Approval Personnels');
             //         $message->from('digitalserver@pakuwon.com', 'Pakuwon System');
             //     });
             // }       
@@ -517,7 +517,7 @@ class PersonnelController extends Controller
 
             foreach ($email_it as $emailsit) {
                 Mail::send('emails.mailapprove', $data, function ($message) use ($data, $emailsit) {
-                    $message->to($emailsit->test_email)
+                    $message->to($emailsit->notification_email)
                             ->subject($data['docid'].' - Waiting Approval Personnels');
                     $message->from('digitalserver@pakuwon.com', 'Pakuwon System');
                 });
@@ -837,7 +837,7 @@ class PersonnelController extends Controller
 
                 foreach ($emailTargets as $recipient) {
                     Mail::send('emails.mailapprove', $mailData, function ($message) use ($mailData, $recipient) {
-                        $message->to($recipient->test_email)
+                        $message->to($recipient->notification_email)
                             ->subject($mailData['docid'] . ' - Waiting Approval Personnel')
                             ->from('digitalserver@pakuwon.com', 'Pakuwon System');
                     });
@@ -1030,7 +1030,7 @@ class PersonnelController extends Controller
     
             foreach ($email_it as $emailsit) {
                 Mail::send('emails.mailapprove', $data, function ($message) use ($data, $emailsit) {
-                    $message->to($emailsit->test_email)->subject($data['docid'] . ' - Waiting Approval Personnels');
+                    $message->to($emailsit->notification_email)->subject($data['docid'] . ' - Waiting Approval Personnels');
                     $message->from('digitalserver@pakuwon.com', 'Pakuwon System');
                 });
             }
@@ -1277,7 +1277,7 @@ class PersonnelController extends Controller
 
             foreach ($recipients as $rcp) {
                 Mail::send('emails.mailapprove', $data, function ($message) use ($data, $rcp) {
-                    $message->to($rcp->test_email)
+                    $message->to($rcp->notification_email)
                             ->subject($data['docid'].' - Waiting Approval Personnel')
                             ->from('digitalserver@pakuwon.com', 'Pakuwon System');
                 });
@@ -1339,7 +1339,7 @@ class PersonnelController extends Controller
 
         foreach ($creator as $rcp) {
             Mail::send('emails.mailapprove', $data, function ($message) use ($data, $rcp) {
-                $message->to($rcp->test_email)
+                $message->to($rcp->notification_email)
                         ->subject($data['docid'].' - Rejected Personnel')
                         ->from('digitalserver@pakuwon.com', 'Pakuwon System');
             });
@@ -1405,7 +1405,7 @@ class PersonnelController extends Controller
 
         foreach ($creator as $rcp) {
             Mail::send('emails.mailapprove', $data, function ($message) use ($data, $rcp) {
-                $message->to($rcp->test_email)
+                $message->to($rcp->notification_email)
                         ->subject($data['docid'].' - Revise Personnel')
                         ->from('digitalserver@pakuwon.com', 'Pakuwon System');
             });
@@ -1492,7 +1492,7 @@ class PersonnelController extends Controller
     //         foreach ($email_it as $emailsit) {
     //             Mail::send('emails.mailapprove', $data, function ($message) use ($data, $emailsit) {
 
-    //                 $message->to($emailsit->test_email)->subject($data['docid'] . ' - Waiting Approval Personnel');
+    //                 $message->to($emailsit->notification_email)->subject($data['docid'] . ' - Waiting Approval Personnel');
     //                 $message->from('digitalserver@pakuwon.com', 'Pakuwon System');
     //             });
     //         }
@@ -1564,7 +1564,7 @@ class PersonnelController extends Controller
     //     foreach ($email_it as $emailsit) {
     //         Mail::send('emails.mailapprove', $data, function ($message) use ($data, $emailsit) {
 
-    //             $message->to($emailsit->test_email)->subject($data['docid'] . ' - Rejected Personnel');
+    //             $message->to($emailsit->notification_email)->subject($data['docid'] . ' - Rejected Personnel');
     //             $message->from('digitalserver@pakuwon.com', 'Pakuwon System');
     //         });
     //     }
@@ -1638,7 +1638,7 @@ class PersonnelController extends Controller
     //     foreach ($email_it as $emailsit) {
     //         Mail::send('emails.mailapprove', $data, function ($message) use ($data, $emailsit) {
 
-    //             $message->to($emailsit->test_email)->subject($data['docid'] . ' - Revise Personnel');
+    //             $message->to($emailsit->notification_email)->subject($data['docid'] . ' - Revise Personnel');
     //             $message->from('digitalserver@pakuwon.com', 'Pakuwon System');
     //         });
     //     }

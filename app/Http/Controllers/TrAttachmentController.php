@@ -72,8 +72,8 @@ class TrAttachmentController extends Controller
                     'refnbr'          => $meta['refnbr'],
                     'doctype'         => $meta['doctype'],
                     'attachment_date' => Carbon::now(),
-                    'cpnyid'          => $meta['cpnyid']        ?? null,
-                    'departementid'   => $meta['departementid'] ?? null,
+                    'cpny_id'          => $meta['cpnyid']        ?? null,
+                    'department_id'   => $meta['departementid'] ?? null,
                     'attachment_name' => pathinfo($originalName, PATHINFO_FILENAME),
                     'folder'          => $yearFolder,    // hanya sampai tahun
                     'filename'        => $filename,      // randomprefix-nama.ext
@@ -109,8 +109,8 @@ class TrAttachmentController extends Controller
         $meta = [
             'refnbr'        => (string) $refnbr,
             'doctype'       => strtoupper($doctype),
-            'cpnyid'        => $request->input('cpnyid'),
-            'departementid' => $request->input('departementid'),
+            'cpny_id'        => $request->input('cpnyid'),
+            'department_id' => $request->input('departementid'),
             // opsional (bisa di-derive otomatis di uploadInternal)
             'base_folder'   => 'att-purchasing-app/'.strtolower($doctype),
             'created_by'    => $user->username ?? 'system',

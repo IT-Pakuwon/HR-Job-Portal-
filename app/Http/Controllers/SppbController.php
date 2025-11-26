@@ -571,7 +571,7 @@ class SppbController extends Controller
             //     $approvers = array_filter(array_map('trim', explode(',', (string)$firstApproval->aprvusername)));
             //     $emails = User::whereIn('username', $approvers)
             //         ->where('status', 'A')
-            //         ->pluck('test_email');
+            //         ->pluck('notification_email');
 
             //     foreach ($emails as $email) {
             //         \Mail::send('emails.mailapprovenew', $data, function ($message) use ($email, $data) {
@@ -1038,7 +1038,7 @@ class SppbController extends Controller
             //     $approvers = array_filter(array_map('trim', explode(',', (string)$firstApproval->aprvusername)));
             //     $emails = User::whereIn('username', $approvers)
             //         ->where('status', 'A')
-            //         ->pluck('test_email');
+            //         ->pluck('notification_email');
 
             //     foreach ($emails as $email) {
             //         \Mail::send('emails.mailapprovenew', $data, function ($message) use ($email, $data) {
@@ -1472,7 +1472,7 @@ class SppbController extends Controller
 
     //             foreach ($recipients as $rcp) {
     //                 try {
-    //                     $to = $rcp->test_email ?? $rcp->email;
+    //                     $to = $rcp->notification_email ?? $rcp->email;
     //                     Mail::send('emails.mailapprovenew', $data, function ($message) use ($data, $to, $subjectSuffix) {
     //                         $message->to($to)
     //                             ->subject($data['docid'] . ' - ' . $subjectSuffix . ' SPPB')
@@ -1622,7 +1622,7 @@ class SppbController extends Controller
     //             ->get();
 
     //         foreach ($recipients as $rcp) {
-    //             $to = $rcp->test_email ?? $rcp->email;
+    //             $to = $rcp->notification_email ?? $rcp->email;
     //             if (!$to) continue;
 
     //             Mail::send('emails.mailapprovenew', $data, function ($message) use ($data, $to, $subjectSuffix) {
@@ -1745,7 +1745,7 @@ class SppbController extends Controller
     //             ->get();
 
     //         foreach ($recipients as $rcp) {
-    //             $to = $rcp->test_email ?? $rcp->email;
+    //             $to = $rcp->notification_email ?? $rcp->email;
     //             if (!$to) continue;
 
     //             Mail::send('emails.mailapprovenew', $data, function ($message) use ($data, $to, $subjectSuffix) {
