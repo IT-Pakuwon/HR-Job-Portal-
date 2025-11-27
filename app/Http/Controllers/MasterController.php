@@ -1256,7 +1256,7 @@ class MasterController extends Controller
         ]);
     }
 
-    public function completedWo(Request $request)
+    public function completedWoSppb(Request $request)
     {
         $cpnyid   = $request->get('cpnyid');
         $deptid   = $request->get('deptid');
@@ -1276,8 +1276,8 @@ class MasterController extends Controller
         }
 
         $woQuery = TrWo::query()
-            ->where('status', 'C')
-            // sesuaikan nama kolom dengan struktur table TrWo
+            ->where('status', 'C') 
+            ->where('flag_sppbjkt', true)           
             ->where('cpny_id', $cpnyid)
             ->where('department_id', $deptid);
             // ->when($perpost, fn($q) => $q->where('perpost', $perpost)); // kalau TrWo punya perpost

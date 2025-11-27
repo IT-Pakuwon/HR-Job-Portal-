@@ -33,6 +33,7 @@ class BastListController extends Controller
         $bastjobs = TrPOterm::query()
             ->when(!empty($cpnyList), fn($q) => $q->whereIn('cpny_id', $cpnyList))
             ->when(!empty($deptList), fn($q) => $q->whereIn('department_id', $deptList))
+            ->where('flag_bast', true)
             ->whereNull('bastid')
             ->count();
 
@@ -94,6 +95,7 @@ class BastListController extends Controller
             $base = TrPOterm::query()
                 ->when(!empty($cpnyList), fn($q) => $q->whereIn('cpny_id', $cpnyList))
                 ->when(!empty($deptList), fn($q) => $q->whereIn('department_id', $deptList))
+                ->where('flag_bast', true)
                 ->whereNull('bastid')
                 ->select([
                     'id', 'ponbr', 'cpny_id', 'vendorname', 'created_by',

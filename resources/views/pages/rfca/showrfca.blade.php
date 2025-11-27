@@ -113,7 +113,7 @@
             'FR' => 'Finance Received',
             'TP' => 'Treasury Payment',
             'PC' => 'RFCA Completed',
-            null, '' => 'RFCA Completed',
+            null, '' => 'RFCA Jobs',
             default => $currentStep->rfca_step_descr ?? 'RFCA Jobs',
         };
 
@@ -121,7 +121,7 @@
             'FR' => 'bg-blue-100 text-blue-700 dark:bg-blue-800/30 dark:text-blue-300',
             'TP' => 'bg-yellow-100 text-yellow-700 dark:bg-yellow-800/30 dark:text-yellow-300',
             'PC' => 'bg-emerald-100 text-emerald-700 dark:bg-emerald-800/30 dark:text-emerald-300',
-            'PS', null, '' => 'bg-emerald-100 text-emerald-700 dark:bg-emerald-800/30 dark:text-emerald-300',
+            'PS', null, '' => 'bg-gray-100 text-gray-700 dark:bg-gray-800/30 dark:text-gray-300',
             default => 'bg-gray-100 text-gray-700 dark:bg-gray-800/30 dark:text-gray-300',
         };
     @endphp

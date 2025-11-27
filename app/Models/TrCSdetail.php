@@ -21,7 +21,7 @@ class TrCSdetail extends Model
 
     protected $fillable = [       
         'csid' , 'sppbjktid' , 'cs_no' , 'sppbjkt_no' , 'inventory_type' , 'inventory_sub_type' , 'inventory_category',
-        'inventoryid' , 'inventory_descr' , 'qty' , 'uom' , 
+        'inventoryid' , 'inventory_descr' , 'qty' , 'uom' , 'siteid',
         'type_multiplier' , 'base_multiplier' , 'base_qty' , 'base_uom' , 'inventory_last_price' , 'csnote_detail' , 
         'vendorid1' , 'vendorprice1' , 'vendortotalprice1' , 'vendor1selected' , 
         'vendorid2' , 'vendorprice2' , 'vendortotalprice2' , 'vendor2selected' , 

@@ -88,6 +88,7 @@ class ReceiptController extends Controller
     
     public function storeReceipt(Request $request)
     {
+        // dd($request->all()); // Debugging: check request data
         $user     = $request->user();
         $username = $user->username ?? 'system';
 
@@ -135,7 +136,7 @@ class ReceiptController extends Controller
 
         return DB::connection('pgsql')->transaction(function () use (
             $request, $username, $ponbr, $poDetails, $po, $qtyReceiptInput, $siteInput,
-            $doctype, $cpnyid, $deptid, $approvalCtl   
+            $doctype, $cpnyid, $deptid, $approvalCtl, $detailNoteInput   
         ) {
             $now   = \Carbon\Carbon::now();
             $year  = (int) $now->year;
@@ -193,8 +194,9 @@ class ReceiptController extends Controller
                 $siteFromForm = isset($siteInput[$srcId]) ? trim((string)$siteInput[$srcId]) : null;
 
                 // ambil note per detail (boleh kosong)
-                $lineNoteRaw = $detailNoteInput[$srcId] ?? null;
-                $lineNote    = is_null($lineNoteRaw) ? null : trim((string)$lineNoteRaw);
+                // $lineNoteRaw = $detailNoteInput[$srcId] ?? null;
+                // $lineNote    = is_null($lineNoteRaw) ? null : trim((string)$lineNoteRaw);
+                $lineNote = isset($detailNoteInput[$srcId]) ? trim((string)$detailNoteInput[$srcId]) : null;
 
                 $det = new TrReceiptdetail();
                 $det->receiptnbr              = $receiptnbr;
@@ -236,7 +238,7 @@ class ReceiptController extends Controller
                 $det->budget_account_id       = $src->budget_account_id ?? null;
                 $det->budget_activity_id      = $src->budget_activity_id ?? null;
                 $det->budget_activity_descr   = $src->budget_activity_descr ?? null;
-                $det->receiptdetail_note      = $lineNote;
+                $det->receiptnote_detail      = $lineNote !== '' ? $lineNote : ($src->ponote_detail ?? null);
                 $det->status                  = 'P';
                 $det->created_by              = $username;
                 $det->created_at              = $now;
