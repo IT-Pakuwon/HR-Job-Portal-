@@ -583,6 +583,13 @@ class CalrController extends Controller
         $calr = TrCalr::with(['creator', 'userpeminta'])
             ->findOrFail($id);
 
+        $details = collect();
+        if (!empty($calr->ponbr)) {
+            $details = TrPOdetail::where('ponbr', $calr->ponbr)
+                ->orderBy('po_no')
+                ->get();
+        }
+
         // Approval list
         $approval = TrApproval::query()
             ->where('refnbr', $calr->calrid)
@@ -620,9 +627,8 @@ class CalrController extends Controller
             'doc_type'            => 'CALR',
             'docid'               => $calr->calrid,
             'department_id'       => $calr->department_id,
-            'cpnyname'            => optional($company)->cpnyname,
-            'parent'              => optional($company)->parent,
-            'project'             => optional($company)->project,
+            'cpny_id'             => $company->cpny_id,
+            'cpny_name'           => $company->cpny_name,
 
             // identitas & tanggal
             'created_by_username' => $calr->created_by,
@@ -633,9 +639,13 @@ class CalrController extends Controller
                                         ? Carbon::parse($calr->calrdate)->format('d F Y')
                                         : '',
 
-            // konten utama
+            'rfca_amount'         => $calr->rfca_amount,
+            'calr_amount'         => $calr->calr_amount,
+            'balance_amount'      => $calr->balance_amount,
             'keperluan'           => $calr->keperluan,
+            'vendorname'          => $calr->vendorname,
             'status_doc'          => $status_doc,
+
             // kalau nanti ada relasi requestType, tetap aman
             'requesttype_name'    => optional($calr->requestType ?? null)->requesttype_name,
 
@@ -670,6 +680,7 @@ class CalrController extends Controller
                 'calr'          => $calr,
                 'approval'      => $approval,
                 'approve_count' => $approve_count,
+                'details'       => $details,
             ])
         );
 
@@ -679,116 +690,7 @@ class CalrController extends Controller
     }
 
 
-    public function printCalrVendor($hash)
-    {
-        $id = Hashids::decode($hash)[0] ?? null;
-        abort_if(!$id, 404);
-
-        $authUser = Auth::user();
-        if (!$authUser) {
-            return redirect()->route('login');
-        }
-
-        // Ambil CALR + relasi
-        $calr = TrCalr::with(['creator', 'userpeminta', 'location', 'subLocation'])
-            ->findOrFail($id);
-
-        // Approval list
-        $approval = TrApproval::query()
-            ->where('refnbr', $calr->calrid)
-            ->where('status', '<>', 'X')
-            ->orderByRaw('CAST(aprv_leveling AS numeric) ASC')
-            ->orderBy('created_at', 'ASC')
-            ->get();
-
-        $approve_count = $approval->count();
-
-        // Company
-        $company = Company::where('cpnyid', $calr->cpny_id)->first();
-
-        // Mapping status dokumen
-        switch ($calr->status) {
-            case 'R':
-                $status_doc = 'Rejected';
-                break;
-            case 'C':
-                $status_doc = 'Completed';
-                break;
-            case 'D':
-                $status_doc = 'Hold';
-                break;
-            case 'X':
-                $status_doc = 'Cancel';
-                break;
-            default:
-                $status_doc = 'On Progress';
-                break;
-        }
-
-        $data = [
-            'title'               => 'Berita Acara Serah Terima',
-            'doc_type'            => 'CALR',
-            'docid'               => $calr->calrid,
-            'department_id'       => $calr->department_id,
-            'cpnyname'            => optional($company)->cpnyname,
-            'parent'              => optional($company)->parent,
-            'project'             => optional($company)->project,
-
-            // identitas & tanggal
-            'created_by_username' => $calr->created_by,
-            'created_by_name'     => ucwords(strtolower(optional($calr->creator)->name ?? $calr->created_by)),
-            'created_at_fmt'      => optional($calr->created_at)->format('d F Y'),
-            'req_date_fmt'        => optional($calr->created_at)->format('d M Y H:i'),
-            'calrdate'            => $calr->calrdate
-                                        ? Carbon::parse($calr->calrdate)->format('d F Y')
-                                        : '',
-
-            // konten utama
-            'keperluan'           => $calr->keperluan,
-            'status_doc'          => $status_doc,
-            // kalau nanti ada relasi requestType, tetap aman
-            'requesttype_name'    => optional($calr->requestType ?? null)->requesttype_name,
-
-            // tanggal pekerjaan
-            'startdate_fmt'       => $calr->startdate
-                                        ? Carbon::parse($calr->startdate)->format('d/m/Y')
-                                        : '',
-            'enddate_fmt'         => $calr->enddate
-                                        ? Carbon::parse($calr->enddate)->format('d/m/Y')
-                                        : '',
-            'handoverdate_fmt'    => $calr->handoverdate
-                                        ? Carbon::parse($calr->handoverdate)->format('d/m/Y H:i')
-                                        : '',
-
-            // lokasi
-            'location_name'       => optional($calr->location)->location_name ?? $calr->location_id,
-            'sub_location_name'   => optional($calr->subLocation)->sub_location_name ?? $calr->sub_location_id,
-
-            // angka2
-            'penalty_per_day'     => $calr->penalty,
-            'days_penalty'        => $calr->days_penalty,
-            'total_penalty'       => $calr->total_penalty,
-            'calr_amount'         => $calr->calr_amount,
-            'realize_amount'      => $calr->realize_amount,
-            'spkpic'              => $calr->spkpic,
-            'spkwarranty'         => $calr->spkwarranty,
-        ];
-
-        // Kirim ke view
-        $pdf = \PDF::loadView(
-            'pages.calr.pdf_calr_vendor',
-            array_merge($data, [                
-                'calr'          => $calr,
-                'approval'       => $approval,
-                'approve_count'  => $approve_count,
-            ])
-        );
-
-        // Portrait jika <= 5 approver, else landscape
-        // $pdf->setPaper('A4', ($approve_count <= 5) ? 'portrait' : 'landscape');
-
-        return $pdf->stream("pdf_calr_vendor_{$calr->calrid}.pdf");
-    }
+    
 
     public function editCalr($hash)
     {

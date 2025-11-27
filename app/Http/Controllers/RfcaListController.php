@@ -604,10 +604,9 @@ class RfcaListController extends Controller
             'doc_type'            => 'RFCA',
             'docid'               => $rfca->rfcaid,
             'department_id'       => $rfca->department_id,
-            'cpnyname'            => optional($company)->cpnyname,
-            'parent'              => optional($company)->parent,
-            'project'             => optional($company)->project,
-
+            'cpny_id'             => $company->cpny_id,
+            'cpny_name'           => $company->cpny_name,
+           
             // identitas & tanggal
             'created_by_username' => $rfca->created_by,
             'created_by_name'     => ucwords(strtolower(optional($rfca->creator)->name ?? $rfca->created_by)),
@@ -616,36 +615,20 @@ class RfcaListController extends Controller
             'rfcadate'            => $rfca->rfcadate
                                         ? Carbon::parse($rfca->rfcadate)->format('d F Y')
                                         : '',
+            'required_date'       => $rfca->required_date
+                                        ? Carbon::parse($rfca->required_date)->format('d/m/Y')
+                                        : '',
+            'calr_date'           => $rfca->calr_date
+                                        ? Carbon::parse($rfca->calr_date)->format('d/m/Y')
+                                        : '',
 
             // konten utama
-            'keperluan'           => $rfca->keperluan,
-            'status_doc'          => $status_doc,
-            // kalau nanti ada relasi requestType, tetap aman
-            'requesttype_name'    => optional($rfca->requestType ?? null)->requesttype_name,
-
-            // tanggal pekerjaan
-            'startdate_fmt'       => $rfca->startdate
-                                        ? Carbon::parse($rfca->startdate)->format('d/m/Y')
-                                        : '',
-            'enddate_fmt'         => $rfca->enddate
-                                        ? Carbon::parse($rfca->enddate)->format('d/m/Y')
-                                        : '',
-            'handoverdate_fmt'    => $rfca->handoverdate
-                                        ? Carbon::parse($rfca->handoverdate)->format('d/m/Y H:i')
-                                        : '',
-
-            // lokasi
-            'location_name'       => optional($rfca->location)->location_name ?? $rfca->location_id,
-            'sub_location_name'   => optional($rfca->subLocation)->sub_location_name ?? $rfca->sub_location_id,
-
-            // angka2
-            'penalty_per_day'     => $rfca->penalty,
-            'days_penalty'        => $rfca->days_penalty,
-            'total_penalty'       => $rfca->total_penalty,
             'rfca_amount'         => $rfca->rfca_amount,
-            'realize_amount'      => $rfca->realize_amount,
-            'spkpic'              => $rfca->spkpic,
-            'spkwarranty'         => $rfca->spkwarranty,
+            'terbilang'           => $terbilang = ucfirst($this->terbilang($rfca->rfca_amount)) . ' rupiah',
+            'keperluan'           => $rfca->keperluan,
+            'vendorname'          => $rfca->vendorname,
+            'status_doc'          => $status_doc,
+      
         ];
 
         $pdf = \PDF::loadView(
@@ -660,6 +643,35 @@ class RfcaListController extends Controller
         // $pdf->setPaper('A4', ($approve_count <= 5) ? 'portrait' : 'landscape');
 
         return $pdf->stream("pdf_rfca_{$rfca->rfcaid}.pdf");
+    }
+
+    private function terbilang($angka): string
+    {
+        if (is_string($angka)) {
+            $angka = str_replace([',', ' '], '', $angka);
+        }
+        if (!is_numeric($angka)) return '';
+
+        $isMinus = $angka < 0;
+        $angka = (int) abs((float) $angka);
+
+        $bil = ['', 'satu', 'dua', 'tiga', 'empat', 'lima', 'enam', 'tujuh', 'delapan', 'sembilan', 'sepuluh', 'sebelas'];
+
+        $fn = function ($n) use (&$fn, $bil): string {
+            if ($n < 12)                  return ' '.$bil[$n];
+            if ($n < 20)                  return $fn($n - 10).' belas';
+            if ($n < 100)                 return $fn(intval($n / 10)).' puluh'.$fn($n % 10);
+            if ($n < 200)                 return ' seratus'.$fn($n - 100);
+            if ($n < 1000)                return $fn(intval($n / 100)).' ratus'.$fn($n % 100);
+            if ($n < 2000)                return ' seribu'.$fn($n - 1000);
+            if ($n < 1_000_000)           return $fn(intval($n / 1000)).' ribu'.$fn($n % 1000);
+            if ($n < 1_000_000_000)       return $fn(intval($n / 1_000_000)).' juta'.$fn($n % 1_000_000);
+            if ($n < 1_000_000_000_000)   return $fn(intval($n / 1_000_000_000)).' miliar'.$fn($n % 1_000_000_000);
+            return $fn(intval($n / 1_000_000_000_000)).' triliun'.$fn($n % 1_000_000_000_000);
+        };
+
+        $hasil = trim(preg_replace('/\s+/', ' ', $fn($angka)));
+        return ($isMinus ? 'minus ' : '').$hasil;
     }
 
 }

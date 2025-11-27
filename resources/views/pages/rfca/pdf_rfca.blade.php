@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Request for Cash Advance</title>
+    <title>{{ $title }}</title>
 
     <style>
         @page {
@@ -125,19 +125,19 @@
     <table style="margin-bottom:8px;">
         <tr class="left-header">
             <th style="text-align:left;">
-                AW - Artisan Wahyu, PT
+                {{ $cpny_id }} - {{ $cpny_name }}
             </th>
             <th style="text-align:right;">
-                <span class="label">No</span> : RC25110011
+                <span class="label">No</span> : {{ $docid }}
             </th>
         </tr>
 
         <tr class="right-header">
             <th style="text-align:left; padding-top:6px;">
-                Request For Cash Advance
+                {{ $title }} ({{ $doc_type }})
             </th>
             <th style="text-align:right; padding-top:6px;">
-                <span class="label">Date</span> : 11/25/2025
+                <span class="label">Date</span> : {{ $rfcadate }}
             </th>
         </tr>
     </table>
@@ -158,7 +158,7 @@
             <th>
                 <div class="field-row">
                     <span class="field-label">Payment Ready Date :</span>
-                    <span class="field-value-wrap"></span>
+                    <span class="field-value-wrap">{{ $created_at_fmt }}</span>
                 </div>
             </th>
         </tr>
@@ -167,7 +167,7 @@
             <th>
                 <div class="field-row">
                     <span class="field-label">Dibayarkan Kpd :</span>
-                    <span class="field-value-wrap">KARYA NAMALA PRIMA, PT</span>
+                    <span class="field-value-wrap">{{ $vendorname }}</span>
                 </div>
             </th>
 
@@ -183,14 +183,14 @@
             <th>
                 <div class="field-row">
                     <span class="field-label">Jumlah / Amount :</span>
-                    <span class="field-value-wrap">22,500,000.00</span>
+                    <span class="field-value-wrap">{{ number_format($rfca_amount ?? 0, 0, ',', '.') }}</span>
                 </div>
             </th>
 
             <th>
                 <div class="field-row">
                     <span class="field-label">Tgl CALR :</span>
-                    <span class="field-value-wrap"></span>
+                    <span class="field-value-wrap">{{ $calr_date }}</span>
                 </div>
             </th>
         </tr>
@@ -199,14 +199,14 @@
             <th>
                 <div class="field-row">
                     <span class="field-label">Terbilang :</span>
-                    <span class="field-value-wrap">Dua puluh dua juta lima ratus ribu rupiah</span>
+                    <span class="field-value-wrap">{{ $terbilang }}</span>
                 </div>
             </th>
 
             <th>
                 <div class="field-row">
                     <span class="field-label">Tgl Diperlukan :</span>
-                    <span class="field-value-wrap">11/27/2025</span>
+                    <span class="field-value-wrap"></span>
                 </div>
             </th>
         </tr>
@@ -215,32 +215,32 @@
             <th>
                 <div class="field-row">
                     <span class="field-label">Keperluan :</span>
-                    <span class="field-value-wrap">Pengadaan Barikade dan Cover Barikade</span>
+                    <span class="field-value-wrap">{{ $keperluan }}</span>
                 </div>
             </th>
 
-            <th>
+            {{-- <th>
                 <div class="field-row">
                     <span class="field-label">Lokasi :</span>
-                    <span class="field-value-wrap">LANTAI LG</span>
+                    <span class="field-value-wrap"></span>
                 </div>
-            </th>
+            </th> --}}
         </tr>
 
         <tr class="left-body">
             <th>
                 <div class="field-row">
                     <span class="field-label">Created by :</span>
-                    <span class="field-value-wrap">Ari Wibowo</span>
+                    <span class="field-value-wrap">{{ $created_by_name }}</span>
                 </div>
             </th>
 
-            <th>
+            {{-- <th>
                 <div class="field-row">
                     <span class="field-label">On :</span>
                     <span class="field-value-wrap">11/25/2025 1:10 PM</span>
                 </div>
-            </th>
+            </th> --}}
         </tr>
     </table>
 

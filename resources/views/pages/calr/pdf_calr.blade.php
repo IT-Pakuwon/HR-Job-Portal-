@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cash Advance Liquidation Report (CALR)</title>
+    <title>{{ $title }} ({{ $doc_type }})</title>
 
     <style>
         @page {
@@ -145,12 +145,12 @@
     <!-- HEADER -->
     <table style="margin-bottom:10px;">
         <tr class="left-header">
-            <th>AW - Artisan Wahyu, PT</th>
-            <th><span class="label">No</span> : CR25110015</th>
+            <th>{{ $cpny_id }} - {{ $cpny_name }}</th>
+            <th><span class="label">No</span> : {{ $docid }}</th>
         </tr>
         <tr class="right-header">
-            <th style="padding-top:6px;">Cash Advance Liquidation Report (CALR)</th>
-            <th style="padding-top:6px;"><span class="label">Date</span> : 11/21/2025</th>
+            <th style="padding-top:6px;">{{ $title }} ({{ $doc_type }})</th>
+            <th style="padding-top:6px;"><span class="label">Date</span> : {{ $calrdate }}</th>
         </tr>
     </table>
 
@@ -163,15 +163,15 @@
             <th>
                 <div class="field-row">
                     <span class="field-label">Dibayarkan Kpd :</span>
-                    <span class="field-value-wrap">IBU CAS</span>
+                    <span class="field-value-wrap">{{ $vendorname }}</span>
                 </div>
             </th>
-            <th>
+            {{-- <th>
                 <div class="field-row">
                     <span class="field-label">Lokasi :</span>
                     <span class="field-value-wrap"></span>
                 </div>
-            </th>
+            </th> --}}
         </tr>
 
         <tr class="left-body">
@@ -179,8 +179,7 @@
                 <div class="field-row">
                     <span class="field-label">Keperluan :</span>
                     <span class="field-value-wrap">
-                        Pembelian Stocking untuk Staff Wanita Periode
-                        Oktober - Desember 2025 (Okt, Nov, Des)
+                       {{ $keperluan }}
                     </span>
                 </div>
             </th>
@@ -191,7 +190,7 @@
             <th>
                 <div class="field-row">
                     <span class="field-label">Total Amount :</span>
-                    <span class="field-value-wrap">1,200,000.00</span>
+                    <span class="field-value-wrap">{{ number_format($rfca_amount ?? 0, 0, ',', '.') }}</span>
                 </div>
             </th>
         </tr>
@@ -200,7 +199,7 @@
             <th>
                 <div class="field-row">
                     <span class="field-label">Total Expenses :</span>
-                    <span class="field-value-wrap">1,200,000.00</span>
+                    <span class="field-value-wrap">{{ number_format($calr_amount ?? 0, 0, ',', '.') }}</span>
                 </div>
             </th>
         </tr>
@@ -210,7 +209,7 @@
             <th>
                 <div class="field-row">
                     <span class="field-label">Lebih/Kurang :</span>
-                    <span class="field-value-wrap">0.00</span>
+                    <span class="field-value-wrap">{{ number_format($balance_amount ?? 0, 0, ',', '.') }}</span>
                 </div>
             </th>
             <th></th>
@@ -219,7 +218,7 @@
 
 
     <!-- EXPENSE TABLE -->
-    <table class="exp-table">
+   <table class="exp-table">
         <thead>
             <tr>
                 <th style="width:70%;">Description</th>
@@ -227,10 +226,16 @@
             </tr>
         </thead>
         <tbody>
-            <tr>
-                <td>STOCKING</td>
-                <td>1,200,000.00</td>
-            </tr>
+            @forelse($details as $dt)
+                <tr>
+                    <td>{{ $dt->inventory_descr }}</td>
+                    <td>{{ number_format($dt->totalcost, 0, ',', '.') }}</td>
+                </tr>
+            @empty
+                <tr>
+                    <td colspan="2" class="text-center">No data available</td>
+                </tr>
+            @endforelse
         </tbody>
     </table>
 

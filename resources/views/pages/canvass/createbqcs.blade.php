@@ -252,6 +252,12 @@
                 return Math.round(n * 100) / 100;
             }
 
+            function getCellValue(td) {
+                const clone = td.cloneNode(true);
+                clone.querySelectorAll('span').forEach(s => s.remove());
+                return (clone.textContent || '').trim();
+            }
+
             $btn.addEventListener('click', function() {
                 // kumpulkan vendors untuk header (id + nama saja sudah cukup)
                 const vHeader = vendors.slice(0, 6).map(v => ({
@@ -265,11 +271,17 @@
                 tbodyRows.forEach((tr, rIdx) => {
                     const tds = tr.children;
 
-                    const bqNo = tds[0].textContent.trim();
-                    const line = tds[1].textContent.trim();
-                    const descr = tds[2].textContent.trim();
-                    const qty = toFixed2(tds[3].querySelector('.bq-qty').value);
-                    const uom = tds[4].textContent.trim();
+                    // const bqNo = tds[0].textContent.trim();
+                    // const line = tds[1].textContent.trim();
+                    // const descr = tds[2].textContent.trim();
+                    // const qty = toFixed2(tds[3].querySelector('.bq-qty').value);
+                    // const uom = tds[4].textContent.trim();
+                    const bqNo  = getCellValue(tds[0]); // cuma "1", bukan "No: 1"
+                    const line  = getCellValue(tds[1]); // cuma "1"
+                    const descr = getCellValue(tds[2]); // hanya deskripsi
+                    const qty   = toFixed2(tds[3].querySelector('.bq-qty').value);
+                    const uom   = getCellValue(tds[4]); // cuma "LOT"
+
 
                     const rowVendors = [];
                     // kolom vendor mulai index 5
