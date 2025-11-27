@@ -701,7 +701,7 @@
                                 <th class="w-40 px-3 py-2 text-left">Note</th>
 
                                 @foreach ($vendors as $v)
-                                    <th class="px-3 py-2 text-left align-top">
+                                    <th class="align-center px-3 py-2 text-left">
 
                                         <div class="flex items-start justify-between gap-1">
                                             <div class="space-y-0.5">

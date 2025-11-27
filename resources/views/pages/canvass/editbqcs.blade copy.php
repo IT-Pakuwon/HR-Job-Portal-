@@ -100,7 +100,7 @@
         }
     </style>
     <div class="max-w-9xl mx-auto w-full px-4 py-6 sm:px-6 lg:px-8">
-        <form id="bqForm" class="flex flex-col gap-8" enctype="multipart/form-data">
+        <form id="bqForm" class="flex flex-col gap-4" enctype="multipart/form-data">
             @csrf
             <input type="hidden" name="bqid" value="{{ $bq->bqid }}">
             <input type="hidden" name="cpny_id" value="{{ $bq->cpny_id }}">
@@ -113,7 +113,7 @@
                     </h2>
                 </div>
 
-                <div class="flex flex-col gap-6 text-sm">
+                <div class="flex flex-col gap-4 text-sm">
                     <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
                         <div>
                             <span class="block font-medium text-gray-700 dark:text-gray-300">Company</span>

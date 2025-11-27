@@ -1,6 +1,6 @@
 <x-app-layout>
     <div class="max-w-9xl mx-auto w-full px-4 py-6 sm:px-6 lg:px-8">
-        <form id="bqForm" class="flex flex-col gap-8" enctype="multipart/form-data">
+        <form id="bqForm" class="flex flex-col gap-4" enctype="multipart/form-data">
             @csrf
             <input type="hidden" name="csid" value="{{ $cs->csid }}">
             <input type="hidden" name="bqid" value="{{ $cs->bqid }}">
@@ -15,9 +15,9 @@
                 </div>
 
                 <!-- Grid Form -->
-                <div class="flex flex-col gap-6 text-sm">
+                <div class="flex flex-col gap-4 text-sm">
                     <!-- Row 1 -->
-                    <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
+                    <div class="grid grid-cols-1 gap-4 md:grid-cols-5">
                         <div>
                             <span class="block font-medium text-gray-700 dark:text-gray-300">Company</span>
                             <div
@@ -39,10 +39,6 @@
                                 {{ $cs->bqid }}
                             </div>
                         </div>
-                    </div>
-
-                    <!-- Row 2 -->
-                    <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
                         <div>
                             <span class="block font-medium text-gray-700 dark:text-gray-300">SPPJ/K/T</span>
                             <div
@@ -68,136 +64,161 @@
                         class="border-b border-gray-200 pb-4 text-lg font-bold text-gray-800 dark:border-gray-700 dark:text-white">
                         BQ Detail
                     </div>
-                    <div class="mt-4 overflow-x-auto">
-                        <table class="w-max table-auto border text-sm text-gray-700 dark:text-gray-200">
+                    <div class="overflow-x-auto md:overflow-visible">
+                        <table class="min-w-full table-auto border text-sm text-gray-700 dark:text-gray-200">
+
                             <!-- HEADER -->
                             <thead
-                                class="bg-gray-100 text-gray-900 dark:border-gray-700 dark:bg-gray-700 dark:text-gray-100">
+                                class="hidden bg-gray-100 text-gray-900 md:table-header-group dark:bg-gray-700 dark:text-gray-100">
                                 <tr>
                                     <th class="border px-4 py-3 text-left font-semibold">No</th>
                                     <th class="border px-4 py-3 text-left font-semibold">Line</th>
                                     <th class="border px-4 py-3 text-left font-semibold">Description</th>
-                                    <th class="w-20 border px-3 py-2 text-center">Qty</th>
-                                    <th class="w-20 border px-3 py-2 text-center">UoM</th>
-                                    <th class="border px-4 py-3 text-left font-semibold">
-                                        <div>Estimates</div>
-                                        <div class="text-xs text-gray-500 dark:text-gray-400">Material & Jasa</div>
-                                    </th>
+                                    <th class="border px-4 py-3 text-center">Qty</th>
+                                    <th class="border px-4 py-3 text-center">UoM</th>
+                                    <th class="border px-4 py-3 text-left font-semibold">Estimates</th>
+
                                     @foreach ($vendors as $v)
-                                        <th class="border px-4 py-3 text-left font-semibold">
-                                            <div>{{ $v['name'] }}</div>
-                                            <div class="text-xs text-gray-500 dark:text-gray-400">✉️
-                                                {{ $v['cp'] ?? '-' }}
+                                        <th class="align-center px-3 py-2 text-left">
+
+                                            <div class="flex items-start justify-between gap-1">
+                                                <div class="space-y-0.5">
+                                                    <div class="text-sm font-semibold">
+                                                        {{ $v['name'] }}
+                                                    </div>
+
+                                                    {{-- @if ($v['vendortop'])
+                                                        <div class="text-xs text-gray-600 dark:text-gray-300">
+                                                            Payment Term: <span
+                                                                class="font-semibold">{{ $v['vendortop'] }}</span>
+                                                        </div>
+                                                    @endif --}}
+                                                </div>
+
+                                                <!-- Tooltip -->
+                                                <div class="group relative">
+                                                    <span
+                                                        class="inline-flex h-4 w-4 cursor-pointer items-center justify-center rounded-full bg-gray-300 text-[10px] font-bold">i</span>
+
+                                                    <div
+                                                        class="absolute right-0 top-5 z-40 hidden w-56 rounded-md border bg-white p-3 text-xs shadow-lg group-hover:block">
+                                                        <div><strong>Contact:</strong> {{ $v['cp'] ?: '-' }}
+                                                        </div>
+                                                        <div><strong>Phone:</strong> {{ $v['telp'] ?: '-' }}
+                                                        </div>
+                                                        <div><strong>Address:</strong> {{ $v['addr'] ?: '-' }}
+                                                        </div>
+                                                    </div>
+                                                </div>
                                             </div>
-                                            <div class="text-xs text-gray-500 dark:text-gray-400">☎️
-                                                {{ $v['telp'] ?? '-' }}</div>
-                                            <div class="text-xs text-gray-500 dark:text-gray-400">🏠
-                                                {{ $v['addr'] ?? '-' }}</div>
-                                            <div class="mt-1 text-xs font-medium text-gray-500 dark:text-gray-400">
-                                                Material
-                                                / Jasa</div>
+
                                         </th>
                                     @endforeach
                                 </tr>
                             </thead>
 
                             <!-- BODY -->
-                            <tbody>
+                            <tbody class="block md:table-row-group">
                                 @foreach ($bqDetails as $d)
-                                    <tr
-                                        class="transition odd:bg-white even:bg-gray-50 hover:bg-gray-100 dark:odd:bg-gray-900 dark:even:bg-gray-800 dark:hover:bg-gray-700">
-                                        <td class="border px-4 py-3">{{ $d->bq_no }}</td>
-                                        <td class="border px-4 py-3">{{ $d->bq_line_no }}</td>
-                                        <td class="border px-4 py-3">{{ $d->bq_descr }}</td>
-                                        <td class="border px-4 py-3 text-center">
-                                            <input type="number" step="0.01" min="0"
-                                                class="bq-qty w-24 rounded-lg border px-2 py-1 text-right shadow-sm focus:ring-2 focus:ring-indigo-400 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200"
-                                                value="{{ number_format((float) $d->qty, 2, '.', '') }}">
+                                    <tr class="block border-b md:table-row dark:border-gray-700">
+
+                                        <!-- No -->
+                                        <td class="block border px-4 py-2 md:table-cell md:border">
+                                            <span class="font-medium md:hidden">No:</span>
+                                            {{ $d->bq_no }}
                                         </td>
-                                        <td class="border px-4 py-3 text-center">{{ $d->uom }}</td>
-                                        <td class="border px-4 py-3 align-top">
+
+                                        <!-- Line -->
+                                        <td class="block border px-4 py-2 md:table-cell md:border">
+                                            <span class="font-medium md:hidden">Line:</span>
+                                            {{ $d->bq_line_no }}
+                                        </td>
+
+                                        <!-- Description -->
+                                        <td class="block border px-4 py-2 md:table-cell md:border">
+                                            <span class="font-medium md:hidden">Description:</span>
+                                            {{ $d->bq_descr }}
+                                        </td>
+
+                                        <!-- Qty -->
+                                        <td class="block border px-4 py-2 md:table-cell md:border">
+                                            <span class="font-medium md:hidden">Qty:</span>
+                                            <input type="number"
+                                                class="bq-qty w-full rounded-lg border px-2 py-1 text-right md:w-24">
+                                        </td>
+
+                                        <!-- UoM -->
+                                        <td class="block border px-4 py-2 md:table-cell md:border">
+                                            <span class="font-medium md:hidden">UoM:</span>
+                                            {{ $d->uom }}
+                                        </td>
+
+                                        <!-- Estimates -->
+                                        <td class="block border px-4 py-2 md:table-cell md:border">
+                                            <span class="font-medium md:hidden">Estimates:</span>
                                             <div class="grid grid-cols-2 gap-3 text-xs">
                                                 <label class="flex flex-col gap-1">
-                                                    <span class="font-medium text-gray-600 dark:text-gray-300">Est.
-                                                        Material</span>
-                                                    <input type="text" value="{{ $d->est_material_price }}"
-                                                        class="w-full rounded-md border bg-gray-100 px-2 py-1 text-right text-gray-600 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                                    <span>Est. Material</span>
+                                                    <input
+                                                        class="w-full rounded-md border bg-gray-100 px-2 py-1 text-right"
                                                         readonly>
                                                 </label>
                                                 <label class="flex flex-col gap-1">
-                                                    <span class="font-medium text-gray-600 dark:text-gray-300">Est.
-                                                        Jasa</span>
-                                                    <input type="text" value="{{ $d->est_jasa_price }}"
-                                                        class="w-full rounded-md border bg-gray-100 px-2 py-1 text-right text-gray-600 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                                    <span>Est. Jasa</span>
+                                                    <input
+                                                        class="w-full rounded-md border bg-gray-100 px-2 py-1 text-right"
                                                         readonly>
                                                 </label>
                                             </div>
                                         </td>
 
+                                        <!-- Vendor Columns -->
                                         @foreach ($vendors as $v)
-                                            <td class="border px-4 py-3 align-top">
+                                            <td class="block border px-4 py-2 md:table-cell md:border">
+                                                <span class="font-medium md:hidden">{{ $v['name'] }}:</span>
                                                 <div class="grid grid-cols-2 gap-3 text-xs">
-                                                    {{-- <label class="flex flex-col gap-1">
-                                                    <span class="font-medium text-gray-600 dark:text-gray-300">Est.
-                                                        Material</span>
-                                                    <input type="text" value="{{ $d->est_material_price }}"
-                                                        class="w-full rounded-md border bg-gray-100 px-2 py-1 text-right text-gray-600 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
-                                                        readonly>
-                                                </label>
-                                                <label class="flex flex-col gap-1">
-                                                    <span class="font-medium text-gray-600 dark:text-gray-300">Est.
-                                                        Jasa</span>
-                                                    <input type="text" value="{{ $d->est_jasa_price }}"
-                                                        class="w-full rounded-md border bg-gray-100 px-2 py-1 text-right text-gray-600 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
-                                                        readonly>
-                                                </label> --}}
                                                     <label class="flex flex-col gap-1">
-                                                        <span class="font-medium text-gray-600 dark:text-gray-300">Total
-                                                            Material</span>
-                                                        <input type="number" step="0.01" min="0"
-                                                            value="0.00"
-                                                            class="bq-price-mat w-full rounded-md border px-2 py-1 text-right shadow-sm focus:ring-2 focus:ring-indigo-400 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200"
-                                                            placeholder="0,00">
+                                                        <span>Total Material</span>
+                                                        <input type="number"
+                                                            class="bq-price-mat w-full rounded-md border px-2 py-1 text-right">
                                                     </label>
                                                     <label class="flex flex-col gap-1">
-                                                        <span class="font-medium text-gray-600 dark:text-gray-300">Total
-                                                            Jasa</span>
-                                                        <input type="number" step="0.01" min="0"
-                                                            value="0.00"
-                                                            class="bq-price-jsa w-full rounded-md border border-gray-400 px-2 py-1 text-right shadow-sm focus:ring-2 focus:ring-indigo-400 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200"
-                                                            placeholder="0,00">
+                                                        <span>Total Jasa</span>
+                                                        <input type="number"
+                                                            class="bq-price-jsa w-full rounded-md border px-2 py-1 text-right">
                                                     </label>
                                                 </div>
                                             </td>
                                         @endforeach
+
                                     </tr>
                                 @endforeach
                             </tbody>
 
                             <!-- FOOTER -->
-                            <tfoot class="bg-gray-100 font-medium dark:bg-gray-700">
+                            <tfoot class="hidden bg-gray-100 md:table-footer-group dark:bg-gray-700">
                                 <tr>
-                                    <td colspan="6" class="border px-4 py-4 text-right">Grand Total per Vendor</td>
+                                    <td colspan="6" class="border px-4 py-4 text-right font-bold">Grand Total per
+                                        Vendor</td>
                                     @foreach ($vendors as $i => $v)
-                                        <td class="border px-4 py-4 text-right">
-                                            <div class="text-xs text-gray-600 dark:text-gray-300">
-                                                Material: <span class="sum-mat font-semibold"
-                                                    data-vendor="{{ $i + 1 }}">0</span>
+                                        <td class="border px-4 py-4 text-left">
+                                            <div class="flex justify-between">
+                                                <div>Total Material: <span class="sum-mat"
+                                                        data-vendor="{{ $i + 1 }}">0</span></div>
+                                                <div>Total Jasa: <span class="sum-jsa"
+                                                        data-vendor="{{ $i + 1 }}">0</span>
+                                                </div>
                                             </div>
-                                            <div class="text-xs text-gray-600 dark:text-gray-300">
-                                                Jasa: <span class="sum-jsa font-semibold"
-                                                    data-vendor="{{ $i + 1 }}">0</span>
-                                            </div>
-                                            <div class="mt-1 font-bold text-indigo-600 dark:text-indigo-400">
-                                                Grand: <span class="sum-grand"
-                                                    data-vendor="{{ $i + 1 }}">0</span>
-                                            </div>
+                                            <div class="mt-1 font-bold text-indigo-600">Grand Total: <span
+                                                    class="sum-grand" data-vendor="{{ $i + 1 }}">0</span></div>
                                         </td>
                                     @endforeach
                                 </tr>
                             </tfoot>
+
                         </table>
                     </div>
+
 
                     <!-- Action Buttons -->
                     <div

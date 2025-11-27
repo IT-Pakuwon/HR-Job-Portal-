@@ -1,6 +1,6 @@
 <x-app-layout>
     <div class="max-w-9xl mx-auto w-full px-4 py-6 sm:px-6 lg:px-8">
-        <div class="flex flex-col gap-8">
+        <div class="flex flex-col gap-4">
 
             {{-- Header Card --}}
             <div class="w-full rounded-xl bg-white p-6 shadow-md dark:bg-gray-800">
@@ -10,7 +10,7 @@
                     </h2>
                 </div>
 
-                <div class="flex flex-col gap-6 text-sm">
+                <div class="flex flex-col gap-4 text-sm">
                     <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
                         <div>
                             <span class="block font-medium text-gray-700 dark:text-gray-300">Company</span>
@@ -67,7 +67,7 @@
                                     <th class="border px-4 py-3 text-left font-semibold">Qty</th>
                                     <th class="border px-4 py-3 text-left font-semibold">UoM</th>
                                     @foreach ($vendors as $v)
-                                        <th class="border px-4 py-3 text-left font-semibold align-top">
+                                        <th class="border px-4 py-3 text-left align-top font-semibold">
                                             <div>{{ $v['name'] }}</div>
                                             <div class="text-xs text-gray-500 dark:text-gray-400">✉️
                                                 {{ $v['cp'] ?? '-' }}
@@ -119,8 +119,7 @@
                                             <td class="border px-4 py-3 align-top">
                                                 <div class="grid grid-cols-2 gap-3 text-xs">
                                                     <div class="flex flex-col gap-1">
-                                                        <span
-                                                            class="font-medium text-gray-600 dark:text-gray-300">Harga
+                                                        <span class="font-medium text-gray-600 dark:text-gray-300">Harga
                                                             Material</span>
                                                         <div
                                                             class="rounded-md border border-gray-300 bg-gray-100 px-2 py-1 text-right dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200">
@@ -128,8 +127,7 @@
                                                         </div>
                                                     </div>
                                                     <div class="flex flex-col gap-1">
-                                                        <span
-                                                            class="font-medium text-gray-600 dark:text-gray-300">Harga
+                                                        <span class="font-medium text-gray-600 dark:text-gray-300">Harga
                                                             Jasa</span>
                                                         <div
                                                             class="rounded-md border border-gray-300 bg-gray-100 px-2 py-1 text-right dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200">

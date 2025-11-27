@@ -1,6 +1,6 @@
 <x-app-layout>
     <div class="max-w-9xl mx-auto w-full px-4 py-6 sm:px-6 lg:px-8">
-        <form id="bqForm" class="flex flex-col gap-8" enctype="multipart/form-data">
+        <form id="bqForm" class="flex flex-col gap-4" enctype="multipart/form-data">
             @csrf
             <input type="hidden" name="csid" value="{{ $cs->csid }}">
             <input type="hidden" name="bqid" value="{{ $cs->bqid }}">
@@ -15,7 +15,7 @@
                 </div>
 
                 <!-- Grid Form -->
-                <div class="flex flex-col gap-6 text-sm">
+                <div class="flex flex-col gap-4 text-sm">
                     <!-- Row 1 -->
                     <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
                         <div>

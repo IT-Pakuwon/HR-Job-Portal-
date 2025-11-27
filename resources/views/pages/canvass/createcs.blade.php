@@ -216,9 +216,11 @@
                             <h2 class="text-xl font-extrabold text-gray-800 dark:text-white">Create CS</h2>
                         </div>
 
-                        <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
-                            <!-- LEFT SIDE (2 col per row) -->
-                            <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                        <div class="grid grid-cols-1 gap-6 md:grid-cols-3">
+
+                            <!-- LEFT SIDE: auto grid of fields -->
+                            <div class="grid grid-cols-1 gap-4 md:col-span-2 md:grid-cols-4">
+
                                 <!-- SPPB/J/K/T -->
                                 <div>
                                     <label class="text-sm font-medium text-gray-600 dark:text-gray-400">SPPB/J/K/T
@@ -234,7 +236,6 @@
                                         value="{{ ucwords(strtolower(optional($header->creator)->name)) }}" readonly
                                         class="mt-1 w-full rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
                                 </div>
-
 
                                 <!-- Company -->
                                 <div>
@@ -270,36 +271,36 @@
                                     </div>
                                 @endif
 
-                                <div class="flex w-full flex-col gap-2">
+
+                                <!-- Purpose -->
+                                <div>
+                                    <label
+                                        class="req text-sm font-medium text-gray-600 dark:text-gray-400">Purpose</label>
+                                    <input type="text" value="{{ $header->keperluan }}" readonly
+                                        class="mt-1 w-full rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
+                                </div>
+
+                                <!-- Vendor -->
+                                <div class="flex flex-col gap-2">
                                     <label class="req text-sm font-medium text-gray-600 dark:text-gray-400">Select
                                         Vendor</label>
                                     <select id="vendorSelect"
                                         class="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500/50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
                                         <option value="">Select</option>
                                     </select>
+
                                 </div>
                             </div>
 
-
-
-                            <!-- RIGHT SIDE -->
-                            <div class="flex flex-col gap-4">
-                                <!-- Keperluan -->
-                                <div>
-                                    <label class="text-sm font-medium text-gray-600 dark:text-gray-400">Purpose</label>
-                                    <input type="text" value="{{ $header->keperluan }}" readonly
-                                        class="mt-1 w-full rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
-                                </div>
-
-                                <!-- Note CS -->
-                                <div>
-                                    <label class="text-sm font-medium text-gray-600 dark:text-gray-400">Note CS</label>
-                                    <textarea name="csnote" id="csnote"
-                                        class="mt-1 w-full rounded-md border border-gray-300 bg-white p-3 text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500/50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200"
-                                        rows="8"></textarea>
-                                </div>
+                            <!-- RIGHT SIDE: NOTE -->
+                            <div class="flex flex-col">
+                                <label class="text-sm font-medium text-gray-600 dark:text-gray-400">Note CS</label>
+                                <textarea name="csnote" id="csnote"
+                                    class="h-30 mt-1 w-full rounded-md border border-gray-300 bg-white p-3 text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500/50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200"></textarea>
                             </div>
+
                         </div>
+
                     </div>
 
                     <!-- CS Detail -->
@@ -340,13 +341,8 @@
                                                 {{-- <td class="border px-3 py-2 text-center">{{ $row->csnote_detail }}</td> --}}
                                                 <td class="border px-3 py-2 text-center">
                                                     <textarea
-                                                        class="note-input w-full rounded-md border border-gray-400 px-2 py-1 shadow-sm
-                                                            focus:ring-2 focus:ring-indigo-400 resize-none
-                                                            dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200"
-                                                        rows="2"
-                                                        autocomplete="off"
-                                                        placeholder="Add note..."
-                                                        aria-label="Note">{{ $row->csnote_detail ?? '' }}</textarea>
+                                                        class="note-input w-full resize-none rounded-md border border-gray-400 px-2 py-1 shadow-sm focus:ring-2 focus:ring-indigo-400 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200"
+                                                        rows="2" autocomplete="off" placeholder="Add note..." aria-label="Note">{{ $row->csnote_detail ?? '' }}</textarea>
                                                 </td>
 
                                             </tr>
@@ -713,28 +709,53 @@
             data-vendor-cp="${_.escape(v.contact_person ?? '')}"
         >
             <!-- Vendor Card -->
-            <div class="flex flex-col items-left text-left text-sm">
-                <div class="font-bold text-gray-800 dark:text-gray-100 break-words">
-                    ${v.vendor_name}
-                </div>
+    <div class="flex flex-col text-left text-sm">
 
-                <div class="mt-1 space-y-0.5 text-xs text-gray-600 dark:text-gray-300 leading-4">
-                    <div>✉️ ${v.contact_person ?? '-'}</div>
-                    <div>☎️ ${v.phone_number ?? '-'}</div>
-                    <div>🏠 ${v.vendor_addr1 ?? '-'}</div>
-                </div>
-                <div class="flex items-center gap-2">
-                    <span class="text-xs font-semibold text-gray-600 dark:text-gray-300">Payment Term:</span>
-                   <select name="cara_bayar_${id}" 
-                        class="cara-bayar w-40 rounded-full border border-gray-300 bg-white px-3 py-1 
-                               text-xs font-medium shadow-sm focus:border-indigo-500 focus:ring 
-                               focus:ring-indigo-500/50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200">
-                        ${TOPS_OPTIONS_HTML}
-                    </select>
-                </div>
+        <!-- VENDOR NAME + INFO ICON -->
+        <div class="flex items-center gap-1 font-bold text-gray-800 dark:text-gray-100 break-words">
+            <span>${v.vendor_name}</span>
 
+            <!-- INFO ICON -->
+            <div class="relative group inline-block">
+                <button class="flex h-4 w-4 items-center justify-center 
+                               rounded-full bg-gray-200 text-gray-700 text-[10px]
+                               dark:bg-gray-700 dark:text-gray-200 cursor-default">
+                    i
+                </button>
 
-                        </div>
+                <!-- TOOLTIP -->
+                <div class="pointer-events-none absolute left-1/2 top-full z-50 mt-2 
+                            w-64 -translate-x-1/2 rounded-md bg-gray-900 p-3 text-xs 
+                            text-gray-200 shadow-lg opacity-0 invisible 
+                            group-hover:opacity-100 group-hover:visible
+                            transition-opacity duration-200">
+
+                    <div class="font-semibold text-white mb-1">${v.vendor_name}</div>
+
+                    <div class="space-y-1 text-gray-300 leading-4">
+                        <div>✉️ ${v.contact_person || '-'}</div>
+                        <div>☎️ ${v.phone_number || '-'}</div>
+                        <div>🏠 ${v.vendor_addr1 || '-'}</div>
+                    </div>
+
+                    <!-- Arrow -->
+                    <div class="absolute -top-1 left-1/2 h-2 w-2 -translate-x-1/2 rotate-45 bg-gray-900"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Payment Term -->
+        <div class="flex items-center gap-2 mt-2">
+            <span class="text-xs font-semibold text-gray-600 dark:text-gray-300">Payment Term:</span>
+            <select name="cara_bayar_${id}" 
+                class="cara-bayar w-40 rounded-full border border-gray-300 bg-white px-3 py-1 
+                       text-xs font-medium shadow-sm focus:border-indigo-500 focus:ring 
+                       focus:ring-indigo-500/50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200">
+                ${TOPS_OPTIONS_HTML}
+            </select>
+        </div>
+
+    </div>
 
                         <!-- Delete Button -->
                 <button type="button"
@@ -813,7 +834,7 @@
                         type="text"
                         class="price-input  w-full rounded-md border border-gray-400 px-2 py-1 text-right shadow-sm focus:ring-2 focus:ring-indigo-400 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200"
                         data-row="${rowIdx}" data-vendor="${id}"
-                        value="0,00" inputmode="decimal" autocomplete="off" placeholder="0,00">
+                        value="0,00" inputmode="decimal" autocomplete="off" placeholder="0,00"> 
                     `);
 
                     const $td = $(`
@@ -1544,7 +1565,7 @@
                 const uom = $tr.data('uom') || '';
                 const invId = $tr.data('inventoryid') || '';
                 const invDescr = $tr.data('inventory_descr') || '';
-                const lastPrice = Number($tr.data('lastprice') || 0);                
+                const lastPrice = Number($tr.data('lastprice') || 0);
                 const csNote = String($tr.find('.note-input').val() || '');
 
                 const row = {

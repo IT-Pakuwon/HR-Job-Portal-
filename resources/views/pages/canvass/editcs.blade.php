@@ -221,9 +221,11 @@
                                 {{ $cs->csid }}</h2>
                         </div>
 
-                        <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
-                            <!-- LEFT SIDE (2 col per row) -->
-                            <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                        <div class="grid grid-cols-1 gap-6 md:grid-cols-3">
+
+                            <!-- LEFT SIDE: auto grid of fields -->
+                            <div class="grid grid-cols-1 gap-4 md:col-span-2 md:grid-cols-4">
+
                                 <!-- SPPB/J/K/T -->
                                 <div>
                                     <label class="text-sm font-medium text-gray-600 dark:text-gray-400">SPPB/J/K/T
@@ -264,72 +266,71 @@
                                         class="mt-1 w-full rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
                                 </div>
 
-                                {{-- BQ ID --}}
-                                @if (in_array($doc, ['SPPJ', 'SPPT']))
-                                    <div class="flex items-end gap-2">
+                                <!-- BQ ID -->
+                                <div class="flex flex-row justify-between gap-2">
+                                    @if (in_array($doc, ['SPPJ', 'SPPT']))
                                         <div class="flex-1">
                                             <label class="text-sm font-medium text-gray-600 dark:text-gray-400">BQ
                                                 ID</label>
-                                            <input type="text" value="{{ $bq?->bqid ?? ($header->bqid ?? '') }}"
-                                                readonly
+                                            <input type="text" value="{{ $header->bqid }}" readonly
                                                 class="mt-1 w-full rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
                                         </div>
 
-                                        @php
-                                            // $eid = CS hash id (sudah dikirim dari controller)
-                                            $csidForBQ = $eid ?? null;
-                                        @endphp
+                                        <div class="flex-1">
+                                            @php
+                                                // $eid = CS hash id (sudah dikirim dari controller)
+                                                $csidForBQ = $eid ?? null;
+                                            @endphp
 
-                                        {{-- Kondisi: jika BQ SUDAH ADA → tombol Open BQ, kalau BELUM → tombol Create BQ --}}
-                                        @if ($bq && $bq_eid)
-                                            <a href="{{ route('bqcs.edit', $bq_eid) }}"
-                                                class="mt-6 inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700">
-                                                Open BQ
-                                            </a>
-                                        @elseif ($csidForBQ)
-                                            <a href="{{ route('bqcs.createFromCS', $csidForBQ) }}"
-                                                class="mt-6 inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700">
-                                                Create BQ
-                                            </a>
-                                        @else
-                                            <button type="button" title="Simpan CS dulu, baru buat BQ"
-                                                class="mt-6 inline-flex cursor-not-allowed items-center gap-2 rounded-lg bg-gray-400 px-4 py-2 text-sm font-semibold text-white">
-                                                Create BQ
-                                            </button>
-                                        @endif
-                                    </div>
-                                @endif
+                                            {{-- Kondisi: jika BQ SUDAH ADA → tombol Open BQ, kalau BELUM → tombol Create BQ --}}
+                                            @if ($bq && $bq_eid)
+                                                <a href="{{ route('bqcs.edit', $bq_eid) }}"
+                                                    class="mt-7 inline-flex w-full items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-center text-sm font-semibold text-white hover:bg-emerald-700">
+                                                    Open BQ
+                                                </a>
+                                            @elseif ($csidForBQ)
+                                                <a href="{{ route('bqcs.createFromCS', $csidForBQ) }}"
+                                                    class="mt-7 inline-flex w-full items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-center text-sm font-semibold text-white hover:bg-blue-700">
+                                                    Create BQ
+                                                </a>
+                                            @else
+                                                <button type="button" title="Simpan CS dulu, baru buat BQ"
+                                                    class="mt-8 inline-flex w-full cursor-not-allowed items-center gap-2 rounded-lg bg-gray-400 px-4 py-2 text-center text-sm font-semibold text-white">
+                                                    Create BQ
+                                                </button>
+                                            @endif
+                                        </div>
+
+                                    @endif
+                                </div>
 
 
 
-                                <div class="flex w-full flex-col gap-2">
+                                <!-- Purpose -->
+                                <div>
+                                    <label
+                                        class="req text-sm font-medium text-gray-600 dark:text-gray-400">Purpose</label>
+                                    <input type="text" value="{{ $header->keperluan }}" readonly
+                                        class="mt-1 w-full rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
+                                </div>
+
+                                <!-- Vendor -->
+                                <div class="flex flex-col gap-2">
                                     <label class="req text-sm font-medium text-gray-600 dark:text-gray-400">Select
                                         Vendor</label>
                                     <select id="vendorSelect"
                                         class="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500/50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
                                         <option value="">Select</option>
                                     </select>
+
                                 </div>
                             </div>
 
-
-
-                            <!-- RIGHT SIDE -->
-                            <div class="flex flex-col gap-4">
-                                <!-- Keperluan -->
-                                <div>
-                                    <label class="text-sm font-medium text-gray-600 dark:text-gray-400">Purpose</label>
-                                    <input type="text" value="{{ $header->keperluan }}" readonly
-                                        class="mt-1 w-full rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
-                                </div>
-
-                                <!-- Note CS -->
-                                <div>
-                                    <label class="text-sm font-medium text-gray-600 dark:text-gray-400">Note CS</label>
-                                    <textarea name="csnote" id="csnote"
-                                        class="mt-1 w-full rounded-md border border-gray-300 bg-white p-3 text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500/50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200"
-                                        rows="8">{{ $cs->csnote }}</textarea>
-                                </div>
+                            <!-- RIGHT SIDE: NOTE -->
+                            <div class="flex flex-col">
+                                <label class="text-sm font-medium text-gray-600 dark:text-gray-400">Note CS</label>
+                                <textarea name="csnote" id="csnote"
+                                    class="h-30 mt-1 w-full rounded-md border border-gray-300 bg-white p-3 text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500/50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200"></textarea>
                             </div>
                         </div>
                     </div>
@@ -372,13 +373,8 @@
                                                 {{-- <td class="border px-3 py-2 text-center">{{ $row->csnote_detail }}</td> --}}
                                                 <td class="border px-3 py-2 text-center">
                                                     <textarea
-                                                        class="note-input w-full rounded-md border border-gray-400 px-2 py-1 shadow-sm
-                                                            focus:ring-2 focus:ring-indigo-400 resize-none
-                                                            dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200"
-                                                        rows="2"
-                                                        autocomplete="off"
-                                                        placeholder="Add note..."
-                                                        aria-label="Note">{{ $row->csnote_detail ?? '' }}</textarea>
+                                                        class="note-input w-full resize-none rounded-md border border-gray-400 px-2 py-1 shadow-sm focus:ring-2 focus:ring-indigo-400 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200"
+                                                        rows="2" autocomplete="off" placeholder="Add note..." aria-label="Note">{{ $row->csnote_detail ?? '' }}</textarea>
                                                 </td>
                                             </tr>
                                         @endforeach
@@ -854,24 +850,54 @@
                 data-vendor-addr="${_.escape(v.vendor_addr1 ?? '')}"
                 data-vendor-phone="${_.escape(v.phone_number ?? '')}"
                 data-vendor-cp="${_.escape(v.contact_person ?? '')}">
-                <div class="flex flex-col items-left text-left text-sm">
-                <div class="font-bold text-gray-800 dark:text-gray-100 break-words">${v.vendor_name}</div>
-                <div class="mt-1 space-y-0.5 text-xs text-gray-600 dark:text-gray-300 leading-4">
-                    <div>✉️ ${v.contact_person ?? '-'}</div>
-                    <div>☎️ ${v.phone_number ?? '-'}</div>
-                    <div>🏠 ${v.vendor_addr1 ?? '-'}</div>
-                </div>
-                <div class="flex items-center gap-2">
-                    <span class="text-xs font-semibold text-gray-600 dark:text-gray-300">Payment Term:</span>
-                    <select name="cara_bayar_${idKey}" 
-                    class="cara-bayar w-40 rounded-full border border-gray-300 bg-white px-3 py-1 
-                            text-xs font-medium shadow-sm focus:border-indigo-500 focus:ring 
-                            focus:ring-indigo-500/50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200">
-                    ${TOPS_OPTIONS_HTML}
-                    </select>
+                <div class="flex flex-col text-left text-sm">
+
+                    <!-- Vendor Name + Info Icon -->
+                    <div class="flex items-center gap-1 font-bold text-gray-800 dark:text-gray-100 break-words">
+                        <span>${v.vendor_name}</span>
+
+                        <!-- INFO ICON -->
+                        <div class="relative group inline-block cursor-default">
+                            <button class="flex h-4 w-4 items-center justify-center 
+                                        rounded-full bg-gray-200 text-gray-700 text-[10px]
+                                        dark:bg-gray-700 dark:text-gray-200">
+                                i
+                            </button>
+
+                            <!-- TOOLTIP -->
+                            <div class="pointer-events-none absolute left-1/2 top-full z-50 mt-2 
+                                        w-64 -translate-x-1/2 rounded-md bg-gray-900 p-3 text-xs text-gray-200 
+                                        shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible 
+                                        transition-opacity duration-200">
+
+                                <div class="font-semibold text-white mb-1">${v.vendor_name}</div>
+
+                                <div class="space-y-1 text-gray-300 leading-4">
+                                    <div>✉️ ${v.contact_person ?? '-'}</div>
+                                    <div>☎️ ${v.phone_number ?? '-'}</div>
+                                    <div>🏠 ${v.vendor_addr1 ?? '-'}</div>
+                                </div>
+
+                                <!-- Arrow -->
+                                <div class="absolute -top-1 left-1/2 h-2 w-2 -translate-x-1/2 rotate-45 bg-gray-900"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Payment Term -->
+                    <div class="flex items-center gap-2 mt-1">
+                        <span class="text-xs font-semibold text-gray-600 dark:text-gray-300">Payment Term:</span>
+
+                        <select name="cara_bayar_${idKey}" 
+                            class="cara-bayar w-40 rounded-full border border-gray-300 bg-white px-3 py-1 
+                                text-xs font-medium shadow-sm focus:border-indigo-500 focus:ring 
+                                focus:ring-indigo-500/50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200">
+                            ${TOPS_OPTIONS_HTML}
+                        </select>
+                    </div>
 
                 </div>
-                </div>
+
                 <button type="button" class="btn-del absolute top-1 right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-600 text-xs text-white shadow hover:bg-red-700" data-id="${idKey}">✕</button>
             </th>
             `);
@@ -1467,7 +1493,7 @@
                 const uom = $tr.data('uom') || '';
                 const invId = $tr.data('inventoryid') || '';
                 const invDescr = $tr.data('inventory_descr') || '';
-                const lastPrice = Number($tr.data('lastprice') || 0);                
+                const lastPrice = Number($tr.data('lastprice') || 0);
                 const csNote = String($tr.find('.note-input').val() || '');
 
                 const row = {
