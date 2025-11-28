@@ -202,12 +202,10 @@
                                         Vendor</td>
                                     @foreach ($vendors as $i => $v)
                                         <td class="border px-4 py-4 text-left">
-                                            <div class="flex justify-between">
-                                                <div>Total Material: <span class="sum-mat"
-                                                        data-vendor="{{ $i + 1 }}">0</span></div>
-                                                <div>Total Jasa: <span class="sum-jsa"
-                                                        data-vendor="{{ $i + 1 }}">0</span>
-                                                </div>
+                                            <div>Total Material: <span class="sum-mat"
+                                                    data-vendor="{{ $i + 1 }}">0</span></div>
+                                            <div>Total Jasa: <span class="sum-jsa"
+                                                    data-vendor="{{ $i + 1 }}">0</span>
                                             </div>
                                             <div class="mt-1 font-bold text-indigo-600">Grand Total: <span
                                                     class="sum-grand" data-vendor="{{ $i + 1 }}">0</span></div>
@@ -276,11 +274,11 @@
                     // const descr = tds[2].textContent.trim();
                     // const qty = toFixed2(tds[3].querySelector('.bq-qty').value);
                     // const uom = tds[4].textContent.trim();
-                    const bqNo  = getCellValue(tds[0]); // cuma "1", bukan "No: 1"
-                    const line  = getCellValue(tds[1]); // cuma "1"
+                    const bqNo = getCellValue(tds[0]); // cuma "1", bukan "No: 1"
+                    const line = getCellValue(tds[1]); // cuma "1"
                     const descr = getCellValue(tds[2]); // hanya deskripsi
-                    const qty   = toFixed2(tds[3].querySelector('.bq-qty').value);
-                    const uom   = getCellValue(tds[4]); // cuma "LOT"
+                    const qty = toFixed2(tds[3].querySelector('.bq-qty').value);
+                    const uom = getCellValue(tds[4]); // cuma "LOT"
 
 
                     const rowVendors = [];
