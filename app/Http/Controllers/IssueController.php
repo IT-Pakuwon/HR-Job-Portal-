@@ -737,7 +737,10 @@ class IssueController extends Controller
     public function uploadAttachments(Request $request, $spbid)
     {
         try {
-            $user = $request->user();
+            // $user = $request->user();
+            $user = Auth::user();
+            $username = $user ? $user->username : 'system';
+            
             $year = (int) ($request->input('year') ?? now()->year);
 
             $created = [];
@@ -1541,8 +1544,10 @@ class IssueController extends Controller
     // Simpan dokumen return
     public function storeReturn(Request $request)
     {
-        $user = $request->user();
-        $username = $user->username ?? 'system';
+        // $user = $request->user();
+        // $username = $user->username ?? 'system';
+        $user = Auth::user();
+        $username = $user ? $user->username : 'system';
 
         $eid = (string)$request->input('iss', '');
         $id  = Hashids::decode($eid)[0] ?? null;

@@ -114,7 +114,9 @@ class ChangestoController extends Controller
         ]);
 
         $doctype = 'CSO';
-        $user = $request->user();
+        // $user = $request->user();
+        $user = Auth::user();
+        $username = $user ? $user->username : 'system';
         $datenow = Carbon::now()->format('Y-m-d');
         $dt = Carbon::now();
         $year = $dt->year;

@@ -5,12 +5,16 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\TrMessage;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Auth;
 
 class SendCommentController extends Controller
 {
     public function sendmsg(int $id, string $doctype, Request $request)
     {
-        $user = $request->user();   // ambil user yg login
+        // $user = $request->user();   // ambil user yg login
+        $user = Auth::user();
+        $username = $user ? $user->username : 'system';
+
 
         TrMessage::create([
             'refnbr'        => $request->docid,          // menyesuaikan dengan nama field baru

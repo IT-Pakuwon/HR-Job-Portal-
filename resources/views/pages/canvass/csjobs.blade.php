@@ -547,37 +547,42 @@
 
 
                 {{-- === PANE: My Revision === --}}
+                {{-- === PANE: My Revision (TrPO Reuse) === --}}
                 <div id="pane-revision" class="hidden">
                     <h2 class="mb-2 text-xl font-semibold">My Revision</h2>
                     <table id="tblRevision" class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                         <thead class="bg-gray-50 dark:bg-gray-700">
                             <tr>
                                 <th class="w-2 px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">
-                                    Action</th>
-                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">DocID
+                                    Action
                                 </th>
-                                <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">Assign
-                                    Date</th>
-                                <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">Date
+                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">
+                                    PO Number
+                                </th>
+                                <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">
+                                    PO Date
+                                </th>
+                                <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">
+                                    CSID
+                                </th>
+                                <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">
+                                    SPPBJKT
                                 </th>
                                 <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">
                                     Company
                                 </th>
-                                <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">Name
-                                </th>
-                                <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">Assign
-                                    Purchasing</th>
-                                <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">Assign
-                                    By</th>
                                 <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">
-                                    Department</th>
-                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">
-                                    Description</th>
+                                    Department
+                                </th>
+                                <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">
+                                    Vendor
+                                </th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-800"></tbody>
                     </table>
                 </div>
+
 
                 {{-- === PANE: All Jobs === --}}
                 <div id="pane-all" class="hidden">
@@ -855,10 +860,10 @@
                     type: "GET"
                 },
                 order: [
-                    [3, 'desc'],
-                    [1, 'desc']
+                    [2, 'desc'], // sort by PO Date
+                    [1, 'desc']  // then by PO Number
                 ],
-                columns: colSetWithCreate(),
+                columns: colSetRevision(),
                 searchDelay: 400,
                 stateSave: true,
                 responsive: true
@@ -1020,4 +1025,68 @@
             });
         });
     </Script>
+    <script>
+        function colSetRevision() {
+        // kolom Action (Create CS untuk PO)
+        const actionCol = {
+            data: null,
+            orderable: false,
+            searchable: false,
+            className: 'text-left',
+            render: (_d, _t, row) => {
+                // backend kirim doc_type = 'PO' dan eid = hashids(ponbr)
+                const createUrl = `/createcs/${row.doc_type}/${row.eid}`;
+                return `
+                    <div class="inline-flex gap-2">
+                        <a href="${createUrl}"
+                            class="inline-flex justify-center items-center px-3 py-1.5 text-sm font-medium text-white rounded bg-blue-500 hover:bg-blue-700"
+                            title="Create CS dari PO">
+                            <i class="fas fa-plus"></i>
+                        </a>
+                    </div>`;
+            }
+        };
+
+        return [
+            actionCol,
+            {
+                data: 'ponbr',
+                className: 'text-left',
+                render: (v, _t, row) => v || row.doc_no || '-' // jaga-jaga kalau backend pakai doc_no
+            },
+            {
+                data: 'podate',
+                className: 'text-center',
+                render: v =>
+                    v ? (isNaN(new Date(v)) ? v : new Date(v).toLocaleDateString('id-ID')) : ''
+            },
+            {
+                data: 'csid',
+                className: 'text-center',
+                defaultContent: '-'
+            },
+            {
+                data: 'sppbjktid',
+                className: 'text-center',
+                defaultContent: '-'
+            },
+            {
+                data: 'cpny_id',
+                className: 'text-center',
+                defaultContent: '-'
+            },
+            {
+                data: 'department_id',
+                className: 'text-center',
+                defaultContent: '-'
+            },
+            {
+                data: 'vendorname',
+                className: 'text-left',
+                defaultContent: '-'
+            },
+        ];
+    }
+
+    </script>
 </x-app-layout>

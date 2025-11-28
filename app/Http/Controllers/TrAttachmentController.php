@@ -9,6 +9,7 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class TrAttachmentController extends Controller
 {
@@ -100,7 +101,9 @@ class TrAttachmentController extends Controller
     public function uploadAttachments(Request $request, string $doctype, string $refnbr)
     {
         // dd($request->all());
-        $user = $request->user();
+        // $user = $request->user();
+        $user = Auth::user();
+        $username = $user ? $user->username : 'system';
 
         if (!$request->hasFile('attachments')) {
             return response()->json(['success' => false, 'message' => 'No files received.'], 422);

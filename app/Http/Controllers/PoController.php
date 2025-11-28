@@ -32,6 +32,8 @@ use Illuminate\Support\Str;
 use App\Models\MsTopdetail;
 use App\Models\TrPOterm;
 use App\Models\TrRfca;
+use App\Models\TrPOReuse;
+
 
 class PoController extends Controller
 {
@@ -265,6 +267,9 @@ class PoController extends Controller
         $reasonLine = "CANCEL REUSE: ".$data['reason'];       
         $po->save();
 
+        // Insert detail ke tabel Reuse
+        $this->insertPOReuse($po);
+
         $fakeReq = new \Illuminate\Http\Request([
             'docid'  => $po->ponbr,
             'reason' => $reasonLine,
@@ -316,7 +321,9 @@ class PoController extends Controller
     public function uploadAttachments_xxx(Request $request, $poid)
     {
         try {
-            $user = $request->user();
+            // $user = $request->user();
+            $user = Auth::user();
+            $username = $user ? $user->username : 'system';
             $year = (int) ($request->input('year') ?? now()->year);
 
             $created = [];
@@ -1253,6 +1260,60 @@ class PoController extends Controller
             ]);
         }
     }
+
+    private function insertPOReuse($po)
+    {
+        $user     = Auth::user();
+        $username = $user->username ?? 'system';
+        // Ambil semua detail dari TrPOdetail
+        $details = \App\Models\TrPOdetail::where('ponbr', $po->ponbr)->get();
+
+        if ($details->isEmpty()) {
+            return;
+        }
+
+        foreach ($details as $d) {
+
+            \App\Models\TrPOReuse::create([
+                'cpny_id'                 => $po->cpny_id ?? null,
+                'ponbr'                   => $d->ponbr,
+                'po_no'                   => $d->po_no,
+                'csid'                    => $d->csid,
+                'cs_no'                   => $d->cs_no,
+                'sppbjktid'               => $d->sppbjktid,
+                'sppbjktid_no'            => $d->sppbjktid_no,
+                'inventory_type'          => $d->inventory_type,
+                'inventory_sub_type'      => $d->inventory_sub_type,
+                'inventory_category'      => $d->inventory_category,
+                'inventoryid'             => $d->inventoryid,
+                'inventory_descr'         => $d->inventory_descr,
+                'qty'                     => $d->qty,
+                'uom'                     => $d->uom,
+                'type_multiplier'         => $d->type_multiplier,
+                'base_multiplier'         => $d->base_multiplier,
+                'base_qty'                => $d->base_qty,
+                'base_uom'                => $d->base_uom,
+                'budget_perpost'          => $d->budget_perpost,
+                'budget_cpny_id'          => $d->budget_cpny_id,
+                'budget_business_unit_id' => $d->budget_business_unit_id,
+                'budget_department_fin_id'=> $d->budget_department_fin_id,
+                'budget_account_id'       => $d->budget_account_id,
+                'budget_activity_id'      => $d->budget_activity_id,
+                'budget_activity_descr'   => $d->budget_activity_descr,
+
+                // default openordered/ordered dkk = 0
+                'openordered'             => 0,
+                'ordered'                 => 0,
+                'rejectordered'           => 0,
+                'completeordered'         => 0,
+
+                'status'                  => 'R', // reuse
+                'created_by'              => $username,
+                'created_at'              => now(),
+            ]);
+        }
+    }
+
 
 
     

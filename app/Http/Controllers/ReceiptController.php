@@ -1366,7 +1366,9 @@ class ReceiptController extends Controller
     public function uploadAttachments(Request $request, $poid)
     {
         try {
-            $user = $request->user();
+            // $user = $request->user();
+            $user = Auth::user();
+            $username = $user ? $user->username : 'system';
             $year = (int) ($request->input('year') ?? now()->year);
 
             $created = [];
@@ -1771,8 +1773,10 @@ class ReceiptController extends Controller
     // Simpan dokumen return
     public function storeReturn(Request $request)
     {
-        $user = $request->user();
-        $username = $user->username ?? 'system';
+        // $user = $request->user();
+        $user = Auth::user();
+        $username = $user ? $user->username : 'system';
+        // $username = $user->username ?? 'system';
 
         $eid = (string)$request->input('rcp', '');
         $id  = Hashids::decode($eid)[0] ?? null;

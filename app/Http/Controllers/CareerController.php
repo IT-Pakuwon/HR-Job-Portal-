@@ -666,7 +666,9 @@ class CareerController extends Controller
     public function rollbackCareer(Request $request, $docid)
     {
         $now  = Carbon::now()->toDateTimeString();
-        $user = $request->user();
+        // $user = $request->user();
+        $user = Auth::user();
+        $username = $user ? $user->username : 'system';
 
         $career = Career::where('docid', $docid)->first();
         if (!$career) {
@@ -2307,7 +2309,9 @@ class CareerController extends Controller
 
         DB::beginTransaction();
         try {
-            $user = $request->user();
+            // $user = $request->user();
+            $user = Auth::user();
+            $username = $user ? $user->username : 'system';
 
             // Ambil payroll berdasar applicant_id, dan tambahkan filter jobapply_id kalau ada
             $payrollQuery = PayrollConfirm::where('applicant_id', $data['applicant_id']);
