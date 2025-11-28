@@ -213,7 +213,13 @@
                     <div class="w-full rounded-xl bg-white p-6 shadow-md dark:bg-gray-800">
                         <!-- Header -->
                         <div class="mb-6 border-b border-gray-200 pb-4 dark:border-gray-700">
-                            <h2 class="text-xl font-extrabold text-gray-800 dark:text-white">Create CS</h2>
+                            <h2 class="text-xl font-extrabold text-gray-800 dark:text-white">
+                            @if($doc === 'PO')
+                                Create CS Revision for PO
+                            @else
+                                Create CS
+                            @endif
+                            </h2>
                         </div>
 
                         <div class="grid grid-cols-1 gap-6 md:grid-cols-3">
@@ -223,8 +229,13 @@
 
                                 <!-- SPPB/J/K/T -->
                                 <div>
-                                    <label class="text-sm font-medium text-gray-600 dark:text-gray-400">SPPB/J/K/T
-                                        ID</label>
+                                    <label class="text-sm font-medium text-gray-600 dark:text-gray-400">                                        
+                                        @if($doc === 'PO')
+                                            PO NBR
+                                        @else
+                                            SPPB/J/K/T ID
+                                        @endif
+                                    </label>
                                     <input type="text" value="{{ $docno }}" readonly
                                         class="mt-1 w-full rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
                                 </div>

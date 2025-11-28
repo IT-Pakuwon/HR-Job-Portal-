@@ -668,7 +668,7 @@
 
             function renderDocBtn(row) {
                 const base = mapShowUrl[row.doc_type] || '#';
-                return `<a href="/${base}/${row.eid}" class=                                     'inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-base leading-tight font-semibold text-white rounded text-center transition-colors duration-200 bg-gray-500 hover:bg-gray-700'>${row.doc_no}</a>`;
+                return `<a href="/${base}/${row.eid}" class='inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-base leading-tight font-semibold text-white rounded text-center transition-colors duration-200 bg-gray-500 hover:bg-gray-700'>${row.doc_no}</a>`;
             }
 
             function colSetWithoutCreate() {
@@ -717,19 +717,7 @@
                 ];
             }
 
-            // function colSetWithCreate() {
-            //     const createCol = {
-            //         data: null,
-            //         orderable: false,
-            //         searchable: false,
-            //         className: 'text-left',
-            //         render: (_d, _t, row) => `<a href="${buildCreateUrl(row)}" class="inline-flex justify-center items-center px-4 py-2 text-sm leading-tight font-medium text-white rounded text-center transition-colors duration-200 bg-blue-500 hover:bg-blue-700">
-        //         <i class="fas fa-plus"></i></a>`
-            //     };
-            //     return [createCol, ...colSetWithoutCreate()];
-            // }
-
-
+            
             function colSetWithCreate() {
                 const actionCol = {
                     data: null,
@@ -950,6 +938,72 @@
             });
         });
     </script>
+    <script>
+        function colSetRevision() {
+        // kolom Action (Create CS untuk PO)
+        const actionCol = {
+            data: null,
+            orderable: false,
+            searchable: false,
+            className: 'text-left',
+            render: (_d, _t, row) => {
+                // backend kirim doc_type = 'PO' dan eid = hashids(ponbr)
+                const createUrl = `/createcs/${row.doc_type}/${row.eid}`;
+                return `
+                    <div class="inline-flex gap-2">
+                        <a href="${createUrl}"
+                            class="inline-flex justify-center items-center px-3 py-1.5 text-sm font-medium text-white rounded bg-blue-500 hover:bg-blue-700"
+                            title="Create CS dari PO">
+                            <i class="fas fa-plus"></i>
+                        </a>
+                    </div>`;
+            }
+        };
+
+        return [
+            actionCol,
+            {
+                data: 'ponbr',
+                className: 'text-left',                
+                render: (v, _t, row) =>
+                            `<a href="/showpo/${row.eid}" class="inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-base leading-tight font-semibold text-white rounded text-center transition-colors duration-200 bg-gray-500 hover:bg-gray-700">${v}</a>`
+            },          
+
+            {
+                data: 'podate',
+                className: 'text-center',
+                render: v =>
+                    v ? (isNaN(new Date(v)) ? v : new Date(v).toLocaleDateString('id-ID')) : ''
+            },
+            {
+                data: 'csid',
+                className: 'text-center',
+                defaultContent: '-'
+            },
+            {
+                data: 'sppbjktid',
+                className: 'text-center',
+                defaultContent: '-'
+            },
+            {
+                data: 'cpny_id',
+                className: 'text-center',
+                defaultContent: '-'
+            },
+            {
+                data: 'department_id',
+                className: 'text-center',
+                defaultContent: '-'
+            },
+            {
+                data: 'vendorname',
+                className: 'text-left',
+                defaultContent: '-'
+            },
+        ];
+    }
+
+    </script>
     <Script>
         // Klik tombol X untuk complete sisa openordered
         $(document).on('click', '.btn-complete-open', function() {
@@ -1025,68 +1079,5 @@
             });
         });
     </Script>
-    <script>
-        function colSetRevision() {
-        // kolom Action (Create CS untuk PO)
-        const actionCol = {
-            data: null,
-            orderable: false,
-            searchable: false,
-            className: 'text-left',
-            render: (_d, _t, row) => {
-                // backend kirim doc_type = 'PO' dan eid = hashids(ponbr)
-                const createUrl = `/createcs/${row.doc_type}/${row.eid}`;
-                return `
-                    <div class="inline-flex gap-2">
-                        <a href="${createUrl}"
-                            class="inline-flex justify-center items-center px-3 py-1.5 text-sm font-medium text-white rounded bg-blue-500 hover:bg-blue-700"
-                            title="Create CS dari PO">
-                            <i class="fas fa-plus"></i>
-                        </a>
-                    </div>`;
-            }
-        };
-
-        return [
-            actionCol,
-            {
-                data: 'ponbr',
-                className: 'text-left',
-                render: (v, _t, row) => v || row.doc_no || '-' // jaga-jaga kalau backend pakai doc_no
-            },
-            {
-                data: 'podate',
-                className: 'text-center',
-                render: v =>
-                    v ? (isNaN(new Date(v)) ? v : new Date(v).toLocaleDateString('id-ID')) : ''
-            },
-            {
-                data: 'csid',
-                className: 'text-center',
-                defaultContent: '-'
-            },
-            {
-                data: 'sppbjktid',
-                className: 'text-center',
-                defaultContent: '-'
-            },
-            {
-                data: 'cpny_id',
-                className: 'text-center',
-                defaultContent: '-'
-            },
-            {
-                data: 'department_id',
-                className: 'text-center',
-                defaultContent: '-'
-            },
-            {
-                data: 'vendorname',
-                className: 'text-left',
-                defaultContent: '-'
-            },
-        ];
-    }
-
-    </script>
+    
 </x-app-layout>

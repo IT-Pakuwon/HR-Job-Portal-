@@ -93,6 +93,11 @@ class TrPO extends Model
         'reuse'               => 'boolean',
     ];
 
+    public function creator()
+    {
+        return $this->belongsTo(User::class, 'created_by', 'username');
+    }
+
     // Relasi
     public function details()
     {

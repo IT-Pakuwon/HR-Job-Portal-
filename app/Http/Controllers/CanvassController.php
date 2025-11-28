@@ -56,6 +56,7 @@ use App\Http\Controllers\IMBudgetController;
 use App\Models\TrBQCS;
 use App\Models\TrBQCSDetail;
 use App\Models\MsTop;
+use App\Models\TrPOReuse;
 
 
 class CanvassController extends Controller
@@ -66,14 +67,15 @@ class CanvassController extends Controller
     {
         $src = \Hashids::decode($hash)[0] ?? null;
         abort_if(!$src, 404);
-
+        
         $doc = strtoupper($doc);
-        abort_unless(in_array($doc, ['SPPB','SPPJ','SPPK','SPPT']), 404, 'Invalid doc type');
+        abort_unless(in_array($doc, ['SPPB','SPPJ','SPPK','SPPT','PO']), 404, 'Invalid doc type');
+
 
         $header = null;
         $detail = collect();
         $docno  = null;
-
+       
         switch ($doc) {
             case 'SPPB':
                 $header = TrSPPB::with([
@@ -126,8 +128,61 @@ class CanvassController extends Controller
                 $docno  = $header->spptno ?? $header->doc_no ?? $header->spptid;
                 $top_type = 'SPK';
                 break;
-        }
 
+            case 'PO':
+
+                // 1. Ambil dulu header PO asli
+                $poHeader = TrPO::with([
+                    'creator:username,name'
+                ])->findOrFail($src);
+
+                // Simpan dulu default header = PO
+                $header = $poHeader;
+
+                // 2. Ambil sppbjktid dari PO
+                $sppbjktid = $poHeader->sppbjktid ?? null;
+
+                // 3. Coba cari di masing-masing header source (SPPB / SPPJ / SPPK / SPPT)
+                if ($sppbjktid) {
+                    // urutan pengecekan: SPPB -> SPPJ -> SPPK -> SPPT
+                    $headerSource = TrSPPB::where('sppbid', $sppbjktid)->first();
+                    if (!$headerSource) {
+                        $headerSource = TrSPPJ::where('sppjid', $sppbjktid)->first();
+                    }
+                    if (!$headerSource) {
+                        $headerSource = TrSPPK::where('sppkid', $sppbjktid)->first();
+                    }
+                    if (!$headerSource) {
+                        $headerSource = TrSPPT::where('spptid', $sppbjktid)->first();
+                    }
+
+
+                    // kalau ada salah satu yang ketemu, pakai itu sebagai header
+                    if ($headerSource) {
+                        $header = $headerSource;
+                        // dd($header);
+                    }
+                }
+
+                // 4. Detail tetap REUSE dari TrPOReuse (berdasarkan PO)
+                $detail = TrPOReuse::where('ponbr', $poHeader->ponbr)
+                    ->where(function($q){
+                        $q->whereNull('openordered')
+                        ->orWhere('openordered', '>', 0);
+                    })
+                    ->orderBy('id','asc')
+                    ->get();
+
+                // 5. Ref attachment & info nomor tetap pakai PO
+                $refnbr   = $poHeader->ponbr;                    // ref ke attachment tetap PO
+                $docno    = $poHeader->po_no ?? $poHeader->ponbr;
+                $top_type = $poHeader->potype ?? 'PO';
+
+                break;
+
+
+        }
+        
         // ===== Ambil lampiran dari TrAttachment (berdasarkan refnbr) =====
         $rows = TrAttachment::where('refnbr', $refnbr)
             ->where('status', 'A')
@@ -193,8 +248,60 @@ class CanvassController extends Controller
         ]);
     }
 
-
     private function mapRemainingLines($detail)
+    {
+        return $detail->map(function ($row) {
+            // Deteksi apakah ini baris dari TrPOReuse
+            $isPoReuse = $row instanceof \App\Models\TrPOReuse;
+
+            // --- 1. Ambil angka dasar ---
+            // Untuk PO Reuse, biasanya qty utama ada di base_qty atau qty
+            if ($isPoReuse) {
+                $qtyTotal = (float) ($row->base_qty ?? $row->qty ?? 0);
+            } else {
+                $qtyTotal = (float) ($row->qty ?? 0);
+            }
+
+            $ordered   = (float) ($row->ordered ?? 0);
+            $rejected  = (float) ($row->rejectordered ?? 0);
+            // Di model TrPOReuse: 'completedordered' (bukan completeordered),
+            // jadi kita cover dua-duanya biar aman.
+            $completed = (float) ($row->completeordered ?? $row->completedordered ?? 0);
+
+            // --- 2. Hitung remaining / open ---
+            if (isset($row->openordered) && $row->openordered !== null) {
+                // Kalau sudah ada kolom openordered → itu yang kita anggap "sisa" yang boleh dipakai
+                $remaining = (float) $row->openordered;
+            } else {
+                // Kalau tidak ada openordered, hitung manual
+                $remaining = max($qtyTotal - $ordered - $rejected - $completed, 0);
+            }
+
+            // --- 3. Set qty yang akan dipakai di create CS ---
+            // createcs view biasanya pakai $row->qty sebagai "sisa" yang bisa diinput.
+            $row->qty = $remaining;
+
+            // --- 4. Sinkronkan base_qty (kalau ada base_multiplier) ---
+            if (isset($row->base_multiplier) && is_numeric($row->base_multiplier)) {
+                $row->base_qty = round($remaining * (float) $row->base_multiplier, 3);
+            } elseif (!isset($row->base_qty)) {
+                // fallback: kalau tidak ada base_multiplier, set base_qty = qty
+                $row->base_qty = $remaining;
+            }
+
+            return $row;
+        })
+        ->filter(function ($row) {
+            // hanya kembalikan baris yang masih punya sisa > 0
+            return (float) $row->qty > 0;
+        })
+        ->values();
+    }
+
+
+
+
+    private function mapRemainingLines_xxx($detail)
     {
         return $detail->map(function ($row) {
             // Cast angka

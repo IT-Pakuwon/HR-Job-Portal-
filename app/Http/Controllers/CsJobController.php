@@ -187,7 +187,8 @@ class CsJobController extends Controller
             3 => 'created_by',
             4 => 'department_id',
             5 => 'csid',
-            6 => 'sppbjktid'
+            6 => 'sppbjktid',
+            7 => 'vendorname'
         ];
 
         $orderIdx = (int) $request->input('order.0.column', 1);
@@ -205,6 +206,7 @@ class CsJobController extends Controller
                 ->orWhere('department_id', 'ilike', "%{$search}%")
                 ->orWhere('csid', 'ilike', "%{$search}%")
                 ->orWhere('sppbjktid', 'ilike', "%{$search}%")
+                ->orWhere('vendorname', 'ilike', "%{$search}%")
                 ->orWhere('created_by', 'ilike', "%{$search}%")
                 ->orWhereRaw("TO_CHAR(podate, 'YYYY-MM-DD HH24:MI:SS') ILIKE ?", ["%{$search}%"]);
             });
@@ -214,13 +216,15 @@ class CsJobController extends Controller
 
         // select field khusus revisi
         $data = $base->select(
+                    'id',
                     'ponbr',
                     'podate',
                     'cpny_id',
                     'created_by',
                     'department_id',
                     'csid',
-                    'sppbjktid'
+                    'sppbjktid',
+                    'vendorname'
                 )
                 ->orderBy($orderCol, $orderDir)
                 ->skip($start)
@@ -230,7 +234,7 @@ class CsJobController extends Controller
         // enrichment: samakan field agar cocok dengan DataTables existing
         $data->transform(function($r){
             $r->doc_type = 'PO';   // wajib untuk tombol CreateCS
-            $r->eid = \Hashids::encode($r->ponbr); // sama seperti dokumen lain
+            $r->eid = \Hashids::encode($r->id); // sama seperti dokumen lain
             $r->doc_no = $r->ponbr;
 
             // kolom yang tidak ada → diisi null

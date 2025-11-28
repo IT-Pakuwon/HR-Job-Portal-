@@ -60,6 +60,9 @@ use App\Models\CompanyAddress;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Hash;
 use Vinkla\Hashids\Facades\Hashids;
+use App\Models\TrApproval;
+use App\Models\TrMessage;
+
 
 class CareerController extends Controller
 {
@@ -442,11 +445,46 @@ class CareerController extends Controller
 
 
     
-    public function fetchComments($id)
-    {
+    // public function fetchComments($id)
+    // {
     
-        $comments = T_Message::where('docid', $id)
-            ->orderBy('created_at', 'desc')
+    //     $comments = T_Message::where('docid', $id)
+    //         ->orderBy('created_at', 'desc')
+    //         ->get();
+
+    //     return response()->json([
+    //         'status' => 'success',
+    //         'comments' => $comments
+    //     ]);
+    // }
+    // public function storeComment(Request $request, $id)
+    // {
+    //     $request->validate([
+    //         'comment' => 'required|string|max:500',
+    //     ]);
+    //     // dd($id);
+    //     $user = request()->user();
+    //     $comment = new T_Message();
+    //     $comment->docid = $id;
+    //     $comment->doctype = 'PRF';
+    //     $comment->username = $user->username; 
+    //     $comment->name = $user->name; 
+    //     $comment->message = $request->comment;
+    //     $comment->status = 'A';
+    //     $comment->created_at = now();
+    //     $comment->save();
+
+    //     return response()->json([
+    //         'status' => 'success',
+    //         'message' => 'Comment added successfully!',
+    //         'comment' => $comment
+    //     ]);
+    // }
+
+     public function fetchComments($refnbr)
+    {
+        $comments = TrMessage::where('refnbr', $refnbr)
+            ->orderBy('message_date', 'desc')
             ->get();
 
         return response()->json([
@@ -454,25 +492,30 @@ class CareerController extends Controller
             'comments' => $comments
         ]);
     }
-    public function storeComment(Request $request, $id)
+
+    public function storeComment(Request $request, $refnbr)
     {
         $request->validate([
             'comment' => 'required|string|max:500',
         ]);
-        // dd($id);
-        $user = request()->user();
-        $comment = new T_Message();
-        $comment->docid = $id;
-        $comment->doctype = 'PRF';
-        $comment->username = $user->username; 
-        $comment->name = $user->name; 
-        $comment->message = $request->comment;
-        $comment->status = 'A';
-        $comment->created_at = now();
-        $comment->save();
+
+        $user = Auth::user();   // ambil user login
+        
+        $comment = TrMessage::create([
+            'refnbr'        => $refnbr,
+            'doctype'       => 'PRF',
+            'message_date'  => now(),
+            'cpny_id'        => $user->cpnyid ?? null,
+            'department_id' => $user->departmentid ?? null,
+            'username'      => $user->username,
+            'name'          => $user->name,
+            'message'       => $request->comment,
+            'status'        => 'A',
+            'created_by'    => $user->username,
+        ]);
 
         return response()->json([
-            'status' => 'success',
+            'status'  => 'success',
             'message' => 'Comment added successfully!',
             'comment' => $comment
         ]);
@@ -497,9 +540,13 @@ class CareerController extends Controller
         }
         // dd($user);
         // Cek apakah user termasuk dalam daftar approval
-        $cek_approval = T_approval::where('docid', $jobposting->refid)
-            ->where('aprvusername', 'like', '%' . $user->username . '%')
-            ->where('aprvid','>',1)
+        // $cek_approval = T_approval::where('docid', $jobposting->refid)
+        //     ->where('aprvusername', 'like', '%' . $user->username . '%')
+        //     ->where('aprvid','>',1)
+        //     ->first();
+        $cek_approval = TrApproval::where('refnbr', $jobposting->refid)
+            ->where('aprv_username', 'like', '%' . $user->username . '%')
+            ->where('aprv_leveling', '>', 1)
             ->first();
        
         $hasGroupAccess = GroupAccspecific::where('username', $user->username)
@@ -596,10 +643,16 @@ class CareerController extends Controller
         }
 
         // Cek apakah user termasuk dalam daftar approval
-        $cek_approval = T_approval::where('docid', $jobposting->refid)
+        // $cek_approval = T_approval::where('docid', $jobposting->refid)
+        //     ->where(function ($q) use ($user) {
+        //         $q->where('aprvusername', $user->username)
+        //         ->orWhere('aprvusername', 'like', '%'.$user->username.'%');
+        //     })
+        //     ->exists();
+        $cek_approval = TrApproval::where('refnbr', $jobposting->refid)
             ->where(function ($q) use ($user) {
-                $q->where('aprvusername', $user->username)
-                ->orWhere('aprvusername', 'like', '%'.$user->username.'%');
+                $q->where('aprv_username', $user->username)
+                ->orWhere('aprv_username', 'like', '%'.$user->username.'%');
             })
             ->exists();
 
@@ -681,10 +734,16 @@ class CareerController extends Controller
         }
 
         // CEK USER DALAM APPROVAL LINE
-        $inApprovalLine = T_approval::where('docid', $jobposting->refid)
+        // $inApprovalLine = T_approval::where('docid', $jobposting->refid)
+        //     ->where(function ($q) use ($user) {
+        //         $q->where('aprvusername', $user->username)
+        //         ->orWhere('aprvusername', 'like', '%'.$user->username.'%');
+        //     })
+        //     ->exists();
+        $inApprovalLine = TrApproval::where('refnbr', $jobposting->refid)
             ->where(function ($q) use ($user) {
-                $q->where('aprvusername', $user->username)
-                ->orWhere('aprvusername', 'like', '%'.$user->username.'%');
+                $q->where('aprv_username', $user->username)
+                ->orWhere('aprv_username', 'like', '%'.$user->username.'%');
             })
             ->exists();
 
@@ -698,9 +757,12 @@ class CareerController extends Controller
         }
         
         /** ✅ HAPUS TRANSAKSI APPROVAL PENDING DI T_approval */
-        T_approval::where('docid', $docid)
+        // T_approval::where('docid', $docid)
+        //     ->where('status', 'P')
+        //     ->delete(); // <-- ADDED
+        TrApproval::where('refnbr', $docid)   // mapping dari docid → refnbr
             ->where('status', 'P')
-            ->delete(); // <-- ADDED
+            ->delete();
 
         /** Ambil step terakhir yang sudah Approved / Rejected */
         $targetStep = JobApplyStep::where('docid', $career->docid)
@@ -751,121 +813,7 @@ class CareerController extends Controller
     }
 
      
-
-    public function rejectCareerxxx(Request $request, $docid)
-    {
-        $datestamp = Carbon::now()->toDateTimeString();       
-        $user = request()->user(); // Ambil user yang login
-        
-        $career = Career::where('docid', $docid)->first();  
-
-        if (!$career) {
-            return response()->json(['success' => false, 'message' => 'Career not found'], 404);
-        }
-
-        $jobposting = Jobposting::where('docid', $career->jobid)->first();
-
-        if (!$jobposting) {
-            return response()->json(['success' => false, 'message' => 'Job Posting not found'], 404);
-        }
-
-        // Cek apakah user termasuk dalam daftar approval
-        $cek_approval = T_approval::where('docid', $jobposting->refid)
-            ->where('aprvusername', 'like', '%' . $user->username . '%')
-            ->get();
-
-        $hasGroupAccess = GroupAccspecific::where('username', $user->username)
-            ->where('group_access_id', 'STEP')
-            ->where('status', 'A')
-            ->first();
-        // dd($hasGroupAccess);
-        if (!$cek_approval && !$hasGroupAccess) {
-            return response()->json(['success' => false, 'message' => "You Can't Approve!"], 403);
-        }
-     
-        $t_approval = JobApplyStep::where('docid', $career->docid)
-            ->where('status', 'P')           
-            ->orderBy('step_order', 'ASC')
-            ->first();
-        
-        if($hasGroupAccess){
-            $user_step_pic = 'HC';
-        }else{
-            $user_step_pic = 'USER';
-        }
-        // perbaiki disini jika $t_approval->step_pic = $user_step_pic maka bisa approve, jika tidak sama tdk bisa approve
-
-        if (!$t_approval) {
-            return response()->json(['success' => false, 'message' => 'No pending step to approve'], 404);
-        }
-
-        // Tambahkan validasi step_pic
-        if ($t_approval->step_pic !== $user_step_pic) {
-            return response()->json(['success' => false, 'message' => "You can't approve this step"], 403);
-        }
-            
-       
-        $t_approval->status = 'R';
-        $t_approval->aprvuserdate = $datestamp;
-        $t_approval->aprvusername = $user->username;
-        $t_approval->save();
-
-        $career->status = 'R';
-        $career->save();
-
-        $t_aprv_sisa = JobApplyStep::where('docid', '=', $career->docid)
-            ->where('status', '=', 'P')
-            ->get();
-
-        foreach ($t_aprv_sisa as $t_aprv) {
-            $t_aprv->status = 'X';
-            $t_aprv->save();
-        }
-
-        $id = $career->id;
-        $doctype ='JAP';
-        app('App\Http\Controllers\SendCommentController')->sendmsg($id, $doctype, $request);
     
-
-        return response()->json(['success' => true, 'message' => 'Career rejected successfully']);
-    }
-       
-
-    public function checkApprovalxxx($id, $action)
-    {
-        $user = Auth::user(); // Ambil user yang login
-
-        $career = Career::where('docid', $id)->first();
-        if (!$career) {
-            return response()->json(['canPerformAction' => false, 'message' => 'Career not found'], 404);
-        }
-
-        $jobposting = Jobposting::where('docid', $career->jobid)->first();
-        if (!$jobposting) {
-            return response()->json(['canPerformAction' => false, 'message' => 'Job posting not found'], 404);
-        }
-
-        // Mulai query approval
-        $query = T_approval::where('docid', $jobposting->refid)
-            ->where(function ($q) use ($user) {
-                $q->where('aprvusername', $user->username)
-                ->orWhere('aprvusername', 'like', '%'.$user->username.'%');
-            });
-
-        // Tambahan validasi aksi jika perlu
-        if (in_array($action, ['approve', 'reject', 'revise'])) {
-            // Bisa tambahkan logika lebih detail di sini jika diperlukan
-        }
-
-        // Cek apakah username ditemukan
-        $canPerformAction = $query->exists();
-
-        return response()->json([
-            'canPerformAction' => $canPerformAction,
-            'message' => $canPerformAction ? 'Authorized' : 'Unauthorized'
-        ]);
-    }
-
     public function checkApproval($id, $action)
     {
         $user = Auth::user(); // user login
@@ -881,10 +829,16 @@ class CareerController extends Controller
         }
 
         // Apakah user ada di daftar approval dokumen ini?
-        $isInApprovalList = T_approval::where('docid', $jobposting->refid)
+        // $isInApprovalList = T_approval::where('docid', $jobposting->refid)
+        //     ->where(function ($q) use ($user) {
+        //         $q->where('aprvusername', $user->username)
+        //         ->orWhere('aprvusername', 'like', '%'.$user->username.'%');
+        //     })
+        //     ->exists();
+        $isInApprovalList = TrApproval::where('refnbr', $jobposting->refid)
             ->where(function ($q) use ($user) {
-                $q->where('aprvusername', $user->username)
-                ->orWhere('aprvusername', 'like', '%'.$user->username.'%');
+                $q->where('aprv_username', $user->username)
+                ->orWhere('aprv_username', 'like', '%'.$user->username.'%');
             })
             ->exists();
 
@@ -2102,7 +2056,7 @@ class CareerController extends Controller
         return $pdf->stream('applicant-profile.pdf');
     }
 
-    public function insert_trx_approval($career, $user)
+    public function insert_trx_approval_xxx($career, $user)
     {
         $datestamp = Carbon::now()->toDateTimeString();
         DB::beginTransaction();
@@ -2138,6 +2092,8 @@ class CareerController extends Controller
                 ->orderBy('aprvid')
                 ->first();
 
+            $eid = Hashids::encode($career->id);
+
             if ($firstApproval) {
                 $data = [
                     'docid' => $firstApproval->docid,
@@ -2146,7 +2102,7 @@ class CareerController extends Controller
                     'date' => $firstApproval->aprvdatebefore,
                     'name' => $user->username,
                     'info' => 'Apply Candidate',
-                    'url' => url('/showcareers/' . $career->id)
+                    'url' => url('/showcareers/' . $eid)
                 ];
 
                 $approvers = explode(',', $firstApproval->aprvusername);
@@ -2174,35 +2130,117 @@ class CareerController extends Controller
 
     }
 
+    public function insert_trx_approval($career, $user)
+    {
+        $datestamp = Carbon::now()->toDateTimeString();
+        DB::beginTransaction();
+        try {
+
+            $jobposting = Jobposting::where('docid', $career->jobid)->first();
+            
+            // Ambil template approval dari master TrApproval
+            $approvals = TrApproval::where('refnbr', $jobposting->refid)
+                ->where('aprv_leveling','>', 1)    
+                ->where('status','A') 
+                ->orderBy('aprv_leveling', 'ASC')            
+                ->first();
+            // dd($approvals);
+            if (!$approvals) {
+                throw new \Exception('No approval configuration found for this job posting.');
+            }
+        
+            // Insert approval transaksi untuk docid career
+            TrApproval::create([
+                'refnbr'              => $career->docid,
+                'aprv_leveling'       => 1,
+                'aprv_doctype'        => 'JAP',
+                'aprv_cpnyid'         => $approvals->aprv_cpnyid,
+                'aprv_departementid'  => $approvals->aprv_departementid,
+                'aprv_username'       => $approvals->aprv_username,
+                'aprv_name'           => $approvals->aprv_name,
+                'aprv_datebefore'     => $approvals->aprv_leveling == 2 ? $datestamp : null,
+                'aprv_type'           => $approvals->aprv_type ?? null,
+                'aprv_condition'      => $approvals->aprv_condition ?? null,
+                'aprv_start_nominal'  => $approvals->aprv_start_nominal ?? null,
+                'aprv_end_nominal'    => $approvals->aprv_end_nominal ?? null,
+                'status'              => 'P',
+                'created_by'          => $user->username,
+            ]);
+
+            // Kirim email ke approver pertama
+            $firstApproval = TrApproval::where('refnbr', $career->docid)
+                ->where('status', 'P')
+                ->orderBy('aprv_leveling')
+                ->first();
+
+            $eid = Hashids::encode($career->id);
+
+            if ($firstApproval) {
+                $data = [
+                    'docid'    => $firstApproval->refnbr,
+                    'cpnyid'   => $firstApproval->aprv_cpnyid,
+                    'deptname' => $firstApproval->aprv_departementid,
+                    'date'     => $firstApproval->aprv_datebefore,
+                    'name'     => $user->username,
+                    'info'     => 'Apply Candidate',
+                    'url'      => url('/showcareers/' . $eid)
+                ];
+
+                $approvers = explode(',', $firstApproval->aprv_username);
+                $emails = User::whereIn('username', $approvers)
+                    ->where('status', 'A')
+                    ->pluck('notification_email');
+
+                foreach ($emails as $email) {
+                    Mail::send('emails.mailapprove', $data, function ($message) use ($email, $data) {
+                        $message->to($email)
+                            ->subject($data['docid'] . ' - Waiting Approval Apply Candidate')
+                            ->from('digitalserver@pakuwon.com', 'Pakuwon System');
+                    });
+                }
+            }
+            
+            DB::commit();
+            return true;
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            throw $e; // lempar balik supaya controller bisa tangani
+        }
+    }
+
     public function update_trx_approval($career, $user)
     {
         $datestamp = Carbon::now()->toDateTimeString();
         DB::beginTransaction();
         try {
 
-                       
-            // Cek apakah user termasuk dalam daftar approval
-            $approvals = T_approval::where('docid', $career->docid)
-                ->where('aprvid',1)                            
+            // Ambil approval transaksi untuk career.docid level 1
+            $approvals = TrApproval::where('refnbr', $career->docid)
+                ->where('aprv_leveling', 1)
                 ->first();
-            // dd($approvals);
-            $approvals->status = 'A';
-            $approvals->aprvdateafter = $datestamp;
-            $approvals->aprvusername = $user->username;
-            $approvals->name = $user->name;
+
+            if (!$approvals) {
+                throw new \Exception("Approval transaksi level 1 tidak ditemukan.");
+            }
+
+            // Update approval level 1 menjadi Approved
+            $approvals->status          = 'A';
+            $approvals->aprv_dateafter  = $datestamp;
+            $approvals->aprv_username   = $user->username;
+            $approvals->aprv_name       = $user->name;
+            $approvals->updated_by      = $user->username ?? null;
             $approvals->save();
-           
-            
 
             DB::commit();
             return true;
+
         } catch (\Exception $e) {
             DB::rollBack();
-            throw $e; // lempar balik supaya controller bisa tangani
+            throw $e; // lempar ke controller
         }
-            
-
     }
+
 
     public function storeSign(Request $request)
     {

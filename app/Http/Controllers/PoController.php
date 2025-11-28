@@ -1302,7 +1302,7 @@ class PoController extends Controller
                 'budget_activity_descr'   => $d->budget_activity_descr,
 
                 // default openordered/ordered dkk = 0
-                'openordered'             => 0,
+                'openordered'             => $d->qty,
                 'ordered'                 => 0,
                 'rejectordered'           => 0,
                 'completeordered'         => 0,

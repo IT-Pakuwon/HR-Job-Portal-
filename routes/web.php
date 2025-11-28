@@ -557,8 +557,12 @@ Route::post('/logout', function () {
       
 
     Route::get('/createcs/{doc}/{hash}', [CanvassController::class, 'createCS'])
-        ->where(['doc' => 'SPPB|SPPJ|SPPK|SPPT', 'src' => '[0-9]+'])
+        ->where([
+            'doc'  => 'SPPB|SPPJ|SPPK|SPPT|PO',
+            'hash' => '[A-Za-z0-9]+',  // hash dari Hashids
+        ])
         ->name('canvass.createcs');
+
     Route::post('/csstore', [CanvassController::class, 'storeCS'])->name('cs.store');
     Route::post('/cssave', [CanvassController::class, 'saveCS'])->name('cs.save');
     Route::get('/showcs/{hash}', [CanvassController::class, 'showCS']);

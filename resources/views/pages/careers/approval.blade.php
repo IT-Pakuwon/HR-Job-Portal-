@@ -209,83 +209,65 @@
                             </table>
                         </div>
                     </div>
-                    <div class="flex w-full flex-shrink-0 flex-grow md:w-1/3"> {{-- Added flex-grow, flex-shrink-0 --}}
-                        <div x-data="{
-                            isOpen: true,
-                            comments: [],
-                            newComment: '',
-                            currentUser: 'User1',
-                            addComment: function() {
-                                if (this.newComment.trim() !== '') {
-                                    this.comments.push({ user: this.currentUser, text: this.newComment });
-                                    this.newComment = '';
-                                    this.$nextTick(() => {
-                                        const commentList = this.$el.querySelector('#commentList');
-                                        commentList.scrollTop = commentList.scrollHeight;
-                                    });
-                                }
-                            }
-                        }"
-                            class="flex w-full flex-col rounded-lg border border-gray-200 dark:border-gray-700">
-                            {{-- Added w-full here --}}
-                            {{-- Added border to comment box --}}
-                            <header
-                                class="flex cursor-pointer items-center justify-between rounded-t-lg bg-gray-50 px-5 py-3 dark:bg-gray-700"
-                                @click="isOpen = !isOpen">
-                                <h2
-                                    class="flex items-center gap-2 text-lg font-semibold text-gray-700 dark:text-gray-100">
-                                    💬 Comments
-                                </h2>
-                                <button
-                                    class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
-                                    <span x-show="isOpen" class="transform transition-transform duration-300">
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                            stroke-width="2" stroke="currentColor" class="h-5 w-5">
-                                            <path stroke-linecap="round" stroke-linejoin="round"
-                                                d="m19.5 8.25-7.5 7.5-7.5-7.5" />
-                                        </svg>
-                                    </span>
-                                    <span x-show="!isOpen" class="transform transition-transform duration-300">
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                            stroke-width="2" stroke="currentColor" class="h-5 w-5">
-                                            <path stroke-linecap="round" stroke-linejoin="round"
-                                                d="m4.5 15.75 7.5-7.5 7.5 7.5" />
-                                        </svg>
-                                    </span>
-                                </button>
-                            </header>
-                            <div x-show="isOpen" x-collapse.duration.300ms {{-- Alpine.js collapse plugin for smooth open/close --}}
-                                class="flex flex-grow flex-col overflow-hidden"> {{-- Added flex flex-col flex-grow here --}}
-                                <div id="commentList"
-                                    class="flex flex-grow flex-col space-y-3 overflow-y-auto bg-white p-4 dark:bg-gray-800">
-                                    {{-- Fixed height for scrollable comments --}}
-                                    <template x-for="(comment, index) in comments" :key="index">
-                                        <div :class="comment.user === currentUser ?
-                                            'self-end rounded-bl-xl rounded-tr-xl bg-indigo-500 text-white' :
-                                            'self-start rounded-br-xl rounded-tl-xl bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-200'"
-                                            class="max-w-xs p-3 shadow-sm">
-                                            <p class="text-sm"><strong><span x-text="comment.user"></span></strong>:
-                                                <span x-text="comment.text"></span>
-                                            </p>
-                                        </div>
-                                    </template>
-                                    <p x-show="comments.length === 0"
-                                        class="animate-pulse text-center italic text-gray-500">No
-                                        comments yet...</p>
-                                </div>
-                                <div
-                                    class="flex items-center gap-2 border-t border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-700">
-                                    <input x-model="newComment" @keyup.enter="addComment()" type="text"
-                                        placeholder="Write a comment..."
-                                        class="flex-1 rounded-lg border-gray-300 bg-white p-2 text-gray-800 focus:border-indigo-400 focus:ring-indigo-400 dark:border-gray-600 dark:bg-gray-800 dark:text-white">
-                                    <button @click="addComment()"
-                                        class="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition-all duration-200 hover:bg-indigo-700 active:scale-95">
-                                        Post 🚀
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    <div class="flex w-full flex-shrink-0 flex-grow md:w-1/3">
+    <div 
+        x-data="{ isOpen: true }"
+        class="flex w-full flex-col rounded-lg border border-gray-200 dark:border-gray-700"
+    >
+        <header
+            class="flex cursor-pointer items-center justify-between rounded-t-lg bg-gray-50 px-5 py-3 dark:bg-gray-700"
+            @click="isOpen = !isOpen">
+            <h2
+                class="flex items-center gap-2 text-lg font-semibold text-gray-700 dark:text-gray-100">
+                💬 Comments
+            </h2>
+            <button
+                class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+                <span x-show="isOpen" class="transform transition-transform duration-300">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                        stroke-width="2" stroke="currentColor" class="h-5 w-5">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                    </svg>
+                </span>
+                <span x-show="!isOpen" class="transform transition-transform duration-300">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                        stroke-width="2" stroke="currentColor" class="h-5 w-5">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="m4.5 15.75 7.5-7.5 7.5 7.5" />
+                    </svg>
+                </span>
+            </button>
+        </header>
+
+        <div x-show="isOpen" x-collapse.duration.300ms
+            class="flex flex-grow flex-col overflow-hidden">
+            
+            {{-- LIST KOMENTAR (diisi via jQuery / AJAX) --}}
+            <div id="commentList"
+                class="flex flex-grow flex-col space-y-3 overflow-y-auto bg-white p-4 dark:bg-gray-800">
+                <p class="animate-pulse text-center italic text-gray-500">
+                    Loading comments...
+                </p>
+            </div>
+
+            {{-- INPUT + BUTTON POST (dipakai jQuery) --}}
+            <div
+                class="flex items-center gap-2 border-t border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-700">
+                <input id="commentInput"
+                    type="text"
+                    placeholder="Write a comment..."
+                    class="flex-1 rounded-lg border-gray-300 bg-white p-2 text-gray-800 focus:border-indigo-400 focus:ring-indigo-400 dark:border-gray-600 dark:bg-gray-800 dark:text-white">
+                <button id="postCommentBtn"
+                    type="button"
+                    class="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition-all duration-200 hover:bg-indigo-700 active:scale-95">
+                    Post 🚀
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
                 </div>
             </div>
 
@@ -405,14 +387,14 @@
 
 <script>
     $(document).ready(function() {
-        let docid = "{{ $career->docid }}"; // Ambil task ID dari PHP ke JavaScript
+        let docid = "{{ $career->docid }}"; // Ambil docid ke JS
         loadComments(docid);
 
         // **Fungsi untuk Memuat Komentar**
         function loadComments(docid) {
             console.log("Loading comments for Doc ID:", docid);
             let commentList = $('#commentList');
-            commentList.html('<p class="text-gray-500 italic">Loading comments...</p>'); // Loader
+            commentList.html('<p class="text-gray-500 italic">Loading comments...</p>');
 
             $.ajax({
                 url: `/career/${docid}/comments`,
@@ -421,14 +403,13 @@
                     console.log("Comments Loaded:", response);
                     commentList.empty();
 
-                    if (response.comments.length === 0) {
+                    if (!response.comments || response.comments.length === 0) {
                         commentList.append(
                             '<p class="text-gray-500 italic">No comments yet. Be the first to comment!</p>'
                         );
                     } else {
                         response.comments.forEach(comment => {
-                            let timeAgo = moment(comment.created_at)
-                                .fromNow(); // Format waktu seperti "4 days ago"
+                            let timeAgo = moment(comment.created_at).fromNow();
 
                             commentList.append(`
                                 <div class="p-3 bg-gray-100 dark:bg-gray-800 rounded-lg mb-2 border border-gray-300 dark:border-gray-700">
@@ -439,6 +420,9 @@
                                 </div>
                             `);
                         });
+
+                        // Auto scroll ke bawah setelah load
+                        commentList.scrollTop(commentList[0].scrollHeight);
                     }
                 },
                 error: function(xhr) {
@@ -453,11 +437,11 @@
             let input = $('#commentInput').val().trim();
 
             if (input === "") {
-                alert("Please enter a comment.");
+                toastr.error("Please enter a comment.");
                 return;
             }
 
-            $('#postCommentBtn').prop('disabled', true).text('Posting...'); // Disable button saat proses
+            $('#postCommentBtn').prop('disabled', true).text('Posting...');
 
             $.ajax({
                 url: `/career/${docid}/comments`,
@@ -471,28 +455,28 @@
                     console.log('Comment added successfully:', response);
 
                     if (response.status === "success") {
-                        loadComments(docid); // **Reload komentar setelah menambahkan**
-                        $('#commentInput').val(''); // Kosongkan input setelah sukses
+                        $('#commentInput').val('');
+                        loadComments(docid); // Reload komentar
+                    } else {
+                        toastr.error(response.message || "Failed to add comment.");
                     }
                 },
                 error: function(xhr) {
                     console.error("Error adding comment:", xhr);
-                    alert("Error: " + (xhr.responseJSON ? xhr.responseJSON.message :
-                        "Unknown Error"));
+                    toastr.error("Error: " + (xhr.responseJSON ? xhr.responseJSON.message : "Unknown Error"));
                 },
                 complete: function() {
-                    $('#postCommentBtn').prop('disabled', false).text(
-                        'Post'); // Aktifkan kembali tombol
+                    $('#postCommentBtn').prop('disabled', false).text('Post 🚀');
                 }
             });
         }
 
-        // **Event Listener untuk Tombol "Post"**
+        // **Event untuk Tombol Post**
         $('#postCommentBtn').click(function() {
             addComment();
         });
 
-        // **Event Listener untuk Enter (Tanpa Shift) di Input**
+        // **Event Enter di Input**
         $('#commentInput').keypress(function(event) {
             if (event.which === 13 && !event.shiftKey) {
                 event.preventDefault();
@@ -501,6 +485,7 @@
         });
     });
 </script>
+
 <script>
     $(document).on("click", "#approveBtn", function() {
         let docid = "{{ $career->docid }}"; // Ambil Task ID dari modal        
