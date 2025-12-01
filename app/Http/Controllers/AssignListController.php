@@ -38,11 +38,7 @@ class AssignListController extends Controller
     {
         // Base query: sama seperti AssignListJson (belum di-filter doc type)
         $base = vAssignList::query()
-            ->where(function ($q) {
-                $q->whereNull('assignpurchasing')
-                ->orWhere('assignpurchasing', '')
-                ->orWhere('assignpurchasing', '0');
-            });
+            ->whereNull('assignpurchasing');
 
         // Counter kartu menggunakan base yang sama
         $all  = (clone $base)->count();
@@ -78,11 +74,7 @@ class AssignListController extends Controller
         // Base query dari VIEW
          $base = vAssignList::query()
             ->with('creator:username,name') // eager load nama user
-            ->where(function ($q) {
-                $q->whereNull('assignpurchasing')
-                ->orWhere('assignpurchasing', '')
-                ->orWhere('assignpurchasing', '0');
-            });
+            ->whereNull('assignpurchasing'); 
 
         if ($doc !== '') {
             $base->where('doc_type', $doc);
@@ -143,28 +135,28 @@ class AssignListController extends Controller
     public function AssignListUsers(Request $request)
     {
         $q = trim((string) $request->query('q', ''));
-        $qLower = mb_strtolower($q);
 
         $rows = User::query()
-            ->where('department_id','PURCHASING') // kalau mau filter
-            ->when($q !== '', function ($qq) use ($qLower) {
-                $qq->where(function ($w) use ($qLower) {
-                    $w->whereRaw('LOWER(name) LIKE ?', ["%{$qLower}%"])
-                    ->orWhereRaw('LOWER(username) LIKE ?', ["%{$qLower}%"]);
+            ->where('department_id', 'PURCHASING') // filter purchaser saja
+            ->when($q !== '', function ($qq) use ($q) {
+                $qq->where(function ($w) use ($q) {
+                    $w->where('name', 'ILIKE', "%{$q}%")
+                    ->orWhere('username', 'ILIKE', "%{$q}%");
                 });
             })
             ->orderBy('name')
             ->limit(50)
-            ->get(['username', 'name']); // <-- TANPA alias 'as id'
+            ->get(['username', 'name']);
 
         // Map ke format Select2, paksa id = string
         $results = $rows->map(fn ($r) => [
-            'id'   => (string) $r->username,               // username SEBAGAI id
-            'text' => $r->name ?: (string) $r->username,   // label yang tampil
+            'id'   => (string) $r->username,             // username SEBAGAI id
+            'text' => $r->name ?: (string) $r->username, // label yang tampil
         ])->values();
 
         return response()->json(['results' => $results]);
-    }  
+    }
+
 
     public function AssignPurchasing(Request $request)
     {

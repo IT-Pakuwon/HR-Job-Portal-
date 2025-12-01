@@ -829,7 +829,7 @@ class CanvassController extends Controller
         // dd($request->all());
         // 1) Validasi payload dasar (store = langsung submit)
         $request->validate([
-            'doc'             => 'required|string',     // SPPB|SPPJ|SPPK|SPPT
+            'doc'             => 'required|string',     // SPPB|SPPJ|SPPK|SPPT atau lain (revisi)
             'src_id'          => 'required',            // sumber doc wajib ada untuk submit
             'sppbjktid'       => 'nullable|string',
             'cpny_id'         => 'required|string',
@@ -840,7 +840,7 @@ class CanvassController extends Controller
             'assigndate'      => 'nullable|string',
             'vendors'         => 'required|string', // JSON array
             'details'         => 'required|string', // JSON array
-            // tidak pakai 'action' di sini, selalu submit
+            // tidak pakai 'action' di sini, selalu submit (mode lengkap)
         ]);
 
         // 2) Ambil & decode input
@@ -853,7 +853,7 @@ class CanvassController extends Controller
         $userPeminta = $request->input('user_peminta');
         $csnote      = $request->input('csnote');
         $assigndate  = $request->input('assigndate');
-        $prev_csid   = $request->input('prev_csid');
+        $prev_csid   = $request->input('prev_csid');   // kalau ada → CS revisi
 
         $vendors = json_decode($request->input('vendors', '[]'), true) ?: [];
         $details = json_decode($request->input('details', '[]'), true) ?: [];
@@ -873,12 +873,13 @@ class CanvassController extends Controller
             }
         };
 
+        // Hitung rev_csid
         if ($prev_csid) {
-            // ada CS sebelumnya → revisi dari CS awal (prev_csid = CS A)
+            // Ada CS sebelumnya → ini revisi dari CS awal (prev_csid = CS A)
             $lastRev = TrCS::where('prev_csid', $prev_csid)->max('rev_csid');
             $nextRev = $lastRev ? $lastRev + 1 : 1;
         } else {
-            // CS baru pertama kali, belum revisi
+            // CS pertama kali
             $nextRev = 0;
         }
 
@@ -890,8 +891,49 @@ class CanvassController extends Controller
 
         \DB::connection('pgsql')->beginTransaction();
         try {
-            // 5) Ambil sumber (header + detail) via helper yang sama dengan updateCS
-            [$srcHeader, $srcDetails, $srcLineKey, $srcIndex] = $this->buildSourceForDoc($doc, $srcId);
+
+            /**
+             * 5) Ambil sumber (header + detail) HANYA bila doc jenis SPPB/J/K/T.
+             *    Untuk CS revisi dari PO (doc = 'PO', dll) → tidak usah ambil source SPPB/SPPJ/SPPK/SPPT.
+             */
+            $srcHeader  = null;
+            $srcDetails = collect();
+            $srcLineKey = null;
+            $srcIndex   = [];
+            $reuseIndex = []; 
+
+            $allowedDocs = ['SPPB', 'SPPJ', 'SPPK', 'SPPT'];
+
+            if (in_array($doc, $allowedDocs, true)) {
+                [$srcHeader, $srcDetails, $srcLineKey, $srcIndex] = $this->buildSourceForDoc($doc, $srcId);
+
+                // Index detail untuk lookup by key
+                foreach ($srcDetails as $sd) {
+                    $key = strtoupper(trim(($sd->inventoryid ?? ''))) . '|' .
+                        strtoupper(trim(($sd->uom ?? '')))          . '|' .
+                        strtoupper(trim(($sd->inventory_descr ?? '')));
+                    $srcIndex[$key] = $sd;
+                }
+            } else {
+                // Kalau BUKAN revisi dan doc bukan SPPB/J/K/T → tolak
+                if (empty($prev_csid)) {
+                    throw new \Exception("Invalid doc type for new CS (doc={$doc})");
+                }
+                // Jika revisi (prev_csid ada), aman → kita hanya gunakan payload + update ke TrPOReuse
+            }
+
+            if (!empty($prev_csid)) {
+                $reuseDetails = \App\Models\TrPOReuse::on('pgsql')
+                    ->where('csid', $prev_csid)
+                    ->get();
+
+                foreach ($reuseDetails as $rd) {
+                    $key = strtoupper(trim(($rd->inventoryid ?? ''))) . '|' .
+                        strtoupper(trim(($rd->uom ?? '')))          . '|' .
+                        strtoupper(trim(($rd->inventory_descr ?? '')));
+                    $reuseIndex[$key] = $rd;
+                }
+            }
 
             // 6) Generate autonbr CS (lock)
             $autonbr = \App\Models\Autonbr::lockForUpdate()
@@ -931,7 +973,7 @@ class CanvassController extends Controller
             $cs->csnote        = $csnote ?: null;
             $cs->assigndate    = $assigndate ?: null;
             $cs->prev_csid     = $prev_csid ?: null;
-            $cs->rev_csid      = $nextRev;   
+            $cs->rev_csid      = $nextRev;
             $cs->status        = 'H';        // sementara draft, nanti langsung di-set 'P'
             $cs->created_by    = $username;
 
@@ -960,6 +1002,7 @@ class CanvassController extends Controller
                 $safeSet($cs, $csTable, "taxvendor{$slot}",                $round2($v['tax']   ?? 0));
                 $safeSet($cs, $csTable, "grandtotalvendor{$slot}",         $round2($v['grand'] ?? 0));
 
+                // akan diisi ulang setelah detail
                 $safeSet($cs, $csTable, "totalselectedvendor{$slot}",      0);
                 $safeSet($cs, $csTable, "taxselectedvendor{$slot}",        0);
                 $safeSet($cs, $csTable, "grandtotalselectedvendor{$slot}", 0);
@@ -979,10 +1022,29 @@ class CanvassController extends Controller
                 $lineNo++;
 
                 $matchKey = strtoupper(trim(($d['inventoryid'] ?? ''))) . '|' .
-                            strtoupper(trim(($d['uom'] ?? ''))) . '|' .
+                            strtoupper(trim(($d['uom'] ?? '')))          . '|' .
                             strtoupper(trim(($d['inventory_descr'] ?? '')));
+
+                // $src = $srcIndex[$matchKey] ?? ($srcDetails[$lineNo - 1] ?? null);
+                // $srcRefNo = $src ? ($src->{$srcLineKey} ?? null) : null;
                 $src = $srcIndex[$matchKey] ?? ($srcDetails[$lineNo - 1] ?? null);
-                $srcRefNo = $src ? ($src->{$srcLineKey} ?? null) : null;
+                if (!$src && !empty($prev_csid)) {
+                    $src = $reuseIndex[$matchKey] ?? null;
+                }
+
+                if ($src) {
+                    if (!empty($srcLineKey) && isset($src->{$srcLineKey})) {
+                        $srcRefNo = $src->{$srcLineKey};
+                    } elseif (isset($src->sppbjkt_no)) {
+                        // fallback untuk revisi (ambil sppbjkt_no langsung dari TrPOReuse)
+                        $srcRefNo = $src->sppbjkt_no;
+                    } else {
+                        $srcRefNo = null;
+                    }
+                } else {
+                    $srcRefNo = null;
+                }
+
 
                 $det = new \App\Models\TrCSdetail();
                 $det->setConnection('pgsql');
@@ -992,35 +1054,43 @@ class CanvassController extends Controller
                 $det->cs_no         = $lineNo;
                 $det->sppbjkt_no    = $srcRefNo;
 
-                $det->inventory_type     = $d['inventory_type']     ?? ($src->inventory_type ?? null);
-                $det->inventoryid        = $d['inventoryid']        ?? ($src->inventoryid ?? null);
-                $det->inventory_descr    = $d['inventory_descr']    ?? ($src->inventory_descr ?? null);
-                $det->inventory_sub_type = $d['inventory_sub_type'] ?? ($src->inventory_sub_type ?? null);
-                $det->inventory_category = $d['inventory_category'] ?? ($src->inventory_category ?? null);
+                // inventory fields (payload > sumber)
+                $det->inventory_type       = $d['inventory_type']        ?? ($src->inventory_type ?? null);
+                $det->inventoryid          = $d['inventoryid']           ?? ($src->inventoryid ?? null);
+                $det->inventory_descr      = $d['inventory_descr']       ?? ($src->inventory_descr ?? null);
 
-                $det->qty   = $round2($d['qty'] ?? ($src->qty ?? 0));
-                $det->uom   = $d['uom']   ?? ($src->uom ?? null);
-                $det->siteid= $d['siteid']?? ($src->siteid ?? null);
+                // >>> tambah ini supaya tidak null <<<
+                $det->inventory_sub_type   = $d['inventory_sub_type']    ?? ($src->inventory_sub_type ?? null);
+                $det->inventory_category   = $d['inventory_category']    ?? ($src->inventory_category ?? null);
 
-                $det->type_multiplier = $src->type_multiplier ?? null;
-                $det->base_multiplier = isset($src->base_multiplier) ? $round2($src->base_multiplier) : null;
-                $det->base_qty        = isset($src->base_qty)        ? $round2($src->base_qty)        : null;
-                $det->base_uom        = $src->base_uom ?? null;
+                $det->qty                  = $round2($d['qty']           ?? ($src->qty ?? 0));
+                $det->uom                  = $d['uom']                   ?? ($src->uom ?? null);
+                $det->siteid               = $d['siteid']                ?? ($src->siteid ?? null);
 
+                // konversi dari sumber (jika ada)
+               $det->type_multiplier      = $src->type_multiplier       ?? null;
+                $det->base_multiplier      = isset($src->base_multiplier) ? $round2($src->base_multiplier) : null;
+                $det->base_qty             = isset($src->base_qty)        ? $round2($src->base_qty)        : null;
+                $det->base_uom             = $src->base_uom ?? null;
+
+                // harga terakhir & note
                 $det->inventory_last_price = isset($d['inventory_last_price']) ? $round2($d['inventory_last_price'])
                                             : (isset($src->inventory_last_price) ? $round2($src->inventory_last_price) : 0);
                 $det->csnote_detail        = $d['csnote_detail'] ?? ($src->note ?? null);
 
-                $det->location_id               = $src->location_id               ?? null;
+                // lokasi & budgeting
+                 $det->location_id               = $src->location_id               ?? null;
                 $det->sub_location_id           = $src->sub_location_id           ?? null;
                 $det->budget_perpost            = $src->budget_perpost            ?? null;
-                $det->budget_cpny_id            = $cpnyId;
+                $det->budget_cpny_id            = $cpnyId; // tetap perusahaan CS
                 $det->budget_business_unit_id   = $src->budget_business_unit_id   ?? null;
                 $det->budget_department_fin_id  = $src->budget_department_fin_id  ?? null;
                 $det->budget_account_id         = $src->budget_account_id         ?? null;
                 $det->budget_activity_id        = $src->budget_activity_id        ?? null;
                 $det->budget_activity_descr     = $src->budget_activity_descr     ?? null;
 
+
+                // harga vendor + akumulasi selected
                 $selectedGrandThisRow = 0.0;
 
                 for ($i = 0; $i < min(count($d['vendor'] ?? []), 6); $i++) {
@@ -1087,15 +1157,16 @@ class CanvassController extends Controller
                 }
             }
 
-            // 11) ==== SELALU SUBMIT di sini ====
+            // 11) ==== SELALU SUBMIT di sini (status = 'P') ====
 
             if (empty($prev_csid)) {
-
                 // (a) Validasi submit server-side
                 $this->validateSubmitServerSide($details);
 
                 // (b) Update ordered/openordered pada dokumen sumber (SPPB/SPPJ/SPPK/SPPT)
-                $this->updateOrderedOnSource($details, $srcHeader, $srcDetails, $srcIndex, $cpnyId);
+                if (in_array($doc, $allowedDocs, true)) {
+                    $this->updateOrderedOnSource($details, $srcHeader, $srcDetails, $srcIndex, $cpnyId);
+                }
 
                 // (c) Reserve budget
                 $this->reserveBudget($details, $cpnyId, $cs, $username);
@@ -1148,7 +1219,7 @@ class CanvassController extends Controller
                 'CS',
                 url('/showcs/' . $eid),
                 [
-                    'info'      => $cs->csnote ?: ($srcHeader->keperluan ?? ''),
+                    'info'      => $csnote ?: ($srcHeader->keperluan ?? ''),
                     'createdby' => $cs->created_by,
                     'date'      => $dt->toDateTimeString(),
                 ]
@@ -1176,22 +1247,25 @@ class CanvassController extends Controller
         }
     }
 
+
+
    
 
     public function saveCS(Request $request)
     {
-         dd($request->all());   
+        //  dd($request->all());   
         // ==== Ambil input dasar dari form (hidden + payload JSON) ====
-        $doc          = strtoupper($request->input('doc'));          // SPPB|SPPJ|SPPK|SPPT
+        $doc          = strtoupper($request->input('doc'));          // SPPB|SPPJ|SPPK|SPPT|PO (revisi)
         $srcId        = $request->input('src_id');                   // id sumber doc
         $sppbjktid    = $request->input('sppbjktid');                // docno ditaruh ke sini
         $cpnyId       = $request->input('cpny_id');
         $deptId       = $request->input('department_id');
         $bqid         = $request->input('bqid');
         $userPeminta  = $request->input('user_peminta');
-        $csnote       = $request->input('csnote');                // textarea #keperluan
-        $assigndate   = $request->input('assigndate');             // hidden #assigndate
-        $prev_csid    = $request->input('prev_csid');
+        $csnote       = $request->input('csnote');                   
+        $assigndate   = $request->input('assigndate');               
+        $prev_csid    = $request->input('prev_csid');                // kalau ada → CS revisi
+
         // Dari JS: vendors[] + details[]
         $vendors = json_decode($request->input('vendors', '[]'), true) ?: [];
         $details = json_decode($request->input('details', '[]'), true) ?: [];
@@ -1202,7 +1276,6 @@ class CanvassController extends Controller
         $dt        = Carbon::now();
         $year      = $dt->year;
         $month     = str_pad($dt->month, 2, '0', STR_PAD_LEFT);
-        $datestamp = $dt->toDateTimeString();
 
         $round2 = fn($n) => round((float)$n, 2);
         $safeSet = function ($model, string $table, string $column, $value) {
@@ -1211,6 +1284,7 @@ class CanvassController extends Controller
             }
         };
 
+        // Hitung rev_csid
         if ($prev_csid) {
             // ada CS sebelumnya → revisi dari CS awal (prev_csid = CS A)
             $lastRev = TrCS::where('prev_csid', $prev_csid)->max('rev_csid');
@@ -1221,59 +1295,73 @@ class CanvassController extends Controller
         }
 
         // ==== 1) Approval line check (doctype CS) ====
-        $doctype = 'CS';
-        $approvalCount = M_approval::where([
-            ['status', '=', 'A'],
-            ['aprvcpnyid', '=', $cpnyId],
-            ['aprvdeptid', '=', $deptId],
-            ['aprvdoctype', '=', $doctype],
-        ])->count();
-
-        if ($approvalCount === 0) {
-            return response()->json([
-                'message' => 'Approval line CS belum di-setup, please contact IT!',
-            ], 422);
-        }
+        $doctype = 'CS';       
 
         DB::connection('pgsql')->beginTransaction();
         try {
-            // ==== 2) Ambil header & detail sumber (SPPB/J/K/T) ====
-            $srcHeader = null;
+            /**
+             * 2) Ambil header & detail sumber HANYA bila doc jenis SPPB/J/K/T.
+             *    Untuk CS revisi dari PO (doc = 'PO', dll) → tidak usah ambil source SPPB/SPPJ/SPPK/SPPT.
+             */
+            $srcHeader  = null;
             $srcDetails = collect();
-            $srcLineKey = null; // nama kolom nomor urut detail di sumber
-            switch ($doc) {
-                case 'SPPB':
-                    $srcHeader = TrSPPB::with(['requestType', 'creator', 'purchaser'])->findOrFail($srcId);
-                    $srcDetails = TrSPPBdetail::where('sppbid', $srcHeader->sppbid)->get();
-                    $srcLineKey = 'sppb_no';
-                    break;
-                case 'SPPJ':
-                    $srcHeader = TrSPPJ::with(['requestType', 'creator', 'purchaser'])->findOrFail($srcId);
-                    $srcDetails = TrSPPJdetail::where('sppjid', $srcHeader->sppjid)->get();
-                    $srcLineKey = 'sppj_no';
-                    break;
-                case 'SPPK':
-                    $srcHeader = TrSPPK::with(['requestType', 'creator', 'purchaser'])->findOrFail($srcId);
-                    $srcDetails = TrSPPKdetail::where('sppkid', $srcHeader->sppkid)->get();
-                    $srcLineKey = 'sppk_no';
-                    break;
-                case 'SPPT':
-                    $srcHeader = TrSPPT::with(['requestType', 'creator', 'purchaser'])->findOrFail($srcId);
-                    $srcDetails = TrSPPTdetail::where('spptid', $srcHeader->spptid)->get();
-                    $srcLineKey = 'sppt_no';
-                    break;
-                default:
+            $srcLineKey = null;   // nama kolom nomor urut detail di sumber
+            $srcIndex   = [];
+            $reuseIndex = [];
+
+            $allowedDocs = ['SPPB', 'SPPJ', 'SPPK', 'SPPT'];
+
+            if (in_array($doc, $allowedDocs, true)) {
+                switch ($doc) {
+                    case 'SPPB':
+                        $srcHeader  = TrSPPB::with(['requestType', 'creator', 'purchaser'])->findOrFail($srcId);
+                        $srcDetails = TrSPPBdetail::where('sppbid', $srcHeader->sppbid)->get();
+                        $srcLineKey = 'sppb_no';
+                        break;
+                    case 'SPPJ':
+                        $srcHeader  = TrSPPJ::with(['requestType', 'creator', 'purchaser'])->findOrFail($srcId);
+                        $srcDetails = TrSPPJdetail::where('sppjid', $srcHeader->sppjid)->get();
+                        $srcLineKey = 'sppj_no';
+                        break;
+                    case 'SPPK':
+                        $srcHeader  = TrSPPK::with(['requestType', 'creator', 'purchaser'])->findOrFail($srcId);
+                        $srcDetails = TrSPPKdetail::where('sppkid', $srcHeader->sppkid)->get();
+                        $srcLineKey = 'sppk_no';
+                        break;
+                    case 'SPPT':
+                        $srcHeader  = TrSPPT::with(['requestType', 'creator', 'purchaser'])->findOrFail($srcId);
+                        $srcDetails = TrSPPTdetail::where('spptid', $srcHeader->spptid)->get();
+                        $srcLineKey = 'sppt_no';
+                        break;
+                }
+
+                // index-kan detail sumber
+                foreach ($srcDetails as $sd) {
+                    $key = strtoupper(trim(($sd->inventoryid ?? ''))) . '|' .
+                        strtoupper(trim(($sd->uom ?? '')))          . '|' .
+                        strtoupper(trim(($sd->inventory_descr ?? '')));
+                    $srcIndex[$key] = $sd;
+                }
+            } else {
+                // Kalau BUKAN revisi dan doc bukan SPPB/J/K/T → tolak
+                if (empty($prev_csid)) {
                     abort(422, 'Invalid doc type');
+                }
+                // Jika revisi (prev_csid ada), aman → kita hanya gunakan payload + TrPOReuse
             }
 
-            // Index-kan detail sumber untuk memudahkan pencocokan
-            // Kunci: inventoryid|uom|inventory_descr
-            $srcIndex = [];
-            foreach ($srcDetails as $sd) {
-                $key = strtoupper(trim(($sd->inventoryid ?? ''))) . '|' .
-                    strtoupper(trim(($sd->uom ?? ''))) . '|' .
-                    strtoupper(trim(($sd->inventory_descr ?? '')));
-                $srcIndex[$key] = $sd;
+            // 2b) Kalau CS revisi, ambil sumber dari TrPOReuse (CS sebelumnya)
+            if (!empty($prev_csid)) {
+                $reuseDetails = \App\Models\TrPOReuse::on('pgsql')
+                    ->where('csid', $prev_csid)
+                    ->get();
+
+                foreach ($reuseDetails as $rd) {
+                    $key = strtoupper(trim(($rd->inventoryid ?? ''))) . '|' .
+                        strtoupper(trim(($rd->uom ?? '')))          . '|' .
+                        strtoupper(trim(($rd->inventory_descr ?? '')));
+                    $reuseIndex[$key] = $rd;
+                }
             }
 
             // ==== 3) Generate autonbr CS (lock for update) ====
@@ -1300,14 +1388,14 @@ class CanvassController extends Controller
             $tglbln = substr($year, 2) . $month; // YYMM
             $csid   = $doctype . $tglbln . sprintf("%04d", $urutan);
 
-            // ==== 4) Simpan header TrCS (lengkapi dari header sumber) ====
+            // ==== 4) Simpan header TrCS (lengkapi dari header sumber jika ada) ====
             $cs = new TrCS();
             $cs->setConnection('pgsql');
             $cs->csid          = $csid;
             $cs->csdate        = $dt->toDateString();
             $cs->cpny_id       = $cpnyId;
-            $cs->sppbjktid     = $sppbjktid;                          // referensi SPPB/J/K/T ID
-            $cs->bqid          = $bqid ?: ($srcHeader->bqid ?? null); // fallback dari sumber
+            $cs->sppbjktid     = $sppbjktid;                          
+            $cs->bqid          = $bqid ?: ($srcHeader->bqid ?? null);
             $cs->department_id = $deptId ?: ($srcHeader->department_id ?? null);
             $cs->user_peminta  = $userPeminta ?: (optional($srcHeader->creator)->name ?? null);
             $cs->csnote        = $csnote ?: null;
@@ -1315,7 +1403,6 @@ class CanvassController extends Controller
             $cs->prev_csid     = $prev_csid ?: null;
             $cs->rev_csid      = $nextRev;
             
-            // Lengkapi dari header sumber kalau kolom ada di tr_cs
             $csTable = $cs->getTable();
             $safeSet($cs, $csTable, 'budget_perpost', $srcHeader->budget_perpost ?? null);
             $safeSet($cs, $csTable, 'woid',           $srcHeader->woid           ?? null);
@@ -1324,7 +1411,7 @@ class CanvassController extends Controller
             $cs->status     = 'H';
             $cs->created_by = $username;
 
-            // Map maksimal 6 vendor (sudah dari view kamu urut sesuai kolom)
+            // Map maksimal 6 vendor
             for ($i = 0; $i < min(count($vendors), 6); $i++) {
                 $idx = $i + 1;
                 $v   = $vendors[$i];
@@ -1349,50 +1436,67 @@ class CanvassController extends Controller
             }
             $cs->save();
 
-            // ==== 5) Simpan detail TrCSdetail (lengkapi dari detail sumber) ====
+            // ==== 5) Simpan detail TrCSdetail (lengkapi dari sumber / TrPOReuse) ====
             $lineNo = 0;
             foreach ($details as $d) {
                 $lineNo++;
 
-                // Cari pasangannya di detail sumber:
                 $matchKey = strtoupper(trim(($d['inventoryid'] ?? ''))) . '|' .
-                            strtoupper(trim(($d['uom'] ?? ''))) . '|' .
+                            strtoupper(trim(($d['uom'] ?? '')))          . '|' .
                             strtoupper(trim(($d['inventory_descr'] ?? '')));
-                $src = $srcIndex[$matchKey] ?? null;
 
-                // fallback jika tidak ketemu cocokannya: pakai by index (aman kalau urutannya sama)
-                if (!$src && isset($srcDetails[$lineNo - 1])) {
-                    $src = $srcDetails[$lineNo - 1];
+                // Utama: ambil dari sumber SPPB/J/K/T bila ada
+                $src = $srcIndex[$matchKey] ?? ($srcDetails[$lineNo - 1] ?? null);
+
+                // Jika CS revisi & tidak ketemu di sumber dokumen awal → fallback ke TrPOReuse
+                if (!$src && !empty($prev_csid)) {
+                    $src = $reuseIndex[$matchKey] ?? null;
                 }
 
-                // Nomor urut sumber (untuk diisi ke kolom csdetail->sppj_no sebagai "ref line")
-                $srcRefNo = $src ? ($src->{$srcLineKey} ?? null) : null;
+                // tentukan nomor ref detail
+                if ($src) {
+                    if (!empty($srcLineKey) && isset($src->{$srcLineKey})) {
+                        $srcRefNo = $src->{$srcLineKey};
+                    } elseif (isset($src->sppbjkt_no)) {
+                        // untuk revisi PO (TrPOReuse)
+                        $srcRefNo = $src->sppbjkt_no;
+                    } else {
+                        $srcRefNo = null;
+                    }
+                } else {
+                    $srcRefNo = null;
+                }
 
                 $det = new TrCSdetail();
                 $det->setConnection('pgsql');
-                $det->csid                = $csid;
-                $det->sppbjktid = $sppbjktid;
-                $det->cs_no               = $lineNo;
-                $det->sppbjkt_no          = $srcRefNo; // isi dengan nomor baris sumber apapun namanya
-                $det->inventory_type      = $d['inventory_type']        ?? ($src->inventory_type ?? null);
-                $det->inventoryid         = $d['inventoryid']        ?? ($src->inventoryid ?? null);
-                $det->inventory_descr     = $d['inventory_descr']    ?? ($src->inventory_descr ?? null);
-                $det->qty                 = $round2($d['qty']        ?? ($src->qty ?? 0));
-                $det->uom                 = $d['uom']                ?? ($src->uom ?? null);
-                $det->siteid              = $d['siteid']             ?? ($src->siteid ?? null);
+                $det->csid          = $csid;
+                $det->sppbjktid     = $sppbjktid;
+                $det->cs_no         = $lineNo;
+                $det->sppbjkt_no    = $srcRefNo;
 
-                // Lengkapi konversi UOM dari sumber bila ada
-                $det->type_multiplier     = $src->type_multiplier     ?? null;
-                $det->base_multiplier     = isset($src->base_multiplier) ? $round2($src->base_multiplier) : null;
-                $det->base_qty            = isset($src->base_qty)        ? $round2($src->base_qty)        : null;
-                $det->base_uom            = $src->base_uom ?? null;
+                // inventory fields (payload > sumber/TrPOReuse)
+                $det->inventory_type       = $d['inventory_type']     ?? ($src->inventory_type     ?? null);
+                $det->inventoryid          = $d['inventoryid']        ?? ($src->inventoryid        ?? null);
+                $det->inventory_descr      = $d['inventory_descr']    ?? ($src->inventory_descr    ?? null);
+                $det->inventory_sub_type   = $d['inventory_sub_type'] ?? ($src->inventory_sub_type ?? null);
+                $det->inventory_category   = $d['inventory_category'] ?? ($src->inventory_category ?? null);
 
-                // Harga terakhir & note detail
-                $det->inventory_last_price= isset($d['inventory_last_price']) ? $round2($d['inventory_last_price']) :
-                                            (isset($src->inventory_last_price) ? $round2($src->inventory_last_price) : 0);
-                $det->csnote_detail       = $d['csnote_detail']      ?? ($src->note ?? null);
+                $det->qty                  = $round2($d['qty']        ?? ($src->qty ?? 0));
+                $det->uom                  = $d['uom']                ?? ($src->uom ?? null);
+                $det->siteid               = $d['siteid']             ?? ($src->siteid ?? null);
 
-                // Lokasi & budgeting (ambil dari sumber bila ada)
+                // konversi UOM dari sumber
+                $det->type_multiplier      = $src->type_multiplier        ?? null;
+                $det->base_multiplier      = isset($src->base_multiplier) ? $round2($src->base_multiplier) : null;
+                $det->base_qty             = isset($src->base_qty)        ? $round2($src->base_qty)        : null;
+                $det->base_uom             = $src->base_uom ?? null;
+
+                // harga terakhir & note
+                $det->inventory_last_price = isset($d['inventory_last_price']) ? $round2($d['inventory_last_price'])
+                                                : (isset($src->inventory_last_price) ? $round2($src->inventory_last_price) : 0);
+                $det->csnote_detail        = $d['csnote_detail'] ?? ($src->note ?? null);
+
+                // lokasi & budgeting
                 $det->location_id               = $src->location_id               ?? null;
                 $det->sub_location_id           = $src->sub_location_id           ?? null;
                 $det->budget_perpost            = $src->budget_perpost            ?? null;
@@ -1402,7 +1506,6 @@ class CanvassController extends Controller
                 $det->budget_account_id         = $src->budget_account_id         ?? null;
                 $det->budget_activity_id        = $src->budget_activity_id        ?? null;
                 $det->budget_activity_descr     = $src->budget_activity_descr     ?? null;
-                
 
                 // Map harga per vendor (maks 6)
                 for ($i = 0; $i < min(count($d['vendor'] ?? []), 6); $i++) {
@@ -1423,11 +1526,12 @@ class CanvassController extends Controller
                 $det->created_by  = $username;
                 $det->save();
             }
-          
+        
             // ==== 6) Attachments (jika ada) ====
+            $uploadResult = null;
             if ($request->hasFile('attachments')) {
                 $meta = [
-                     'refnbr'        => $csid,
+                    'refnbr'        => $csid,
                     'doctype'       => $doctype,
                     'cpnyid'        => $cpnyId,
                     'departementid' => $deptId,                    
@@ -1440,23 +1544,20 @@ class CanvassController extends Controller
                 try {
                     $uploader = app(TrAttachmentController::class);
                     $uploadResult = $uploader->uploadInternal($meta, $files);
-                    // tidak return di sini!
                 } catch (\Throwable $e) {
-                    \DB::rollBack();
+                    DB::connection('pgsql')->rollBack();
                     return response()->json([
                         'message' => 'Failed to create CS',
                         'error'   => 'Gagal upload attachment: '.$e->getMessage(),
                     ], 500);
                 }
-            } else {
-                $uploadResult = null; // tidak ada attachment
             }
-           
+        
             DB::connection('pgsql')->commit();
 
             return response()->json([
-                'message' => 'CS created successfully',
-                'csid'    => $csid,
+                'message'     => 'CS created successfully',
+                'csid'        => $csid,
                 'attachments' => $uploadResult,
             ]);
 
@@ -1470,6 +1571,7 @@ class CanvassController extends Controller
             ], 500);
         }
     }
+
 
     public function editCS(string $eid)
     {

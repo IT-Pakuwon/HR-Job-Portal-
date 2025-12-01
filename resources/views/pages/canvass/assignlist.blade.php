@@ -513,7 +513,7 @@
                                         placeholder: '— pilih purchaser —',
                                         allowClear: true,
                                         width: 'resolve',
-                                        minimumInputLength: 0,
+                                        minimumInputLength: 2,
                                         ajax: {
                                             url: "{{ route('assignlist.users') }}",
                                             dataType: 'json',

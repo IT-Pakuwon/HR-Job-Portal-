@@ -63,7 +63,7 @@ class CsJobController extends Controller
         $u = $user->username ?? '';
 
         $mine     = vCsJobs::where('assignpurchasing', $user->username)->count();
-        $revision = TrPO::where('created_by', $u)->where('status','R')->count();            
+        $revision = vCsRevision::where('created_by', $u)->count();            
         $all      = vCsJobs::count();
         $sppbjkt  = vSppbjktOnProgress::count();
 
@@ -77,7 +77,7 @@ class CsJobController extends Controller
 
         return response()->json([
             'mine'     => vCsJobs::where('assignpurchasing', $u)->count(),
-            'revision' => TrPO::where('created_by', $u)->where('status','R')->count(),
+            'revision' => vCsRevision::where('created_by', $u)->count(),
             'all'      => vCsJobs::count(),
             'sppbjkt'  => vSppbjktOnProgress::count(),
         ]);
@@ -286,9 +286,8 @@ class CsJobController extends Controller
     {
         $username = Auth::user()->username ?? '';
 
-        $base = TrPO::query()
-            ->where('created_by', $username)
-            ->where('status', 'R');
+        $base = vCsRevision::query()
+            ->where('created_by', $username);
 
         return $this->buildRevisionJson($request, $base);
     }
@@ -314,7 +313,7 @@ class CsJobController extends Controller
                 return vCsJobs::query();
             case 'revision':
                 $username = Auth::user()->username ?? '';
-                return TrPO::query()->where('created_by', $username)->where('status','R');
+                return vCsRevision::query()->where('created_by', $username);
             case 'sppbjkt':
                 return vSppbjktOnProgress::query();
             default:
