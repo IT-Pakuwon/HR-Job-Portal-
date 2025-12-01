@@ -130,6 +130,11 @@ Route::post('/login', function (Request $request) {
     return redirect()->intended('/dashboard');
 })->name('login');
 
+Route::get('/modules', function () {
+    return view('layouts.module');
+})->name('modules');
+
+
 
 Route::post('/logout', function () {
     Auth::logout();
