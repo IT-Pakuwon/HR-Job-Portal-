@@ -175,17 +175,8 @@ class CanvassController extends Controller
 
                 // 5. Ref attachment & info nomor tetap pakai PO
                 $refnbr   = $poHeader->ponbr;                    // ref ke attachment tetap PO
-                $docno    = $docno = $poHeader->sppbjktid;
+                $docno    = $poHeader->po_no ?? $poHeader->ponbr;
                 $top_type = $poHeader->potype ?? 'PO';
-
-                $sppbjktid = $poHeader->sppbjktid;
-
-                // Ambil 2 digit depan khusus PB atau PK
-                if (Str::startsWith($sppbjktid, ['PB', 'PK'])) {
-                    $prefix2 = substr($sppbjktid, 0, 2);
-                } else {
-                    $prefix2 = null; // atau "" / atau pakai $sppbjktid full
-                }
 
                 break;
 
@@ -254,8 +245,6 @@ class CanvassController extends Controller
             'attachment' => $attachments, // tetap pakai key 'attachment' agar Blade lama aman
             'items'      => $items,
             'tops'       => $tops,
-            'poHeader'   => $poHeader ?? null,
-            'prefix2'    => $prefix2 ?? null,
         ]);
     }
 
@@ -343,7 +332,7 @@ class CanvassController extends Controller
         })->values();
     }
 
-    public function storeCS_xxx(Request $request)
+    public function storeCS(Request $request)
     {
         
         // ==== Ambil input dasar dari form ====
@@ -823,364 +812,11 @@ class CanvassController extends Controller
             ], 500);
         }
     }
-
-    public function storeCS(Request $request)
-    {
-        // dd($request->all());
-        // 1) Validasi payload dasar (store = langsung submit)
-        $request->validate([
-            'doc'             => 'required|string',     // SPPB|SPPJ|SPPK|SPPT
-            'src_id'          => 'required',            // sumber doc wajib ada untuk submit
-            'sppbjktid'       => 'nullable|string',
-            'cpny_id'         => 'required|string',
-            'department_id'   => 'required|string',
-            'bqid'            => 'nullable|string',
-            'user_peminta'    => 'nullable|string',
-            'csnote'          => 'nullable|string',
-            'assigndate'      => 'nullable|string',
-            'vendors'         => 'required|string', // JSON array
-            'details'         => 'required|string', // JSON array
-            // tidak pakai 'action' di sini, selalu submit
-        ]);
-
-        // 2) Ambil & decode input
-        $doc         = strtoupper($request->input('doc'));
-        $srcId       = $request->input('src_id');
-        $sppbjktid   = $request->input('sppbjktid');
-        $cpnyId      = $request->input('cpny_id');
-        $deptId      = $request->input('department_id');
-        $bqid        = $request->input('bqid');
-        $userPeminta = $request->input('user_peminta');
-        $csnote      = $request->input('csnote');
-        $assigndate  = $request->input('assigndate');
-        $prev_csid   = $request->input('prev_csid');
-
-        $vendors = json_decode($request->input('vendors', '[]'), true) ?: [];
-        $details = json_decode($request->input('details', '[]'), true) ?: [];
-
-        // 3) Context user & waktu
-        $user     = $request->user();
-        $username = $user->username ?? 'system';
-
-        $dt    = \Carbon\Carbon::now();
-        $year  = $dt->year;
-        $month = str_pad($dt->month, 2, '0', STR_PAD_LEFT);
-
-        $round2 = fn($n) => round((float)$n, 2);
-        $safeSet = function ($model, string $table, string $column, $value) {
-            if (\Illuminate\Support\Facades\Schema::connection('pgsql')->hasColumn($table, $column)) {
-                $model->{$column} = $value;
-            }
-        };
-
-        if ($prev_csid) {
-            // ada CS sebelumnya → revisi dari CS awal (prev_csid = CS A)
-            $lastRev = TrCS::where('prev_csid', $prev_csid)->max('rev_csid');
-            $nextRev = $lastRev ? $lastRev + 1 : 1;
-        } else {
-            // CS baru pertama kali, belum revisi
-            $nextRev = 0;
-        }
-
-        $doctype     = 'CS';
-        $approvalCtl = app(\App\Http\Controllers\ApprovalController::class);
-
-        // 4) Pastikan line approval tersedia
-        $approvalCtl->loadLines($doctype, $cpnyId, $deptId);
-
-        \DB::connection('pgsql')->beginTransaction();
-        try {
-            // 5) Ambil sumber (header + detail) via helper yang sama dengan updateCS
-            [$srcHeader, $srcDetails, $srcLineKey, $srcIndex] = $this->buildSourceForDoc($doc, $srcId);
-
-            // 6) Generate autonbr CS (lock)
-            $autonbr = \App\Models\Autonbr::lockForUpdate()
-                ->where('doctype', $doctype)
-                ->where('year',   $year)
-                ->where('month',  $month)
-                ->first();
-
-            if (!$autonbr) {
-                $autonbr = \App\Models\Autonbr::create([
-                    'doctype' => $doctype,
-                    'year'    => $year,
-                    'month'   => $month,
-                    'status'  => 'A',
-                    'number'  => 1,
-                ]);
-                $urutan = 1;
-            } else {
-                $urutan = $autonbr->number + 1;
-                $autonbr->update(['number' => $urutan]);
-            }
-
-            $tglbln = substr($year, 2) . $month; // YYMM
-            $csid   = $doctype . $tglbln . sprintf("%04d", $urutan);
-
-            // 7) HEADER TrCS
-            $cs = new \App\Models\TrCS();
-            $cs->setConnection('pgsql');
-
-            $cs->csid          = $csid;
-            $cs->csdate        = $dt->toDateString();
-            $cs->cpny_id       = $cpnyId;
-            $cs->sppbjktid     = $sppbjktid;
-            $cs->bqid          = $bqid ?: ($srcHeader->bqid ?? null);
-            $cs->department_id = $deptId ?: ($srcHeader->department_id ?? null);
-            $cs->user_peminta  = $userPeminta ?: (optional($srcHeader->creator)->name ?? null);
-            $cs->csnote        = $csnote ?: null;
-            $cs->assigndate    = $assigndate ?: null;
-            $cs->prev_csid     = $prev_csid ?: null;
-            $cs->rev_csid      = $nextRev;   
-            $cs->status        = 'H';        // sementara draft, nanti langsung di-set 'P'
-            $cs->created_by    = $username;
-
-            $csTable = $cs->getTable();
-
-            $safeSet($cs, $csTable, 'budget_perpost', $srcHeader->budget_perpost ?? null);
-            $safeSet($cs, $csTable, 'woid',           $srcHeader->woid           ?? null);
-            $safeSet($cs, $csTable, 'spbid',          $srcHeader->spbid          ?? null);
-
-            // Header vendor (display)
-            for ($slot = 1; $slot <= 6; $slot++) {
-                $v = $vendors[$slot-1] ?? null;
-
-                $safeSet($cs, $csTable, "vendorid{$slot}",      $v['vendorid']     ?? null);
-                $safeSet($cs, $csTable, "vendorname{$slot}",    $v['vendorname']   ?? null);
-                $safeSet($cs, $csTable, "vendoralamat{$slot}",  $v['vendoralamat'] ?? null);
-                $safeSet($cs, $csTable, "vendortelp{$slot}",    $v['vendortelp']   ?? null);
-                $safeSet($cs, $csTable, "vendorcp{$slot}",      $v['vendorcp']     ?? null);
-                $safeSet($cs, $csTable, "vendortop{$slot}",     $v['vendortop']    ?? null);
-                $safeSet($cs, $csTable, "vendornote{$slot}",    $v['vendornote']   ?? null);
-
-                $safeSet($cs, $csTable, "totalvendor{$slot}",              $round2($v['total'] ?? 0));
-                $safeSet($cs, $csTable, "taxcodevendor{$slot}",            $v['taxcode']   ?? null);
-                $safeSet($cs, $csTable, "ppnvendor{$slot}",                $round2($v['ppn']   ?? 0));
-                $safeSet($cs, $csTable, "pphvendor{$slot}",                $round2($v['pph']   ?? 0));
-                $safeSet($cs, $csTable, "taxvendor{$slot}",                $round2($v['tax']   ?? 0));
-                $safeSet($cs, $csTable, "grandtotalvendor{$slot}",         $round2($v['grand'] ?? 0));
-
-                $safeSet($cs, $csTable, "totalselectedvendor{$slot}",      0);
-                $safeSet($cs, $csTable, "taxselectedvendor{$slot}",        0);
-                $safeSet($cs, $csTable, "grandtotalselectedvendor{$slot}", 0);
-            }
-
-            $cs->save();
-
-            // 8) DETAIL TrCSdetail + akumulasi header vendor selected
-            $lineNo           = 0;
-            $docSelectedGrand = 0.0;
-            $selectedByVendor = [];
-            for ($i = 1; $i <= 6; $i++) {
-                $selectedByVendor[$i] = ['total' => 0.0, 'tax' => 0.0, 'grand' => 0.0];
-            }
-
-            foreach ($details as $d) {
-                $lineNo++;
-
-                $matchKey = strtoupper(trim(($d['inventoryid'] ?? ''))) . '|' .
-                            strtoupper(trim(($d['uom'] ?? ''))) . '|' .
-                            strtoupper(trim(($d['inventory_descr'] ?? '')));
-                $src = $srcIndex[$matchKey] ?? ($srcDetails[$lineNo - 1] ?? null);
-                $srcRefNo = $src ? ($src->{$srcLineKey} ?? null) : null;
-
-                $det = new \App\Models\TrCSdetail();
-                $det->setConnection('pgsql');
-
-                $det->csid          = $csid;
-                $det->sppbjktid     = $sppbjktid;
-                $det->cs_no         = $lineNo;
-                $det->sppbjkt_no    = $srcRefNo;
-
-                $det->inventory_type     = $d['inventory_type']     ?? ($src->inventory_type ?? null);
-                $det->inventoryid        = $d['inventoryid']        ?? ($src->inventoryid ?? null);
-                $det->inventory_descr    = $d['inventory_descr']    ?? ($src->inventory_descr ?? null);
-                $det->inventory_sub_type = $d['inventory_sub_type'] ?? ($src->inventory_sub_type ?? null);
-                $det->inventory_category = $d['inventory_category'] ?? ($src->inventory_category ?? null);
-
-                $det->qty   = $round2($d['qty'] ?? ($src->qty ?? 0));
-                $det->uom   = $d['uom']   ?? ($src->uom ?? null);
-                $det->siteid= $d['siteid']?? ($src->siteid ?? null);
-
-                $det->type_multiplier = $src->type_multiplier ?? null;
-                $det->base_multiplier = isset($src->base_multiplier) ? $round2($src->base_multiplier) : null;
-                $det->base_qty        = isset($src->base_qty)        ? $round2($src->base_qty)        : null;
-                $det->base_uom        = $src->base_uom ?? null;
-
-                $det->inventory_last_price = isset($d['inventory_last_price']) ? $round2($d['inventory_last_price'])
-                                            : (isset($src->inventory_last_price) ? $round2($src->inventory_last_price) : 0);
-                $det->csnote_detail        = $d['csnote_detail'] ?? ($src->note ?? null);
-
-                $det->location_id               = $src->location_id               ?? null;
-                $det->sub_location_id           = $src->sub_location_id           ?? null;
-                $det->budget_perpost            = $src->budget_perpost            ?? null;
-                $det->budget_cpny_id            = $cpnyId;
-                $det->budget_business_unit_id   = $src->budget_business_unit_id   ?? null;
-                $det->budget_department_fin_id  = $src->budget_department_fin_id  ?? null;
-                $det->budget_account_id         = $src->budget_account_id         ?? null;
-                $det->budget_activity_id        = $src->budget_activity_id        ?? null;
-                $det->budget_activity_descr     = $src->budget_activity_descr     ?? null;
-
-                $selectedGrandThisRow = 0.0;
-
-                for ($i = 0; $i < min(count($d['vendor'] ?? []), 6); $i++) {
-                    $slot  = $i + 1;
-                    $vrow  = $d['vendor'][$i];
-                    $vid   = $vrow['vendorid'] ?? null;
-                    $price = $round2($vrow['price'] ?? 0);
-                    $total = $round2($vrow['total'] ?? 0);
-                    $ppn   = $round2($vrow['ppn']   ?? 0);
-                    $pph   = $round2($vrow['pph']   ?? 0);
-                    $tax   = $round2($vrow['tax']   ?? ($ppn + $pph));
-                    $grand = $round2($vrow['grand'] ?? ($total + $tax));
-                    $sel   = !empty($vrow['selected']);
-
-                    $det->{"vendorid{$slot}"}         = $vid;
-                    $det->{"vendorprice{$slot}"}      = $price;
-                    $det->{"vendortotalprice{$slot}"} = $total;
-                    $det->{"vendor{$slot}selected"}   = (bool)$sel;
-
-                    if ($sel) {
-                        $selectedGrandThisRow = $grand;
-                        $selectedByVendor[$slot]['total'] += $total;
-                        $selectedByVendor[$slot]['tax']   += $tax;
-                        $selectedByVendor[$slot]['grand'] += $grand;
-                    }
-                }
-
-                $docSelectedGrand += $selectedGrandThisRow;
-
-                $det->status     = 'H';   // sementara draft, nanti di-set 'P'
-                $det->created_by = $username;
-                $det->save();
-            }
-
-            // 9) Update kolom selected vendor di HEADER
-            for ($slot = 1; $slot <= 6; $slot++) {
-                $safeSet($cs, $csTable, "totalselectedvendor{$slot}",      $round2($selectedByVendor[$slot]['total']));
-                $safeSet($cs, $csTable, "taxselectedvendor{$slot}",        $round2($selectedByVendor[$slot]['tax']));
-                $safeSet($cs, $csTable, "grandtotalselectedvendor{$slot}", $round2($selectedByVendor[$slot]['grand']));
-            }
-            $cs->save();
-
-            // 10) Attachments (kalau ada)
-            if ($request->hasFile('attachments')) {
-                $meta = [
-                    'refnbr'        => $cs->csid,
-                    'doctype'       => $doctype,
-                    'cpnyid'        => $cpnyId,
-                    'departementid' => $deptId,
-                    'base_folder'   => 'att-purchasing-app/'.strtolower($doctype),
-                    'created_by'    => $username,
-                ];
-                $files = (array) $request->file('attachments');
-
-                try {
-                    $uploader = app(\App\Http\Controllers\TrAttachmentController::class);
-                    $uploader->uploadInternal($meta, $files);
-                } catch (\Throwable $e) {
-                    \DB::connection('pgsql')->rollBack();
-                    return response()->json([
-                        'ok'      => false,
-                        'message' => 'Gagal upload attachment: '.$e->getMessage(),
-                    ], 500);
-                }
-            }
-
-            // 11) ==== SELALU SUBMIT di sini ====
-
-            if (empty($prev_csid)) {
-
-                // (a) Validasi submit server-side
-                $this->validateSubmitServerSide($details);
-
-                // (b) Update ordered/openordered pada dokumen sumber (SPPB/SPPJ/SPPK/SPPT)
-                $this->updateOrderedOnSource($details, $srcHeader, $srcDetails, $srcIndex, $cpnyId);
-
-                // (c) Reserve budget
-                $this->reserveBudget($details, $cpnyId, $cs, $username);
-
-            } else {
-                // Kalau prev_csid ADA → ini CS revisi
-                // Update ordered/openordered ke TrPOReuse + header PO
-                $this->updateOrderedOnPOReuse($details, $prev_csid, $cpnyId);
-            }
-
-            // (d) Set status header & detail = Pending, set submitdate
-            $cs->status = 'P';
-            if (\Illuminate\Support\Facades\Schema::connection('pgsql')->hasColumn($csTable, 'submitdate')) {
-                $cs->submitdate = $dt;
-            }
-            if (\Illuminate\Support\Facades\Schema::connection('pgsql')->hasColumn($csTable, 'updated_by')) {
-                $cs->updated_by = $username;
-            }
-            $cs->save();
-
-            \App\Models\TrCSdetail::on('pgsql')->where('csid', $csid)->update(['status' => 'P']);
-
-            // (e) Generate TrApproval + email approver pertama
-            $ctx = [
-                'ignore_nominal' => false,
-                'grand_total'    => (float) $docSelectedGrand,
-            ];
-
-            [$firstApprovalUsernames, $linesCount] = $approvalCtl->generateForDocument(
-                $cs->csid,
-                $doctype,
-                $cpnyId,
-                $deptId,
-                $username,
-                $ctx,
-                $dt
-            );
-
-            if ($firstApprovalUsernames) {
-                $cs->completed_by = $firstApprovalUsernames;
-                $cs->completed_at = $dt;
-                $cs->save();
-            }
-
-            $eid = \Vinkla\Hashids\Facades\Hashids::encode($cs->id);
-            $approvalCtl->notifyFirstApprover(
-                $cs->csid,
-                $doctype,
-                $cs->status,  // 'P'
-                'CS',
-                url('/showcs/' . $eid),
-                [
-                    'info'      => $cs->csnote ?: ($srcHeader->keperluan ?? ''),
-                    'createdby' => $cs->created_by,
-                    'date'      => $dt->toDateTimeString(),
-                ]
-            );
-
-            \DB::connection('pgsql')->commit();
-
-            return response()->json([
-                'ok'           => true,
-                'message'      => 'CS berhasil dibuat & diajukan',
-                'csid'         => $cs->csid,
-                'grand_total'  => $round2($docSelectedGrand),
-                'status'       => $cs->status,
-                'submitdate'   => optional($cs->submitdate)->toDateTimeString(),
-            ]);
-
-        } catch (\Throwable $e) {
-            \DB::connection('pgsql')->rollBack();
-            report($e);
-
-            return response()->json([
-                'ok'      => false,
-                'message' => 'Failed to create CS: '.(config('app.debug') ? $e->getMessage() : 'Terjadi kesalahan'),
-            ], 500);
-        }
-    }
-
    
 
     public function saveCS(Request $request)
     {
-         dd($request->all());   
+        //  dd($request->all());   
         // ==== Ambil input dasar dari form (hidden + payload JSON) ====
         $doc          = strtoupper($request->input('doc'));          // SPPB|SPPJ|SPPK|SPPT
         $srcId        = $request->input('src_id');                   // id sumber doc
@@ -1191,7 +827,6 @@ class CanvassController extends Controller
         $userPeminta  = $request->input('user_peminta');
         $csnote       = $request->input('csnote');                // textarea #keperluan
         $assigndate   = $request->input('assigndate');             // hidden #assigndate
-        $prev_csid    = $request->input('prev_csid');
         // Dari JS: vendors[] + details[]
         $vendors = json_decode($request->input('vendors', '[]'), true) ?: [];
         $details = json_decode($request->input('details', '[]'), true) ?: [];
@@ -1210,15 +845,6 @@ class CanvassController extends Controller
                 $model->{$column} = $value;
             }
         };
-
-        if ($prev_csid) {
-            // ada CS sebelumnya → revisi dari CS awal (prev_csid = CS A)
-            $lastRev = TrCS::where('prev_csid', $prev_csid)->max('rev_csid');
-            $nextRev = $lastRev ? $lastRev + 1 : 1;
-        } else {
-            // CS baru pertama kali, belum revisi
-            $nextRev = 0;
-        }
 
         // ==== 1) Approval line check (doctype CS) ====
         $doctype = 'CS';
@@ -1312,9 +938,7 @@ class CanvassController extends Controller
             $cs->user_peminta  = $userPeminta ?: (optional($srcHeader->creator)->name ?? null);
             $cs->csnote        = $csnote ?: null;
             $cs->assigndate    = $assigndate ?: null;
-            $cs->prev_csid     = $prev_csid ?: null;
-            $cs->rev_csid      = $nextRev;
-            
+
             // Lengkapi dari header sumber kalau kolom ada di tr_cs
             $csTable = $cs->getTable();
             $safeSet($cs, $csTable, 'budget_perpost', $srcHeader->budget_perpost ?? null);
@@ -1424,7 +1048,39 @@ class CanvassController extends Controller
                 $det->save();
             }
           
-            // ==== 6) Attachments (jika ada) ====
+            // ==== 7) Attachments (opsional) ====
+            // if ($request->hasfile('attachments')) {
+            //     foreach ($request->file('attachments') as $file) {
+            //         $randomNumber = random_int(10000000, 99999999);
+            //         $filename = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+                   
+            //         $originalName = str_replace('%', '', $file->getClientOriginalName());
+            //         $ext        = $file->getClientOriginalExtension();
+            //         $attachfile = md5($randomNumber) . '.' . $ext;
+
+            //         //attach to folder
+            //         $folder_attach = public_path() . '/attachments/'.$year;
+            //         $config['upload_path'] = $folder_attach;                   
+            //         if(!is_dir($folder_attach))
+            //         {
+            //             mkdir($folder_attach, 0777);
+            //         }
+                    
+            //         $folder_upload = $folder_attach;                 
+            //         $file->move($folder_upload, $attachfile);
+
+            //         //insert to table attachments
+            //         $attach = new Attachment();
+            //         $attach->docid = $csid;
+            //         $attach->name = $filename;
+            //         $attach->attachfile = $attachfile;
+            //         $attach->status = 'A';
+            //         $attach->extention = $file->getClientOriginalExtension();
+            //         $attach->created_user = $user->username;
+            //         $attach->save();
+            //     }
+            // }   
+
             if ($request->hasFile('attachments')) {
                 $meta = [
                      'refnbr'        => $csid,
@@ -1672,7 +1328,7 @@ class CanvassController extends Controller
         ]);
     }
 
-    public function updateCS_xxx(Request $request, $csid)
+    public function updateCS(Request $request, $csid)
     {
         // dd($request->all());
         // 1) Validasi payload dasar
@@ -1935,22 +1591,15 @@ class CanvassController extends Controller
             if (!in_array($action, ['save','submit'], true)) $action = 'save';
 
             if ($action === 'submit') {
+                // (a) Validasi submit server-side
+                $this->validateSubmitServerSide($details);
 
-                if (empty($prev_csid)) {
-                    // (a) Validasi submit server-side
-                    $this->validateSubmitServerSide($details);
+                // (b) Ambil sumber (helper private milikmu), dan update ordered
+                [$srcHeader2, $srcDetails2, $srcLineKey2, $srcIndex2] = $this->buildSourceForDoc($doc, $srcId);
+                $this->updateOrderedOnSource($details, $srcHeader2, $srcDetails2, $srcIndex2, $cpnyId);
 
-                    // (b) Ambil sumber (helper private milikmu), dan update ordered
-                    [$srcHeader2, $srcDetails2, $srcLineKey2, $srcIndex2] = $this->buildSourceForDoc($doc, $srcId);
-                    $this->updateOrderedOnSource($details, $srcHeader2, $srcDetails2, $srcIndex2, $cpnyId);
-
-                    // (c) Reserve budget
-                    $this->reserveBudget($details, $cpnyId, $cs, $username);
-                } else {
-                    // Kalau prev_csid ADA → ini CS revisi
-                    // Update ordered/openordered ke TrPOReuse + header PO
-                    $this->updateOrderedOnPOReuse($details, $prev_csid, $cpnyId);
-                }
+                // (c) Reserve budget
+                $this->reserveBudget($details, $cpnyId, $cs, $username);
 
                 // (d) Set status header & detail = Pending, set submitdate
                 $cs->status = 'P';
@@ -2030,384 +1679,6 @@ class CanvassController extends Controller
             ], 500);
         }
     }
-
-    public function updateCS(Request $request, $csid)
-    {
-        // 1) Validasi payload dasar
-        $request->validate([
-            'doc'             => 'required|string',     // SPPB|SPPJ|SPPK|SPPT
-            'src_id'          => 'nullable',           // penting saat submit (untuk ordered/budget)
-            'sppbjktid'       => 'nullable|string',
-            'cpny_id'         => 'required|string',
-            'department_id'   => 'required|string',
-            'bqid'            => 'nullable|string',
-            'user_peminta'    => 'nullable|string',
-            'csnote'          => 'nullable|string',
-            'assigndate'      => 'nullable|string',
-            'vendors'         => 'required|string', // JSON array
-            'details'         => 'required|string', // JSON array
-            'action'          => 'nullable|in:save,submit',
-        ]);
-
-        // 2) Decode JSON dari form
-        $vendors = json_decode($request->input('vendors', '[]'), true) ?: [];
-        $details = json_decode($request->input('details', '[]'), true) ?: [];
-
-        // 3) Context user & waktu
-        $user      = $request->user();
-        $username  = $user->username ?? 'system';
-        $dt        = \Carbon\Carbon::now();
-
-        $round2 = fn($n) => round((float)$n, 2);
-        $safeSet = function ($model, string $table, string $column, $value) {
-            if (\Illuminate\Support\Facades\Schema::connection('pgsql')->hasColumn($table, $column)) {
-                $model->{$column} = $value;
-            }
-        };
-
-        $doctype = 'CS';
-        $doc     = strtoupper($request->input('doc'));
-        $srcId   = $request->input('src_id');
-        $cpnyId  = $request->input('cpny_id');
-        $deptId  = $request->input('department_id');
-
-        // 4) Pastikan line approval tersedia
-        $approvalCtl = app(\App\Http\Controllers\ApprovalController::class);
-        $approvalCtl->loadLines($doctype, $cpnyId, $deptId);
-
-        \DB::connection('pgsql')->beginTransaction();
-        try {
-            // 5) Lock header CS
-            /** @var \App\Models\TrCS $cs */
-            $cs = \App\Models\TrCS::on('pgsql')
-                ->lockForUpdate()
-                ->where('csid', $csid)
-                ->firstOrFail();
-
-            $csTable   = $cs->getTable();
-            $prev_csid = $cs->prev_csid;   // <-- penentu: CS awal vs revisi
-
-            // 6) Ambil sumber (header+detail) untuk fallback field tampilan
-            $srcHeader  = null; 
-            $srcDetails = collect(); 
-            $srcLineKey = null;
-
-            switch ($doc) {
-                case 'SPPB':
-                    $srcHeader  = \App\Models\TrSPPB::with(['requestType','creator','purchaser'])->find($srcId);
-                    $srcLineKey = 'sppb_no';
-                    $srcDetails = $srcHeader
-                        ? \App\Models\TrSPPBdetail::where('sppbid', $srcHeader->sppbid)->orderBy($srcLineKey)->get()
-                        : collect();
-                    break;
-                case 'SPPJ':
-                    $srcHeader  = \App\Models\TrSPPJ::with(['requestType','creator','purchaser'])->find($srcId);
-                    $srcLineKey = 'sppj_no';
-                    $srcDetails = $srcHeader
-                        ? \App\Models\TrSPPJdetail::where('sppjid', $srcHeader->sppjid)->orderBy($srcLineKey)->get()
-                        : collect();
-                    break;
-                case 'SPPK':
-                    $srcHeader  = \App\Models\TrSPPK::with(['requestType','creator','purchaser'])->find($srcId);
-                    $srcLineKey = 'sppk_no';
-                    $srcDetails = $srcHeader
-                        ? \App\Models\TrSPPKdetail::where('sppkid', $srcHeader->sppkid)->orderBy($srcLineKey)->get()
-                        : collect();
-                    break;
-                case 'SPPT':
-                    $srcHeader  = \App\Models\TrSPPT::with(['requestType','creator','purchaser'])->find($srcId);
-                    $srcLineKey = 'sppt_no';
-                    $srcDetails = $srcHeader
-                        ? \App\Models\TrSPPTdetail::where('spptid', $srcHeader->spptid)->orderBy($srcLineKey)->get()
-                        : collect();
-                    break;
-                default:
-                    abort(422, 'Invalid doc type');
-            }
-
-            // index detail sumber → untuk fallback field detail
-            $srcIndex = [];
-            foreach ($srcDetails as $sd) {
-                $key = strtoupper(trim(($sd->inventoryid ?? ''))) . '|' .
-                    strtoupper(trim(($sd->uom ?? '')))          . '|' .
-                    strtoupper(trim(($sd->inventory_descr ?? '')));
-                $srcIndex[$key] = $sd;
-            }
-
-            // 7) Update HEADER TrCS (termasuk kolom vendor*)
-            $cs->sppbjktid     = $request->input('sppbjktid');
-            $cs->cpny_id       = $cpnyId;
-            $cs->bqid          = $request->input('bqid') ?: ($srcHeader->bqid ?? $cs->bqid);
-            $cs->department_id = $deptId ?: ($srcHeader->department_id ?? $cs->department_id);
-            $cs->user_peminta  = $request->input('user_peminta')
-                                    ?: (optional($srcHeader->creator)->name ?? $cs->user_peminta);
-            $cs->csnote        = $request->input('csnote') ?: null;
-            $cs->assigndate    = $request->input('assigndate') ?: null;
-
-            // lengkapi dari sumber jika kolom ada
-            $safeSet($cs, $csTable, 'budget_perpost', $srcHeader->budget_perpost ?? null);
-            $safeSet($cs, $csTable, 'woid',           $srcHeader->woid           ?? null);
-            $safeSet($cs, $csTable, 'spbid',          $srcHeader->spbid          ?? null);
-
-            // Tulis ulang vendor header & reset kolom selected
-            for ($slot = 1; $slot <= 6; $slot++) {
-                $v = $vendors[$slot-1] ?? null;
-
-                $safeSet($cs, $csTable, "vendorid{$slot}",      $v['vendorid']     ?? null);
-                $safeSet($cs, $csTable, "vendorname{$slot}",    $v['vendorname']   ?? null);
-                $safeSet($cs, $csTable, "vendoralamat{$slot}",  $v['vendoralamat'] ?? null);
-                $safeSet($cs, $csTable, "vendortelp{$slot}",    $v['vendortelp']   ?? null);
-                $safeSet($cs, $csTable, "vendorcp{$slot}",      $v['vendorcp']     ?? null);
-                $safeSet($cs, $csTable, "vendortop{$slot}",     $v['vendortop']    ?? null);
-                $safeSet($cs, $csTable, "vendornote{$slot}",    $v['vendornote']   ?? null);
-
-                $safeSet($cs, $csTable, "totalvendor{$slot}",              $round2($v['total'] ?? 0));
-                $safeSet($cs, $csTable, "taxcodevendor{$slot}",            $v['taxcode']   ?? null);
-                $safeSet($cs, $csTable, "ppnvendor{$slot}",                $round2($v['ppn']   ?? 0));
-                $safeSet($cs, $csTable, "pphvendor{$slot}",                $round2($v['pph']   ?? 0));
-                $safeSet($cs, $csTable, "taxvendor{$slot}",                $round2($v['tax']   ?? 0));
-                $safeSet($cs, $csTable, "grandtotalvendor{$slot}",         $round2($v['grand'] ?? 0));
-
-                // reset kolom selected
-                $safeSet($cs, $csTable, "totalselectedvendor{$slot}",      0);
-                $safeSet($cs, $csTable, "taxselectedvendor{$slot}",        0);
-                $safeSet($cs, $csTable, "grandtotalselectedvendor{$slot}", 0);
-            }
-
-            if (\Illuminate\Support\Facades\Schema::connection('pgsql')->hasColumn($csTable, 'updated_by')) {
-                $cs->updated_by = $username;
-            }
-            $cs->save();
-
-            // 8) Replace DETAIL TrCSdetail & akumulasi ke header
-            \App\Models\TrCSdetail::on('pgsql')->where('csid', $csid)->delete();
-
-            $lineNo           = 0;
-            $docSelectedGrand = 0.0;
-            $selectedByVendor = [];
-            for ($i = 1; $i <= 6; $i++) {
-                $selectedByVendor[$i] = ['total'=>0.0,'tax'=>0.0,'grand'=>0.0];
-            }
-
-            foreach ($details as $d) {
-                $lineNo++;
-
-                $matchKey = strtoupper(trim(($d['inventoryid'] ?? ''))) . '|' .
-                            strtoupper(trim(($d['uom'] ?? '')))          . '|' .
-                            strtoupper(trim(($d['inventory_descr'] ?? '')));
-                $src      = $srcIndex[$matchKey] ?? ($srcDetails[$lineNo - 1] ?? null);
-                $srcRefNo = $src ? ($src->{$srcLineKey} ?? null) : null;
-
-                $det = new \App\Models\TrCSdetail();
-                $det->setConnection('pgsql');
-
-                $det->csid          = $csid;
-                $det->sppbjktid     = $request->input('sppbjktid');
-                $det->cs_no         = $lineNo;
-                $det->sppbjkt_no    = $srcRefNo;
-
-                $det->inventory_type     = $d['inventory_type']     ?? ($src->inventory_type ?? null);
-                $det->inventoryid        = $d['inventoryid']        ?? ($src->inventoryid ?? null);
-                $det->inventory_descr    = $d['inventory_descr']    ?? ($src->inventory_descr ?? null);
-                $det->inventory_sub_type = $d['inventory_sub_type'] ?? ($src->inventory_sub_type ?? null);
-                $det->inventory_category = $d['inventory_category'] ?? ($src->inventory_category ?? null);
-
-                $det->qty     = $round2($d['qty'] ?? ($src->qty ?? 0));
-                $det->uom     = $d['uom']    ?? ($src->uom ?? null);
-                $det->siteid  = $d['siteid'] ?? ($src->siteid ?? null);
-
-                $det->type_multiplier = $src->type_multiplier ?? null;
-                $det->base_multiplier = isset($src->base_multiplier) ? $round2($src->base_multiplier) : null;
-                $det->base_qty        = isset($src->base_qty)        ? $round2($src->base_qty)        : null;
-                $det->base_uom        = $src->base_uom ?? null;
-
-                $det->inventory_last_price = isset($d['inventory_last_price'])
-                    ? $round2($d['inventory_last_price'])
-                    : (isset($src->inventory_last_price) ? $round2($src->inventory_last_price) : 0);
-
-                $det->csnote_detail        = $d['csnote_detail'] ?? ($src->note ?? null);
-
-                $det->location_id               = $src->location_id               ?? null;
-                $det->sub_location_id           = $src->sub_location_id           ?? null;
-                $det->budget_perpost            = $src->budget_perpost            ?? null;
-                $det->budget_cpny_id            = $cpnyId;
-                $det->budget_business_unit_id   = $src->budget_business_unit_id   ?? null;
-                $det->budget_department_fin_id  = $src->budget_department_fin_id  ?? null;
-                $det->budget_account_id         = $src->budget_account_id         ?? null;
-                $det->budget_activity_id        = $src->budget_activity_id        ?? null;
-                $det->budget_activity_descr     = $src->budget_activity_descr     ?? null;
-
-                $selectedGrandThisRow = 0.0;
-
-                for ($i = 0; $i < min(count($d['vendor'] ?? []), 6); $i++) {
-                    $slot  = $i + 1;
-                    $vrow  = $d['vendor'][$i];
-                    $vid   = $vrow['vendorid'] ?? null;
-                    $price = $round2($vrow['price'] ?? 0);
-                    $total = $round2($vrow['total'] ?? 0);
-                    $ppn   = $round2($vrow['ppn']   ?? 0);
-                    $pph   = $round2($vrow['pph']   ?? 0);
-                    $tax   = $round2($vrow['tax']   ?? ($ppn + $pph));
-                    $grand = $round2($vrow['grand'] ?? ($total + $tax));
-                    $sel   = !empty($vrow['selected']);
-
-                    $det->{"vendorid{$slot}"}         = $vid;
-                    $det->{"vendorprice{$slot}"}      = $price;
-                    $det->{"vendortotalprice{$slot}"} = $total;
-                    $det->{"vendor{$slot}selected"}   = (bool)$sel;
-
-                    if ($sel) {
-                        $selectedGrandThisRow = $grand;
-                        $selectedByVendor[$slot]['total'] += $total;
-                        $selectedByVendor[$slot]['tax']   += $tax;
-                        $selectedByVendor[$slot]['grand'] += $grand;
-                    }
-                }
-
-                $docSelectedGrand += $selectedGrandThisRow;
-
-                $det->status     = 'H';   // draft dulu, jadi 'P' saat submit
-                $det->created_by = $username;
-                $det->save();
-            }
-
-            // 9) Update header selected vendor
-            for ($slot = 1; $slot <= 6; $slot++) {
-                $safeSet($cs, $csTable, "totalselectedvendor{$slot}",      $round2($selectedByVendor[$slot]['total']));
-                $safeSet($cs, $csTable, "taxselectedvendor{$slot}",        $round2($selectedByVendor[$slot]['tax']));
-                $safeSet($cs, $csTable, "grandtotalselectedvendor{$slot}", $round2($selectedByVendor[$slot]['grand']));
-            }
-            $cs->save();
-
-            // 10) Attachments BARU
-            if ($request->hasFile('attachments')) {
-                $meta = [
-                    'refnbr'        => $cs->csid,
-                    'doctype'       => $doctype,
-                    'cpnyid'        => $cpnyId,
-                    'departementid' => $deptId,
-                    'base_folder'   => 'att-purchasing-app/'.strtolower($doctype),
-                    'created_by'    => $username,
-                ];
-                $files = (array) $request->file('attachments');
-
-                try {
-                    $uploader = app(\App\Http\Controllers\TrAttachmentController::class);
-                    $uploader->uploadInternal($meta, $files);
-                } catch (\Throwable $e) {
-                    \DB::connection('pgsql')->rollBack();
-                    return response()->json([
-                        'ok'      => false,
-                        'message' => 'Gagal upload attachment: '.$e->getMessage(),
-                    ], 500);
-                }
-            }
-
-            // 11) SAVE vs SUBMIT
-            $action = strtolower($request->input('action', 'save'));
-            if (!in_array($action, ['save','submit'], true)) {
-                $action = 'save';
-            }
-
-            if ($action === 'submit') {
-
-                if (empty($prev_csid)) {
-                    // CS AWAL → flow lama
-
-                    // (a) Validasi submit server-side
-                    $this->validateSubmitServerSide($details);
-
-                    // (b) Update ordered/openordered pada dokumen sumber
-                    $this->updateOrderedOnSource($details, $srcHeader, $srcDetails, $srcIndex, $cpnyId);
-
-                    // (c) Reserve budget
-                    $this->reserveBudget($details, $cpnyId, $cs, $username);
-                } else {
-                    // CS REVISI → update ke TrPOReuse (dan header PO) saja
-                    $this->updateOrderedOnPOReuse($details, $prev_csid, $cpnyId);
-                }
-
-                // (d) Set status header & detail = Pending, set submitdate
-                $cs->status = 'P';
-                if (\Illuminate\Support\Facades\Schema::connection('pgsql')->hasColumn($csTable, 'submitdate')) {
-                    $cs->submitdate = $dt;
-                }
-                if (\Illuminate\Support\Facades\Schema::connection('pgsql')->hasColumn($csTable, 'updated_by')) {
-                    $cs->updated_by = $username;
-                }
-                $cs->save();
-
-                \App\Models\TrCSdetail::on('pgsql')->where('csid', $csid)->update(['status' => 'P']);
-
-                // (e) Generate TrApproval + email approver pertama
-                $ctx = [
-                    'ignore_nominal' => false,
-                    'grand_total'    => (float) $docSelectedGrand,
-                ];
-
-                [$firstApprovalUsernames, $linesCount] = $approvalCtl->generateForDocument(
-                    $cs->csid,
-                    $doctype,
-                    $cpnyId,
-                    $deptId,
-                    $username,
-                    $ctx,
-                    $dt
-                );
-
-                if ($firstApprovalUsernames) {
-                    $cs->completed_by = $firstApprovalUsernames;
-                    $cs->completed_at = $dt;
-                    $cs->save();
-                }
-
-                $eid = \Vinkla\Hashids\Facades\Hashids::encode($cs->id);
-                $approvalCtl->notifyFirstApprover(
-                    $cs->csid,
-                    $doctype,
-                    $cs->status,  // 'P'
-                    'CS',
-                    url('/showcs/' . $eid),
-                    [
-                        'info'      => $cs->csnote ?: ($srcHeader->keperluan ?? ''),
-                        'createdby' => $cs->created_by,
-                        'date'      => $dt->toDateTimeString(),
-                    ]
-                );
-            } else {
-                // SAVE saja → tetap status draft
-                if (!$cs->status || $cs->status === 'H') {
-                    $cs->status = 'H';
-                    if (\Illuminate\Support\Facades\Schema::connection('pgsql')->hasColumn($csTable, 'updated_by')) {
-                        $cs->updated_by = $username;
-                    }
-                    $cs->save();
-                }
-            }
-
-            \DB::connection('pgsql')->commit();
-
-            return response()->json([
-                'ok'           => true,
-                'message'      => $action === 'submit'
-                                    ? 'CS berhasil diupdate & diajukan'
-                                    : 'CS berhasil diupdate',
-                'csid'         => $cs->csid,
-                'grand_total'  => $round2($docSelectedGrand),
-                'status'       => $cs->status,
-                'submitdate'   => optional($cs->submitdate)->toDateTimeString(),
-            ]);
-
-        } catch (\Throwable $e) {
-            \DB::connection('pgsql')->rollBack();
-            report($e);
-            return response()->json([
-                'ok'      => false,
-                'message' => 'Gagal update CS: '.(config('app.debug') ? $e->getMessage() : 'Terjadi kesalahan'),
-            ], 500);
-        }
-    }
-
 
 
 
@@ -3802,7 +3073,7 @@ class CanvassController extends Controller
             $tr->account_id      = $bd->account_id;
             $tr->activity_id     = $bd->activity_id;
             $tr->activity_descr  = $bd->activity_descr;
-            $tr->activity_type   = $bd->activity_type;
+            $tr->activity_descr  = $bd->activity_type;
             $tr->budget_type     = 'RESERVE';                   // reserve / used
             $tr->trancation_activity     = 'CS Submit';
             $tr->budget_amount   = (float)$amount;
@@ -3811,97 +3082,6 @@ class CanvassController extends Controller
             $tr->created_at      = now();
             $tr->save();
         }
-    }
-
-    private function updateOrderedOnPOReuse(array $details, string $prevCsid, string $cpnyId): void
-    {
-        // Ambil semua baris reuse yang terkait CS sebelumnya (CS awal)
-        $reuseRows = TrPOReuse::on('pgsql')
-            ->where('csid', $prevCsid)
-            ->when($cpnyId, function ($q) use ($cpnyId) {
-                return $q->where('cpny_id', $cpnyId);
-            })
-            ->get();
-
-        if ($reuseRows->isEmpty()) {
-            return;
-        }
-
-        // Build index inventory | uom | descr -> row (boleh banyak, ambil pertama saja)
-        $reuseIndex = [];
-        foreach ($reuseRows as $row) {
-            $key = strtoupper(trim($row->inventoryid)) . '|' .
-                strtoupper(trim($row->uom))         . '|' .
-                strtoupper(trim($row->inventory_descr));
-            $reuseIndex[$key][] = $row;
-        }
-
-        $addedTotalPerPonbr = [];
-
-        foreach ($details as $i => $d) {
-            // cek apakah ada vendor yang dipilih
-            $hasPick = false;
-            foreach (($d['vendor'] ?? []) as $v) {
-                if (!empty($v['selected'])) {
-                    $hasPick = true;
-                    break;
-                }
-            }
-            if (!$hasPick) continue;
-
-            $orderedQty = (float)($d['qty'] ?? 0);
-            if ($orderedQty <= 0) continue;
-
-            $key = strtoupper(trim(($d['inventoryid'] ?? ''))) . '|' .
-                strtoupper(trim(($d['uom'] ?? '')))         . '|' .
-                strtoupper(trim(($d['inventory_descr'] ?? '')));
-
-            /** @var \App\Models\TrPOReuse|null $reuseDet */
-            $reuseDetList = $reuseIndex[$key] ?? null;
-            if (!$reuseDetList || count($reuseDetList) === 0) {
-                continue;
-            }
-
-            // Ambil row pertama yang cocok
-            $reuseDet = $reuseDetList[0];
-
-            // Update ordered/openordered di reuse
-            $reuseDet->ordered     = (float)($reuseDet->ordered ?? 0) + $orderedQty;
-            $reuseDet->openordered = max(0, (float)($reuseDet->openordered ?? 0) - $orderedQty);
-            $reuseDet->updated_by  = auth()->user()->username ?? $reuseDet->updated_by;
-            $reuseDet->save();
-
-            // Simpan total per PO (ponbr) untuk update header PO
-            $ponbr = $reuseDet->ponbr;
-            $addedTotalPerPonbr[$ponbr] = ($addedTotalPerPonbr[$ponbr] ?? 0) + $orderedQty;
-        }
-
-        // // Update header PO (totalordered / totalopenordered) jika kolom tersedia
-        // if (!empty($addedTotalPerPonbr)) {
-        //     $poList = TrPO::on('pgsql')
-        //         ->whereIn('ponbr', array_keys($addedTotalPerPonbr))
-        //         ->get();
-
-        //     foreach ($poList as $po) {
-        //         $delta = $addedTotalPerPonbr[$po->ponbr] ?? 0;
-        //         if ($delta <= 0) continue;
-
-        //         $conn    = $po->getConnectionName() ?? 'pgsql';
-        //         $hdrTable = $po->getTable();
-
-        //         if (Schema::connection($conn)->hasColumn($hdrTable, 'totalordered')) {
-        //             $po->totalordered = (float)($po->totalordered ?? 0) + $delta;
-        //         }
-        //         if (Schema::connection($conn)->hasColumn($hdrTable, 'totalopenordered')) {
-        //             $po->totalopenordered = max(
-        //                 0,
-        //                 (float)($po->totalopenordered ?? 0) - $delta
-        //             );
-        //         }
-
-        //         $po->save();
-        //     }
-        // }
     }
 
 

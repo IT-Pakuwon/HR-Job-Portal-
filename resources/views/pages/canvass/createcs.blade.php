@@ -208,6 +208,7 @@
                     {{-- <input type="hidden" name="user_peminta" value="{{ optional($header->creator)->name }}"> --}}
                     <input type="hidden" name="user_peminta" value="{{ $header->created_by }}">
                     <input type="hidden" name="assigndate" value="{{ $header->assigndate ?? '' }}">
+                    <input type="hidden" name="prev_csid" value="{{ $poHeader->csid ?? '' }}">
 
                     <!-- Create CS Header -->
                     <div class="w-full rounded-xl bg-white p-6 shadow-md dark:bg-gray-800">
@@ -229,12 +230,8 @@
 
                                 <!-- SPPB/J/K/T -->
                                 <div>
-                                    <label class="text-sm font-medium text-gray-600 dark:text-gray-400">                                        
-                                        @if($doc === 'PO')
-                                            PO NBR
-                                        @else
+                                    <label class="text-sm font-medium text-gray-600 dark:text-gray-400">   
                                             SPPB/J/K/T ID
-                                        @endif
                                     </label>
                                     <input type="text" value="{{ $docno }}" readonly
                                         class="mt-1 w-full rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
@@ -495,7 +492,7 @@
                                     </div>
 
                                     <!-- Submit Approval (conditional) -->
-                                    @if (in_array($doc, ['SPPB', 'SPPK']))
+                                    @if (in_array($doc, ['SPPB', 'SPPK']) || in_array($prefix2, ['PB', 'PK']))
                                         <div class="flex justify-start md:justify-end">
                                             <button type="submit" id="submitBtn"
                                                 class="mb-4 mt-4 flex w-full items-center justify-center gap-2 rounded border border-blue-700 bg-blue-200/10 p-2 text-blue-700 hover:border-blue-700 hover:bg-blue-700 hover:font-medium hover:text-white md:w-auto">
