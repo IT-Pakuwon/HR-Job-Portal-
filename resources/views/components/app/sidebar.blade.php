@@ -940,18 +940,17 @@
                                 <a class="@if (!in_array(Request::segment(1), ['bastlist', 'showbast', 'editbasts', 'bast', 'pdf_bast', 'pdf_bast_vendor'])) {{ 'hover:text-gray-900 dark:hover:text-white' }} @endif block truncate text-gray-800 transition dark:text-gray-100"
                                     href="{{ route('bastlist') }}">
                                     <div class="flex items-center">
-                                        <svg class="{{ in_array(Request::segment(1), ['bastlist', 'showbast', 'editbasts', 'bast', 'pdf_bast', 'pdf_bast_vendor'])
-                                            ? 'text-violet-500'
-                                            : 'text-gray-400 dark:text-gray-500' }} shrink-0"
+                                        <svg class="{{ in_array(Request::segment(1), ['bastlist', 'showbast', 'editbasts', 'bast', 'pdf_bast', 'pdf_bast_vendor']) ? 'text-violet-500' : 'text-gray-400 dark:text-gray-500' }} shrink-0"
                                             xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                             stroke-width="1.5" stroke="currentColor" width="16" height="16">
                                             <path stroke-linecap="round" stroke-linejoin="round"
-                                                d="M9 12l2 2 4-4m2-3H7a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2z" />
+                                                d="M9 12.75 11.25 15l3.75-4.5m2.25-6H7.5A2.25 2.25 0 0 0 5.25 7.5v12A2.25 2.25 0 0 0 7.5 21h9a2.25 2.25 0 0 0 2.25-2.25V7.5A2.25 2.25 0 0 0 16.5 4.5z" />
                                         </svg>
 
                                         <span
-                                            class="lg:sidebar-expanded:opacity-100 text-m ml-4 font-medium duration-200 lg:opacity-0 2xl:opacity-100">Bast
-                                            List</span>
+                                            class="lg:sidebar-expanded:opacity-100 text-m ml-4 font-medium duration-200 lg:opacity-0 2xl:opacity-100">
+                                            BAST List
+                                        </span>
                                     </div>
                                 </a>
                             </li>
@@ -960,18 +959,17 @@
                                 <a class="@if (!in_array(Request::segment(1), ['rfcalist', 'showrfca', 'editrfcas', 'rfca', 'pdf_rfca', 'pdf_rfca_vendor'])) {{ 'hover:text-gray-900 dark:hover:text-white' }} @endif block truncate text-gray-800 transition dark:text-gray-100"
                                     href="{{ route('rfcalist') }}">
                                     <div class="flex items-center">
-                                        <svg class="{{ in_array(Request::segment(1), ['rfcalist', 'showrfca', 'editrfcas', 'rfca', 'pdf_rfca', 'pdf_rfca_vendor'])
-                                            ? 'text-violet-500'
-                                            : 'text-gray-400 dark:text-gray-500' }} shrink-0"
+                                        <svg class="{{ in_array(Request::segment(1), ['rfcalist', 'showrfca', 'editrfcas', 'rfca', 'pdf_rfca', 'pdf_rfca_vendor']) ? 'text-violet-500' : 'text-gray-400 dark:text-gray-500' }} shrink-0"
                                             xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                             stroke-width="1.5" stroke="currentColor" width="16" height="16">
                                             <path stroke-linecap="round" stroke-linejoin="round"
-                                                d="M9 12l2 2 4-4m2-3H7a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2z" />
+                                                d="M2.25 8.25h19.5m-16.5 6h4.5m4.5 0h1.5m-12-9h12.75A2.25 2.25 0 0 1 21 7.5v9a2.25 2.25 0 0 1-2.25 2.25H5.25A2.25 2.25 0 0 1 3 16.5v-9A2.25 2.25 0 0 1 5.25 5.25z" />
                                         </svg>
 
                                         <span
-                                            class="lg:sidebar-expanded:opacity-100 text-m ml-4 font-medium duration-200 lg:opacity-0 2xl:opacity-100">RFCA
-                                            List</span>
+                                            class="lg:sidebar-expanded:opacity-100 text-m ml-4 font-medium duration-200 lg:opacity-0 2xl:opacity-100">
+                                            RFCA List
+                                        </span>
                                     </div>
                                 </a>
                             </li>
@@ -980,18 +978,17 @@
                                 <a class="@if (!in_array(Request::segment(1), ['calrlist', 'showcalr', 'editcalrs', 'calr', 'pdf_calr', 'pdf_calr_vendor'])) {{ 'hover:text-gray-900 dark:hover:text-white' }} @endif block truncate text-gray-800 transition dark:text-gray-100"
                                     href="{{ route('calrlist') }}">
                                     <div class="flex items-center">
-                                        <svg class="{{ in_array(Request::segment(1), ['calrlist', 'showcalr', 'editcalrs', 'calr', 'pdf_calr', 'pdf_calr_vendor'])
-                                            ? 'text-violet-500'
-                                            : 'text-gray-400 dark:text-gray-500' }} shrink-0"
+                                        <svg class="{{ in_array(Request::segment(1), ['calrlist', 'showcalr', 'editcalrs', 'calr', 'pdf_calr', 'pdf_calr_vendor']) ? 'text-violet-500' : 'text-gray-400 dark:text-gray-500' }} shrink-0"
                                             xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                             stroke-width="1.5" stroke="currentColor" width="16" height="16">
                                             <path stroke-linecap="round" stroke-linejoin="round"
-                                                d="M9 12l2 2 4-4m2-3H7a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2z" />
+                                                d="M9 14.25h6m-6-3h6m3 9H6a2.25 2.25 0 0 1-2.25-2.25V6.75A2.25 2.25 0 0 1 6 4.5h12a2.25 2.25 0 0 1 2.25 2.25v11.25A2.25 2.25 0 0 1 18 20.25z" />
                                         </svg>
 
                                         <span
-                                            class="lg:sidebar-expanded:opacity-100 text-m ml-4 font-medium duration-200 lg:opacity-0 2xl:opacity-100">CALR
-                                            List</span>
+                                            class="lg:sidebar-expanded:opacity-100 text-m ml-4 font-medium duration-200 lg:opacity-0 2xl:opacity-100">
+                                            CALR List
+                                        </span>
                                     </div>
                                 </a>
                             </li>
