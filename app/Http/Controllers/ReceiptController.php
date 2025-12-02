@@ -16,7 +16,7 @@ use App\Models\T_approval;
 use App\Models\Attachment;
 use App\Models\T_Message;
 use App\Models\MsVendor;
-use App\Models\CompanyPG;
+use App\Models\MsCompany;
 use App\Models\TrReceipt;
 use App\Models\TrReceiptdetail;
 use App\Models\TrSPPB;

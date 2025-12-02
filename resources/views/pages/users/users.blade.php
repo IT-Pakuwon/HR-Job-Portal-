@@ -6,33 +6,7 @@
         <!-- Dashboard actions -->
         <div class="mb-8 sm:flex sm:items-center sm:justify-between"></div>
         <!-- Breadcrumb dengan Dropdown -->
-        {{-- <div class="flex items-center justify-end mb-4 sm:mb-0">          
-            <nav class="flex items-center text-gray-600 dark:text-gray-300">
-                <a href="#" class="hover:text-gray-900 dark:hover:text-white">Settings</a>
-                <span class="mx-2">/</span>
-
-              
-                <div x-data="{ open: false }" class="relative">
-                    <button @click="open = !open" class="flex items-center text-gray-800 dark:text-gray-100 font-bold">
-                        Master <svg class="ml-1 w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"></path>
-                        </svg>
-                    </button>
-                  
-                    <ul x-show="open" @click.away="open = false"
-                        class="absolute left-0 mt-2 w-48 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded   z-10">
-                        <li><a href="{{ route('account') }}" class="block px-4 py-2 hover:bg-gray-200 dark:hover:bg-gray-700">My Account</a></li>
-                        <li><a href="{{ route('users') }}" class="block px-4 py-2 hover:bg-gray-200 dark:hover:bg-gray-700">Master User</a></li>
-                        <li><a href="{{ route('applications') }}" class="block px-4 py-2 hover:bg-gray-200 dark:hover:bg-gray-700">Master Application</a></li>
-                        <li><a href="{{ route('groups') }}" class="block px-4 py-2 hover:bg-gray-200 dark:hover:bg-gray-700">Master Group</a></li>
-                        <li><a href="{{ route('mastercard') }}" class="block px-4 py-2 hover:bg-gray-200 dark:hover:bg-gray-700">Master Card</a></li>
-                    </ul>
-                </div>
-
-                <span class="mx-2">/</span>
-                <span class="text-gray-800 dark:text-gray-100 font-bold">{{ $currentPage }}</span>
-            </nav>
-        </div> --}}
+ 
         <div class="grid">
             <style>
                 .no-border {
@@ -265,21 +239,21 @@
                         </div>
                         <div class="mb-4">
                             <label class="block text-gray-700 dark:text-white">Company</label>
-                            <select name="companyid[]"
-                                class="select2 w-full rounded-lg border px-3 py-2 dark:bg-gray-700" multiple required>
+                            <select name="cpny_id[]" class="select2 w-full rounded-lg border px-3 py-2" multiple required>
                                 @foreach ($company as $p)
-                                    <option value="{{ $p->cpnyid }}">{{ $p->cpnyid }}</option>
+                                    <option value="{{ $p->cpny_id }}">{{ $p->cpny_id }}</option>
                                 @endforeach
                             </select>
+
                         </div>
                         <div class="mb-4">
                             <label class="block text-gray-700 dark:text-white">Departement</label>
-                            <select name="departmentid[]"
-                                class="select2 w-full rounded-lg border px-3 py-2 dark:bg-gray-700" multiple required>
-                                @foreach ($departement as $p)
-                                    <option value="{{ $p->deptname }}">{{ $p->deptname }}</option>
+                            <select name="department_id[]" class="select2 w-full rounded-lg border px-3 py-2" multiple required>
+                                @foreach ($department as $p)
+                                    <option value="{{ $p->department_id }}">{{ $p->department_id }}</option>
                                 @endforeach
                             </select>
+
                         </div>
                         <div class="mb-4">
                             <label class="block text-gray-700 dark:text-white">Jabatan</label>
@@ -289,15 +263,7 @@
                                 <option value="manager">Manager</option>
                             </select>
                         </div>
-                        <div class="mb-4">
-                            <label class="block text-gray-700 dark:text-white">Groups</label>
-                            <select name="groups" class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700" required>
-                                <option value="">Select Option</option>
-                                @foreach ($groups as $p)
-                                    <option value="{{ $p->id }}">{{ $p->groupsname }}</option>
-                                @endforeach
-                            </select>
-                        </div>
+                       
                         <div class="mb-4">
                             <label class="block text-gray-700 dark:text-white">Role</label>
                             <select name="role" class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700" required>
@@ -305,7 +271,19 @@
                                 <option value="user">User</option>
                                 <option value="admin">Admin</option>
                             </select>
+                        </div>                    
+
+                        <div class="mb-4">
+                            <label class="block text-gray-700 dark:text-white">App Roles </label>
+                            <select name="role_ids[]" class="select2 w-full rounded-lg border px-3 py-2" multiple>
+                                @foreach ($roles as $r)
+                                    <option value="{{ $r->role_id }}">
+                                        {{ $r->role_name }}
+                                    </option>
+                                @endforeach
+                            </select>
                         </div>
+
                         <div class="mb-4">
                             <label class="block text-gray-700 dark:text-white">NIP</label>
                             <input type="text" name="npk"
@@ -352,11 +330,11 @@
                                 className: 'no-pointer'
                             },
                             {
-                                data: 'companyid',
+                                data: 'cpny_id',
                                 className: 'no-pointer'
                             },
                             {
-                                data: 'departmentid',
+                                data: 'department_id',
                                 className: 'no-pointer'
                             },
                             {
@@ -375,23 +353,12 @@
                         $('#modalTitle').text("Add User");
                         $('#appForm')[0].reset();
                         $('#id').val('');
-                        $('.select2').val(null).trigger('change');
+                        $('.select2').val(null).trigger('change'); // termasuk role_ids[]
                         $('#appModal').removeClass('hidden');
                     });
 
-                    // $(document).on('click', '.editAppBtn', function () {
-                    //     let appId = $(this).data('id');
-                    //     $.get(`/users/${appId}/edit`, function (app) {
-                    //         $('#modalTitle').text("Edit User");
-                    //         $('#id').val(app.id);
-                    //         $('#name').val(app.name);
-                    //         $('#username').val(app.username);
-                    //         $('#email').val(app.email);
-                    //         $('#npk').val(app.npk);
-                    //         $('#jabatan').val(app.jabatan);                      
-                    //         $('#appModal').removeClass('hidden');
-                    //     });
-                    // });
+
+                   
                     $(document).on('click', '.editAppBtn', function() {
                         let appId = $(this).data('id');
                         $.get(`/users/${appId}/edit`, function(app) {
@@ -401,15 +368,17 @@
                             $('#email').val(app.email);
                             $('#npk').val(app.npk);
                             $('#jabatan').val(app.jabatan);
-                            $('select[name="groups"]').val(app.groups).trigger('change');
+                            $('select[name="cpny_id[]"]').val(app.cpny_id).trigger('change');
+                            $('select[name="department_id[]"]').val(app.department_id).trigger('change');
                             $('select[name="role"]').val(app.role).trigger('change');
 
-                            $('select[name="companyid[]"]').val(app.companyid).trigger('change');
-                            $('select[name="departmentid[]"]').val(app.departmentid).trigger('change');
+                            // ⬇️ Set app roles (sys_user_role)
+                            $('select[name="role_ids[]"]').val(app.role_ids).trigger('change');
 
                             $('#appModal').removeClass('hidden');
                         });
                     });
+
 
 
                     // ✅ Toggle Status (Active <-> Inactive)

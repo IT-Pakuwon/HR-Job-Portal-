@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class CompanyPG extends Model
+class MsCompany extends Model
 {
     protected $connection = 'pgsql2';
     protected $table = "ms_company";

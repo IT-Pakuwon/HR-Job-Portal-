@@ -1,248 +1,381 @@
 <?php
+
 namespace App\Http\Controllers;
 
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
 use Illuminate\Http\Request;
-use App\Models\Company;
-use App\Models\Dept;
-use App\Models\Groups;
+use App\Models\MsCompany;
+use App\Models\MsDepartment;
 use App\Models\Usercpny;
 use App\Models\Userdept;
 use Illuminate\Support\Facades\Hash;
+use App\Models\SysRole;
+use App\Models\SysUserRole;
+
 
 class UsersController extends Controller
 {
+    public function index_xxx()
+    {
+        $company = MsCompany::select('cpny_id')->where('status', 'A')->get();
+        $department = MsDepartment::select('department_id')->where('status', 'A')->get();
+
+        return view('pages.users.users', compact('company', 'department'));
+    }
+
     public function index()
     {
-        $company = Company::select('cpnyid')->get();        
-        $departement = Dept::select('deptname')->get();
-        $groups = Groups::get();
-        return view('pages.users.users', compact('company', 'departement','groups'));
+        $company = MsCompany::select('cpny_id')->where('status', 'A')->get();
+        $department = MsDepartment::select('department_id')->where('status', 'A')->get();
+        $roles = SysRole::where('status', 'A')->orderBy('role_id')->get();
+
+        return view('pages.users.users', compact('company', 'department', 'roles'));
     }
-  
+
+
     public function json()
     {
-        $users = User::select(['id', 'name', 'username', 'email','companyid','departmentid','status'])
-            ->latest()
+        $users = User::select(['id','name','username','email','cpny_id','department_id','status'])
+            ->orderByDesc('id')
             ->get();
 
         return response()->json(['data' => $users]);
     }
 
 
-    public function store(Request $request)
+    public function store_xxx(Request $request)
     {
-        // dd($request->all());
         $request->validate([
-            'name' => 'required',           
+            'name' => 'required',
             'email' => 'required',
-            'companyid' => 'required',
-            'departmentid' => 'required',
+            'cpny_id' => 'required|array',
+            'department_id' => 'required|array',
         ]);
+
         DB::beginTransaction();
         try {
-            
-            $user = Auth::user();
-            $company = Company::all();
-            $cpnyids = $request->input('companyid');
-            $company->appreance = implode(',', $cpnyids);
-            if($cpnyids <> null){
-                $company->appreance = implode(',', $cpnyids);
-            }else{
-                $company->appreance = '';
-            }
 
-            $dept = Dept::all();
-            $deptnames = $request->input('departmentid');
-            if($deptnames <> null){
-                $dept->appreance = implode(',', $deptnames);
-            }else{
-                $dept->appreance = '';
-            }
-           
-            $plaintext_password = "pakuwon1234#";
-            $password = password_hash($plaintext_password, PASSWORD_DEFAULT);
+            $loginUser = Auth::user();
 
-            $email = $request->email;
+            // Convert array to CSV string
+            $companyIdsString = implode(',', $request->cpny_id);
+            $deptIdsString    = implode(',', $request->department_id);
+
+            // Generate username from email
+            $email    = $request->email;
             $username = explode('@', $email)[0];
 
-            $users = User::create([
-                'name' => strtoupper($request->name),
-                'email' => $email,
-                'companyid' => $company->appreance,
-                'departmentid' => $dept->appreance,
-                'username' => $username,
-                'password' => $password,
-                'groups' => $request->groups,
-                'notification_email' => $email,
-                'jabatan' => $request->jabatan,     
-                'role' => $request->role,          
-                'npk' => $request->npk,
-                'created_user' => $user->username,
-                'status' => 'A',
-            ]);  
+            // Default password
+            $password = Hash::make("pakuwon1234#");
 
-            $usernames = $request->input('username');
-          
-            //insert usercpny
-            foreach ($cpnyids as $cpnyid) {
-                $usercpny = new Usercpny();
-                $usercpny->username =  $username;
-                $usercpny->cpnyid = $cpnyid;
-                $usercpny->created_user = $user->username;
-                $usercpny->status = 'A';
-                $usercpny->save();
-                
+            $user = User::create([
+                'name'         => strtoupper($request->name),
+                'email'        => $email,
+                'username'     => $username,
+                'cpny_id'      => $companyIdsString,
+                'department_id'=> $deptIdsString,
+                'password'     => $password,
+                'user_role'    => $request->role,
+                'notification_email' => $email,
+                'npk'          => $request->npk,
+                'created_by'   => $loginUser->username,
+                'status'       => 'A',
+            ]);
+
+            // INSERT TO USERCPNY
+            foreach ($request->cpny_id as $cpny) {
+                Usercpny::create([
+                    'username'   => $username,
+                    'cpny_id'    => $cpny,
+                    'status'     => 'A',
+                    'created_by' => $loginUser->username,
+                ]);
             }
-            foreach ($deptnames as $deptname) {
-                $userdept = new Userdept();
-                $userdept->username =  $username;
-                $userdept->deptname = $deptname;
-                $userdept->created_user = $user->username;
-                $userdept->status = 'A';
-                $userdept->save();
-                
+
+            // INSERT TO USERDEPT
+            foreach ($request->department_id as $dept) {
+                Userdept::create([
+                    'username'     => $username,
+                    'department_id'=> $dept,
+                    'status'       => 'A',
+                    'created_by'   => $loginUser->username,
+                ]);
             }
 
             DB::commit();
-            return response()->json(['success' => true, 'users' => $users]);
+            return response()->json(['success' => true, 'user' => $user]);
+
         } catch (\Exception $e) {
             DB::rollBack();
-            return response()->json(['error' => 'Gagal menyimpan users', 'message' => $e->getMessage()], 500);
+            return response()->json(['error' => 'Gagal menyimpan user', 'message' => $e->getMessage()], 500);
         }
-        
     }
-   
-    public function edit($id)
+
+    public function store(Request $request)
+    {
+        $request->validate([
+            'name'          => 'required',
+            'email'         => 'required',
+            'cpny_id'       => 'required|array',
+            'department_id' => 'required|array',
+            'role'          => 'required',          // user/admin (yang lama)
+            'role_ids'      => 'nullable|array',    // ⬅️ daftar role RBAC (sys_user_role)
+        ]);
+
+        DB::beginTransaction();
+        try {
+
+            $loginUser = Auth::user();
+
+            $companyIdsString = implode(',', $request->cpny_id);
+            $deptIdsString    = implode(',', $request->department_id);
+
+            $email    = $request->email;
+            $username = explode('@', $email)[0];
+
+            $password = Hash::make("pakuwon1234#");
+
+            $user = User::create([
+                'name'               => strtoupper($request->name),
+                'email'              => $email,
+                'username'           => $username,
+                'cpny_id'            => $companyIdsString,
+                'department_id'      => $deptIdsString,
+                'password'           => $password,
+                'user_role'          => $request->role, // user/admin (level UI)
+                'notification_email' => $email,
+                'npk'                => $request->npk,
+                'created_by'         => $loginUser->username,
+                'status'             => 'A',
+            ]);
+
+            // USERCPNY
+            foreach ($request->cpny_id as $cpny) {
+                Usercpny::create([
+                    'username'   => $username,
+                    'cpny_id'    => $cpny,
+                    'status'     => 'A',
+                    'created_by' => $loginUser->username,
+                ]);
+            }
+
+            // USERDEPT
+            foreach ($request->department_id as $dept) {
+                Userdept::create([
+                    'username'      => $username,
+                    'department_id' => $dept,
+                    'status'        => 'A',
+                    'created_by'    => $loginUser->username,
+                ]);
+            }
+
+            // ✅ SYS_USER_ROLE – simpan roles RBAC
+            if ($request->filled('role_ids')) {
+                foreach ($request->role_ids as $roleId) {
+                    SysUserRole::create([
+                        'username'   => $username,
+                        'role_id'    => $roleId,
+                        'status'     => 'A',
+                        'created_by' => $loginUser->username,
+                    ]);
+                }
+            }
+
+            DB::commit();
+            return response()->json(['success' => true, 'user' => $user]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['error' => 'Gagal menyimpan user', 'message' => $e->getMessage()], 500);
+        }
+    }
+
+
+
+    public function edit_xxx($id)
     {
         $user = User::findOrFail($id);
 
         return response()->json([
-            'id' => $user->id,
-            'name' => $user->name,
-            'username' => $user->username,
-            'email' => $user->email,
-            'npk' => $user->npk,
-            'jabatan' => $user->jabatan,
-            'groups' => $user->groups,
-            'role' => $user->role ?? null,
-            'companyid' => explode(',', $user->companyid),
-            'departmentid' => explode(',', $user->departmentid),
+            'id'           => $user->id,
+            'name'         => $user->name,
+            'email'        => $user->email,
+            'npk'          => $user->npk,
+            'role'         => $user->user_role,
+            'cpny_id'      => explode(',', $user->cpny_id),
+            'department_id'=> explode(',', $user->department_id),
+        ]);
+    }
+
+    public function edit($id)
+    {
+        $user = User::findOrFail($id);
+
+        // ambil semua role user ini dari sys_user_role
+        $userRoles = SysUserRole::where('username', $user->username)
+            ->where('status', 'A')
+            ->pluck('role_id')
+            ->toArray();
+
+        return response()->json([
+            'id'            => $user->id,
+            'name'          => $user->name,
+            'email'         => $user->email,
+            'npk'           => $user->npk,
+            'role'          => $user->user_role, // user/admin
+            'cpny_id'       => explode(',', $user->cpny_id),
+            'department_id' => explode(',', $user->department_id),
+            'role_ids'      => $userRoles,       // ⬅️ untuk di-set di select2
         ]);
     }
 
 
-    public function update(Request $request, $id)
+
+    public function update_xxx(Request $request, $id)
     {
-        // dd($request->all());
         $request->validate([
-            'name' => 'required',           
-            'email' => 'required',
-            'companyid' => 'required',
-            'departmentid' => 'required',
+            'name'          => 'required',
+            'email'         => 'required',
+            'cpny_id'       => 'required|array',
+            'department_id' => 'required|array',
         ]);
+
         DB::beginTransaction();
         try {
-            
-            $user = Auth::user();
-            $company = Company::all();
-            $cpnyids = $request->input('companyid');
-            $company->appreance = implode(',', $cpnyids);
-            if($cpnyids <> null){
-                $company->appreance = implode(',', $cpnyids);
-            }else{
-                $company->appreance = '';
+
+            $loginUser = Auth::user();
+
+            $user = User::findOrFail($id);
+
+            $companyIdsString = implode(',', $request->cpny_id);
+            $deptIdsString    = implode(',', $request->department_id);
+
+            $user->update([
+                'name'         => strtoupper($request->name),
+                'email'        => $request->email,
+                'cpny_id'      => $companyIdsString,
+                'department_id'=> $deptIdsString,
+                'user_role'    => $request->role,
+                'npk'          => $request->npk,
+                'updated_by'   => $loginUser->username,
+            ]);
+
+            // DELETE OLD ACCESS
+            Usercpny::where('username', $user->username)->delete();
+            Userdept::where('username', $user->username)->delete();
+
+            // INSERT AGAIN
+            foreach ($request->cpny_id as $cpny) {
+                Usercpny::create([
+                    'username'   => $user->username,
+                    'cpny_id'    => $cpny,
+                    'status'     => 'A',
+                    'created_by' => $loginUser->username,
+                ]);
             }
 
-            $dept = Dept::all();
-            $deptnames = $request->input('departmentid');
-            if($deptnames <> null){
-                $dept->appreance = implode(',', $deptnames);
-            }else{
-                $dept->appreance = '';
-            }
-           
-            $plaintext_password = "pakuwon1234#";
-            $password = password_hash($plaintext_password, PASSWORD_DEFAULT);
-
-            $email = $request->email;
-            $username = explode('@', $email)[0];
-
-            $users = User::findOrFail($id);
-
-            $users -> update([
-                'name' => strtoupper($request->name),
-                'email' => $email,
-                'companyid' => $company->appreance,
-                'departmentid' => $dept->appreance,
-                'username' => $username,
-                'password' => $password,
-                'groups' => $request->groups,
-                'notification_email' => $email,
-                'jabatan' => $request->jabatan,     
-                'role' => $request->role,          
-                'npk' => $request->npk,
-                'updated_user' => $user->username,
-                'status' => 'A',
-            ]);  
-
-            $usernames = $request->input('username');
-          
-            //insert usercpny
-            foreach ($cpnyids as $cpnyid) {
-                $usercpny = new Usercpny();
-                $usercpny->username =  $username;
-                $usercpny->cpnyid = $cpnyid;
-                $usercpny->created_user = $user->username;
-                $usercpny->status = 'A';
-                $usercpny->save();
-                
-            }
-            foreach ($deptnames as $deptname) {
-                $userdept = new Userdept();
-                $userdept->username =  $username;
-                $userdept->deptname = $deptname;
-                $userdept->created_user = $user->username;
-                $userdept->status = 'A';
-                $userdept->save();
-                
+            foreach ($request->department_id as $dept) {
+                Userdept::create([
+                    'username'     => $user->username,
+                    'department_id'=> $dept,
+                    'status'       => 'A',
+                    'created_by'   => $loginUser->username,
+                ]);
             }
 
             DB::commit();
-            return response()->json(['success' => true, 'users' => $users]);
+            return response()->json(['success' => true]);
+
         } catch (\Exception $e) {
             DB::rollBack();
-            return response()->json(['error' => 'Gagal menyimpan users', 'message' => $e->getMessage()], 500);
+            return response()->json(['error' => 'Gagal update user', 'message' => $e->getMessage()], 500);
         }
-        
     }
+
+    public function update(Request $request, $id)
+    {
+        $request->validate([
+            'name'          => 'required',
+            'email'         => 'required',
+            'cpny_id'       => 'required|array',
+            'department_id' => 'required|array',
+            'role'          => 'required',
+            'role_ids'      => 'nullable|array',
+        ]);
+
+        DB::beginTransaction();
+        try {
+
+            $loginUser = Auth::user();
+
+            $user = User::findOrFail($id);
+
+            $companyIdsString = implode(',', $request->cpny_id);
+            $deptIdsString    = implode(',', $request->department_id);
+
+            $user->update([
+                'name'          => strtoupper($request->name),
+                'email'         => $request->email,
+                'cpny_id'       => $companyIdsString,
+                'department_id' => $deptIdsString,
+                'user_role'     => $request->role,
+                'npk'           => $request->npk,
+                'updated_by'    => $loginUser->username,
+            ]);
+
+            // DELETE OLD ACCESS (company / dept)
+            Usercpny::where('username', $user->username)->delete();
+            Userdept::where('username', $user->username)->delete();
+
+            foreach ($request->cpny_id as $cpny) {
+                Usercpny::create([
+                    'username'   => $user->username,
+                    'cpny_id'    => $cpny,
+                    'status'     => 'A',
+                    'created_by' => $loginUser->username,
+                ]);
+            }
+
+            foreach ($request->department_id as $dept) {
+                Userdept::create([
+                    'username'      => $user->username,
+                    'department_id' => $dept,
+                    'status'        => 'A',
+                    'created_by'    => $loginUser->username,
+                ]);
+            }
+
+            // ✅ RESET + INSERT ULANG SYS_USER_ROLE
+            SysUserRole::where('username', $user->username)->delete();
+
+            if ($request->filled('role_ids')) {
+                foreach ($request->role_ids as $roleId) {
+                    SysUserRole::create([
+                        'username'   => $user->username,
+                        'role_id'    => $roleId,
+                        'status'     => 'A',
+                        'created_by' => $loginUser->username,
+                    ]);
+                }
+            }
+
+            DB::commit();
+            return response()->json(['success' => true]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['error' => 'Gagal update user', 'message' => $e->getMessage()], 500);
+        }
+    }
+
 
     public function toggleStatus($id)
     {
-        $screen = User::findOrFail($id);
-        $screen->update(['status' => request('status')]);
+        $user = User::findOrFail($id);
+        $user->update(['status' => request('status')]);
 
-        return response()->json(['message' => 'Status updated successfully']);
+        return response()->json(['message' => 'Status updated']);
     }
-
-    public function updatePassword(Request $request)
-    {
-        $request->validate([
-            'current_password' => ['required'],
-            'password' => ['required', 'string', 'min:8', 'confirmed'],
-        ]);
-
-        if (!Hash::check($request->current_password, auth()->user()->password)) {
-            return response()->json(['message' => 'Current password does not match'], 422);
-        }
-
-        $user = auth()->user();
-        $user->password = Hash::make($request->password);
-        $user->save();
-
-        return response()->json(['message' => 'Password updated successfully']);
-    }
-
 }

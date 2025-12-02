@@ -427,25 +427,52 @@ Route::post('/logout', function () {
     // Route::put('/changestos/remove-attachment/{id}', [ChangeStoController::class, 'removeAttachment']);    
     // Route::get('/changesto/{id}/check-approval/{action}', [ChangeStoController::class, 'checkApproval']); 
 
-    Route::get('/budgets', [BudgetController::class, 'index'])->name('budgets');
-    Route::get('/budgets/json', [BudgetController::class, 'json'])->name('budgets.json');
-    Route::get('/createbudgets', [BudgetController::class, 'createBudget'])->name('budget.create');
-    Route::post('/budgets', [BudgetController::class, 'storeBudget'])->name('budgets.store');
-    Route::get('/showbudgets/{hash}', [BudgetController::class, 'showBudget']);
-    // Route::get('/budget/{id}/comments', [BudgetController::class, 'fetchComments']);
-    // Route::post('/budget/{id}/comments', [BudgetController::class, 'storeComment']);
-    Route::post('/budget/{id}/approve', [BudgetController::class, 'approveBudget']);
-    Route::post('/budget/{id}/reject', [BudgetController::class, 'rejectBudget']);
-    Route::post('/budget/{id}/revise', [BudgetController::class, 'reviseBudget']);
-    Route::get('/editbudgets/{hash}', [BudgetController::class, 'editBudget'])->name('budget.edit');
-    Route::put('/budgets/{id}', [BudgetController::class, 'updateBudget'])->name('budgets.update');
-    Route::put('/budgets/remove-attachment/{id}', [BudgetController::class, 'removeAttachment']);    
-    Route::get('/budget/{id}/check-approval/{action}', [BudgetController::class, 'checkApproval']);  
-    Route::get('/get-business-units/{cpny_id}', [BudgetController::class, 'getBusinessUnits']);  
-    Route::get('/pdf_budgets/{hash}', [BudgetController::class, 'printBudget']);
+    Route::middleware('access:BUDGET,VIEW')->group(function () {
+        Route::get('/budgets', [BudgetController::class, 'index'])->name('budgets');
+        Route::get('/budgets/json', [BudgetController::class, 'json'])->name('budgets.json');
+        Route::get('/showbudgets/{hash}', [BudgetController::class, 'showBudget']);
+        Route::get('/pdf_budgets/{hash}', [BudgetController::class, 'printBudget']);
+    });
 
-    Route::post('/budgets/import', [BudgetController::class, 'import'])->name('budgets.import');
-    Route::post('/budgets/{budget}/import', [BudgetController::class, 'import'])->name('budgets.import.edit');
+    Route::middleware('access:BUDGET,CREATE')->group(function () {
+        Route::get('/createbudgets', [BudgetController::class, 'createBudget'])->name('budget.create');
+        Route::post('/budgets', [BudgetController::class, 'storeBudget'])->name('budgets.store');
+        Route::post('/budgets/import', [BudgetController::class, 'import'])->name('budgets.import');
+    });
+
+    Route::middleware('access:BUDGET,EDIT')->group(function () {
+        Route::get('/editbudgets/{hash}', [BudgetController::class, 'editBudget'])->name('budget.edit');
+        Route::put('/budgets/{id}', [BudgetController::class, 'updateBudget'])->name('budgets.update');
+        Route::put('/budgets/remove-attachment/{id}', [BudgetController::class, 'removeAttachment']);
+
+        // kalau kamu anggap approve/reject/revise itu juga “edit”, bisa dimasukkan sini:
+        Route::post('/budget/{id}/approve', [BudgetController::class, 'approveBudget']);
+        Route::post('/budget/{id}/reject', [BudgetController::class, 'rejectBudget']);
+        Route::post('/budget/{id}/revise', [BudgetController::class, 'reviseBudget']);
+        Route::get('/budget/{id}/check-approval/{action}', [BudgetController::class, 'checkApproval']);
+
+        // import untuk edit existing budget
+        Route::post('/budgets/{budget}/import', [BudgetController::class, 'import'])->name('budgets.import.edit');
+    });
+
+
+
+    // Route::get('/budgets', [BudgetController::class, 'index'])->name('budgets');
+    // Route::get('/budgets/json', [BudgetController::class, 'json'])->name('budgets.json');
+    // Route::get('/createbudgets', [BudgetController::class, 'createBudget'])->name('budget.create');
+    // Route::post('/budgets', [BudgetController::class, 'storeBudget'])->name('budgets.store');
+    // Route::get('/showbudgets/{hash}', [BudgetController::class, 'showBudget']);  
+    // Route::post('/budget/{id}/approve', [BudgetController::class, 'approveBudget']);
+    // Route::post('/budget/{id}/reject', [BudgetController::class, 'rejectBudget']);
+    // Route::post('/budget/{id}/revise', [BudgetController::class, 'reviseBudget']);
+    // Route::get('/editbudgets/{hash}', [BudgetController::class, 'editBudget'])->name('budget.edit');
+    // Route::put('/budgets/{id}', [BudgetController::class, 'updateBudget'])->name('budgets.update');
+    // Route::put('/budgets/remove-attachment/{id}', [BudgetController::class, 'removeAttachment']);    
+    // Route::get('/budget/{id}/check-approval/{action}', [BudgetController::class, 'checkApproval']);  
+    // Route::get('/get-business-units/{cpny_id}', [BudgetController::class, 'getBusinessUnits']);  
+    // Route::get('/pdf_budgets/{hash}', [BudgetController::class, 'printBudget']);
+    // Route::post('/budgets/import', [BudgetController::class, 'import'])->name('budgets.import');
+    // Route::post('/budgets/{budget}/import', [BudgetController::class, 'import'])->name('budgets.import.edit');
 
     Route::get('/sppbs', [SppbController::class, 'index'])->name('sppbs');
     Route::get('/sppbs/json', [SppbController::class, 'json'])->name('sppbs.json');

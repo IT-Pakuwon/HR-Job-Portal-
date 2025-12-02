@@ -39,7 +39,7 @@ use App\Imports\MsBudgetTempImport;
 use Maatwebsite\Excel\Facades\Excel;
 use Maatwebsite\Excel\Validators\ValidationException;
 use App\Models\MsBudgetTemp;
-use App\Models\CompanyPG;
+use App\Models\MsCompany;
 use App\Models\BusinessUnitPG;
 use Illuminate\Support\Str;
 use Vinkla\Hashids\Facades\Hashids;
@@ -94,7 +94,7 @@ class BudgetController extends Controller
     {
         $user = request()->user();
      
-        $companies = CompanyPG::select('cpny_id','cpny_name')->where('status','A')->get();
+        $companies = MsCompany::select('cpny_id','cpny_name')->where('status','A')->get();
         $departements = Dept::select('deptname')->get();    
 
         // $tempData = MsBudgetTemp::latest()->get();
@@ -444,7 +444,7 @@ class BudgetController extends Controller
 
         $budget = Budget::findOrFail($id);
 
-        $companies     = CompanyPG::select('cpny_id', 'cpny_name')
+        $companies     = MsCompany::select('cpny_id', 'cpny_name')
                         ->where('status','A')->get();
 
         // business‑unit untuk company yg sedang diedit

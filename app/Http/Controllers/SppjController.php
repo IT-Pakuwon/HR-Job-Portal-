@@ -22,7 +22,7 @@ use App\Models\MsLocationPG;
 use App\Models\MsSubLocationPG;
 use Mail;
 use Illuminate\Support\Facades\Log;
-use App\Models\CompanyPG;
+use App\Models\MsCompany;
 use App\Models\Bq;
 use App\Models\BqDetail;
 use App\Models\BqDetailTemp;

@@ -19,7 +19,7 @@ use App\Models\TrRfcaStep;
 use Vinkla\Hashids\Facades\Hashids;
 use Illuminate\Support\Str;
 use App\Models\TrApproval;
-use App\Models\CompanyPG;
+use App\Models\MsCompany;
 
 
 class RfcaListController extends Controller
@@ -578,7 +578,7 @@ class RfcaListController extends Controller
         $approve_count = $approval->count();
 
         // Company
-        $company = CompanyPG::where('cpny_id', $rfca->cpny_id)->first();
+        $company = MsCompany::where('cpny_id', $rfca->cpny_id)->first();
 
         // Mapping status dokumen
         switch ($rfca->status) {

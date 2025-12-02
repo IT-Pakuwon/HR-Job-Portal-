@@ -69,4 +69,10 @@ class Kernel extends HttpKernel
 
         'recaptcha' => \App\Http\Middleware\VerifyRecaptcha::class,
     ];
+
+    protected $routeMiddleware = [
+        // ...
+        'access' => \App\Http\Middleware\AccessRightMiddleware::class,
+    ];
+
 }

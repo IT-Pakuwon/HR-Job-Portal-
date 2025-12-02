@@ -14,7 +14,7 @@ use App\Models\T_approval;
 use App\Models\Attachment;
 use App\Models\T_Message;
 use App\Models\MsVendor;
-use App\Models\CompanyPG;
+use App\Models\MsCompany;
 use App\Models\TrIssue;
 use App\Models\TrIssuedetail;
 use App\Models\TrSPB;
