@@ -50,17 +50,45 @@ class SpptController extends Controller
             return redirect()->route('login');
         }
 
-        $all = TrSPPT::count();
-        $onProgress = TrSPPT::where('status', 'P')->count();
-        $reject = TrSPPT::where('status', 'R')->count();
-        $revise = TrSPPT::where('status', 'D')->count();
-        $completed = TrSPPT::where('status', 'C')->count();
-       
+        // Paksa ke array supaya aman jika nanti multi company/dept
+        $cpnyIds = (array) $user->cpny_id;
+        $deptIds = (array) $user->department_id;
+
+        $all = TrSPPT::whereIn('cpny_id', $cpnyIds)
+                    ->whereIn('department_id', $deptIds)
+                    ->count();
+
+        $onProgress = TrSPPT::where('status', 'P')
+                    ->whereIn('cpny_id', $cpnyIds)
+                    ->whereIn('department_id', $deptIds)
+                    ->count();
+
+        $reject = TrSPPT::where('status', 'R')
+                    ->whereIn('cpny_id', $cpnyIds)
+                    ->whereIn('department_id', $deptIds)
+                    ->count();
+
+        $revise = TrSPPT::where('status', 'D')
+                    ->whereIn('cpny_id', $cpnyIds)
+                    ->whereIn('department_id', $deptIds)
+                    ->count();
+
+        $completed = TrSPPT::where('status', 'C')
+                    ->whereIn('cpny_id', $cpnyIds)
+                    ->whereIn('department_id', $deptIds)
+                    ->count();
+    
         return view('pages.sppts.sppts', compact('all', 'onProgress', 'reject', 'revise', 'completed'));
     }
 
+
     public function json(Request $request)
     {
+        $user = Auth::user();
+
+        $cpnyIds = (array) $user->cpny_id;
+        $deptIds = (array) $user->department_id;
+
         $draw   = (int) $request->input('draw', 1);
         $start  = (int) $request->input('start', 0);
         $length = (int) $request->input('length', 25);
@@ -79,7 +107,7 @@ class SpptController extends Controller
             6 => 'sppt.status',
         ];
 
-        // ⬇️ default ke kolom 0 (sppt.spptid) dan desc
+        // default ke kolom 0 (sppt.spptid) dan desc
         $orderIdx = (int) $request->input('order.0.column', 0);
         $orderDir = $request->input('order.0.dir', 'desc') === 'asc' ? 'asc' : 'desc';
         $orderCol = $columns[$orderIdx] ?? 'sppt.spptid';
@@ -87,7 +115,9 @@ class SpptController extends Controller
         $base = TrSPPT::from($baseTable.' as sppt')
             ->leftJoin('ms_request_type as rt', function ($join) {
                 $join->on('rt.requesttypeid', '=', 'sppt.requesttypeid');
-            });
+            })
+            ->whereIn('sppt.cpny_id', $cpnyIds)           // 🔹 filter cpny sesuai user
+            ->whereIn('sppt.department_id', $deptIds);    // 🔹 filter dept sesuai user
 
         if ($status !== '') {
             $base->where('sppt.status', $status);
@@ -97,7 +127,7 @@ class SpptController extends Controller
 
         if ($search !== '') {
             $base->where(function ($q) use ($search) {
-                $q->where('sppt.spptid',          'like', "%{$search}%")
+                $q->where('sppt.spptid',           'like', "%{$search}%")
                 ->orWhere('sppt.cpny_id',       'like', "%{$search}%")
                 ->orWhere('sppt.department_id', 'like', "%{$search}%")
                 ->orWhere('rt.requesttype_name','like', "%{$search}%")
@@ -109,22 +139,22 @@ class SpptController extends Controller
         $recordsFiltered = (clone $base)->distinct('sppt.spptid')->count('sppt.spptid');
 
         $data = $base->select(
-                'sppt.id',
-                'sppt.spptid',
-                'sppt.spptdate',
-                'sppt.cpny_id',
-                'sppt.department_id',
-                'sppt.requesttypeid',
-                'rt.requesttype_name',
-                'sppt.keperluan',
-                'sppt.status',
-                'sppt.created_by'
-            )
-            ->orderBy($orderCol, $orderDir)                  // ← mengikuti request, default ke spptid desc
-            ->orderBy('sppt.spptid', 'desc')                 // ← tie-breaker agar stabil
-            ->skip($start)
-            ->take($length)
-            ->get();
+                    'sppt.id',
+                    'sppt.spptid',
+                    'sppt.spptdate',
+                    'sppt.cpny_id',
+                    'sppt.department_id',
+                    'sppt.requesttypeid',
+                    'rt.requesttype_name',
+                    'sppt.keperluan',
+                    'sppt.status',
+                    'sppt.created_by'
+                )
+                ->orderBy($orderCol, $orderDir)          // mengikuti request, default ke spptid desc
+                ->orderBy('sppt.spptid', 'desc')         // tie-breaker agar stabil
+                ->skip($start)
+                ->take($length)
+                ->get();
 
         // Encode id dengan hashids → tambahkan field eid
         $data->transform(function ($row) {
@@ -142,10 +172,15 @@ class SpptController extends Controller
     }
 
 
+
     
     public function createSppt()
     {        
-        $user = request()->user();
+        $user = Auth::user();       
+
+        if (!$user) {
+            return redirect()->route('login');
+        }
         $usercpny = Usercpny::where('username', '=', $user->username)
             ->get();
         $usercpny2 = Usercpny::where('username', '=', $user->username)
@@ -610,6 +645,12 @@ class SpptController extends Controller
    
     public function editSppt($hash)
     {
+        $user = Auth::user();       
+
+        if (!$user) {
+            return redirect()->route('login');
+        }
+        
         $id = Hashids::decode($hash)[0] ?? null;
         abort_if(!$id, 404);
 

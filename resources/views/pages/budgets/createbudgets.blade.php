@@ -216,9 +216,9 @@
                                         class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Department</label>
                                     <select name="department_fin_id" id="department_select" required
                                         class="select2 h-[42px] w-full rounded-md border border-gray-200 bg-white px-3 focus:ring focus:ring-blue-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
-                                        @foreach ($departements as $p)
+                                        {{-- @foreach ($departements as $p)
                                             <option value="{{ $p->deptname }}">{{ $p->deptname }}</option>
-                                        @endforeach
+                                        @endforeach --}}
                                     </select>
                                 </div>
 

@@ -44,25 +44,51 @@ class SppbController extends Controller
             return redirect()->route('login');
         }
 
-        $all = TrSPPB::count();
-        $onProgress = TrSPPB::where('status', 'P')->count();
-        $reject = TrSPPB::where('status', 'R')->count();
-        $revise = TrSPPB::where('status', 'D')->count();
-        $completed = TrSPPB::where('status', 'C')->count();
-       
+        $cpnyIds = (array) $user->cpny_id;
+        $deptIds = (array) $user->department_id;
+
+        $all = TrSPPB::whereIn('cpny_id', $cpnyIds)
+                    ->whereIn('department_id', $deptIds)
+                    ->count();
+
+        $onProgress = TrSPPB::where('status', 'P')
+                    ->whereIn('cpny_id', $cpnyIds)
+                    ->whereIn('department_id', $deptIds)
+                    ->count();
+
+        $reject = TrSPPB::where('status', 'R')
+                    ->whereIn('cpny_id', $cpnyIds)
+                    ->whereIn('department_id', $deptIds)
+                    ->count();
+
+        $revise = TrSPPB::where('status', 'D')
+                    ->whereIn('cpny_id', $cpnyIds)
+                    ->whereIn('department_id', $deptIds)
+                    ->count();
+
+        $completed = TrSPPB::where('status', 'C')
+                    ->whereIn('cpny_id', $cpnyIds)
+                    ->whereIn('department_id', $deptIds)
+                    ->count();
+
         return view('pages.sppbs.sppbs', compact('all', 'onProgress', 'reject', 'revise', 'completed'));
     }
 
     
     public function json(Request $request)
     {
+        $user = Auth::user();
+
+        $cpnyIds = (array) $user->cpny_id;
+        $deptIds = (array) $user->department_id;
+
         $draw   = (int) $request->input('draw', 1);
         $start  = (int) $request->input('start', 0);
         $length = (int) $request->input('length', 25);
         $search = trim((string) $request->input('search.value', ''));
-        $status = (string) $request->query('status', ''); // '' = all
+        $status = (string) $request->query('status', '');
 
-        $baseTable = (new TrSPPB)->getTable(); // e.g. "tr_sppb"
+        $baseTable = (new TrSPPB)->getTable();
 
         $columns = [
             0 => 'sppb.sppbid',
@@ -78,15 +104,18 @@ class SppbController extends Controller
         $orderDir = $request->input('order.0.dir', 'asc') === 'asc' ? 'asc' : 'desc';
         $orderCol = $columns[$orderIdx] ?? 'sppb.sppbid';
 
-        $base = TrSPPB::from($baseTable.' as sppb')
+        $base = TrSPPB::from($baseTable . ' as sppb')
             ->leftJoin('ms_request_type as rt', function ($join) {
                 $join->on('rt.requesttypeid', '=', 'sppb.requesttypeid');
-            });
+            })
+            ->whereIn('sppb.cpny_id', $cpnyIds)            // ✔ filter tambahan
+            ->whereIn('sppb.department_id', $deptIds);    // ✔ filter tambahan
 
         if ($status !== '') {
             $base->where('sppb.status', $status);
         }
 
+        // Total sebelum search
         $recordsTotal = (clone $base)->distinct('sppb.sppbid')->count('sppb.sppbid');
 
         if ($search !== '') {
@@ -100,6 +129,7 @@ class SppbController extends Controller
             });
         }
 
+        // Total setelah search
         $recordsFiltered = (clone $base)->distinct('sppb.sppbid')->count('sppb.sppbid');
 
         $data = $base->select(
@@ -120,10 +150,10 @@ class SppbController extends Controller
                 ->take($length)
                 ->get();
 
-        // Encode id dengan hashids → tambahkan field eid
+        // Add encrypted ID
         $data->transform(function ($row) {
             $row->eid = Hashids::encode($row->id);
-            unset($row->id); // opsional: sembunyikan id asli
+            unset($row->id);
             return $row;
         });
 
@@ -140,7 +170,12 @@ class SppbController extends Controller
     
     public function createSppb()
     {        
-        $user = request()->user();
+        $user = Auth::user();       
+
+        if (!$user) {
+            return redirect()->route('login');
+        }
+        
         $usercpny = Usercpny::where('username', '=', $user->username)
             ->get();
         $usercpny2 = Usercpny::where('username', '=', $user->username)
@@ -605,6 +640,12 @@ class SppbController extends Controller
    
     public function editSppb($hash)
     {
+        $user = Auth::user();       
+
+        if (!$user) {
+            return redirect()->route('login');
+        }
+        
         $id = Hashids::decode($hash)[0] ?? null;
         abort_if(!$id, 404);
 
