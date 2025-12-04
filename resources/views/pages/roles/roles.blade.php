@@ -1,6 +1,6 @@
 <x-app-layout>
     @php
-        $currentPage = Route::currentRouteName() == 'screens' ? 'Screens' : '';
+        $currentPage = Route::currentRouteName() == 'roles' ? 'Roles' : '';
     @endphp
 
     <div class="max-w-9xl mx-auto w-full px-4 sm:px-6 lg:px-8">
@@ -8,27 +8,50 @@
 
         <div class="grid">
             <style>
+                .grid { width: 100%; }
                 table.dataTable { width: 100% !important; }
-                #screensTable_filter {
+                .dataTables_wrapper { width: 100%; }
+
+                #rolesTable_filter {
                     margin-bottom: 20px;
                     display: flex;
                     justify-content: flex-start;
                     align-items: center;
                 }
-                #screensTable_filter input {
+                #rolesTable_filter input {
                     width: auto;
                     padding: 0.25rem 0.5rem;
                     border-radius: 0.5rem;
                     border: 1px solid #d1d5db;
                     background-color: #f9fafb;
                 }
+
+                #rolesTable_length {
+                    display: flex;
+                    justify-content: flex-start;
+                }
+                #rolesTable_length select {
+                    width: 80px;
+                    padding: 5px;
+                }
+
+                #rolesTable tbody tr:hover {
+                    background-color: #8f8f8f11;
+                    cursor: pointer;
+                }
+
+                /* switch status */
                 .switch {
                     position: relative;
                     display: inline-block;
                     width: 40px;
                     height: 22px;
                 }
-                .switch input { opacity: 0; width: 0; height: 0; }
+                .switch input {
+                    opacity: 0;
+                    width: 0;
+                    height: 0;
+                }
                 .slider {
                     position: absolute;
                     cursor: pointer;
@@ -54,19 +77,18 @@
 
             <div class="mt-6 rounded-xl bg-white p-4 dark:bg-gray-800">
                 <div class="mb-4 flex items-center justify-between">
-                    <h2 class="text-xl font-bold text-gray-800 dark:text-white">🪟 Screen List</h2>
-                    <button id="addScreenBtn" class="rounded-lg bg-indigo-500 px-5 py-2 text-white">
-                        + Add Screen
+                    <h2 class="text-xl font-bold text-gray-800 dark:text-white">🔑 Sys Role List</h2>
+                    <button id="addRoleBtn" class="rounded-lg bg-indigo-500 px-5 py-2 text-white">
+                        + Add Role
                     </button>
                 </div>
 
-                <table id="screensTable" class="w-full border-collapse">
+                <table id="rolesTable" class="w-full table-fixed border-collapse">
                     <thead class="bg-white dark:bg-gray-700">
                         <tr>
                             <th class="w-32 px-4 py-3 text-center">Actions</th>
-                            <th class="px-4 py-3 text-left">Screen ID</th>
-                            <th class="px-4 py-3 text-left">Screen Name</th>
-                            <th class="px-4 py-3 text-left">Application ID</th>
+                            <th class="px-4 py-3 text-left">Role ID</th>
+                            <th class="px-4 py-3 text-left">Role Name</th>
                             <th class="w-32 px-4 py-3 text-center">Status</th>
                         </tr>
                     </thead>
@@ -75,42 +97,29 @@
             </div>
 
             {{-- Modal --}}
-            <div id="screenModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50">
+            <div id="roleModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50">
                 <div class="relative w-full max-w-lg rounded-lg bg-white p-6 dark:bg-gray-700">
-                    <h2 id="screenModalTitle" class="mb-4 text-xl font-bold text-gray-800 dark:text-white">
-                        Add Screen
+                    <h2 id="roleModalTitle" class="mb-4 text-xl font-bold text-gray-800 dark:text-white">
+                        Add Role
                     </h2>
-                    <form id="screenForm">
+                    <form id="roleForm">
                         @csrf
-                        <input type="hidden" id="id">
+                        <input type="hidden" id="id" name="id">
 
                         <div class="mb-4">
-                            <label class="block text-gray-700 dark:text-white">Screen ID</label>
-                            <input type="text" id="screen_id" name="screen_id"
+                            <label class="block text-gray-700 dark:text-white">Role ID</label>
+                            <input type="text" id="role_id" name="role_id"
                                    class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700" required>
                         </div>
 
                         <div class="mb-4">
-                            <label class="block text-gray-700 dark:text-white">Screen Name</label>
-                            <input type="text" id="screen_name" name="screen_name"
+                            <label class="block text-gray-700 dark:text-white">Role Name</label>
+                            <input type="text" id="role_name" name="role_name"
                                    class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700" required>
-                        </div>
-
-                        <div class="mb-4">
-                            <label class="block text-gray-700 dark:text-white">Application</label>
-                            <select id="application_id" name="application_id"
-                                    class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700" required>
-                                <option value="">-- Select Application --</option>
-                                @foreach($applications as $app)
-                                    <option value="{{ $app->application_id }}">
-                                        {{ $app->application_id }} - {{ $app->application_name }}
-                                    </option>
-                                @endforeach
-                            </select>
                         </div>
 
                         <div class="flex justify-end space-x-2">
-                            <button type="button" id="closeScreenModal"
+                            <button type="button" id="closeRoleModal"
                                     class="rounded-lg bg-red-500 px-4 py-2 text-white">Cancel</button>
                             <button type="submit"
                                     class="rounded-lg bg-blue-500 px-4 py-2 text-white">Save</button>
@@ -121,9 +130,9 @@
 
             <script>
                 $(document).ready(function () {
-                    let table = $('#screensTable').DataTable({
+                    let table = $('#rolesTable').DataTable({
                         ajax: {
-                            url: "{{ route('screens.json') }}",
+                            url: "{{ route('roles.json') }}",
                             type: "GET",
                             dataSrc: 'data'
                         },
@@ -140,7 +149,7 @@
                                                     data-id="${row.id}" ${row.status === 'A' ? 'checked' : ''}>
                                                 <span class="slider round"></span>
                                             </label>
-                                            <button class="editScreenBtn bg-blue-500 text-white px-2 py-1 rounded"
+                                            <button class="editRoleBtn bg-blue-500 text-white px-2 py-1 rounded"
                                                 data-id="${data}">
                                                 <i class="fas fa-edit"></i>
                                             </button>
@@ -148,9 +157,8 @@
                                     `;
                                 }
                             },
-                            { data: 'screen_id' },
-                            { data: 'screen_name' },
-                            { data: 'application_id' },
+                            { data: 'role_id' },
+                            { data: 'role_name' },
                             {
                                 data: 'status',
                                 className: 'text-center',
@@ -164,26 +172,25 @@
                     });
 
                     // Add
-                    $('#addScreenBtn').click(function () {
-                        $('#screenModalTitle').text("Add Screen");
-                        $('#screenForm')[0].reset();
+                    $('#addRoleBtn').click(function () {
+                        $('#roleModalTitle').text("Add Role");
+                        $('#roleForm')[0].reset();
                         $('#id').val('');
-                        $('#screenModal').removeClass('hidden');
+                        $('#roleModal').removeClass('hidden');
                     });
 
                     // Edit
-                    $(document).on('click', '.editScreenBtn', function () {
+                    $(document).on('click', '.editRoleBtn', function () {
                         let id = $(this).data('id');
 
-                        $('#screenModalTitle').text("Loading...");
-                        $('#screenModal').removeClass('hidden');
+                        $('#roleModalTitle').text("Loading...");
+                        $('#roleModal').removeClass('hidden');
 
-                        $.get(`/screens/${id}/edit`, function (data) {
-                            $('#screenModalTitle').text("Edit Screen");
+                        $.get(`/roles/${id}/edit`, function (data) {
+                            $('#roleModalTitle').text("Edit Role");
                             $('#id').val(data.id);
-                            $('#screen_id').val(data.screen_id);
-                            $('#screen_name').val(data.screen_name);
-                            $('#application_id').val(data.application_id);
+                            $('#role_id').val(data.role_id);
+                            $('#role_name').val(data.role_name);
                         });
                     });
 
@@ -193,7 +200,7 @@
                         let newStatus = $(this).is(':checked') ? 'A' : 'X';
 
                         $.ajax({
-                            url: `/screens/${id}/toggle-status`,
+                            url: `/roles/${id}/toggle-status`,
                             type: 'PUT',
                             headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
                             data: { status: newStatus },
@@ -203,14 +210,14 @@
                         });
                     });
 
-                    // Submit
-                    $('#screenForm').submit(function (e) {
+                    // Submit (create / update)
+                    $('#roleForm').submit(function (e) {
                         e.preventDefault();
 
                         let id = $('#id').val();
-                        let url = id ? `/screens/${id}` : "{{ route('screens.store') }}";
+                        let url = id ? `/roles/${id}` : "{{ route('roles.store') }}";
                         let method = 'POST';
-                        let formData = new FormData(document.getElementById('screenForm'));
+                        let formData = new FormData(document.getElementById('roleForm'));
 
                         if (id) {
                             formData.append('_method', 'PUT');
@@ -224,18 +231,18 @@
                             processData: false,
                             contentType: false,
                             success: function () {
-                                $('#screenModal').addClass('hidden');
+                                $('#roleModal').addClass('hidden');
                                 table.ajax.reload();
                             },
                             error: function (xhr) {
                                 console.error(xhr.responseText);
-                                alert('Gagal menyimpan screen');
+                                alert('Gagal menyimpan data role');
                             }
                         });
                     });
 
-                    $('#closeScreenModal').click(function () {
-                        $('#screenModal').addClass('hidden');
+                    $('#closeRoleModal').click(function () {
+                        $('#roleModal').addClass('hidden');
                     });
                 });
             </script>

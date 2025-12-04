@@ -7,17 +7,12 @@ use Illuminate\Database\Eloquent\Model;
 
 class MsDepartment extends Model
 {
-    // protected $connection = 'mysql2';
+    
     protected $connection = 'pgsql2';
     protected $table = "ms_department";
-    protected $primaryKey = 'id';
-    protected $fillable = [
-        // 'cpny_id',
-        // 'department_id',
-        // 'department_name',
-        // 'department_fin_id',
-        // 'status'
-        'cpny_id', 'department_id', 'department_name', 'department_fin_id', 'status', 'created_by',
+ 
+    protected $fillable = [       
+        'department_id', 'department_name', 'department_fin_id', 'status', 'created_by',
         'created_at', 'updated_by', 'updated_at', 'deleted_by', 'deleted_at'
     ];
 }

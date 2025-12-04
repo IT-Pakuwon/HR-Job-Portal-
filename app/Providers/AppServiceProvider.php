@@ -62,6 +62,7 @@ class AppServiceProvider extends ServiceProvider
 
                     while ($current->isNotEmpty()) {
                         $parents = SysMenu::whereIn('menu_id', $current)
+                            ->where('status', 'A')
                             ->whereNotNull('parent_menu_id')
                             ->pluck('parent_menu_id')
                             ->diff($allAllowedMenuIds);
@@ -78,12 +79,12 @@ class AppServiceProvider extends ServiceProvider
                         ->with('children')   // biarin tanpa filter; filter di Blade
                         ->get();
 
-                    \Log::debug('RBAC DEBUG', [
-                        'user'              => $username,
-                        'role_ids'          => $roleIds->toArray(),
-                        'explicit_menu_ids' => $explicitMenuIds->toArray(),
-                        'all_allowed_ids'   => $allAllowedMenuIds->toArray(),
-                    ]);
+                    // \Log::debug('RBAC DEBUG', [
+                    //     'user'              => $username,
+                    //     'role_ids'          => $roleIds->toArray(),
+                    //     'explicit_menu_ids' => $explicitMenuIds->toArray(),
+                    //     'all_allowed_ids'   => $allAllowedMenuIds->toArray(),
+                    // ]);
                 }
             }
 

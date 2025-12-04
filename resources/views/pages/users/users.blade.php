@@ -186,7 +186,7 @@
                 }
 
                 /* ✅ Memperkecil Lebar Kolom Actions */
-                #usersTable th:nth-child(1),
+                /* #usersTable th:nth-child(1),
                 #usersTable td:nth-child(1) {
                     width: 120px;
                     text-align: center;
@@ -196,7 +196,15 @@
                 #usersTable td:nth-child(4) {
                     width: 120px;
                     text-align: center;
+                } */
+
+                /* ✅ Memperkecil Lebar Kolom Actions */
+                #usersTable th:nth-child(1),
+                #usersTable td:nth-child(1) {
+                    width: 180px; /* sebelumnya 120px, kita besarin dikit */
+                    text-align: center;
                 }
+
             </style>
             <div class="mt-6 rounded-xl bg-white p-4 dark:bg-gray-800">
                 <div class="mb-4 flex items-center justify-between">
@@ -299,6 +307,8 @@
                 </div>
             </div>
 
+            <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
             <script>
                 $(document).ready(function() {
                     let table = $('#usersTable').DataTable({
@@ -309,18 +319,39 @@
                                 data: 'id',
                                 render: function(data, type, row) {
                                     return `
-                                    <div class="flex justify-center space-x-2">
-                                        <label class="switch">
-                                            <input type="checkbox" class="toggleStatus" data-id="${row.id}" ${row.status === 'A' ? 'checked' : ''}>
-                                            <span class="slider round"></span>
-                                        </label>
-                                                <button class="editAppBtn bg-blue-500 text-white px-2 py-1 rounded" data-id="${data}">
-                                            <i class="fas fa-edit"></i>
-                                        </button>
-                                    </div>
-                                `;
+                                        <div class="flex justify-center space-x-2">
+                                            <!-- ✅ Toggle Active/Inactive -->
+                                            <label class="switch cursor-pointer">
+                                                <input type="checkbox" class="toggleStatus" data-id="${row.id}" ${row.status === 'A' ? 'checked' : ''}>
+                                                <span class="slider round"></span>
+                                            </label>
+
+                                            <!-- ✏️ Edit -->
+                                            <button type="button"
+                                                    class="editAppBtn bg-blue-500 text-white px-2 py-1 rounded cursor-pointer"
+                                                    data-id="${data}" title="Edit User">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+
+                                            <!-- 🔑 Login As -->
+                                            <button type="button"
+                                                    class="impersonateBtn bg-yellow-500 text-white px-2 py-1 rounded cursor-pointer"
+                                                    data-id="${data}" title="Login As">
+                                                <i class="fas fa-key"></i>
+                                            </button>
+
+                                            <!-- 🔁 Reset Password -->
+                                            <button type="button"
+                                                    class="resetPwdBtn bg-red-500 text-white px-2 py-1 rounded cursor-pointer"
+                                                    data-id="${data}" title="Reset Password">
+                                                <i class="fas fa-undo"></i>
+                                            </button>
+                                        </div>
+                                    `;
                                 }
                             },
+
+
                             {
                                 data: 'name',
                                 className: 'no-pointer'
@@ -443,6 +474,110 @@
                         width: '100%'
                     });
                 });
+            </script>
+
+            <script>               
+                // 🔑 Login As (SweetAlert)
+                $(document).on('click', '.impersonateBtn', function (e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+
+                    let userId = $(this).data('id');
+
+                    Swal.fire({
+                        title: "Login As User?",
+                        text: "Anda akan login sebagai user ini.",
+                        icon: "warning",
+                        showCancelButton: true,
+                        confirmButtonColor: "#3085d6",
+                        cancelButtonColor: "#d33",
+                        confirmButtonText: "Ya, Lanjutkan",
+                        cancelButtonText: "Batal"
+                    }).then((result) => {
+
+                        if (result.isConfirmed) {
+                            $.ajax({
+                                url: `/users/${userId}/impersonate`,
+                                type: 'POST',
+                                headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+                                success: function (res) {
+
+                                    Swal.fire({
+                                        title: "Berhasil!",
+                                        text: res.message || "Login as berhasil.",
+                                        icon: "success",
+                                        timer: 1500,
+                                        showConfirmButton: false
+                                    }).then(() => {
+                                        window.location.href = res.redirect ?? window.location.href;
+                                    });
+
+                                },
+                                error: function (xhr) {
+                                    Swal.fire({
+                                        title: "Gagal!",
+                                        text: xhr.responseJSON?.message || 'Gagal login sebagai user.',
+                                        icon: "error"
+                                    });
+                                }
+                            });
+                        }
+
+                    });
+                });
+
+
+                // 🔁 Reset Password ke default: pakuwon1234#               
+                $(document).on('click', '.resetPwdBtn', function (e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+
+                    let userId = $(this).data('id');
+
+                    Swal.fire({
+                        title: "Reset Password?",
+                        text: "Password user akan di-reset ke default: pakuwon1234#",
+                        icon: "warning",
+                        showCancelButton: true,
+                        confirmButtonColor: "#3085d6",
+                        cancelButtonColor: "#d33",
+                        confirmButtonText: "Ya, Reset",
+                        cancelButtonText: "Batal"
+                    }).then((result) => {
+
+                        if (result.isConfirmed) {
+
+                            $.ajax({
+                                url: `/users/${userId}/reset-password`,
+                                type: "POST",
+                                headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+                                success: function (res) {
+
+                                    Swal.fire({
+                                        title: "Sukses!",
+                                        text: res.message || "Password berhasil di-reset.",
+                                        icon: "success",
+                                        timer: 1500,
+                                        showConfirmButton: false
+                                    });
+
+                                },
+                                error: function (xhr) {
+                                    Swal.fire({
+                                        title: "Gagal!",
+                                        text: xhr.responseJSON?.message || "Reset password gagal.",
+                                        icon: "error"
+                                    });
+                                }
+                            });
+
+                        }
+
+                    });
+                });
+
+
+
             </script>
 
         </div>
