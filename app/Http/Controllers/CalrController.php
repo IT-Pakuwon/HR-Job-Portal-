@@ -27,7 +27,7 @@ use App\Models\TrPo;
 use App\Models\TrPOdetail;
 use App\Models\TrRfca;
 use App\Models\TrRfcaStep;
-use App\Models\CompanyPG;
+use App\Models\MsCompany;
 
 
 
@@ -601,7 +601,7 @@ class CalrController extends Controller
         $approve_count = $approval->count();
 
         // Company
-        $company = CompanyPG::where('cpny_id', $calr->cpny_id)->first();
+        $company = MsCompany::where('cpny_id', $calr->cpny_id)->first();
 
         // Mapping status dokumen
         switch ($calr->status) {

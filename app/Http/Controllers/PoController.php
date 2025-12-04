@@ -14,7 +14,7 @@ use App\Models\T_approval;
 use App\Models\Attachment;
 use App\Models\T_Message;
 use App\Models\MsVendor;
-use App\Models\CompanyPG;
+use App\Models\MsCompany;
 use App\Models\TrSPPB;
 use App\Models\TrSPPJ;
 use App\Models\TrSPPK;
@@ -604,7 +604,7 @@ class PoController extends Controller
         $grand = $po->grandtotalamt;
         $terbilang = ucfirst($this->terbilang($grand)) . ' rupiah';
 
-        $company = CompanyPG::where('cpny_id', $po->cpny_id)
+        $company = MsCompany::where('cpny_id', $po->cpny_id)
             ->first();
 
         $purchaser = ucwords(strtolower($authUser->name));
@@ -662,7 +662,7 @@ class PoController extends Controller
         $grand  = $po->grandtotalamt;
         $terbilang = ucfirst($this->terbilang($grand)) . ' rupiah';
 
-        $company = CompanyPG::where('cpny_id', $po->cpny_id)->first();
+        $company = MsCompany::where('cpny_id', $po->cpny_id)->first();
 
         // tampilkan nama pembuat / pengirim
         $purchaser = ucwords(strtolower($authUser->name));
@@ -845,7 +845,7 @@ class PoController extends Controller
         $ppn   = $po->taxamt;
         $grand = $po->grandtotalamt;
         $terbilang = ucfirst($this->terbilang($grand)) . ' rupiah';
-        $company = CompanyPG::where('cpny_id', $po->cpny_id)->first();
+        $company = MsCompany::where('cpny_id', $po->cpny_id)->first();
 
         // tampilkan nama pembuat/pengirim
         $purchaser = ucwords(strtolower($authUser->name));
@@ -969,7 +969,7 @@ class PoController extends Controller
         $ppn       = $po->taxamt;
         $grand     = $po->grandtotalamt;
         $terbilang = ucfirst($this->terbilang($grand)) . ' rupiah';
-        $company   = CompanyPG::where('cpny_id', $po->cpny_id)->first();
+        $company   = MsCompany::where('cpny_id', $po->cpny_id)->first();
 
         $purchaser = ucwords(strtolower($authUser->name));
 

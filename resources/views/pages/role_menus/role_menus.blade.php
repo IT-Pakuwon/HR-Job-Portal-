@@ -1,6 +1,6 @@
 <x-app-layout>
     @php
-        $currentPage = Route::currentRouteName() == 'screens' ? 'Screens' : '';
+        $currentPage = Route::currentRouteName() == 'role_menus' ? 'Role Menus' : '';
     @endphp
 
     <div class="max-w-9xl mx-auto w-full px-4 sm:px-6 lg:px-8">
@@ -9,26 +9,31 @@
         <div class="grid">
             <style>
                 table.dataTable { width: 100% !important; }
-                #screensTable_filter {
+                #roleMenusTable_filter {
                     margin-bottom: 20px;
                     display: flex;
                     justify-content: flex-start;
                     align-items: center;
                 }
-                #screensTable_filter input {
+                #roleMenusTable_filter input {
                     width: auto;
                     padding: 0.25rem 0.5rem;
                     border-radius: 0.5rem;
                     border: 1px solid #d1d5db;
                     background-color: #f9fafb;
                 }
+                /* switch status */
                 .switch {
                     position: relative;
                     display: inline-block;
                     width: 40px;
                     height: 22px;
                 }
-                .switch input { opacity: 0; width: 0; height: 0; }
+                .switch input {
+                    opacity: 0;
+                    width: 0;
+                    height: 0;
+                }
                 .slider {
                     position: absolute;
                     cursor: pointer;
@@ -54,19 +59,19 @@
 
             <div class="mt-6 rounded-xl bg-white p-4 dark:bg-gray-800">
                 <div class="mb-4 flex items-center justify-between">
-                    <h2 class="text-xl font-bold text-gray-800 dark:text-white">🪟 Screen List</h2>
-                    <button id="addScreenBtn" class="rounded-lg bg-indigo-500 px-5 py-2 text-white">
-                        + Add Screen
+                    <h2 class="text-xl font-bold text-gray-800 dark:text-white">🧩 Role Menu Mapping</h2>
+                    <button id="addRoleMenuBtn" class="rounded-lg bg-indigo-500 px-5 py-2 text-white">
+                        + Add Role Menu
                     </button>
                 </div>
 
-                <table id="screensTable" class="w-full border-collapse">
+                <table id="roleMenusTable" class="w-full border-collapse">
                     <thead class="bg-white dark:bg-gray-700">
                         <tr>
                             <th class="w-32 px-4 py-3 text-center">Actions</th>
-                            <th class="px-4 py-3 text-left">Screen ID</th>
-                            <th class="px-4 py-3 text-left">Screen Name</th>
-                            <th class="px-4 py-3 text-left">Application ID</th>
+                            <th class="px-4 py-3 text-left">Role ID</th>
+                            <th class="px-4 py-3 text-left">Menu ID</th>
+                            <th class="px-4 py-3 text-left">Parent Menu</th>
                             <th class="w-32 px-4 py-3 text-center">Status</th>
                         </tr>
                     </thead>
@@ -75,42 +80,47 @@
             </div>
 
             {{-- Modal --}}
-            <div id="screenModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50">
-                <div class="relative w-full max-w-lg rounded-lg bg-white p-6 dark:bg-gray-700">
-                    <h2 id="screenModalTitle" class="mb-4 text-xl font-bold text-gray-800 dark:text-white">
-                        Add Screen
+            <div id="roleMenuModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50">
+                <div class="relative w-full max-w-md rounded-lg bg-white p-6 dark:bg-gray-700">
+                    <h2 id="roleMenuModalTitle" class="mb-4 text-xl font-bold text-gray-800 dark:text-white">
+                        Add Role Menu
                     </h2>
-                    <form id="screenForm">
+                    <form id="roleMenuForm">
                         @csrf
-                        <input type="hidden" id="id">
+                        <input type="hidden" id="id" name="id">
 
-                        <div class="mb-4">
-                            <label class="block text-gray-700 dark:text-white">Screen ID</label>
-                            <input type="text" id="screen_id" name="screen_id"
-                                   class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700" required>
-                        </div>
-
-                        <div class="mb-4">
-                            <label class="block text-gray-700 dark:text-white">Screen Name</label>
-                            <input type="text" id="screen_name" name="screen_name"
-                                   class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700" required>
-                        </div>
-
-                        <div class="mb-4">
-                            <label class="block text-gray-700 dark:text-white">Application</label>
-                            <select id="application_id" name="application_id"
+                        <div class="mb-3">
+                            <label class="block text-gray-700 dark:text-white">Role</label>
+                            <select id="role_id" name="role_id"
                                     class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700" required>
-                                <option value="">-- Select Application --</option>
-                                @foreach($applications as $app)
-                                    <option value="{{ $app->application_id }}">
-                                        {{ $app->application_id }} - {{ $app->application_name }}
+                                <option value="">-- Select Role --</option>
+                                @foreach($roles as $r)
+                                    <option value="{{ $r->role_id }}">{{ $r->role_name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="block text-gray-700 dark:text-white">Menu</label>
+                            <select id="menu_id" name="menu_id"
+                                    class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700" required>
+                                <option value="">-- Select Menu --</option>
+                                @foreach($menus as $m)
+                                    <option value="{{ $m->menu_id }}">
+                                        {{ $m->menu_name }}
                                     </option>
                                 @endforeach
                             </select>
                         </div>
 
-                        <div class="flex justify-end space-x-2">
-                            <button type="button" id="closeScreenModal"
+                        <div class="mb-3">
+                            <label class="block text-gray-700 dark:text-white">Parent Menu ID (optional)</label>
+                            <input type="text" id="parent_menu_id" name="parent_menu_id"
+                                   class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700">
+                        </div>
+
+                        <div class="mt-4 flex justify-end space-x-2">
+                            <button type="button" id="closeRoleMenuModal"
                                     class="rounded-lg bg-red-500 px-4 py-2 text-white">Cancel</button>
                             <button type="submit"
                                     class="rounded-lg bg-blue-500 px-4 py-2 text-white">Save</button>
@@ -121,9 +131,9 @@
 
             <script>
                 $(document).ready(function () {
-                    let table = $('#screensTable').DataTable({
+                    let table = $('#roleMenusTable').DataTable({
                         ajax: {
-                            url: "{{ route('screens.json') }}",
+                            url: "{{ route('role_menus.json') }}",
                             type: "GET",
                             dataSrc: 'data'
                         },
@@ -140,17 +150,17 @@
                                                     data-id="${row.id}" ${row.status === 'A' ? 'checked' : ''}>
                                                 <span class="slider round"></span>
                                             </label>
-                                            <button class="editScreenBtn bg-blue-500 text-white px-2 py-1 rounded"
-                                                data-id="${data}">
+                                            <button class="editRoleMenuBtn bg-blue-500 text-white px-2 py-1 rounded"
+                                                    data-id="${data}">
                                                 <i class="fas fa-edit"></i>
                                             </button>
                                         </div>
                                     `;
                                 }
                             },
-                            { data: 'screen_id' },
-                            { data: 'screen_name' },
-                            { data: 'application_id' },
+                            { data: 'role_id' },
+                            { data: 'menu_id' },
+                            { data: 'parent_menu_id' },
                             {
                                 data: 'status',
                                 className: 'text-center',
@@ -164,26 +174,26 @@
                     });
 
                     // Add
-                    $('#addScreenBtn').click(function () {
-                        $('#screenModalTitle').text("Add Screen");
-                        $('#screenForm')[0].reset();
+                    $('#addRoleMenuBtn').click(function () {
+                        $('#roleMenuModalTitle').text("Add Role Menu");
+                        $('#roleMenuForm')[0].reset();
                         $('#id').val('');
-                        $('#screenModal').removeClass('hidden');
+                        $('#roleMenuModal').removeClass('hidden');
                     });
 
                     // Edit
-                    $(document).on('click', '.editScreenBtn', function () {
+                    $(document).on('click', '.editRoleMenuBtn', function () {
                         let id = $(this).data('id');
 
-                        $('#screenModalTitle').text("Loading...");
-                        $('#screenModal').removeClass('hidden');
+                        $('#roleMenuModalTitle').text("Loading...");
+                        $('#roleMenuModal').removeClass('hidden');
 
-                        $.get(`/screens/${id}/edit`, function (data) {
-                            $('#screenModalTitle').text("Edit Screen");
+                        $.get(`/role-menus/${id}/edit`, function (data) {
+                            $('#roleMenuModalTitle').text("Edit Role Menu");
                             $('#id').val(data.id);
-                            $('#screen_id').val(data.screen_id);
-                            $('#screen_name').val(data.screen_name);
-                            $('#application_id').val(data.application_id);
+                            $('#role_id').val(data.role_id);
+                            $('#menu_id').val(data.menu_id);
+                            $('#parent_menu_id').val(data.parent_menu_id);
                         });
                     });
 
@@ -193,7 +203,7 @@
                         let newStatus = $(this).is(':checked') ? 'A' : 'X';
 
                         $.ajax({
-                            url: `/screens/${id}/toggle-status`,
+                            url: `/role-menus/${id}/toggle-status`,
                             type: 'PUT',
                             headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
                             data: { status: newStatus },
@@ -203,14 +213,14 @@
                         });
                     });
 
-                    // Submit
-                    $('#screenForm').submit(function (e) {
+                    // Submit (create/update)
+                    $('#roleMenuForm').submit(function (e) {
                         e.preventDefault();
 
                         let id = $('#id').val();
-                        let url = id ? `/screens/${id}` : "{{ route('screens.store') }}";
+                        let url = id ? `/role-menus/${id}` : "{{ route('role_menus.store') }}";
                         let method = 'POST';
-                        let formData = new FormData(document.getElementById('screenForm'));
+                        let formData = new FormData(document.getElementById('roleMenuForm'));
 
                         if (id) {
                             formData.append('_method', 'PUT');
@@ -224,18 +234,18 @@
                             processData: false,
                             contentType: false,
                             success: function () {
-                                $('#screenModal').addClass('hidden');
+                                $('#roleMenuModal').addClass('hidden');
                                 table.ajax.reload();
                             },
                             error: function (xhr) {
                                 console.error(xhr.responseText);
-                                alert('Gagal menyimpan screen');
+                                alert('Gagal menyimpan data role menu');
                             }
                         });
                     });
 
-                    $('#closeScreenModal').click(function () {
-                        $('#screenModal').addClass('hidden');
+                    $('#closeRoleMenuModal').click(function () {
+                        $('#roleMenuModal').addClass('hidden');
                     });
                 });
             </script>

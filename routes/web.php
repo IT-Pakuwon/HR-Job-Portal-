@@ -68,8 +68,17 @@ use App\Http\Controllers\BastController;
 use App\Http\Controllers\RfcaListController;
 use App\Http\Controllers\CalrListController;
 use App\Http\Controllers\CalrController;
-
 use App\Http\Controllers\CanvassxController;
+use App\Http\Controllers\CompanyController;
+use App\Http\Controllers\DepartmentsController;
+
+use App\Http\Controllers\SysApplicationController;
+use App\Http\Controllers\SysScreenController;
+use App\Http\Controllers\SysMenuController;
+// use App\Http\Controllers\SysRoleMenuController;
+use App\Http\Controllers\SysAccessRightController;
+use App\Http\Controllers\SysRoleController;
+
 
 
 use Illuminate\Support\Facades\File;
@@ -432,25 +441,52 @@ Route::post('/logout', function () {
     // Route::put('/changestos/remove-attachment/{id}', [ChangeStoController::class, 'removeAttachment']);    
     // Route::get('/changesto/{id}/check-approval/{action}', [ChangeStoController::class, 'checkApproval']); 
 
-    Route::get('/budgets', [BudgetController::class, 'index'])->name('budgets');
-    Route::get('/budgets/json', [BudgetController::class, 'json'])->name('budgets.json');
-    Route::get('/createbudgets', [BudgetController::class, 'createBudget'])->name('budget.create');
-    Route::post('/budgets', [BudgetController::class, 'storeBudget'])->name('budgets.store');
-    Route::get('/showbudgets/{hash}', [BudgetController::class, 'showBudget']);
-    // Route::get('/budget/{id}/comments', [BudgetController::class, 'fetchComments']);
-    // Route::post('/budget/{id}/comments', [BudgetController::class, 'storeComment']);
-    Route::post('/budget/{id}/approve', [BudgetController::class, 'approveBudget']);
-    Route::post('/budget/{id}/reject', [BudgetController::class, 'rejectBudget']);
-    Route::post('/budget/{id}/revise', [BudgetController::class, 'reviseBudget']);
-    Route::get('/editbudgets/{hash}', [BudgetController::class, 'editBudget'])->name('budget.edit');
-    Route::put('/budgets/{id}', [BudgetController::class, 'updateBudget'])->name('budgets.update');
-    Route::put('/budgets/remove-attachment/{id}', [BudgetController::class, 'removeAttachment']);    
-    Route::get('/budget/{id}/check-approval/{action}', [BudgetController::class, 'checkApproval']);  
-    Route::get('/get-business-units/{cpny_id}', [BudgetController::class, 'getBusinessUnits']);  
-    Route::get('/pdf_budgets/{hash}', [BudgetController::class, 'printBudget']);
+    Route::middleware('access:BUDGET,VIEW')->group(function () {
+        Route::get('/budgets', [BudgetController::class, 'index'])->name('budgets');
+        Route::get('/budgets/json', [BudgetController::class, 'json'])->name('budgets.json');
+        Route::get('/showbudgets/{hash}', [BudgetController::class, 'showBudget']);
+        Route::get('/pdf_budgets/{hash}', [BudgetController::class, 'printBudget']);
+    });
 
-    Route::post('/budgets/import', [BudgetController::class, 'import'])->name('budgets.import');
-    Route::post('/budgets/{budget}/import', [BudgetController::class, 'import'])->name('budgets.import.edit');
+    Route::middleware('access:BUDGET,CREATE')->group(function () {
+        Route::get('/createbudgets', [BudgetController::class, 'createBudget'])->name('budget.create');
+        Route::post('/budgets', [BudgetController::class, 'storeBudget'])->name('budgets.store');
+        Route::post('/budgets/import', [BudgetController::class, 'import'])->name('budgets.import');
+    });
+
+    Route::middleware('access:BUDGET,EDIT')->group(function () {
+        Route::get('/editbudgets/{hash}', [BudgetController::class, 'editBudget'])->name('budget.edit');
+        Route::put('/budgets/{id}', [BudgetController::class, 'updateBudget'])->name('budgets.update');
+        Route::put('/budgets/remove-attachment/{id}', [BudgetController::class, 'removeAttachment']);
+
+        // kalau kamu anggap approve/reject/revise itu juga “edit”, bisa dimasukkan sini:
+        Route::post('/budget/{id}/approve', [BudgetController::class, 'approveBudget']);
+        Route::post('/budget/{id}/reject', [BudgetController::class, 'rejectBudget']);
+        Route::post('/budget/{id}/revise', [BudgetController::class, 'reviseBudget']);
+        Route::get('/budget/{id}/check-approval/{action}', [BudgetController::class, 'checkApproval']);
+
+        // import untuk edit existing budget
+        Route::post('/budgets/{budget}/import', [BudgetController::class, 'import'])->name('budgets.import.edit');
+    });
+
+
+
+    // Route::get('/budgets', [BudgetController::class, 'index'])->name('budgets');
+    // Route::get('/budgets/json', [BudgetController::class, 'json'])->name('budgets.json');
+    // Route::get('/createbudgets', [BudgetController::class, 'createBudget'])->name('budget.create');
+    // Route::post('/budgets', [BudgetController::class, 'storeBudget'])->name('budgets.store');
+    // Route::get('/showbudgets/{hash}', [BudgetController::class, 'showBudget']);  
+    // Route::post('/budget/{id}/approve', [BudgetController::class, 'approveBudget']);
+    // Route::post('/budget/{id}/reject', [BudgetController::class, 'rejectBudget']);
+    // Route::post('/budget/{id}/revise', [BudgetController::class, 'reviseBudget']);
+    // Route::get('/editbudgets/{hash}', [BudgetController::class, 'editBudget'])->name('budget.edit');
+    // Route::put('/budgets/{id}', [BudgetController::class, 'updateBudget'])->name('budgets.update');
+    // Route::put('/budgets/remove-attachment/{id}', [BudgetController::class, 'removeAttachment']);    
+    // Route::get('/budget/{id}/check-approval/{action}', [BudgetController::class, 'checkApproval']);  
+    // Route::get('/get-business-units/{cpny_id}', [BudgetController::class, 'getBusinessUnits']);  
+    // Route::get('/pdf_budgets/{hash}', [BudgetController::class, 'printBudget']);
+    // Route::post('/budgets/import', [BudgetController::class, 'import'])->name('budgets.import');
+    // Route::post('/budgets/{budget}/import', [BudgetController::class, 'import'])->name('budgets.import.edit');
 
     Route::get('/sppbs', [SppbController::class, 'index'])->name('sppbs');
     Route::get('/sppbs/json', [SppbController::class, 'json'])->name('sppbs.json');
@@ -831,7 +867,71 @@ Route::post('/logout', function () {
     Route::put('/users/{id}/toggle-status', [UsersController::class, 'toggleStatus']);
     Route::post('/settings/password', [UsersController::class, 'updatePassword'])->name('password.update.custom');
 
+    Route::post('/users/{id}/reset-password', [UsersController::class, 'resetPassword'])->name('users.reset-password');
+    Route::post('/users/{id}/impersonate', [UsersController::class, 'impersonate'])->name('users.impersonate');
+
+    // === APPLICATION MASTER ===
+    Route::get('/applications', [SysApplicationController::class, 'index'])->name('applications');
+    Route::get('/applications/json', [SysApplicationController::class, 'json'])->name('applications.json');
+    Route::post('/applications', [SysApplicationController::class, 'store'])->name('applications.store');
+    Route::get('/applications/{id}/edit', [SysApplicationController::class, 'edit'])->name('applications.edit');
+    Route::put('/applications/{id}', [SysApplicationController::class, 'update'])->name('applications.update');
+    Route::put('/applications/{id}/toggle-status', [SysApplicationController::class, 'toggleStatus'])->name('applications.toggle-status');
+
+    // === SCREEN MASTER ===
+    Route::get('/screens', [SysScreenController::class, 'index'])->name('screens');
+    Route::get('/screens/json', [SysScreenController::class, 'json'])->name('screens.json');
+    Route::post('/screens', [SysScreenController::class, 'store'])->name('screens.store');
+    Route::get('/screens/{id}/edit', [SysScreenController::class, 'edit'])->name('screens.edit');
+    Route::put('/screens/{id}', [SysScreenController::class, 'update'])->name('screens.update');
+    Route::put('/screens/{id}/toggle-status', [SysScreenController::class, 'toggleStatus'])->name('screens.toggle-status');
+
+    Route::get('/menus', [SysMenuController::class, 'index'])->name('menus');
+    Route::get('/menus/json', [SysMenuController::class, 'json'])->name('menus.json');
+    Route::post('/menus', [SysMenuController::class, 'store'])->name('menus.store');
+    Route::get('/menus/{id}/edit', [SysMenuController::class, 'edit'])->name('menus.edit');
+    Route::put('/menus/{id}', [SysMenuController::class, 'update'])->name('menus.update');
+    Route::put('/menus/{id}/toggle-status', [SysMenuController::class, 'toggleStatus'])->name('menus.toggle-status');
+
+    Route::get('/roles', [SysRoleController::class, 'index'])->name('roles');
+    Route::get('/roles/json', [SysRoleController::class, 'json'])->name('roles.json');
+    Route::post('/roles', [SysRoleController::class, 'store'])->name('roles.store');
+    Route::get('/roles/{id}/edit', [SysRoleController::class, 'edit'])->name('roles.edit');
+    Route::put('/roles/{id}', [SysRoleController::class, 'update'])->name('roles.update');
+    Route::put('/roles/{id}/toggle-status', [SysRoleController::class, 'toggleStatus'])->name('roles.toggle-status');
+
+    // ================== SYS ROLE MENU ==================
+    Route::get('/role-menus', [SysRoleMenuController::class, 'index'])->name('role_menus');
+    Route::get('/role-menus/json', [SysRoleMenuController::class, 'json'])->name('role_menus.json');
+    Route::post('/role-menus', [SysRoleMenuController::class, 'store'])->name('role_menus.store');
+    Route::get('/role-menus/{id}/edit', [SysRoleMenuController::class, 'edit'])->name('role_menus.edit');
+    Route::put('/role-menus/{id}', [SysRoleMenuController::class, 'update'])->name('role_menus.update');
+    Route::put('/role-menus/{id}/toggle-status', [SysRoleMenuController::class, 'toggleStatus'])->name('role_menus.toggle-status');
+
+    // ================== SYS ACCESS RIGHT ==================
+    Route::get('/access-rights', [SysAccessRightController::class, 'index'])->name('access_rights');
+    Route::get('/access-rights/json', [SysAccessRightController::class, 'json'])->name('access_rights.json');
+    Route::post('/access-rights', [SysAccessRightController::class, 'store'])->name('access_rights.store');
+    Route::get('/access-rights/{id}/edit', [SysAccessRightController::class, 'edit'])->name('access_rights.edit');
+    Route::put('/access-rights/{id}', [SysAccessRightController::class, 'update'])->name('access_rights.update');
+    Route::put('/access-rights/{id}/toggle-status', [SysAccessRightController::class, 'toggleStatus'])->name('access_rights.toggle-status');
   
+    Route::get('/companies', [CompanyController::class, 'index'])->name('companies');
+    Route::get('/companies/json', [CompanyController::class, 'json'])->name('companies.json');
+    Route::post('/companies', [CompanyController::class, 'store'])->name('companies.store');
+    Route::get('/companies/{id}/edit', [CompanyController::class, 'edit'])->name('companies.edit');
+    Route::post('/companies/{id}', [CompanyController::class, 'update'])->name('companies.update');
+    Route::put('/companies/{id}/toggle-status', [CompanyController::class, 'toggleStatus'])->name('companies.toggle-status');    
+
+    Route::get('/department', [DepartmentsController::class, 'index'])->name('department');
+    Route::get('/department/json', [DepartmentsController::class, 'json'])->name('department.json');
+    Route::post('/department', [DepartmentsController::class, 'store'])->name('department.store');
+    Route::get('/department/{id}/edit', [DepartmentsController::class, 'edit'])->name('department.edit');
+    Route::put('/department/{id}', [DepartmentsController::class, 'update'])->name('department.update');
+    Route::put('/department/{id}/toggle-status', [DepartmentsController::class, 'toggleStatus'])->name('department.toggle-status'); 
+    
+    
+
     
 
 

@@ -34,6 +34,8 @@ use App\Services\ZoomApi;
 use App\Models\Viewtrxmeeting;
 use Spatie\IcalendarGenerator\Components\Calendar;
 use Spatie\IcalendarGenerator\Components\Event;
+use App\Models\TrApproval;  
+use Vinkla\Hashids\Facades\Hashids;
 
 
 class AgendaController extends Controller
@@ -215,37 +217,37 @@ class AgendaController extends Controller
             ]);
             
             // Simpan Attachments ke attachments          
-            if ($request->hasfile('attachments')) {
-                foreach ($request->file('attachments') as $file) {
-                    $randomNumber = random_int(10000000, 99999999);
-                    $filename = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+            // if ($request->hasfile('attachments')) {
+            //     foreach ($request->file('attachments') as $file) {
+            //         $randomNumber = random_int(10000000, 99999999);
+            //         $filename = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
                    
-                    $originalName = str_replace('%', '', $file->getClientOriginalName());
-                    $attachfile = md5($randomNumber) . '-' . $originalName;
+            //         $originalName = str_replace('%', '', $file->getClientOriginalName());
+            //         $attachfile = md5($randomNumber) . '-' . $originalName;
 
-                    //attach to folder
-                    $folder_attach = public_path() . '/attachments/'.$year;
-                    $config['upload_path'] = $folder_attach;                   
-                    if(!is_dir($folder_attach))
-                    {
-                        mkdir($folder_attach, 0777);
-                    }
+            //         //attach to folder
+            //         $folder_attach = public_path() . '/attachments/'.$year;
+            //         $config['upload_path'] = $folder_attach;                   
+            //         if(!is_dir($folder_attach))
+            //         {
+            //             mkdir($folder_attach, 0777);
+            //         }
                     
-                    $folder_upload = $folder_attach;
-                    // $folder_upload = public_path() . '/attachments';
-                    $file->move($folder_upload, $attachfile);
+            //         $folder_upload = $folder_attach;
+            //         // $folder_upload = public_path() . '/attachments';
+            //         $file->move($folder_upload, $attachfile);
 
-                    //insert to table attachments
-                    $attach = new Attachment();
-                    $attach->docid = $docid;
-                    $attach->name = $filename;
-                    $attach->attachfile = $attachfile;
-                    $attach->status = 'A';
-                    $attach->extention = $file->getClientOriginalExtension();
-                    $attach->created_user = $user->username;
-                    $attach->save();
-                }
-            }
+            //         //insert to table attachments
+            //         $attach = new Attachment();
+            //         $attach->docid = $docid;
+            //         $attach->name = $filename;
+            //         $attach->attachfile = $attachfile;
+            //         $attach->status = 'A';
+            //         $attach->extention = $file->getClientOriginalExtension();
+            //         $attach->created_user = $user->username;
+            //         $attach->save();
+            //     }
+            // }
             
             $docidagenda = $docid;
 
@@ -258,26 +260,52 @@ class AgendaController extends Controller
             }else{
               
 
+                // if (!empty($participants)) {
+                //     $rows = [];
+                //     foreach ($participants as $i => $uname) {
+                //         $rows[] = [
+                //             'docid'          => $docid,
+                //             'aprvid'         => 1, // atau ($i+1) kalau ingin urut 1..n
+                //             'aprvdoctype'    => 'AGD',
+                //             'aprvcpnyid'     => $request->cpnyid,        // <- pastikan tidak terbalik
+                //             'aprvdeptid'     => $request->departementid, // <-
+                //             'aprvusername'   => $uname,                                  // username
+                //             'name'           => $userMap->get($uname, $uname),           // NAMA LENGKAP                            
+                //             'aprvtotalday'   => 1,
+                //             // 'aprvdatebefore' => $datestamp,
+                //             'status'         => 'P',
+                //             'created_user'   => $user->username,
+                         
+                //         ];
+                //     }
+                //     T_approval::insert($rows); // lebih efisien daripada create() di-loop
+                // }
                 if (!empty($participants)) {
                     $rows = [];
                     foreach ($participants as $i => $uname) {
                         $rows[] = [
-                            'docid'          => $docid,
-                            'aprvid'         => 1, // atau ($i+1) kalau ingin urut 1..n
-                            'aprvdoctype'    => 'AGD',
-                            'aprvcpnyid'     => $request->cpnyid,        // <- pastikan tidak terbalik
-                            'aprvdeptid'     => $request->departementid, // <-
-                            'aprvusername'   => $uname,                                  // username
-                            'name'           => $userMap->get($uname, $uname),           // NAMA LENGKAP                            
-                            'aprvtotalday'   => 1,
-                            // 'aprvdatebefore' => $datestamp,
-                            'status'         => 'P',
-                            'created_user'   => $user->username,
-                         
+                            'refnbr'              => $docid,                       // nomor dokumen agenda
+                            'aprv_leveling'       => $i + 1,                       // urutan approval
+                            'aprv_doctype'        => 'AGD',                        // jenis dokumen
+                            'aprv_cpnyid'         => $request->cpnyid,
+                            'aprv_departementid'  => $request->departementid,
+                            'aprv_username'       => $uname,                       // username approver / peserta
+                            'aprv_name'           => $userMap->get($uname, $uname),
+                            'aprv_datebefore'     => $datestamp,                   // optional, boleh null juga
+                            'aprv_dateafter'      => null,
+                            'aprv_type'           => null,                         // isi kalau nanti perlu
+                            'aprv_condition'      => null,
+                            'aprv_start_nominal'  => null,
+                            'aprv_end_nominal'    => null,
+                            'status'              => 'P',
+                            'created_by'          => $user->username,
+                            'updated_by'          => $user->username,
                         ];
                     }
-                    T_approval::insert($rows); // lebih efisien daripada create() di-loop
+
+                    TrApproval::insert($rows);
                 }
+
 
                 // $this->insert_JobApplySch($agenda, $user);
 
@@ -323,20 +351,27 @@ class AgendaController extends Controller
 
                 
 
-                $t_approval_all = T_approval::where('docid', $docid)
-                    ->where('status', 'P')
-                    ->orderby('aprvid', 'ASC')
-                    ->get();
+                // $t_approval_all = T_approval::where('docid', $docid)
+                //     ->where('status', 'P')
+                //     ->orderby('aprvid', 'ASC')
+                //     ->get();
+
+                $t_approval_all = TrApproval::where('refnbr', $docid)
+                ->where('status', 'P')
+                ->orderBy('aprv_leveling', 'ASC')
+                ->get();
+
 
                 if (!$t_approval_all->isEmpty()) {
                     $id = $agenda->id;
+                    $eid = Hashids::encode($jobapply->id);
                 
                     foreach ($t_approval_all as $approval) {
                        
 
                         $data = [
-                            'docid' => $approval->docid,
-                            'hod' => $approval->name,
+                            'docid' => $approval->refnbr,
+                            'hod' => $approval->aprv_name,
                             'full_name' => $applicant->full_name ?? 'Pelamar',
                             'title' => $agenda->title,
                             'interview_date' => Carbon::parse($agenda->startdate)->translatedFormat('l, d F Y'),
@@ -345,13 +380,14 @@ class AgendaController extends Controller
                             'location' => $agenda->location,
                             'location_address' => $agenda->location_address,
                             'job_title' => $jobposting->job_title . ' ' . $jobposting->job_level,
-                            'url' => url('/showcareers') .'/'. $jobapply->id
+                            'url' => url('/showcareers') .'/'. $eid
                         ];
                 
-                        $multiapp = explode(',', $approval->aprvusername);
+                        $multiapp = explode(',', $approval->aprv_username);
                 
                         $email_it = User::whereIn('username', $multiapp)
                             ->where('status', 'A')
+                            // ->whereNotNull('notification_email')
                             ->get();
 
                             $this->sendemail_interview($agenda, $user);

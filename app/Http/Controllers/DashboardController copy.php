@@ -13,7 +13,7 @@ use App\Models\News;
 use App\Models\Users_talenta;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth; 
-use App\Models\CompanyPG;
+use App\Models\MsCompany;
 use App\Models\ViewJobApply;
 use App\Models\ViewtrPurch;
 use App\Models\ViewDasAll;
