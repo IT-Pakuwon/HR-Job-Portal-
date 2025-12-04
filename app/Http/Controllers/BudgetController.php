@@ -88,8 +88,6 @@ class BudgetController extends Controller
             compact('all', 'onProgress', 'reject', 'revise', 'completed')
         );
     }
-
-
     
     public function json(Request $request)
     {
@@ -118,6 +116,66 @@ class BudgetController extends Controller
         return response()->json(['data' => $budget]);
     }
 
+    private function applyBudgetFilter($query)
+    {
+        $user = Auth::user();
+
+        // cpny_id bisa "AW" atau "AW,EP,PSA,GPS"
+        if (is_string($user->cpny_id)) {
+            $cpnyIds = array_map('trim', explode(',', $user->cpny_id));
+        } else {
+            $cpnyIds = (array) $user->cpny_id;
+        }
+
+        // department_id juga bisa multi, tapi di debug sudah "IT"
+        if (is_string($user->department_id)) {
+            $deptIds = array_map('trim', explode(',', $user->department_id));
+        } else {
+            $deptIds = (array) $user->department_id;
+        }
+
+        // Normal: ambil mapping dept -> dept_fin
+        $departmentFinIds = MsDepartment::whereIn('department_id', $deptIds)
+            ->distinct()
+            ->pluck('department_fin_id')
+            ->toArray();
+
+        $full = $this->hasFullAccess();
+
+    
+        // Kalau FULLACCESS → filter company saja
+        if ($full) {
+            return $query->whereIn('cpny_id', $cpnyIds);
+        }
+
+        // Normal → filter company + department_fin_id
+        return $query->whereIn('cpny_id', $cpnyIds)
+                    ->whereIn('department_fin_id', $departmentFinIds);
+    }
+
+    private function hasFullAccess()
+    {
+        $user = Auth::user();
+
+        $roleIds = SysUserRole::where('username', $user->username)
+            ->where('status', 'A')
+            ->pluck('role_id');
+
+        // DEBUG SEMENTARA
+        // dd(['username' => $user->username, 'roleIds' => $roleIds]);
+
+        if ($roleIds->isEmpty()) {
+            return false;
+        }
+
+        $q = SysAccessRight::whereIn('role_id', $roleIds)
+            ->where('screen_id', 'BUDGET')
+            ->where('access_name', 'FULLACCESS')
+            ->where('access_right', true)
+            ->where('status', 'A');
+
+        return $q->exists();
+    }
    
     public function createBudget()
     {
@@ -740,20 +798,12 @@ class BudgetController extends Controller
             'creator'
         ])->findOrFail($id);
 
-
-        $approval = T_approval::where('docid', $budget->budget_id)
-            ->where('status','<>','X')      
-            ->orderBy('created_at')
-            ->orderBy('aprvid')      
-            ->get();
-
+        
         $budgetdetail = BudgetDetail::where('budget_id', $budget->budget_id)           
             ->get();      
-        $attachment = Attachment::where('docid', $budget->budget_id)    
-            ->where('status','A')        
-            ->get();      
+            
        
-        return view('pages.budgets.showbudgets', compact('budget','budgetdetail','approval','attachment','hash'));
+        return view('pages.budgets.showbudgets', compact('budget','budgetdetail','hash'));
     }
 
     
@@ -1369,25 +1419,25 @@ class BudgetController extends Controller
 
     // }
 
-    public function checkApproval($id, $action)
-    {
-        $user = Auth::user(); // Ambil user yang login
-        // dd($action);
-        // Query dasar untuk pengecekan
-        $query = T_approval::where('docid', $id)
-                    ->where('aprvusername', 'like', '%' . $user->username . '%')
-                    ->where('status', 'P');                 
+    // public function checkApproval($id, $action)
+    // {
+    //     $user = Auth::user(); // Ambil user yang login
+    //     // dd($action);
+    //     // Query dasar untuk pengecekan
+    //     $query = T_approval::where('docid', $id)
+    //                 ->where('aprvusername', 'like', '%' . $user->username . '%')
+    //                 ->where('status', 'P');                 
 
-        // Jika aksi adalah reject atau revise, pastikan aprvdatebefore tidak null
-        if (in_array($action, ['reject', 'revise','approve'])) {
-            $query->whereNotNull('aprvdatebefore');
-        }
+    //     // Jika aksi adalah reject atau revise, pastikan aprvdatebefore tidak null
+    //     if (in_array($action, ['reject', 'revise','approve'])) {
+    //         $query->whereNotNull('aprvdatebefore');
+    //     }
 
-        // Cek apakah user bisa melakukan aksi
-        $canPerformAction = $query->exists();
+    //     // Cek apakah user bisa melakukan aksi
+    //     $canPerformAction = $query->exists();
 
-        return response()->json(['canPerformAction' => $canPerformAction]);
-    }
+    //     return response()->json(['canPerformAction' => $canPerformAction]);
+    // }
 
    
     public function getSitesByCompany($cpnyid)
@@ -1485,50 +1535,7 @@ class BudgetController extends Controller
         return $pdf->stream("pdf_budgets_{$budget->budget_id}.pdf");
     }
 
-    private function applyBudgetFilter($query)
-    {
-        $user = Auth::user();
-
-        $cpnyIds = (array) $user->cpny_id;
-        $deptIds = (array) $user->department_id;
-
-        // Kalau FULLACCESS: filter company saja
-        if ($this->hasFullAccess()) {
-            return $query->whereIn('cpny_id', $cpnyIds);
-        }
-
-        // Normal: filter company + department_fin_id
-        $departmentFinIds = MsDepartment::whereIn('department_id', $deptIds)
-            ->distinct()
-            ->pluck('department_fin_id')
-            ->toArray();
-
-        return $query->whereIn('cpny_id', $cpnyIds)
-                    ->whereIn('department_fin_id', $departmentFinIds);
-    }
-
-
-    private function hasFullAccess()
-    {
-        $user = Auth::user();
-
-        // ambil semua role aktif user (sama seperti middleware AccessRight)
-        $roleIds = SysUserRole::where('username', $user->username)
-            ->where('status', 'A')
-            ->pluck('role_id');
-
-        if ($roleIds->isEmpty()) {
-            return false;
-        }
-
-        return SysAccessRight::whereIn('role_id', $roleIds)
-            ->where('screen_id', 'BUDGET')
-            ->where('access_name', 'FULLACCESS')
-            ->where('access_right', true)   // sama seperti middleware
-            ->where('status', 'A')
-            ->exists();
-    }
-
+    
 
 
 
