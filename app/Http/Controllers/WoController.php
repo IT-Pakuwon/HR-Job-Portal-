@@ -46,8 +46,18 @@ class WoController extends Controller
             return redirect()->route('login');
         }
 
-        $cpnyIds = (array) $user->cpny_id;
-        $deptIds = (array) $user->department_id;
+        if (is_string($user->cpny_id)) {
+            $cpnyIds = array_map('trim', explode(',', $user->cpny_id));
+        } else {
+            $cpnyIds = (array) $user->cpny_id;
+        }
+
+        // department_id juga bisa multi, tapi di debug sudah "IT"
+        if (is_string($user->department_id)) {
+            $deptIds = array_map('trim', explode(',', $user->department_id));
+        } else {
+            $deptIds = (array) $user->department_id;
+        }
 
         $all = TrWO::whereIn('cpny_id', $cpnyIds)
                 ->whereIn('department_id', $deptIds)
@@ -82,8 +92,18 @@ class WoController extends Controller
     {
         $user = Auth::user();
 
-        $cpnyIds = (array) $user->cpny_id;
-        $deptIds = (array) $user->department_id;
+        if (is_string($user->cpny_id)) {
+            $cpnyIds = array_map('trim', explode(',', $user->cpny_id));
+        } else {
+            $cpnyIds = (array) $user->cpny_id;
+        }
+
+        // department_id juga bisa multi, tapi di debug sudah "IT"
+        if (is_string($user->department_id)) {
+            $deptIds = array_map('trim', explode(',', $user->department_id));
+        } else {
+            $deptIds = (array) $user->department_id;
+        }
 
         $draw   = (int) $request->input('draw', 1);
         $start  = (int) $request->input('start', 0);
