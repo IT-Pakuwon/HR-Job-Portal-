@@ -8,38 +8,39 @@ use Illuminate\Support\Carbon;
 use App\Models\Budget;
 use App\Models\BudgetDetail;
 use App\Models\Autonbr;
-use App\Models\T_Message;
-use App\Models\Attachment;
-use App\Models\M_approval;
-use App\Models\M_approval_other;
-use App\Models\T_approval;
+// use App\Models\T_Message;
+// use App\Models\Attachment;
+// use App\Models\M_approval;
+// use App\Models\M_approval_other;
+// use App\Models\T_approval;
 use App\Models\Company;
 use App\Models\Dept;
-use App\Models\JobLevel;
-use App\Models\JobResponsiblities;
-use App\Models\JobQualification;
+// use App\Models\JobLevel;
+// use App\Models\JobResponsiblities;
+// use App\Models\JobQualification;
 use App\Models\Usercpny;
 use App\Models\Userdept;
 use App\Models\User;
-use App\Models\Jobposting;
-use App\Models\JobpostingResponsiblities;
-use App\Models\JobpostingQualification;
-use App\Models\AutonbrJobportal;
-use App\Models\MJobtag;
-use App\Models\TrJobtag;
-use App\Models\Jobpostingtag;
+// use App\Models\Jobposting;
+// use App\Models\JobpostingResponsiblities;
+// use App\Models\JobpostingQualification;
+// use App\Models\AutonbrJobportal;
+// use App\Models\MJobtag;
+// use App\Models\TrJobtag;
+// use App\Models\Jobpostingtag;
 use App\Models\Site;
-use App\Models\StoEmployee;
-use App\Models\StoDepartement;
-use App\Models\StoJobProfile;
-use App\Models\StoJobSpec;
-use App\Models\Division;
+// use App\Models\StoEmployee;
+// use App\Models\StoDepartement;
+// use App\Models\StoJobProfile;
+// use App\Models\StoJobSpec;
+// use App\Models\Division;
 use Mail;
 use App\Imports\MsBudgetTempImport;
 use Maatwebsite\Excel\Facades\Excel;
 use Maatwebsite\Excel\Validators\ValidationException;
 use App\Models\MsBudgetTemp;
 use App\Models\MsCompany;
+use App\Models\MsDepartment;
 use App\Models\BusinessUnitPG;
 use Illuminate\Support\Str;
 use Vinkla\Hashids\Facades\Hashids;
@@ -49,25 +50,55 @@ use App\Models\TrAttachment;
 use Google\Cloud\Storage\StorageClient;
 use App\Http\Controllers\ApprovalController;
 use App\Models\TrApproval;
+use App\Models\SysUserRole;
+use App\Models\SysAccessRight;
+
+
 
 class BudgetController extends Controller
 {
     public function index()
     {
-        $all = Budget::count();
-        $onProgress = Budget::where('status', 'P')->count();
-        $reject = Budget::where('status', 'R')->count();
-        $revise = Budget::where('status', 'D')->count();
-        $completed = Budget::where('status', 'C')->count();
-       
-        return view('pages.budgets.budgets', compact('all', 'onProgress', 'reject', 'revise', 'completed'));
+        $user = Auth::user();       
+
+        if (!$user) {
+            return redirect()->route('login');
+        }
+
+        $all = $this->applyBudgetFilter(Budget::query())->count();
+
+        $onProgress = $this->applyBudgetFilter(
+                            Budget::where('status', 'P')
+                        )->count();
+
+        $reject = $this->applyBudgetFilter(
+                            Budget::where('status', 'R')
+                        )->count();
+
+        $revise = $this->applyBudgetFilter(
+                            Budget::where('status', 'D')
+                        )->count();
+
+        $completed = $this->applyBudgetFilter(
+                            Budget::where('status', 'C')
+                        )->count();
+
+        return view(
+            'pages.budgets.budgets',
+            compact('all', 'onProgress', 'reject', 'revise', 'completed')
+        );
     }
+
+
     
     public function json(Request $request)
     {
-        $status = $request->query('status'); // tanpa default 'P'
+        $status = $request->query('status');
 
         $query = Budget::with(['businessUnit', 'departmentFin']);
+
+        // terapkan filter sesuai akses
+        $query = $this->applyBudgetFilter($query);
 
         if ($status && $status !== 'ALL') {
             $query->where('status', $status);
@@ -87,18 +118,13 @@ class BudgetController extends Controller
         return response()->json(['data' => $budget]);
     }
 
-
-
    
     public function createBudget()
     {
         $user = request()->user();
      
         $companies = MsCompany::select('cpny_id','cpny_name')->where('status','A')->get();
-        $departements = Dept::select('deptname')->get();    
-
-        // $tempData = MsBudgetTemp::latest()->get();
-
+       
         $temp_id = session('import_temp_id'); // ambil dari session
 
         $tempData = [];
@@ -107,7 +133,7 @@ class BudgetController extends Controller
         }
 
        
-        return view('pages.budgets.createbudgets', compact('companies','departements','tempData','temp_id'));
+        return view('pages.budgets.createbudgets', compact('companies','tempData','temp_id'));
     }
    
     public function import_xxx(Request $request, Budget $budget = null)
@@ -1458,6 +1484,51 @@ class BudgetController extends Controller
 
         return $pdf->stream("pdf_budgets_{$budget->budget_id}.pdf");
     }
+
+    private function applyBudgetFilter($query)
+    {
+        $user = Auth::user();
+
+        $cpnyIds = (array) $user->cpny_id;
+        $deptIds = (array) $user->department_id;
+
+        // Kalau FULLACCESS: filter company saja
+        if ($this->hasFullAccess()) {
+            return $query->whereIn('cpny_id', $cpnyIds);
+        }
+
+        // Normal: filter company + department_fin_id
+        $departmentFinIds = MsDepartment::whereIn('department_id', $deptIds)
+            ->distinct()
+            ->pluck('department_fin_id')
+            ->toArray();
+
+        return $query->whereIn('cpny_id', $cpnyIds)
+                    ->whereIn('department_fin_id', $departmentFinIds);
+    }
+
+
+    private function hasFullAccess()
+    {
+        $user = Auth::user();
+
+        // ambil semua role aktif user (sama seperti middleware AccessRight)
+        $roleIds = SysUserRole::where('username', $user->username)
+            ->where('status', 'A')
+            ->pluck('role_id');
+
+        if ($roleIds->isEmpty()) {
+            return false;
+        }
+
+        return SysAccessRight::whereIn('role_id', $roleIds)
+            ->where('screen_id', 'BUDGET')
+            ->where('access_name', 'FULLACCESS')
+            ->where('access_right', true)   // sama seperti middleware
+            ->where('status', 'A')
+            ->exists();
+    }
+
 
 
 

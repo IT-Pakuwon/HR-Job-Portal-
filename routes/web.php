@@ -441,6 +441,7 @@ Route::post('/logout', function () {
         Route::get('/budgets/json', [BudgetController::class, 'json'])->name('budgets.json');
         Route::get('/showbudgets/{hash}', [BudgetController::class, 'showBudget']);
         Route::get('/pdf_budgets/{hash}', [BudgetController::class, 'printBudget']);
+        Route::get('/get-business-units/{cpny_id}', [BudgetController::class, 'getBusinessUnits']);
     });
 
     Route::middleware('access:BUDGET,CREATE')->group(function () {

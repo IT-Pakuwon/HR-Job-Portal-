@@ -26,6 +26,7 @@ class AccessRightMiddleware
         $access = SysAccessRight::whereIn('role_id', $roleIds)
             ->where('screen_id', $screenId)
             ->where('access_name', $action)   // ← perubahan utamanya
+            ->where('access_right', true)   // ← perubahan utamanya
             ->where('status', 'A')
             ->first();
 

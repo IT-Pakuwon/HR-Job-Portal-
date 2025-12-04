@@ -45,17 +45,44 @@ class SppkController extends Controller
             return redirect()->route('login');
         }
 
-        $all = TrSPPK::count();
-        $onProgress = TrSPPK::where('status', 'P')->count();
-        $reject = TrSPPK::where('status', 'R')->count();
-        $revise = TrSPPK::where('status', 'D')->count();
-        $completed = TrSPPK::where('status', 'C')->count();
-       
+        // bisa single / array, maksa ke array biar aman
+        $cpnyIds = (array) $user->cpny_id;
+        $deptIds = (array) $user->department_id;
+
+        $all = TrSPPK::whereIn('cpny_id', $cpnyIds)
+                    ->whereIn('department_id', $deptIds)
+                    ->count();
+
+        $onProgress = TrSPPK::where('status', 'P')
+                    ->whereIn('cpny_id', $cpnyIds)
+                    ->whereIn('department_id', $deptIds)
+                    ->count();
+
+        $reject = TrSPPK::where('status', 'R')
+                    ->whereIn('cpny_id', $cpnyIds)
+                    ->whereIn('department_id', $deptIds)
+                    ->count();
+
+        $revise = TrSPPK::where('status', 'D')
+                    ->whereIn('cpny_id', $cpnyIds)
+                    ->whereIn('department_id', $deptIds)
+                    ->count();
+
+        $completed = TrSPPK::where('status', 'C')
+                    ->whereIn('cpny_id', $cpnyIds)
+                    ->whereIn('department_id', $deptIds)
+                    ->count();
+    
         return view('pages.sppks.sppks', compact('all', 'onProgress', 'reject', 'revise', 'completed'));
     }
 
     public function json(Request $request)
     {
+        $user = Auth::user();
+
+        $cpnyIds = (array) $user->cpny_id;
+        $deptIds = (array) $user->department_id;
+
         $draw   = (int) $request->input('draw', 1);
         $start  = (int) $request->input('start', 0);
         $length = (int) $request->input('length', 25);
@@ -82,7 +109,9 @@ class SppkController extends Controller
         $base = TrSPPK::from($baseTable.' as sppk')
             ->leftJoin('ms_request_type as rt', function ($join) {
                 $join->on('rt.requesttypeid', '=', 'sppk.requesttypeid');
-            });
+            })
+            ->whereIn('sppk.cpny_id', $cpnyIds)           // 🔹 filter cpny sesuai user
+            ->whereIn('sppk.department_id', $deptIds);    // 🔹 filter dept sesuai user
 
         if ($status !== '') {
             $base->where('sppk.status', $status);
@@ -92,7 +121,7 @@ class SppkController extends Controller
 
         if ($search !== '') {
             $base->where(function ($q) use ($search) {
-                $q->where('sppk.sppkid',          'like', "%{$search}%")
+                $q->where('sppk.sppkid',           'like', "%{$search}%")
                 ->orWhere('sppk.cpny_id',       'like', "%{$search}%")
                 ->orWhere('sppk.department_id', 'like', "%{$search}%")
                 ->orWhere('rt.requesttype_name','like', "%{$search}%")
@@ -104,22 +133,22 @@ class SppkController extends Controller
         $recordsFiltered = (clone $base)->distinct('sppk.sppkid')->count('sppk.sppkid');
 
         $data = $base->select(
-                'sppk.id',
-                'sppk.sppkid',
-                'sppk.sppkdate',
-                'sppk.cpny_id',
-                'sppk.department_id',
-                'sppk.requesttypeid',
-                'rt.requesttype_name',
-                'sppk.keperluan',
-                'sppk.status',
-                'sppk.created_by'
-            )
-            ->orderBy($orderCol, $orderDir)                  // ← mengikuti request, default ke sppkid desc
-            ->orderBy('sppk.sppkid', 'desc')                 // ← tie-breaker agar stabil
-            ->skip($start)
-            ->take($length)
-            ->get();
+                    'sppk.id',
+                    'sppk.sppkid',
+                    'sppk.sppkdate',
+                    'sppk.cpny_id',
+                    'sppk.department_id',
+                    'sppk.requesttypeid',
+                    'rt.requesttype_name',
+                    'sppk.keperluan',
+                    'sppk.status',
+                    'sppk.created_by'
+                )
+                ->orderBy($orderCol, $orderDir)          // ← mengikuti request, default ke sppkid desc
+                ->orderBy('sppk.sppkid', 'desc')         // ← tie-breaker agar stabil
+                ->skip($start)
+                ->take($length)
+                ->get();
 
         // Encode id dengan hashids → tambahkan field eid
         $data->transform(function ($row) {
@@ -135,10 +164,15 @@ class SppkController extends Controller
             'data'            => $data,
         ]);
     }
+
     
     public function createSppk()
     {        
-        $user = request()->user();
+        $user = Auth::user();       
+
+        if (!$user) {
+            return redirect()->route('login');
+        }
         $usercpny = Usercpny::where('username', '=', $user->username)
             ->get();
         $usercpny2 = Usercpny::where('username', '=', $user->username)
@@ -599,6 +633,11 @@ class SppkController extends Controller
    
     public function editSppk($hash)
     {
+        $user = Auth::user();       
+
+        if (!$user) {
+            return redirect()->route('login');
+        }
         $id = Hashids::decode($hash)[0] ?? null;
         abort_if(!$id, 404);
 

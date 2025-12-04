@@ -49,24 +49,51 @@ class SppjController extends Controller
             return redirect()->route('login');
         }
 
-        $all = TrSPPJ::count();
-        $onProgress = TrSPPJ::where('status', 'P')->count();
-        $reject = TrSPPJ::where('status', 'R')->count();
-        $revise = TrSPPJ::where('status', 'D')->count();
-        $completed = TrSPPJ::where('status', 'C')->count();
-       
+        $cpnyIds = (array) $user->cpny_id;
+        $deptIds = (array) $user->department_id;
+
+        $all = TrSPPJ::whereIn('cpny_id', $cpnyIds)
+                    ->whereIn('department_id', $deptIds)
+                    ->count();
+
+        $onProgress = TrSPPJ::where('status', 'P')
+                    ->whereIn('cpny_id', $cpnyIds)
+                    ->whereIn('department_id', $deptIds)
+                    ->count();
+
+        $reject = TrSPPJ::where('status', 'R')
+                    ->whereIn('cpny_id', $cpnyIds)
+                    ->whereIn('department_id', $deptIds)
+                    ->count();
+
+        $revise = TrSPPJ::where('status', 'D')
+                    ->whereIn('cpny_id', $cpnyIds)
+                    ->whereIn('department_id', $deptIds)
+                    ->count();
+
+        $completed = TrSPPJ::where('status', 'C')
+                    ->whereIn('cpny_id', $cpnyIds)
+                    ->whereIn('department_id', $deptIds)
+                    ->count();
+
         return view('pages.sppjs.sppjs', compact('all', 'onProgress', 'reject', 'revise', 'completed'));
     }
 
+
     public function json(Request $request)
     {
+        $user = Auth::user();
+
+        $cpnyIds = (array) $user->cpny_id;
+        $deptIds = (array) $user->department_id;
+
         $draw   = (int) $request->input('draw', 1);
         $start  = (int) $request->input('start', 0);
         $length = (int) $request->input('length', 25);
         $search = trim((string) $request->input('search.value', ''));
-        $status = (string) $request->query('status', ''); // '' = all
+        $status = (string) $request->query('status', '');
 
-        $baseTable = (new TrSPPJ)->getTable(); // e.g. "tr_sppj"
+        $baseTable = (new TrSPPJ)->getTable();
 
         $columns = [
             0 => 'sppj.sppjid',
@@ -78,7 +105,6 @@ class SppjController extends Controller
             6 => 'sppj.status',
         ];
 
-        // ⬇️ default ke kolom 0 (sppj.sppjid) dan desc
         $orderIdx = (int) $request->input('order.0.column', 0);
         $orderDir = $request->input('order.0.dir', 'desc') === 'asc' ? 'asc' : 'desc';
         $orderCol = $columns[$orderIdx] ?? 'sppj.sppjid';
@@ -86,7 +112,9 @@ class SppjController extends Controller
         $base = TrSPPJ::from($baseTable.' as sppj')
             ->leftJoin('ms_request_type as rt', function ($join) {
                 $join->on('rt.requesttypeid', '=', 'sppj.requesttypeid');
-            });
+            })
+            ->whereIn('sppj.cpny_id', $cpnyIds)          // ✔ filter sesuai SPPB
+            ->whereIn('sppj.department_id', $deptIds);   // ✔ filter sesuai SPPB
 
         if ($status !== '') {
             $base->where('sppj.status', $status);
@@ -96,7 +124,7 @@ class SppjController extends Controller
 
         if ($search !== '') {
             $base->where(function ($q) use ($search) {
-                $q->where('sppj.sppjid',          'like', "%{$search}%")
+                $q->where('sppj.sppjid',           'like', "%{$search}%")
                 ->orWhere('sppj.cpny_id',       'like', "%{$search}%")
                 ->orWhere('sppj.department_id', 'like', "%{$search}%")
                 ->orWhere('rt.requesttype_name','like', "%{$search}%")
@@ -119,16 +147,15 @@ class SppjController extends Controller
                     'sppj.status',
                     'sppj.created_by'
                 )
-                ->orderBy($orderCol, $orderDir)                  // ← mengikuti request, default ke sppjid desc
-                ->orderBy('sppj.sppjid', 'desc')                 // ← tie-breaker agar stabil
+                ->orderBy($orderCol, $orderDir)
+                ->orderBy('sppj.sppjid', 'desc')
                 ->skip($start)
                 ->take($length)
                 ->get();
 
-        // Encode id dengan hashids → tambahkan field eid
         $data->transform(function ($row) {
             $row->eid = Hashids::encode($row->id);
-            unset($row->id); // opsional: sembunyikan id asli
+            unset($row->id);
             return $row;
         });
 
@@ -141,10 +168,15 @@ class SppjController extends Controller
     }
 
 
+
     
     public function createSppj()
     {        
-        $user = request()->user();
+        $user = Auth::user();       
+
+        if (!$user) {
+            return redirect()->route('login');
+        }
         $usercpny = Usercpny::where('username', '=', $user->username)
             ->get();
         $usercpny2 = Usercpny::where('username', '=', $user->username)
@@ -607,6 +639,12 @@ class SppjController extends Controller
    
     public function editSppj($hash)
     {
+        $user = Auth::user();       
+
+        if (!$user) {
+            return redirect()->route('login');
+        }
+
         $id = Hashids::decode($hash)[0] ?? null;
         abort_if(!$id, 404);
 

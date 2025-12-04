@@ -40,18 +40,51 @@ class WoController extends Controller
 {
     public function index()
     {
-        $all = TrWO::count();
-        $onProgress = TrWO::where('status', 'P')->count();
-        $reject = TrWO::where('status', 'R')->count();
-        $revise = TrWO::where('status', 'D')->count();
-        $completed = TrWO::where('status', 'C')->count();
-       
+        $user = Auth::user();       
+
+        if (!$user) {
+            return redirect()->route('login');
+        }
+
+        $cpnyIds = (array) $user->cpny_id;
+        $deptIds = (array) $user->department_id;
+
+        $all = TrWO::whereIn('cpny_id', $cpnyIds)
+                ->whereIn('department_id', $deptIds)
+                ->count();
+
+        $onProgress = TrWO::where('status', 'P')
+                ->whereIn('cpny_id', $cpnyIds)
+                ->whereIn('department_id', $deptIds)
+                ->count();
+
+        $reject = TrWO::where('status', 'R')
+                ->whereIn('cpny_id', $cpnyIds)
+                ->whereIn('department_id', $deptIds)
+                ->count();
+
+        $revise = TrWO::where('status', 'D')
+                ->whereIn('cpny_id', $cpnyIds)
+                ->whereIn('department_id', $deptIds)
+                ->count();
+
+        $completed = TrWO::where('status', 'C')
+                ->whereIn('cpny_id', $cpnyIds)
+                ->whereIn('department_id', $deptIds)
+                ->count();
+    
         return view('pages.wos.wos', compact('all', 'onProgress', 'reject', 'revise', 'completed'));
     }
+
 
     
     public function json(Request $request)
     {
+        $user = Auth::user();
+
+        $cpnyIds = (array) $user->cpny_id;
+        $deptIds = (array) $user->department_id;
+
         $draw   = (int) $request->input('draw', 1);
         $start  = (int) $request->input('start', 0);
         $length = (int) $request->input('length', 25);
@@ -60,13 +93,12 @@ class WoController extends Controller
 
         $baseTable = (new TrWO)->getTable(); // "tr_wo"
 
-        // urutan kolom untuk sorting server-side (disesuaikan dengan kolom yang ditampilkan)
         $columns = [
             0 => 'wo.woid',
             1 => 'wo.wodate',
             2 => 'wo.cpny_id',
             3 => 'wo.department_id',
-            4 => 'wt.worktype_name', // << dari ms_worktype
+            4 => 'wt.worktype_name',
             5 => 'wo.worequest',
             6 => 'wo.keperluan',
             7 => 'wo.status',
@@ -78,8 +110,10 @@ class WoController extends Controller
 
         $base = TrWO::from($baseTable.' as wo')
             ->leftJoin('ms_worktype as wt', function ($join) {
-                $join->on('wt.worktypeid', '=', 'wo.worktypeid'); // << relasi baru
-            });
+                $join->on('wt.worktypeid', '=', 'wo.worktypeid');
+            })
+            ->whereIn('wo.cpny_id', $cpnyIds)           // 🔹 filter cpny sesuai user
+            ->whereIn('wo.department_id', $deptIds);    // 🔹 filter dept sesuai user
 
         if ($status !== '') {
             $base->where('wo.status', $status);
@@ -92,7 +126,7 @@ class WoController extends Controller
                 $q->where('wo.woid',            'like', "%{$search}%")
                 ->orWhere('wo.cpny_id',       'like', "%{$search}%")
                 ->orWhere('wo.department_id', 'like', "%{$search}%")
-                ->orWhere('wt.worktype_name', 'like', "%{$search}%") // << cari di worktype_name
+                ->orWhere('wt.worktype_name', 'like', "%{$search}%")
                 ->orWhere('wo.worequest',     'like', "%{$search}%")
                 ->orWhere('wo.keperluan',     'like', "%{$search}%")
                 ->orWhere('wo.status',        'like', "%{$search}%");
@@ -107,7 +141,7 @@ class WoController extends Controller
                     'wo.wodate',
                     'wo.cpny_id',
                     'wo.department_id',
-                    'wt.worktype_name',     // << ditampilkan ke tabel
+                    'wt.worktype_name',
                     'wo.worequest',
                     'wo.keperluan',
                     'wo.status',
@@ -119,7 +153,6 @@ class WoController extends Controller
                 ->take($length)
                 ->get();
 
-        // tambahkan eid, sembunyikan id asli
         $data->transform(function ($row) {
             $row->eid = Hashids::encode($row->id);
             unset($row->id);
@@ -136,9 +169,14 @@ class WoController extends Controller
 
 
 
+
     public function createWo()
     {        
-        $user = request()->user();
+        $user = Auth::user();       
+
+        if (!$user) {
+            return redirect()->route('login');
+        }
         $usercpny = Usercpny::where('username', '=', $user->username)
             ->get();
         $usercpny2 = Usercpny::where('username', '=', $user->username)
@@ -414,6 +452,12 @@ class WoController extends Controller
    
     public function editWo($hash)
     {
+        $user = Auth::user();       
+
+        if (!$user) {
+            return redirect()->route('login');
+        }
+        
         $id = Hashids::decode($hash)[0] ?? null;
         abort_if(!$id, 404);
 

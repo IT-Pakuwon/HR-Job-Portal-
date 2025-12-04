@@ -38,18 +38,52 @@ class SpbController extends Controller
 {
     public function index()
     {
-        $all = TrSPB::count();
-        $onProgress = TrSPB::where('status', 'P')->count();
-        $reject = TrSPB::where('status', 'R')->count();
-        $revise = TrSPB::where('status', 'D')->count();
-        $completed = TrSPB::where('status', 'C')->count();
-       
+        $user = Auth::user();       
+
+        if (!$user) {
+            return redirect()->route('login');
+        }
+
+        // Bisa single / array → paksa ke array biar aman
+        $cpnyIds = (array) $user->cpny_id;
+        $deptIds = (array) $user->department_id;
+
+        $all = TrSPB::whereIn('cpny_id', $cpnyIds)
+                    ->whereIn('department_id', $deptIds)
+                    ->count();
+
+        $onProgress = TrSPB::where('status', 'P')
+                    ->whereIn('cpny_id', $cpnyIds)
+                    ->whereIn('department_id', $deptIds)
+                    ->count();
+
+        $reject = TrSPB::where('status', 'R')
+                    ->whereIn('cpny_id', $cpnyIds)
+                    ->whereIn('department_id', $deptIds)
+                    ->count();
+
+        $revise = TrSPB::where('status', 'D')
+                    ->whereIn('cpny_id', $cpnyIds)
+                    ->whereIn('department_id', $deptIds)
+                    ->count();
+
+        $completed = TrSPB::where('status', 'C')
+                    ->whereIn('cpny_id', $cpnyIds)
+                    ->whereIn('department_id', $deptIds)
+                    ->count();
+    
         return view('pages.spbs.spbs', compact('all', 'onProgress', 'reject', 'revise', 'completed'));
     }
+
 
     
     public function json(Request $request)
     {
+        $user = Auth::user();
+
+        $cpnyIds = (array) $user->cpny_id;
+        $deptIds = (array) $user->department_id;
+
         $draw   = (int) $request->input('draw', 1);
         $start  = (int) $request->input('start', 0);
         $length = (int) $request->input('length', 25);
@@ -81,7 +115,9 @@ class SpbController extends Controller
             ->leftJoin('ms_subworktype as swt', function ($join) {
                 $join->on('swt.subworktypeid', '=', 'spb.subworktypeid')
                     ->where('swt.doctype', '=', 'SPB');
-            });
+            })
+            ->whereIn('spb.cpny_id', $cpnyIds)           // 🔹 filter cpny sesuai user
+            ->whereIn('spb.department_id', $deptIds);    // 🔹 filter dept sesuai user
 
         if ($status !== '') {
             $base->where('spb.status', $status);
@@ -91,13 +127,13 @@ class SpbController extends Controller
 
         if ($search !== '') {
             $base->where(function ($q) use ($search) {
-                $q->where('spb.spbid', 'like', "%{$search}%")
-                ->orWhere('spb.cpny_id', 'like', "%{$search}%")
+                $q->where('spb.spbid',           'like', "%{$search}%")
+                ->orWhere('spb.cpny_id',       'like', "%{$search}%")
                 ->orWhere('spb.department_id', 'like', "%{$search}%")
-                ->orWhere('wt.worktype_name', 'like', "%{$search}%")
+                ->orWhere('wt.worktype_name',  'like', "%{$search}%")
                 ->orWhere('swt.subworktype_name', 'like', "%{$search}%")
-                ->orWhere('spb.keperluan', 'like', "%{$search}%")
-                ->orWhere('spb.status', 'like', "%{$search}%");
+                ->orWhere('spb.keperluan',     'like', "%{$search}%")
+                ->orWhere('spb.status',        'like', "%{$search}%");
             });
         }
 
@@ -140,7 +176,11 @@ class SpbController extends Controller
     
     public function createSpb()
     {        
-        $user = request()->user();
+        $user = Auth::user();       
+
+        if (!$user) {
+            return redirect()->route('login');
+        }
         $usercpny = Usercpny::where('username', '=', $user->username)
             ->get();
         $usercpny2 = Usercpny::where('username', '=', $user->username)
@@ -493,6 +533,12 @@ class SpbController extends Controller
    
     public function editSpb($hash)
     {
+        $user = Auth::user();       
+
+        if (!$user) {
+            return redirect()->route('login');
+        }
+        
         $id = Hashids::decode($hash)[0] ?? null;
         abort_if(!$id, 404);
 
