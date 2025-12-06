@@ -161,7 +161,7 @@
                             <div class="flex flex-col gap-2">
                                 <label
                                     class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Department</label>
-                                <select name="departementid"
+                                <select name="departementid" id="departementid"
                                     class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                     required>
                                     @foreach ($userdept as $p)
@@ -435,7 +435,7 @@
                             </div>
 
                             <!-- Tabs -->
-                            <div class="mb-3 flex border-b border-gray-200 dark:border-gray-700">
+                            {{-- <div class="mb-3 flex border-b border-gray-200 dark:border-gray-700">
                                 <button type="button"
                                     class="invTab border-b-2 border-indigo-600 px-4 py-2 font-semibold"
                                     data-type="gi">Stock</button>
@@ -448,7 +448,33 @@
                                     <button id="invRefresh" type="button"
                                         class="rounded border px-3 py-1 hover:bg-gray-100 dark:hover:bg-gray-700">↻</button>
                                 </div>
+                            </div> --}}
+                            <div class="mb-3 flex border-b border-gray-200 dark:border-gray-700">
+
+                                {{-- Tampilkan TAB STOCK hanya jika user punya akses WHSACCESS --}}
+                                @if($akses_stock)
+                                    <button type="button"
+                                        class="invTab border-b-2 border-indigo-600 px-4 py-2 font-semibold"
+                                        data-type="gi">
+                                        Stock
+                                    </button>
+                                @endif
+
+                                <button type="button"
+                                    class="invTab @if(!$akses_stock) border-b-2 border-indigo-600 @else border-b-2 border-transparent @endif
+                                    px-4 py-2 font-semibold"
+                                    data-type="ns">
+                                    Non-Stock
+                                </button>
+
+                                <div class="ml-auto flex items-center gap-2">
+                                    <input id="invSearch" type="text" placeholder="Search..."
+                                        class="rounded border border-gray-300 bg-white px-3 py-1 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
+                                    <button id="invRefresh" type="button"
+                                        class="rounded border px-3 py-1 hover:bg-gray-100 dark:hover:bg-gray-700">↻</button>
+                                </div>
                             </div>
+
 
                             <div class="max-h-[60vh] overflow-auto">
                                 <table class="w-full text-left">
@@ -1245,8 +1271,12 @@
             // Load Inventory from API
             function loadInventory() {
                 $tbody.html(`<tr><td colspan="4" class="p-3 text-center">Loading...</td></tr>`);
+
+                const deptId = $('#departementid').val() || '';
+                
                 $.getJSON("{{ route('inventory.list') }}", {
                         type: invState.type, // 'stock' | 'nonstock'
+                        departementid: deptId,
                         search: invState.search,
                         page: invState.page,
                         per_page: invState.per_page
@@ -2620,7 +2650,37 @@
         });
     </script>
 
+    <script>
+        // =====================
+        // LOCK DEPARTMENT
+        // =====================
+        let prevDept = $('#departementid').val(); // simpan default saat load
 
+        $('#departementid').on('change', function() {
+
+            // cek apakah sudah ada inventory dipilih
+            let hasInventory = false;
+
+            $('.inventoryIdField').each(function() {
+                if ($(this).val() && $(this).val().trim() !== '') {
+                    hasInventory = true;
+                }
+            });
+
+            if (hasInventory) {
+                alert("Department tidak bisa diubah karena sudah ada inventory di SPPB Detail.");
+                
+                // balikkan ke value sebelumnya
+                $('#departementid').val(prevDept);
+
+                return;
+            }
+
+            // jika aman → update prevDept
+            prevDept = $(this).val();
+        });
+
+    </script>
 
 
 

@@ -827,6 +827,7 @@ class CanvassController extends Controller
     public function storeCS(Request $request)
     {
         // dd($request->all());
+        // dd('ini store CS');
         // 1) Validasi payload dasar (store = langsung submit)
         $request->validate([
             'doc'             => 'required|string',     // SPPB|SPPJ|SPPK|SPPT atau lain (revisi)
@@ -1466,7 +1467,7 @@ class CanvassController extends Controller
                 } else {
                     $srcRefNo = null;
                 }
-
+                
                 $det = new TrCSdetail();
                 $det->setConnection('pgsql');
                 $det->csid          = $csid;
@@ -1526,7 +1527,7 @@ class CanvassController extends Controller
                 $det->created_by  = $username;
                 $det->save();
             }
-        
+           
             // ==== 6) Attachments (jika ada) ====
             $uploadResult = null;
             if ($request->hasFile('attachments')) {
@@ -2135,6 +2136,7 @@ class CanvassController extends Controller
 
     public function updateCS(Request $request, $csid)
     {
+        // dd('ini update CS');
         // 1) Validasi payload dasar
         $request->validate([
             'doc'             => 'required|string',     // SPPB|SPPJ|SPPK|SPPT

@@ -33,6 +33,7 @@ use Illuminate\Support\Str;
 use Google\Cloud\Storage\StorageClient;
 use App\Http\Controllers\ApprovalController;
 use App\Models\TrApproval;
+use App\Models\SysUserRole;
 
 class SppbController extends Controller
 {
@@ -195,17 +196,22 @@ class SppbController extends Controller
         if (!$user) {
             return redirect()->route('login');
         }
+
+        $usercpny = Usercpny::where('username', $user->username)
+            ->get();       
         
-        $usercpny = Usercpny::where('username', '=', $user->username)
-            ->get();
-        $usercpny2 = Usercpny::where('username', '=', $user->username)
+        $usercpny2 = Usercpny::where('username', $user->username)
             ->first();
-        $userdept = Userdept::where('username', '=', $user->username)
+        $userdept = Userdept::where('username', $user->username)
             ->get();
-        $userdept2 = Userdept::where('username', '=', $user->username)
-            ->first();                     
+        $userdept2 = Userdept::where('username', $user->username)
+            ->first();                   
        
-        return view('pages.sppbs.createsppbs', compact('usercpny','usercpny2','userdept','userdept2'));
+        $akses_stock = SysUserRole::where('username', $user->username)
+            ->where('role_id','WHSACCESS')
+            ->first();
+
+        return view('pages.sppbs.createsppbs', compact('usercpny','usercpny2','userdept','userdept2','akses_stock'));
     }
 
     
