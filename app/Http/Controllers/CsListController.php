@@ -23,8 +23,7 @@ class CsListController extends Controller
         $onProgress = TrCS::where('created_by', $u)->where('status','P')->count();
         $reject     = TrCS::where('created_by', $u)->where('status','R')->count();
         $completed  = TrCS::where('created_by', $u)->where('status','C')->count();
-        $all     = TrCS::count();
-        
+        $all     = TrCS::count();        
 
         return view('pages.canvass.cslist', compact('my','onProgress','reject','all','completed'));
     }

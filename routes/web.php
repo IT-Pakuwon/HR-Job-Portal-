@@ -75,7 +75,7 @@ use App\Http\Controllers\DepartmentsController;
 use App\Http\Controllers\SysApplicationController;
 use App\Http\Controllers\SysScreenController;
 use App\Http\Controllers\SysMenuController;
-// use App\Http\Controllers\SysRoleMenuController;
+use App\Http\Controllers\SysRoleMenuController;
 use App\Http\Controllers\SysAccessRightController;
 use App\Http\Controllers\SysRoleController;
 
@@ -483,287 +483,421 @@ Route::post('/logout', function () {
         Route::post('/budgets/{budget}/import', [BudgetController::class, 'import'])->name('budgets.import.edit');
     });
 
+   // 👀 VIEW SPPB
+    Route::middleware('access:SPPB,VIEW')->group(function () {
+        Route::get('/sppbs', [SppbController::class, 'index'])->name('sppbs');
+        Route::get('/sppbs/json', [SppbController::class, 'json'])->name('sppbs.json');
 
+        Route::get('/showsppbs/{hash}', [SppbController::class, 'showSppb']);
+        Route::get('/sppbs/{id}/tracking', [SppbController::class, 'tracking'])->name('sppbs.tracking');
+        Route::get('/pdf_sppbs/{hash}', [SppbController::class, 'printSppb']);
+    });
 
+    // ✍️ CREATE SPPB
+    Route::middleware('access:SPPB,CREATE')->group(function () {
+        Route::get('/createsppbs', [SppbController::class, 'createSppb']);
+        Route::post('/sppbs', [SppbController::class, 'storeSppb'])->name('sppbs.store');
+    });
 
-    Route::get('/sppbs', [SppbController::class, 'index'])->name('sppbs');
-    Route::get('/sppbs/json', [SppbController::class, 'json'])->name('sppbs.json');
-    Route::get('/createsppbs', [SppbController::class, 'createSppb']);
-    Route::post('/sppbs', [SppbController::class, 'storeSppb'])->name('sppbs.store');
-    Route::get('/showsppbs/{hash}', [SppbController::class, 'showSppb']);
-    Route::post('/sppb/{id}/approve', [SppbController::class, 'approveSppb']);
-    Route::post('/sppb/{id}/reject', [SppbController::class, 'rejectSppb']);
-    Route::post('/sppb/{id}/revise', [SppbController::class, 'reviseSppb']);
-    Route::get('/editsppbs/{hash}', [SppbController::class, 'editSppb']);
-    Route::put('/sppbs/{id}', [SppbController::class, 'updateSppb'])->name('sppbs.update');
-    Route::put('/sppbs/remove-attachment/{id}', [SppbController::class, 'removeAttachment']);  
-    Route::get('/sppbs/{id}/tracking', [SppbController::class, 'tracking'])->name('sppbs.tracking');
-    Route::get('/pdf_sppbs/{hash}', [SppbController::class, 'printSppb']);    
+    // ✏️ EDIT / APPROVAL SPPB
+    Route::middleware('access:SPPB,EDIT')->group(function () {
+        Route::get('/editsppbs/{hash}', [SppbController::class, 'editSppb']);
+        Route::put('/sppbs/{id}', [SppbController::class, 'updateSppb'])->name('sppbs.update');
+        Route::put('/sppbs/remove-attachment/{id}', [SppbController::class, 'removeAttachment']);
 
-    Route::get('/sppjs', [SppjController::class, 'index'])->name('sppjs');
-    Route::get('/sppjs/json', [SppjController::class, 'json'])->name('sppjs.json');
-    Route::get('/createsppjs', [SppjController::class, 'createSppj']);
-    Route::post('/sppjs', [SppjController::class, 'storeSppj'])->name('sppjs.store');
-    Route::get('/showsppjs/{hash}', [SppjController::class, 'showSppj']); 
-    Route::post('/sppj/{id}/approve', [SppjController::class, 'approveSppj']);
-    Route::post('/sppj/{id}/reject', [SppjController::class, 'rejectSppj']);
-    Route::post('/sppj/{id}/revise', [SppjController::class, 'reviseSppj']);
-    Route::get('/editsppjs/{hash}', [SppjController::class, 'editSppj']);
-    Route::put('/sppjs/{id}', [SppjController::class, 'updateSppj'])->name('sppjs.update');
-    Route::put('/sppjs/remove-attachment/{id}', [SppjController::class, 'removeAttachment']);   
-    Route::get('/sppjs/{id}/tracking', [SppjController::class, 'tracking'])->name('sppjs.tracking');
-    Route::get('/showbqsppjs/{hash}', [SppjController::class, 'showBQ']);
-    Route::get('/editbqsppjs/{id}', [SppjController::class, 'editBQ'])->name('bqsppj.edit');    
-    Route::put('/bqs/remove-attachment/{id}', [SppjController::class, 'removeAttachment']);
-    Route::get('/pdf_sppjs/{hash}', [SppjController::class, 'printSppj']);
-    Route::get('/createbqsppj/{id}', [SppjController::class, 'createBQ'])->name('bqsppj.create');   
-    Route::post('/bqsppj/import', [SppjController::class, 'importCreate'])->name('bqsppj.import');
-    Route::post('/bqsppj/{bq}/import', [SppjController::class, 'importEdit'])->name('bqsppj.import.edit');
-    Route::post('/bqsppj', [SppjController::class, 'storeBQ'])->name('bqsppj.store');
-    Route::put('/bqsppj/{id}', [SppjController::class, 'updateBQ'])->name('bqsppj.update');
+        Route::post('/sppb/{id}/approve', [SppbController::class, 'approveSppb']);
+        Route::post('/sppb/{id}/reject',  [SppbController::class, 'rejectSppb']);
+        Route::post('/sppb/{id}/revise',  [SppbController::class, 'reviseSppb']);
+    });
+
+    Route::middleware('access:SPPJ,VIEW')->group(function () {
+        Route::get('/sppjs', [SppjController::class, 'index'])->name('sppjs');
+        Route::get('/sppjs/json', [SppjController::class, 'json'])->name('sppjs.json');
+        Route::get('/showsppjs/{hash}', [SppjController::class, 'showSppj']);
+        Route::get('/sppjs/{id}/tracking', [SppjController::class, 'tracking'])->name('sppjs.tracking');
+        Route::get('/pdf_sppjs/{hash}', [SppjController::class, 'printSppj']);        
+        // BQ (Bill of Quantity) VIEW
+        Route::get('/showbqsppjs/{hash}', [SppjController::class, 'showBQ']);
+    });
+
+    Route::middleware('access:SPPJ,CREATE')->group(function () {
+
+        Route::get('/createsppjs', [SppjController::class, 'createSppj']);
+        Route::post('/sppjs', [SppjController::class, 'storeSppj'])->name('sppjs.store');
+        // BQ CREATE
+        Route::get('/createbqsppj/{id}', [SppjController::class, 'createBQ'])->name('bqsppj.create');
+        Route::post('/bqsppj', [SppjController::class, 'storeBQ'])->name('bqsppj.store');
+        Route::post('/bqsppj/import', [SppjController::class, 'importCreate'])->name('bqsppj.import');
+    });
+
+    Route::middleware('access:SPPJ,EDIT')->group(function () {
+        Route::get('/editsppjs/{hash}', [SppjController::class, 'editSppj']);
+        Route::put('/sppjs/{id}', [SppjController::class, 'updateSppj'])->name('sppjs.update');
+        Route::put('/sppjs/remove-attachment/{id}', [SppjController::class, 'removeAttachment']);
+        // approval actions
+        Route::post('/sppj/{id}/approve', [SppjController::class, 'approveSppj']);
+        Route::post('/sppj/{id}/reject',  [SppjController::class, 'rejectSppj']);
+        Route::post('/sppj/{id}/revise',  [SppjController::class, 'reviseSppj']);
+        // BQ (Bill of Quantity) EDIT
+        Route::get('/editbqsppjs/{id}', [SppjController::class, 'editBQ'])->name('bqsppj.edit');
+        Route::put('/bqsppj/{id}', [SppjController::class, 'updateBQ'])->name('bqsppj.update');
+        Route::put('/bqs/remove-attachment/{id}', [SppjController::class, 'removeAttachment']);
+        // BQ import (action edit)
+        Route::post('/bqsppj/{bq}/import', [SppjController::class, 'importEdit'])->name('bqsppj.import.edit');
+    });
+
+    Route::middleware('access:SPPK,VIEW')->group(function () {
+        Route::get('/sppks', [SppkController::class, 'index'])->name('sppks');
+        Route::get('/sppks/json', [SppkController::class, 'json'])->name('sppks.json');
+        Route::get('/showsppks/{hash}', [SppkController::class, 'showSppk']);
+        Route::get('/sppks/{id}/tracking', [SppkController::class, 'tracking'])->name('sppks.tracking');
+        Route::get('/pdf_sppks/{hash}', [SppkController::class, 'printSppk']);       
+    });
+
+    Route::middleware('access:SPPK,CREATE')->group(function () {
+        Route::get('/createsppks', [SppkController::class, 'createSppk']);
+        Route::post('/sppks', [SppkController::class, 'storeSppk'])->name('sppks.store');
+    });
+
+    Route::middleware('access:SPPK,EDIT')->group(function () {
+        Route::get('/editsppks/{hash}', [SppkController::class, 'editSppk']);
+        Route::put('/sppks/{id}', [SppkController::class, 'updateSppk'])->name('sppks.update');
+        Route::put('/sppks/remove-attachment/{id}', [SppkController::class, 'removeAttachment']);
+        Route::post('/sppk/{id}/approve', [SppkController::class, 'approveSppk']);
+        Route::post('/sppk/{id}/reject',  [SppkController::class, 'rejectSppk']);
+        Route::post('/sppk/{id}/revise',  [SppkController::class, 'reviseSppk']);
+    });
+ 
+    Route::middleware('access:SPPT,VIEW')->group(function () {
+        Route::get('/sppts', [SpptController::class, 'index'])->name('sppts');
+        Route::get('/sppts/json', [SpptController::class, 'json'])->name('sppts.json');
+        Route::get('/showsppts/{hash}', [SpptController::class, 'showSppt']);
+        Route::get('/sppts/{id}/tracking', [SpptController::class, 'tracking'])->name('sppts.tracking');
+        Route::get('/pdf_sppts/{hash}', [SpptController::class, 'printSppt']);
+        // BQ VIEW
+        Route::get('/showbqsppts/{hash}', [SpptController::class, 'showBQ']);       
+    });
+
+    Route::middleware('access:SPPT,CREATE')->group(function () {
+        Route::get('/createsppts', [SpptController::class, 'createSppt']);
+        Route::post('/sppts', [SpptController::class, 'storeSppt'])->name('sppts.store');
+        // BQ CREATE
+        Route::get('/createbqsppt/{id}', [SpptController::class, 'createBQ'])->name('bqsppt.create');
+        Route::post('/bqsppt', [SpptController::class, 'storeBQ'])->name('bqsppt.store');
+        Route::post('/bqsppt/import', [SpptController::class, 'importCreate'])->name('bqsppt.import');
+    });
+
+    Route::middleware('access:SPPT,EDIT')->group(function () {
+        Route::get('/editsppts/{hash}', [SpptController::class, 'editSppt']);
+        Route::put('/sppts/{id}', [SpptController::class, 'updateSppt'])->name('sppts.update');
+        Route::put('/sppts/remove-attachment/{id}', [SpptController::class, 'removeAttachment']);
+        // Approvals
+        Route::post('/sppt/{id}/approve', [SpptController::class, 'approveSppt']);
+        Route::post('/sppt/{id}/reject',  [SpptController::class, 'rejectSppt']);
+        Route::post('/sppt/{id}/revise',  [SpptController::class, 'reviseSppt']);
+        // BQ EDIT
+        Route::get('/editbqsppts/{id}', [SpptController::class, 'editBQ'])->name('bqsppt.edit');
+        Route::put('/bqsppt/{id}', [SpptController::class, 'updateBQ'])->name('bqsppt.update');
+        Route::put('/bqs/remove-attachment/{id}', [SpptController::class, 'removeAttachment']);
+        // BQ Import (edit)
+        Route::post('/bqsppt/{bq}/import', [SpptController::class, 'importEdit'])->name('bqsppt.import.edit');
+    });
+
+    Route::middleware('access:ASSIGN,VIEW')->group(function () {
+        Route::get('/assignlist', [AssignListController::class, 'AssignList'])->name('assignlist');
+        Route::get('/assignlist/json', [AssignListController::class, 'AssignListJson'])->name('assignlist.json');
+        Route::get('/assignlist/users', [AssignListController::class, 'AssignListUsers'])->name('assignlist.users');
+    });
+
+    Route::middleware('access:ASSIGN,EDIT')->group(function () {
+        Route::post('/assignlist/assign', [AssignListController::class, 'AssignPurchasing'])->name('assignlist.assign');
+    });
+
+    Route::middleware('access:CSJOBS,VIEW')->group(function () {
+        Route::get('/csjobs', [CsJobController::class, 'CsJobs'])->name('csjobs');   
+        Route::get('/csjobs/mine/json', [CsJobController::class, 'CsJobsMineJson'])->name('csjobs.mine.json');                 
+        Route::get('/csjobs/all/json',  [CsJobController::class, 'CsJobsAllJson'])->name('csjobs.all.json');                   
+        Route::get('/csjobs/revision/json', [CsJobController::class, 'CsJobsRevisionJson'])->name('csjobs.revision.json');
+        Route::get('/csjobs/sppbjkt-progress/json', [CsJobController::class, 'SppbjktOnProgressJson'])->name('csjobs.sppbjkt.progress.json');
+        Route::get('/csjobs/counts', [CsJobController::class,'CsJobsCounts'])->name('csjobs.counts');    
+        Route::get('/csjobs/entry.json', [CsJobController::class, 'CsJobsEntryJson'])->name('csjobs.entry.json');
+        Route::get('/csjobs/dataset-counts', [CsJobController::class,'CsJobsDatasetCounts'])->name('csjobs.dataset.counts');        
+        Route::get('/pdf_cs/{hash}', [CanvassController::class, 'printCS']);
+        Route::get('/showcs/{hash}', [CanvassController::class, 'showCS']);     
+        Route::get('/showbqcs/{hash}', [BQCSController::class, 'showBQCS'])->name('bqcs.show');
+    });
+
+    Route::middleware('access:CSJOBS,EDIT')->group(function () {
+        Route::put('/csjobs/remove-attachment/{id}', [CsJobController::class, 'removeAttachment']);
+        Route::post('/csjobs/complete/{doc}/{eid}', [CsJobController::class, 'CompleteRemainingOpen'])
+            ->name('csjobs.complete');
+        // CREATE CS (CANVASS SHEET)
+        Route::get('/createcs/{doc}/{hash}', [CanvassController::class, 'createCS'])
+            ->where([
+                'doc'  => 'SPPB|SPPJ|SPPK|SPPT|PO',
+                'hash' => '[A-Za-z0-9]+',
+            ])
+            ->name('canvass.createcs');
+        // SAVE / STORE CANVASS SHEET
+        Route::post('/csstore', [CanvassController::class, 'storeCS'])->name('cs.store');
+        Route::post('/cssave',  [CanvassController::class, 'saveCS'])->name('cs.save');
+        Route::get('/editcs/{eid}', [CanvassController::class, 'editCS'])->name('csjobs.edit');      
+        Route::put('/csjobs/{csid}', [CanvassController::class, 'updateCS'])->name('csjobs.update');
+        Route::get('/bqcs/create-from-cs/{hash}', [BQCSController::class, 'createFromCS'])->name('bqcs.createFromCS');
+        Route::post('/bqcs', [BQCSController::class, 'storeBQCS'])->name('bqcs.store');
+        Route::get('/bqcs/edit/{hash}', [BQCSController::class, 'EditBQCS'])->name('bqcs.edit');    
+        Route::put('bqcs/update/{hash}', [BQCSController::class, 'updateBQCS'])->name('bqcs.update');
+        Route::post('/cs/{id}/approve', [CanvassController::class, 'approveCS']);
+        Route::post('/cs/{id}/reject', [CanvassController::class, 'rejectCS']);
+        Route::post('/cs/{id}/revise', [CanvassController::class, 'reviseCS']);
+    });
+
+    Route::middleware('access:CSLIST,VIEW')->group(function () {
+        Route::get('/cslist', [CsListController::class, 'index'])->name('cslist');
+        Route::get('/cslist/json', [CsListController::class, 'json'])->name('cslist.json');
+    });
+
+    Route::middleware('access:POLIST,VIEW')->group(function () {
+        // PO LIST
+        Route::get('/polist',       [PoListController::class, 'index'])->name('polist');
+        Route::get('/polist/json',  [PoListController::class, 'json'])->name('polist.json');
+        // VIEW PO
+        Route::get('/showpo/{hash}', [PoController::class, 'showPo']);
+        Route::get('/pdf_po/{hash}', [PoController::class, 'printPO']);
+        // VIEW EMAIL PREVIEW
+        Route::get('/po/{hash}/view-email', [PoController::class, 'viewEmailPO'])->name('po.viewemail');
+    });
+
+    Route::middleware('access:POLIST,EDIT')->group(function () {
+        // ACTIONS
+        Route::post('/po/{poid}/submit',       [PoController::class, 'submitPO'])->name('po.submit');
+        Route::post('/po/{poid}/cancel-reuse', [PoController::class, 'ReusePO'])->name('po.cancel_reuse');
+        Route::post('/po/{poid}/cancel',       [PoController::class, 'cancelPO'])->name('po.cancel');
+        // SEND EMAIL
+        Route::post('/po/{ponbr}/email/send', [PoController::class, 'sendNowPO'])->name('po.email.send');
+    });
+   
+    Route::middleware('access:RECEIPTLIST,VIEW')->group(function () {
+        // List & JSON
+        Route::get('/receiptlist', [ReceiptListController::class, 'index'])->name('receiptlist');
+        Route::get('/receiptlist/json', [ReceiptListController::class, 'json'])->name('receiptlist.json');
+        // Detail & Print
+        Route::get('/showreceipt/{hash}', [ReceiptController::class, 'showReceipt']);
+        Route::get('/receipt/print/{hash}', [ReceiptController::class, 'printReceipt'])->name('receipts.print');
+        // Lookup sites / warehouse
+        
+    });
+   
+    Route::middleware('access:RECEIPTLIST,CREATE')->group(function () {
+        // Create Receipt
+        Route::get('/receipt/create', [ReceiptController::class, 'createReceipt'])->name('receipt.create');    
+        Route::post('/receipts', [ReceiptController::class, 'storeReceipt'])->name('receipt.store'); 
+        // Create Return
+        Route::get('/receipt-return/create', [ReceiptController::class, 'createReturn'])->name('receipt.return.create');
+        Route::post('/receipt-return', [ReceiptController::class, 'storeReturn'])->name('receipt.return.store');
+    });
+   
+    Route::middleware('access:RECEIPTLIST,EDIT')->group(function () {
+        // Edit Receipt
+        Route::get('/editreceipts/{hash}', [ReceiptController::class, 'editReceipt'])->name('receipt.edit');
+        Route::put('/editreceipts/{hash}', [ReceiptController::class, 'updateReceipt'])->name('receipt.update');
+        // Approval actions
+        Route::post('/receipt/{id}/approve', [ReceiptController::class, 'approveReceipt']);
+        Route::post('/receipt/{id}/reject',  [ReceiptController::class, 'rejectReceipt']);
+        Route::post('/receipt/{id}/revise',  [ReceiptController::class, 'reviseReceipt']);
+    });
+
+    Route::middleware('access:WOLIST,VIEW')->group(function () {
+        // WO List
+        Route::get('/wos', [WoController::class, 'index'])->name('wos');
+        Route::get('/wos/json', [WoController::class, 'json'])->name('wos.json');
+        // View WO Detail
+        Route::get('/showwos/{hash}', [WoController::class, 'showWo']);
+        Route::get('/wos/{id}/tracking', [WoController::class, 'tracking'])->name('wos.tracking');
+        Route::get('/pdf_wos/{hash}', [WoController::class, 'printWo'])->name('wos.print');
+        // Job Monitoring (READ ONLY)
+        Route::get('/wojobs', [WoController::class, 'woJobs'])->name('wojobs');
+        Route::get('/wos/jsonJobs', [WoController::class, 'jsonJobs'])->name('wos.jsonJobs');
+    });
+
+    Route::middleware('access:WOLIST,CREATE')->group(function () {
+        // Create WO
+        Route::get('/createwos', [WoController::class, 'createWo']);
+        Route::post('/wos', [WoController::class, 'storeWo'])->name('wos.store');
+    });
+
+    Route::middleware('access:WOLIST,EDIT')->group(function () {
+        // Edit WO
+        Route::get('/editwos/{hash}', [WoController::class, 'editWo']);
+        Route::put('/wos/{id}', [WoController::class, 'updateWo'])->name('wos.update');
+        // Approval Actions
+        Route::post('/wo/{id}/approve', [WoController::class, 'approveWo']);
+        Route::post('/wo/{id}/reject',  [WoController::class, 'rejectWo']);
+        Route::post('/wo/{id}/revise',  [WoController::class, 'reviseWo']);
+        // WO Job Actions (affects process)
+        Route::post('/wo/{woid}/process', [WoController::class, 'processWo'])->name('wo.process');
+        Route::post('/wo/{woid}/job-status', [WoController::class, 'updateJobStatus'])->name('wo.jobstatus');
+    });
+
+    
+    Route::middleware('access:SPBLIST,VIEW')->group(function () {
+        Route::get('/spbs', [SpbController::class, 'index'])->name('spbs');
+        Route::get('/spbs/json', [SpbController::class, 'json'])->name('spbs.json');
+        Route::get('/showspbs/{hash}', [SpbController::class, 'showSpb']);   
+        Route::get('/spbs/{id}/tracking', [SpbController::class, 'tracking'])->name('spbs.tracking');
+        Route::get('/pdf_spbs/{hash}', [SpbController::class, 'printSpb']);
+    });
+   
+    Route::middleware('access:SPBLIST,CREATE')->group(function () {
+        Route::get('/createspbs', [SpbController::class, 'createSpb']);
+        Route::post('/spbs', [SpbController::class, 'storeSpb'])->name('spbs.store');
+    });
+   
+    Route::middleware('access:SPBLIST,EDIT')->group(function () {
+        Route::get('/editspbs/{hash}', [SpbController::class, 'editSpb']);
+        Route::put('/spbs/{id}', [SpbController::class, 'updateSpb'])->name('spbs.update');
+        Route::post('/spb/{id}/approve', [SpbController::class, 'approveSpb']);
+        Route::post('/spb/{id}/reject',  [SpbController::class, 'rejectSpb']);
+        Route::post('/spb/{id}/revise',  [SpbController::class, 'reviseSpb']);
+    });
+
+    Route::middleware('access:SPBJOBS,VIEW')->group(function () {
+        Route::get('/spbjobs', [SpbJobsController::class, 'index'])->name('spbjobs');
+        Route::get('/spbjobs/json', [SpbJobsController::class, 'json'])->name('spbjobs.json');
+    });
+
+    Route::middleware('access:SPBJOBS,CREATE')->group(function () {
+        // Create Issue
+        Route::get('/issue/create', [SpbJobsController::class, 'createIssue'])->name('issue.create');
+        // Create SPPB from SPB Job
+        Route::get('/sppb/create', [SpbJobsController::class, 'createSPPB'])->name('sppb.create');
+        Route::post('/sppb', [SpbJobsController::class, 'storeSPPB'])->name('sppb.store');
+    });
+
+    Route::middleware('access:ISSUELIST,VIEW')->group(function () {
+        // List
+        Route::get('/issuelist', [IssueListController::class, 'index'])->name('issuelist');
+        Route::get('/issuelist/json', [IssueListController::class, 'json'])->name('issuelist.json');        
+        // Detail
+        Route::get('/showissue/{hash}', [IssueController::class, 'showIssue']);
+        // Printing
+        Route::get('/issue/print/{hash}', [IssueController::class, 'printIssue'])->name('issues.print');
+        Route::get('/pdf_issues/{hash}',  [IssueController::class, 'printIssue']);
+    });
+  
+    Route::middleware('access:ISSUELIST,CREATE')->group(function () {
+        // Create Issue
+        Route::post('/issues', [IssueController::class, 'storeIssue'])->name('issue.store'); 
+        // Create Issue Return
+        Route::get('/issue-return/create', [IssueController::class, 'createReturn'])->name('issue.return.create');
+        Route::post('/issue-return',        [IssueController::class, 'storeReturn'])->name('issue.return.store');
+    });
+
+    Route::middleware('access:ISSUELIST,EDIT')->group(function () {
+        // Edit Issue
+        Route::get('/editissues/{hash}', [IssueController::class, 'editIssue'])->name('issue.edit');
+        Route::put('/issues/{hash}',     [IssueController::class, 'updateIssue'])->name('issue.update');   
+        // Approval Actions
+        Route::post('/issue/{id}/approve', [IssueController::class, 'approveIssue']);
+        Route::post('/issue/{id}/reject',  [IssueController::class, 'rejectIssue']);
+        Route::post('/issue/{id}/revise',  [IssueController::class, 'reviseIssue']);
+    });
+
+    Route::middleware('access:IMBUDGET,VIEW')->group(function () {
+        Route::get('/imbudgets', [IMBudgetController::class, 'index'])->name('imbudgets');
+        Route::get('/imbudgets/json', [IMBudgetController::class, 'json'])->name('imbudgets.json');
+        Route::get('/showimbudgets/{hash}', [IMBudgetController::class, 'showIMBudget']);
+        // Comments (view only)
+        Route::get('/imbudget/{id}/comments', [IMBudgetController::class, 'fetchComments']);
+        Route::get('/imbudgets/{id}/tracking', [IMBudgetController::class, 'tracking'])->name('imbudgets.tracking');
+        Route::get('/pdf_imbudgets/{hash}', [IMBudgetController::class, 'printIMBudget']);
+    });
+
+    Route::middleware('access:IMBUDGET,CREATE')->group(function () {
+        Route::get('/createimbudgets', [IMBudgetController::class, 'createIMBudget']);
+        Route::post('/imbudgets', [IMBudgetController::class, 'storeIMBudget'])->name('imbudgets.store');
+    });
+
+    Route::middleware('access:IMBUDGET,EDIT')->group(function () {
+        Route::get('/editimbudgets/{hash}', [IMBudgetController::class, 'editIMBudget']);
+        Route::put('/imbudgets/{id}', [IMBudgetController::class, 'updateIMBudget'])->name('imbudgets.update');
+
+        // Comments (create)
+        Route::post('/imbudget/{id}/comments', [IMBudgetController::class, 'storeComment']);
+
+        // Approval actions
+        Route::post('/imbudget/{id}/approve', [IMBudgetController::class, 'approveIMBudget']);
+        Route::post('/imbudget/{id}/reject',  [IMBudgetController::class, 'rejectIMBudget']);
+        Route::post('/imbudget/{id}/revise',  [IMBudgetController::class, 'reviseIMBudget']);
+    });   
+
+    Route::middleware('access:BASTLIST,VIEW')->group(function () {
+        Route::get('/bastlist', [BastListController::class, 'index'])->name('bastlist');
+        Route::get('/bastlist/json', [BastListController::class, 'json'])->name('bastlist.json');
+        Route::get('/showbast/{hash}', [BastController::class, 'showBast']);
+        // PDF
+        Route::get('/pdf_bast/{hash}', [BastController::class, 'printBast'])->name('basts.print');
+        Route::get('/pdf_bast_vendor/{hash}', [BastController::class, 'printBastVendor'])->name('basts.printvendor');
+        // Ratings
+        Route::get('/bast/{bastid}/ratings', [BastController::class, 'getBastRatings'])->name('bast.ratings');
+    });
+
+    Route::middleware('access:BASTLIST,CREATE')->group(function () {
+        Route::get('/bast/create', [BastController::class, 'createBast'])->name('bast.create');    
+        Route::post('/bast', [BastController::class, 'storeBast'])->name('bast.store'); 
+    });
+
+    Route::middleware('access:BASTLIST,EDIT')->group(function () {
+        Route::get('/editbasts/{hash}', [BastController::class, 'editBast'])->name('bast.edit');
+        Route::put('/editbasts/{hash}', [BastController::class, 'updateBast'])->name('bast.update');
+        // Approval Actions
+        Route::post('/bast/{id}/approve', [BastController::class, 'approveBast']);
+        Route::post('/bast/{id}/reject',  [BastController::class, 'rejectBast']);
+        Route::post('/bast/{id}/revise',  [BastController::class, 'reviseBast']);
+    });
+
+    Route::middleware('access:RFCALIST,VIEW')->group(function () {
+        Route::get('/rfcalist', [RfcaListController::class, 'index'])->name('rfcalist');
+        Route::get('/rfcalist/json', [RfcaListController::class, 'json'])->name('rfcalist.json');
+        // Detail
+        Route::get('/showrfca/{hash}', [RfcaListController::class, 'showRfca']);
+        // PDF
+        Route::get('/pdf_rfca/{hash}', [RfcaListController::class, 'printRfca'])->name('rfca.print');
+    });
+
+    Route::middleware('access:RFCALIST,EDIT')->group(function () {
+        Route::post('/rfca/{hash}/submit-type', [RfcaListController::class, 'submitType'])->name('rfca.submitType');
+        Route::post('/rfca/{hash}/approve-step', [RfcaListController::class, 'approveStep'])->name('rfca.approveStep');
+    });
+
+    Route::middleware('access:CALRLIST,VIEW')->group(function () {
+        Route::get('/calrlist', [CalrListController::class, 'index'])->name('calrlist');
+        Route::get('/calrlist/json', [CalrListController::class, 'json'])->name('calrlist.json');
+        Route::get('/showcalr/{hash}', [CalrController::class, 'showCalr']);     
+        // PDF (internal & vendor)
+        Route::get('/pdf_calr/{hash}',         [CalrController::class, 'printCalr'])->name('calrs.print');
+        Route::get('/pdf_calr_vendor/{hash}',  [CalrController::class, 'printCalrVendor'])->name('calrs.printvendor');
+    });
+    Route::middleware('access:CALRLIST,CREATE')->group(function () {
+        Route::get('/calr/create', [CalrController::class, 'createCalr'])->name('calr.create');
+        Route::post('/calr',       [CalrController::class, 'storeCalr'])->name('calr.store'); 
+    });
+
+    Route::middleware('access:CALRLIST,EDIT')->group(function () {
+        Route::get('/editcalrs/{hash}', [CalrController::class, 'editCalr'])->name('calr.edit');
+        Route::put('/editcalrs/{hash}', [CalrController::class, 'updateCalr'])->name('calr.update');
+        Route::post('/calr/{id}/approve', [CalrController::class, 'approveCalr']);
+        Route::post('/calr/{id}/reject',  [CalrController::class, 'rejectCalr']);
+        Route::post('/calr/{id}/revise',  [CalrController::class, 'reviseCalr']);   
+    });
 
     Route::get('/kendaraan/all', [MasterController::class, 'listKendaraan'])->name('kendaraan.all');
-    Route::get('/lookup/tenants', [MasterController::class, 'tenants'])->name('tenants.search');
-    Route::get('/lookup/users',   [MasterController::class, 'users'])->name('users.search');
+    Route::get('/lookup/tenants',  [MasterController::class, 'tenants'])->name('tenants.search');
+    Route::get('/lookup/users',    [MasterController::class, 'users'])->name('users.search');
+    Route::get('/api/tenants/show', [MasterController::class, 'showTenant'])->name('tenants.show');
     Route::get('/vendorscs', [MasterController::class, 'vendors']); 
     Route::get('/taxes', [MasterController::class, 'taxes'])->name('taxes.index');
     Route::get('/sites', [MasterController::class, 'sitesWarehouse'])->name('sites.index');
-    Route::get('/api/tenants/show', [MasterController::class, 'showTenant'])->name('tenants.show');
-
-    Route::get('/sppts', [SpptController::class, 'index'])->name('sppts');
-    Route::get('/sppts/json', [SpptController::class, 'json'])->name('sppts.json');
-    Route::get('/createsppts', [SpptController::class, 'createSppt']);
-    Route::post('/sppts', [SpptController::class, 'storeSppt'])->name('sppts.store');
-    Route::get('/showsppts/{hash}', [SpptController::class, 'showSppt']); 
-    Route::post('/sppt/{id}/approve', [SpptController::class, 'approveSppt']);
-    Route::post('/sppt/{id}/reject', [SpptController::class, 'rejectSppt']);
-    Route::post('/sppt/{id}/revise', [SpptController::class, 'reviseSppt']);
-    Route::get('/editsppts/{hash}', [SpptController::class, 'editSppt']);
-    Route::put('/sppts/{id}', [SpptController::class, 'updateSppt'])->name('sppts.update');
-    Route::put('/sppts/remove-attachment/{id}', [SpptController::class, 'removeAttachment']);    
-    // Route::get('/sppt/{id}/check-approval/{action}', [SpptController::class, 'checkApproval']);     
-    Route::get('/sppts/{id}/tracking', [SpptController::class, 'tracking'])->name('sppts.tracking');
-    Route::get('/showbqsppts/{hash}', [SpptController::class, 'showBQ']);
-    Route::get('/editbqsppts/{id}', [SpptController::class, 'editBQ'])->name('bqsppt.edit');    
-    Route::put('/bqs/remove-attachment/{id}', [SpptController::class, 'removeAttachment']);
-    Route::get('/pdf_sppts/{hash}', [SpptController::class, 'printSppt']);
-    Route::get('/createbqsppt/{id}', [SpptController::class, 'createBQ'])->name('bqsppt.create');   
-    Route::post('/bqsppt/import', [SpptController::class, 'importCreate'])->name('bqsppt.import');
-    Route::post('/bqsppt/{bq}/import', [SpptController::class, 'importEdit'])->name('bqsppt.import.edit');
-    Route::post('/bqsppt', [SpptController::class, 'storeBQ'])->name('bqsppt.store');
-    Route::put('/bqsppt/{id}', [SpptController::class, 'updateBQ'])->name('bqsppt.update');
-
-    Route::get('/sppks', [SppkController::class, 'index'])->name('sppks');
-    Route::get('/sppks/json', [SppkController::class, 'json'])->name('sppks.json');
-    Route::get('/createsppks', [SppkController::class, 'createSppk']);
-    Route::post('/sppks', [SppkController::class, 'storeSppk'])->name('sppks.store');
-    Route::get('/showsppks/{hash}', [SppkController::class, 'showSppk']);   
-    Route::post('/sppk/{id}/approve', [SppkController::class, 'approveSppk']);
-    Route::post('/sppk/{id}/reject', [SppkController::class, 'rejectSppk']);
-    Route::post('/sppk/{id}/revise', [SppkController::class, 'reviseSppk']);
-    Route::get('/editsppks/{hash}', [SppkController::class, 'editSppk']);
-    Route::put('/sppks/{id}', [SppkController::class, 'updateSppk'])->name('sppks.update');
-    Route::put('/sppks/remove-attachment/{id}', [SppkController::class, 'removeAttachment']);    
-    // Route::get('/sppk/{id}/check-approval/{action}', [SppkController::class, 'checkApproval']);     
-    Route::get('/sppks/{id}/tracking', [SppkController::class, 'tracking'])->name('sppks.tracking');
-    Route::get('/pdf_sppks/{hash}', [SppkController::class, 'printSppk']);
-
-    Route::get('/assignlist', [AssignListController::class, 'AssignList'])->name('assignlist');
-    Route::get('/assignlist/json', [AssignListController::class, 'AssignListJson'])->name('assignlist.json');
-    Route::get('/assignlist/users', [AssignListController::class, 'AssignListUsers'])->name('assignlist.users');
-    Route::post('/assignlist/assign', [AssignListController::class, 'AssignPurchasing'])->name('assignlist.assign');
-
-    Route::get('/csjobs', [CsJobController::class, 'CsJobs'])->name('csjobs');   
-    Route::get('/csjobs/mine/json', [CsJobController::class, 'CsJobsMineJson'])->name('csjobs.mine.json');                 
-    Route::get('/csjobs/all/json',  [CsJobController::class, 'CsJobsAllJson'])->name('csjobs.all.json');                   
-    Route::get('/csjobs/revision/json', [CsJobController::class, 'CsJobsRevisionJson'])->name('csjobs.revision.json');     
-    Route::get('/csjobs/sppbjkt-progress/json', [CsJobController::class, 'SppbjktOnProgressJson'])->name('csjobs.sppbjkt.progress.json'); 
-    Route::get('/csjobs/counts', [CsJobController::class,'CsJobsCounts'])->name('csjobs.counts');    
-    Route::get('/csjobs/entry.json', [CsJobController::class, 'CsJobsEntryJson'])->name('csjobs.entry.json')->middleware('auth');
-
-    Route::put('/csjobs/remove-attachment/{id}', [CsJobController::class, 'removeAttachment']);
-    Route::get('/csjobs/dataset-counts', [CsJobController::class,'CsJobsDatasetCounts'])->name('csjobs.dataset.counts');
-    Route::post('/csjobs/complete/{doc}/{eid}', [CsJobController::class, 'CompleteRemainingOpen'])->name('csjobs.complete');
-
-    Route::get('/cslist', [CsListController::class, 'index'])->name('cslist');
-    Route::get('/cslist/json', [CsListController::class, 'json'])->name('cslist.json');      
-
-    Route::get('/createcs/{doc}/{hash}', [CanvassController::class, 'createCS'])
-        ->where([
-            'doc'  => 'SPPB|SPPJ|SPPK|SPPT|PO',
-            'hash' => '[A-Za-z0-9]+',  // hash dari Hashids
-        ])
-        ->name('canvass.createcs');
-
-    Route::post('/csstore', [CanvassController::class, 'storeCS'])->name('cs.store');
-    Route::post('/cssave', [CanvassController::class, 'saveCS'])->name('cs.save');
-    Route::get('/showcs/{hash}', [CanvassController::class, 'showCS']);
-    Route::get('/editcs/{eid}', [CanvassController::class, 'editCS'])->name('csjobs.edit');      
-    Route::put('/csjobs/{csid}', [CanvassController::class, 'updateCS'])->name('csjobs.update');
-  
-    Route::post('/cs/{id}/approve', [CanvassController::class, 'approveCS']);
-    Route::post('/cs/{id}/reject', [CanvassController::class, 'rejectCS']);
-    Route::post('/cs/{id}/revise', [CanvassController::class, 'reviseCS']);   
-    Route::put('/cs/remove-attachment/{id}', [CanvassController::class, 'removeAttachment']);    
-    // Route::get('/cs/{id}/check-approval/{action}', [CanvassController::class, 'checkApproval']); 
-    Route::get('/pdf_cs/{hash}', [CanvassController::class, 'printCS']);
-        
-    Route::get('/bqcs/create-from-cs/{hash}', [BQCSController::class, 'createFromCS'])->name('bqcs.createFromCS');
-    Route::post('/bqcs', [BQCSController::class, 'storeBQCS'])->name('bqcs.store');
-    Route::get('/bqcs/edit/{hash}', [BQCSController::class, 'EditBQCS'])->name('bqcs.edit');    
-    Route::put('bqcs/update/{hash}', [BQCSController::class, 'updateBQCS'])->name('bqcs.update');
-    Route::get('/showbqcs/{hash}', [BQCSController::class, 'showBQCS'])->name('bqcs.show');
-
-    Route::get('/polist', [PoListController::class, 'index'])->name('polist');
-    Route::get('/polist/json', [PoListController::class, 'json'])->name('polist.json');
-    Route::get('/showpo/{hash}', [PoController::class, 'showPo']);
- 
-    Route::post('/po/{poid}/attachments', [PoController::class, 'uploadAttachments'])->name('po.attachments.upload');
-   
-    Route::get('/po/{ponbr}/attachments', [PoController::class, 'listAttachment'])->name('po.attachments.list');
-    Route::post('/po/{ponbr}/attachments', [PoController::class, 'uploadAttachments'])->name('po.attachments.upload');
-    Route::delete('/po/attachments/{id}', [PoController::class, 'removeAttachment'])->name('po.attachments.delete');
- 
-    Route::post('/po/{poid}/submit',       [PoController::class, 'submitPO'])->name('po.submit');
-    Route::post('/po/{poid}/cancel-reuse', [PoController::class, 'ReusePO'])->name('po.cancel_reuse');
-    Route::post('/po/{poid}/cancel',       [PoController::class, 'cancelPO'])->name('po.cancel');
-    Route::get('/pdf_po/{hash}', [PoController::class, 'printPO']);
-    Route::get('/po/{hash}/view-email', [POController::class, 'viewEmailPO'])->name('po.viewemail');
-    Route::post('/po/{ponbr}/email/send', [POController::class, 'sendNowPO'])->name('po.email.send');
-
-    Route::get('/receiptlist', [ReceiptListController::class, 'index'])->name('receiptlist');
-    Route::get('/receiptlist/json', [ReceiptListController::class, 'json'])->name('receiptlist.json');
-    Route::get('/receipt/create', [ReceiptController::class, 'createReceipt'])->name('receipt.create');    
-    Route::post('/receipts', [ReceiptController::class, 'storeReceipt'])->name('receipt.store'); 
-    Route::get('/showreceipt/{hash}', [ReceiptController::class, 'showReceipt']);      
-    Route::post('/receipt/{id}/approve', [ReceiptController::class, 'approveReceipt']);
-    Route::post('/receipt/{id}/reject', [ReceiptController::class, 'rejectReceipt']);
-    Route::post('/receipt/{id}/revise', [ReceiptController::class, 'reviseReceipt']);
-    // Route::get('/receipt/{id}/check-approval/{action}', [ReceiptController::class, 'checkApproval']);     
-    Route::get('/editreceipts/{hash}', [ReceiptController::class, 'editReceipt'])->name('receipt.edit');
-    Route::put('/editreceipts/{hash}', [ReceiptController::class, 'updateReceipt'])->name('receipt.update');
-
-    Route::get('/receipt/print/{hash}', [ReceiptController::class, 'printReceipt'])->name('receipts.print');   
-    Route::get('/receipt-return/create', [ReceiptController::class, 'createReturn'])->name('receipt.return.create');
-    Route::post('/receipt-return', [ReceiptController::class, 'storeReturn'])->name('receipt.return.store');
-    Route::put('/receipts/remove-attachment/{id}', [ReceiptController::class, 'removeAttachment']);
-
-
-    Route::get('/wos', [WoController::class, 'index'])->name('wos');
-    Route::get('/wos/json', [WoController::class, 'json'])->name('wos.json');
-    Route::get('/createwos', [WoController::class, 'createWo']);
-    Route::post('/wos', [WoController::class, 'storeWo'])->name('wos.store');
-    Route::get('/showwos/{hash}', [WoController::class, 'showWo']);  
-    Route::post('/wo/{id}/approve', [WoController::class, 'approveWo']);
-    Route::post('/wo/{id}/reject', [WoController::class, 'rejectWo']);
-    Route::post('/wo/{id}/revise', [WoController::class, 'reviseWo']);
-    Route::get('/editwos/{hash}', [WoController::class, 'editWo']);
-    Route::put('/wos/{id}', [WoController::class, 'updateWo'])->name('wos.update');    
-    // Route::get('/wo/{id}/check-approval/{action}', [WoController::class, 'checkApproval']);     
-    Route::get('/wos/{id}/tracking', [WoController::class, 'tracking'])->name('wos.tracking');
-    Route::get('/pdf_wos/{hash}', [WOController::class, 'printWo'])->name('wos.print');
-    Route::put('/wos/remove-attachment/{id}', [WOController::class, 'removeAttachment']);
-
-    Route::get('/wojobs', [WoController::class, 'woJobs'])->name('wojobs');
-    Route::get('/wos/jsonJobs', [WoController::class, 'jsonJobs'])->name('wos.jsonJobs');
-    Route::post('/wo/{woid}/process', [WOController::class, 'processWo'])->name('wo.process');
-    Route::post('/wo/{woid}/job-status', [WOController::class, 'updateJobStatus'])->name('wo.jobstatus');
-
-    Route::get('/spbs', [SpbController::class, 'index'])->name('spbs');
-    Route::get('/spbs/json', [SpbController::class, 'json'])->name('spbs.json');
-    Route::get('/createspbs', [SpbController::class, 'createSpb']);
-    Route::post('/spbs', [SpbController::class, 'storeSpb'])->name('spbs.store');
-    Route::get('/showspbs/{hash}', [SpbController::class, 'showSpb']);   
-    Route::post('/spb/{id}/approve', [SpbController::class, 'approveSpb']);
-    Route::post('/spb/{id}/reject', [SpbController::class, 'rejectSpb']);
-    Route::post('/spb/{id}/revise', [SpbController::class, 'reviseSpb']);
-    Route::get('/editspbs/{hash}', [SpbController::class, 'editSpb']);
-    Route::put('/spbs/{id}', [SpbController::class, 'updateSpb'])->name('spbs.update');
-    Route::put('/spbs/remove-attachment/{id}', [SpbController::class, 'removeAttachment']);    
-    // Route::get('/spb/{id}/check-approval/{action}', [SpbController::class, 'checkApproval']);     
-    Route::get('/spbs/{id}/tracking', [SpbController::class, 'tracking'])->name('spbs.tracking');
-    Route::get('/pdf_spbs/{hash}', [SpbController::class, 'printSpb']);
-
-    Route::get('/issuelist', [IssueListController::class, 'index'])->name('issuelist');
-    Route::get('/issuelist/json', [IssueListController::class, 'json'])->name('issuelist.json');        
-    Route::post('/issues', [IssueController::class, 'storeIssue'])->name('issue.store'); 
-    Route::get('/showissue/{hash}', [IssueController::class, 'showIssue']);        
-    Route::post('/issue/{id}/approve', [IssueController::class, 'approveIssue']);
-    Route::post('/issue/{id}/reject', [IssueController::class, 'rejectIssue']);
-    Route::post('/issue/{id}/revise', [IssueController::class, 'reviseIssue']);   
-    Route::get('/editissues/{hash}', [IssueController::class, 'editIssue'])->name('issue.edit');
-    Route::put('/issues/{hash}', [IssueController::class, 'updateIssue'])->name('issue.update');    
-
-    Route::put('/issues/remove-attachment/{id}', [IssueController::class, 'removeAttachment']);    
-    // Route::get('/issue/{id}/check-approval/{action}', [IssueController::class, 'checkApproval']);  
-    Route::get('/issue/print/{hash}', [IssueController::class, 'printIssue'])->name('issues.print');   
-    Route::get('/issue-return/create', [IssueController::class, 'createReturn'])->name('issue.return.create');
-    Route::post('/issue-return', [IssueController::class, 'storeReturn'])->name('issue.return.store');
-    Route::get('/pdf_issues/{hash}', [IssueController::class, 'printIssue']);
-
-    Route::get('/spbjobs', [SpbJobsController::class, 'index'])->name('spbjobs');
-    Route::get('/spbjobs/json', [SpbJobsController::class, 'json'])->name('spbjobs.json');
-    Route::get('/issue/create', [SpbJobsController::class, 'createIssue'])->name('issue.create');
-    Route::get('/sppb/create', [SpbJobsController::class, 'createSPPB'])->name('sppb.create');
-    Route::post('/sppb', [SpbJobsController::class, 'storeSPPB'])->name('sppb.store');
-
-    Route::get('/imbudgets', [IMBudgetController::class, 'index'])->name('imbudgets');
-    Route::get('/imbudgets/json', [IMBudgetController::class, 'json'])->name('imbudgets.json');
-    Route::get('/createimbudgets', [IMBudgetController::class, 'createIMBudget']);
-    Route::post('/imbudgets', [IMBudgetController::class, 'storeIMBudget'])->name('imbudgets.store');
-    Route::get('/showimbudgets/{hash}', [IMBudgetController::class, 'showIMBudget']);
-    Route::get('/imbudget/{id}/comments', [IMBudgetController::class, 'fetchComments']);
-    Route::post('/imbudget/{id}/comments', [IMBudgetController::class, 'storeComment']);
-    Route::post('/imbudget/{id}/approve', [IMBudgetController::class, 'approveIMBudget']);
-    Route::post('/imbudget/{id}/reject', [IMBudgetController::class, 'rejectIMBudget']);
-    Route::post('/imbudget/{id}/revise', [IMBudgetController::class, 'reviseIMBudget']);
-    Route::get('/editimbudgets/{hash}', [IMBudgetController::class, 'editIMBudget']);
-    Route::put('/imbudgets/{id}', [IMBudgetController::class, 'updateIMBudget'])->name('imbudgets.update');
-    Route::put('/imbudgets/remove-attachment/{id}', [IMBudgetController::class, 'removeAttachment']);    
-    // Route::get('/imbudget/{id}/check-approval/{action}', [IMBudgetController::class, 'checkApproval']);     
-    Route::get('/imbudgets/{id}/tracking', [IMBudgetController::class, 'tracking'])->name('imbudgets.tracking');
-    Route::get('/pdf_imbudgets/{hash}', [IMBudgetController::class, 'printIMBudget']);
-
-    Route::get('/testgenerate', [IMBudgetController::class, 'GenerateIMBudget']);
-
-    Route::get('/bastlist', [BastListController::class, 'index'])->name('bastlist');
-    Route::get('/bastlist/json', [BastListController::class, 'json'])->name('bastlist.json');
-    Route::get('/bast/create', [BastController::class, 'createBast'])->name('bast.create');    
-    Route::post('/bast', [BastController::class, 'storeBast'])->name('bast.store'); 
-    Route::get('/showbast/{hash}', [BastController::class, 'showBast']);     
-    Route::post('/bast/{id}/approve', [BastController::class, 'approveBast']);
-    Route::post('/bast/{id}/reject', [BastController::class, 'rejectBast']);
-    Route::post('/bast/{id}/revise', [BastController::class, 'reviseBast']);   
-    Route::get('/editbasts/{hash}', [BastController::class, 'editBast'])->name('bast.edit');
-    Route::put('/editbasts/{hash}', [BastController::class, 'updateBast'])->name('bast.update');
-    Route::get('/pdf_bast/{hash}', [BastController::class, 'printBast'])->name('basts.print');
-    Route::get('/pdf_bast_vendor/{hash}', [BastController::class, 'printBastVendor'])->name('basts.printvendor');
-
-    Route::get('/bast/{bastid}/ratings', [BastController::class, 'getBastRatings'])->name('bast.ratings');
-
-    Route::get('/rfcalist', [RfcaListController::class, 'index'])->name('rfcalist');
-    Route::get('/rfcalist/json', [RfcaListController::class, 'json'])->name('rfcalist.json');
-    Route::get('/showrfca/{hash}', [RfcaListController::class, 'showRfca']);
-    Route::post('/rfca/{hash}/submit-type', [RfcaListController::class, 'submitType'])->name('rfca.submitType');
-    Route::post('/rfca/{hash}/approve-step', [RfcaListController::class, 'approveStep'])->name('rfca.approveStep');
-    Route::get('/pdf_rfca/{hash}', [RfcaListController::class, 'printRfca'])->name('rfca.print');
-
-    Route::get('/calrlist', [CalrListController::class, 'index'])->name('calrlist');
-    Route::get('/calrlist/json', [CalrListController::class, 'json'])->name('calrlist.json');
-
-    Route::get('/calr/create', [CalrController::class, 'createCalr'])->name('calr.create');
-    Route::post('/calr', [CalrController::class, 'storeCalr'])->name('calr.store'); 
-    Route::get('/showcalr/{hash}', [CalrController::class, 'showCalr']);     
-    Route::post('/calr/{id}/approve', [CalrController::class, 'approveCalr']);
-    Route::post('/calr/{id}/reject', [CalrController::class, 'rejectCalr']);
-    Route::post('/calr/{id}/revise', [CalrController::class, 'reviseCalr']);
-    // Route::get('/calr/{id}/check-approval/{action}', [CalrController::class, 'checkApproval']);    
-    Route::get('/editcalrs/{hash}', [CalrController::class, 'editCalr'])->name('calr.edit');
-    Route::put('/editcalrs/{hash}', [CalrController::class, 'updateCalr'])->name('calr.update');
-    Route::get('/pdf_calr/{hash}', [CalrController::class, 'printCalr'])->name('calrs.print');
-    Route::get('/pdf_calr_vendor/{hash}', [CalrController::class, 'printCalrVendor'])->name('calrs.printvendor');
-
-
     Route::get('/inventory/list', [MasterController::class, 'InventoryList'])->name('inventory.list');
     Route::get('/request-types/by-doctype', [MasterController::class, 'RequestType'])->name('requesttypes.byDoctype');
     Route::get('/locations/by-company', [MasterController::class, 'Location'])->name('locations.byCompany'); 
@@ -811,9 +945,9 @@ Route::post('/logout', function () {
     Route::post('/eng/workscategory/update', [WorksCategoryController::class, 'update'])->name('workscategory.update');
     Route::post('/eng/workscategory/delete/{id}', [WorksCategoryController::class, 'delete']);
 
-    Route::get('/canvasssheet', [BudgetController::class, 'CanvassSheet'])->name('canvasssheet');
-    Route::get ('/canvass/create', [CanvassxController::class, 'createCS'])->name('canvass.create');
-    Route::get('/vendors', [VendorController::class, 'index']);  
+    // Route::get('/canvasssheet', [BudgetController::class, 'CanvassSheet'])->name('canvasssheet');
+    // Route::get ('/canvass/create', [CanvassxController::class, 'createCS'])->name('canvass.create');
+    // Route::get('/vendors', [VendorController::class, 'index']);  
        
     // Route for the getting the data feed
     Route::get('/json-data-feed', [DataFeedController::class, 'getDataFeed'])->name('json_data_feed');

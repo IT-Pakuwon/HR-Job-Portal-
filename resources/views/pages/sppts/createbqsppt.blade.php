@@ -128,8 +128,7 @@
                                     <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">SPPT
                                         ID</label>
                                     <input type="hidden" name="idx" value="{{ $sppt->id ?? '' }}">
-                                    <input type="hidden" name="sppttid" value="{{ $sppt->spptid ?? '' }}">
-
+                                    <input type="hidden" name="sppjtid" value="{{ $sppt->spptid ?? '' }}">
                                     <input type="text" name="spptid" value="{{ $sppt->spptid ?? '' }}"
                                         class="h-[40px] w-full rounded-md border border-gray-200 bg-gray-100/50 px-3 focus:ring focus:ring-blue-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
                                         readonly>
@@ -430,6 +429,104 @@
         });
     </script>
     <script>
+    (function() {
+        // ambil elemen
+        const grid = document.getElementById('attachmentsGrid');
+        const addTile = document.getElementById('addAttachmentTile');
+        const picker = document.getElementById('hiddenPicker');
+        const hiddenInputs = document.getElementById('hiddenInputs');
+
+        // ❗ Kalau belum ada tempData / belum render section Photo Before,
+        // elemen-elemen di atas NULL. Jangan lanjut, langsung stop script.
+        if (!grid || !addTile || !picker || !hiddenInputs) {
+            return;
+        }
+
+        // optional: batasi ukuran per file (5 MB) dan total foto
+        const MAX_SIZE = 5 * 1024 * 1024; // 5MB
+        const MAX_FILES = 24;
+
+        // hindari duplikat (name+size)
+        const chosenKeys = new Set();
+
+        addTile.addEventListener('click', () => picker.click());
+
+        picker.addEventListener('change', function() {
+            const files = Array.from(this.files || []);
+            files.forEach(file => tryAddFile(file));
+            // reset picker agar bisa pilih file yang sama lagi nanti
+            this.value = '';
+        });
+
+        function tryAddFile(file) {
+            if (!file || !file.type.startsWith('image/')) {
+                toastr?.error?.('File bukan gambar.');
+                return;
+            }
+            if (file.size > MAX_SIZE) {
+                toastr?.error?.(`Ukuran melebihi 5MB: ${file.name}`);
+                return;
+            }
+            if (hiddenInputs.querySelectorAll('input[type="file"][name="attachments[]"]').length >= MAX_FILES) {
+                toastr?.error?.(`Maksimal ${MAX_FILES} foto.`);
+                return;
+            }
+            const key = `${file.name}::${file.size}`;
+            if (chosenKeys.has(key)) {
+                toastr?.warning?.(`Lewati duplikat: ${file.name}`);
+                return;
+            }
+            chosenKeys.add(key);
+            addPhotoCard(file, key);
+        }
+
+        function addPhotoCard(file, key) {
+            // buat input file tersembunyi dengan file tunggal
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.name = 'attachments[]';
+            input.accept = 'image/*';
+            input.className = 'hidden';
+
+            const dt = new DataTransfer();
+            dt.items.add(file);
+            input.files = dt.files;
+
+            const id = 'att_' + Math.random().toString(36).slice(2);
+            input.dataset.ref = id;
+            hiddenInputs.appendChild(input);
+
+            // buat kartu preview
+            const url = URL.createObjectURL(file);
+            const card = document.createElement('div');
+            card.className = 'relative group rounded-xl border overflow-hidden';
+            card.dataset.ref = id;
+            card.innerHTML = `
+                <img src="${url}" alt="attachment" class="w-full h-40 object-cover" />
+                <div class="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition"></div>
+                <button type="button" title="Remove"
+                    class="absolute top-2 right-2 bg-white/90 rounded-full p-1 shadow hover:bg-white">
+                    ✕
+                </button>
+            `;
+
+            // handler remove
+            card.querySelector('button').addEventListener('click', () => {
+                const ref = card.dataset.ref;
+                const hidden = hiddenInputs.querySelector(`input[data-ref="${ref}"]`);
+                hidden && hidden.remove();
+                chosenKeys.delete(key);
+                URL.revokeObjectURL(url);
+                card.remove();
+            });
+
+            // masukkan kartu sebelum tile "Add Photo"
+            grid.insertBefore(card, addTile);
+        }
+    })();
+</script>
+
+    {{-- <script>
         (function() {
             const grid = document.getElementById('attachmentsGrid');
             const addTile = document.getElementById('addAttachmentTile');
@@ -520,6 +617,6 @@
                 grid.insertBefore(card, addTile);
             }
         })();
-    </script>
+    </script> --}}
 
 </x-app-layout>

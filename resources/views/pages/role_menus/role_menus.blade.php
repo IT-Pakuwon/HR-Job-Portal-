@@ -81,7 +81,7 @@
 
             {{-- Modal --}}
             <div id="roleMenuModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50">
-                <div class="relative w-full max-w-md rounded-lg bg-white p-6 dark:bg-gray-700">
+                <div class="relative w-full max-w-3xl rounded-lg bg-white p-6 dark:bg-gray-700">
                     <h2 id="roleMenuModalTitle" class="mb-4 text-xl font-bold text-gray-800 dark:text-white">
                         Add Role Menu
                     </h2>
@@ -102,21 +102,30 @@
 
                         <div class="mb-3">
                             <label class="block text-gray-700 dark:text-white">Menu</label>
-                            <select id="menu_id" name="menu_id"
-                                    class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700" required>
-                                <option value="">-- Select Menu --</option>
+                            <select id="menu_id" name="menu_id[]" 
+                                multiple
+                                class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700" required>
                                 @foreach($menus as $m)
                                     <option value="{{ $m->menu_id }}">
                                         {{ $m->menu_name }}
                                     </option>
                                 @endforeach
                             </select>
+                            <small class="text-gray-500">* Hold CTRL untuk memilih banyak menu</small>
                         </div>
 
                         <div class="mb-3">
                             <label class="block text-gray-700 dark:text-white">Parent Menu ID (optional)</label>
-                            <input type="text" id="parent_menu_id" name="parent_menu_id"
-                                   class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700">
+                            {{-- <input type="text" id="parent_menu_id" name="parent_menu_id"
+                                   class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700"> --}}
+                            <select id="parent_menu_id" name="parent_menu_id"
+                                class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700">
+                                <option value="">-- None --</option>
+                                @foreach($parentMenus as $pm)
+                                    <option value="{{ $pm }}">{{ $pm }}</option>
+                                @endforeach
+                            </select>
+
                         </div>
 
                         <div class="mt-4 flex justify-end space-x-2">
@@ -178,24 +187,30 @@
                         $('#roleMenuModalTitle').text("Add Role Menu");
                         $('#roleMenuForm')[0].reset();
                         $('#id').val('');
+                        $('#menu_id').val([]).change(); // clear multiselect
                         $('#roleMenuModal').removeClass('hidden');
                     });
 
+
+                    // Edit
                     // Edit
                     $(document).on('click', '.editRoleMenuBtn', function () {
-                        let id = $(this).data('id');
+                        let id = $(this).data('id'); // ← ini id row, bukan role_id
 
                         $('#roleMenuModalTitle').text("Loading...");
                         $('#roleMenuModal').removeClass('hidden');
 
                         $.get(`/role-menus/${id}/edit`, function (data) {
                             $('#roleMenuModalTitle').text("Edit Role Menu");
-                            $('#id').val(data.id);
-                            $('#role_id').val(data.role_id);
-                            $('#menu_id').val(data.menu_id);
+                            $('#id').val(data.id);                // id row utk URL PUT
+                            $('#role_id').val(data.role_id);      // set role
                             $('#parent_menu_id').val(data.parent_menu_id);
+
+                            // Set multiple menu selection
+                            $('#menu_id').val(data.menu_ids).change();
                         });
                     });
+
 
                     // Toggle status
                     $(document).on('change', '.toggleStatus', function () {

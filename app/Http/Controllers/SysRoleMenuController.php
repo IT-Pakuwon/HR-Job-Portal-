@@ -8,18 +8,10 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
-// kalau kamu punya model SysRole, pakai ini:
-// use App\Models\SysRole;
-
 class SysRoleMenuController extends Controller
 {
     public function index()
     {
-        // Ambil data role & menu untuk dropdown
-        // Kalau sudah punya tabel sys_role dengan model SysRole, bisa pakai:
-        // $roles = SysRole::where('status', 'A')->orderBy('role_id')->get(['role_id', 'role_name']);
-
-        // sementara asumsikan role list kamu fix / atau ambil manual
         $roles = DB::connection('pgsql2')
             ->table('sys_role')
             ->where('status', 'A')
@@ -31,7 +23,13 @@ class SysRoleMenuController extends Controller
             ->orderBy('menu_id')
             ->get(['menu_id', 'menu_name', 'parent_menu_id']);
 
-        return view('pages.role_menus.role_menus', compact('roles', 'menus'));
+        $parentMenus = SysMenu::on('pgsql2')
+            ->whereNotNull('parent_menu_id')
+            ->distinct()
+            ->orderBy('parent_menu_id')
+            ->pluck('parent_menu_id');
+
+        return view('pages.role_menus.role_menus', compact('roles', 'menus', 'parentMenus'));
     }
 
     public function json()
@@ -53,7 +51,7 @@ class SysRoleMenuController extends Controller
     {
         $request->validate([
             'role_id'        => 'required|string|max:50',
-            'menu_id'        => 'required|string|max:50',
+            'menu_id'        => 'required|array',
             'parent_menu_id' => 'nullable|string|max:50',
         ]);
 
@@ -61,20 +59,23 @@ class SysRoleMenuController extends Controller
 
         try {
             $user = Auth::user();
+            $createdRows = [];
 
-            $row = SysRoleMenu::create([
-                'role_id'        => $request->role_id,
-                'menu_id'        => $request->menu_id,
-                'parent_menu_id' => $request->parent_menu_id ?: null,
-                'status'         => 'A',
-                'created_by'     => $user->username ?? 'system',
-            ]);
+            foreach ($request->menu_id as $menuId) {
+                $createdRows[] = SysRoleMenu::create([
+                    'role_id'        => $request->role_id,
+                    'menu_id'        => $menuId,
+                    'parent_menu_id' => $request->parent_menu_id ?: null,
+                    'status'         => 'A',
+                    'created_by'     => $user->username ?? 'system',
+                ]);
+            }
 
             DB::commit();
 
             return response()->json([
                 'success' => true,
-                'data'    => $row,
+                'data'    => $createdRows,
             ]);
         } catch (\Exception $e) {
             DB::rollBack();
@@ -88,14 +89,18 @@ class SysRoleMenuController extends Controller
 
     public function edit($id)
     {
-        $row = SysRoleMenu::findOrFail($id);
+        // $id di sini = id row (primary key)
+        $firstRow = SysRoleMenu::findOrFail($id);
+
+        // Ambil semua menu untuk role yang sama
+        $rows = SysRoleMenu::where('role_id', $firstRow->role_id)->get();
 
         return response()->json([
-            'id'             => $row->id,
-            'role_id'        => $row->role_id,
-            'menu_id'        => $row->menu_id,
-            'parent_menu_id' => $row->parent_menu_id,
-            'status'         => $row->status,
+            'id'             => $firstRow->id,                 // id baris pertama (untuk URL PUT)
+            'role_id'        => $firstRow->role_id,            // role
+            'menu_ids'       => $rows->pluck('menu_id'),       // semua menu untuk role ini
+            'parent_menu_id' => $firstRow->parent_menu_id,
+            'status'         => $firstRow->status,
         ]);
     }
 
@@ -103,22 +108,28 @@ class SysRoleMenuController extends Controller
     {
         $request->validate([
             'role_id'        => 'required|string|max:50',
-            'menu_id'        => 'required|string|max:50',
+            'menu_id'        => 'required|array',
             'parent_menu_id' => 'nullable|string|max:50',
         ]);
 
         DB::beginTransaction();
 
         try {
-            $row  = SysRoleMenu::findOrFail($id);
             $user = Auth::user();
 
-            $row->update([
-                'role_id'        => $request->role_id,
-                'menu_id'        => $request->menu_id,
-                'parent_menu_id' => $request->parent_menu_id ?: null,
-                'updated_by'     => $user->username ?? 'system',
-            ]);
+            // Hapus semua mapping lama untuk role ini
+            SysRoleMenu::where('role_id', $request->role_id)->delete();
+
+            // Insert ulang semua menu baru
+            foreach ($request->menu_id as $menuId) {
+                SysRoleMenu::create([
+                    'role_id'        => $request->role_id,
+                    'menu_id'        => $menuId,
+                    'parent_menu_id' => $request->parent_menu_id ?: null,
+                    'status'         => 'A',
+                    'updated_by'     => $user->username ?? 'system',
+                ]);
+            }
 
             DB::commit();
 
