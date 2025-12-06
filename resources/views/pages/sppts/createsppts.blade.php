@@ -282,10 +282,11 @@
                                 <label
                                     class="req block text-sm font-medium text-gray-700 dark:text-gray-300">PIC</label>
                                 <input type="hidden" name="pic_pengawas" id="pic_pengawas">
-                                <select id="pic_select" name="pic_select"
+                                {{-- <select id="pic_select" name="pic_select"
                                     class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300" required
                                     data-placeholder="Search">
-                                </select>
+                                </select> --}}
+                                <input type="text" id="pic_select" name="pic_select" class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300" placeholder="PIC" required />
                             </div>
 
                             <!-- Status Unit -->
@@ -1051,6 +1052,7 @@
 
                     const subId = ($row.find('.subLocationIdField').val() || '').trim();
                     const $subN = $row.find('.subLocationNameField');
+                    const $locDisplay = $row.find('.locationDisplayField');
 
                     const coaId = ($row.find('.coaIdField').val() || '').trim();
                     const $coaN = $row.find('.coaNameField');
@@ -1080,6 +1082,10 @@
                     }
                     if (!subId) {
                         addError($subN, 'Pilih Sub Location.');
+                        rowErr = true;
+                    }
+                    if (!locId || !subId) {
+                        addError($locDisplay, 'Pilih Location & Sub Location.');
                         rowErr = true;
                     }
                     if (!coaId) {

@@ -330,7 +330,7 @@
                             {{-- @endif --}}
 
                             {{-- LABEL GROUP SETTINGS --}}                         
-
+                        @if (auth()->user()->user_role === 'admin')
                             <li class="py-2 pl-4 pr-3 text-xs font-semibold uppercase tracking-wider text-gray-500 last:mb-0"
                                 :class="{ 'lg:block': sidebarExpanded, 'lg:hidden': !sidebarExpanded }">
                                 Settings
@@ -421,6 +421,23 @@
                                 </a>
                             </li>
                             <li
+                                class="bg-linear-to-r @if (in_array(Request::segment(1), ['role_menus'])) {{ 'from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]' }} @endif mb-0.5 rounded-lg py-2 pl-4 pr-3 last:mb-0">
+                                <a class="@if (!in_array(Request::segment(1), ['role_menus'])) {{ 'hover:text-gray-900 dark:hover:text-white' }} @endif block truncate text-gray-800 transition dark:text-gray-100"
+                                    href="{{ route('role_menus') }}">
+                                    <div class="flex items-center">
+                                        <svg class="@if (in_array(Request::segment(1), ['role_menus'])) text-violet-500 @else text-gray-400 dark:text-gray-500 @endif shrink-0"
+                                            xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                            stroke-width="1.5" stroke="currentColor" width="16" height="16">
+                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                d="M2.25 12.75v-.75a2.25 2.25 0 012.25-2.25h15a2.25 2.25 0 012.25 2.25v.75m-19.5 0v3a2.25 2.25 0 002.25 2.25h15a2.25 2.25 0 002.25-2.25v-3m-19.5 0h19.5M6 9.75v-.75a3 3 0 013-3h6a3 3 0 013 3v.75" />
+                                        </svg>
+
+                                        <span
+                                            class="lg:sidebar-expanded:opacity-100 text-m ml-4 font-medium duration-200 lg:opacity-0 2xl:opacity-100">Role Menu</span>
+                                    </div>
+                                </a>
+                            </li>
+                            <li
                                 class="bg-linear-to-r @if (in_array(Request::segment(1), ['access_rights'])) {{ 'from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]' }} @endif mb-0.5 rounded-lg py-2 pl-4 pr-3 last:mb-0">
                                 <a class="@if (!in_array(Request::segment(1), ['access_rights'])) {{ 'hover:text-gray-900 dark:hover:text-white' }} @endif block truncate text-gray-800 transition dark:text-gray-100"
                                     href="{{ route('access_rights') }}">
@@ -471,7 +488,7 @@
                                     </div>
                                 </a>
                             </li>
-
+                        @endif
                         @endif
                     @endauth
                 </ul>

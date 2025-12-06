@@ -923,6 +923,7 @@
 
                     const subId = ($row.find('.subLocationIdField').val() || '').trim();
                     const $subN = $row.find('.subLocationNameField');
+                    const $locDisplay = $row.find('.locationDisplayField');
 
                     const coaId = ($row.find('.coaIdField').val() || '').trim();
                     const $coaN = $row.find('.coaNameField');
@@ -952,6 +953,10 @@
                     }
                     if (!subId) {
                         addError($subN, 'Pilih Sub Location.');
+                        rowErr = true;
+                    }
+                    if (!locId || !subId) {
+                        addError($locDisplay, 'Pilih Location & Sub Location.');
                         rowErr = true;
                     }
                     if (!coaId) {
