@@ -637,15 +637,16 @@ Route::post('/logout', function () {
         Route::post('/csstore', [CanvassController::class, 'storeCS'])->name('cs.store');
         Route::post('/cssave',  [CanvassController::class, 'saveCS'])->name('cs.save');
         Route::get('/editcs/{eid}', [CanvassController::class, 'editCS'])->name('csjobs.edit');      
-        Route::put('/csjobs/{csid}', [CanvassController::class, 'updateCS'])->name('csjobs.update');
-        Route::get('/bqcs/create-from-cs/{hash}', [BQCSController::class, 'createFromCS'])->name('bqcs.createFromCS');
-        Route::post('/bqcs', [BQCSController::class, 'storeBQCS'])->name('bqcs.store');
-        Route::get('/bqcs/edit/{hash}', [BQCSController::class, 'EditBQCS'])->name('bqcs.edit');    
-        Route::put('bqcs/update/{hash}', [BQCSController::class, 'updateBQCS'])->name('bqcs.update');
+        Route::put('/csjobs/{csid}', [CanvassController::class, 'updateCS'])->name('csjobs.update');        
         Route::post('/cs/{id}/approve', [CanvassController::class, 'approveCS']);
         Route::post('/cs/{id}/reject', [CanvassController::class, 'rejectCS']);
         Route::post('/cs/{id}/revise', [CanvassController::class, 'reviseCS']);
     });
+
+    Route::get('/bqcs/create-from-cs/{hash}', [BQCSController::class, 'createFromCS'])->name('bqcs.createFromCS');
+    Route::post('/bqcs', [BQCSController::class, 'storeBQCS'])->name('bqcs.store');
+    Route::get('/bqcs/edit/{hash}', [BQCSController::class, 'EditBQCS'])->name('bqcs.edit');    
+    Route::put('bqcs/update/{hash}', [BQCSController::class, 'updateBQCS'])->name('bqcs.update');
 
     Route::middleware('access:CSLIST,VIEW')->group(function () {
         Route::get('/cslist', [CsListController::class, 'index'])->name('cslist');

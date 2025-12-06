@@ -36,6 +36,7 @@ use App\Imports\BqDetailTempImport;
 use App\Models\TrWO;
 use App\Models\MsWorktypeItem;
 use App\Models\MsWorktypeDept;
+use App\Models\MsWorktypeWhs;
 use App\Models\ViewInventoryAW;
 use App\Models\ViewInventoryEPH;
 use App\Models\ViewInventoryO8;
@@ -49,7 +50,7 @@ use Illuminate\Support\Arr;
 class MasterController extends Controller
 {
 
-    public function InventoryList(Request $request)
+    public function InventoryList_xxx(Request $request)
     {
         $type    = strtoupper($request->get('type', 'GI')); // STOCK | NONSTOCK | JASA | ALL
         $search  = trim($request->get('search', ''));
@@ -107,111 +108,220 @@ class MasterController extends Controller
         ]);
     }
 
+    public function InventoryList(Request $request)
+    {
+        $type    = strtoupper($request->get('type', 'GI')); // GI | SE | NS | dll
+        $search  = trim($request->get('search', ''));
+        $page    = max((int) $request->get('page', 1), 1);
+        $perPage = max((int) $request->get('per_page', 10), 1);
+
+        // departementid dari form header
+        $deptId = $request->get('departementid'); // boleh null
+
+        // Base query MsInventoryPG
+        $query = MsInventoryPG::query()
+            ->select(
+                'inventoryid',
+                'inventory_descr',
+                'stock_unit',
+                'item_type',
+                'item_category',
+                'purchase_unit',
+                'item_sub_type',
+                'item_class'      // ← penting untuk filter & debugging
+            );
+
+        /**
+         * Filter item_type
+         */
+        if ($type === 'GI') {
+            $query->where('item_type', 'GI');
+        } elseif ($type === 'SE') {
+            $query->where('item_type', 'SE');
+        } elseif ($type === 'NS') {
+            $query->where('item_type', 'NS');
+        } else {
+            $query->whereNotIn('item_type', ['GI', 'SE']);
+        }
+
+        /**
+         * Tambahkan FILTER item_class berdasarkan MsWorktypeWhs
+         * hanya kalau:
+         * - type = GI
+         * - departementid diisi
+         */
+        if ($type === 'GI' && !empty($deptId)) {
+
+            // Ambil daftar item_class yang diizinkan untuk dept ini
+            $allowedItemClasses = MsWorktypeWhs::where('department_id', $deptId)
+                ->where('status', 'A')                 // kalau mau filter status aktif
+                ->pluck('item_class')
+                ->filter()                             // buang null/empty
+                ->unique()
+                ->values()
+                ->all();
+
+            // Kalau ada mapping, apply whereIn
+            if (!empty($allowedItemClasses)) {
+                $query->whereIn('item_class', $allowedItemClasses);
+            } else {
+                // Opsional:
+                // Kalau tidak ada mapping untuk dept tsb, GA USah filter
+                // atau kalau mau: paksa hasil kosong:
+                // $query->whereRaw('1 = 0');
+            }
+        }
+
+        /**
+         * Search
+         */
+        if ($search !== '') {
+            $query->where(function ($q) use ($search) {
+                $q->where('inventoryid',       'ilike', "%{$search}%")
+                ->orWhere('inventory_descr', 'ilike', "%{$search}%")
+                ->orWhere('stock_unit',      'ilike', "%{$search}%")
+                ->orWhere('purchase_unit',   'ilike', "%{$search}%");
+            });
+        }
+
+        $total = (clone $query)->count();
+
+        $rows = $query->orderBy('inventory_descr')
+            ->offset(($page - 1) * $perPage)
+            ->limit($perPage)
+            ->get();
+
+        return response()->json([
+            'data'     => $rows,
+            'total'    => $total,
+            'page'     => $page,
+            'per_page' => $perPage,
+        ]);
+    }
+
+
     public function InventoryByWorktype_zzz(Request $request)
-{
-    $worktypeid = trim($request->get('worktypeid', ''));
-    $cpnyid     = strtoupper(trim($request->get('cpnyid', '')));
-    $search     = trim($request->get('search', ''));
-    $page       = max((int) $request->get('page', 1), 1);
-    $perPage    = min(max((int) $request->get('per_page', 10), 1), 100);
+    {
+        $worktypeid = trim($request->get('worktypeid', ''));
+        $cpnyid     = strtoupper(trim($request->get('cpnyid', '')));
+        $search     = trim($request->get('search', ''));
+        $page       = max((int) $request->get('page', 1), 1);
+        $perPage    = min(max((int) $request->get('per_page', 10), 1), 100);
 
-    // 1) Ambil item_class utk worktype + ATK
-    $classesQ = \App\Models\MsWorktypeItem::query();
-    if ($worktypeid !== '') {
-        $classesQ->where(function($q) use ($worktypeid){
-            $q->where('worktypeid', $worktypeid)
-              ->orWhere('worktypeid', 'ATK');
-        });
-    } else {
-        $classesQ->where('worktypeid', 'ATK');
-    }
-    $classes = $classesQ->pluck('item_class')
-        ->filter(fn($v) => $v !== null && $v !== '')
-        ->values();
+        // 1) Ambil item_class utk worktype + ATK
+        $classesQ = \App\Models\MsWorktypeItem::query();
+        if ($worktypeid !== '') {
+            $classesQ->where(function($q) use ($worktypeid){
+                $q->where('worktypeid', $worktypeid)
+                ->orWhere('worktypeid', 'ATK');
+            });
+        } else {
+            $classesQ->where('worktypeid', 'ATK');
+        }
+        $classes = $classesQ->pluck('item_class')
+            ->filter(fn($v) => $v !== null && $v !== '')
+            ->values();
 
-    if ($classes->isEmpty()) {
-        return response()->json([
-            'data' => [], 'total' => 0,
-            'page' => $page, 'per_page' => $perPage,
-            'meta' => ['worktypeid' => $worktypeid, 'cpnyid' => $cpnyid],
-        ]);
-    }
-
-    // 2) Query PG (tanpa distinct) + filter + paging
-    $pg = \App\Models\MsInventoryPG::query()
-        ->select([
-            'inventoryid','inventory_descr','stock_unit',
-            'item_type','item_category','purchase_unit',
-            'item_sub_type','item_class'
-        ])
-        ->whereIn('item_class', $classes);
-
-    if ($search !== '') {
-        $pg->where(function ($q) use ($search) {
-            $q->where('inventoryid', 'ilike', "%{$search}%")
-              ->orWhere('inventory_descr', 'ilike', "%{$search}%")
-              ->orWhere('stock_unit', 'ilike', "%{$search}%")
-              ->orWhere('purchase_unit', 'ilike', "%{$search}%")
-              ->orWhere('item_class', 'ilike', "%{$search}%");
-        });
-    }
-
-    $totalBase = (clone $pg)->count();
-
-    $pgRows = $pg
-        ->orderBy('inventoryid', 'asc')
-        ->offset(($page - 1) * $perPage)
-        ->limit($perPage)
-        ->get();
-
-    if ($pgRows->isEmpty()) {
-        return response()->json([
-            'data' => [], 'total' => 0,
-            'page' => $page, 'per_page' => $perPage,
-            'meta' => ['worktypeid' => $worktypeid, 'cpnyid' => $cpnyid],
-        ]);
-    }
-
-    // 3) Tentukan model View berdasarkan cpnyid
-    switch ($cpnyid) {
-        case 'AW':  $model = \App\Models\ViewInventoryAW::class;  break;
-        case 'EP':  $model = \App\Models\ViewInventoryEPH::class; break;
-        case 'O8':  $model = \App\Models\ViewInventoryO8::class;  break;
-        case 'PSA': $model = \App\Models\ViewInventoryPSA::class; break;
-        case 'GPS': $model = \App\Models\ViewInventoryGPS::class; break;
-        default:
+        if ($classes->isEmpty()) {
             return response()->json([
-                'message' => "Unknown cpnyid: {$cpnyid}",
-                'data' => [], 'total' => 0
-            ], 422);
-    }
+                'data' => [], 'total' => 0,
+                'page' => $page, 'per_page' => $perPage,
+                'meta' => ['worktypeid' => $worktypeid, 'cpnyid' => $cpnyid],
+            ]);
+        }
 
-    // 4) Ambil stok/cost PER SITE dari SQL Server (per invtid)
-    $invIds = $pgRows->pluck('inventoryid')->map(fn($v)=>(string)$v)->unique()->values();
+        // 2) Query PG (tanpa distinct) + filter + paging
+        $pg = \App\Models\MsInventoryPG::query()
+            ->select([
+                'inventoryid','inventory_descr','stock_unit',
+                'item_type','item_category','purchase_unit',
+                'item_sub_type','item_class'
+            ])
+            ->whereIn('item_class', $classes);
 
-    $awRows = $model::query()
-        ->selectRaw("
-            invtid,
-            cpnyid,
-            siteid,
-            CAST(stock AS float) AS stock,
-            CAST(cost  AS float) AS cost
-        ")
-        ->whereIn('invtid', $invIds)
-        ->when($cpnyid !== '', fn($q) => $q->where('cpnyid', $cpnyid))
-        ->get();
+        if ($search !== '') {
+            $pg->where(function ($q) use ($search) {
+                $q->where('inventoryid', 'ilike', "%{$search}%")
+                ->orWhere('inventory_descr', 'ilike', "%{$search}%")
+                ->orWhere('stock_unit', 'ilike', "%{$search}%")
+                ->orWhere('purchase_unit', 'ilike', "%{$search}%")
+                ->orWhere('item_class', 'ilike', "%{$search}%");
+            });
+        }
 
-    // Group: invtid => [baris per site]
-    $awGroup = $awRows->groupBy(fn($r) => strtoupper(trim((string)$r->invtid)));
+        $totalBase = (clone $pg)->count();
 
-    // 5) Merge: hasil akhir 1 baris per (inventoryid, siteid)
-    $final = collect();
-    foreach ($pgRows as $r) {
-        $key = strtoupper(trim((string)$r->inventoryid));
-        $sites = $awGroup->get($key);
+        $pgRows = $pg
+            ->orderBy('inventoryid', 'asc')
+            ->offset(($page - 1) * $perPage)
+            ->limit($perPage)
+            ->get();
 
-        if ($sites && $sites->count()) {
-            foreach ($sites as $aw) {
+        if ($pgRows->isEmpty()) {
+            return response()->json([
+                'data' => [], 'total' => 0,
+                'page' => $page, 'per_page' => $perPage,
+                'meta' => ['worktypeid' => $worktypeid, 'cpnyid' => $cpnyid],
+            ]);
+        }
+
+        // 3) Tentukan model View berdasarkan cpnyid
+        switch ($cpnyid) {
+            case 'AW':  $model = \App\Models\ViewInventoryAW::class;  break;
+            case 'EP':  $model = \App\Models\ViewInventoryEPH::class; break;
+            case 'O8':  $model = \App\Models\ViewInventoryO8::class;  break;
+            case 'PSA': $model = \App\Models\ViewInventoryPSA::class; break;
+            case 'GPS': $model = \App\Models\ViewInventoryGPS::class; break;
+            default:
+                return response()->json([
+                    'message' => "Unknown cpnyid: {$cpnyid}",
+                    'data' => [], 'total' => 0
+                ], 422);
+        }
+
+        // 4) Ambil stok/cost PER SITE dari SQL Server (per invtid)
+        $invIds = $pgRows->pluck('inventoryid')->map(fn($v)=>(string)$v)->unique()->values();
+
+        $awRows = $model::query()
+            ->selectRaw("
+                invtid,
+                cpnyid,
+                siteid,
+                CAST(stock AS float) AS stock,
+                CAST(cost  AS float) AS cost
+            ")
+            ->whereIn('invtid', $invIds)
+            ->when($cpnyid !== '', fn($q) => $q->where('cpnyid', $cpnyid))
+            ->get();
+
+        // Group: invtid => [baris per site]
+        $awGroup = $awRows->groupBy(fn($r) => strtoupper(trim((string)$r->invtid)));
+
+        // 5) Merge: hasil akhir 1 baris per (inventoryid, siteid)
+        $final = collect();
+        foreach ($pgRows as $r) {
+            $key = strtoupper(trim((string)$r->inventoryid));
+            $sites = $awGroup->get($key);
+
+            if ($sites && $sites->count()) {
+                foreach ($sites as $aw) {
+                    $final->push((object)[
+                        'inventoryid'      => $r->inventoryid,
+                        'inventory_descr'  => $r->inventory_descr,
+                        'stock_unit'       => $r->stock_unit,
+                        'item_type'        => $r->item_type,
+                        'item_category'    => $r->item_category,
+                        'purchase_unit'    => $r->purchase_unit,
+                        'item_sub_type'    => $r->item_sub_type,
+                        'item_class'       => $r->item_class,
+                        // dari view:
+                        'siteid'           => $aw->siteid,
+                        'stock'            => $aw->stock,
+                        'cost'             => $aw->cost,
+                    ]);
+                }
+            } else {
+                // tidak ada baris site → tetap kirim 1 baris dengan site null
                 $final->push((object)[
                     'inventoryid'      => $r->inventoryid,
                     'inventory_descr'  => $r->inventory_descr,
@@ -221,42 +331,25 @@ class MasterController extends Controller
                     'purchase_unit'    => $r->purchase_unit,
                     'item_sub_type'    => $r->item_sub_type,
                     'item_class'       => $r->item_class,
-                    // dari view:
-                    'siteid'           => $aw->siteid,
-                    'stock'            => $aw->stock,
-                    'cost'             => $aw->cost,
+                    'siteid'           => null,
+                    'stock'            => null,
+                    'cost'             => null,
                 ]);
             }
-        } else {
-            // tidak ada baris site → tetap kirim 1 baris dengan site null
-            $final->push((object)[
-                'inventoryid'      => $r->inventoryid,
-                'inventory_descr'  => $r->inventory_descr,
-                'stock_unit'       => $r->stock_unit,
-                'item_type'        => $r->item_type,
-                'item_category'    => $r->item_category,
-                'purchase_unit'    => $r->purchase_unit,
-                'item_sub_type'    => $r->item_sub_type,
-                'item_class'       => $r->item_class,
-                'siteid'           => null,
-                'stock'            => null,
-                'cost'             => null,
-            ]);
         }
+
+        // Catatan: total sekarang = baris merged (per site) di halaman ini
+        // Jika ingin total global akurat per site, perlu hitung di level totalBase dengan query terpisah ke view (lebih mahal).
+        $totalMerged = $final->count();
+
+        return response()->json([
+            'data'     => $final->values(),
+            'total'    => $totalMerged,
+            'page'     => $page,
+            'per_page' => $perPage,
+            'meta'     => ['worktypeid' => $worktypeid, 'cpnyid' => $cpnyid],
+        ]);
     }
-
-    // Catatan: total sekarang = baris merged (per site) di halaman ini
-    // Jika ingin total global akurat per site, perlu hitung di level totalBase dengan query terpisah ke view (lebih mahal).
-    $totalMerged = $final->count();
-
-    return response()->json([
-        'data'     => $final->values(),
-        'total'    => $totalMerged,
-        'page'     => $page,
-        'per_page' => $perPage,
-        'meta'     => ['worktypeid' => $worktypeid, 'cpnyid' => $cpnyid],
-    ]);
-}
 
 
     public function InventoryByWorktype(Request $request)

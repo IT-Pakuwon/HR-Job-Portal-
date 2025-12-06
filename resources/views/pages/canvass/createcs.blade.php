@@ -725,11 +725,11 @@
 
             <!-- INFO ICON -->
             <div class="relative group inline-block">
-                <button class="flex h-4 w-4 items-center justify-center 
-                               rounded-full bg-gray-200 text-gray-700 text-[10px]
-                               dark:bg-gray-700 dark:text-gray-200 cursor-default">
-                    i
-                </button>
+                        <div class="flex h-4 w-4 items-center justify-center 
+                                    rounded-full bg-gray-200 text-gray-700 text-[10px]
+                                    dark:bg-gray-700 dark:text-gray-200 cursor-default">
+                            i
+                        </div>
 
                 <!-- TOOLTIP -->
                 <div class="pointer-events-none absolute left-1/2 top-full z-50 mt-2 
