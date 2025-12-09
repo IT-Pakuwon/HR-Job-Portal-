@@ -1059,8 +1059,11 @@ class SpbController extends Controller
             ];
         });
 
+        $loginUsername = $user->username ?? $user->name ?? null;
+        $canUpload     = $spb->created_by === $loginUsername;
+
         // untuk konsistensi link detail, kirim balik hash apa adanya
-        return view('pages.spbs.showspbs', compact('spb', 'approval', 'attachments', 'spbdetail', 'hash'));
+        return view('pages.spbs.showspbs', compact('spb', 'approval', 'attachments', 'spbdetail', 'hash','canUpload'));
     }
 
 

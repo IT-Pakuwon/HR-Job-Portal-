@@ -801,9 +801,12 @@ class BudgetController extends Controller
         
         $budgetdetail = BudgetDetail::where('budget_id', $budget->budget_id)           
             ->get();      
+
+        $loginUsername = $user->username ?? $user->name ?? null;
+        $canUpload     = $budget->created_by === $loginUsername;
             
-       
-        return view('pages.budgets.showbudgets', compact('budget','budgetdetail','hash'));
+            
+        return view('pages.budgets.showbudgets', compact('budget','budgetdetail','hash','canUpload'));
     }
 
     

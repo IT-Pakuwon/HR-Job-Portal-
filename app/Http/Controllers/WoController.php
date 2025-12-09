@@ -869,9 +869,12 @@ class WoController extends Controller
         
         $cek_dept = MsWorktypeDept::where('worktypeid', $wo->worktypeid)           
             ->first();
+
+        $loginUsername = $user->username ?? $user->name ?? null;
+        $canUpload     = $wo->created_by === $loginUsername;
             
 
-        return view('pages.wos.showwos', compact('wo', 'approval', 'attachments', 'hash','cek_dept'));
+        return view('pages.wos.showwos', compact('wo', 'approval', 'attachments', 'hash','cek_dept','canUpload'));
     }
 
 
@@ -1672,56 +1675,91 @@ class WoController extends Controller
     {
         $user = Auth::user();
 
-        $deptIds = collect([optional($user)->departmentid])->filter();
-        if (method_exists($user, 'departments')) {
-            $deptIds = $deptIds->merge($user->departments()->pluck('department_id'))->filter();
+        if (!$user) {
+            return redirect()->route('login');
         }
-        $deptIds = $deptIds->unique()->values();
 
-        $companyIds = collect();
-        $singleCompany = $user->companyid ?? $user->cpny_id ?? null;
-        if (!empty($singleCompany)) $companyIds = collect([$singleCompany]);
+        // 📌 Company bisa multi (cpny1,cpny2,...)
+        if (is_string($user->cpny_id)) {
+            $cpnyIds = array_map('trim', explode(',', $user->cpny_id));
+        } else {
+            $cpnyIds = (array) $user->cpny_id;
+        }
 
-        // 🔎 DEBUG: lihat dulu apa yang difilter
-        // dd(['deptIds' => $deptIds, 'companyIds' => $companyIds]);
-
-        if ($deptIds->isEmpty()) {
+        // 📌 Department juga bisa multi (IT,HRD,...)
+        if (is_string($user->department_id)) {
+            $deptIds = array_map('trim', explode(',', $user->department_id));
+        } else {
+            $deptIds = (array) $user->department_id;
+        }
+        // dd($deptIds);
+        // Kalau salah satu kosong → tidak ada data
+        if (empty($cpnyIds) || empty($deptIds)) {
             $all = $onProgress = $reject = $completed = $wojobs = 0;
             return view('pages.wos.wojobs', compact('all', 'onProgress', 'reject', 'wojobs', 'completed'));
         }
 
         $base = TrWO::from('tr_wo as wo')
-            ->join('ms_worktype_dept as wtd', fn($j) => $j->on('wtd.worktypeid','=','wo.worktypeid'))
-            ->whereIn('wtd.department_id', $deptIds)
-            ->where('wo.status','C');
+            ->join('ms_worktype_dept as wtd', function ($j) {
+                $j->on('wtd.worktypeid', '=', 'wo.worktypeid');
+            })
+            ->whereIn('wo.cpny_id', $cpnyIds)          // 🔥 filter company
+            ->whereIn('wtd.department_id', $deptIds)   // 🔥 filter department
+            ->where('wo.status', 'C');                 // dokumen closed saja
 
-        if ($companyIds->isNotEmpty()) {
-            $base->whereIn('wo.cpny_id', $companyIds);
-        }
-
-        // 🔎 DEBUG: lihat SQL dan binding
-        //  $sql = (clone $base)->toSql();
-        //  $bindings = (clone $base)->getBindings();
-        // dd(['sql' => $sql, 'bindings' => $bindings, 'quickCount' => (clone $base)->count()]);
-
-        // Hitung pakai DISTINCT yg eksplisit (aman untuk Postgres)
+        // Hitung pakai DISTINCT woid
         $all        = (clone $base)->selectRaw('COUNT(DISTINCT wo.woid) AS c')->value('c');
-        $onProgress = (clone $base)->where('wo.status_pekerjaan','P')->selectRaw('COUNT(DISTINCT wo.woid) AS c')->value('c');
-        $reject     = (clone $base)->where('wo.status_pekerjaan','R')->selectRaw('COUNT(DISTINCT wo.woid) AS c')->value('c');
-        $completed  = (clone $base)->where('wo.status_pekerjaan','C')->selectRaw('COUNT(DISTINCT wo.woid) AS c')->value('c');
-        $wojobs     = (clone $base)->where('wo.status_pekerjaan','H')->selectRaw('COUNT(DISTINCT wo.woid) AS c')->value('c');
-       
+        $onProgress = (clone $base)->where('wo.status_pekerjaan', 'P')->selectRaw('COUNT(DISTINCT wo.woid) AS c')->value('c');
+        $reject     = (clone $base)->where('wo.status_pekerjaan', 'R')->selectRaw('COUNT(DISTINCT wo.woid) AS c')->value('c');
+        $completed  = (clone $base)->where('wo.status_pekerjaan', 'C')->selectRaw('COUNT(DISTINCT wo.woid) AS c')->value('c');
+        $wojobs     = (clone $base)->where('wo.status_pekerjaan', 'H')->selectRaw('COUNT(DISTINCT wo.woid) AS c')->value('c');
+
         return view('pages.wos.wojobs', compact('all', 'onProgress', 'reject', 'wojobs', 'completed'));
     }
+
 
     
     public function jsonJobs(Request $request)
     {
+        $user = Auth::user();
+
+        if (!$user) {
+            return response()->json([
+                'draw' => (int) $request->input('draw', 1),
+                'recordsTotal' => 0,
+                'recordsFiltered' => 0,
+                'data' => [],
+            ]);
+        }
+
+        // 📌 Company bisa multi
+        if (is_string($user->cpny_id)) {
+            $cpnyIds = array_map('trim', explode(',', $user->cpny_id));
+        } else {
+            $cpnyIds = (array) $user->cpny_id;
+        }
+
+        // 📌 Department bisa multi
+        if (is_string($user->department_id)) {
+            $deptIds = array_map('trim', explode(',', $user->department_id));
+        } else {
+            $deptIds = (array) $user->department_id;
+        }
+
+        if (empty($cpnyIds) || empty($deptIds)) {
+            return response()->json([
+                'draw' => (int) $request->input('draw', 1),
+                'recordsTotal' => 0,
+                'recordsFiltered' => 0,
+                'data' => [],
+            ]);
+        }
+
         $draw   = (int) $request->input('draw', 1);
         $start  = (int) $request->input('start', 0);
         $length = (int) $request->input('length', 25);
         $search = trim((string) $request->input('search.value', ''));
-        $jobStatus = (string) $request->query('job_status', ''); // 🔥 hanya ini yang dipakai
+        $jobStatus = (string) $request->query('job_status', ''); // H/P/R/C atau kosong
 
         $columns = [
             0 => 'wo.woid',
@@ -1731,43 +1769,24 @@ class WoController extends Controller
             4 => 'wt.worktype_name',
             5 => 'wo.worequest',
             6 => 'wo.keperluan',
-            7 => 'wo.status_pekerjaan', // kolom display saja (boleh dipertahankan)
+            7 => 'wo.status_pekerjaan',
         ];
 
         $orderIdx = (int) $request->input('order.0.column', 0);
         $orderDir = $request->input('order.0.dir', 'asc') === 'asc' ? 'asc' : 'desc';
         $orderCol = $columns[$orderIdx] ?? 'wo.woid';
 
-        $user = Auth::user();
-
-        // dept user (kamu pakai field 'departmentid' di user)
-        $deptIds = collect([optional($user)->departmentid])->filter();
-        if (method_exists($user, 'departments')) {
-            $deptIds = $deptIds->merge($user->departments()->pluck('department_id'))->filter();
-        }
-        $deptIds = $deptIds->unique()->values();
-
-        // company user -> array
-        $companyIds = collect();
-        $singleCompany = $user->companyid ?? $user->cpny_id ?? null;
-        if (!empty($singleCompany)) $companyIds = collect([$singleCompany]);
-
-        if ($deptIds->isEmpty()) {
-            return response()->json([
-                'draw' => $draw, 'recordsTotal' => 0, 'recordsFiltered' => 0, 'data' => [],
-            ]);
-        }
-
         $base = TrWO::from('tr_wo as wo')
-            ->leftJoin('ms_worktype as wt', fn($j) => $j->on('wt.worktypeid','=','wo.worktypeid'))
-            ->join('ms_worktype_dept as wtd', fn($j) => $j->on('wtd.worktypeid','=','wo.worktypeid'))
-            ->whereIn('wtd.department_id', $deptIds);
+            ->leftJoin('ms_worktype as wt', function ($j) {
+                $j->on('wt.worktypeid', '=', 'wo.worktypeid');
+            })
+            ->join('ms_worktype_dept as wtd', function ($j) {
+                $j->on('wtd.worktypeid', '=', 'wo.worktypeid');
+            })
+            ->whereIn('wo.cpny_id', $cpnyIds)          // 🔥 filter company
+            ->whereIn('wtd.department_id', $deptIds);  // 🔥 filter department
 
-        if ($companyIds->isNotEmpty()) {
-            $base->whereIn('wo.cpny_id', $companyIds);
-        }
-
-        // 🔥 filter berdasar status_pekerjaan (H/P/R/C). Kosong = semua
+        // filter berdasarkan status_pekerjaan (H / P / R / C), kalau kosong = semua
         if ($jobStatus !== '') {
             $base->where('wo.status_pekerjaan', $jobStatus);
         }
@@ -1776,30 +1795,38 @@ class WoController extends Controller
 
         if ($search !== '') {
             $base->where(function ($q) use ($search) {
-                $q->where('wo.woid','like',"%{$search}%")
-                ->orWhere('wo.cpny_id','like',"%{$search}%")
-                ->orWhere('wo.department_id','like',"%{$search}%")
-                ->orWhere('wt.worktype_name','like',"%{$search}%")
-                ->orWhere('wo.worequest','like',"%{$search}%")
-                ->orWhere('wo.keperluan','like',"%{$search}%")
-                ->orWhere('wo.status','like',"%{$search}%")                // optional, display
-                ->orWhere('wo.status_pekerjaan','like',"%{$search}%");     // 🔥 ikut searchable
+                $q->where('wo.woid',          'like', "%{$search}%")
+                ->orWhere('wo.cpny_id',     'like', "%{$search}%")
+                ->orWhere('wo.department_id','like', "%{$search}%")
+                ->orWhere('wt.worktype_name','like', "%{$search}%")
+                ->orWhere('wo.worequest',   'like', "%{$search}%")
+                ->orWhere('wo.keperluan',   'like', "%{$search}%")
+                ->orWhere('wo.status',      'like', "%{$search}%")
+                ->orWhere('wo.status_pekerjaan','like', "%{$search}%");
             });
         }
 
         $recordsFiltered = (clone $base)->distinct()->count('wo.woid');
 
         $data = $base->select(
-                    'wo.id','wo.woid','wo.wodate','wo.cpny_id','wo.department_id',
-                    'wt.worktype_name','wo.worequest','wo.keperluan',
-                    'wo.status',            // dok status (display, optional)
-                    'wo.status_pekerjaan',  // 🔥 kalau mau ditampilkan juga
+                    'wo.id',
+                    'wo.woid',
+                    'wo.wodate',
+                    'wo.cpny_id',
+                    'wo.department_id',
+                    'wt.worktype_name',
+                    'wo.worequest',
+                    'wo.keperluan',
+                    'wo.status',
+                    'wo.status_pekerjaan',
                     'wo.created_by'
                 )
                 ->orderBy($orderCol, $orderDir)
                 ->orderBy('wo.woid', 'desc')
                 ->distinct('wo.woid')
-                ->skip($start)->take($length)->get();
+                ->skip($start)
+                ->take($length)
+                ->get();
 
         $data->transform(function ($row) {
             $row->eid = \Vinkla\Hashids\Facades\Hashids::encode($row->id);
@@ -1808,10 +1835,13 @@ class WoController extends Controller
         });
 
         return response()->json([
-            'draw' => $draw, 'recordsTotal' => $recordsTotal,
-            'recordsFiltered' => $recordsFiltered, 'data' => $data,
+            'draw'            => $draw,
+            'recordsTotal'    => $recordsTotal,
+            'recordsFiltered' => $recordsFiltered,
+            'data'            => $data,
         ]);
     }
+
 
     // POST /wo/{woid}/process
     public function processWo($woid) {

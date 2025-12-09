@@ -65,13 +65,48 @@
                     </button>
                 </div>
 
+                <div class="mb-3 flex flex-wrap items-center gap-3">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-1">
+                            Filter Role
+                        </label>
+                        <select id="filterRole" class="rounded-lg border px-2 py-1 text-sm dark:bg-gray-700">
+                            <option value="">-- All --</option>
+                            @foreach($roles as $r)
+                                <option value="{{ $r->role_id }}">{{ $r->role_name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-1">
+                            Filter Menu
+                        </label>
+                        <select id="filterMenu" class="rounded-lg border px-2 py-1 text-sm dark:bg-gray-700">
+                            <option value="">-- All --</option>
+                            @foreach($menus as $m)
+                                <option value="{{ $m->menu_id }}">{{ $m->menu_name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div class="mt-5">
+                        <button id="clearFilters"
+                                type="button"
+                                class="rounded-lg border px-3 py-1 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:border-gray-500 dark:hover:bg-gray-600">
+                            Clear Filter
+                        </button>
+                    </div>
+                </div>
+
+
                 <table id="roleMenusTable" class="w-full border-collapse">
                     <thead class="bg-white dark:bg-gray-700">
                         <tr>
                             <th class="w-32 px-4 py-3 text-center">Actions</th>
                             <th class="px-4 py-3 text-left">Role ID</th>
                             <th class="px-4 py-3 text-left">Menu ID</th>
-                            <th class="px-4 py-3 text-left">Parent Menu</th>
+                            {{-- <th class="px-4 py-3 text-left">Parent Menu</th> --}}
                             <th class="w-32 px-4 py-3 text-center">Status</th>
                         </tr>
                     </thead>
@@ -104,7 +139,9 @@
                             <label class="block text-gray-700 dark:text-white">Menu</label>
                             <select id="menu_id" name="menu_id[]" 
                                 multiple
-                                class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700" required>
+                                size="12"
+                                class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700 h-64 overflow-y-auto"
+                                required>
                                 @foreach($menus as $m)
                                     <option value="{{ $m->menu_id }}">
                                         {{ $m->menu_name }}
@@ -114,10 +151,9 @@
                             <small class="text-gray-500">* Hold CTRL untuk memilih banyak menu</small>
                         </div>
 
-                        <div class="mb-3">
-                            <label class="block text-gray-700 dark:text-white">Parent Menu ID (optional)</label>
-                            {{-- <input type="text" id="parent_menu_id" name="parent_menu_id"
-                                   class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700"> --}}
+
+                        {{-- <div class="mb-3">
+                            <label class="block text-gray-700 dark:text-white">Parent Menu ID (optional)</label>                            
                             <select id="parent_menu_id" name="parent_menu_id"
                                 class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700">
                                 <option value="">-- None --</option>
@@ -125,8 +161,7 @@
                                     <option value="{{ $pm }}">{{ $pm }}</option>
                                 @endforeach
                             </select>
-
-                        </div>
+                        </div> --}}
 
                         <div class="mt-4 flex justify-end space-x-2">
                             <button type="button" id="closeRoleMenuModal"
@@ -169,7 +204,7 @@
                             },
                             { data: 'role_id' },
                             { data: 'menu_id' },
-                            { data: 'parent_menu_id' },
+                            // { data: 'parent_menu_id' },
                             {
                                 data: 'status',
                                 className: 'text-center',
@@ -181,6 +216,30 @@
                             }
                         ]
                     });
+
+                    // ===== Filter Role =====
+                    $('#filterRole').on('change', function () {
+                        const val = $(this).val();
+                        // Kolom role_id = index 1
+                        table.column(1).search(val ? '^' + $.fn.dataTable.util.escapeRegex(val) + '$' : '', true, false).draw();
+                    });
+
+                    // ===== Filter Menu =====
+                    $('#filterMenu').on('change', function () {
+                        const val = $(this).val();
+                        // Kolom menu_id = index 2
+                        table.column(2).search(val ? '^' + $.fn.dataTable.util.escapeRegex(val) + '$' : '', true, false).draw();
+                    });
+
+                    // ===== Clear Filter =====
+                    $('#clearFilters').on('click', function () {
+                        $('#filterRole').val('');
+                        $('#filterMenu').val('');
+                        table.column(1).search('');
+                        table.column(2).search('');
+                        table.draw();
+                    });
+
 
                     // Add
                     $('#addRoleMenuBtn').click(function () {

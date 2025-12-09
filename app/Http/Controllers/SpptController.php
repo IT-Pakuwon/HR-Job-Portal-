@@ -1266,8 +1266,11 @@ class SpptController extends Controller
         if ($bq) {
             $bq->eid = Hashids::encode($bq->id);
         }
+
+        $loginUsername = $user->username ?? $user->name ?? null;
+        $canUpload     = $sppt->created_by === $loginUsername; 
        
-        return view('pages.sppts.showsppts', compact('sppt','attachments','spptdetail','bq','hash'));
+        return view('pages.sppts.showsppts', compact('sppt','attachments','spptdetail','bq','hash','canUpload'));
     }
    
     public function approveSppt(Request $request, $docid)

@@ -905,9 +905,12 @@ class IMBudgetController extends Controller
                 'size'         => $r->filesize,
             ];
         });
+
+        $loginUsername = $user->username ?? $user->name ?? null;
+        $canUpload     = $imbudget->created_by === $loginUsername;
         
        
-        return view('pages.imbudgets.showimbudgets', compact('imbudget','approval','attachments','imbudgetdetail','hash'));
+        return view('pages.imbudgets.showimbudgets', compact('imbudget','approval','attachments','imbudgetdetail','hash','canUpload'));
     }
 
     

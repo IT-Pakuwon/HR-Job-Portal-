@@ -78,7 +78,9 @@ use App\Http\Controllers\SysMenuController;
 use App\Http\Controllers\SysRoleMenuController;
 use App\Http\Controllers\SysAccessRightController;
 use App\Http\Controllers\SysRoleController;
-
+use App\Http\Controllers\MsApprovalController;
+use App\Http\Controllers\MsCategoryController;
+use App\Http\Controllers\AutonbrController;
 
 
 use Illuminate\Support\Facades\File;
@@ -1034,6 +1036,16 @@ Route::post('/logout', function () {
     Route::get('/access-rights/{id}/edit', [SysAccessRightController::class, 'edit'])->name('access_rights.edit');
     Route::put('/access-rights/{id}', [SysAccessRightController::class, 'update'])->name('access_rights.update');
     Route::put('/access-rights/{id}/toggle-status', [SysAccessRightController::class, 'toggleStatus'])->name('access_rights.toggle-status');
+
+    
+
+    Route::get('/approvals', [MsApprovalController::class, 'index'])->name('approvals');
+    Route::get('/approvals/json', [MsApprovalController::class, 'json'])->name('approvals.json');
+    Route::post('/approvals', [MsApprovalController::class, 'store'])->name('approvals.store');
+    Route::get('/approvals/{id}/edit', [MsApprovalController::class, 'edit']);
+    Route::put('/approvals/{id}', [MsApprovalController::class, 'update']);
+    Route::put('/approvals/{id}/toggle-status', [MsApprovalController::class, 'toggleStatus']);
+
   
     Route::get('/companies', [CompanyController::class, 'index'])->name('companies');
     Route::get('/companies/json', [CompanyController::class, 'json'])->name('companies.json');
@@ -1049,7 +1061,23 @@ Route::post('/logout', function () {
     Route::put('/department/{id}', [DepartmentsController::class, 'update'])->name('department.update');
     Route::put('/department/{id}/toggle-status', [DepartmentsController::class, 'toggleStatus'])->name('department.toggle-status'); 
     
-    
+    Route::get('/categories', [MsCategoryController::class, 'index'])->name('categories');
+    Route::get('/categories/json', [MsCategoryController::class, 'json'])->name('categories.json');
+    Route::post('/categories', [MsCategoryController::class, 'store'])->name('categories.store');
+    Route::get('/categories/{id}/edit', [MsCategoryController::class, 'edit']);
+    Route::put('/categories/{id}', [MsCategoryController::class, 'update']);
+    Route::put('/categories/{id}/toggle-status', [MsCategoryController::class, 'toggleStatus']);
+
+
+
+    Route::get('/autonbrs',        [AutonbrController::class, 'index'])->name('autonbrs');
+    Route::get('/autonbrs/json',   [AutonbrController::class, 'json'])->name('autonbrs.json');
+    Route::post('/autonbrs',       [AutonbrController::class, 'store'])->name('autonbrs.store');
+    Route::get('/autonbrs/{id}/edit', [AutonbrController::class, 'edit']);
+    Route::put('/autonbrs/{id}',   [AutonbrController::class, 'update']);
+    Route::put('/autonbrs/{id}/toggle-status', [AutonbrController::class, 'toggleStatus']);
+
+
 
     
 

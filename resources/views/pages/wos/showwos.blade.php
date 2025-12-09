@@ -462,6 +462,7 @@
                                     </tbody> --}}
                                     <tbody id="woAttachmentTbody"></tbody>
                                 </table>
+                                @if($canUpload)
                                 <div class="border-t border-gray-200 p-4 dark:border-gray-700">
                                     <form id="woAttachmentUploadForm" enctype="multipart/form-data">
                                         @csrf
@@ -495,6 +496,7 @@
                                         </div>
                                     </form>
                                 </div>
+                                @endif
                             </div>
 
                             {{-- Comments tab --}}
@@ -530,7 +532,7 @@
                 $cek_dept = \App\Models\MsWorktypeDept::where('worktypeid', $wo->worktypeid)->get();
 
                 // Department user login
-                $userDept = $loginUser->departmentid ?? null;
+                $userDept = $loginUser->department_id ?? null;
 
                 // Apakah department user ada di daftar departemen worktype?
                 $deptMatch = $cek_dept->contains('department_id', $userDept);

@@ -214,6 +214,44 @@
                     </button>
                 </div>
 
+                {{-- Filter Company & Department --}}
+                <div class="mb-3 flex flex-wrap items-center gap-3">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-1">
+                            Filter Company
+                        </label>
+                        <select id="filterCompany"
+                                class="rounded-lg border px-2 py-1 text-sm dark:bg-gray-700">
+                            <option value="">-- All --</option>
+                            @foreach ($company as $c)
+                                <option value="{{ $c->cpny_id }}">{{ $c->cpny_id }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-1">
+                            Filter Department
+                        </label>
+                        <select id="filterDepartment"
+                                class="rounded-lg border px-2 py-1 text-sm dark:bg-gray-700">
+                            <option value="">-- All --</option>
+                            @foreach ($department as $d)
+                                <option value="{{ $d->department_id }}">{{ $d->department_id }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div class="mt-6">
+                        <button id="clearUserFilters"
+                                type="button"
+                                class="rounded-lg border px-3 py-1 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:border-gray-500 dark:hover:bg-gray-600">
+                            Clear Filter
+                        </button>
+                    </div>
+                </div>
+
+
                 <table id="usersTable" class="w-full table-fixed border-collapse">
                     <thead class="bg-white dark:bg-gray-700">
                         <tr>
@@ -379,6 +417,37 @@
                             }
                         ]
                     });
+
+                    // ===== Filter Company (kolom 3) =====
+                    $('#filterCompany').on('change', function () {
+                        const val = $(this).val();
+
+                        table
+                            .column(3) // cpny_id
+                            .search(val || '', false, false)
+                            .draw();
+                    });
+
+                    // ===== Filter Department (kolom 4) =====
+                    $('#filterDepartment').on('change', function () {
+                        const val = $(this).val();
+
+                        table
+                            .column(4) // department_id
+                            .search(val || '', false, false)
+                            .draw();
+                    });
+
+                    // ===== Clear Filter =====
+                    $('#clearUserFilters').on('click', function () {
+                        $('#filterCompany').val('');
+                        $('#filterDepartment').val('');
+
+                        table.column(3).search('');
+                        table.column(4).search('');
+                        table.draw();
+                    });
+
 
                     $('#addAppBtn').click(function() {
                         $('#modalTitle').text("Add User");

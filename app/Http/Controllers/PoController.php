@@ -33,6 +33,7 @@ use App\Models\MsTopdetail;
 use App\Models\TrPOterm;
 use App\Models\TrRfca;
 use App\Models\TrPOReuse;
+use App\Models\Bq;
 
 
 class PoController extends Controller
@@ -1116,6 +1117,9 @@ class PoController extends Controller
             return;
         }
 
+        $bq = Bq::where('sppjtid', $po->sppbjktid)                 
+            ->first();
+
         $username = Auth::user()->username ?? 'system';
 
         foreach ($topDetails as $detail) {
@@ -1131,7 +1135,7 @@ class PoController extends Controller
                 'cpny_id'       => $po->cpny_id,
                 'csid'          => $po->csid ?? null,
                 'sppbjktid'     => $po->sppbjktid ?? null,
-                'bqid'          => $po->bqid ?? null,
+                'bqid'          => $bq->bqid ?? null,
                 'department_id' => $po->department_id ?? null,
                 'user_peminta'  => $po->user_peminta ?? null,
                 'keperluan'     => $po->keperluan ?? null,

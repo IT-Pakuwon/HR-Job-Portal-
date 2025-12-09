@@ -1234,8 +1234,11 @@ class SppjController extends Controller
         if ($bq) {
             $bq->eid = Hashids::encode($bq->id);
         }
+
+        $loginUsername = $user->username ?? $user->name ?? null;
+        $canUpload     = $sppj->created_by === $loginUsername;
        
-        return view('pages.sppjs.showsppjs', compact('sppj','approval','attachments','sppjdetail','bq','hash'));
+        return view('pages.sppjs.showsppjs', compact('sppj','approval','attachments','sppjdetail','bq','hash','canUpload'));
     }
 
       

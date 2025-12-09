@@ -19,6 +19,13 @@
         @keyframes spinReverse{to{transform:rotate(-360deg)}}
         @keyframes blink{0%{opacity:.3;transform:translateY(0)}20%{opacity:1;transform:translateY(-2px)}100%{opacity:.3;transform:translateY(0)}}
     </style>
+    <style>
+        .req::after {
+            content: " *";
+            color: #dc2626;
+            font-weight: 700;
+        }
+    </style>
 
     <div class="max-w-9xl mx-auto w-full px-4 py-4 sm:px-6 lg:px-8">
         <div class="grid grid-cols-1 gap-8 lg:grid-cols-2 lg:grid-rows-[minmax(0,auto)_1fr]">
@@ -130,7 +137,8 @@
                                        class="mt-1 w-full rounded-lg border border-gray-300 bg-gray-50 p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200"/>
                             </div>
                             <div class="flex flex-col gap-2 lg:col-span-2">
-                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Location</label>
+                                {{-- <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Location</label> --}}
+                                <label class="req text-sm font-medium text-gray-700 dark:text-gray-300">Location</label>
                                 <div class="flex gap-2">
                                 <input type="text" id="lokasi_display"
                                         class="flex-1 rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-gray-600 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
@@ -331,6 +339,27 @@
             $('#bastForm').on('submit', function(e){
                 e.preventDefault();
                 clearFormErrors();
+
+                // === VALIDASI lokasi_display WAJIB ===
+                const lokasiVal = $('#lokasi_display').val().trim();
+                if (!lokasiVal) {
+                    addError($('#lokasi_display'), 'Location & Sub Location wajib dipilih.');
+                    toastr.error('Location & Sub Location wajib dipilih.');
+                    return;
+                }
+
+                // === VALIDASI PHOTO AFTER minimal 1 foto ===
+                const photoCount = $('#hiddenInputs input[type="file"][name="attachments[]"]').length;
+                if (photoCount < 1) {
+                    toastr.error('Minimal 1 Photo After wajib diupload.');
+                    // tampilkan error visual pada tile Add Photo
+                    $('#addAttachmentTile')
+                        .addClass('is-invalid')
+                        .after('<small class="error-feedback">Minimal 1 foto wajib diupload.</small>');
+                    return;
+                }
+
+
                 $('#submitBtn').prop('disabled', true);
                 $('#btnText').text('Processing...');
                 showOverlay('Submitting');

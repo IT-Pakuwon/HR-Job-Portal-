@@ -332,6 +332,7 @@
 
                                 </table>
                                 {{-- Upload attachment (multi) --}}
+                                @if($canUpload)
                                 <div class="border-t border-gray-200 p-4 dark:border-gray-700">
                                     <form id="imbudgetAttachmentUploadForm" enctype="multipart/form-data">
                                         @csrf
@@ -365,6 +366,7 @@
                                         </div>
                                     </form>
                                 </div>
+                                @endif
                             </div>
 
                             {{-- Comments tab --}}

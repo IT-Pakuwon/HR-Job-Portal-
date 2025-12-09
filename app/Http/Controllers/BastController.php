@@ -57,7 +57,7 @@ class BastController extends Controller
 
     public function storeBast(Request $request)
     {
-       
+    //    dd($request->all());
         $request->validate([
             'term_eid'      => 'required|string',
             'location_id'     => 'required','string',
@@ -396,6 +396,9 @@ class BastController extends Controller
                 'l.rating_legend_name'
             ]);
 
+        $loginUsername = $user->username ?? $user->name ?? null;
+        $canUpload     = $bast->created_by === $loginUsername;
+
         return view('pages.bast.showbast', [
             'bast'            => $bast,    
             'hash'           => $hash,
@@ -405,6 +408,7 @@ class BastController extends Controller
             'csUrl'          => $csUrl,    
             'ratingLegendName'  => $ratingLegendName,        
             'bastRatingRows'    => $bastRatingRows,
+            'canUpload'    => $canUpload,
         ]);
     }
 

@@ -16,6 +16,8 @@ class Autonbr extends Model
         'year',
         'month',
         'number',
-        'status'
+        'status',
+        'created_by', 
+        'updated_by', 
     ];
 }

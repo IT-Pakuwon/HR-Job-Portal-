@@ -64,6 +64,41 @@
                     </button>
                 </div>
 
+                <div class="mb-3 flex flex-wrap items-center gap-3">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-1">
+                            Filter Role
+                        </label>
+                        <select id="filterRole" class="rounded-lg border px-2 py-1 text-sm dark:bg-gray-700">
+                            <option value="">-- All --</option>
+                            @foreach($roles as $r)
+                                <option value="{{ $r->role_id }}">{{ $r->role_name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-1">
+                            Filter Screen
+                        </label>
+                        <select id="filterScreen" class="rounded-lg border px-2 py-1 text-sm dark:bg-gray-700">
+                            <option value="">-- All --</option>
+                            @foreach($screens as $s)
+                                <option value="{{ $s->menu_id }}">{{ $s->menu_name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div class="mt-6">
+                        <button id="clearFilters"
+                                type="button"
+                                class="rounded-lg border px-3 py-1 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:border-gray-500 dark:hover:bg-gray-600">
+                            Clear Filter
+                        </button>
+                    </div>
+                </div>
+
+
                 <table id="accessRightsTable" class="w-full border-collapse">
                     <thead class="bg-white dark:bg-gray-700">
                         <tr>
@@ -249,6 +284,37 @@
                             }
                         ]
                     });
+
+                    // ===== Filter ROLE (kolom index 1) =====
+                    $('#filterRole').on('change', function () {
+                        const val = $(this).val();
+
+                        table
+                            .column(1) // role_id
+                            .search(val ? '^' + $.fn.dataTable.util.escapeRegex(val) + '$' : '', true, false)
+                            .draw();
+                    });
+
+                    // ===== Filter SCREEN ID (kolom index 2) =====
+                    $('#filterScreen').on('change', function () {
+                        const val = $(this).val();
+
+                        table
+                            .column(2) // screen_id
+                            .search(val ? '^' + $.fn.dataTable.util.escapeRegex(val) + '$' : '', true, false)
+                            .draw();
+                    });
+
+                    // ===== Clear Filter =====
+                    $('#clearFilters').on('click', function () {
+                        $('#filterRole').val('');
+                        $('#filterScreen').val('');
+
+                        table.column(1).search('');
+                        table.column(2).search('');
+                        table.draw();
+                    });
+
 
                     function resetAccessModal() {
                         $('#accessRightForm')[0].reset();
