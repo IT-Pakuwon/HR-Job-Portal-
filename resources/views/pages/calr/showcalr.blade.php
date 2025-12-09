@@ -409,6 +409,7 @@
 
                                             <tbody id="rcpAttachmentTbody"></tbody>
                                         </table>
+                                        @if ($canUpload)
                                         <div class="border-t border-gray-200 p-4 dark:border-gray-700">
                                             <form id="rcpAttachmentUploadForm" enctype="multipart/form-data">
                                                 @csrf
@@ -442,6 +443,7 @@
                                                 </div>
                                             </form>
                                         </div>
+                                        @endif
                                     </div>
                                 </div>
 
@@ -1060,7 +1062,7 @@
     </script>
 
     
-    <script>
+    {{-- <script>
         document.addEventListener('DOMContentLoaded', () => {
             const btn = document.getElementById('printMenuBtn');
             const menu = document.getElementById('printMenu');
@@ -1086,7 +1088,7 @@
                 if (e.key === 'Escape') close();
             });
         });
-    </script>
+    </script> --}}
 
 
 

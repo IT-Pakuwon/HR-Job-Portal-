@@ -341,6 +341,9 @@ class CalrController extends Controller
         // Convenience: encode ID untuk email/dll
         $eid_calrid = Hashids::encode((string) $calr->id);
 
+        $loginUsername = $user->username ?? $user->name ?? null;
+        $canUpload     = $calr->created_by === $loginUsername;
+
         return view('pages.calr.showcalr', [
             'calr'        => $calr,
             'hash'        => $hash,
@@ -350,6 +353,7 @@ class CalrController extends Controller
             'sppbUrl'     => $sppbUrl,
             'csUrl'       => $csUrl,
             'details'     => $details,
+            'canUpload'     => $canUpload,
         ]);
     }
 

@@ -2716,6 +2716,9 @@ class CanvassController extends Controller
             ];
         }
 
+        $loginUsername = $user->username ?? $user->name ?? null;
+        $canUpload     = $cs->created_by === $loginUsername;
+
         return view('pages.canvass.showcs', [
             'cs'         => $cs,
             'approval'   => $approval,
@@ -2729,6 +2732,7 @@ class CanvassController extends Controller
             'hash'      => $hash,
             'eid_sppbjkt' => $eid_sppbjkt,
             'eid_bq'    => $eid_bq,
+            'canUpload'     => $canUpload,
         ]);
     }
 
@@ -4007,6 +4011,77 @@ class CanvassController extends Controller
         //     }
         // }
     }
+
+    public function updateCoaCS(Request $request)
+    {
+        $rows = $request->input('rows', []);
+
+        if (!is_array($rows) || empty($rows)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No rows data provided.',
+            ], 422);
+        }
+
+        $user = Auth::user();
+        $username = $user->username ?? 'system';
+
+        try {
+            DB::transaction(function () use ($rows, $username) {
+
+                foreach ($rows as $row) {
+                    $id  = $row['id'] ?? null;
+                    $acc = $row['budget_account_id'] ?? null;
+
+                    if (!$id) {
+                        continue;
+                    }
+
+                    /** @var \App\Models\TrCSdetail|null $csd */
+                    $csd = TrCSdetail::find($id);
+                    if (!$csd) {
+                        continue;
+                    }
+
+                    // Default: kosongkan dulu activity kalau COA kosong
+                    $csd->budget_account_id      = $acc;
+                    $csd->budget_activity_id     = null;
+                    $csd->budget_activity_descr  = null;
+
+                    if (!empty($acc)) {
+                        // Coba cari di BudgetDetail berdasarkan cpny + dept + perpost + account_id
+                        $bd = BudgetDetail::query()
+                            ->where('cpny_id',          $csd->cpny_id)
+                            ->where('department_fin_id',$csd->budget_depatment_fin_id) // atau budget_department_fin_id, sesuaikan fieldnya
+                            ->where('perpost',          $csd->perpost)
+                            ->where('account_id',       $acc)
+                            ->first();
+
+                        if ($bd) {
+                            $csd->budget_activity_id    = $bd->activity_id;
+                            $csd->budget_activity_descr = $bd->activity_descr;
+                        }
+                    }
+
+                    $csd->updated_by = $username;
+                    $csd->save();
+                }
+
+            });
+
+            return response()->json([
+                'success' => true,
+                'message' => 'COA updated successfully.',
+            ]);
+
+        } catch (\Throwable $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to update COA: '.$e->getMessage(),
+            ], 500);
+        }
+    }
+
 
 
 

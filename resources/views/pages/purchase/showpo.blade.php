@@ -526,7 +526,7 @@
                                                                             id="work_days" min="0"
                                                                             step="1"
                                                                             value="{{ old('work_days') }}"
-                                                                            placeholder="05"
+                                                                            placeholder="Enter Days"
                                                                             class="w-full rounded-md border border-gray-300 bg-white p-2 text-sm shadow-sm focus:border-indigo-500 focus:ring-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:focus:border-indigo-400" />
                                                                     </div>
                                                                     <div
@@ -554,7 +554,7 @@
                                                                     <input type="text" name="work_day_from"
                                                                         id="work_day_from"
                                                                         value="{{ old('work_day_from') }}"
-                                                                        placeholder="Monday"
+                                                                        placeholder="Senin"
                                                                         class="w-full rounded-md border border-gray-300 bg-white p-2 text-sm shadow-sm focus:border-indigo-500 focus:ring-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" />
                                                                 </div>
 
@@ -567,7 +567,7 @@
                                                                     <input type="text" name="work_day_to"
                                                                         id="work_day_to"
                                                                         value="{{ old('work_day_to') }}"
-                                                                        placeholder="Friday"
+                                                                        placeholder="Jumat"
                                                                         class="w-full rounded-md border border-gray-300 bg-white p-2 text-sm shadow-sm focus:border-indigo-500 focus:ring-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" />
                                                                 </div>
 
@@ -609,7 +609,7 @@
                                                                 <input type="number" name="manpower_total"
                                                                     id="manpower_total" min="0" step="1"
                                                                     value="{{ old('manpower_total') }}"
-                                                                    placeholder="0"
+                                                                    placeholder="Enter Total"
                                                                     class="w-full rounded-md border border-gray-300 bg-white p-2 text-sm shadow-sm focus:border-indigo-500 focus:ring-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:focus:border-indigo-400" />
                                                             </div>
                                                             {{-- Payment Method --}}
@@ -620,7 +620,8 @@
                                                                 </label>
                                                                 <input type="text" name="payment_method"
                                                                     id="payment_method"
-                                                                    value="{{ old('payment_method', 'GIRO') }}"
+                                                                    value="{{ old('payment_method') }}"
+                                                                    placeholder="Enter Payment Method"
                                                                     class="w-full rounded-md border border-gray-300 bg-white p-2 text-sm uppercase shadow-sm focus:border-indigo-500 focus:ring-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:focus:border-indigo-400" />
                                                             </div>
 
@@ -631,7 +632,8 @@
                                                                     Work Warranty
                                                                 </label>
                                                                 <input type="text" name="warranty" id="warranty"
-                                                                    value="{{ old('warranty', '1 WEEK') }}"
+                                                                    value="{{ old('warranty') }}"
+                                                                    placeholder="Enter Warranty"
                                                                     class="w-full rounded-md border border-gray-300 bg-white p-2 text-sm uppercase shadow-sm focus:border-indigo-500 focus:ring-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:focus:border-indigo-400" />
                                                             </div>
 
@@ -653,7 +655,7 @@
                                                                     </label>
                                                                     <input type="text" name="pic_name"
                                                                         id="pic_name"
-                                                                        value="{{ old('pic_name', 'Bapak X') }}"
+                                                                        value="{{ old('pic_name') }}"
                                                                         placeholder="Enter PIC Name"
                                                                         class="w-full rounded-md border border-gray-300 bg-white p-2 text-sm shadow-sm focus:border-indigo-500 focus:ring-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:focus:border-indigo-400" />
                                                                 </div>
@@ -666,7 +668,7 @@
                                                                     </label>
                                                                     <input type="text" name="pic_phone"
                                                                         id="pic_phone"
-                                                                        value="{{ old('pic_phone', '0859 4612 0121') }}"
+                                                                        value="{{ old('pic_phone') }}"
                                                                         placeholder="Enter Contact Number"
                                                                         class="w-full rounded-md border border-gray-300 bg-white p-2 text-sm shadow-sm focus:border-indigo-500 focus:ring-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:focus:border-indigo-400" />
                                                                 </div>

@@ -245,9 +245,9 @@
                                     'value' => ucwords(strtolower(optional($srcHeader->purchaser)->name)),
                                 ],
                             ];
-                            if (in_array($prefix, ['PJ', 'PT'], true) && !empty($cs?->bqid)) {
+                            if (in_array($prefix, ['PJ', 'PT'], true) && !empty($cs->bqid)) {
                                 // pakai bqid yang benar dari $cs
-                                $bqUrl = route('bqcs.show', $cs->bqid);
+                                $bqUrl = route('bqcs.show', $eid_bq);
 
                                 $bqLink =
                                     '<a href="' .
@@ -466,6 +466,7 @@
                                     </tbody> --}}
                                     <tbody id="allAttachmentTbody"></tbody>
                                 </table>
+                                @if($canUpload)
                                 <div class="border-t border-gray-200 p-4 dark:border-gray-700">
                                     <form id="csAttachmentUploadForm" enctype="multipart/form-data">
                                         @csrf
@@ -498,6 +499,7 @@
                                         </div>
                                     </form>
                                 </div>
+                                @endif
                             </div>
 
                             {{-- Comments tab --}}
@@ -529,6 +531,17 @@
                 <header
                     class="flex items-center justify-between rounded-t-xl border-b border-gray-200 bg-white px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
                     <h2 class="text-xl font-semibold text-gray-800 dark:text-gray-100">📝 CS Detail</h2>
+                     {{-- Button Edit COA --}}
+        <button
+            id="btnEditCoa"
+            class="inline-flex items-center gap-1 rounded-md bg-indigo-600 px-3 py-2 text-sm font-medium text-white shadow hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                stroke-width="1.5" stroke="currentColor" class="h-4 w-4">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125" />
+            </svg>
+            Edit COA
+        </button>
                 </header>
                 {{-- <div class="mt-4 overflow-x-auto">
                     <table class="min-w-full border-separate border-spacing-0 text-sm">
@@ -689,20 +702,25 @@
                     </table>
                 </div> --}}
                 <div class="overflow-x-auto">
-
                     <table class="w-full min-w-max border-separate border-spacing-0 text-sm">
-
                         <!-- HEADER -->
                         <thead class="sticky top-0 z-20 bg-gray-100 dark:bg-gray-700">
                             <tr>
-                                <th class="w-64 px-3 py-2 text-left">Inventory Descr</th>
-                                <th class="w-20 px-3 py-2 text-center">Qty</th>
-                                <th class="w-16 px-3 py-2 text-center">UOM</th>
-                                <th class="w-40 px-3 py-2 text-left">Note</th>
+                                <th class="w-64 px-3 py-2 text-left">
+                                    Inventory Descr / Note
+                                </th>
+                                <th class="w-20 px-3 py-2 text-center">
+                                    Qty / UOM
+                                </th>
+                                <th class="w-32 px-3 py-2 text-left">
+                                    Location
+                                </th>
+                                <th class="w-32 px-3 py-2 text-left">
+                                    Budget Dept
+                                </th>                               
 
                                 @foreach ($vendors as $v)
                                     <th class="align-center px-3 py-2 text-left">
-
                                         <div class="flex items-start justify-between gap-1">
                                             <div class="space-y-0.5">
                                                 <div class="text-sm font-semibold">
@@ -711,8 +729,8 @@
 
                                                 @if ($v['vendortop'])
                                                     <div class="text-xs text-gray-600 dark:text-gray-300">
-                                                        Payment Term: <span
-                                                            class="font-semibold">{{ $v['vendortop'] }}</span>
+                                                        Payment Term:
+                                                        <span class="font-semibold">{{ $v['vendortop'] }}</span>
                                                     </div>
                                                 @endif
                                             </div>
@@ -726,63 +744,85 @@
                                                     class="absolute right-0 top-5 z-40 hidden w-56 rounded-md border bg-white p-3 text-xs shadow-lg group-hover:block">
                                                     <div><strong>Contact:</strong> {{ $v['vendorcp'] ?: '-' }}</div>
                                                     <div><strong>Phone:</strong> {{ $v['vendortelp'] ?: '-' }}</div>
-                                                    <div><strong>Address:</strong> {{ $v['vendoralamat'] ?: '-' }}
-                                                    </div>
+                                                    <div><strong>Address:</strong> {{ $v['vendoralamat'] ?: '-' }}</div>
                                                 </div>
                                             </div>
                                         </div>
-
                                     </th>
                                 @endforeach
                             </tr>
                         </thead>
 
-
                         <!-- SCROLL BODY WRAPPER -->
                         <tbody>
                             <tr>
+                                {{-- 4 kolom fixed (Inventory, Qty, Location, Budget Dept, COA) + vendor columns --}}
                                 <td colspan="{{ 4 + count($vendors) }}" class="p-0">
-
                                     <!-- BODY SCROLL -->
                                     <div class="max-h-[200px] overflow-y-auto">
-
                                         <table class="w-full min-w-max border-separate border-spacing-0 text-sm">
                                             <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
-
                                                 @foreach ($csdetail as $row)
                                                     <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                                                        {{-- Inventory + Note (di bawahnya) --}}
+                                                        <td class="w-64 px-3 py-2 align-top">
+                                                            <div class="flex flex-col gap-1">
+                                                                <span>{{ $row->inventory_descr }}</span>
 
-                                                        <td class="w-64 px-3 py-2">
-                                                            {{ $row->inventory_descr }}
+                                                                @if (!empty($row->csnote_detail))
+                                                                    <span class="text-xs text-gray-500 dark:text-gray-400">
+                                                                        Note: {{ $row->csnote_detail }}
+                                                                    </span>
+                                                                @endif
+                                                            </div>
                                                         </td>
 
-                                                        <td class="w-20 px-3 py-2 text-center">
-                                                            <input type="text" readonly
-                                                                class="w-16 rounded border bg-gray-50 text-center dark:bg-gray-700"
-                                                                value="{{ number_format($row->qty, 2, ',', '.') }}">
+                                                        {{-- Qty + UOM di bawahnya --}}
+                                                        <td class="w-20 px-3 py-2 text-center align-top">
+                                                            <div class="flex flex-col items-center gap-1">
+                                                                <input type="text" readonly
+                                                                    class="w-16 rounded border bg-gray-50 text-center text-sm dark:bg-gray-700"
+                                                                    value="{{ number_format($row->qty, 2, ',', '.') }}">
+                                                                <span class="text-xs text-gray-600 dark:text-gray-300">
+                                                                    {{ $row->uom }}
+                                                                </span>
+                                                            </div>
                                                         </td>
 
-                                                        <td class="w-16 px-3 py-2 text-center">{{ $row->uom }}
+                                                        {{-- Location: location_id - sub_location_id --}}
+                                                        <td class="w-32 px-3 py-2 align-top">
+                                                            @php
+                                                                $loc  = optional($row->location)->location_name ?? '';
+                                                                $subl = optional($row->subLocation)->sub_location_name ?? '';
+                                                            @endphp
+                                                            @if ($loc || $subl)
+                                                                {{ $loc }}@if($loc && $subl) - @endif{{ $subl }}
+                                                            @else
+                                                                -
+                                                            @endif
                                                         </td>
 
-                                                        <td class="w-40 px-3 py-2">{{ $row->csnote_detail }}</td>
+                                                        {{-- Budget Dept --}}
+                                                        <td class="w-32 px-3 py-2 align-top">
+                                                            {{ $row->budget_department_fin_id ?? '-' }} - {{ $row->budget_account_id ?? '-' }}
+                                                        </td>                                                        
 
+                                                        {{-- Harga per vendor --}}
                                                         @foreach ($vendors as $v)
                                                             @php
-                                                                $i = $v['i'];
+                                                                $i   = $v['i'];
                                                                 $prc = (float) $row->{"vendorprice{$i}"};
                                                                 $tot = (float) $row->{"vendortotalprice{$i}"};
                                                                 $sel = (bool) $row->{"vendor{$i}selected"};
                                                             @endphp
 
-                                                            <td class="w-48 px-3 py-2">
+                                                            <td class="w-48 px-3 py-2 align-top">
                                                                 <div class="space-y-1">
                                                                     <input type="text" readonly
                                                                         class="w-full rounded border bg-gray-50 px-1 text-right text-sm dark:bg-gray-700"
                                                                         value="{{ number_format($prc, 2, ',', '.') }}">
 
-                                                                    <div
-                                                                        class="flex items-center justify-center gap-2">
+                                                                    <div class="flex items-center justify-center gap-2">
                                                                         <input type="radio"
                                                                             class="h-3 w-3 text-indigo-600"
                                                                             {{ $sel ? 'checked' : '' }} disabled>
@@ -794,58 +834,140 @@
                                                                 </div>
                                                             </td>
                                                         @endforeach
-
                                                     </tr>
                                                 @endforeach
-
                                             </tbody>
                                         </table>
-
                                     </div>
-
                                 </td>
                             </tr>
                         </tbody>
 
-
                         <!-- FOOTER -->
                         <tfoot class="sticky bottom-0 z-20 bg-gray-50 dark:bg-gray-700/40">
                             <tr>
-
+                                {{-- 4 kolom summary di kiri --}}
                                 <td colspan="4" class="px-3 py-2 text-right font-semibold">
                                     Summary
                                 </td>
 
+                                {{-- Summary per vendor --}}
                                 @foreach ($vendors as $v)
                                     <td class="w-48 space-y-1 px-3 py-2">
-                                        <div class="flex justify-between"><span>Total:</span>
+                                        <div class="flex justify-between">
+                                            <span>Total:</span>
                                             <span>{{ $v['total'] }}</span>
                                         </div>
                                         <div class="flex justify-between">
-                                            <div class="flex justify-between"><span>PPN:</span>
+                                            <div class="flex justify-between">
+                                                <span>PPN:</span>
                                                 <span>{{ $v['ppn'] }}%</span>
                                             </div>
-                                            <div class="flex justify-between"><span>PPh:</span>
+                                            <div class="flex justify-between">
+                                                <span>PPh:</span>
                                                 <span>{{ $v['pph'] }}%</span>
                                             </div>
                                         </div>
-                                        <div class="flex justify-between"><span>Grand:</span>
+                                        <div class="flex justify-between">
+                                            <span>Grand:</span>
                                             <span>{{ $v['grand'] }}</span>
                                         </div>
-                                        <div class="flex justify-between"><span>Selected:</span>
+                                        <div class="flex justify-between">
+                                            <span>Selected:</span>
                                             <span>{{ $v['selected_grand'] }}</span>
                                         </div>
                                     </td>
                                 @endforeach
-
                             </tr>
                         </tfoot>
-
                     </table>
-
                 </div>
-
             </div>
+
+            {{-- Modal Edit COA --}}
+            <div id="editCoaModal"
+                class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40">
+                <div class="w-full max-w-6xl rounded-xl bg-white shadow-lg dark:bg-gray-800">
+                    {{-- Header modal --}}
+                    <div class="flex items-center justify-between border-b border-gray-200 px-4 py-3 dark:border-gray-700">
+                        <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-100">
+                            Edit COA
+                        </h3>
+                        <button id="btnCloseEditCoa"
+                            class="inline-flex h-8 w-8 items-center justify-center rounded-full text-gray-500 hover:bg-gray-200 dark:text-gray-300 dark:hover:bg-gray-700">
+                            ✕
+                        </button>
+                    </div>
+
+                    {{-- Body modal: table --}}
+                    <div class="max-h-[60vh] overflow-y-auto px-4 py-3">
+                        <table class="w-full min-w-max border-separate border-spacing-0 text-sm">
+                            <thead class="bg-gray-100 text-xs font-semibold uppercase tracking-wide text-gray-600 dark:bg-gray-700 dark:text-gray-200">
+                                <tr>
+                                    <th class="w-64 px-3 py-2 text-left">
+                                        Inventory Descr / Note
+                                    </th>
+                                    <th class="w-24 px-3 py-2 text-center">
+                                        Qty / UOM
+                                    </th>
+                                    <th class="w-32 px-3 py-2 text-left">
+                                        Location
+                                    </th>
+                                    <th class="w-40 px-3 py-2 text-left">
+                                        COA
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody id="editCoaTableBody">
+                                @foreach ($csdetail as $row)
+                                    <tr data-row-id="{{ $row->id }}"
+                                        data-cpny="{{ $row->budget_cpny_id }}"
+                                        data-dept="{{ $row->budget_department_fin_id }}"
+                                        data-perpost="{{ $row->budget_perpost }}">
+
+                                        <td>{{ $row->inventory_descr }}<br>
+                                            <span class="text-xs text-gray-500">{{ $row->csnote_detail }}</span>
+                                        </td>
+
+                                        <td class="text-center">
+                                            {{ number_format($row->qty,2,',','.') }} <br>
+                                            <span class="text-xs text-gray-500">{{ $row->uom }}</span>
+                                        </td>
+
+                                        <td>{{ $row->location_id }} - {{ $row->sub_location_id }}</td>
+
+                                        <td>
+                                            <select class="coa-select w-full"
+                                                data-row-id="{{ $row->id }}">
+                                                @if ($row->budget_account_id)
+                                                    <option value="{{ $row->budget_account_id }}" selected>
+                                                        {{ $row->budget_account_id }} - {{ $row->budget_account_name }}
+                                                    </option>
+                                                @endif
+                                            </select>
+                                        </td>
+
+                                    </tr>
+                                @endforeach
+                            </tbody>
+
+                        </table>
+                    </div>
+
+                    {{-- Footer modal --}}
+                    <div class="flex items-center justify-end gap-2 border-t border-gray-200 px-4 py-3 dark:border-gray-700">
+                        <button id="btnCancelEditCoa"
+                            class="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-400 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">
+                            Cancel
+                        </button>
+                        <button id="btnSaveEditCoa"
+                            class="rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            Save
+                        </button>
+                    </div>
+                </div>
+            </div>
+
         </div>
     </div>
 
@@ -1514,8 +1636,8 @@
                                 <td class="p-3">${row.aprv_leveling}</td>
                                 <td class="p-3">${row.aprv_name}</td>
                                 <td class="p-3">
-    ${row.aprv_dateafter ? dayjs(row.aprv_dateafter).format('DD MMM YYYY HH:mm:ss') : ''}
-</td>
+                                    ${row.aprv_dateafter ? dayjs(row.aprv_dateafter).format('DD MMM YYYY HH:mm:ss') : ''}
+                                </td>
                                 <td class="p-3">${statusLabel}</td>
                             </tr>
                         `;
@@ -1566,6 +1688,164 @@
     </script>
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    {{-- Select2 CSS & JS --}}
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+    <style>
+        .select2-container--default .select2-selection--single {
+            height: 32px;
+            border-radius: 0.375rem;
+            border: 1px solid #d1d5db;
+            background-color: #ffffff;
+        }
+
+        .select2-container--default .select2-selection--single .select2-selection__rendered {
+            line-height: 30px;
+            padding-left: 0.5rem;
+            font-size: 0.875rem;
+        }
+
+        .select2-container--default .select2-selection--single .select2-selection__arrow {
+            height: 30px;
+        }
+    </style>
+
+
+    <script>
+    $(function () {
+        const $modal = $('#editCoaModal');
+
+        console.log('[Edit COA] script loaded, modal found?', $modal.length); // DEBUG
+
+        // === Buka modal Edit COA ===
+        // pakai event delegation
+        $(document).on('click', '#btnEditCoa', function () {
+            console.log('[Edit COA] btnEditCoa clicked'); // DEBUG
+
+            $modal.removeClass('hidden').addClass('flex');
+            initCoaSelect2();
+        });
+
+        // === Tutup modal ===
+        $(document).on('click', '#btnCloseEditCoa, #btnCancelEditCoa', function () {
+            console.log('[Edit COA] close clicked'); // DEBUG
+
+            $modal.addClass('hidden').removeClass('flex');
+        });
+
+        // Init Select2 untuk semua select COA
+        function initCoaSelect2() {
+            console.log('[Edit COA] initCoaSelect2 called'); // DEBUG
+
+            $('.coa-select').each(function () {
+                const $sel = $(this);
+
+                // Kalau sudah di-init Select2, skip
+                if ($sel.hasClass('select2-hidden-accessible')) {
+                    console.log('[Edit COA] select sudah Select2, skip', $sel.data('row-id'));
+                    return;
+                }
+
+                const $tr      = $sel.closest('tr');
+                const cpnyid   = $tr.data('cpny');
+                const deptid   = $tr.data('dept');
+                const perpost  = $tr.data('perpost');
+
+                console.log('[Edit COA] row', $tr.data('row-id'), '=>', cpnyid, deptid, perpost); // DEBUG
+
+                $sel.select2({
+                    width: '100%',
+                    placeholder: 'Pilih COA...',
+                    allowClear: true,
+                    ajax: {
+                        url: "{{ route('coa.byDept') }}",
+                        dataType: 'json',
+                        delay: 250,
+                        data: function (params) {
+                            return {
+                                cpnyid:   cpnyid,
+                                deptid:   deptid,
+                                perpost:  perpost,
+                                search:   params.term || '',
+                                page:     params.page || 1,
+                                per_page: 10
+                            };
+                        },
+                        processResults: function (res, params) {
+                            console.log('[Edit COA] ajax result', res); // DEBUG
+
+                            params.page = params.page || 1;
+                            const items = res.data || [];
+
+                            return {
+                                results: items.map(function (item) {
+                                    const kode = item.account_id;
+                                    const nama = item.activity_descr || '';
+                                    return {
+                                        id: kode,
+                                        text: kode + ' - ' + nama
+                                    };
+                                }),
+                                pagination: {
+                                    more: (params.page * res.per_page) < res.total
+                                }
+                            };
+                        },
+                        cache: true
+                    }
+                });
+            });
+        }
+
+        // === Save COA ===
+        $(document).on('click', '#btnSaveEditCoa', function () {
+            console.log('[Edit COA] Save clicked'); // DEBUG
+
+            let payload = [];
+
+            $('#editCoaTableBody tr').each(function () {
+                const $tr = $(this);
+                const rowId = $tr.data('row-id');
+                const coaVal = $tr.find('.coa-select').val();
+
+                payload.push({
+                    id: rowId,
+                    budget_account_id: coaVal
+                });
+            });
+
+            console.log('[Edit COA] payload', payload); // DEBUG
+
+            $.ajax({
+                url: "{{ route('cs.update-coa', $cs->csid ?? $cs->id ?? null) }}",
+                type: 'POST',
+                data: {
+                    _token: '{{ csrf_token() }}',
+                    rows: payload
+                },
+                success: function (res) {
+                    console.log('[Edit COA] save response', res); // DEBUG
+
+                    if (res.success) {
+                        toastr.success(res.message || 'COA updated successfully');
+                        $modal.addClass('hidden').removeClass('flex');
+                        location.reload();
+                    } else {
+                        toastr.error(res.message || 'Failed to update COA');
+                    }
+                },
+                error: function (xhr) {
+                    console.error('[Edit COA] save error', xhr.responseText);
+                    toastr.error('Error updating COA');
+                }
+            });
+        });
+    });
+</script>
+
+
+
 
 
 
