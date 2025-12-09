@@ -336,6 +336,7 @@
                                     </thead>
                                     <tbody id="budgetAttachmentTbody"></tbody>
                                 </table>
+                                @if($canUpload)
                                 <div class="border-t border-gray-200 p-4 dark:border-gray-700">
                                     <form id="budgetAttachmentUploadForm" enctype="multipart/form-data">
                                         @csrf
@@ -369,6 +370,7 @@
                                         </div>
                                     </form>
                                 </div>
+                                @endif
                             </div>
 
                             {{-- Comments tab --}}

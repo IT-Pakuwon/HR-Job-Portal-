@@ -1239,8 +1239,9 @@ class SppbController extends Controller
             ];
         });
         
-       
-        return view('pages.sppbs.showsppbs', compact('sppb','attachments','sppbdetail','hash'));
+        $loginUsername = $user->username ?? $user->name ?? null;
+        $canUpload     = $sppb->created_by === $loginUsername;
+        return view('pages.sppbs.showsppbs', compact('sppb','attachments','sppbdetail','hash','canUpload'));
     }
       
     public function approveSppb(Request $request, $docid)

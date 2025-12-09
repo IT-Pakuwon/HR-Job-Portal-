@@ -373,6 +373,9 @@ class IssueController extends Controller
         // convenience id terenkripsi untuk share (kalau perlu)
         $eid_issueid = Hashids::encode($iss->id);
 
+        $loginUsername = $user->username ?? $user->name ?? null;
+        $canUpload     = $iss->created_by === $loginUsername;
+
         return view('pages.issue.showissue', [
             'iss'         => $iss,
             'issdetail'   => $issdetail,
@@ -381,6 +384,7 @@ class IssueController extends Controller
             'eid_issueid' => $eid_issueid,
             'spbUrl'      => $spbUrl,
             'approval'      => $approval,
+            'canUpload'      => $canUpload,
         ]);
     }
 

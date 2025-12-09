@@ -361,14 +361,17 @@ class RfcaListController extends Controller
         // === Flag: hanya creator yang boleh lihat tombol Submit ===
         $loginUsername = $user->username ?? $user->name ?? null;
         $canSubmit     = $rfca->created_by === $loginUsername;
-
-        // === Cek apakah user berhak memproses step ini ===
-        $loginDept = $user->department_id ?? null;
+       
+       // === Cek apakah user berhak memproses step ini (department bisa multi) ===
+        $loginDept = $user->department_id ?? ''; 
+        $loginDepartments = array_map('trim', explode(',', $loginDept)); // contoh: ACCOUNTING,COLLECTION → ['ACCOUNTING','COLLECTION']
 
         $canProcessStepDept = false;
-        if ($currentStep && $currentStep->rfca_step_department_id == $loginDept) {
+
+        if ($currentStep && in_array($currentStep->rfca_step_department_id, $loginDepartments)) {
             $canProcessStepDept = true;
         }
+
 
 
         return view('pages.rfca.showrfca', [

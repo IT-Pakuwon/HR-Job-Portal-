@@ -18,6 +18,8 @@ class MsCategory extends Model
         'username',
         'type',
         'status',     
-        'status'
+        'created_by', 
+        'updated_by', 
+       
     ];
 }

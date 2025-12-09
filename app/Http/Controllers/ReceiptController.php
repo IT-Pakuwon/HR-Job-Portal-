@@ -401,6 +401,9 @@ class ReceiptController extends Controller
         // Untuk convenience (mis. kirim email dsb)
         $eid_receiptnbr = Hashids::encode($rcp->receiptnbr);
 
+        $loginUsername = $user->username ?? $user->name ?? null;
+        $canUpload     = $rcp->created_by === $loginUsername;
+
         return view('pages.receipt.showreceipt', [
             'rcp'            => $rcp,
             'rcpdetail'      => $rcpdetail,
@@ -411,6 +414,7 @@ class ReceiptController extends Controller
             'sppbUrl'        => $sppbUrl,
             'csUrl'          => $csUrl,
             'approval'      => $approval,
+            'canUpload'      => $canUpload,
         ]);
     }
 

@@ -1247,9 +1247,11 @@ class SppkController extends Controller
                 'size'         => $r->filesize,
             ];
         });
-        
+
+        $loginUsername = $user->username ?? $user->name ?? null;
+        $canUpload     = $sppk->created_by === $loginUsername;        
        
-        return view('pages.sppks.showsppks', compact('sppk','attachments','sppkdetail','hash'));
+        return view('pages.sppks.showsppks', compact('sppk','attachments','sppkdetail','hash','canUpload'));
     }
 
     public function approveSppk(Request $request, $docid)
