@@ -622,9 +622,7 @@ Route::post('/logout', function () {
         Route::get('/csjobs/counts', [CsJobController::class,'CsJobsCounts'])->name('csjobs.counts');    
         Route::get('/csjobs/entry.json', [CsJobController::class, 'CsJobsEntryJson'])->name('csjobs.entry.json');
         Route::get('/csjobs/dataset-counts', [CsJobController::class,'CsJobsDatasetCounts'])->name('csjobs.dataset.counts');        
-        Route::get('/pdf_cs/{hash}', [CanvassController::class, 'printCS']);
-        Route::get('/showcs/{hash}', [CanvassController::class, 'showCS']);     
-        Route::get('/showbqcs/{hash}', [BQCSController::class, 'showBQCS'])->name('bqcs.show');
+        
     });
 
     Route::middleware('access:CSJOBS,EDIT')->group(function () {
@@ -646,16 +644,22 @@ Route::post('/logout', function () {
         Route::post('/cs/{id}/approve', [CanvassController::class, 'approveCS']);
         Route::post('/cs/{id}/reject', [CanvassController::class, 'rejectCS']);
         Route::post('/cs/{id}/revise', [CanvassController::class, 'reviseCS']);
+        Route::post('/cs/coa', [CanvassController::class, 'updateCoaCS'])->name('cs.update-coa');
+
+        Route::get('/bqcs/create-from-cs/{hash}', [BQCSController::class, 'createFromCS'])->name('bqcs.createFromCS');
+        Route::post('/bqcs', [BQCSController::class, 'storeBQCS'])->name('bqcs.store');
+        Route::get('/bqcs/edit/{hash}', [BQCSController::class, 'EditBQCS'])->name('bqcs.edit');    
+        Route::put('bqcs/update/{hash}', [BQCSController::class, 'updateBQCS'])->name('bqcs.update');
     });
 
-    Route::get('/bqcs/create-from-cs/{hash}', [BQCSController::class, 'createFromCS'])->name('bqcs.createFromCS');
-    Route::post('/bqcs', [BQCSController::class, 'storeBQCS'])->name('bqcs.store');
-    Route::get('/bqcs/edit/{hash}', [BQCSController::class, 'EditBQCS'])->name('bqcs.edit');    
-    Route::put('bqcs/update/{hash}', [BQCSController::class, 'updateBQCS'])->name('bqcs.update');
+    
 
     Route::middleware('access:CSLIST,VIEW')->group(function () {
         Route::get('/cslist', [CsListController::class, 'index'])->name('cslist');
         Route::get('/cslist/json', [CsListController::class, 'json'])->name('cslist.json');
+        Route::get('/pdf_cs/{hash}', [CanvassController::class, 'printCS']);
+        Route::get('/showcs/{hash}', [CanvassController::class, 'showCS']);     
+        Route::get('/showbqcs/{hash}', [BQCSController::class, 'showBQCS'])->name('bqcs.show');
     });
 
     Route::middleware('access:POLIST,VIEW')->group(function () {
@@ -915,6 +919,8 @@ Route::post('/logout', function () {
     Route::get('/wos/ajax/wos', [MasterController::class, 'getWoComplated'])->name('wos.ajax.index');     
     Route::get('/inventory/by-worktype', [MasterController::class, 'InventoryByWorktype'])->name('inventory.byWorktype');
     Route::get('/wos/ajax/completed-wo', [MasterController::class, 'completedWoSppb'])->name('wos.ajax.completed-wo');    
+
+    
     
     Route::post('/attachments/{doctype}/{refnbr}',  [TrAttachmentController::class, 'uploadAttachments'])->name('attachments.upload');
     Route::get ('/attachments/{doctype}/{refnbr}',  [TrAttachmentController::class, 'listAttachments'])->name('attachments.list');

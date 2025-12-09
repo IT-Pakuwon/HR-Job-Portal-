@@ -6,11 +6,11 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 use App\Models\TrCS;
+use App\Models\SysUserRole;
 use Vinkla\Hashids\Facades\Hashids;
 
 class CsListController extends Controller
 {
-    /** === TEMPLATE BARU: index dengan nama variabel versi baru === */
     public function index()
     {
         $user = Auth::user();
@@ -18,44 +18,114 @@ class CsListController extends Controller
 
         $u = $user->username ?? '';
 
-        // pakai hitungan yang sama, tapi variabel mengikuti template baru
-        $my        = TrCS::where('created_by', $u)->count();
-        $onProgress = TrCS::where('created_by', $u)->where('status','P')->count();
-        $reject     = TrCS::where('created_by', $u)->where('status','R')->count();
-        $completed  = TrCS::where('created_by', $u)->where('status','C')->count();
-        $all     = TrCS::count();        
+        // Ambil company list (bisa "AW,GPS")
+        $cpnyRaw  = $user->cpny_id ?? '';
+        $cpnyList = $cpnyRaw !== '' ? array_map('trim', explode(',', $cpnyRaw)) : [];
+
+        // Role FINACCESS?
+        $isFinanceAccess = SysUserRole::where('username', $u)
+            ->where('role_id', 'FINACCESS')
+            ->exists();
+
+        // Helper filter created_by untuk non finance
+        $filterCreator = function ($q) use ($isFinanceAccess, $u) {
+            if (!$isFinanceAccess) {
+                $q->where('created_by', $u);
+            }
+        };
+
+        // ALWAYS filter by user's company list
+        $filterCompany = function ($q) use ($cpnyList) {
+            if (!empty($cpnyList)) {
+                $q->whereIn('cpny_id', $cpnyList);
+            }
+        };
+
+        // === SUMMARY COUNT ===
+
+        // My CS → selalu milik user
+        $my = TrCS::when(!empty($cpnyList), fn($q) => $q->whereIn('cpny_id', $cpnyList))
+            ->where('created_by', $u)
+            ->count();
+
+        // On Progress
+        $onProgress = TrCS::where('status', 'P')
+            ->where($filterCompany)
+            ->where($filterCreator)
+            ->count();
+
+        // Rejected
+        $reject = TrCS::where('status', 'R')
+            ->where($filterCompany)
+            ->where($filterCreator)
+            ->count();
+
+        // Completed
+        $completed = TrCS::where('status', 'C')
+            ->where($filterCompany)
+            ->where($filterCreator)
+            ->count();
+
+        // All → semua company user, tanpa filter created_by
+        $all = TrCS::when(!empty($cpnyList), fn($q) => $q->whereIn('cpny_id', $cpnyList))
+            ->count();
 
         return view('pages.canvass.cslist', compact('my','onProgress','reject','all','completed'));
     }
 
 
+
     public function json(Request $req)
     {
         $scope = strtolower((string) $req->query('scope', 'my'));
-        $u = Auth::user()->username ?? '';
+
+        $user = Auth::user();
+        $u    = $user->username ?? '';
+
+        // Company list
+        $cpnyRaw  = $user->cpny_id ?? '';
+        $cpnyList = $cpnyRaw !== '' ? array_map('trim', explode(',', $cpnyRaw)) : [];
+
+        // FINACCESS?
+        $isFinanceAccess = SysUserRole::where('username', $u)
+            ->where('role_id', 'FINACCESS')
+            ->exists();
 
         $base = TrCS::query();
 
+        // Company filter
+        if (!empty($cpnyList)) {
+            $base->whereIn('cpny_id', $cpnyList);
+        }
+
+        // Filter created_by only if NOT FINACCESS
+        $applyCreatorFilter = function ($q) use ($isFinanceAccess, $u) {
+            if (!$isFinanceAccess) {
+                $q->where('created_by', $u);
+            }
+        };
+
+        // Apply scope filtering
         switch ($scope) {
             case 'all':
-                // Tampilkan semua CS (tanpa filter created_by/status)
+                // only apply company filter, no creator filter
                 break;
 
             case 'onprogress':
-                $base->where('created_by', $u)->where('status', 'P');
+                $base->where('status', 'P')->where($applyCreatorFilter);
                 break;
 
             case 'rejected':
-                $base->where('created_by', $u)->where('status', 'R');
-                break;          
+                $base->where('status', 'R')->where($applyCreatorFilter);
+                break;
 
             case 'completed':
-                $base->where('created_by', $u)->where('status', 'C');
+                $base->where('status', 'C')->where($applyCreatorFilter);
                 break;
 
             case 'my':
             default:
-                // Default: semua CS milik user login (tanpa filter status)
+                // always show only user’s own data
                 $base->where('created_by', $u);
                 break;
         }
@@ -64,7 +134,7 @@ class CsListController extends Controller
     }
 
 
-    
+
     private function buildJsonTrCS(Request $req, $base)
     {
         $draw   = (int) $req->input('draw', 1);
@@ -72,47 +142,28 @@ class CsListController extends Controller
         $length = (int) $req->input('length', 25);
         $search = trim((string) $req->input('search.value', ''));
 
-        $csTable = (new TrCS)->getTable(); // "tr_cs"
+        $csTable = (new TrCS)->getTable();
         $prefixExpr = "SUBSTRING({$csTable}.sppbjktid FROM 1 FOR 2)";
 
-        // mapping kolom utk order (persis lama)
-        $columns = [
-            0 => 'csid',
-            1 => 'sppbjktid',
-            2 => 'csdate',
-            3 => 'user_peminta',
-            4 => 'cpny_id',
-            5 => 'department_id',
-            6 => 'created_by',
-            7 => 'csnote',
-            8 => 'assigndate',
-            9 => 'submitdate',
-            10 => 'days',
-        ];
-        $orderIdx = (int) $req->input('order.0.column', 2);
-        $orderDir = $req->input('order.0.dir', 'desc') === 'asc' ? 'asc' : 'desc';
-        $orderCol = $columns[$orderIdx] ?? 'csdate';
-
-        // search persis lama
+        // === Search, Order, Select (unchanged) ===
         if ($search !== '') {
             $base->where(function($q) use ($search, $csTable){
-                $q->where($csTable.'.csid', 'ilike', "%{$search}%")
-                  ->orWhere($csTable.'.sppbjktid', 'ilike', "%{$search}%")
-                  ->orWhere($csTable.'.cpny_id', 'ilike', "%{$search}%")
-                  ->orWhere($csTable.'.department_id', 'ilike', "%{$search}%")
-                  ->orWhere($csTable.'.user_peminta', 'ilike', "%{$search}%")
-                  ->orWhere($csTable.'.created_by', 'ilike', "%{$search}%")
-                  ->orWhere($csTable.'.csnote', 'ilike', "%{$search}%")
-                  ->orWhereRaw("TO_CHAR({$csTable}.csdate,'YYYY-MM-DD HH24:MI:SS') ILIKE ?", ["%{$search}%"])
-                  ->orWhereRaw("TO_CHAR({$csTable}.assigndate,'YYYY-MM-DD HH24:MI:SS') ILIKE ?", ["%{$search}%"])
-                  ->orWhereRaw("TO_CHAR({$csTable}.submitdate,'YYYY-MM-DD HH24:MI:SS') ILIKE ?", ["%{$search}%"]);
+                $q->where($csTable.'.csid','ilike',"%{$search}%")
+                  ->orWhere($csTable.'.sppbjktid','ilike',"%{$search}%")
+                  ->orWhere($csTable.'.cpny_id','ilike',"%{$search}%")
+                  ->orWhere($csTable.'.department_id','ilike',"%{$search}%")
+                  ->orWhere($csTable.'.user_peminta','ilike',"%{$search}%")
+                  ->orWhere($csTable.'.created_by','ilike',"%{$search}%")
+                  ->orWhere($csTable.'.csnote','ilike',"%{$search}%")
+                  ->orWhereRaw("TO_CHAR({$csTable}.csdate,'YYYY-MM-DD HH24:MI:SS') ILIKE ?",["%{$search}%"])
+                  ->orWhereRaw("TO_CHAR({$csTable}.assigndate,'YYYY-MM-DD HH24:MI:SS') ILIKE ?",["%{$search}%"])
+                  ->orWhereRaw("TO_CHAR({$csTable}.submitdate,'YYYY-MM-DD HH24:MI:SS') ILIKE ?",["%{$search}%"]);
             });
         }
 
         $recordsTotal    = (clone $base)->count();
         $recordsFiltered = (clone $base)->count();
 
-        // select + mapping sumber (PB/PJ/PK/PT) persis lama
         $rows = $base->select(
                     $csTable.'.id',
                     $csTable.'.csid',
@@ -134,12 +185,10 @@ class CsListController extends Controller
                         ELSE NULL
                     END) AS sppbjkt_src_id")
                 )
-                ->orderBy($orderCol === 'days' ? $csTable.'.csdate' : $orderCol, $orderDir)
-                ->orderBy($csTable.'.csid', 'desc')
+                ->orderBy('csdate','desc')
                 ->skip($start)->take($length)
                 ->get();
 
-        // hitung days & tambah eid
         $rows->transform(function($r){
             $assign = $r->assigndate ? Carbon::parse($r->assigndate)->startOfDay() : null;
             $submit = $r->submitdate ? Carbon::parse($r->submitdate)->startOfDay() : null;

@@ -41,23 +41,91 @@ class IMBudgetController extends Controller
 {
     public function index()
     {
-        $all        = TrIMBudget::count();
-        $onProgress = TrIMBudget::where('status', 'P')->count();
-        $hold       = TrIMBudget::where('status', 'H')->count();
-        $revise     = TrIMBudget::where('status', 'D')->count(); // <-- tambahkan ini
-        $reject     = TrIMBudget::where('status', 'R')->count();
-        $cancel     = TrIMBudget::where('status', 'X')->count();
-        $completed  = TrIMBudget::where('status', 'C')->count();
+        $user = Auth::user();
+        if (!$user) {
+            return redirect()->route('login');
+        }
+
+        $u       = $user->username ?? '';
+        $deptId  = $user->department_id ?? null;
+        $cpnyRaw = $user->cpny_id ?? '';
+        $cpnyList = $cpnyRaw !== '' ? array_map('trim', explode(',', $cpnyRaw)) : [];
+
+        // Cek role FINACCESS
+        $isFinanceAccess = SysUserRole::where('username', $u)
+            ->where('role_id', 'FINACCESS')
+            ->exists();
+
+        // Base filter: always filter by cpny_id; tambah department_id jika bukan FINACCESS
+        $baseFilter = function ($q) use ($cpnyList, $isFinanceAccess, $deptId) {
+            if (!empty($cpnyList)) {
+                $q->whereIn('cpny_id', $cpnyList);
+            }
+            if (!$isFinanceAccess && $deptId) {
+                $q->where('department_id', $deptId);
+            }
+        };
+
+        $all = TrIMBudget::where($baseFilter)->count();
+
+        $onProgress = TrIMBudget::where($baseFilter)
+            ->where('status', 'P')
+            ->count();
+
+        $hold = TrIMBudget::where($baseFilter)
+            ->where('status', 'H')
+            ->count();
+
+        $revise = TrIMBudget::where($baseFilter)
+            ->where('status', 'D')
+            ->count();
+
+        $reject = TrIMBudget::where($baseFilter)
+            ->where('status', 'R')
+            ->count();
+
+        $cancel = TrIMBudget::where($baseFilter)
+            ->where('status', 'X')
+            ->count();
+
+        $completed = TrIMBudget::where($baseFilter)
+            ->where('status', 'C')
+            ->count();
 
         return view('pages.imbudgets.imbudgets', compact(
-            'all', 'onProgress', 'reject', 'cancel', 'completed', 'hold', 'revise' // <-- kirim $revise
+            'all',
+            'onProgress',
+            'reject',
+            'cancel',
+            'completed',
+            'hold',
+            'revise'
         ));
     }
 
 
-
     public function json(Request $request)
     {
+        $user = Auth::user();
+        if (!$user) {
+            return response()->json([
+                'draw'            => 0,
+                'recordsTotal'    => 0,
+                'recordsFiltered' => 0,
+                'data'            => [],
+            ]);
+        }
+
+        $u        = $user->username ?? '';
+        $deptId   = $user->department_id ?? null;
+        $cpnyRaw  = $user->cpny_id ?? '';
+        $cpnyList = $cpnyRaw !== '' ? array_map('trim', explode(',', $cpnyRaw)) : [];
+
+        // cek FINACCESS
+        $isFinanceAccess = SysUserRole::where('username', $u)
+            ->where('role_id', 'FINACCESS')
+            ->exists();
+
         $draw   = (int) $request->input('draw', 1);
         $start  = (int) $request->input('start', 0);
         $length = (int) $request->input('length', 25);
@@ -80,7 +148,13 @@ class IMBudgetController extends Controller
         $orderDir = $request->input('order.0.dir', 'desc') === 'asc' ? 'asc' : 'desc';
         $orderCol = $columns[$orderIdx] ?? 'imb.imbudgetdate';
 
-        $base = TrIMBudget::from($baseTable.' as imb');
+        $base = TrIMBudget::from($baseTable . ' as imb')
+            ->when(!empty($cpnyList), function ($q) use ($cpnyList) {
+                $q->whereIn('imb.cpny_id', $cpnyList);
+            })
+            ->when(!$isFinanceAccess && $deptId, function ($q) use ($deptId) {
+                $q->where('imb.department_id', $deptId);
+            });
 
         // === Filter status (dukung CSV: "H,D") ===
         if ($status !== '') {
@@ -98,11 +172,11 @@ class IMBudgetController extends Controller
             $like = "%{$search}%";
             $base->where(function ($q) use ($like) {
                 $q->where('imb.imbudgetid', 'ilike', $like)
-                ->orWhere('imb.csid', 'ilike', $like)
-                ->orWhere('imb.sppbjktid', 'ilike', $like)
-                ->orWhere('imb.cpny_id', 'ilike', $like)
-                ->orWhere('imb.user_peminta', 'ilike', $like)
-                ->orWhere('imb.status', 'ilike', $like);
+                    ->orWhere('imb.csid', 'ilike', $like)
+                    ->orWhere('imb.sppbjktid', 'ilike', $like)
+                    ->orWhere('imb.cpny_id', 'ilike', $like)
+                    ->orWhere('imb.user_peminta', 'ilike', $like)
+                    ->orWhere('imb.status', 'ilike', $like);
             });
         }
 
@@ -110,21 +184,21 @@ class IMBudgetController extends Controller
         $recordsFiltered = (clone $base)->count();
 
         $rows = $base->select(
-                    'imb.id as rid',
-                    'imb.imbudgetid',
-                    'imb.imbudgetdate',
-                    'imb.csid',
-                    'imb.sppbjktid',
-                    'imb.cpny_id',
-                    'imb.user_peminta',
-                    'imb.status',
-                    'imb.created_by'
-                )
-                ->orderBy($orderCol, $orderDir)
-                ->orderBy('imb.imbudgetid', 'desc')
-                ->skip($start)
-                ->take($length)
-                ->get();
+                'imb.id as rid',
+                'imb.imbudgetid',
+                'imb.imbudgetdate',
+                'imb.csid',
+                'imb.sppbjktid',
+                'imb.cpny_id',
+                'imb.user_peminta',
+                'imb.status',
+                'imb.created_by'
+            )
+            ->orderBy($orderCol, $orderDir)
+            ->orderBy('imb.imbudgetid', 'desc')
+            ->skip($start)
+            ->take($length)
+            ->get();
 
         $rows->transform(function ($row) {
             $row->imbudgetdate = $row->imbudgetdate
@@ -150,6 +224,7 @@ class IMBudgetController extends Controller
             'data'            => $rows,
         ]);
     }
+
 
 
     

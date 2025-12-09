@@ -14,6 +14,7 @@ use Illuminate\Support\Str;
 use App\Models\TrPO;
 use App\Models\TrRfca;
 use App\Models\TrRfcaStep;
+use App\Models\SysUserRole;
 
 class CalrListController extends Controller
 {
@@ -26,6 +27,10 @@ class CalrListController extends Controller
         $cpnyRaw  = $user->cpny_id ?? '';
         // bisa "AW" atau "AW,GPS"
         $cpnyList = $cpnyRaw !== '' ? array_map('trim', explode(',', $cpnyRaw)) : [];
+
+        $isFinanceAccess = SysUserRole::where('username', $u)
+            ->where('role_id', 'FINACCESS')
+            ->exists();
 
         // 🔁 Calr Jobs: dari TrRfca + TrRfcaStep (calr_gen = true) dan BELUM punya CALR
         $calrjobs = TrRfca::query()
@@ -41,28 +46,55 @@ class CalrListController extends Controller
             ->where('s.calr_gen', true)      // hanya step yang generate CALR
             ->where('s.status_rfca', 'C')
             ->whereNull('c.calrid')          // belum ada CALR
+            ->where('s.created_by', $u)
             ->count();
 
         // Stat CALR existing dari TrCalr
+        // $onProgress = TrCalr::when(!empty($cpnyList), fn($q) => $q->whereIn('cpny_id', $cpnyList))
+        //     ->where('created_by', $u)
+        //     ->where('status','P')
+        //     ->count();
+
+        // $completed  = TrCalr::when(!empty($cpnyList), fn($q) => $q->whereIn('cpny_id', $cpnyList))
+        //     ->where('created_by', $u)
+        //     ->where('status','C')
+        //     ->count();
+
+        // $rejected   = TrCalr::when(!empty($cpnyList), fn($q) => $q->whereIn('cpny_id', $cpnyList))
+        //     ->where('created_by', $u)
+        //     ->where('status','R')
+        //     ->count();
+
+        // $revise     = TrCalr::when(!empty($cpnyList), fn($q) => $q->whereIn('cpny_id', $cpnyList))
+        //     ->where('created_by', $u)
+        //     ->where('status','D')
+        //     ->count();
+
+        // Helper closure untuk created_by filtering
+        $filterCreator = function ($q) use ($isFinanceAccess, $u) {
+            return $isFinanceAccess ? $q : $q->where('created_by', $u);
+        };
+
         $onProgress = TrCalr::when(!empty($cpnyList), fn($q) => $q->whereIn('cpny_id', $cpnyList))
-            ->where('created_by', $u)
             ->where('status','P')
+            ->where($filterCreator)
             ->count();
 
         $completed  = TrCalr::when(!empty($cpnyList), fn($q) => $q->whereIn('cpny_id', $cpnyList))
-            ->where('created_by', $u)
             ->where('status','C')
+            ->where($filterCreator)
             ->count();
 
         $rejected   = TrCalr::when(!empty($cpnyList), fn($q) => $q->whereIn('cpny_id', $cpnyList))
-            ->where('created_by', $u)
             ->where('status','R')
+            ->where($filterCreator)
             ->count();
 
         $revise     = TrCalr::when(!empty($cpnyList), fn($q) => $q->whereIn('cpny_id', $cpnyList))
-            ->where('created_by', $u)
             ->where('status','D')
+            ->where($filterCreator)
             ->count();
+
 
         $all        = TrCalr::when(!empty($cpnyList), fn($q)=>$q->whereIn('cpny_id',$cpnyList))
             ->count();
@@ -88,6 +120,11 @@ class CalrListController extends Controller
         $length = (int) $req->input('length', 25);
         $search = trim((string) $req->input('search.value', ''));
 
+        // cek apakah user punya role FINACCESS
+        $isFinanceAccess = SysUserRole::where('username', $u)
+            ->where('role_id', 'FINACCESS')
+            ->exists();
+
         if ($scope === 'calrjobs') {
             // 🔁 JOBS CALR: dari TrRfca + TrRfcaStep (calr_gen = 't'), belum punya CALR
             $base = TrRfca::query()
@@ -103,6 +140,7 @@ class CalrListController extends Controller
                 ->where('s.calr_gen', 't')
                 ->where('s.status_rfca', 'C')
                 ->whereNull('c.calrid')
+                ->where('s.created_by', $u)
                 ->select([
                     'tr_rfca.id',
                     'tr_rfca.rfcaid',
@@ -139,22 +177,42 @@ class CalrListController extends Controller
         } else {
             // Semua scope selain 'calrjobs' → dari TrCalr
             $base = TrCalr::query()
-                ->when(!empty($cpnyList), fn($q) => $q->whereIn('cpny_id', $cpnyList))
-                ->when($scope==='onprogress', fn($q)=>$q->where('created_by',$u)->where('status','P'))
-                ->when($scope==='completed',  fn($q)=>$q->where('created_by',$u)->where('status','C'))
-                ->when($scope==='rejected',   fn($q)=>$q->where('created_by',$u)->where('status','R'))
-                ->when($scope==='revise',     fn($q)=>$q->where('created_by',$u)->where('status','D'))
-                ->select([
-                    'id',
-                    'calrid',
-                    'calrdate',
-                    'rfcaid',
-                    'csid',
-                    'cpny_id',
-                    'vendorname',
-                    'created_by',
-                    'status',
-                ]);
+                ->when(!empty($cpnyList), fn($q) => $q->whereIn('cpny_id', $cpnyList));
+
+            // helper filter created_by (hanya kalau BUKAN FINACCESS)
+            $filterCreator = function ($q) use ($isFinanceAccess, $u) {
+                if (!$isFinanceAccess) {
+                    $q->where('created_by', $u);
+                }
+            };
+
+            // mapping scope → status
+            if ($scope === 'onprogress') {
+                $base->where('status', 'P')->where($filterCreator);
+            } elseif ($scope === 'completed') {
+                $base->where('status', 'C')->where($filterCreator);
+            } elseif ($scope === 'rejected') {
+                $base->where('status', 'R')->where($filterCreator);
+            } elseif ($scope === 'revise') {
+                $base->where('status', 'D')->where($filterCreator);
+            } else {
+                // scope lain (mis. 'all') → hanya filter company, tanpa filter created_by,
+                // sama seperti di index() untuk $all
+                // kalau mau tetap batasi non-FINACCESS ke created_by, tinggal aktifkan:
+                // $base->where($filterCreator);
+            }
+
+            $base->select([
+                'id',
+                'calrid',
+                'calrdate',
+                'rfcaid',
+                'csid',
+                'cpny_id',
+                'vendorname',
+                'created_by',
+                'status',
+            ]);
 
             $orderColumns = [
                 0 => 'calrid',
@@ -179,6 +237,7 @@ class CalrListController extends Controller
                 });
             }
         }
+
 
         $recordsTotal    = (clone $base)->count();
         $recordsFiltered = (clone $base)->count();

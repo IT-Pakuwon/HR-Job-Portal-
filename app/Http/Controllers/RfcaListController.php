@@ -27,6 +27,7 @@ class RfcaListController extends Controller
     public function index()
     {
         $user = Auth::user();
+        $username = $user->username ?? '';
         if (!$user) return redirect()->route('login');
 
         // bisa berisi "AW" atau "AW,GPS"
@@ -41,6 +42,7 @@ class RfcaListController extends Controller
         $rfcajobs = TrRfca::when(!empty($cpnyList), function ($q) use ($cpnyList) {
                     $q->whereIn('cpny_id', $cpnyList);
                 })
+                ->where('created_by', $username)
                 ->where(function ($q) {
                     $q->whereNull('rfca_type')
                     ->orWhere('rfca_type', '');
@@ -152,7 +154,8 @@ class RfcaListController extends Controller
                         $q->whereNull('tr_rfca.rfca_type')
                         ->orWhere('tr_rfca.rfca_type', '');
                     })
-                    ->whereNull('step.id');
+                    ->whereNull('step.id')
+                    ->where('tr_rfca.created_by', $u);
                 break;
 
             case 'financereceived':
@@ -344,7 +347,7 @@ class RfcaListController extends Controller
         // Untuk convenience (mis. kirim email dsb) – encrypt rfcaid
         $eid_rfcaid = Hashids::encode($rfca->rfcaid);
 
-        // Detail step RFCA (boleh tetap pakai rfca_step_order untuk urutan tampilan)
+        // Detail step RFCA
         $rfcaSteps = TrRfcaStep::where('rfcaid', $rfca->rfcaid)
             ->orderBy('rfca_step_order')
             ->get();
@@ -355,17 +358,33 @@ class RfcaListController extends Controller
             ->orderBy('rfca_step_order')
             ->first();
 
+        // === Flag: hanya creator yang boleh lihat tombol Submit ===
+        $loginUsername = $user->username ?? $user->name ?? null;
+        $canSubmit     = $rfca->created_by === $loginUsername;
+
+        // === Cek apakah user berhak memproses step ini ===
+        $loginDept = $user->department_id ?? null;
+
+        $canProcessStepDept = false;
+        if ($currentStep && $currentStep->rfca_step_department_id == $loginDept) {
+            $canProcessStepDept = true;
+        }
+
+
         return view('pages.rfca.showrfca', [
-            'rfca'       => $rfca,
-            'hash'       => $hash,
-            'eid_rfcaid' => $eid_rfcaid,
-            'poUrl'      => $poUrl,
-            'sppbUrl'    => $sppbUrl,
-            'csUrl'      => $csUrl,
-            'rfcaSteps'  => $rfcaSteps,
+            'rfca'        => $rfca,
+            'hash'        => $hash,
+            'eid_rfcaid'  => $eid_rfcaid,
+            'poUrl'       => $poUrl,
+            'sppbUrl'     => $sppbUrl,
+            'csUrl'       => $csUrl,
+            'rfcaSteps'   => $rfcaSteps,
             'currentStep' => $currentStep,
+            'canSubmit'   => $canSubmit, 
+            'canProcessStepDept' => $canProcessStepDept,
         ]);
     }
+
 
     public function submitType(Request $request, $hash)
     {
