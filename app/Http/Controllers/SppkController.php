@@ -1188,6 +1188,7 @@ class SppkController extends Controller
             'subLocation:sub_location_id,sub_location_name'
         ])
         ->where('sppkid', $sppk->sppkid)
+        ->orderby('sppk_no', 'ASC')
         ->get();
         
         // $approval = T_approval::where('docid', $sppk->sppkid)

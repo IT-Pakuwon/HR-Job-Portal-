@@ -1168,6 +1168,7 @@ class SppjController extends Controller
             'subLocation:sub_location_id,sub_location_name'
         ])
         ->where('sppjid', $sppj->sppjid)
+        ->orderby('sppj_no', 'ASC')
         ->get();
         
         $approval = T_approval::where('docid', $sppj->sppjid)

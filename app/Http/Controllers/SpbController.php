@@ -1006,7 +1006,10 @@ class SpbController extends Controller
         $spbdetail = TrSPBdetail::with([
             'location:location_id,location_name',
             'subLocation:sub_location_id,sub_location_name',
-        ])->where('spbid', $spb->spbid)->get();
+        ])
+        ->where('spbid', $spb->spbid)
+        ->orderby('spb_no', 'ASC')
+        ->get();
 
         // --- Approval trail ---
         $approval = T_approval::where('docid', $spb->spbid)

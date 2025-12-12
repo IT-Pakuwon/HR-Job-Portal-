@@ -532,16 +532,16 @@
                     class="flex items-center justify-between rounded-t-xl border-b border-gray-200 bg-white px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
                     <h2 class="text-xl font-semibold text-gray-800 dark:text-gray-100">📝 CS Detail</h2>
                      {{-- Button Edit COA --}}
-        <button
-            id="btnEditCoa"
-            class="inline-flex items-center gap-1 rounded-md bg-indigo-600 px-3 py-2 text-sm font-medium text-white shadow hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                stroke-width="1.5" stroke="currentColor" class="h-4 w-4">
-                <path stroke-linecap="round" stroke-linejoin="round"
-                    d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125" />
-            </svg>
-            Edit COA
-        </button>
+                        {{-- <button
+                            id="btnEditCoa"
+                            class="inline-flex items-center gap-1 rounded-md bg-indigo-600 px-3 py-2 text-sm font-medium text-white shadow hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                stroke-width="1.5" stroke="currentColor" class="h-4 w-4">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125" />
+                            </svg>
+                            Edit COA
+                        </button> --}}
                 </header>
                 {{-- <div class="mt-4 overflow-x-auto">
                     <table class="min-w-full border-separate border-spacing-0 text-sm">
@@ -716,7 +716,7 @@
                                     Location
                                 </th>
                                 <th class="w-32 px-3 py-2 text-left">
-                                    Budget Dept
+                                    Budget Department
                                 </th>                               
 
                                 @foreach ($vendors as $v)
@@ -756,7 +756,7 @@
                         <!-- SCROLL BODY WRAPPER -->
                         <tbody>
                             <tr>
-                                {{-- 4 kolom fixed (Inventory, Qty, Location, Budget Dept, COA) + vendor columns --}}
+                                {{-- 4 kolom fixed (Inventory, Qty, Location, Budget Department, COA) + vendor columns --}}
                                 <td colspan="{{ 4 + count($vendors) }}" class="p-0">
                                     <!-- BODY SCROLL -->
                                     <div class="max-h-[200px] overflow-y-auto">
@@ -802,7 +802,7 @@
                                                             @endif
                                                         </td>
 
-                                                        {{-- Budget Dept --}}
+                                                        {{-- Budget Department --}}
                                                         <td class="w-32 px-3 py-2 align-top">
                                                             {{ $row->budget_department_fin_id ?? '-' }} - {{ $row->budget_account_id ?? '-' }}
                                                         </td>                                                        
@@ -1712,7 +1712,7 @@
     </style>
 
 
-    <script>
+    {{-- <script>
     $(function () {
         const $modal = $('#editCoaModal');
 
@@ -1842,7 +1842,7 @@
             });
         });
     });
-</script>
+</script> --}}
 
 
 

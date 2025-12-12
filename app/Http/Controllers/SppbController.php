@@ -1179,6 +1179,7 @@ class SppbController extends Controller
             'subLocation:sub_location_id,sub_location_name'
         ])
         ->where('sppbid', $sppb->sppbid)
+        ->orderby('sppb_no', 'ASC')
         ->get();
         
         // $approval = T_approval::where('docid', $sppb->sppbid)
@@ -1241,7 +1242,11 @@ class SppbController extends Controller
         
         $loginUsername = $user->username ?? $user->name ?? null;
         $canUpload     = $sppb->created_by === $loginUsername;
-        return view('pages.sppbs.showsppbs', compact('sppb','attachments','sppbdetail','hash','canUpload'));
+        $akses_cc = SysUserRole::where('username', $user->username)
+            ->where('role_id','COSTCTRLACCESS')
+            ->first();
+
+        return view('pages.sppbs.showsppbs', compact('sppb','attachments','sppbdetail','hash','canUpload','akses_cc'));
     }
       
     public function approveSppb(Request $request, $docid)
