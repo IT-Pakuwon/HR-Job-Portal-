@@ -454,6 +454,8 @@
                                 <tr>
                                     <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">CSID
                                     </th>
+                                    <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">SPPBJKT ID
+                                    </th>
                                     <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">
                                         Date</th>
                                     <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">
@@ -473,7 +475,7 @@
                 </div>
 
                 {{-- === PANE: CS Jobs (with internal tab for Entry CS) === --}}
-                <div id="pane-mine">
+                {{-- <div id="pane-mine">
                     <!-- Internal Tab Buttons -->
                     <div class="mb-4 flex gap-3">
                         <button id="subtab-mine"
@@ -543,7 +545,7 @@
                             </tbody>
                         </table>
                     </div>
-                </div>
+                </div> --}}
 
 
                 {{-- === PANE: My Revision === --}}
@@ -781,17 +783,45 @@
                     [1, 'desc'],
                     [0, 'desc']
                 ],
-                columns: [{
+                columns: [
+                    {
                         data: 'csid',
                         className: 'text-left',
                         render: (v, _t, row) =>
-                            `<a href="/editcs/${row.eid}" class="inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-base leading-tight font-semibold text-white rounded text-center transition-colors duration-200 bg-yellow-500 hover:bg-yellow-700">${v}</a>`
+                            `<a href="/editcs/${row.eid}" 
+                            class="inline-flex justify-center items-center w-[120px] px-3 py-1.5 
+                                    text-base leading-tight font-semibold text-white rounded text-center 
+                                    transition-colors duration-200 bg-yellow-500 hover:bg-yellow-700">
+                                ${v}
+                            </a>`
+                    },
+                    {
+                        data: 'sppbjktid',
+                        className: 'text-left',
+                        render: (v, _t, row) => {
+                            if (!row.sppbjkt_eid) return '-';
+
+                            const mapShowUrl = {
+                                SPPB: 'showsppbs',
+                                SPPJ: 'showsppjs',
+                                SPPK: 'showsppks',
+                                SPPT: 'showsppts',
+                            };
+
+                            const base = mapShowUrl[row.sppbjkt_doc_type] || '#';
+
+                            return `
+                                <a href="/${base}/${row.sppbjkt_eid}"
+                                class="inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-base leading-tight font-semibold text-white rounded text-center transition-colors duration-200 bg-gray-500 hover:bg-gray-700">
+                                    ${v}
+                                </a>
+                            `;
+                        }
                     },
                     {
                         data: 'csdate',
                         className: 'text-center',
-                        render: v => v ? (isNaN(new Date(v)) ? v : new Date(v).toLocaleDateString(
-                            'id-ID')) : ''
+                        render: v => v ? (isNaN(new Date(v)) ? v : new Date(v).toLocaleDateString('id-ID')) : ''
                     },
                     {
                         data: 'cpny_id',
@@ -812,6 +842,7 @@
                         defaultContent: '-'
                     },
                 ],
+
                 searchDelay: 400,
                 stateSave: true,
                 responsive: true

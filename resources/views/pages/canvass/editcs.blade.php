@@ -1578,14 +1578,14 @@
         $('#submitBtn').on('click', function(e) {
             e.preventDefault();
 
+            // ===== VALIDASI FRONTEND =====
             if (!validateQtyLimit()) {
                 toastr.error('Ada qty yang melebihi qty awal. Periksa kembali.');
                 return;
             }
 
             if (!validateBQvsCS()) {
-                // akan muncul modal mismatch jika gagal
-                return;
+                return; // modal mismatch akan muncul
             }
 
             if (!validatePaymentTerms()) return;
@@ -1597,93 +1597,84 @@
                 return;
             }
 
-            // ==== VALIDASI: total per-vendor tidak semuanya 0 ====
+            // ==== VALIDASI total vendor !== 0 ====
             let allVendorTotalsZero = true;
             $vendorCols.each(function() {
                 const vid = String($(this).data('vendor-id'));
-                // const total = numFromText($(`#td-sum-${vid} .sum-total`).text());
                 const total = numFromText($(`#td-sum-${CSS.escape(vid)} .sum-total`).text());
                 if (total > 0) allVendorTotalsZero = false;
             });
+
             if (allVendorTotalsZero) {
                 toastr.error('Total tidak boleh 0. Isi harga minimal pada salah satu vendor.');
                 return;
             }
 
-            // ==== NEW: minimal ada vendor TERPILIH ====
+            // ==== NEW: minimal ada vendor dipilih ====
             if ($('.pick-vendor:checked').length === 0) {
                 toastr.error('Pilih vendor pada minimal satu item.');
                 return;
             }
 
-            // ==== NEW: baris yang ada harga > 0 harus pilih vendor ====
+            // ==== NEW: baris harga > 0 wajib pilih vendor ====
             let rowWithoutVendor = false;
             $('#cvBody tr').each(function() {
-                // ada harga > 0 di salah satu vendor pada baris ini?
                 let hasPrice = false;
+
                 $(this).find('input.price-input').each(function() {
-                    const v = $(this).val() || '';
-                    const num = (function parsePriceLocal(val) {
-                        let t = String(val).trim().replace(/[^0-9.,]/g, '');
-                        const lc = t.lastIndexOf(','),
-                            ld = t.lastIndexOf('.');
-                        const dec = (lc > ld) ? ',' : '.';
-                        if (dec === ',') t = t.replace(/\./g, '').replace(',', '.');
-                        else t = t.replace(/,/g, '');
-                        const n = parseFloat(t);
-                        return isNaN(n) ? 0 : n;
-                    })(v);
-                    if (num > 0) {
-                        hasPrice = true;
-                        return false;
-                    }
+                    const num = parsePrice($(this).val() || '');
+                    if (num > 0) { hasPrice = true; return false; }
                 });
 
-                // kalau ada harga, wajib ada vendor dipilih di baris ini
                 if (hasPrice && $(this).find('.pick-vendor:checked').length === 0) {
                     rowWithoutVendor = true;
-                    return false; // break
+                    return false;
                 }
             });
+
             if (rowWithoutVendor) {
                 toastr.error('Ada baris yang memiliki harga tetapi belum memilih vendor.');
                 return;
             }
 
-            // Kumpulkan vendor summary (urut sesuai posisi kolom)
+            // ==========================================
+            // KUMPULKAN DATA vendors & details
+            // ==========================================
             const vendors = [];
             $('#cvTable thead th[id^="th-vendor-"]').each(function(i) {
-                if (vendors.length >= 6) return; // hard limit 6
+                if (vendors.length >= 6) return;
+
                 const $th = $(this);
                 const vid = String($th.data('vendor-id'));
                 const vcode = String($th.data('vendor-code'));
 
-                // const $sum = $(`#td-sum-${vid}`);
                 const $sum = $(`#td-sum-${CSS.escape(vid)}`);
                 const total = numFromText($sum.find('.sum-total').text());
+
                 const ppn = Number($sum.find('.sum-ppn').val() || 0);
                 const pph = Number($sum.find('.sum-pph').val() || 0);
                 const ppnId = $sum.find('.sum-ppn-id').val() || '';
                 const pphId = $sum.find('.sum-pph-id').val() || '';
+
                 const tax = total * (ppn / 100) + total * (pph / 100);
                 const grand = total + tax;
-                // const selTotal = numFromText($sum.find('.sum-selected').text());
+
                 let selTotal = Number($sum.find('.sum-selected').attr('data-raw') || 0);
                 if (!selTotal) {
-                    // fallback aman kalau attr belum ada (mis. data lama)
+                    // fallback (untuk data lama)
                     let tmp = 0;
                     $('#cvBody tr').each(function() {
-                        const picked = String($(this).find('input.pick-vendor:checked').val() ||
-                            '');
+                        const picked = String($(this).find('.pick-vendor:checked').val() || '');
                         if (picked === vid) {
                             const lbl = $(this)
                                 .find(`input.price-input[data-vendor="${CSS.escape(vid)}"]`)
                                 .closest('td').find('.total-label');
-                            tmp += Number((lbl.text() || '0').replace(/[^0-9]/g, ''));
+                            tmp += Number((lbl.text() || '').replace(/[^0-9]/g, ''));
                         }
                     });
                     selTotal = tmp;
                 }
+
                 const selTax = selTotal * (ppn / 100) + selTotal * (pph / 100);
                 const selGrand = selTotal + selTax;
 
@@ -1695,7 +1686,6 @@
                     vendortelp: String($th.data('vendor-phone') || ''),
                     vendorcp: String($th.data('vendor-cp') || ''),
                     vendortop: $th.find('select.cara-bayar').val() || '',
-                    vendornote: '',
 
                     total: round2(total),
                     ppn: round2(ppn),
@@ -1710,7 +1700,9 @@
                 });
             });
 
-            // Kumpulkan detail baris
+            // ==========================================
+            // DETAIL
+            // ==========================================
             const details = [];
             $('#cvBody tr').each(function(rowIdx) {
                 const $tr = $(this);
@@ -1725,20 +1717,24 @@
                     inventoryid: invId,
                     inventory_descr: invDescr,
                     qty: round2(qty),
-                    uom: uom,
+                    uom,
                     inventory_last_price: round2(lastPrice),
                     csnote_detail: csNote,
                     vendor: []
                 };
 
-                const picked = String($tr.find('input.pick-vendor:checked').val() || '');
+                const picked = String($tr.find('.pick-vendor:checked').val() || '');
 
                 $('#cvTable thead th[id^="th-vendor-"]').each(function(i) {
                     if (i >= 6) return;
+
                     const vendorId = String($(this).data('vendor-id'));
                     const vendorIdCode = String($(this).data('vendor-code'));
-                    const $priceInput = $tr.find(`input.price-input[data-vendor="${vendorId}"]`);
-                    const price = parsePrice($priceInput.val());
+
+                    const price = parsePrice(
+                        $tr.find(`input.price-input[data-vendor="${vendorId}"]`).val()
+                    );
+
                     const total = qty * price;
 
                     row.vendor.push({
@@ -1753,44 +1749,74 @@
                 details.push(row);
             });
 
-            // FormData dari form yang benar
-            const fd = new FormData(document.getElementById('csForm'));
-            fd.append('vendors', JSON.stringify(vendors));
-            fd.append('details', JSON.stringify(details));
-            fd.append('action', 'submit');
+            // ==========================================
+            // CEK QTY DULU (PENTING!)
+            // ==========================================
+            const doc = $('input[name="doc"]').val();
+            // const src_id = $('input[name="src_id"]').val();
+            const src_id = $('input[name="sppbjktid"]').val();
 
-            showOverlay('Submitting');
+            showOverlay('Validating qty...');
 
             $.ajax({
-                // url: "{{ route('cs.store') }}",
-                url: "{{ route('csjobs.update', $cs->csid) }}",
+                url: "{{ route('cs.check-qty') }}",
                 method: 'POST',
-                data: fd,
-                processData: false,
-                contentType: false,
-                beforeSend: function(xhr) {
-                    fd.append('_method', 'PUT');
+                data: {
+                    _token: '{{ csrf_token() }}',
+                    doc,
+                    src_id,
+                    details: JSON.stringify(details)
                 },
                 success: function(res) {
-                    hideOverlay();
-                    toastr.success('CS berhasil disubmit.');
-                    window.location.href = "/cslist";
-                    // window.location.href = res.redirect ?? window.location.href;
+
+                    // ================================
+                    // LOL0S → SUBMIT EDIT CS
+                    // ================================
+                    const fd = new FormData(document.getElementById('csForm'));
+                    fd.append('vendors', JSON.stringify(vendors));
+                    fd.append('details', JSON.stringify(details));
+                    fd.append('action', 'submit');
+                    fd.append('_method', 'PUT');
+
+                    showOverlay('Submitting...');
+
+                    $.ajax({
+                        url: "{{ route('csjobs.update', $cs->csid) }}",
+                        method: 'POST',
+                        data: fd,
+                        processData: false,
+                        contentType: false,
+
+                        success: function() {
+                            hideOverlay();
+                            toastr.success('CS berhasil disubmit.');
+                            window.location.href = "/cslist";
+                        },
+
+                        error: function(xhr) {
+                            hideOverlay();
+                            toastr.error(xhr.responseJSON?.message || 'Gagal menyimpan CS.');
+                        }
+                    });
                 },
+
                 error: function(xhr) {
                     hideOverlay();
-                    let msg = 'Gagal menyimpan CS.';
-                    if (xhr.responseJSON && xhr.responseJSON.message) msg = xhr.responseJSON.message;
-                    toastr.error(msg);
+                    const res = xhr.responseJSON || {};
+                    toastr.error(res.message || 'Qty tidak valid.');
+
+                    if (Array.isArray(res.errors)) {
+                        res.errors.forEach(err => {
+                            $('#cvBody tr').eq(err.row_index).addClass('bg-red-100');
+                        });
+                    }
                 }
             });
         });
 
-
-        // helpers number
+        // HELPERS
         function numFromText(t) {
-            t = String(t || '');
-            t = t.replace(/\./g, '').replace(',', '.').replace(/[^0-9.-]/g, '');
+            t = String(t || '').replace(/\./g, '').replace(',', '.').replace(/[^0-9.-]/g, '');
             const n = parseFloat(t);
             return isNaN(n) ? 0 : n;
         }
@@ -1798,7 +1824,8 @@
         function round2(n) {
             return Math.round((+n + Number.EPSILON) * 100) / 100;
         }
-    </script>
+        </script>
+
 
     <script>
         // validasi: qty edit tidak boleh > qty awal

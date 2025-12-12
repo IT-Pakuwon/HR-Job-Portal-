@@ -1201,6 +1201,7 @@ class SpptController extends Controller
             'subLocation:sub_location_id,sub_location_name'
         ])
         ->where('spptid', $sppt->spptid)
+        ->orderby('sppt_no', 'ASC')
         ->get();
         
         // $approval = T_approval::where('docid', $sppt->spptid)

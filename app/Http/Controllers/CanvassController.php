@@ -2136,7 +2136,7 @@ class CanvassController extends Controller
 
     public function updateCS(Request $request, $csid)
     {
-        // dd('ini update CS');
+        dd($request->all());
         // 1) Validasi payload dasar
         $request->validate([
             'doc'             => 'required|string',     // SPPB|SPPJ|SPPK|SPPT

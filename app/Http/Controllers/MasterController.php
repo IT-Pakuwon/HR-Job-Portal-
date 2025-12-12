@@ -16,8 +16,7 @@ use App\Models\Autonbr;
 use App\Models\BudgetDetail;
 use App\Models\Budget;
 use App\Models\MsUom;
-use App\Models\TrSPPJ;
-use App\Models\TrSPPJdetail;
+
 use App\Models\Bq;
 use App\Models\BqDetail;
 use App\Models\BqDetailTemp;
@@ -44,6 +43,11 @@ use App\Models\ViewInventoryPSA;
 use App\Models\ViewInventoryGPS;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Arr;
+use App\Models\TrSPPBdetail;
+use App\Models\TrSPPJdetail;
+use App\Models\TrSPPKdetail;
+use App\Models\TrSPPTdetail;
+use App\Models\TrSPBdetail;
 
 
 
@@ -1403,6 +1407,123 @@ class MasterController extends Controller
             'page'     => $page,
             'per_page' => $perPage,
         ]);
+    }
+
+    public function updateCoa(Request $request)
+    {        
+        $rows     = $request->input('rows', []);
+        $docType  = strtolower($request->input('doc_type', '')); // sppb/sppj/sppk/sppt/spb/cs dll
+
+        if (!is_array($rows) || empty($rows)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No rows data provided.',
+            ], 422);
+        }
+
+        // Mapping doc_type => model detail
+        $modelMap = [
+            'pb' => TrSPPBdetail::class,
+            'pj' => TrSPPJdetail::class,
+            'pk' => TrSPPKdetail::class,
+            'pt' => TrSPPTdetail::class,
+            'rb'  => TrSPBdetail::class,            
+        ];
+
+        if (!isset($modelMap[$docType])) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid document type.',
+            ], 422);
+        }
+
+        $detailModel = $modelMap[$docType];
+
+        $user     = Auth::user();
+        $username = $user->username ?? 'system';
+
+        try {
+            DB::transaction(function () use ($rows, $username, $detailModel) {
+
+                foreach ($rows as $row) {
+                    $id             = $row['id'] ?? null;
+                    $acc            = $row['budget_account_id'] ?? null;
+                    $activityDescr  = $row['budget_activity_descr'] ?? null;
+
+                    if (!$id) {
+                        continue;
+                    }
+                    
+                    $detail = $detailModel::find($id);
+                    if (!$detail) {
+                        continue;
+                    }
+
+                    // Normalisasi field budget untuk semua dokumen
+                    $cpnyId = $detail->budget_cpny_id
+                        ?? $detail->cpny_id
+                        ?? null;
+
+                    $deptId = $detail->budget_department_fin_id
+                        ?? $detail->department_fin_id
+                        ?? $detail->budget_depatment_fin_id // typo lama di CS kalau ada
+                        ?? null;
+
+                    $perpost = $detail->budget_perpost
+                        ?? $detail->perpost
+                        ?? null;
+
+                    // Reset dulu
+                    $detail->budget_account_id      = $acc;
+                    $detail->budget_activity_id     = null;
+                    $detail->budget_activity_descr  = null;
+
+                    if (!empty($acc) && $cpnyId && $deptId && $perpost) {
+
+                        // Query BudgetDetail pakai kombinasi:
+                        // cpny_id, department_fin_id, perpost, account_id, activity_descr
+                        $bdQuery = BudgetDetail::query()
+                            ->where('cpny_id',           $cpnyId)
+                            ->where('department_fin_id', $deptId)
+                            ->where('perpost',           $perpost)
+                            ->where('account_id',        $acc);
+
+                        // Kalau dari frontend dikirim activity_descr, sertakan di where
+                        if (!empty($activityDescr)) {
+                            $bdQuery->where('activity_descr', $activityDescr);
+                        }
+
+                        $bd = $bdQuery->first();
+
+                        if ($bd) {
+                            $detail->budget_activity_id    = $bd->activity_id;
+                            $detail->budget_activity_descr = $bd->activity_descr;
+                        } else {
+                            // Kalau kombinasi ini tidak ketemu, minimal simpan deskripsi yang dipilih user
+                            if (!empty($activityDescr)) {
+                                $detail->budget_activity_descr = $activityDescr;
+                            }
+                        }
+                    }
+
+                    $detail->updated_by = $username;
+                    $detail->updated_at = now();
+                    $detail->save();
+                }
+
+            });
+
+            return response()->json([
+                'success' => true,
+                'message' => 'COA updated successfully.',
+            ]);
+
+        } catch (\Throwable $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to update COA: ' . $e->getMessage(),
+            ], 500);
+        }
     }
 
 

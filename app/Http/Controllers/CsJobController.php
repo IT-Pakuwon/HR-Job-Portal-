@@ -50,6 +50,8 @@ use Google\Cloud\Storage\StorageClient;
 use App\Http\Controllers\ApprovalController;
 use App\Models\TrApproval;  
 use App\Models\TrPO; 
+use App\Services\CsQtyValidator;
+
 
 
 class CsJobController extends Controller
@@ -359,12 +361,11 @@ class CsJobController extends Controller
 
         $username = Auth::user()->username ?? '';
 
-        // hanya draft (H) dan milik user login
+        // base query
         $base = TrCS::query()
             ->where('status', 'H')
             ->where('created_by', $username);
 
-        // kolom yang diizinkan untuk ordering
         $columns = [
             0 => 'csid',
             1 => 'csdate',
@@ -372,7 +373,9 @@ class CsJobController extends Controller
             3 => 'department_id',
             4 => 'user_peminta',
             5 => 'csnote',
+            6 => 'sppbjktid',
         ];
+
         $orderIdx = (int) $request->input('order.0.column', 1);
         $orderDir = $request->input('order.0.dir', 'desc') === 'asc' ? 'asc' : 'desc';
         $orderCol = $columns[$orderIdx] ?? 'csdate';
@@ -386,24 +389,76 @@ class CsJobController extends Controller
                 ->orWhere('department_id', 'ilike', "%{$search}%")
                 ->orWhere('user_peminta', 'ilike', "%{$search}%")
                 ->orWhere('csnote', 'ilike', "%{$search}%")
+                ->orWhere('sppbjktid', 'ilike', "%{$search}%")
                 ->orWhereRaw("TO_CHAR(csdate, 'YYYY-MM-DD HH24:MI:SS') ILIKE ?", ["%{$search}%"]);
             });
         }
 
         $recordsFiltered = (clone $base)->count();
 
-        $data = $base->select('id','csid','csdate','cpny_id','department_id','user_peminta','csnote','created_by','status')
+        // get rows
+        $data = $base
+            ->select(
+                'id',
+                'csid',
+                'csdate',
+                'cpny_id',
+                'department_id',
+                'user_peminta',
+                'csnote',
+                'created_by',
+                'status',
+                'sppbjktid'
+            )
             ->orderBy($orderCol, $orderDir)
             ->orderBy('csid', 'desc')
             ->skip($start)
             ->take($length)
             ->get();
 
-        $data->transform(function($r){
-            $r->eid = Hashids::encode($r->id);
-            unset($r->id); // opsional sembunyikan id asli
-            return $r;
-        });
+        // build SPPBJKT button data
+        foreach ($data as $row) {
+
+            $row->eid = Hashids::encode($row->id);
+
+            $docNo = $row->sppbjktid;
+            $row->sppbjkt_eid = null;
+            $row->sppbjkt_doc_type = null;
+
+            if (!$docNo) continue;
+
+            // Cari di tr_sppb
+            $sppb = TrSPPB::where('sppbid', $docNo)->first();
+            if ($sppb) {
+                $row->sppbjkt_eid = Hashids::encode($sppb->id);
+                $row->sppbjkt_doc_type = 'SPPB';
+                continue;
+            }
+
+            // Cari di tr_sppj
+            $sppj = TrSPPJ::where('sppjid', $docNo)->first();
+            if ($sppj) {
+                $row->sppbjkt_eid = Hashids::encode($sppj->id);
+                $row->sppbjkt_doc_type = 'SPPJ';
+                continue;
+            }
+
+            // Cari di tr_sppk
+            $sppk = TrSPPK::where('sppkid', $docNo)->first();
+            if ($sppk) {
+                $row->sppbjkt_eid = Hashids::encode($sppk->id);
+                $row->sppbjkt_doc_type = 'SPPK';
+                continue;
+            }
+
+            // Cari di tr_sppt
+            $sppt = TrSPPT::where('spptid', $docNo)->first();
+            if ($sppt) {
+                $row->sppbjkt_eid = Hashids::encode($sppt->id);
+                $row->sppbjkt_doc_type = 'SPPT';
+                continue;
+            }
+        }
 
         return response()->json([
             'draw'            => $draw,
@@ -412,6 +467,8 @@ class CsJobController extends Controller
             'data'            => $data,
         ]);
     }
+
+
    
 
     public function CompleteRemainingOpen(string $doc, string $eid)
@@ -510,6 +567,22 @@ class CsJobController extends Controller
                 'message' => 'Gagal memproses: '.$e->getMessage(),
             ], 422);
         }
+    }
+
+    public function checkQtyBeforeSubmit(Request $request)
+    {
+        $doc    = (string) $request->input('doc');      // SPPB | SPPJ | SPPK | SPPT
+        $srcId  = (string) $request->input('src_id');   // hashids dari sppbid/sppjid/...
+        $detailsJson = $request->input('details', '[]');
+        $details = json_decode($detailsJson, true) ?? [];
+        // dd($doc.$srcId);
+        $result = CsQtyValidator::validate($doc, $srcId, $details);
+
+        if (! $result['ok']) {
+            return response()->json($result, 422);
+        }
+
+        return response()->json($result);
     }
 
 

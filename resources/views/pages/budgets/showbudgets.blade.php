@@ -446,7 +446,7 @@
                                     <td class="px-4 py-2">{{ $item->activity_id }}</td>
                                     <td class="px-4 py-2">{{ $item->activity_descr }}</td>
                                     <td class="px-4 py-2">{{ $item->activity_detail }}</td>
-                                    <td class="px-4 py-2">{{ $item->qty_budget }}</td>
+                                    <td class="px-4 py-2">{{ number_format($item->qty_budget, 2, ',', '.') }}</td>
                                     <td class="px-4 py-2">{{ $item->unit_price_budget }}</td>
                                     <td class="px-4 py-2 text-right">
                                         {{ number_format($item->totalbudget) }}
