@@ -485,25 +485,25 @@ class CsJobController extends Controller
             // ambil header + detail & nama kolom key nomor urut seperti helper lain
             switch ($doc) {
                 case 'SPPB':
-                    $header = \App\Models\TrSPPB::on('pgsql')->lockForUpdate()->findOrFail($srcId);
-                    $details = \App\Models\TrSPPBdetail::on('pgsql')->where('sppbid', $header->sppbid)->get();
+                    $updated = \App\Models\TrSPPB::on('pgsql')->lockForUpdate()->findOrFail($srcId);
+                    $details = \App\Models\TrSPPBdetail::on('pgsql')->where('sppbid', $updated->sppbid)->get();
                     break;
                 case 'SPPJ':
-                    $header = \App\Models\TrSPPJ::on('pgsql')->lockForUpdate()->findOrFail($srcId);
-                    $details = \App\Models\TrSPPJdetail::on('pgsql')->where('sppjid', $header->sppjid)->get();
+                    $updated = \App\Models\TrSPPJ::on('pgsql')->lockForUpdate()->findOrFail($srcId);
+                    $details = \App\Models\TrSPPJdetail::on('pgsql')->where('sppjid', $updated->sppjid)->get();
                     break;
                 case 'SPPK':
-                    $header = \App\Models\TrSPPK::on('pgsql')->lockForUpdate()->findOrFail($srcId);
-                    $details = \App\Models\TrSPPKdetail::on('pgsql')->where('sppkid', $header->sppkid)->get();
+                    $updated = \App\Models\TrSPPK::on('pgsql')->lockForUpdate()->findOrFail($srcId);
+                    $details = \App\Models\TrSPPKdetail::on('pgsql')->where('sppkid', $updated->sppkid)->get();
                     break;
                 case 'SPPT':
-                    $header = \App\Models\TrSPPT::on('pgsql')->lockForUpdate()->findOrFail($srcId);
-                    $details = \App\Models\TrSPPTdetail::on('pgsql')->where('spptid', $header->spptid)->get();
+                    $updated = \App\Models\TrSPPT::on('pgsql')->lockForUpdate()->findOrFail($srcId);
+                    $details = \App\Models\TrSPPTdetail::on('pgsql')->where('spptid', $updated->spptid)->get();
                     break;
             }
 
             $detTable = fn($m) => $m->getTable();
-            $hdrTable = $header->getTable();
+            $hdrTable = $updated->getTable();
 
             $sumCompletedAdded = 0.0;
             $sumOpenReduced    = 0.0;
@@ -542,16 +542,16 @@ class CsJobController extends Controller
 
             // update header agregat bila kolom tersedia
             if (\Schema::connection('pgsql')->hasColumn($hdrTable, 'totalcompleteordered')) {
-                $header->totalcompleteordered = (float)($header->totalcompleteordered ?? 0) + $sumCompletedAdded;
+                $updated->totalcompleteordered = (float)($updated->totalcompleteordered ?? 0) + $sumCompletedAdded;
             }
             if (\Schema::connection('pgsql')->hasColumn($hdrTable, 'totalopenordered')) {
-                $header->totalopenordered = max(0, (float)($header->totalopenordered ?? 0) - $sumOpenReduced);
+                $updated->totalopenordered = max(0, (float)($updated->totalopenordered ?? 0) - $sumOpenReduced);
             }
 
             // opsional: kalau semua detail sudah complete, set status header (mis. 'C' atau tetap sesuai workflow)
             // if (method_exists($details, 'sum')) { ... } — skip bila belum butuh.
 
-            $header->save();
+            $updated->save();
 
             DB::connection('pgsql')->commit();
 
@@ -584,6 +584,230 @@ class CsJobController extends Controller
 
         return response()->json($result);
     }
+
+    public function cancelCS(Request $request, $csid)
+    {
+        $user = Auth::user();
+        if (!$user) {
+            return response()->json([
+                'ok' => false,
+                'message' => 'Unauthorized',
+            ], 401);
+        }
+
+        // Optional: alasan cancel
+        $reason = trim((string) $request->input('reason', ''));
+        // dd($reason);
+        DB::beginTransaction();
+        try {
+            $updated = TrCS::where('csid', $csid)->first();
+
+            if (!$updated) {
+                return response()->json([
+                    'ok' => false,
+                    'message' => 'CS tidak ditemukan.',
+                ], 404);
+            }
+
+            // Optional proteksi: kalau sudah X / sudah final, stop
+            if (strtoupper((string) $updated->status) === 'X') {
+                return response()->json([
+                    'ok' => true,
+                    'message' => 'CS sudah Cancel sebelumnya.',
+                    'redirect' => url('/cslist'),
+                ]);
+            }
+
+            // Update header
+            $updated->csnote = $reason;
+            $updated->status = 'X';           
+            $updated->save();
+
+            // Update detail
+            $q = TrCSdetail::where('csid', $csid)->update([
+                'status' => 'X',              
+            ]);
+
+            DB::commit();
+
+            return response()->json([
+                'ok' => true,
+                'message' => 'CS berhasil dicancel.',
+                'redirect' => url('/csjobs'),
+            ]);
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            return response()->json([
+                'ok' => false,
+                'message' => 'Gagal cancel CS: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    
+
+    public function reviseSPPBJKT(Request $request)
+    {
+        // dd($request->all());
+        $user = Auth::user();
+        if (!$user) {
+            return response()->json(['ok' => false, 'message' => 'Unauthorized'], 401);
+        }
+
+        $data = $request->validate([
+            'doc_type'       => 'required|in:SPPB,SPPJ,SPPK,SPPT',
+            'doc_no'         => 'required|string',
+            'cpny_id'        => 'required|string',
+            'department_id' => 'required|string',
+            'reason'         => 'required|string|min:5',
+        ]);
+
+        DB::beginTransaction();
+        try {
+            $updated = 0;
+            $docType = $data['doc_type'];
+            $docNo   = $data['doc_no'];
+            $reason  = $data['reason'];
+
+            switch ($docType) {
+                case 'SPPB':
+                    $updated = TrSPPB::where('sppbid', $docNo)->update([
+                        'status' => 'D',
+                        'updated_by' => $user->username,
+                        'updated_at' => Carbon::now(),
+                    ]);
+                    $header = TrSPPB::where('sppbid', $docNo)->first();
+                    $doc_type  = 'PB';      
+                    $eid       = \Vinkla\Hashids\Facades\Hashids::encode($header->id);      
+                    $url       =  url('/showsppbs/' . $eid);  
+                    
+                    break;
+
+                case 'SPPJ':
+                    $updated = TrSPPJ::where('sppjid', $docNo)->update([
+                        'status' => 'D',
+                        'updated_by' => $user->username,
+                        'updated_at' => Carbon::now(),
+                    ]);
+                    $header = TrSPPJ::where('sppjid', $docNo)->first();
+                    $doc_type ='PJ';
+                    $eid      = \Vinkla\Hashids\Facades\Hashids::encode($header->id);
+                    $url       =  url('/showsppjs/' . $eid);
+                    break;
+
+                case 'SPPK':
+                    $updated = TrSPPK::where('sppkid', $docNo)->update([
+                        'status' => 'D',
+                        'updated_by' => $user->username,
+                        'updated_at' => Carbon::now(),
+                    ]);
+                    $header = TrSPPK::where('sppkid', $docNo)->first();
+                    $doc_type ='PK';
+                    $eid      = \Vinkla\Hashids\Facades\Hashids::encode($header->id);
+                    $url       =  url('/showsppks/' . $eid);
+                    break;
+
+                case 'SPPT':
+                    $updated = TrSPPT::where('spptid', $docNo)->update([
+                        'status' => 'D',
+                        'updated_by' => $user->username,
+                        'updated_at' => Carbon::now(),
+                    ]);
+                    $header = TrSPPT::where('spptid', $docNo)->first();
+                    $doc_type ='PT';
+                    $eid      = \Vinkla\Hashids\Facades\Hashids::encode($header->id);
+                    $url       =  url('/showsppts/' . $eid);
+                    break;
+            }
+
+            if (!$updated || !$header) {
+                DB::rollBack();
+                return response()->json([
+                    'ok' => false,
+                    'message' => "Dokumen $docType ($docNo) tidak ditemukan."
+                ], 404);
+            }
+
+            // === INSERT APPROVAL ===
+            TrApproval::create([
+                'refnbr'             => $docNo,
+                'aprv_leveling'      => 10,
+                'aprv_doctype'       => $doc_type,
+                'aprv_cpnyid'        => $data['cpny_id'],
+                'aprv_departementid' => $data['department_id'],
+                'aprv_username'      => $user->username,
+                'aprv_name'          => $user->name,
+                'aprv_datebefore'    => Carbon::now(),
+                'aprv_type'          => '',
+                'aprv_condition'     => '',
+                'status'             => 'D',
+                'created_by'         => $user->username,
+                'updated_by'         => $user->username,
+            ]);
+         
+            // === SEND COMMENT ===
+            try {
+                app(\App\Http\Controllers\SendCommentController::class)
+                    ->sendmsg($header->id, $doc_type, $request);
+            } catch (\Throwable $e) {
+                \Log::warning('SendComment failed: '.$e->getMessage());
+            }
+
+            // === EMAIL ke CREATED_BY ===
+            try {
+                $creatorUsername = $header->created_by ?? null;
+
+                if ($creatorUsername) {
+                    $creator = \App\Models\User::query()
+                        ->where('username', $creatorUsername)
+                        ->where('status', 'A')
+                        ->first();
+
+                    if ($creator && $creator->notification_email) {                       
+                       
+                        $emailData = [
+                            'docid'     => $docNo,
+                            'cpnyid'    => $header->cpny_id ?? $data['cpny_id'],
+                            'deptname'  => $header->department_id ?? $data['department_id'],
+                            'date'      => Carbon::now(),
+                            'info'      => $header->keperluan,
+                            'name'      => $creator->name,                            
+                            'status'    => 'D',
+                            'docname'   => $docType,
+                            'url'       => $url,                            
+                            'createdby' => $user->name,
+                        ];
+
+                        \Mail::send('emails.mailapprovenew', $emailData, function ($message) use ($creator, $docNo, $docType) {
+                            $message->to($creator->notification_email)
+                                ->subject($docNo . ' - Revise Approval ' . $docType)
+                                ->from('digitalserver@pakuwon.com', 'Pakuwon System');
+                        });
+                    }
+                }
+            } catch (\Throwable $e) {
+                \Log::error('Email revise failed: '.$e->getMessage());
+            }
+   
+
+            DB::commit();
+
+            return response()->json([
+                'ok' => true,
+                'message' => "Dokumen $docType ($docNo) berhasil direvise."
+            ]);
+
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            return response()->json([
+                'ok' => false,
+                'message' => 'Gagal revise: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+  
+
 
 
 

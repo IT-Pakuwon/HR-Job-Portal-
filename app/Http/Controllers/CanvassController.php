@@ -2136,7 +2136,7 @@ class CanvassController extends Controller
 
     public function updateCS(Request $request, $csid)
     {
-        dd($request->all());
+        // dd($request->all());
         // 1) Validasi payload dasar
         $request->validate([
             'doc'             => 'required|string',     // SPPB|SPPJ|SPPK|SPPT
@@ -3113,39 +3113,53 @@ class CanvassController extends Controller
             $user->name,         // actor
 
             // CALLBACK saat reject benar-benar dieksekusi
-            function (string $refnbr, \Carbon\Carbon $now) use ($cs, $fullname, $docUrl, $srcHeader) {
-                // Header -> R
-                $cs->status       = 'R';
-                $cs->completed_by = auth()->user()->username;
-                $cs->completed_at = $now;
-                $cs->save();
+           function (string $refnbr, \Carbon\Carbon $now) use ($cs, $fullname, $docUrl, $srcHeader) {
 
-                // (opsional) detail -> R
-                // \App\Models\TrCSdetail::where('csid', $cs->csid)->update(['status' => 'R']);
-
-                // Email requester
-                app(\App\Http\Controllers\ApprovalController::class)->notifyRequesterOnStatus(
-                    $cs->csid,
-                    'CS',
-                    'R',
-                    $cs->created_by,
-                    $docUrl,
-                    [
-                        'cpnyid'    => $cs->cpny_id ?? $cs->cpnyid ?? '',
-                        'deptname'  => $cs->department_id ?? $cs->departementid ?? '',
-                        'date'      => $now->toDateString(),
-                        'info'      => optional($srcHeader)->keperluan ?? $cs->keperluan,
-                        'fullname'  => $fullname,
-                        'name'      => $fullname,
-                        'createdby' => $fullname,
-                    ]
-                );
-
-                // Simpan komentar (jika ada)
+                \DB::connection('pgsql')->beginTransaction();
                 try {
-                    app('App\Http\Controllers\SendCommentController')->sendmsg($cs->id, 'CS', request());
-                } catch (\Throwable $e) {}
+
+                    // ✅ 1) Balikin reserve budget (kebalikan CS submit)
+                    $this->rollbackReserveBudgetOnReturn($cs, auth()->user()->username, $now);
+
+                    // ✅ 2) Update rejectordered di dokumen sumber (SPPB/SPPJ/SPPK/SPPT)
+                    $this->updateRejectOrderedOnSource($cs, auth()->user()->username);
+
+                    // Header -> R
+                    $cs->status       = 'R';
+                    $cs->completed_by = auth()->user()->username;
+                    $cs->completed_at = $now;
+                    $cs->save();
+
+                    // Email requester
+                    app(\App\Http\Controllers\ApprovalController::class)->notifyRequesterOnStatus(
+                        $cs->csid,
+                        'CS',
+                        'R',
+                        $cs->created_by,
+                        $docUrl,
+                        [
+                            'cpnyid'    => $cs->cpny_id ?? $cs->cpnyid ?? '',
+                            'deptname'  => $cs->department_id ?? $cs->departementid ?? '',
+                            'date'      => $now->toDateString(),
+                            'info'      => optional($srcHeader)->keperluan ?? $cs->keperluan,
+                            'fullname'  => $fullname,
+                            'name'      => $fullname,
+                            'createdby' => $fullname,
+                        ]
+                    );
+
+                    // Simpan komentar (jika ada)
+                    try {
+                        app('App\Http\Controllers\SendCommentController')->sendmsg($cs->id, 'CS', request());
+                    } catch (\Throwable $e) {}
+
+                    \DB::connection('pgsql')->commit();
+                } catch (\Throwable $e) {
+                    \DB::connection('pgsql')->rollBack();
+                    throw $e;
+                }
             }
+
         );
 
         if (!($result['ok'] ?? false)) {
@@ -3192,38 +3206,50 @@ class CanvassController extends Controller
 
             // CALLBACK saat revise benar-benar dieksekusi
             function (string $refnbr, \Carbon\Carbon $now) use ($cs, $fullname, $docUrl, $srcHeader) {
-                // Header -> D
-                $cs->status       = 'D';
-                $cs->completed_by = auth()->user()->username;
-                $cs->completed_at = $now;
-                $cs->save();
 
-                // (opsional) detail -> D
-                // \App\Models\TrCSdetail::where('csid', $cs->csid)->update(['status' => 'D']);
-
-                // Email requester
-                app(\App\Http\Controllers\ApprovalController::class)->notifyRequesterOnStatus(
-                    $cs->csid,
-                    'CS',
-                    'D',
-                    $cs->created_by,
-                    $docUrl,
-                    [
-                        'cpnyid'    => $cs->cpny_id ?? $cs->cpnyid ?? '',
-                        'deptname'  => $cs->department_id ?? $cs->departementid ?? '',
-                        'date'      => $now->toDateString(),
-                        'info'      => optional($srcHeader)->keperluan ?? $cs->keperluan,
-                        'fullname'  => $fullname,
-                        'name'      => $fullname,
-                        'createdby' => $fullname,
-                    ]
-                );
-
-                // Simpan komentar (jika ada)
+                \DB::connection('pgsql')->beginTransaction();
                 try {
-                    app('App\Http\Controllers\SendCommentController')->sendmsg($cs->id, 'CS', request());
-                } catch (\Throwable $e) {}
+                    // ✅ 1) rollback reserve budget (UNRESERVE)
+                    $this->rollbackReserveBudgetOnReturn($cs, auth()->user()->username, $now, 'CS Revise');
+
+                    // ✅ 2) rollback ordered/openordered ke dokumen sumber
+                    $this->rollbackOrderedOnSourceForRevise($cs, auth()->user()->username);
+
+                    // Header -> H
+                    $cs->status       = 'H';
+                    $cs->completed_by = auth()->user()->username;
+                    $cs->completed_at = $now;
+                    $cs->save();
+
+                    // Email requester
+                    app(\App\Http\Controllers\ApprovalController::class)->notifyRequesterOnStatus(
+                        $cs->csid,
+                        'CS',
+                        'D',
+                        $cs->created_by,
+                        $docUrl,
+                        [
+                            'cpnyid'    => $cs->cpny_id ?? $cs->cpnyid ?? '',
+                            'deptname'  => $cs->department_id ?? $cs->departementid ?? '',
+                            'date'      => $now->toDateString(),
+                            'info'      => optional($srcHeader)->keperluan ?? $cs->keperluan,
+                            'fullname'  => $fullname,
+                            'name'      => $fullname,
+                            'createdby' => $fullname,
+                        ]
+                    );
+
+                    try {
+                        app('App\Http\Controllers\SendCommentController')->sendmsg($cs->id, 'CS', request());
+                    } catch (\Throwable $e) {}
+
+                    \DB::connection('pgsql')->commit();
+                } catch (\Throwable $e) {
+                    \DB::connection('pgsql')->rollBack();
+                    throw $e;
+                }
             }
+
         );
 
         if (!($result['ok'] ?? false)) {
@@ -3701,7 +3727,7 @@ class CanvassController extends Controller
         }
     }
 
-    private function buildSourceForDoc(string $doc, ?string $srcId): array {
+    private function buildSourceForDoc_xxx(string $doc, ?string $srcId): array {
         switch ($doc) {
             case 'SPPB':
                 $h = TrSPPB::with(['requestType','creator','purchaser'])->findOrFail($srcId);
@@ -3734,6 +3760,78 @@ class CanvassController extends Controller
         }
         return [$h, $d, $k, $idx];
     }
+
+    private function buildSourceForDoc(string $doc, string $srcId): array
+    {
+        switch ($doc) {
+            case 'SPPB':
+                $h = TrSPPB::with(['requestType','creator','purchaser'])
+                    ->where('sppbid', $srcId)
+                    ->firstOrFail();
+
+                $k = 'sppb_no';
+
+                $d = TrSPPBdetail::on('pgsql')
+                    ->where('sppbid', $h->sppbid)
+                    ->orderBy($k)
+                    ->get();
+                break;
+
+            case 'SPPJ':
+                $h = TrSPPJ::with(['requestType','creator','purchaser'])
+                    ->where('sppjid', $srcId)
+                    ->firstOrFail();
+
+                $k = 'sppj_no';
+
+                $d = TrSPPJdetail::on('pgsql')
+                    ->where('sppjid', $h->sppjid)
+                    ->orderBy($k)
+                    ->get();
+                break;
+
+            case 'SPPK':
+                $h = TrSPPK::with(['requestType','creator','purchaser'])
+                    ->where('sppkid', $srcId)
+                    ->firstOrFail();
+
+                $k = 'sppk_no';
+
+                $d = TrSPPKdetail::on('pgsql')
+                    ->where('sppkid', $h->sppkid)
+                    ->orderBy($k)
+                    ->get();
+                break;
+
+            case 'SPPT':
+                $h = TrSPPT::with(['requestType','creator','purchaser'])
+                    ->where('spptid', $srcId)
+                    ->firstOrFail();
+
+                $k = 'sppt_no';
+
+                $d = TrSPPTdetail::on('pgsql')
+                    ->where('spptid', $h->spptid)
+                    ->orderBy($k)
+                    ->get();
+                break;
+
+            default:
+                abort(422, 'Invalid doc type');
+        }
+
+        // build index untuk matching
+        $idx = [];
+        foreach ($d as $sd) {
+            $key = strtoupper(trim($sd->inventoryid ?? '')) . '|' .
+                strtoupper(trim($sd->uom ?? '')) . '|' .
+                strtoupper(trim($sd->inventory_descr ?? ''));
+            $idx[$key] = $sd;
+        }
+
+        return [$h, $d, $k, $idx];
+    }
+
 
     private function updateOrderedOnSource(array $details, $srcHeader, $srcDetails, array $srcIndex, string $cpnyId): void {
         $addedTotalOrdered = 0.0;
@@ -4081,6 +4179,333 @@ class CanvassController extends Controller
             ], 500);
         }
     }
+
+    private function rollbackReserveBudgetOnReturn(\App\Models\TrCS $cs, string $username, \Carbon\Carbon $now, string $reason = 'CS Return'): void
+    {
+        $csDate    = \Carbon\Carbon::parse($cs->csdate ?? $now);
+        $yearStr   = $csDate->format('Y');
+        $periodCol = 'period' . $csDate->format('m') . '_reserve';
+        $perpostMonth = (int) $csDate->format('m');
+
+        // ✅ idempotent: kalau sudah pernah rollback reserve untuk CS ini, skip
+        $already = \App\Models\TrBudget::on('pgsql')
+            ->where('refnbr', $cs->csid)
+            ->where('doctype', 'CS')
+            ->where('budget_type', 'UNRESERVE')
+            ->exists();
+        if ($already) return;
+
+        $rows = \App\Models\TrCSdetail::on('pgsql')
+            ->where('csid', $cs->csid)
+            ->get();
+
+        $buckets = [];
+
+        foreach ($rows as $det) {
+            $selectedTotal = 0.0;
+            for ($slot = 1; $slot <= 6; $slot++) {
+                if (!empty($det->{"vendor{$slot}selected"})) {
+                    $selectedTotal = (float) ($det->{"vendortotalprice{$slot}"} ?? 0);
+                    break;
+                }
+            }
+            if ($selectedTotal <= 0) continue;
+
+            $crit = [
+                'perpost'           => $yearStr,
+                'cpny_id'           => $det->budget_cpny_id ?? $cs->cpny_id,
+                'business_unit_id'  => $det->budget_business_unit_id,
+                'department_fin_id' => $det->budget_department_fin_id,
+                'account_id'        => $det->budget_account_id,
+                'activity_id'       => $det->budget_activity_id,
+                'activity_descr'    => $det->budget_activity_descr,
+                'activity_type'     => $det->budget_activity_type ?? null,
+            ];
+
+            $key = json_encode([
+                $crit['perpost'],
+                $crit['cpny_id'],
+                $crit['business_unit_id'],
+                $crit['department_fin_id'],
+                $crit['account_id'],
+                $crit['activity_id'],
+            ]);
+
+            if (!isset($buckets[$key])) $buckets[$key] = ['crit' => $crit, 'amount' => 0.0];
+            $buckets[$key]['amount'] += $selectedTotal;
+        }
+
+        foreach ($buckets as $b) {
+            $crit   = $b['crit'];
+            $amount = (float) $b['amount'];
+            if ($amount <= 0) continue;
+
+            // 1) ms_budget.periodXX_reserve -= amount
+            $bd = \App\Models\BudgetDetail::on('pgsql')
+                ->where([['perpost', '=', $crit['perpost']], ['cpny_id', '=', $crit['cpny_id']]])
+                ->when($crit['business_unit_id'],  fn($q,$v)=>$q->where('business_unit_id',$v))
+                ->when($crit['department_fin_id'], fn($q,$v)=>$q->where('department_fin_id',$v))
+                ->when($crit['account_id'],        fn($q,$v)=>$q->where('account_id',$v))
+                ->when($crit['activity_id'],       fn($q,$v)=>$q->where('activity_id',$v))
+                ->lockForUpdate()
+                ->first();
+
+            if ($bd) {
+                $current = (float) ($bd->{$periodCol} ?? 0);
+                $bd->{$periodCol} = max(0, $current - $amount);
+                $bd->updated_by = $username;
+                $bd->save();
+            }
+
+            // 2) tr_budget history
+            $tr = new \App\Models\TrBudget();
+            $tr->setConnection('pgsql');
+            $tr->refnbr        = $cs->csid;
+            $tr->prev_refnbr   = $cs->csid;
+            $tr->doctype       = 'CS';
+            $tr->submitdate    = $csDate->toDateString();
+            $tr->perpost_year  = (int) $crit['perpost'];
+            $tr->perpost_month = $perpostMonth;
+
+            $tr->cpny_id           = $crit['cpny_id'];
+            $tr->business_unit_id  = $crit['business_unit_id'];
+            $tr->department_fin_id = $crit['department_fin_id'];
+            $tr->account_id        = $crit['account_id'];
+            $tr->activity_id       = $crit['activity_id'];
+            $tr->activity_descr    = $crit['activity_descr'];
+            $tr->activity_type     = $crit['activity_type'];
+
+            $tr->budget_type         = 'UNRESERVE';
+            $tr->trancation_activity = $reason;     // misal: 'CS Reject' / 'CS Revise'
+            $tr->budget_amount       = (float) $amount * -1;
+            $tr->status              = 'A';
+            $tr->created_by          = $username;
+            $tr->created_at          = now();
+            $tr->save();
+        }
+    }
+
+
+    private function updateRejectOrderedOnSource(\App\Models\TrCS $cs, string $username): void
+    {
+        try {
+            // 0) basic sanity
+            if (empty($cs->sppbjktid)) return;
+
+            $prefix = strtoupper(substr((string) $cs->sppbjktid, 0, 2));
+            $docType = null;
+
+            if ($prefix === 'PB') {
+                $docType = 'SPPB';
+            } elseif ($prefix === 'PJ') {
+                $docType = 'SPPJ';
+            } elseif ($prefix === 'PK') {
+                $docType = 'SPPK';
+            } elseif ($prefix === 'PT') {
+                $docType = 'SPPT';
+            }
+
+            if (!$docType) {
+                return; // bukan dari SPPB/J/K/T
+            }
+
+            if (!$docType) return;
+
+            \Log::info('[CS Reject] updateRejectOrderedOnSource start', [
+                'csid' => $cs->csid,
+                'sppbjktid' => $cs->sppbjktid,
+                'docType' => $docType,
+            ]);
+
+            // 1) ambil source pakai builder
+            [$srcHeader, $srcDetails, $srcLineKey, $srcIndex] = $this->buildSourceForDoc($docType, $cs->sppbjktid);
+
+            // ✅ pastikan header pakai koneksi pgsql
+            if (method_exists($srcHeader, 'setConnection')) $srcHeader->setConnection('pgsql');
+
+            // 2) ambil detail CS
+            $csDetails = \App\Models\TrCSdetail::on('pgsql')
+                ->where('csid', $cs->csid)
+                ->orderBy('cs_no')
+                ->get();
+
+            \Log::info('[CS Reject] CS details loaded', [
+                'csid' => $cs->csid,
+                'count' => $csDetails->count(),
+            ]);
+
+            $addedReject = 0.0;
+            $updatedLines = 0;
+            $missingMatch = 0;
+
+            foreach ($csDetails as $i => $cd) {
+                // hanya item yang ada vendor selected
+                $hasPick = false;
+                for ($slot = 1; $slot <= 6; $slot++) {
+                    if (!empty($cd->{"vendor{$slot}selected"})) { $hasPick = true; break; }
+                }
+                if (!$hasPick) continue;
+
+                $qty = (float) ($cd->qty ?? 0);
+                if ($qty <= 0) continue;
+
+                $key = strtoupper(trim((string) ($cd->inventoryid ?? ''))) . '|' .
+                    strtoupper(trim((string) ($cd->uom ?? ''))) . '|' .
+                    strtoupper(trim((string) ($cd->inventory_descr ?? '')));
+
+                $srcDet = $srcIndex[$key] ?? null;
+
+                // fallback berdasarkan cs_no mapping (lebih aman daripada $i)
+                if (!$srcDet && !empty($cd->sppbjkt_no) && !empty($srcLineKey)) {
+                    $srcDet = $srcDetails->firstWhere($srcLineKey, $cd->sppbjkt_no);
+                }
+
+                // fallback terakhir: index by position
+                if (!$srcDet) {
+                    $srcDet = $srcDetails[$i] ?? null;
+                }
+
+                if (!$srcDet) {
+                    $missingMatch++;
+                    \Log::warning('[CS Reject] source detail not found', [
+                        'csid' => $cs->csid,
+                        'cs_no' => $cd->cs_no,
+                        'key' => $key,
+                        'sppbjkt_no' => $cd->sppbjkt_no ?? null,
+                    ]);
+                    continue;
+                }
+
+                // ✅ pastikan source detail pakai koneksi pgsql
+                if (method_exists($srcDet, 'setConnection')) $srcDet->setConnection('pgsql');
+
+                $detTable = $srcDet->getTable();
+
+                if (\Schema::connection('pgsql')->hasColumn($detTable, 'rejectordered')) {
+                    $srcDet->rejectordered = (float) ($srcDet->rejectordered ?? 0) + $qty;
+                }
+
+                if (\Schema::connection('pgsql')->hasColumn($detTable, 'updated_by')) {
+                    $srcDet->updated_by = $username;
+                }
+
+                $srcDet->save();
+
+                $addedReject += $qty;
+                $updatedLines++;
+            }
+
+            // header.totalrejectordered += addedReject
+            $hdrTable = $srcHeader->getTable();
+
+            if (\Schema::connection('pgsql')->hasColumn($hdrTable, 'totalrejectordered')) {
+                $srcHeader->totalrejectordered = (float) ($srcHeader->totalrejectordered ?? 0) + $addedReject;
+            }
+            if (\Schema::connection('pgsql')->hasColumn($hdrTable, 'updated_by')) {
+                $srcHeader->updated_by = $username;
+            }
+            $srcHeader->save();
+
+            \Log::info('[CS Reject] updateRejectOrderedOnSource done', [
+                'csid' => $cs->csid,
+                'addedReject' => $addedReject,
+                'updatedLines' => $updatedLines,
+                'missingMatch' => $missingMatch,
+            ]);
+
+        } catch (\Throwable $e) {
+            \Log::error('[CS Reject] updateRejectOrderedOnSource ERROR', [
+                'csid' => $cs->csid ?? null,
+                'msg' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                // stack trace kepanjangan, tapi ini cukup buat pinpoint
+            ]);
+            throw $e; // biar transaksi/handler luar bisa rollback
+        }
+    }
+
+
+    private function rollbackOrderedOnSourceForRevise(\App\Models\TrCS $cs, string $username): void
+    {
+        // Tentukan doc sumber dari prefix sppbjktid
+        $prefix = strtoupper(substr((string) $cs->sppbjktid, 0, 2));
+        $docType = null;
+
+        if     ($prefix === 'PB') $docType = 'SPPB';
+        elseif ($prefix === 'PJ') $docType = 'SPPJ';
+        elseif ($prefix === 'PK') $docType = 'SPPK';
+        elseif ($prefix === 'PT') $docType = 'SPPT';
+        else return; // bukan dari SPPB/J/K/T → skip
+
+        // Ambil header + detail sumber
+        [$srcHeader, $srcDetails, $srcLineKey, $srcIndex] = $this->buildSourceForDoc($docType, $cs->sppbjktid);
+
+        // Ambil detail CS dari DB
+        $csDetails = \App\Models\TrCSdetail::on('pgsql')
+            ->where('csid', $cs->csid)
+            ->orderBy('cs_no')
+            ->get();
+
+        $rolledBackTotal = 0.0;
+
+        foreach ($csDetails as $i => $cd) {
+
+            // hanya yang vendor selected
+            $hasPick = false;
+            for ($slot = 1; $slot <= 6; $slot++) {
+                if (!empty($cd->{"vendor{$slot}selected"})) { $hasPick = true; break; }
+            }
+            if (!$hasPick) continue;
+
+            $qty = (float) ($cd->qty ?? 0);
+            if ($qty <= 0) continue;
+
+            $key = strtoupper(trim((string) ($cd->inventoryid ?? ''))) . '|' .
+                strtoupper(trim((string) ($cd->uom ?? ''))) . '|' .
+                strtoupper(trim((string) ($cd->inventory_descr ?? '')));
+
+            $srcDet = $srcIndex[$key] ?? ($srcDetails[$i] ?? null);
+            if (!$srcDet) continue;
+
+            $detTable = $srcDet->getTable();
+
+            // ✅ ordered -= qty
+            if (\Schema::connection('pgsql')->hasColumn($detTable, 'ordered')) {
+                $srcDet->ordered = max(0, (float)($srcDet->ordered ?? 0) - $qty);
+            }
+
+            // ✅ openordered += qty
+            if (\Schema::connection('pgsql')->hasColumn($detTable, 'openordered')) {
+                $srcDet->openordered = (float)($srcDet->openordered ?? 0) + $qty;
+            }
+
+            if (\Schema::connection('pgsql')->hasColumn($detTable, 'updated_by')) {
+                $srcDet->updated_by = $username;
+            }
+
+            $srcDet->save();
+            $rolledBackTotal += $qty;
+        }
+
+        // Header rollback
+        $hdrTable = $srcHeader->getTable();
+
+        if (\Schema::connection('pgsql')->hasColumn($hdrTable, 'totalordered')) {
+            $srcHeader->totalordered = max(0, (float)($srcHeader->totalordered ?? 0) - $rolledBackTotal);
+        }
+
+        if (\Schema::connection('pgsql')->hasColumn($hdrTable, 'totalopenordered')) {
+            $srcHeader->totalopenordered = (float)($srcHeader->totalopenordered ?? 0) + $rolledBackTotal;
+        }
+
+        if (\Schema::connection('pgsql')->hasColumn($hdrTable, 'updated_by')) {
+            $srcHeader->updated_by = $username;
+        }
+
+        $srcHeader->save();
+    }
+
 
 
 

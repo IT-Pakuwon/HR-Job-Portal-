@@ -17,7 +17,7 @@ class SendCommentController extends Controller
 
 
         TrMessage::create([
-            'refnbr'        => $request->docid,          // menyesuaikan dengan nama field baru
+            'refnbr'        => $request->doc_no ?? $request->docid ?? (string)$id,          // menyesuaikan dengan nama field baru
             'doctype'       => $doctype,
             'message_date'  => Carbon::now(),
             'cpny_id'        => $user->cpnyid ?? null,     // jika user memiliki cpnyid

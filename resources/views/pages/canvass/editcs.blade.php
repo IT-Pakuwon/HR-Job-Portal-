@@ -2036,6 +2036,60 @@
         });
     </script>
 
+    <script>
+        $('#cancelBtn').on('click', function(e) {
+            e.preventDefault();
+
+            Swal.fire({
+            title: 'Cancel CS?',
+            text: 'CS akan dibatalkan (Cancel). Proses ini tidak bisa dibatalkan.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Yes, Cancel',
+            cancelButtonText: 'No',
+            reverseButtons: true
+            }).then((result) => {
+            if (!result.isConfirmed) return;
+
+            // optional: minta alasan cancel
+            Swal.fire({
+                title: 'Reason (optional)',
+                input: 'text',
+                inputPlaceholder: 'Tulis alasan cancel...',
+                showCancelButton: true,
+                confirmButtonText: 'Submit Cancel',
+                cancelButtonText: 'Back'
+            }).then((r2) => {
+                if (!r2.isConfirmed) return;
+
+                const reason = (r2.value || '').trim();
+
+                showOverlay('Cancelling...');
+
+                $.ajax({
+                url: "{{ route('csjobs.cancel', $cs->csid) }}",
+                method: 'POST',
+                data: {
+                    _token: "{{ csrf_token() }}",
+                    _method: 'PUT',
+                    reason: reason
+                },
+                success: function(res) {
+                    hideOverlay();
+                    toastr.success(res.message || 'CS berhasil dicancel.');
+                    window.location.href = res.redirect || '/cslist';
+                },
+                error: function(xhr) {
+                    hideOverlay();
+                    toastr.error(xhr.responseJSON?.message || 'Gagal cancel CS.');
+                }
+                });
+            });
+            });
+        });
+    </script>
+
+
 
 
 
@@ -2044,5 +2098,7 @@
     <!-- Toastr JS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/lodash@4/lodash.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 
 </x-app-layout>

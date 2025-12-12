@@ -654,6 +654,8 @@ Route::post('/logout', function () {
         Route::put('bqcs/update/{hash}', [BQCSController::class, 'updateBQCS'])->name('bqcs.update');
 
         Route::post('/cs/check-qty', [CsJobController::class, 'checkQtyBeforeSubmit'])->name('cs.check-qty');
+        Route::put('/csjobs/{csid}/cancel', [CsJobController::class, 'cancelCS'])->name('csjobs.cancel');
+        Route::post('/csjobs/revise', [CsJobController::class, 'reviseSPPBJKT'])->name('csjobs.revise');
 
     });
 
