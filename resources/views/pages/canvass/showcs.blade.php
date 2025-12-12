@@ -1461,7 +1461,7 @@
                         }
 
                     } else {
-                        toastr.error("You are not authorized to " + action + " this SPPT.");
+                        toastr.error("You are not authorized to " + action + " this CS.");
                     }
                 },
                 error: function() {

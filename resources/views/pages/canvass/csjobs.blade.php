@@ -727,22 +727,33 @@
                     searchable: false,
                     className: 'text-left',
                     render: (_d, _t, row) => {
-                        const createUrl = `/createcs/${row.doc_type}/${row.eid}`;
-                        // tombol + (buat CS) & X (complete sisaan)
-                        return `
-                    <div class="inline-flex gap-2">
-                    <a href="${createUrl}"
-                        class="inline-flex justify-center items-center px-3 py-1.5 text-sm font-medium text-white rounded bg-blue-500 hover:bg-blue-700"
-                        title="Create CS">
-                        <i class="fas fa-plus"></i>
-                    </a>
-                    <button type="button"
-                        class="btn-complete-open inline-flex justify-center items-center px-3 py-1.5 text-sm font-medium text-white rounded bg-red-500 hover:bg-red-700"
-                        data-doc="${row.doc_type}" data-eid="${row.eid}" title="Complete sisa yang tidak jadi diorder">
-                        <i class="fas fa-times"></i>
-                    </button>
-                    </div>`;
+                    const createUrl = `/createcs/${row.doc_type}/${row.eid}`;
+                    return `
+                        <div class="inline-flex gap-2">
+                        <a href="${createUrl}"
+                            class="inline-flex justify-center items-center px-3 py-1.5 text-sm font-medium text-white rounded bg-blue-500 hover:bg-blue-700"
+                            title="Create CS">
+                            <i class="fas fa-plus"></i>
+                        </a>
+
+                        <button type="button"
+                            class="btn-complete-open inline-flex justify-center items-center px-3 py-1.5 text-sm font-medium text-white rounded bg-red-500 hover:bg-red-700"
+                            data-doc="${row.doc_type}" data-eid="${row.eid}" title="Complete sisa yang tidak jadi diorder">
+                            <i class="fas fa-times"></i>
+                        </button>
+
+                        <button type="button"
+                            class="btn-revise-doc inline-flex justify-center items-center px-3 py-1.5 text-sm font-medium text-white rounded bg-amber-500 hover:bg-amber-700"
+                            data-doc="${row.doc_type}"
+                            data-docno="${row.doc_no}"
+                            data-cpny="${row.cpny_id}"
+                            data-dept="${row.department_id}"
+                            title="Revise dokumen (set status D)">
+                            <i class="fas fa-pen"></i>
+                        </button>
+                        </div>`;
                     }
+
                 };
                 return [actionCol, ...colSetWithoutCreate()];
             }
@@ -1110,5 +1121,93 @@
             });
         });
     </Script>
+
+    <script>
+        $(document).on('click', '.btn-revise-doc', function () {
+            const docType = String($(this).data('doc') || '');
+            const docNo   = String($(this).data('docno') || '');
+            const cpnyId  = String($(this).data('cpny') || '');
+            const deptId  = String($(this).data('dept') || '');
+
+            Swal.fire({
+                title: 'Revise Dokumen?',
+                html: `
+                    <div style="text-align:left;">
+                        <p>Doc Type: <b>${docType}</b></p>
+                        <p>Doc No: <b>${docNo}</b></p>
+                        <p>Status dokumen akan diubah menjadi (Revise).</p>
+                    </div>
+                `,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Lanjut',
+                cancelButtonText: 'Batal',
+                reverseButtons: true,
+            }).then((result) => {
+                if (!result.isConfirmed) return;
+
+                Swal.fire({
+                    title: 'Alasan Revise',
+                    input: 'textarea',
+                    inputPlaceholder: 'Wajib diisi alasan revise...',
+                    inputAttributes: {
+                        required: true,
+                        minlength: 5
+                    },
+                    showCancelButton: true,
+                    confirmButtonText: 'Submit',
+                    cancelButtonText: 'Batal',
+                    preConfirm: (value) => {
+                        if (!value || value.trim().length < 5) {
+                            Swal.showValidationMessage('Alasan wajib diisi (min 5 karakter)');
+                            return false;
+                        }
+                        return value.trim();
+                    }
+                }).then((res) => {
+                    if (!res.isConfirmed) return;
+
+                    $.ajax({
+                        url: "{{ route('csjobs.revise') }}",
+                        type: 'POST',
+                        data: {
+                            _token: '{{ csrf_token() }}',
+                            doc_type: docType,
+                            doc_no: docNo,
+                            cpny_id: cpnyId,
+                            department_id: deptId,
+                            reason: res.value
+                        },
+                        success: function (res) {
+                            if (res.ok) {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Berhasil',
+                                    text: res.message,
+                                    timer: 2000,
+                                    showConfirmButton: false
+                                });
+
+                                $('#tblMine').DataTable().ajax.reload(null, false);
+                                $('#tblAll').DataTable().ajax.reload(null, false);
+                                $('#tblSppbjkt').DataTable().ajax.reload(null, false);
+                            } else {
+                                Swal.fire('Gagal', res.message, 'error');
+                            }
+                        },
+                        error: function (xhr) {
+                            Swal.fire(
+                                'Error',
+                                xhr.responseJSON?.message || 'Terjadi kesalahan server',
+                                'error'
+                            );
+                        }
+                    });
+                });
+            });
+        });
+
+    </script>
+
     
 </x-app-layout>
