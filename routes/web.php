@@ -71,7 +71,7 @@ use App\Http\Controllers\CalrController;
 use App\Http\Controllers\CanvassxController;
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\DepartmentsController;
-
+use App\Http\Controllers\ItemRequestController;
 use App\Http\Controllers\SysApplicationController;
 use App\Http\Controllers\SysScreenController;
 use App\Http\Controllers\SysMenuController;
@@ -905,6 +905,34 @@ Route::post('/logout', function () {
         Route::post('/calr/{id}/reject',  [CalrController::class, 'rejectCalr']);
         Route::post('/calr/{id}/revise',  [CalrController::class, 'reviseCalr']);   
     });
+
+    // 👀 VIEW ITEMREQ
+    Route::middleware('access:ITEMREQ,VIEW')->group(function () {
+        Route::get('/itemreq', [ItemRequestController::class, 'index'])->name('itemreq');
+        Route::get('/itemreq/json', [ItemRequestController::class, 'json'])->name('itemreq.json');
+
+        Route::get('/showitemreq/{hash}', [ItemRequestController::class, 'showItemReq']);
+        Route::get('/itemreq/{id}/tracking', [ItemRequestController::class, 'tracking'])->name('itemreq.tracking');
+        Route::get('/pdf_itemreq/{hash}', [ItemRequestController::class, 'printItemReq']);
+    });
+
+    // ✍️ CREATE ITEMREQ
+    Route::middleware('access:ITEMREQ,CREATE')->group(function () {
+        Route::get('/createitemreq', [ItemRequestController::class, 'createItemReq']);
+        Route::post('/itemreq', [ItemRequestController::class, 'storeItemReq'])->name('itemreq.store');
+    });
+
+    // ✏️ EDIT / APPROVAL ITEMREQ
+    Route::middleware('access:ITEMREQ,EDIT')->group(function () {
+        Route::get('/edititemreq/{hash}', [ItemRequestController::class, 'editItemReq']);
+        Route::put('/itemreq/{id}', [ItemRequestController::class, 'updateItemReq'])->name('itemreq.update');
+        Route::put('/itemreq/remove-attachment/{id}', [ItemRequestController::class, 'removeAttachment']);
+
+        Route::post('/itemreq/{id}/approve', [ItemRequestController::class, 'approveItemReq']);
+        Route::post('/itemreq/{id}/reject',  [ItemRequestController::class, 'rejectItemReq']);
+        Route::post('/itemreq/{id}/revise',  [ItemRequestController::class, 'reviseItemReq']);
+    });
+
 
     Route::get('/kendaraan/all', [MasterController::class, 'listKendaraan'])->name('kendaraan.all');
     Route::get('/lookup/tenants',  [MasterController::class, 'tenants'])->name('tenants.search');
