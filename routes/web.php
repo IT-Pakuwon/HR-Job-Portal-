@@ -81,7 +81,10 @@ use App\Http\Controllers\SysRoleController;
 use App\Http\Controllers\MsApprovalController;
 use App\Http\Controllers\MsCategoryController;
 use App\Http\Controllers\AutonbrController;
-
+use App\Http\Controllers\InventoryController;
+use App\Http\Controllers\LocationController;
+use App\Http\Controllers\TopController;
+use App\Http\Controllers\TenantController;
 
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Response;
@@ -1074,16 +1077,62 @@ Route::post('/logout', function () {
     Route::put('/categories/{id}', [MsCategoryController::class, 'update']);
     Route::put('/categories/{id}/toggle-status', [MsCategoryController::class, 'toggleStatus']);
 
-
-
     Route::get('/autonbrs',        [AutonbrController::class, 'index'])->name('autonbrs');
     Route::get('/autonbrs/json',   [AutonbrController::class, 'json'])->name('autonbrs.json');
     Route::post('/autonbrs',       [AutonbrController::class, 'store'])->name('autonbrs.store');
     Route::get('/autonbrs/{id}/edit', [AutonbrController::class, 'edit']);
     Route::put('/autonbrs/{id}',   [AutonbrController::class, 'update']);
     Route::put('/autonbrs/{id}/toggle-status', [AutonbrController::class, 'toggleStatus']);
+    
+    Route::get('/vendors', [VendorController::class, 'index'])->name('vendors');
+    Route::get('/vendors/json', [VendorController::class, 'json'])->name('vendors.json');
+    Route::post('/vendors', [VendorController::class, 'store'])->name('vendors.store');
+    Route::get('/vendors/{id}/edit', [VendorController::class, 'edit'])->name('vendors.edit');
+    Route::put('/vendors/{id}', [VendorController::class, 'update'])->name('vendors.update');
+    Route::put('/vendors/{id}/toggle-status', [VendorController::class, 'toggleStatus'])->name('vendors.toggle-status');  
 
+    Route::get('/inventories', [InventoryController::class, 'index'])->name('inventories');
+    Route::get('/inventories/json', [InventoryController::class, 'json'])->name('inventories.json');
+    Route::post('/inventories', [InventoryController::class, 'store'])->name('inventories.store');
+    Route::get('/inventories/{id}/edit', [InventoryController::class, 'edit'])->name('inventories.edit');
+    Route::put('/inventories/{id}', [InventoryController::class, 'update'])->name('inventories.update');
+    Route::put('/inventories/{id}/toggle-status', [InventoryController::class, 'toggleStatus'])->name('inventories.toggle-status');
 
+    
+
+    Route::get('/locations', [LocationController::class, 'index'])->name('locations');
+
+    Route::get('/locations/json', [LocationController::class, 'locationJson'])->name('locations.json');
+    Route::post('/locations', [LocationController::class, 'storeLocation'])->name('locations.store');
+    Route::get('/locations/{id}/edit', [LocationController::class, 'editLocation'])->name('locations.edit');
+    Route::put('/locations/{id}', [LocationController::class, 'updateLocation'])->name('locations.update');
+    Route::put('/locations/{id}/toggle-status', [LocationController::class, 'toggleLocationStatus'])->name('locations.toggle-status');
+
+    Route::get('/sub-locations/json', [LocationController::class, 'subLocationJson'])->name('sub_locations.json');
+    Route::post('/sub-locations', [LocationController::class, 'storeSubLocation'])->name('sub_locations.store');
+    Route::get('/sub-locations/{id}/edit', [LocationController::class, 'editSubLocation'])->name('sub_locations.edit');
+    Route::put('/sub-locations/{id}', [LocationController::class, 'updateSubLocation'])->name('sub_locations.update');
+    Route::put('/sub-locations/{id}/toggle-status', [LocationController::class, 'toggleSubLocationStatus'])->name('sub_locations.toggle-status');
+
+    Route::get('/tops', [TopController::class, 'index'])->name('tops');
+    Route::get('/tops/json', [TopController::class, 'topJson'])->name('tops.json');
+    Route::post('/tops', [TopController::class, 'storeTop'])->name('tops.store');
+    Route::get('/tops/{id}/edit', [TopController::class, 'editTop'])->name('tops.edit');
+    Route::put('/tops/{id}', [TopController::class, 'updateTop'])->name('tops.update');
+    Route::put('/tops/{id}/toggle-status', [TopController::class, 'toggleTopStatus'])->name('tops.toggle-status');
+
+    Route::get('/top-details/json', [TopController::class, 'topDetailJson'])->name('top_details.json');
+    Route::post('/top-details', [TopController::class, 'storeTopDetail'])->name('top_details.store');
+    Route::get('/top-details/{id}/edit', [TopController::class, 'editTopDetail'])->name('top_details.edit');
+    Route::put('/top-details/{id}', [TopController::class, 'updateTopDetail'])->name('top_details.update');
+    Route::put('/top-details/{id}/toggle-status', [TopController::class, 'toggleTopDetailStatus'])->name('top_details.toggle-status');
+
+    Route::get('/tenants', [TenantController::class, 'index'])->name('tenants');
+    Route::get('/tenants/json', [TenantController::class, 'json'])->name('tenants.json');
+    Route::post('/tenants', [TenantController::class, 'store'])->name('tenants.store');
+    Route::get('/tenants/{id}/edit', [TenantController::class, 'edit'])->name('tenants.edit');
+    Route::put('/tenants/{id}', [TenantController::class, 'update'])->name('tenants.update');
+    Route::put('/tenants/{id}/toggle-status', [TenantController::class, 'toggleStatus'])->name('tenants.toggle-status');
 
     
 

@@ -90,12 +90,12 @@ class TrCSdetail extends Model
 
     public function location()
     {
-        return $this->belongsTo(MsLocationPG::class, 'location_id', 'location_id');
+        return $this->belongsTo(MsLocation::class, 'location_id', 'location_id');
     }
 
-    // sub_location_id (FK) -> MsSubLocationPG.sublocationid (PK)
+    // sub_location_id (FK) -> MsSubLocation.sublocationid (PK)
     public function subLocation()
     {
-        return $this->belongsTo(MsSubLocationPG::class, 'sub_location_id', 'sub_location_id');
+        return $this->belongsTo(MsSubLocation::class, 'sub_location_id', 'sub_location_id');
     }
 }

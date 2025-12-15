@@ -5,18 +5,13 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Mslocation extends Model
+class MsLocation extends Model
 {
-    // protected $connection = 'mysql2';
-    protected $table = "task_ms_location";
-   
-    protected $fillable = [     
-        'location_id',
-        'cpnyid',
-        'location_descr',
-        'status',
-        'created_user',
-        'updated_user'
+    protected $connection = 'pgsql';
+    protected $table = "ms_location";
+
+    protected $fillable = [       
+        'cpny_id', 'location_id', 'location_name', 'status', 'created_by', 'created_at', 'updated_by', 
+        'updated_at', 'deleted_by', 'deleted_at'
     ];
-    
 }

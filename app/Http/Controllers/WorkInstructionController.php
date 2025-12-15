@@ -21,8 +21,8 @@ use App\Models\Usercpny;
 use App\Models\Userdept;
 use App\Models\User;
 use App\Models\Mscomplaint;
-use App\Models\Mslocation;
-use App\Models\Mssublocation;
+use App\Models\MslocationTask;
+use App\Models\MssublocationTask;
 use App\Models\Msworktype;
 use App\Models\Mssubworktype;
 use App\Models\Trwoworker;
@@ -138,7 +138,7 @@ class WorkInstructionController extends Controller
     public function getLocations(Request $request)
     {
         
-        $locations = Mslocation::where('cpnyid', $request->cpnyid)
+        $locations = MslocationTask::where('cpnyid', $request->cpnyid)
             ->get(['location_id', 'location_descr']);
 
         return response()->json($locations);
@@ -147,7 +147,7 @@ class WorkInstructionController extends Controller
     public function getSubLocations(Request $request)
     {
        
-        $subLocations = Mssublocation::where('location_id', $request->location_id)
+        $subLocations = MssublocationTask::where('location_id', $request->location_id)
             ->get(['sublocation_id', 'sublocation_descr']);
 
         return response()->json($subLocations);
