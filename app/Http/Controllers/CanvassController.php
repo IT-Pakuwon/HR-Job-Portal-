@@ -26,8 +26,8 @@ use App\Models\TrSPPK;
 use App\Models\TrSPPKdetail;
 use App\Models\TrSPPT;
 use App\Models\TrSPPTdetail;
-use App\Models\MsLocation;
-use App\Models\MsSubLocation;
+use App\Models\MsLocationPG;
+use App\Models\MsSubLocationPG;
 use App\Models\vAssignList;
 use App\Models\vSppbjktOnProgress;
 use App\Models\vCsJobs;
@@ -1168,9 +1168,6 @@ class CanvassController extends Controller
                 if (in_array($doc, $allowedDocs, true)) {
                     $this->updateOrderedOnSource($details, $srcHeader, $srcDetails, $srcIndex, $cpnyId);
                 }
-
-                // (c) Reserve budget
-                // $this->reserveBudget($details, $cpnyId, $cs, $username);
 
                 // (c) Reserve budget via SP (Submit)
                 $this->reserveBudget('CS', $cs->csid, 'Submit', $username);
