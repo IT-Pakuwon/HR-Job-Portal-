@@ -230,16 +230,29 @@ class PoController extends Controller
                     $po->ponote = trim(($po->ponote ? $po->ponote."\n" : '')."Cara Pembayaran: {$pm}");
                 }
             }
+        
+            // 1. Cek Detail PO ada sebelum Used Budget
+            $detailCount = TrPODetail::where('ponbr', $po->ponbr)->count();
+            if ($detailCount <= 0) {
+                throw new \Exception("PO Detail kosong. Tidak bisa proses budget untuk PO {$po->ponbr}");
+            }
 
-            // ubah status ke Purchase Order
-            $po->status = 'P';
-            $po->save();
+            // 2. Used budget via SP (Submit)
+            DB::connection('pgsql')->statement(
+                'CALL public.sp_process_budget(?, ?, ?, ?)',
+                ['PO', $po->ponbr, 'Submit', Auth::user()->username]
+            );
 
-            // 1. Sync term dari TOP
+            // 3. Sync term dari TOP
             $this->syncPoTermsFromTop($po);
 
-            // 2. Generate RFCA dari term DP
+            // 4. Generate RFCA dari term DP
             $this->generateRfcaFromPo($po);
+
+            // 5. Update status ke Purchase Order
+            $po->status = 'P';
+            $po->save();
+    
 
         });
 
@@ -1318,10 +1331,5 @@ class PoController extends Controller
             ]);
         }
     }
-
-
-
-    
-
 
 }

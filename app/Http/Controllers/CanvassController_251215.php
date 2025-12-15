@@ -3876,6 +3876,154 @@ class CanvassController extends Controller
         $srcHeader->save();
     }
 
+    // private function reserveBudget(array $details, string $cpnyId, TrCS $cs, string $username): void {
+    //     $csDate   = Carbon::parse($cs->csdate ?? now());
+    //     $yearStr  = $csDate->format('Y'); // perpost YYYY
+    //     $periodCol = 'period' . $csDate->format('m') . '_reserve';
+
+    //     $buckets = [];
+    //     foreach ($details as $d) {
+    //         $selectedTotal = 0.0;
+    //         foreach (($d['vendor'] ?? []) as $v) { if (!empty($v['selected'])) { $selectedTotal = (float)($v['total'] ?? 0); break; } }
+    //         if ($selectedTotal <= 0) continue;
+
+    //         $key = json_encode([
+    //             'perpost'           => $yearStr,
+    //             'cpny_id'           => $d['budget_cpny_id'] ?? $cpnyId,
+    //             'business_unit_id'  => $d['budget_business_unit_id'] ?? null,
+    //             'department_fin_id' => $d['budget_department_fin_id'] ?? null,
+    //             'account_id'        => $d['budget_account_id'] ?? null,
+    //             'activity_id'       => $d['budget_activity_id'] ?? null,
+    //         ]);
+    //         $buckets[$key] = ($buckets[$key] ?? 0) + $selectedTotal;
+    //     }
+
+    //     foreach ($buckets as $keyJson => $amount) {
+    //         $crit = json_decode($keyJson, true);
+    //         $bd = BudgetDetail::where([['perpost','=',$crit['perpost']],['cpny_id','=',$crit['cpny_id']]])
+    //             ->when($crit['business_unit_id'],  fn($q,$v)=>$q->where('business_unit_id',$v))
+    //             ->when($crit['department_fin_id'], fn($q,$v)=>$q->where('department_fin_id',$v))
+    //             ->when($crit['account_id'],        fn($q,$v)=>$q->where('account_id',$v))
+    //             ->when($crit['activity_id'],       fn($q,$v)=>$q->where('activity_id',$v))
+    //             ->lockForUpdate()->first();
+
+    //         if (!$bd) {
+    //             $bd = new BudgetDetail();
+    //             $bd->setConnection('pgsql');
+    //             $bd->fill($crit);
+    //             $bd->status = 'A';
+    //             $bd->created_by = $username;
+    //             for ($m=1;$m<=12;$m++){
+    //                 $p = 'period'.str_pad($m,2,'0',STR_PAD_LEFT);
+    //                 $bd->{$p.'_budget'}  = $bd->{$p.'_budget'}  ?? 0;
+    //                 $bd->{$p.'_reserve'} = $bd->{$p.'_reserve'} ?? 0;
+    //                 $bd->{$p.'_used'}    = $bd->{$p.'_used'}    ?? 0;
+    //             }
+    //         }
+
+    //         $bd->{$periodCol} = (float)($bd->{$periodCol} ?? 0) + (float)$amount;
+    //         $bd->updated_by = $username;
+    //         $bd->save();
+    //     }
+    // }
+
+    // Williem 251113 Reserve Budget
+    // private function reserveBudget(array $details, string $cpnyId, TrCS $cs, string $username): void {
+    //     $csDate   = Carbon::parse($cs->csdate ?? now());
+    //     $yearStr  = $csDate->format('Y'); // perpost YYYY
+    //     $periodCol = 'period' . $csDate->format('m') . '_reserve';
+
+    //     $perpostMonth = (int)$csDate->format('m');
+
+    //     $buckets = [];
+    //     foreach ($details as $d) {
+    //         $selectedTotal = 0.0;
+    //         foreach (($d['vendor'] ?? []) as $v) { if (!empty($v['selected'])) { $selectedTotal = (float)($v['total'] ?? 0); break; } }
+    //         if ($selectedTotal <= 0) continue;
+
+    //         $key = json_encode([
+    //             'perpost'           => $yearStr,
+    //             'cpny_id'           => $d['budget_cpny_id'] ?? $cpnyId,
+    //             'business_unit_id'  => $d['budget_business_unit_id'] ?? null,
+    //             'department_fin_id' => $d['budget_department_fin_id'] ?? null,
+    //             'account_id'        => $d['budget_account_id'] ?? null,
+    //             'activity_id'       => $d['budget_activity_id'] ?? null,
+    //             // tambahkan info deskripsi & jenis activity kalau mau ikut di history
+    //             'activity_descr'    => $d['budget_activity_descr'] ?? null,
+    //             'activity_type'     => $d['budget_activity_type'] ?? null,
+
+    //         ]);
+    //         $buckets[$key] = ($buckets[$key] ?? 0) + $selectedTotal;
+    //     }
+
+    //     foreach ($buckets as $keyJson => $amount) {
+    //         $crit = json_decode($keyJson, true);
+
+    //         // ==========================
+    //         // 1. UPDATE / INSERT ms_budget
+    //         // ==========================
+    //         $bd = BudgetDetail::where([['perpost','=',$crit['perpost']],['cpny_id','=',$crit['cpny_id']]])
+    //             ->when($crit['business_unit_id'],  fn($q,$v)=>$q->where('business_unit_id',$v))
+    //             ->when($crit['department_fin_id'], fn($q,$v)=>$q->where('department_fin_id',$v))
+    //             ->when($crit['account_id'],        fn($q,$v)=>$q->where('account_id',$v))
+    //             ->when($crit['activity_id'],       fn($q,$v)=>$q->where('activity_id',$v))
+    //             ->lockForUpdate()->first();
+
+    //         if (!$bd) {
+    //             $bd = new BudgetDetail();
+    //             $bd->setConnection('pgsql');
+    //             $bd->fill($crit);
+    //             $bd->status = 'A';
+    //             $bd->created_by = $username;
+    //             for ($m=1;$m<=12;$m++){
+    //                 $p = 'period'.str_pad($m,2,'0',STR_PAD_LEFT);
+    //                 $bd->{$p.'_budget'}  = $bd->{$p.'_budget'}  ?? 0;
+    //                 $bd->{$p.'_reserve'} = $bd->{$p.'_reserve'} ?? 0;
+    //                 $bd->{$p.'_used'}    = $bd->{$p.'_used'}    ?? 0;
+    //             }
+    //         }
+
+    //         $bd->{$periodCol} = (float)($bd->{$periodCol} ?? 0) + (float)$amount;
+    //         $bd->updated_by = $username;
+    //         $bd->save();
+
+    //         // ==========================
+    //         // 2. INSERT HISTORY ke tr_budget
+    //         // ==========================
+    //         $tr = new TrBudget();
+    //         $tr->setConnection('pgsql');
+    //         $tr->refnbr          = $cs->csid ?? null;          // sesuaikan field di TrCS
+    //         $tr->prev_refnbr     = $cs->csid ?? null;    // kalau ada, kalau tidak ya null
+    //         $tr->doctype         = 'CS';                        // jenis dokumen
+    //         $tr->submitdate      = $csDate->toDateString();
+    //         $tr->perpost_year    = (int)$crit['perpost'];
+    //         $tr->perpost_month   = $perpostMonth;
+
+    //         $tr->cpny_id         = $bd->cpny_id;
+    //         $tr->business_unit_id  = $bd->business_unit_id;
+    //         $tr->department_fin_id = $bd->department_fin_id;
+    //         $tr->account_id        = $bd->account_id;
+    //         $tr->activity_id       = $bd->activity_id;
+    //         $tr->activity_descr    = $bd->activity_descr;
+    //         $tr->activity_type     = $bd->activity_type;
+
+    //         $tr->cpny_id         = $bd->cpny_id;
+    //         $tr->business_unit_id  = $bd->business_unit_id;
+    //         $tr->department_fin_id = $bd->department_fin_id;
+    //         $tr->account_id      = $bd->account_id;
+    //         $tr->activity_id     = $bd->activity_id;
+    //         $tr->activity_descr  = $bd->activity_descr;
+    //         $tr->activity_type   = $bd->activity_type;
+    //         $tr->budget_type     = 'RESERVE';                   // reserve / used
+    //         $tr->trancation_activity     = 'CS Submit';
+    //         $tr->budget_amount   = (float)$amount;
+    //         $tr->status          = 'A';
+    //         $tr->created_by      = $username;
+    //         $tr->created_at      = now();
+    //         $tr->save();
+    //     }
+    // }
+
     // Williem 251214 Reserve Budget
     private function reserveBudget(string $doctype, string $docid, string $activity, string $username): void
     {
@@ -4267,5 +4415,10 @@ class CanvassController extends Controller
 
         $srcHeader->save();
     }
+
+
+
+
+
 
 }
