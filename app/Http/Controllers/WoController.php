@@ -19,8 +19,8 @@ use App\Models\User;
 use App\Models\Site;
 use App\Models\Division;
 use App\Models\TrWO;
-use App\Models\MsLocationPG;
-use App\Models\MsSubLocationPG;
+use App\Models\MsLocation;
+use App\Models\MsSubLocation;
 use Mail;
 use Illuminate\Support\Facades\Log;
 use PDF;
@@ -484,8 +484,8 @@ class WoController extends Controller
         $wo = TrWO::with([
             'worktype',       // MsWorktype
             'subworktype',    // MsSubworktype
-            'location',       // MsLocationPG
-            'sublocation',    // MsSubLocationPG
+            'location',       // MsLocation
+            'sublocation',    // MsSubLocation
             'creator:username,name',
         ])->findOrFail($id);
 
@@ -804,8 +804,8 @@ class WoController extends Controller
         $wo = TrWO::with([
             'worktype',       // MsWorktype
             'subworktype',    // MsSubworktype
-            'location',       // MsLocationPG
-            'sublocation',    // MsSubLocationPG
+            'location',       // MsLocation
+            'sublocation',    // MsSubLocation
             'creator:username,name',
         ])->findOrFail($id);
 
@@ -1602,8 +1602,8 @@ class WoController extends Controller
         $wo = TrWO::with([
             'worktype',      // MsWorktype
             'subworktype',   // MsSubworktype
-            'location',      // MsLocationPG
-            'sublocation',   // MsSubLocationPG
+            'location',      // MsLocation
+            'sublocation',   // MsSubLocation
             'creator:username,name',
         ])->findOrFail($id);
 

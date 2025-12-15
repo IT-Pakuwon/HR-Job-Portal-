@@ -19,15 +19,15 @@ class TrSPPBdetail extends Model
         'updated_by' , 'updated_at' , 'deleted_by' , 'deleted_at' , 'completed_by' , 'completed_at'
     ];
 
-    // location_id (FK) -> MsLocationPG.locationid (PK)
+    // location_id (FK) -> MsLocation.locationid (PK)
     public function location()
     {
-        return $this->belongsTo(MsLocationPG::class, 'location_id', 'location_id');
+        return $this->belongsTo(MsLocation::class, 'location_id', 'location_id');
     }
 
-    // sub_location_id (FK) -> MsSubLocationPG.sublocationid (PK)
+    // sub_location_id (FK) -> MsSubLocation.sublocationid (PK)
     public function subLocation()
     {
-        return $this->belongsTo(MsSubLocationPG::class, 'sub_location_id', 'sub_location_id');
+        return $this->belongsTo(MsSubLocation::class, 'sub_location_id', 'sub_location_id');
     }
 }

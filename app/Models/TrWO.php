@@ -78,12 +78,12 @@ class TrWO extends Model
     /** Lokasi utama */
     public function location()
     {
-        return $this->belongsTo(MsLocationPG::class, 'location_id', 'location_id')->withDefault();
+        return $this->belongsTo(MsLocation::class, 'location_id', 'location_id')->withDefault();
     }
 
     /** Sub-lokasi */
     public function sublocation()
     {
-        return $this->belongsTo(MsSubLocationPG::class, 'sub_location_id', 'sub_location_id')->withDefault();
+        return $this->belongsTo(MsSubLocation::class, 'sub_location_id', 'sub_location_id')->withDefault();
     }
 }

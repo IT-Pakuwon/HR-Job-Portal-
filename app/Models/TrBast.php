@@ -63,13 +63,13 @@ class TrBast extends Model
 
      public function location()
     {
-        return $this->belongsTo(MsLocationPG::class, 'location_id', 'location_id');
+        return $this->belongsTo(MsLocation::class, 'location_id', 'location_id');
     }
 
     
     public function subLocation()
     {
-        return $this->belongsTo(MsSubLocationPG::class, 'sub_location_id', 'sub_location_id');
+        return $this->belongsTo(MsSubLocation::class, 'sub_location_id', 'sub_location_id');
     }
 
     

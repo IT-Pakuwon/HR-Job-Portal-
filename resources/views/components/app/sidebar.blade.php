@@ -539,6 +539,91 @@
                                     </div>
                                 </a>
                             </li>
+                            <li
+                                class="bg-linear-to-r @if (in_array(Request::segment(1), ['vendors'])) {{ 'from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]' }} @endif mb-0.5 rounded-lg py-2 pl-4 pr-3 last:mb-0">
+                                <a class="@if (!in_array(Request::segment(1), ['vendors'])) {{ 'hover:text-gray-900 dark:hover:text-white' }} @endif block truncate text-gray-800 transition dark:text-gray-100"
+                                    href="{{ route('vendors') }}">
+                                    <div class="flex items-center">
+                                        <svg class="@if (in_array(Request::segment(1), ['vendors'])) text-violet-500 @else text-gray-400 dark:text-gray-500 @endif shrink-0"
+                                            xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                            stroke-width="1.5" stroke="currentColor" width="16" height="16">
+                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                d="M2.25 12.75v-.75a2.25 2.25 0 012.25-2.25h15a2.25 2.25 0 012.25 2.25v.75m-19.5 0v3a2.25 2.25 0 002.25 2.25h15a2.25 2.25 0 002.25-2.25v-3m-19.5 0h19.5M6 9.75v-.75a3 3 0 013-3h6a3 3 0 013 3v.75" />
+                                        </svg>
+
+                                        <span
+                                            class="lg:sidebar-expanded:opacity-100 text-m ml-4 font-medium duration-200 lg:opacity-0 2xl:opacity-100">Vendor</span>
+                                    </div>
+                                </a>
+                            </li>
+                            <li
+                                class="bg-linear-to-r @if (in_array(Request::segment(1), ['inventories'])) {{ 'from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]' }} @endif mb-0.5 rounded-lg py-2 pl-4 pr-3 last:mb-0">
+                                <a class="@if (!in_array(Request::segment(1), ['inventories'])) {{ 'hover:text-gray-900 dark:hover:text-white' }} @endif block truncate text-gray-800 transition dark:text-gray-100"
+                                    href="{{ route('inventories') }}">
+                                    <div class="flex items-center">
+                                        <svg class="@if (in_array(Request::segment(1), ['inventories'])) text-violet-500 @else text-gray-400 dark:text-gray-500 @endif shrink-0"
+                                            xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                            stroke-width="1.5" stroke="currentColor" width="16" height="16">
+                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                d="M2.25 12.75v-.75a2.25 2.25 0 012.25-2.25h15a2.25 2.25 0 012.25 2.25v.75m-19.5 0v3a2.25 2.25 0 002.25 2.25h15a2.25 2.25 0 002.25-2.25v-3m-19.5 0h19.5M6 9.75v-.75a3 3 0 013-3h6a3 3 0 013 3v.75" />
+                                        </svg>
+
+                                        <span
+                                            class="lg:sidebar-expanded:opacity-100 text-m ml-4 font-medium duration-200 lg:opacity-0 2xl:opacity-100">Inventory</span>
+                                    </div>
+                                </a>
+                            </li>
+                            <li
+                                class="bg-linear-to-r @if (in_array(Request::segment(1), ['tenants'])) {{ 'from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]' }} @endif mb-0.5 rounded-lg py-2 pl-4 pr-3 last:mb-0">
+                                <a class="@if (!in_array(Request::segment(1), ['tenants'])) {{ 'hover:text-gray-900 dark:hover:text-white' }} @endif block truncate text-gray-800 transition dark:text-gray-100"
+                                    href="{{ route('tenants') }}">
+                                    <div class="flex items-center">
+                                        <svg class="@if (in_array(Request::segment(1), ['tenants'])) text-violet-500 @else text-gray-400 dark:text-gray-500 @endif shrink-0"
+                                            xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                            stroke-width="1.5" stroke="currentColor" width="16" height="16">
+                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                d="M2.25 12.75v-.75a2.25 2.25 0 012.25-2.25h15a2.25 2.25 0 012.25 2.25v.75m-19.5 0v3a2.25 2.25 0 002.25 2.25h15a2.25 2.25 0 002.25-2.25v-3m-19.5 0h19.5M6 9.75v-.75a3 3 0 013-3h6a3 3 0 013 3v.75" />
+                                        </svg>
+
+                                        <span
+                                            class="lg:sidebar-expanded:opacity-100 text-m ml-4 font-medium duration-200 lg:opacity-0 2xl:opacity-100">Tenant</span>
+                                    </div>
+                                </a>
+                            </li>
+                            <li
+                                class="bg-linear-to-r @if (in_array(Request::segment(1), ['locations'])) {{ 'from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]' }} @endif mb-0.5 rounded-lg py-2 pl-4 pr-3 last:mb-0">
+                                <a class="@if (!in_array(Request::segment(1), ['locations'])) {{ 'hover:text-gray-900 dark:hover:text-white' }} @endif block truncate text-gray-800 transition dark:text-gray-100"
+                                    href="{{ route('locations') }}">
+                                    <div class="flex items-center">
+                                        <svg class="@if (in_array(Request::segment(1), ['locations'])) text-violet-500 @else text-gray-400 dark:text-gray-500 @endif shrink-0"
+                                            xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                            stroke-width="1.5" stroke="currentColor" width="16" height="16">
+                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                d="M2.25 12.75v-.75a2.25 2.25 0 012.25-2.25h15a2.25 2.25 0 012.25 2.25v.75m-19.5 0v3a2.25 2.25 0 002.25 2.25h15a2.25 2.25 0 002.25-2.25v-3m-19.5 0h19.5M6 9.75v-.75a3 3 0 013-3h6a3 3 0 013 3v.75" />
+                                        </svg>
+
+                                        <span
+                                            class="lg:sidebar-expanded:opacity-100 text-m ml-4 font-medium duration-200 lg:opacity-0 2xl:opacity-100">Location</span>
+                                    </div>
+                                </a>
+                            </li>
+                            <li
+                                class="bg-linear-to-r @if (in_array(Request::segment(1), ['tops'])) {{ 'from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]' }} @endif mb-0.5 rounded-lg py-2 pl-4 pr-3 last:mb-0">
+                                <a class="@if (!in_array(Request::segment(1), ['tops'])) {{ 'hover:text-gray-900 dark:hover:text-white' }} @endif block truncate text-gray-800 transition dark:text-gray-100"
+                                    href="{{ route('tops') }}">
+                                    <div class="flex items-center">
+                                        <svg class="@if (in_array(Request::segment(1), ['tops'])) text-violet-500 @else text-gray-400 dark:text-gray-500 @endif shrink-0"
+                                            xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                            stroke-width="1.5" stroke="currentColor" width="16" height="16">
+                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                d="M2.25 12.75v-.75a2.25 2.25 0 012.25-2.25h15a2.25 2.25 0 012.25 2.25v.75m-19.5 0v3a2.25 2.25 0 002.25 2.25h15a2.25 2.25 0 002.25-2.25v-3m-19.5 0h19.5M6 9.75v-.75a3 3 0 013-3h6a3 3 0 013 3v.75" />
+                                        </svg>
+
+                                        <span
+                                            class="lg:sidebar-expanded:opacity-100 text-m ml-4 font-medium duration-200 lg:opacity-0 2xl:opacity-100">TOP</span>
+                                    </div>
+                                </a>
+                            </li>
                         @endif
                         @endif
                     @endauth

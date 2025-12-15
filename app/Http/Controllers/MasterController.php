@@ -6,11 +6,11 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
-use App\Models\MsInventoryPG;
+use App\Models\MsInventory;
 use App\Models\MsInventoryStockPG;
 use App\Models\MsRequestType;
-use App\Models\MsLocationPG;
-use App\Models\MsSubLocationPG;
+use App\Models\MsLocation;
+use App\Models\MsSubLocation;
 use App\Models\DepartmentFin;
 use App\Models\Autonbr;
 use App\Models\BudgetDetail;
@@ -61,15 +61,15 @@ class MasterController extends Controller
         $page    = max((int) $request->get('page', 1), 1);
         $perPage = max((int) $request->get('per_page', 10), 1);
 
-        // Selalu pakai MsInventoryPG
-        $query = MsInventoryPG::query()
+        // Selalu pakai MsInventory
+        $query = MsInventory::query()
             ->select(
                 'inventoryid',
                 'inventory_descr',
                 'stock_unit',
                 'item_type',               
                 'item_category',
-                // 'account_id',     // pastikan kolom ada di MsInventoryPG
+                // 'account_id',     // pastikan kolom ada di MsInventory
                 'purchase_unit',  // untuk dikirim ke view
                 'item_sub_type',                
             );
@@ -122,8 +122,8 @@ class MasterController extends Controller
         // departementid dari form header
         $deptId = $request->get('departementid'); // boleh null
 
-        // Base query MsInventoryPG
-        $query = MsInventoryPG::query()
+        // Base query MsInventory
+        $query = MsInventory::query()
             ->select(
                 'inventoryid',
                 'inventory_descr',
@@ -235,7 +235,7 @@ class MasterController extends Controller
         }
 
         // 2) Query PG (tanpa distinct) + filter + paging
-        $pg = \App\Models\MsInventoryPG::query()
+        $pg = \App\Models\MsInventory::query()
             ->select([
                 'inventoryid','inventory_descr','stock_unit',
                 'item_type','item_category','purchase_unit',
@@ -387,7 +387,7 @@ class MasterController extends Controller
         }
 
         // 2) Query PG: ambil inventory + paging
-        $pg = \App\Models\MsInventoryPG::query()
+        $pg = \App\Models\MsInventory::query()
             ->select([
                 'inventoryid','inventory_descr','stock_unit',
                 'item_type','item_category','purchase_unit',
@@ -545,7 +545,7 @@ class MasterController extends Controller
         $page        = max((int) $request->get('page', 1), 1);
         $perPage     = min(max((int) $request->get('per_page', 10), 1), 100);
 
-        $query = MsInventoryPG::query()->select(
+        $query = MsInventory::query()->select(
             'inventoryid',
             'inventory_descr',
             'stock_unit',
@@ -645,7 +645,7 @@ class MasterController extends Controller
 
         // Sesuaikan nama kolom Mslocation kamu:
         // asumsi: cpny_id, location_id, location_name, status
-        $q = MslocationPG::query()
+        $q = MsLocation::query()
             ->where('cpny_id', $cpnyid)
             ->where('status', 'A');
 
@@ -687,7 +687,7 @@ class MasterController extends Controller
 
         // SESUAIKAN nama kolom:
         // asumsi: cpny_id, location_id, sub_location_id, sub_location_name, status
-        $q = MsSubLocationPG::query()
+        $q = MsSubLocation::query()
             ->where('cpny_id', $cpnyid)
             ->where('location_id', $location_id)
             ->where('status', 'A');
@@ -1223,7 +1223,7 @@ class MasterController extends Controller
 
     public function getLocations(string $cpny_id)
     {
-        $items = MsLocationPG::query()
+        $items = MsLocation::query()
             ->where('cpny_id', $cpny_id)
             ->where('status', 'A')
             ->orderBy('location_name')
@@ -1234,7 +1234,7 @@ class MasterController extends Controller
 
     public function getSubLocations(string $cpny_id, string $location_id)
     {
-        $items = MsSubLocationPG::query()
+        $items = MsSubLocation::query()
             ->where('cpny_id', $cpny_id)
             ->where('location_id', $location_id)
             ->where('status', 'A')
