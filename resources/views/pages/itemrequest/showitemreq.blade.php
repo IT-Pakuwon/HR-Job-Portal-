@@ -146,7 +146,7 @@
 
         <div class="flex w-full flex-col gap-6 overflow-hidden sm:col-span-1 lg:row-span-1 xl:row-span-1 xl:flex-col">
             <div class="flex flex-col gap-6 sm:w-1/2 md:w-full xl:flex-row">
-                {{-- Left card (SPPB Info) --}}
+                {{-- Left card (ItemReq Info) --}}
                 <div class="rounded-xl bg-white duration-300 sm:w-1/2 md:w-full dark:bg-gray-800">
                     <header
                         class="sticky top-0 z-10 flex items-center justify-between rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
@@ -155,11 +155,11 @@
                                 class="inline-flex items-center rounded-md bg-purple-100 px-2 py-1 text-sm font-semibold text-purple-700">
                                 ID
                             </span>
-                            {{ $sppb->sppbid }}
+                            {{ $itemReq->irid }}
                         </h1>
 
                         @php
-                            $statusText = match ($sppb->status) {
+                            $statusText = match ($itemReq->status) {
                                 'D' => 'Revise',
                                 'P' => 'On Progress',
                                 'C' => 'Completed',
@@ -168,7 +168,7 @@
                                 default => 'Unknown',
                             };
 
-                            $statusClasses = match ($sppb->status) {
+                            $statusClasses = match ($itemReq->status) {
                                 'D' => 'bg-blue-100 text-blue-700 dark:bg-blue-800/30 dark:text-blue-300',
                                 'P' => 'bg-yellow-100 text-yellow-700 dark:bg-yellow-800/30 dark:text-yellow-300',
                                 'C' => 'bg-green-100 text-green-700 dark:bg-green-800/30 dark:text-green-300',
@@ -183,7 +183,7 @@
                                 {{ $statusText }}
                             </span>
 
-                            <a href="{{ url('/pdf_sppbs') }}/{{ $hash }}" target="_blank">
+                            <a href="{{ url('/pdf_itemreq') }}/{{ $hash }}" target="_blank">
                                 <button
                                     class="inline-flex cursor-pointer items-center gap-2 rounded-full bg-indigo-600 px-4 py-1 text-sm font-semibold text-white transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
                                     Print PDF
@@ -204,22 +204,27 @@
                                     [
                                         'icon' => 'building-office',
                                         'label' => 'Company',
-                                        'value' => $sppb->cpny_id,
+                                        'value' => $itemReq->cpny_id,
                                     ],
                                     [
                                         'icon' => 'squares-2x2',
                                         'label' => 'Department',
-                                        'value' => $sppb->department_id,
+                                        'value' => $itemReq->department_id,
                                     ],
                                     [
                                         'icon' => 'calendar',
                                         'label' => 'Date',
-                                        'value' => date('j F Y', strtotime($sppb->sppbdate)),
+                                        'value' => date('j F Y', strtotime($itemReq->irdate)),
                                     ],
                                     [
                                         'icon' => 'user-circle',
                                         'label' => 'Created User',
-                                        'value' => ucwords(strtolower(optional($sppb->creator)->name)),
+                                        'value' => ucwords(strtolower(optional($itemReq->creator)->name)),
+                                    ],
+                                    [
+                                        'icon' => 'squares-2x2',
+                                        'label' => 'Inventory Type',
+                                        'value' => $itemReq->inventory_type,
                                     ],
                                 ];
                             @endphp
@@ -236,32 +241,33 @@
                             @endforeach
 
                             {{-- Request Type + Purpose (same card style as your system) --}}
-                            <div class="col-span-2 flex flex-col gap-3 sm:flex-row">
-
-                                {{-- Request Type --}}
-                                <div class="flex flex-1 items-center gap-2 rounded-md bg-gray-50 p-3 dark:bg-gray-700">
-                                    <x-heroicon-o-clipboard-document-list class="h-5 w-5 text-gray-400" />
-                                    <div class="flex flex-col">
-                                        <span class="text-gray-500">Request Type</span>
-                                        <span class="break-words font-medium text-gray-900 dark:text-gray-300">
-                                            {{ optional($sppb->requestType)->requesttype_name }}
-                                        </span>
-                                    </div>
-                                </div>
+                            <div class="col-span-2 flex flex-col gap-3 sm:flex-row">                               
 
                                 {{-- Purpose --}}
                                 <div class="flex flex-1 items-center gap-2 rounded-md bg-gray-50 p-3 dark:bg-gray-700">
                                     <x-heroicon-o-clipboard-document-check class="h-5 w-5 text-gray-400" />
                                     <div class="flex flex-col">
-                                        <span class="text-gray-500">Purpose</span>
+                                        <span class="text-gray-500">Request Inventory</span>
                                         <span class="break-words font-medium text-gray-900 dark:text-gray-300">
-                                            {{ $sppb->keperluan }}
+                                            {{ $itemReq->inventory_descr_req }}
                                         </span>
                                     </div>
                                 </div>
 
                             </div>
-
+                            @if($itemReq->inventoryid)
+                            <div class="col-span-2 flex flex-col gap-3 sm:flex-row">     
+                                <div class="flex flex-1 items-center gap-2 rounded-md bg-gray-50 p-3 dark:bg-gray-700">
+                                    <x-heroicon-o-clipboard-document-check class="h-5 w-5 text-gray-400" />
+                                    <div class="flex flex-col">
+                                        <span class="text-gray-500">Inventory</span>
+                                        <span class="break-words font-medium text-gray-900 dark:text-gray-300">
+                                            {{ $itemReq->inventoryid }} - {{ $itemReq->inventory?->inventory_descr ?? '-' }}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            @endif
                         </div>
                     </div>
 
@@ -316,49 +322,7 @@
                                     <tbody id="approval-table-body">
                                     </tbody>
 
-                                    {{-- <tbody>
-                                        @foreach ($approval as $ap)
-                                            <tr
-                                                class="border-b border-gray-100 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700">
-                                                <td class="p-3">{{ $ap->aprvid }}</td>
-                                                <td class="p-3">{{ $ap->name }}</td>
-                                                <td class="p-3">
-                                                    {{ \Carbon\Carbon::parse($ap->aprvdatebefore)->format('d M Y') }}
-                                                </td>
-                                                <td class="p-3">
-                                                    @php
-                                                        $statusText = '';
-                                                        $statusClass = '';
-                                                        switch ($ap->status) {
-                                                            case 'P':
-                                                                $statusText = 'Waiting Approval';
-                                                                $statusClass = 'bg-yellow-500 text-white';
-                                                                break;
-                                                            case 'A':
-                                                                $statusText = 'Approved';
-                                                                $statusClass = 'bg-green-500 text-white';
-                                                                break;
-                                                            case 'R':
-                                                                $statusText = 'Rejected';
-                                                                $statusClass = 'bg-red-500 text-white';
-                                                                break;
-                                                            case 'D':
-                                                                $statusText = 'Revise';
-                                                                $statusClass = 'bg-blue-500 text-white';
-                                                                break;
-                                                            default:
-                                                                $statusText = 'Unknown';
-                                                                $statusClass = 'bg-gray-500 text-white';
-                                                        }
-                                                    @endphp
-                                                    <span
-                                                        class="{{ $statusClass }} inline-block rounded-full px-3 py-1 text-xs font-semibold">
-                                                        {{ $statusText }}
-                                                    </span>
-                                                </td>
-                                            </tr>
-                                        @endforeach
-                                    </tbody> --}}
+                                    
                                 </table>
                             </div>
                             {{-- Attachment tab --}}
@@ -371,51 +335,27 @@
                                             <th class="p-3 text-left font-semibold">Date</th>
                                         </tr>
                                     </thead>
-                                    {{-- <tbody>
-                                        @forelse ($attachments as $at)
-                                            <tr class="border-b border-gray-100 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700">
-                                                <td class="p-3">
-                                                    @if ($at->url)
-                                                        <a href="{{ $at->url }}" target="_blank"
-                                                        class="flex items-center gap-2 font-medium text-indigo-600 hover:underline dark:text-indigo-400">
-                                                            📎 {{ $at->display_name }}
-                                                        </a>
-                                                    @else
-                                                        <span class="text-gray-700 dark:text-gray-300">📎 {{ $at->display_name }}</span>
-                                                        <span class="ml-2 text-xs text-red-500">(link unavailable)</span>
-                                                    @endif
-                                                </td>
-                                                <td class="p-3">{{ $at->created_by }}</td>
-                                                <td class="p-3">{{ \Carbon\Carbon::parse($at->created_at)->format('d M Y') }}</td>
-                                            </tr>
-                                        @empty
-                                            <tr>
-                                                <td colspan="3" class="p-4 text-center italic text-gray-500 dark:text-gray-400">
-                                                    No attachments found.
-                                                </td>
-                                            </tr>
-                                        @endforelse
-                                    </tbody> --}}
-                                    <tbody id="sppbAttachmentTbody"></tbody>
+                                    
+                                    <tbody id="itemreqAttachmentTbody"></tbody>
 
                                 </table>
                                 {{-- Upload attachment (multi) --}}
                                 @if($canUpload)
                                 <div class="border-t border-gray-200 p-4 dark:border-gray-700">
-                                    <form id="sppbAttachmentUploadForm" enctype="multipart/form-data">
+                                    <form id="itemreqAttachmentUploadForm" enctype="multipart/form-data">
                                         @csrf
                                         <div class="flex flex-col gap-3 md:flex-row md:items-center">
                                             <div class="flex-1">
-                                                <label for="sppbAttachFiles"
+                                                <label for="itemreqAttachFiles"
                                                     class="mb-2 block text-sm font-semibold text-gray-800 dark:text-gray-200">
                                                     Upload Attachments
                                                 </label>
                                                 <div class="flex items-center gap-3">
                                                     <input type="hidden" name="cpnyid"
-                                                        value="{{ $sppb->cpny_id }}">
+                                                        value="{{ $itemReq->cpny_id }}">
                                                     <input type="hidden" name="departementid"
-                                                        value="{{ $sppb->department_id }}">
-                                                    <input type="file" id="sppbAttachFiles" name="attachments[]"
+                                                        value="{{ $itemReq->department_id }}">
+                                                    <input type="file" id="itemreqAttachFiles" name="attachments[]"
                                                         multiple
                                                         class="block w-full cursor-pointer rounded-md border border-gray-300 bg-white px-2 py-[7px] text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" />
                                                     <button type="button" id="btnUploadSppbAttachment"
@@ -460,164 +400,9 @@
                     </div>
                 </div>
             </div>
-
-            {{-- SPPB Detail table --}}
-            <div class="flex w-full flex-col rounded-2xl bg-white dark:bg-gray-800">
-                <header
-                    class="flex items-center justify-between rounded-t-2xl border-b border-gray-200 bg-white px-6 py-4 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
-                    <h2 class="text-xl font-semibold">📝 SPPB Detail</h2>
-                        {{-- Button Edit COA --}}
-                        @if($akses_cc)
-                        <button
-                            id="btnEditCoa"
-                            class="inline-flex items-center gap-1 rounded-md bg-indigo-600 px-3 py-2 text-sm font-medium text-white shadow hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                stroke-width="1.5" stroke="currentColor" class="h-4 w-4">
-                                <path stroke-linecap="round" stroke-linejoin="round"
-                                    d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125" />
-                            </svg>
-                            Edit COA
-                        </button>
-                        @endif
-                </header>
-                <div class="overflow-x-auto">
-                    <table class="w-full text-sm text-gray-700 dark:text-gray-200">
-                        <thead class="sticky top-0 z-20 bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300">
-                            <tr>
-                                <th class="px-4 py-2">No</th>                               
-                                <th class="px-4 py-2">Description / Note</th>
-                                <th class="px-4 py-2">Qty / UoM</th>  
-                                <th class="px-4 py-2">Location</th>                                
-                                <th class="px-4 py-2">Budget Department</th>                                
-                                <th class="px-4 py-2">Ordered</th>                               
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach ($sppbdetail as $item)
-                                <tr
-                                    class="border-t border-gray-200 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800">
-                                    <td class="px-4 py-2">{{ $item->sppb_no }}</td>                                   
-                                    <td class="px-4 py-2">{{ $item->inventory_descr }} ( {{ $item->inventoryid }} )<br>
-                                        <span class="text-xs text-gray-500 dark:text-gray-400">
-                                            Note: {{ $item->note }}
-                                        </span>
-                                    </td>
-                                    <td class="px-4 py-2">{{ number_format($item->qty, 2, ',', '.') }}<br>
-                                        <span class="text-xs text-gray-500 dark:text-gray-400">
-                                            {{ $item->uom }}
-                                        </span>
-                                    </td>     
-                                    <td class="px-4 py-2">{{ optional($item->location)->location_name }} - {{ optional($item->subLocation)->sub_location_name }}</td>                                   
-                                    <td class="px-4 py-2">{{ $item->budget_department_fin_id }} - {{ $item->budget_account_id }} - {{ $item->budget_activity_descr }}</td>
-                                    <td class="px-4 py-2">{{ $item->ordered }}</td>
-                                   
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            {{-- Modal Edit COA --}}
-            <div id="editCoaModal"
-                class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40">
-                <div class="w-full max-w-6xl rounded-xl bg-white shadow-lg dark:bg-gray-800">
-                    {{-- Header modal --}}
-                    <div class="flex items-center justify-between border-b border-gray-200 px-4 py-3 dark:border-gray-700">
-                        <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-100">
-                            Edit COA
-                        </h3>
-                        <button id="btnCloseEditCoa"
-                            class="inline-flex h-8 w-8 items-center justify-center rounded-full text-gray-500 hover:bg-gray-200 dark:text-gray-300 dark:hover:bg-gray-700">
-                            ✕
-                        </button>
-                    </div>
-
-                    {{-- Body modal: table --}}
-                    <div class="max-h-[60vh] overflow-y-auto px-4 py-3">
-                        <table class="w-full min-w-max border-separate border-spacing-0 text-sm">
-                            <thead class="bg-gray-100 text-xs font-semibold uppercase tracking-wide text-gray-600 dark:bg-gray-700 dark:text-gray-200">
-                                <tr>
-                                    <th class="w-64 px-3 py-2 text-left">
-                                        Inventory Descr / Note
-                                    </th>
-                                    <th class="w-24 px-3 py-2 text-center">
-                                        Qty / UOM
-                                    </th>
-                                    <th class="w-32 px-3 py-2 text-left">
-                                        Activity Descr
-                                    </th>
-                                    <th class="w-40 px-3 py-2 text-left">
-                                        Change COA - Activity Descr
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody id="editCoaTableBody">
-                                @foreach ($sppbdetail as $row)
-                                    <tr data-row-id="{{ $row->id }}"
-                                        data-cpny="{{ $row->budget_cpny_id }}"
-                                        data-dept="{{ $row->budget_department_fin_id }}"
-                                        data-perpost="{{ $row->budget_perpost }}">
-
-                                        <td>{{ $row->inventory_descr }}<br>
-                                            <span class="text-xs text-gray-500">Note : {{ $row->note }}</span><br>
-                                            <span class="text-xs text-gray-500">Location : {{ optional($row->location)->location_name }} - {{ optional($row->subLocation)->sub_location_name }}</span>
-                                        </td>
-
-                                        <td class="text-center">
-                                            {{ number_format($row->qty,2,',','.') }} <br>
-                                            <span class="text-xs text-gray-500">{{ $row->uom }}</span>
-                                        </td>
-
-                                        <td>{{ $row->budget_activity_descr }}</td>
-
-                                        <td>
-                                            <select class="coa-select w-full"
-                                                    data-row-id="{{ $row->id }}">
-                                                @if ($row->budget_account_id)
-                                                    <option value="{{ $row->budget_account_id }}" selected>
-                                                        {{ $row->budget_account_id }} - {{ $row->budget_activity_descr }}
-                                                    </option>
-                                                @endif
-                                            </select>
-                                        </td>
-                                        {{-- <td>
-                                            <select class="coa-select w-full"
-                                                    data-row-id="{{ $row->id }}">                                               
-                                            </select>
-                                        </td> --}}
-
-                                    </tr>
-                                @endforeach
-                            </tbody>
-
-                        </table>
-                    </div>
-
-                    {{-- Footer modal --}}
-                    <div class="flex items-center justify-end gap-2 border-t border-gray-200 px-4 py-3 dark:border-gray-700">
-                        <button id="btnCancelEditCoa"
-                            class="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-400 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">
-                            Cancel
-                        </button>
-                        <button id="btnSaveEditCoa"
-                            class="rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                            Save
-                        </button>
-                    </div>
-                </div>
-            </div>
-
         </div>
     </div>
-    {{-- <div id="loadingSpinnerContainer" class="flex h-16 items-center justify-center">
-        <svg class="h-10 w-10 animate-spin text-indigo-500" xmlns="http://www.w3.org/2000/svg" fill="none"
-            viewBox="0 0 24 24" stroke="currentColor">
-            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4">
-            </circle>
-            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
-        </svg>
-    </div> --}}
+   
     <div id="loadingSpinnerContainer" role="status" aria-live="polite" aria-label="Loading">
         <div class="loading-card">
             <div class="loading-spinner"></div>
@@ -626,7 +411,6 @@
             </div>
         </div>
     </div>
-
 
     <div id="rejectTaskModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50">
         <div class="w-full max-w-md rounded-lg bg-white p-6 dark:bg-gray-700">
@@ -676,10 +460,10 @@
 
     <script>
         $(document).ready(function() {
-            const sppbid = "{{ $sppb->sppbid }}";
-            const doctype = "PB";
+            const irid = "{{ $itemReq->irid }}";
+            const doctype = "SR";
 
-            loadComments(sppbid, doctype);
+            loadComments(irid, doctype);
 
             function loadComments(refnbr, doctype) {
                 let commentList = $('#commentList');
@@ -731,7 +515,7 @@
                 $('#postCommentBtn').prop('disabled', true).text('Posting... 🚀');
 
                 $.ajax({
-                    url: `/comments/${doctype}/${sppbid}`,
+                    url: `/comments/${doctype}/${irid}`,
                     type: 'POST',
                     data: {
                         comment: input,
@@ -739,7 +523,7 @@
                     },
                     success: function(response) {
                         if (response.status === "success") {
-                            loadComments(sppbid, doctype);
+                            loadComments(irid, doctype);
                             $('#commentInput').val('');
                         }
                     },
@@ -773,22 +557,22 @@
 
     <script>
         $(document).on("click", "#approveBtn", function() {
-            let sppbid = "{{ $sppb->sppbid }}"; // Ambil Task ID dari modal        
-            approveSPPB(sppbid);
+            let irid = "{{ $itemReq->irid }}"; // Ambil Task ID dari modal        
+            approveItemReq(irid);
         });
 
-        function approveSPPB(sppbid) {
+        function approveItemReq(irid) {
             let $spinner = $("#loadingSpinnerContainer"); // Ambil elemen spinner
 
             // Tampilkan spinner di kanan bawah
             $spinner.fadeIn();
 
             $.ajax({
-                url: `/sppb/${sppbid}/approve`,
+                url: `/itemreq/${irid}/approve`,
                 type: "POST",
                 data: {
                     _token: "{{ csrf_token() }}",
-                    sppbid: sppbid
+                    irid: irid
                 },
                 success: function(response) {
                     if (response.success) {
@@ -800,8 +584,8 @@
                             );
 
                         // Tampilkan alert sukses
-                        toastr.success("SPPB approved successfully!");
-                        window.location.href = "/sppbs";
+                        toastr.success("ItemReq approved successfully!");
+                        window.location.href = "/itemreq";
                     } else {
                         toastr.error(response.message);
                     }
@@ -810,9 +594,9 @@
                     console.error(xhr.responseText);
 
                     if (xhr.status === 403) {
-                        toastr.error("You are not authorized to approve this sppb.");
+                        toastr.error("You are not authorized to approve this itemreq.");
                     } else {
-                        toastr.error("Error: Unable to approve sppb.");
+                        toastr.error("Error: Unable to approve itemreq.");
                     }
                 },
                 complete: function() {
@@ -830,8 +614,8 @@
             $(document).on("click", "#rejectBtn", function() {
                 $("#rejectReason").val(""); // Reset alasan reject
                 // $("#rejectTaskModal").removeClass("hidden").css("z-index", "60");
-                let sppbid = "{{ $sppb->sppbid }}";
-                checkApproval(sppbid, "reject");
+                let irid = "{{ $itemReq->irid }}";
+                checkApproval(irid, "reject");
 
             });
 
@@ -842,7 +626,7 @@
 
             // Saat tombol "Reject" ditekan, proses perubahan status
             $(document).on("click", "#confirmRejectBtn", function() {
-                let sppbid = "{{ $sppb->sppbid }}"; // Ambil ID tugas dari modal detail
+                let irid = "{{ $itemReq->irid }}"; // Ambil ID tugas dari modal detail
                 let rejectReason = $("#rejectReason").val().trim();
 
                 if (rejectReason === "") {
@@ -855,28 +639,28 @@
                 $spinner.fadeIn();
 
                 $.ajax({
-                    url: `/sppb/${sppbid}/reject`,
+                    url: `/itemreq/${irid}/reject`,
                     type: "POST",
                     data: {
                         _token: "{{ csrf_token() }}",
-                        docid: sppbid,
+                        docid: irid,
                         reason: rejectReason
                     },
                     success: function(response) {
                         if (response.success) {
                             // alert("Task has been rejected successfully.");
 
-                            // Update status di modal sppb
+                            // Update status di modal itemreq
                             $("#xstatus").text("Rejected")
                                 .removeClass()
                                 .addClass(
                                     "w-full max-w-32 bg-red-300/30 dark:bg-red-300 text-red-600 flex justify-items-center focus:outline-none pointer-events-none    -none font-semibold px-2 py-0.5 rounded"
                                 );
                             $spinner.fadeOut();
-                            toastr.success("SPPB Rejected successfully!");
-                            window.location.href = "/sppbs";
+                            toastr.success("ItemReq Rejected successfully!");
+                            window.location.href = "/itemreq";
                         } else {
-                            alert("Failed to reject sppb.");
+                            alert("Failed to reject itemreq.");
                         }
                     },
                     error: function(xhr) {
@@ -885,7 +669,7 @@
                         if (xhr.status === 403) {
                             alert("You Can't Rejected!"); // Popup jika user tidak berhak
                         } else {
-                            alert("Error: Unable to reject sppb status.");
+                            alert("Error: Unable to reject itemreq status.");
                         }
                     },
                 });
@@ -898,8 +682,8 @@
             $(document).on("click", "#reviseBtn", function() {
                 $("#reviseReason").val(""); // Reset alasan revise
                 // $("#reviseTaskModal").removeClass("hidden").css("z-index", "60");
-                let sppbid = "{{ $sppb->sppbid }}";
-                checkApproval(sppbid, "revise");
+                let irid = "{{ $itemReq->irid }}";
+                checkApproval(irid, "revise");
 
             });
 
@@ -910,7 +694,7 @@
 
             // Saat tombol "Revise" ditekan, proses perubahan status
             $(document).on("click", "#confirmReviseBtn", function() {
-                let sppbid = "{{ $sppb->sppbid }}"; // Ambil ID tugas dari modal detail
+                let irid = "{{ $itemReq->irid }}"; // Ambil ID tugas dari modal detail
                 let reviseReason = $("#reviseReason").val().trim();
 
                 if (reviseReason === "") {
@@ -922,28 +706,28 @@
                 $spinner.fadeIn();
 
                 $.ajax({
-                    url: `/sppb/${sppbid}/revise`,
+                    url: `/itemreq/${irid}/revise`,
                     type: "POST",
                     data: {
                         _token: "{{ csrf_token() }}",
-                        docid: sppbid,
+                        docid: irid,
                         reason: reviseReason
                     },
                     success: function(response) {
                         if (response.success) {
                             // alert("Task has been reviseed successfully.");
 
-                            // Update status di modal sppb
+                            // Update status di modal itemreq
                             $("#xstatus").text("Revised")
                                 .removeClass()
                                 .addClass(
                                     "w-full max-w-32 bg-red-300/30 dark:bg-red-300 text-red-600 flex justify-items-center focus:outline-none pointer-events-none    -none font-semibold px-2 py-0.5 rounded"
                                 );
                             $spinner.fadeOut();
-                            toastr.success("SPPB Revised successfully!");
-                            window.location.href = "/sppbs";
+                            toastr.success("ItemReq Revised successfully!");
+                            window.location.href = "/itemreq";
                         } else {
-                            alert("Failed to revise sppb.");
+                            alert("Failed to revise itemreq.");
                         }
                     },
                     error: function(xhr) {
@@ -952,7 +736,7 @@
                         if (xhr.status === 403) {
                             alert("You Can't Revised!"); // Popup jika user tidak berhak
                         } else {
-                            alert("Error: Unable to revise sppb status.");
+                            alert("Error: Unable to revise itemreq status.");
                         }
                     },
                 });
@@ -966,9 +750,9 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 
     <script>
-        function checkApproval(sppbid, action) {
+        function checkApproval(irid, action) {
             $.ajax({
-                url: `/approval/${sppbid}/check/${action}?doctype=PB`,
+                url: `/approval/${irid}/check/${action}?doctype=SR`,
                 type: "GET",
                 success: function(response) {
                     if (response.canPerformAction) {
@@ -983,7 +767,7 @@
                         }
 
                     } else {
-                        toastr.error("You are not authorized to " + action + " this SPPB.");
+                        toastr.error("You are not authorized to " + action + " this ItemReq.");
                     }
                 },
                 error: function() {
@@ -995,12 +779,12 @@
 
     <script>
         $(function() {
-            const listUrl = @json(route('attachments.list', ['doctype' => 'PB', 'refnbr' => $sppb->sppbid]));
-            const uploadUrl = @json(route('attachments.upload', ['doctype' => 'PB', 'refnbr' => $sppb->sppbid]));
+            const listUrl = @json(route('attachments.list', ['doctype' => 'SR', 'refnbr' => $itemReq->irid]));
+            const uploadUrl = @json(route('attachments.upload', ['doctype' => 'SR', 'refnbr' => $itemReq->irid]));
 
             function $tbody() {
-                return $('#sppbAttachmentTbody');
-            } // <tbody id="sppbAttachmentTbody">
+                return $('#itemreqAttachmentTbody');
+            } // <tbody id="itemreqAttachmentTbody">
 
             function renderSppbAttachmentRows(rows) {
                 const $tb = $tbody().empty();
@@ -1050,8 +834,8 @@
             refreshSppbAttachments();
 
             $('#btnUploadSppbAttachment').on('click', function() {
-                const $form = $('#sppbAttachmentUploadForm')[0];
-                const files = $('#sppbAttachFiles')[0].files;
+                const $form = $('#itemreqAttachmentUploadForm')[0];
+                const files = $('#itemreqAttachFiles')[0].files;
 
                 if (!files || !files.length) {
                     toastr.warning('Please choose at least one file.');
@@ -1074,7 +858,7 @@
                             return;
                         }
                         toastr.success('Upload success.');
-                        $('#sppbAttachFiles').val('');
+                        $('#itemreqAttachFiles').val('');
                         // back-end sudah mengembalikan list terbaru
                         renderSppbAttachmentRows(res.attachments || []);
                     },
@@ -1086,7 +870,7 @@
             });
 
             $('#btnResetSppbAttachment').on('click', function() {
-                $('#sppbAttachFiles').val('');
+                $('#itemreqAttachFiles').val('');
             });
         });
     </script>
@@ -1094,10 +878,10 @@
     <script>
         document.addEventListener("DOMContentLoaded", function() {
 
-            const sppbid = "{{ $sppb->sppbid }}"; // contoh: PB2501010001
-            const doctype = "PB";
+            const irid = "{{ $itemReq->irid }}"; // contoh: SR2501010001
+            const doctype = "SR";
 
-            loadApproval(sppbid, doctype);
+            loadApproval(irid, doctype);
         });
 
         function loadApproval(refnbr, doctype) {
@@ -1166,197 +950,6 @@
         }
     </script>
 
-    <script>
-        $(function () {
-            const $modal = $('#editCoaModal');
-            const DOC_TYPE = "PB";
-
-            console.log('[Edit COA] script loaded, modal found?', $modal.length); // DEBUG
-
-            // === Buka modal Edit COA ===
-            // pakai event delegation
-            $(document).on('click', '#btnEditCoa', function () {
-                console.log('[Edit COA] btnEditCoa clicked'); // DEBUG
-
-                $modal.removeClass('hidden').addClass('flex');
-                initCoaSelect2();
-            });
-
-            // === Tutup modal ===
-            $(document).on('click', '#btnCloseEditCoa, #btnCancelEditCoa', function () {
-                console.log('[Edit COA] close clicked'); // DEBUG
-
-                $modal.addClass('hidden').removeClass('flex');
-            });
-
-            // Init Select2 untuk semua select COA
-            function initCoaSelect2() {
-                console.log('%c[Select2] initCoaSelect2 DIPANGGIL', 'color:#4CAF50;font-weight:bold');
-
-                $('.coa-select').each(function () {
-                    const $sel = $(this);
-
-                    // Skip kalau sudah di-init
-                    if ($sel.hasClass('select2-hidden-accessible')) {
-                        console.log('%c[Select2] SKIP (sudah init)', 'color:#F39C12', $sel);
-                        return;
-                    }
-
-                    const $tr     = $sel.closest('tr');
-                    const cpnyid  = $tr.data('cpny');
-                    const deptid  = $tr.data('dept');
-                    const perpost = $tr.data('perpost');
-
-                    console.log('%c[Select2] Init untuk row', 'color:#3498DB', {
-                        row_id: $tr.data('row-id'),
-                        cpnyid, deptid, perpost
-                    });
-
-                    $sel.select2({
-                        width: '100%',
-                        placeholder: 'Pilih COA...',
-                        allowClear: true,
-
-                        ajax: {
-                            url: "{{ route('coa.byDept') }}",
-                            dataType: 'json',
-                            delay: 250,
-
-                            data: function (params) {
-                                const sendData = {
-                                    cpnyid,
-                                    deptid,
-                                    perpost,
-                                    search: params.term || '',
-                                    page: params.page || 1,
-                                    per_page: 10
-                                };
-                                console.log('%c[Select2][AJAX] SEND DATA →', 'color:#9B59B6', sendData);
-                                return sendData;
-                            },
-
-                            processResults: function (res, params) {
-                                console.log('%c[Select2][AJAX] RESPONSE ←', 'color:#1ABC9C', res);
-
-                                params.page = params.page || 1;
-
-                                const results = res.data.map(function (item, idx) {
-                                    const comboId   = item.account_id + "|" + item.activity_descr;
-                                    const comboText = item.account_id + " - " + item.activity_descr;
-
-                                    console.log('%c[Select2] MAP ITEM', 'color:#E74C3C', {
-                                        row_index: idx,
-                                        comboId,
-                                        comboText,
-                                        original: item
-                                    });
-
-                                    return {
-                                        id: comboId,            // ⬅️ ID unik
-                                        text: comboText,        // ⬅️ teks
-                                        account_id: item.account_id,
-                                        activity_descr: item.activity_descr,
-                                        activity_id: item.activity_id
-                                    };
-                                });
-
-                                return {
-                                    results,
-                                    pagination: { more: (params.page * res.per_page) < res.total }
-                                };
-                            },
-
-                            cache: true
-                        }
-                    });
-
-                    // Saat user pilih item baru
-                    $sel.on("select2:select", function (e) {
-                        console.log('%c[Select2] USER SELECTED', 'color:#2ECC71', {
-                            selected: e.params.data,
-                            displayed_text: e.params.data.text,
-                            id_used: e.params.data.id
-                        });
-                    });
-
-                    // Saat user clear
-                    $sel.on("select2:clear", function () {
-                        console.log('%c[Select2] CLEARED', 'color:#E67E22');
-                    });
-                });
-            }
-
-
-            // === Save COA ===
-            $(document).on('click', '#btnSaveEditCoa', function () {
-                console.log('[Edit COA] Save clicked'); // DEBUG
-
-                let payload = [];
-
-                $('#editCoaTableBody tr').each(function () {
-                    const $tr     = $(this);
-                    const rowId   = $tr.data('row-id');
-                    const $select = $tr.find('.coa-select');
-
-                    // Data terpilih dari Select2
-                    const selected = $select.select2('data')[0] || null;
-                    console.log('[Edit COA] row', rowId, 'selected =>', selected); // DEBUG
-
-                    // Kalau user tidak pilih apa-apa untuk row ini, SKIP (biarkan pakai COA lama)
-                    if (!selected || !selected.account_id) {
-                        console.log('[Edit COA] row', rowId, 'SKIP (tidak ada pilihan baru)');
-                        return; // lanjut ke row berikutnya
-                    }
-
-                    const accountId     = selected.account_id;        // dari BudgetDetail
-                    const activityDescr = selected.activity_descr;    // dari BudgetDetail
-
-                    payload.push({
-                        id: rowId,
-                        budget_account_id: accountId,
-                        budget_activity_descr: activityDescr,
-                    });
-                });
-
-                console.log('[Edit COA] FINAL payload', payload); // DEBUG
-
-                if (payload.length === 0) {
-                    toastr.warning('Tidak ada perubahan COA yang dipilih.');
-                    return;
-                }
-
-                $.ajax({
-                    url: "{{ route('coa.update', $sppb->sppbid ?? $sppb->id ?? null) }}",
-                    type: 'POST',
-                    data: {
-                        _token: '{{ csrf_token() }}',
-                        doc_type: DOC_TYPE,   // info dokumen (PB / SPPB / dll)
-                        rows: payload
-                    },
-                    success: function (res) {
-                        console.log('[Edit COA] save response', res); // DEBUG
-
-                        if (res.success) {
-                            toastr.success(res.message || 'COA updated successfully');
-                            $modal.addClass('hidden').removeClass('flex');
-                            location.reload();
-                        } else {
-                            toastr.error(res.message || 'Failed to update COA');
-                        }
-                    },
-                    error: function (xhr) {
-                        console.error('[Edit COA] save error', xhr.responseText);
-                        toastr.error('Error updating COA');
-                    }
-                });
-            });
-
-        });
-    </script>
-
-
-
-
-
+  
 
 </x-app-layout>

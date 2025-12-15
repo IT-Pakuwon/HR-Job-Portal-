@@ -85,6 +85,8 @@ use App\Http\Controllers\InventoryController;
 use App\Http\Controllers\LocationController;
 use App\Http\Controllers\TopController;
 use App\Http\Controllers\TenantController;
+use App\Http\Controllers\ItemJobsController;
+
 
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Response;
@@ -932,6 +934,24 @@ Route::post('/logout', function () {
         Route::post('/itemreq/{id}/reject',  [ItemRequestController::class, 'rejectItemReq']);
         Route::post('/itemreq/{id}/revise',  [ItemRequestController::class, 'reviseItemReq']);
     });
+
+    Route::middleware('access:STOCKJOBS,VIEW')->group(function () {
+        Route::get('/stockjobs', [ItemJobsController::class, 'index'])->name('stockjobs');
+        Route::get('/stockjobs/json', [ItemJobsController::class, 'json'])->name('stockjobs.json');
+        Route::get('/nonstockjobs', [ItemJobsController::class, 'indexNonStock'])->name('nonstockjobs');
+        Route::get('/nonstockjobs/json', [ItemJobsController::class, 'jsonNonStock'])->name('nonstockjobs.json');
+    });
+    
+    Route::post('/invstock', [ItemJobsController::class, 'store'])->name('invstock.store');
+    Route::get('/invstock/{id}/edit', [ItemJobsController::class, 'edit'])->name('invstock.edit');
+    Route::put('/invstock/{id}', [ItemJobsController::class, 'update'])->name('invstock.update');
+    Route::put('/invstock/{id}/toggle-status', [ItemJobsController::class, 'toggleStatus'])->name('invstock.toggle-status');
+
+    Route::get('/stockjobs/json', [ItemJobsController::class, 'json'])->name('stockjobs.json');
+    Route::get('/stockjobs/inventory-pick/json', [ItemJobsController::class, 'inventoryPickJson'])->name('stockjobs.inventory-pick.json');
+    Route::post('/stockjobs/set-inventory', [ItemJobsController::class, 'setInventoryToItemRequest'])->name('stockjobs.set-inventory');
+    Route::put('/stockjobs/{eid}/rollback', [ItemJobsController::class, 'rollbackInventory'])->name('stockjobs.rollback');
+
 
 
     Route::get('/kendaraan/all', [MasterController::class, 'listKendaraan'])->name('kendaraan.all');

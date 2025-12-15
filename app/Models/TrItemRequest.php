@@ -15,6 +15,7 @@ class TrItemRequest extends Model
         'irdate',
         'cpny_id',
         'department_id',
+        'inventory_type',
         'inventory_descr_req',
         'inventoryid',
         'pic_item_req',
@@ -30,6 +31,11 @@ class TrItemRequest extends Model
         return $this->belongsTo(User::class, 'created_by', 'username');
     }
 
+    public function inventory()
+    {
+        // tr_item_req.inventoryid  -> ms_inventory.inventoryid
+        return $this->belongsTo(MsInventory::class, 'inventoryid', 'inventoryid');
+    }
    
     
 }

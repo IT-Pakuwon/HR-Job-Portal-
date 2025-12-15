@@ -189,87 +189,36 @@ class ItemRequestController extends Controller
        
     public function storeItemReq(Request $request)
     {
-        // dd($request->all()); // Debugging: check request data
-        // kumpulkan array dari form
-        $inventoryIds  = $request->input('inventoryid',  $request->input('inventory_id', []));
-        $productNames  = $request->input('product_name', []);
-        $qtys          = $request->input('qty', []);
-        $uoms          = $request->input('stock_unit',   $request->input('uom', [])); // <- penting
-        $notes         = $request->input('note', []);
-        $locations     = $request->input('location', []);
-        $locationIds   = $request->input('location_id', $request->input('locationid', [])); // <- kalau perlu simpan
-        $subLocIds     = $request->input('sub_location_id', $request->input('sublocationid', []));
-        $subLocations  = $request->input('sub_location', []);      
-        $activityIds   = $request->input('activity_id', []);
-        $busUnitIds    = $request->input('business_unit_id', []);
-        $deptFinIds    = $request->input('department_fin_id', []);
-        $actDescrs     = $request->input('activity_descr', []);
-        $coaIds        = $request->input('coa_id', []); // account_id
-        $item_types    = $request->input('item_type', []);
-        // $item_categories = $request->input('item_category', []);
-        $siteids        = $request->input('siteid', []);        
+        $request->validate([
+            'cpny_id'               => 'required|string',
+            'department_id'         => 'required|string',
+            'inventory_descr_req'   => 'required|string|min:5',
+            'attachments.*'         => 'nullable|file|max:10240',
+        ]);
 
-        $purchaseUnits    = $request->input('purchase_unit', []);     // dari hidden purchase_unit[]
-        $uomMultDivs      = $request->input('uom_unitmultdiv', []);   // 'M' atau 'D'
-        $uomRates         = $request->input('uom_unitrate', []);      // bisa "12", "12,5", "12.000",
-
-        $inventoryCategories = $request->input('item_category', []);      // baris pertama untuk Komputer
-        $inventorySubTypes   = $request->input('item_sub_type', []); // untuk Fixed Asset subtype
-
-        $doctype  = 'SR';
-        $user     = $request->user();
+        $user = $request->user();
         $username = $user->username ?? 'system';
-        $fullname = $user->name ?? 'system';
+        $dt    = now();
+        $year  = $dt->year;
+        $month = str_pad($dt->month, 2, '0', STR_PAD_LEFT);
+        $doctype = 'SR'; // Item Request
 
-        $dt        = Carbon::now();
-        $year      = $dt->year;
-        $month     = str_pad($dt->month, 2, '0', STR_PAD_LEFT);
-        $datestamp = $dt->toDateTimeString();
+        $cpny_id = $request->cpny_id;
+        $department_id = $request->department_id;
 
-
-        // helper untuk normalisasi angka lokal (ID format)     
-        $toFloat = function ($v): ?float {
-            if ($v === null || $v === '') return null;
-            $s = preg_replace('/\s+/', '', (string)$v);
-
-            $hasComma = strpos($s, ',') !== false;
-            $hasDot   = strpos($s, '.') !== false;
-
-            if ($hasComma && $hasDot) {
-                // Decimal = separator yang muncul paling akhir
-                $lastComma = strrpos($s, ',');
-                $lastDot   = strrpos($s, '.');
-                if ($lastComma > $lastDot) {
-                    // koma = decimal, titik = ribuan
-                    $s = str_replace('.', '', $s);
-                    $s = str_replace(',', '.', $s);
-                } else {
-                    // titik = decimal, koma = ribuan
-                    $s = str_replace(',', '', $s);
-                }
-            } elseif ($hasComma) {
-                // hanya koma → koma = decimal
-                $s = str_replace(',', '.', $s);
-            } elseif ($hasDot) {
-                // hanya titik → asumsikan titik = decimal
-                // kalau ada >1 titik, anggap titik = ribuan → hapus semua titik
-                if (substr_count($s, '.') > 1) {
-                    $s = str_replace('.', '', $s);
-                }
-                // kalau 1 titik, biarkan sebagai decimal
-            }
-            return is_numeric($s) ? (float)$s : null;
-        };
-        
         // ===== generate TrApproval dari MsApproval sesuai context =====
         $approvalCtl = app(ApprovalController::class);
 
         // Pastikan line approval ada (kalau mau validasi awal sebelum simpan detail, panggil loadLines)
-        $approvalCtl->loadLines($doctype, $request->cpnyid, $request->departementid);
+        $approvalCtl->loadLines($doctype, $cpny_id, $department_id);
 
         DB::beginTransaction();
         try {
-            // === generate autonbr & docid (lock) ===
+
+            /* =========================
+            * Generate IRID (Autonumber)
+            * ========================= */           
+
             $autonbr = Autonbr::lockForUpdate()
                 ->where('doctype', $doctype)
                 ->where('year', $year)
@@ -284,329 +233,98 @@ class ItemRequestController extends Controller
                     'status'  => 'A',
                     'number'  => 1,
                 ]);
-                $urutan = 1;
+                $seq = 1;
             } else {
-                $urutan = $autonbr->number + 1;
-                $autonbr->update(['number' => $urutan]);
+                $seq = $autonbr->number + 1;
+                $autonbr->update(['number' => $seq]);
             }
 
-            $tglbln = substr($year, 2) . $month;               // YYMM
-            $docid  = $doctype . $tglbln . sprintf("%04d", $urutan);
-            $sppbNo = $docid;                                   // atau 'SPPB-'.$docid
+            $docid = $doctype . substr($year, 2) . $month . sprintf('%04d', $seq);
 
-            // === 1) header dulu (totalqty sementara 0) ===
-            $header = new TrItemRequest();
-            $header->sppbid            = $docid;                // PK string
-            $header->sppbdate          = $dt->toDateString();
-            $header->cpny_id           = $request->input('cpnyid');
-            $header->department_id     = $request->input('departementid');
-            $header->requesttypeid     = $request->input('requesttypeid');
-            $header->keperluan         = $request->input('keperluan');
-            $header->budget_perpost    = $request->input('perpost');
-            $header->woid              = $request->input('woid');
-            $header->is_urgent         = $request->input('is_urgent');
-            $header->spbid             = null;
-            $header->totalopenordered  = 0;
-            $header->totalqty          = 0;
-            $header->totalordered      = 0;
-            $header->totalrejectordered = 0;
-            $header->totalcompleteordered = 0;
-            $header->assignby          = null;
-            $header->assigndate        = null;
-            $header->assignpurchasing  = null;
-            $header->csjobs            = null;
-            $header->cs                = null;
-            $header->status            = 'P';
-            $header->created_by        = $username;
-            $header->save();
+            /* =========================
+            * Insert HEADER
+            * ========================= */
+            $itemReq = new TrItemRequest();
+            $itemReq->irid                  = $docid;
+            $itemReq->irdate                = $dt->toDateString();
+            $itemReq->cpny_id               = $cpny_id;
+            $itemReq->department_id         = $department_id;
+            $itemReq->inventory_type        = $request->inventory_type;
+            $itemReq->inventory_descr_req   = $request->inventory_descr_req;
+            $itemReq->pic_item_req          = $username;
+            $itemReq->status                = 'P'; // default: On Progress
+            $itemReq->created_by            = $username;
+            $itemReq->save();
 
-            // === 2) detail ===
-            $totalQty         = 0;
-            $totalOpenOrdered = 0;
-            $rowCount = max(count($inventoryIds), count($qtys));
-           
-            for ($i = 0; $i < $rowCount; $i++) {
-                $invId = $inventoryIds[$i] ?? null;
-                $productName = $productNames[$i] ?? null;
-                // qty: sudah kamu konversi koma->titik di JS; tetap jaga-jaga:
-                $qty   = (float) str_replace(',', '.', (string) ($qtys[$i] ?? 0));
-                $uom   = $uoms[$i] ?? null;
-
-                if (empty($invId) || $qty <= 0) continue;
-
-                // ==== perhitungan base_* ====
-                $baseUom        = $purchaseUnits[$i] ?? null;                   // WAJIB: purchase_unit
-                $typeMultiplier = strtoupper(trim((string)($uomMultDivs[$i] ?? ''))); // 'M' / 'D' / ''
-                $rateRaw        = $uomRates[$i] ?? null;
-                $rate           = $toFloat($rateRaw) ?? 1.0;                     // default 1 kalau kosong/tidak valid
-                if ($rate <= 0) {                                                // guard divide-by-zero & negatif
-                    $rate = 1.0;
-                    $typeMultiplier = '';                                        // anggap tidak ada konversi
-                }
-
-                // base_qty logic
-                $baseQty = $qty;
-                if ($typeMultiplier === 'M') {
-                    $baseQty = $qty * $rate;
-                } elseif ($typeMultiplier === 'D') {
-                    $baseQty = $qty / $rate;
-                }
-
-                $detail = new TrItemRequestdetail();
-                $detail->sppbid                   = $docid;
-                $detail->sppb_no                  = $i + 1;   // nomor urut detail
-                $detail->inventoryid              = $invId;
-                $detail->inventory_descr          = $productName;
-                $detail->siteid                   = $siteids[$i] ?? null;
-                $detail->qty                      = $qty;
-                $detail->uom                      = $uom;
-                $detail->note                     = $notes[$i]   ?? null;
-                $detail->inventory_type           = $item_types[$i] ?? null;
-                $detail->inventory_sub_type       = $inventorySubTypes[$i] ?? null;
-                $detail->inventory_category       = $inventoryCategories[$i] ?? null;
-                $detail->base_uom                 = $baseUom;            // = purchase_unit
-                $detail->base_multiplier          = $rate;               // = uom_unitrate (float)
-                $detail->type_multiplier          = $typeMultiplier ?: null; // = 'M' / 'D' / null
-                $detail->base_qty                 = $baseQty;            // hitungan M/D               
-                $detail->budget_cpny_id           = $request->cpnyid;
-                $detail->budget_business_unit_id  = $busUnitIds[$i]     ?? null;
-                $detail->budget_department_fin_id = $deptFinIds[$i] ?? null;                
-                $detail->budget_account_id        = $coaIds[$i]         ?? null;
-                $detail->budget_activity_id       = $activityIds[$i]   ?? null;  
-                $detail->budget_activity_descr    = $actDescrs[$i] ?? null;             
-                $detail->location_id              = $locationIds[$i]  ?? null;
-                $detail->sub_location_id          = $subLocIds[$i]    ?? null;
-                $detail->budget_perpost           = $request->perpost;
-                $detail->assignby                 = null;
-                $detail->assigndate               = null;
-                $detail->assignpurchasing         = null;
-                $detail->openordered              = $qty;
-                $detail->ordered                  = 0;
-                $detail->rejectordered            = 0;
-                $detail->completeordered          = 0;
-                $detail->status                   = 'P';
-                $detail->created_by               = $username;
-                $detail->save();
-
-                $totalQty += $qty;
-            }
-
-            // update totalqty di header
-            $header->totalqty = $totalQty;
-            $header->totalopenordered = $totalQty;
-            $header->save();
-
-            // // === 4) copy line approval (M_approval -> T_approval) ===
-            // $approvals = M_approval::where([
-            //     ['status', '=', 'A'],
-            //     ['aprvcpnyid', '=', $request->cpnyid],
-            //     ['aprvdeptid', '=', $request->departementid],
-            //     ['aprvdoctype', '=', $doctype],
-            // ])->get();
-
-            // foreach ($approvals as $a) {
-            //     T_approval::create([
-            //         'docid'          => $docid,
-            //         'aprvid'         => $a->aprvid,
-            //         'aprvdoctype'    => $a->aprvdoctype,
-            //         'aprvcpnyid'     => $a->aprvcpnyid,
-            //         'aprvdeptid'     => $a->aprvdeptid,
-            //         'aprvusername'   => $a->aprvusername,
-            //         'name'           => $a->name,
-            //         'aprvdatebefore' => $a->aprvid == 1 ? $datestamp : null,
-            //         'aprvtotalday'   => 1,
-            //         'status'         => 'P',
-            //         'created_by'   => $username,
-            //     ]);
-            // }
-
-            // $firstApprovalUsernames = optional($approvals->first())->aprvusername; // bisa comma-separated
-            // if ($firstApprovalUsernames) {
-            //     $header->completed_by = $firstApprovalUsernames;
-            //     $header->completed_at = $dt; // atau Carbon::now()
-            //     $header->save();
-            // }
-
-                  
-
-            // 1) Urgent → dari header field is_urgent (boolean atau "1"/"true")
-            $isUrgent = (bool) $request->input('is_urgent', false);
-
-            // 2) Komputer → hanya kategori pada BARIS PERTAMA yang non-empty
-            $firstCategory = null;
-            if (!empty($inventoryCategories)) {
-                foreach ($inventoryCategories as $c) {
-                    if (!empty($c)) { $firstCategory = $c; break; }
-                }
-            }
-
-            // 3) Fixed Asset → minimal ada SATU detail dengan inventory_sub_type = Fixed Asset / FA
-            $hasFixedAssetSubtype = false;
-            foreach ((array)$inventorySubTypes as $sub) {
-                $s = mb_strtolower((string)$sub);
-                if ($s === 'fixed asset' || $s === 'fa') { $hasFixedAssetSubtype = true; break; }
-            }
-
-            // 4) Build context untuk ApprovalController
-            $ctx = [
-                'is_urgent'                => $isUrgent,
-                'first_inventory_category' => $firstCategory,
-                'has_fixed_asset_subtype'  => $hasFixedAssetSubtype,
-                'ignore_nominal'           => true,   // SPPB diminta tidak cek nominal
-                // 'grand_total'           => ...     // tidak dipakai di SPPB
+            $ctx = [          
+                'ignore_nominal'           => true,   // Item Request diminta tidak cek nominal                
             ];
 
             // Generate TrApproval
             [$firstApprovalUsernames, $linesCount] = $approvalCtl->generateForDocument(
                 $docid,
                 $doctype,
-                $request->cpnyid,
-                $request->departementid,
+                $cpny_id,
+                $department_id,
                 $username,
                 $ctx,
                 $dt
             );
 
-            // (opsional) simpan hint approver pertama di header seperti sebelumnya
+            // (opsional) simpan hint approver pertama di itemReq seperti sebelumnya
             if ($firstApprovalUsernames) {
-                $header->completed_by = $firstApprovalUsernames;
-                $header->completed_at = $dt;
-                $header->save();
+                $itemReq->completed_by = $firstApprovalUsernames;
+                $itemReq->completed_at = $dt;
+                $itemReq->save();
             }
 
-            // === 5) attachments (opsional) ===
-            // if ($request->hasfile('attachments')) {
-            //     foreach ($request->file('attachments') as $file) {
-            //         $randomNumber = random_int(10000000, 99999999);
-            //         $filename = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
-                   
-            //         $originalName = str_replace('%', '', $file->getClientOriginalName());
-            //         $ext        = $file->getClientOriginalExtension();
-            //         $attachfile = md5($randomNumber) . '.' . $ext;
-
-            //         //attach to folder
-            //         $folder_attach = public_path() . '/attachments/'.$year;
-            //         $config['upload_path'] = $folder_attach;                   
-            //         if(!is_dir($folder_attach))
-            //         {
-            //             mkdir($folder_attach, 0777);
-            //         }
-                    
-            //         $folder_upload = $folder_attach;
-            //         // $folder_upload = public_path() . '/attachments';
-            //         $file->move($folder_upload, $attachfile);
-
-            //         //insert to table attachments
-            //         $attach = new Attachment();
-            //         $attach->docid = $docid;
-            //         $attach->name = $filename;
-            //         $attach->attachfile = $attachfile;
-            //         $attach->status = 'A';
-            //         $attach->extention = $file->getClientOriginalExtension();
-            //         $attach->created_user = $user->username;
-            //         $attach->save();
-            //     }
-            // }            
-
+            /* =========================
+            * Upload Attachments (optional)
+            * ========================= */
             if ($request->hasFile('attachments')) {
+
                 $meta = [
                     'refnbr'        => $docid,
                     'doctype'       => $doctype,
-                    'cpnyid'        => $request->input('cpnyid'),
-                    'departementid' => $request->input('departementid'),                    
-                    'base_folder'   => 'att-purchasing-app/'.strtolower($doctype),
-                    'created_by'    => $user->username,
+                    'cpnyid'        => $request->cpny_id,
+                    'departementid' => $request->department_id,
+                    'base_folder'   => 'att-item-request',
+                    'created_by'    => $username,
                 ];
-
-                $files = (array) $request->file('attachments');
 
                 try {
                     $uploader = app(TrAttachmentController::class);
-                    $uploadResult = $uploader->uploadInternal($meta, $files);
-                    // tidak return di sini!
+                    $uploader->uploadInternal($meta, (array) $request->file('attachments'));
                 } catch (\Throwable $e) {
-                    \DB::rollBack();
+                    DB::rollBack();
                     return response()->json([
-                        'message' => 'Failed to create PB',
-                        'error'   => 'Gagal upload attachment: '.$e->getMessage(),
+                        'message' => 'Failed to upload attachment',
+                        'error'   => $e->getMessage(),
                     ], 500);
                 }
-            } else {
-                $uploadResult = null; // tidak ada attachment
             }
 
-            $eid = Hashids::encode($header->id);
+            $eid = Hashids::encode($itemReq->id);
 
             $approvalCtl->notifyFirstApprover(
                     $docid,
                     $doctype,
-                    $header->status,                 // 'P' | 'R' | 'D' | 'A' | 'C'
-                    'SPPB',
-                    url('/showitemrequests/' . $eid),
+                    $itemReq->status,                 // 'P' | 'R' | 'D' | 'A' | 'C'
+                    'Item Request',
+                    url('/showitemreq/' . $eid),
                     [
-                        'info'      => $request->keperluan,
-                        'createdby' => $header->created_by,
+                        'info'      => $request->inventory_descr_req,
+                        'createdby' => $itemReq->created_by,
                         'date'      => $dt->toDateTimeString(),
                     ]
                 );
 
-            // === 6) kirim email ke approver pertama ===
-            // $firstApproval = T_approval::where('docid', $docid)
-            //     ->where('status', 'P')
-            //     ->orderBy('aprvid')
-            //     ->first();
-
-            // if ($firstApproval) {
-
-            //     $status = $header->status; // 'P' | 'R' | 'D' | 'A' | 'C'
-                
-            //     $subjectMap = [
-            //         'P' => 'Waiting Approval',
-            //         'R' => 'Rejected Approval',
-            //         'D' => 'Revise Approval',
-            //         'A' => 'Approved',
-            //         'C' => 'Completed',
-            //     ];
-            //     $subjectSuffix = $subjectMap[$status] ?? 'Notification';
-
-            //     $eid = Hashids::encode($header->id);
-
-                                
-            //     $data = [
-            //         'docid'    => $firstApproval->docid,
-            //         'cpnyid'   => $firstApproval->aprvcpnyid,
-            //         'deptname' => $firstApproval->aprvdeptid,
-            //         'date'     => $firstApproval->aprvdatebefore,
-            //         'name'     => $firstApproval->name,
-            //         'createdby'=> $header->created_by,
-            //         'info'     => $request->keperluan,
-            //         'status'   => $status,
-            //         'docname'  => 'SPPB',
-            //         'url'      => url('/showitemrequests/' . $eid),
-            //     ];
-                
-            //     $approvers = array_filter(array_map('trim', explode(',', (string)$firstApproval->aprvusername)));
-            //     $emails = User::whereIn('username', $approvers)
-            //         ->where('status', 'A')
-            //         ->pluck('notification_email');
-
-            //     foreach ($emails as $email) {
-            //         \Mail::send('emails.mailapprovenew', $data, function ($message) use ($email, $data) {
-            //             $message->to($email)
-            //                 ->subject($data['docid'].' - Waiting Approval SPPB')
-            //                 ->from('digitalserver@pakuwon.com', 'Pakuwon System');
-            //         });
-            //     }
-            // }
-
             DB::commit();
 
             return response()->json([
-                'message'  => 'SPPB created successfully',
-                'sppbid'   => $docid,
-                'sppb_no'  => $sppbNo,
-                'totalqty' => $totalQty,
-                'attachments' => $uploadResult,
+                'message' => 'Item Request created successfully',
+                'irid'    => $docid,
+                'eid'     => Hashids::encode($itemReq->id),
             ]);
 
         } catch (\Throwable $e) {
@@ -614,50 +332,248 @@ class ItemRequestController extends Controller
             report($e);
 
             return response()->json([
-                'message' => 'Failed to create SPPB',
+                'message' => 'Failed to create Item Request',
                 'error'   => config('app.debug') ? $e->getMessage() : null,
             ], 500);
         }
     }
-   
-    public function editItemRequest($hash)
-    {
-        $user = Auth::user();       
 
+   
+    public function editItemReq($hash)
+    {
+        $user = Auth::user();
         if (!$user) {
             return redirect()->route('login');
         }
-        
+
         $id = Hashids::decode($hash)[0] ?? null;
         abort_if(!$id, 404);
 
-        $sppb = TrItemRequest::findOrFail($id);
+        // === HEADER (tr_item_req) ===
+        $itemReq = TrItemRequest::findOrFail($id);
 
-        // Ambil detail + eager load relasi lokasi & sublokasi
-        $sppbdetail = TrItemRequestdetail::with([
-                'location:location_id,location_name',
-                'subLocation:sub_location_id,sub_location_name',
-            ])
-            ->where('sppbid', $sppb->sppbid)
-            ->get()
-            ->map(function ($d) {
-                // Sematkan nama ke attribute agar Blade lama tetap jalan
-                $d->location_name      = optional($d->location)->location_name;
-                $d->sub_location_name  = optional($d->subLocation)->sub_location_name;
-                return $d;
-            });
-
-        $user   = request()->user();
+        // === master user scope ===
         $usercpny  = Usercpny::where('username', $user->username)->get();
         $usercpny2 = Usercpny::where('username', $user->username)->first();
         $userdept  = Userdept::where('username', $user->username)->get();
         $userdept2 = Userdept::where('username', $user->username)->first();
 
-        // $attachment = Attachment::where('docid', $sppb->sppbid)
-        //     ->where('status', 'A')
-        //     ->get();
+        // === attachments: refnbr = IRID, doctype = IR (lebih aman kalau ada field doctype) ===
+        $rows = TrAttachment::where('refnbr', $itemReq->irid)
+            ->where('status', 'A')
+            ->orderBy('created_at', 'desc')
+            ->get();
+     
+        // === Signed URL (GCS) ===
+        $attachments = collect();
+        if ($rows->count()) {
+            $config      = config('filesystems.disks.gcs');
+            $keyFilePath = $config['key_file'];
 
-        $rows = TrAttachment::where('refnbr', $sppb->sppbid)
+            if (!Str::startsWith($keyFilePath, ['/', 'C:\\', 'D:\\'])) {
+                $keyFilePath = base_path($keyFilePath);
+            }
+
+            $storage = new StorageClient([
+                'projectId'   => $config['project_id'],
+                'keyFilePath' => $keyFilePath,
+            ]);
+
+            $bucket = $storage->bucket($config['bucket']);
+
+            $attachments = $rows->map(function ($r) use ($bucket) {
+                $objectPath = rtrim($r->folder, '/') . '/' . $r->filename;
+                $object     = $bucket->object($objectPath);
+
+                $signedUrl = null;
+                try {
+                    $signedUrl = $object->signedUrl(
+                        new \DateTimeImmutable('+10 minutes'),
+                        ['version' => 'v4']
+                    );
+                } catch (\Throwable $e) {
+                    \Log::warning('Signed URL gagal', [
+                        'path'  => $objectPath,
+                        'error' => $e->getMessage()
+                    ]);
+                }
+
+                return (object) [
+                    'id'           => $r->id,
+                    'display_name' => $r->attachment_name,
+                    'created_by'   => $r->created_by,
+                    'created_at'   => $r->created_at,
+                    'url'          => $signedUrl,
+                    'folder'       => $r->folder,
+                    'filename'     => $r->filename,
+                    'extention'    => $r->extention,
+                    'size'         => $r->filesize,
+                ];
+            });
+        }
+
+        return view('pages.itemrequest.edititemreq', compact(
+            'itemReq', 'usercpny', 'usercpny2', 'userdept', 'userdept2', 'attachments', 'hash'
+        ));
+    }
+
+
+
+    public function updateItemReq(Request $request, $hash)
+    {
+        $request->validate([
+            'cpny_id'               => 'required|string',
+            'department_id'         => 'required|string',
+            'inventory_descr_req'   => 'required|string|min:5',
+            'attachments.*'         => 'nullable|file|max:10240',
+        ]);
+
+        $user     = $request->user();
+        $username = $user->username ?? 'system';
+        $dt       = now();
+        $doctype  = 'SR';
+
+        $id = Hashids::decode($hash)[0] ?? null;
+        abort_if(!$id, 404);
+
+        DB::beginTransaction();
+        try {
+
+            $itemReq = TrItemRequest::lockForUpdate()->findOrFail($id);
+
+            /* =========================
+            * APPROVAL STATUS CHECK
+            * ========================= */
+            if (in_array($itemReq->status, ['C', 'A'])) {
+                return response()->json([
+                    'message' => 'Item Request sudah selesai / approved dan tidak bisa diedit.'
+                ], 422);
+            }
+
+            $cpny_id       = $request->cpny_id;
+            $department_id = $request->department_id;
+
+            /* =========================
+            * UPDATE HEADER
+            * ========================= */
+            $itemReq->cpny_id             = $cpny_id;
+            $itemReq->department_id       = $department_id;
+            $itemReq->inventory_type      = $request->inventory_type;
+            $itemReq->inventory_descr_req = $request->inventory_descr_req;
+            $itemReq->status              = 'P';          // balik ke On Progress
+            $itemReq->updated_by          = $username;
+            $itemReq->save();
+
+            /* =========================
+            * RE-GENERATE APPROVAL
+            * ========================= */
+            $approvalCtl = app(ApprovalController::class);
+
+            // 1️⃣ hapus approval lama
+            TrApproval::where('refnbr', $itemReq->irid)->delete();
+
+            // 2️⃣ load rule approval
+            $approvalCtl->loadLines($doctype, $cpny_id, $department_id);
+
+            $ctx = [
+                'ignore_nominal' => true,
+            ];
+
+            // 3️⃣ generate approval baru
+            [$firstApprovalUsernames, $linesCount] = $approvalCtl->generateForDocument(
+                $itemReq->irid,
+                $doctype,
+                $cpny_id,
+                $department_id,
+                $username,
+                $ctx,
+                $dt
+            );
+
+            // simpan hint approver pertama
+            if ($firstApprovalUsernames) {
+                $itemReq->completed_by = $firstApprovalUsernames;
+                $itemReq->completed_at = $dt;
+                $itemReq->save();
+            }
+
+            /* =========================
+            * UPLOAD ATTACHMENTS (optional)
+            * ========================= */
+            if ($request->hasFile('attachments')) {
+                $meta = [
+                    'refnbr'        => $itemReq->irid,
+                    'doctype'       => $doctype,
+                    'cpnyid'        => $cpny_id,
+                    'departementid' => $department_id,
+                    'base_folder'   => 'att-item-request',
+                    'created_by'    => $username,
+                ];
+
+                $uploader = app(TrAttachmentController::class);
+                $uploader->uploadInternal($meta, (array) $request->file('attachments'));
+            }
+
+            /* =========================
+            * NOTIFY FIRST APPROVER
+            * ========================= */
+            $eid = Hashids::encode($itemReq->id);
+
+            $approvalCtl->notifyFirstApprover(
+                $itemReq->irid,
+                $doctype,
+                $itemReq->status,          // P
+                'Item Request',
+                url('/showitemreq/' . $eid),
+                [
+                    'info'      => $itemReq->inventory_descr_req,
+                    'createdby' => $itemReq->created_by,
+                    'date'      => $dt->toDateTimeString(),
+                ]
+            );
+
+            DB::commit();
+
+            return response()->json([
+                'message' => 'Item Request updated successfully',
+                'irid'    => $itemReq->irid,
+                'eid'     => $eid,
+            ]);
+
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            report($e);
+
+            return response()->json([
+                'message' => 'Failed to update Item Request',
+                'error'   => config('app.debug') ? $e->getMessage() : null,
+            ], 500);
+        }
+    }
+          
+
+    public function showItemReq($hash)
+    {
+        $id = Hashids::decode($hash)[0] ?? null;
+        abort_if(!$id, 404);
+
+        $user = Auth::user();
+        if (!$user) return redirect()->route('login');
+
+        // ===== HEADER (SR) =====
+        $itemReq = TrItemRequest::with([
+            'creator:username,name', // pastikan relasi creator ada di model
+            'inventory:inventoryid,inventory_descr'
+        ])->findOrFail($id);
+
+        // ===== (opsional) DETAIL =====
+        // Kalau SR memang tidak punya detail table, hapus ini.
+        // Kalau tabel detail ada tapi doc key-nya irid, sesuaikan where-nya.
+        $itemReqDetail = collect(); // default kosong
+
+        // ===== ATTACHMENTS (tr_attachment) =====
+        $rows = TrAttachment::where('refnbr', $itemReq->irid)
+            ->where('doctype', 'SR')              // <- PENTING: pastikan kamu simpan doctype 'SR' di attachment
             ->where('status', 'A')
             ->orderBy('created_at', 'desc')
             ->get();
@@ -667,6 +583,7 @@ class ItemRequestController extends Controller
         if (!Str::startsWith($keyFilePath, ['/','C:\\','D:\\'])) {
             $keyFilePath = base_path($keyFilePath);
         }
+
         $storage = new StorageClient([
             'projectId'   => $config['project_id'],
             'keyFilePath' => $keyFilePath,
@@ -676,7 +593,8 @@ class ItemRequestController extends Controller
         $attachments = $rows->map(function ($r) use ($bucket) {
             $objectPath = rtrim($r->folder, '/').'/'.$r->filename;
             $object     = $bucket->object($objectPath);
-            $signedUrl  = null;
+
+            $signedUrl = null;
             try {
                 $signedUrl = $object->signedUrl(
                     new \DateTimeImmutable('+10 minutes'),
@@ -685,8 +603,9 @@ class ItemRequestController extends Controller
             } catch (\Throwable $e) {
                 \Log::warning('Signed URL gagal', ['path' => $objectPath, 'error' => $e->getMessage()]);
             }
+
             return (object) [
-                'id'          => $r->id,
+                'id'           => $r->id,
                 'display_name' => $r->attachment_name,
                 'created_by'   => $r->created_by,
                 'created_at'   => $r->created_at,
@@ -698,551 +617,55 @@ class ItemRequestController extends Controller
             ];
         });
 
-        return view('pages.itemrequests.edititemrequests', compact(
-            'sppb','sppbdetail','usercpny','usercpny2','userdept','userdept2','attachments','hash'
+        $loginUsername = $user->username ?? $user->name ?? null;
+        $canUpload     = ($itemReq->created_by === $loginUsername);
+
+        return view('pages.itemrequest.showitemreq', compact(
+            'itemReq',
+            'itemReqDetail',
+            'attachments',
+            'hash',
+            'canUpload'
         ));
     }
 
-
-
-    public function updateItemRequest(Request $request, $hash)
-    {
-        // dd($request->all()); // matikan agar eksekusi lanjut
-
-        $id = Hashids::decode($hash)[0] ?? null;
-        abort_if(!$id, 404, 'PB tidak ditemukan.');
-
-        $user      = $request->user();   
-        $dt        = Carbon::now();
-        $year      = $dt->year;
-        $month     = str_pad($dt->month, 2, '0', STR_PAD_LEFT);
-        $datestamp = $dt->toDateTimeString();   
-        $doctype   = 'SR';
-        $username  = $user->username ?? 'system';
-        $fullname  = $user->name ?? 'system';
-
-        // ===== generate TrApproval dari MsApproval sesuai context =====
-        $approvalCtl = app(ApprovalController::class);
-
-        // Pastikan line approval ada (kalau mau validasi awal sebelum simpan detail, panggil loadLines)
-        $approvalCtl->loadLines($doctype, $request->cpnyid, $request->departementid);
-
-        // helper: normalisasi angka (tahan "12.000", "1.234,56", "12,5")
-        $toFloat = function ($v): ?float {
-            if ($v === null || $v === '') return null;
-            $s = preg_replace('/\s+/', '', (string)$v);
-            $hasComma = strpos($s, ',') !== false;
-            $hasDot   = strpos($s, '.') !== false;
-
-            if ($hasComma && $hasDot) {
-                $lastComma = strrpos($s, ',');
-                $lastDot   = strrpos($s, '.');
-                if ($lastComma > $lastDot) {
-                    // koma = decimal, titik = ribuan
-                    $s = str_replace('.', '', $s);
-                    $s = str_replace(',', '.', $s);
-                } else {
-                    // titik = decimal, koma = ribuan
-                    $s = str_replace(',', '', $s);
-                }
-            } elseif ($hasComma) {
-                $s = str_replace(',', '.', $s);
-            } elseif ($hasDot) {
-                if (substr_count($s, '.') > 1) $s = str_replace('.', '', $s);
-            }
-            return is_numeric($s) ? (float)$s : null;
-        };
-
-        $header = TrItemRequest::findOrFail($id);
-        // update header
-        $header->cpny_id        = $request->cpnyid;
-        $header->department_id  = $request->departementid;
-        $header->requesttypeid  = $request->requesttypeid;
-        $header->keperluan      = $request->keperluan;
-        $header->budget_perpost = $request->perpost;   
-        $header->woid           = $request->woid;
-        $header->is_urgent      = $request->is_urgent;
-        $header->status         = 'P';
-        $header->updated_by     = $username;
-        $header->save();
-
-        // arrays utama
-        $detailIds    = array_values($request->input('detail_id', []));
-        $inventoryIds = array_values($request->input('inventoryid', []));
-        $productNames = array_values($request->input('product_name', []));
-        $qtys         = array_values($request->input('qty', []));
-        $uoms         = array_values($request->input('stock_unit', []));
-        $notes        = array_values($request->input('note', []));
-        $locIds       = array_values($request->input('location_id', []));
-        $subLocIds    = array_values($request->input('sub_location_id', []));
-        $actIds       = array_values($request->input('activity_id', []));
-        $buIds        = array_values($request->input('business_unit_id', []));
-        $deptFinIds   = array_values($request->input('department_fin_id', []));
-        $actDescrs    = array_values($request->input('activity_descr', []));        
-        $coaIds       = array_values($request->input('coa_id', []));
-        $itemTypes    = array_values($request->input('item_type', []));
-        $itemCats     = array_values($request->input('item_category', []));
-        $siteids     = array_values($request->input('siteid', []));
-        
-        $inventorySubTypes   = $request->input('item_sub_type', []);
-
-        // arrays UoM tambahan
-        $purchaseUnits = array_values($request->input('purchase_unit', []));      // hidden dari UI
-        $uomMultDivs   = array_values($request->input('uom_unitmultdiv', []));    // 'M'/'D'
-        $uomRates      = array_values($request->input('uom_unitrate', []));       // bisa "12.000"
-
-        DB::beginTransaction();
-
-        try {
-            // hapus baris yang di-mark delete
-            if ($request->filled('deleted_detail_ids')) {
-                $idsToDelete = array_filter(array_map('trim', explode(',', $request->deleted_detail_ids)));
-                if ($idsToDelete) TrItemRequestdetail::whereIn('id', $idsToDelete)->delete();
-            }
-
-            $rowCount = max(count($inventoryIds), count($qtys));
-            $savedDetails = [];
-
-            for ($i = 0; $i < $rowCount; $i++) {
-                $invId = $inventoryIds[$i] ?? null;
-                $qty   = (float) str_replace(',', '.', (string)($qtys[$i] ?? 0));
-                if (empty($invId) || $qty <= 0) continue;
-
-                // === konversi base_* seperti di store ===
-                $displayUom     = $uoms[$i] ?? null;
-                $baseUom        = $purchaseUnits[$i] ?? null;                        // purchase_unit
-                $typeMultiplier = strtoupper(trim((string)($uomMultDivs[$i] ?? ''))); // 'M'/'D'
-                $rate           = $toFloat($uomRates[$i] ?? null) ?? 1.0;             // 12.000 -> 12.0
-                if ($rate <= 0) { $rate = 1.0; $typeMultiplier = ''; }
-
-                $baseQty = $qty;
-                if ($typeMultiplier === 'M') {
-                    $baseQty = $qty * $rate;
-                } elseif ($typeMultiplier === 'D') {
-                    $baseQty = $qty / $rate;
-                }
-
-                $data = [
-                    'inventoryid'              => $invId,
-                    'inventory_descr'          => $productNames[$i] ?? null,
-                    'siteid'                   => $siteids[$i] ?? null,
-                    'qty'                      => $qty,
-                    'uom'                      => $displayUom,
-                    'note'                     => $notes[$i] ?? null,
-                    'inventory_type'                => $itemTypes[$i] ?? null,
-                    'inventory_sub_type'            => $inventorySubTypes[$i] ?? null,
-                    'inventory_category'            => $itemCats[$i] ?? null,
-
-                    // >>> ini yang ditambahkan <<<
-                    'base_uom'                 => $baseUom,                       // purchase_unit
-                    'base_multiplier'          => $rate,                          // uom_unitrate (float)
-                    'type_multiplier'          => $typeMultiplier ?: null,        // 'M'/'D'/null
-                    'base_qty'                 => $baseQty,                        // hasil M/D
-
-                    'budget_cpny_id'           => $request->cpnyid,
-                    'budget_business_unit_id'  => $buIds[$i] ?? null,
-                    'budget_department_fin_id' => $deptFinIds[$i] ?? null,
-                    'budget_activity_descr'    => $actDescrs[$i] ?? null,
-                    'budget_account_id'        => $coaIds[$i] ?? null,
-                    'budget_activity_id'       => $actIds[$i] ?? null,
-                    'openordered'              => $qty,
-                    'ordered'                  => 0,
-                    'rejectordered'            => 0,
-                    'completeordered'          => 0,
-                    'location_id'              => $locIds[$i] ?? null,
-                    'sub_location_id'          => $subLocIds[$i] ?? null,
-                    'budget_perpost'           => $request->perpost,
-                    'status'                   => 'P',
-                    'updated_by'               => $username,
-                ];
-
-                $idDetail = $detailIds[$i] ?? null;
-
-                if ($idDetail) {
-                    $detail = TrItemRequestdetail::where('id', $idDetail)
-                        ->where('sppbid', $header->sppbid)
-                        ->first();
-                    if ($detail) {
-                        $detail->fill($data)->save();
-                    } else {
-                        $detail = new TrItemRequestdetail($data);
-                        $detail->sppbid = $header->sppbid;
-                        $detail->save();
-                    }
-                } else {
-                    $detail = new TrItemRequestdetail($data);
-                    $detail->sppbid = $header->sppbid;
-                    $detail->save();
-                }
-
-                $savedDetails[] = $detail->id;
-            }
-
-            // Renumber sppb_no 1..N
-            $n = 1;
-            foreach ($savedDetails as $did) {
-                TrItemRequestdetail::where('id', $did)->update(['sppb_no' => $n++]);
-            }
-
-            // Hitung total qty (kalau mau pakai base_qty, ganti ke sum('base_qty'))
-            $totalQty = TrItemRequestdetail::where('sppbid', $header->sppbid)->sum('qty');
-            $header->totalqty = $totalQty;
-            $header->totalopenordered = $totalQty;
-            $header->save();
-
-            // // === regenerasi T_approval (opsional, ikuti logikamu) ===
-            // $approvals = M_approval::where([
-            //     ['status', '=', 'A'],
-            //     ['aprvcpnyid', '=', $request->cpnyid],
-            //     ['aprvdeptid', '=', $request->departementid],
-            //     ['aprvdoctype', '=', $doctype],
-            // ])->get();
-
-            // foreach ($approvals as $a) {
-            //     T_approval::create([
-            //         'docid'          => $header->sppbid,
-            //         'aprvid'         => $a->aprvid,
-            //         'aprvdoctype'    => $a->aprvdoctype,
-            //         'aprvcpnyid'     => $a->aprvcpnyid,
-            //         'aprvdeptid'     => $a->aprvdeptid,
-            //         'aprvusername'   => $a->aprvusername,
-            //         'name'           => $a->name,
-            //         'aprvdatebefore' => $a->aprvid == 1 ? $datestamp : null,
-            //         'aprvtotalday'   => 1,
-            //         'status'         => 'P',
-            //         'created_by'   => $username,
-            //     ]);
-            // }
-
-            // $firstApprovalUsernames = optional($approvals->first())->aprvusername;
-            // if ($firstApprovalUsernames) {
-            //     $header->completed_by = $firstApprovalUsernames;
-            //     $header->completed_at = $dt;
-            //     $header->save();
-            // }
-
-            // attachments (tetap)
-            // if ($request->hasfile('attachments')) {
-            //     foreach ($request->file('attachments') as $file) {
-            //         $randomNumber = random_int(10000000, 99999999);
-            //         $filename = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
-                   
-            //         $originalName = str_replace('%', '', $file->getClientOriginalName());
-            //         $ext        = $file->getClientOriginalExtension();
-            //         $attachfile = md5($randomNumber) . '.' . $ext;
-
-            //         //attach to folder
-            //         $folder_attach = public_path() . '/attachments/'.$year;
-            //         $config['upload_path'] = $folder_attach;                   
-            //         if(!is_dir($folder_attach))
-            //         {
-            //             mkdir($folder_attach, 0777);
-            //         }
-                    
-            //         $folder_upload = $folder_attach;
-            //         // $folder_upload = public_path() . '/attachments';
-            //         $file->move($folder_upload, $attachfile);
-
-            //         //insert to table attachments
-            //         $attach = new Attachment();
-            //         $attach->docid = $header->sppbid;
-            //         $attach->name = $filename;
-            //         $attach->attachfile = $attachfile;
-            //         $attach->status = 'A';
-            //         $attach->extention = $file->getClientOriginalExtension();
-            //         $attach->created_user = $user->username;
-            //         $attach->save();
-            //     }
-            // }       
-
-            // 1) Urgent → dari header field is_urgent (boolean atau "1"/"true")
-            $isUrgent = (bool) $request->input('is_urgent', false);
-
-            // 2) Komputer → hanya kategori pada BARIS PERTAMA yang non-empty
-            $firstCategory = null;
-            if (!empty($inventoryCategories)) {
-                foreach ($inventoryCategories as $c) {
-                    if (!empty($c)) { $firstCategory = $c; break; }
-                }
-            }
-
-            // 3) Fixed Asset → minimal ada SATU detail dengan inventory_sub_type = Fixed Asset / FA
-            $hasFixedAssetSubtype = false;
-            foreach ((array)$inventorySubTypes as $sub) {
-                $s = mb_strtolower((string)$sub);
-                if ($s === 'fixed asset' || $s === 'fa') { $hasFixedAssetSubtype = true; break; }
-            }
-
-            // 4) Build context untuk ApprovalController
-            $ctx = [
-                'is_urgent'                => $isUrgent,
-                'first_inventory_category' => $firstCategory,
-                'has_fixed_asset_subtype'  => $hasFixedAssetSubtype,
-                'ignore_nominal'           => true,   // SPPB diminta tidak cek nominal
-                // 'grand_total'           => ...     // tidak dipakai di SPPB
-            ];
-
-            // Generate TrApproval
-            [$firstApprovalUsernames, $linesCount] = $approvalCtl->generateForDocument(
-                $header->sppbid,
-                $doctype,
-                $request->cpnyid,
-                $request->departementid,
-                $username,
-                $ctx,
-                $dt
-            );
-
-            // (opsional) simpan hint approver pertama di header seperti sebelumnya
-            if ($firstApprovalUsernames) {
-                $header->completed_by = $firstApprovalUsernames;
-                $header->completed_at = $dt;
-                $header->save();
-            }
-
-              
-            $uploadResult = null;
-            if ($request->hasFile('attachments')) {
-                $meta = [
-                    'refnbr'        => $header->sppbid,
-                    'doctype'       => $doctype,
-                    'cpnyid'        => $request->cpnyid,
-                    'departementid' => $request->departementid,
-                    'base_folder'   => 'att-purchasing-app/'.strtolower($doctype),
-                    'created_by'    => $user->username,
-                ];
-                $files = (array) $request->file('attachments');
-
-                try {
-                    $uploader = app(TrAttachmentController::class);
-                    $uploadResult = $uploader->uploadInternal($meta, $files);
-                } catch (\Throwable $e) {
-                    DB::rollBack();
-                    return response()->json([
-                        'message' => 'Failed to update PB',
-                        'error'   => 'Gagal upload attachment: '.$e->getMessage(),
-                    ], 500);
-                }
-            }
-
-            // // email approver pertama (tetap)
-            // $firstApproval = T_approval::where('docid', $header->sppbid)
-            //     ->where('status', 'P')
-            //     ->orderBy('aprvid')
-            //     ->first();
-
-            // if ($firstApproval) {
-            //     $status = $header->status; // 'P' | 'R' | 'D' | 'A' | 'C'
-
-            //     $subjectMap = [
-            //         'P' => 'Waiting Approval',
-            //         'R' => 'Rejected Approval',
-            //         'D' => 'Revise Approval',
-            //         'A' => 'Approved',
-            //         'C' => 'Completed',
-            //     ];
-            //     $subjectSuffix = $subjectMap[$status] ?? 'Notification';
-
-            //     $eid = Hashids::encode($header->id);
-                
-            //     $data = [
-            //         'docid'    => $firstApproval->docid,
-            //         'cpnyid'   => $firstApproval->aprvcpnyid,
-            //         'deptname' => $firstApproval->aprvdeptid,
-            //         'date'     => $firstApproval->aprvdatebefore,
-            //         'name'     => $firstApproval->name,
-            //         'createdby'=> $header->created_by,
-            //         'info'     => $request->keperluan,
-            //         'status'   => $status,
-            //         'docname'  => 'SPPB',
-            //         'url'      => url('/showitemrequests/' . $eid),
-            //     ];
-
-            //     $approvers = array_filter(array_map('trim', explode(',', (string)$firstApproval->aprvusername)));
-            //     $emails = User::whereIn('username', $approvers)
-            //         ->where('status', 'A')
-            //         ->pluck('notification_email');
-
-            //     foreach ($emails as $email) {
-            //         \Mail::send('emails.mailapprovenew', $data, function ($message) use ($email, $data) {
-            //             $message->to($email)
-            //                 ->subject($data['docid'].' - Waiting Approval SPPB')
-            //                 ->from('digitalserver@pakuwon.com', 'Pakuwon System');
-            //         });
-            //     }
-            // }
-
-            $eid = Hashids::encode($header->id);
-
-            $approvalCtl->notifyFirstApprover(
-                    $header->sppbid,
-                    $doctype,
-                    $header->status,                 // 'P' | 'R' | 'D' | 'A' | 'C'
-                    'SPPB',
-                    url('/showitemrequests/' . $eid),
-                    [
-                        'info'      => $request->keperluan,
-                        'createdby' => $header->created_by,
-                        'date'      => $dt->toDateTimeString(),
-                    ]
-            );
-
-            DB::commit();
-            return response()->json(['message' => 'SPPB updated successfully']);
-
-        } catch (\Throwable $e) {
-            DB::rollBack();
-            report($e);
-            return response()->json(['message' => 'Update failed', 'error' => $e->getMessage()], 500);
-        }
-    }
-
-   
-   
-    public function removeAttachment($id)
-    {
-        try {
-            $attachment = TrAttachment::findOrFail($id);
-            $attachment->update(['status' => 'X']); // Update status ke "D" (Deleted)
-
-            return response()->json(['success' => true, 'message' => 'Attachment status updated']);
-        } catch (\Exception $e) {
-            return response()->json(['success' => false, 'message' => 'Failed to update attachment status', 'error' => $e->getMessage()], 500);
-        }
-    }
- 
-
-    public function showItemRequest($hash)
-    {        
-        $id = Hashids::decode($hash)[0] ?? null;
-        abort_if(!$id, 404);
-
-        $user = Auth::user();       
-
-        if (!$user) {
-            return redirect()->route('login');
-        }
-
-        // $sppb = TrItemRequest::findOrFail($id);
-        $sppb = TrItemRequest::with([
-            'requestType:requesttypeid,requesttype_name',
-            'creator:username,name'
-        ])
-        ->findOrFail($id);        
-
-        $sppbdetail = TrItemRequestdetail::with([
-            'location:location_id,location_name',
-            'subLocation:sub_location_id,sub_location_name'
-        ])
-        ->where('sppbid', $sppb->sppbid)
-        ->orderby('sppb_no', 'ASC')
-        ->get();
-        
-        // $approval = T_approval::where('docid', $sppb->sppbid)
-        //     ->where('status','<>','X')      
-        //     ->orderBy('created_at')
-        //     ->orderBy('aprvid')      
-        //     ->get();
-       
-        // $attachment = Attachment::where('docid', $sppb->sppbid)    
-        //     ->where('status','A')        
-        //     ->get();    
-        
-        // ---------- ambil lampiran dari tr_attachment ----------
-        $rows = TrAttachment::where('refnbr', $sppb->sppbid)
-            ->where('status', 'A')
-            ->orderBy('created_at', 'desc')
-            ->get();
-
-        // siapkan Signed URL dari GCS
-        $config = config('filesystems.disks.gcs');
-        $keyFilePath = $config['key_file'];
-        if (!Str::startsWith($keyFilePath, ['/','C:\\','D:\\'])) {
-            $keyFilePath = base_path($keyFilePath);
-        }
-
-        $storage = new StorageClient([
-            'projectId'   => $config['project_id'],
-            'keyFilePath' => $keyFilePath,
-        ]);
-        $bucket = $storage->bucket($config['bucket']);
-
-        // map jadi data siap pakai di view
-        $attachments = $rows->map(function ($r) use ($bucket) {
-            $objectPath = rtrim($r->folder, '/').'/'.$r->filename;   // ex: att-purchasing-app/wo/2025/xxxx-file.pdf
-            $object     = $bucket->object($objectPath);
-
-            // Signed URL 10 menit
-            $signedUrl = null;
-            try {
-                $signedUrl = $object->signedUrl(
-                    new \DateTimeImmutable('+10 minutes'),
-                    ['version' => 'v4']
-                );
-            } catch (\Throwable $e) {
-                // kalau gagal signed URL, biarkan null; di UI tampilkan nama saja
-                \Log::warning('Signed URL gagal', ['path' => $objectPath, 'error' => $e->getMessage()]);
-            }
-
-            return (object) [                
-                'display_name' => $r->attachment_name,         // nama yang enak dibaca
-                'created_by'   => $r->created_by,
-                'created_at'   => $r->created_at,
-                'url'          => $signedUrl,                  // bisa null jika gagal
-                'folder'       => $r->folder,
-                'filename'     => $r->filename,
-                'extention'    => $r->extention,
-                'size'         => $r->filesize,
-            ];
-        });
-        
-        $loginUsername = $user->username ?? $user->name ?? null;
-        $canUpload     = $sppb->created_by === $loginUsername;
-        $akses_cc = SysUserRole::where('username', $user->username)
-            ->where('role_id','COSTCTRLACCESS')
-            ->first();
-
-        return view('pages.itemrequests.showitemrequests', compact('sppb','attachments','sppbdetail','hash','canUpload','akses_cc'));
-    }
       
-    public function approveItemRequest(Request $request, $docid)
+    public function approveItemReq(Request $request, $docid)
     {
         $user    = $request->user();
         $doctype = 'SR';
 
-        $sppb = TrItemRequest::with('creator')->where('sppbid', $docid)->first();
-        if (!$sppb) return response()->json(['success'=>false,'message'=>'SPPB not found'],404);
+        $itemReq = TrItemRequest::with('creator')->where('irid', $docid)->first();
+        if (!$itemReq) return response()->json(['success'=>false,'message'=>'Item Request not found'],404);
 
-        $eid      = \Vinkla\Hashids\Facades\Hashids::encode($sppb->id);
-        $docUrl   = url('/showitemrequests/' . $eid);
-        $fullname = data_get($sppb, 'creator.name') ?: $sppb->created_by;
+        $eid      = \Vinkla\Hashids\Facades\Hashids::encode($itemReq->id);
+        $docUrl   = url('/showitemreq/' . $eid);
+        $fullname = data_get($itemReq, 'creator.name') ?: $itemReq->created_by;
 
         $result = app(\App\Http\Controllers\ApprovalController::class)->approveStep(
-            $sppb->sppbid,
+            $itemReq->irid,
             $doctype,
             $user->username,
             $user->name,
 
             // complete: update header/detail + email creator complete
-            function (string $refnbr, \Carbon\Carbon $now) use ($sppb, $fullname, $docUrl) {
-                $sppb->status       = 'C';
-                $sppb->completed_by = $sppb->completed_by ?: auth()->user()->username;
-                $sppb->completed_at = $now;
-                $sppb->save();
-
-                TrItemRequestdetail::where('sppbid', $sppb->sppbid)->update(['status' => 'C']);
+            function (string $refnbr, \Carbon\Carbon $now) use ($itemReq, $fullname, $docUrl) {
+                $itemReq->status       = 'C';
+                $itemReq->completed_by = $itemReq->completed_by ?: auth()->user()->username;
+                $itemReq->completed_at = $now;
+                $itemReq->save();               
 
                 app(\App\Http\Controllers\ApprovalController::class)->notifyRequesterOnStatus(
-                    $sppb->sppbid,
-                    'SPPB',
+                    $itemReq->irid,
+                    'Item Request',
                     'C',
-                    $sppb->created_by,
+                    $itemReq->created_by,
                     $docUrl,
                     [
-                        'cpnyid'   => $sppb->cpny_id ?? $sppb->cpnyid ?? '',
-                        'deptname' => $sppb->department_id ?? $sppb->departementid ?? '',
-                        'date'     => $sppb->sppbdate,
-                        'info'     => $sppb->keperluan,
+                        'cpnyid'   => $itemReq->cpny_id ?? $itemReq->cpnyid ?? '',
+                        'deptname' => $itemReq->department_id ?? $itemReq->departementid ?? '',
+                        'date'     => $itemReq->itemReqdate,
+                        'info'     => $itemReq->inventory_descr_req,
                         'fullname' => $fullname,
                         'name'     => $fullname,
                         'createdby'=> $fullname, 
@@ -1251,24 +674,24 @@ class ItemRequestController extends Controller
             },
 
             // notify next approver
-            function ($next, \Carbon\Carbon $now) use ($sppb, $docUrl) {
+            function ($next, \Carbon\Carbon $now) use ($itemReq, $docUrl) {
                 app(\App\Http\Controllers\ApprovalController::class)->notifyFirstApprover(
-                    $sppb->sppbid,
+                    $itemReq->irid,
                     'SR',
                     'P',
-                    'SPPB',
+                    'Item Request',
                     $docUrl,
                     [
-                        'info'      => $sppb->keperluan,
-                        'createdby' => $sppb->created_by,
+                        'info'      => $itemReq->inventory_descr_req,
+                        'createdby' => $itemReq->created_by,
                         'date'      => $now->toDateTimeString(),
                     ]
                 );
 
                 // jejak terakhir diproses (optional)
-                $sppb->completed_by = auth()->user()->username;
-                $sppb->completed_at = $now;
-                $sppb->save();
+                $itemReq->completed_by = auth()->user()->username;
+                $itemReq->completed_at = $now;
+                $itemReq->save();
             }
         );
 
@@ -1279,44 +702,44 @@ class ItemRequestController extends Controller
         return response()->json(['success'=>true,'message'=>'Task approved successfully']);
     }
 
-    public function rejectItemRequest(Request $request, $docid)
+    public function rejectItemReq(Request $request, $docid)
     {
         $user    = $request->user();
         $doctype = 'SR';
 
-        $sppb = \App\Models\TrItemRequest::with('creator')->where('sppbid', $docid)->first();
-        if (!$sppb) return response()->json(['success'=>false,'message'=>'SPPB not found'],404);
+        $itemReq = \App\Models\TrItemRequest::with('creator')->where('irid', $docid)->first();
+        if (!$itemReq) return response()->json(['success'=>false,'message'=>'Item Request not found'],404);
 
-        $eid      = \Vinkla\Hashids\Facades\Hashids::encode($sppb->id);
-        $docUrl   = url('/showitemrequests/' . $eid);
-        $fullname = data_get($sppb, 'creator.name') ?: $sppb->created_by;
+        $eid      = \Vinkla\Hashids\Facades\Hashids::encode($itemReq->id);
+        $docUrl   = url('/showitemreq/' . $eid);
+        $fullname = data_get($itemReq, 'creator.name') ?: $itemReq->created_by;
 
         $result = app(\App\Http\Controllers\ApprovalController::class)->rejectStep(
-            $sppb->sppbid,
+            $itemReq->irid,
             $doctype,
             $user->username,
             $user->name,
 
-            function (string $refnbr, \Carbon\Carbon $now) use ($sppb, $fullname, $docUrl) {
-                $sppb->status       = 'R';
-                $sppb->completed_by = auth()->user()->username;
-                $sppb->completed_at = $now;
-                $sppb->save();
+            function (string $refnbr, \Carbon\Carbon $now) use ($itemReq, $fullname, $docUrl) {
+                $itemReq->status       = 'R';
+                $itemReq->completed_by = auth()->user()->username;
+                $itemReq->completed_at = $now;
+                $itemReq->save();
 
                 // optional: tandai detail R
-                // \App\Models\TrItemRequestdetail::where('sppbid', $sppb->sppbid)->update(['status' => 'R']);
+                // \App\Models\TrItemRequestdetail::where('irid', $itemReq->irid)->update(['status' => 'R']);
 
                 app(\App\Http\Controllers\ApprovalController::class)->notifyRequesterOnStatus(
-                    $sppb->sppbid,
-                    'SPPB',
+                    $itemReq->irid,
+                    'Item Request',
                     'R',
-                    $sppb->created_by,
+                    $itemReq->created_by,
                     $docUrl,
                     [
-                        'cpnyid'   => $sppb->cpny_id ?? $sppb->cpnyid ?? '',
-                        'deptname' => $sppb->department_id ?? $sppb->departementid ?? '',
+                        'cpnyid'   => $itemReq->cpny_id ?? $itemReq->cpnyid ?? '',
+                        'deptname' => $itemReq->department_id ?? $itemReq->departementid ?? '',
                         'date'     => $now->toDateString(),
-                        'info'     => $sppb->keperluan,
+                        'info'     => $itemReq->inventory_descr_req,
                         'fullname' => $fullname,
                         'name'     => $fullname,
                         'createdby'=> $fullname, 
@@ -1325,7 +748,7 @@ class ItemRequestController extends Controller
 
                 // simpan komentar (jika ada)
                 try {
-                    app('App\Http\Controllers\SendCommentController')->sendmsg($sppb->id, 'SR', request());
+                    app('App\Http\Controllers\SendCommentController')->sendmsg($itemReq->id, 'SR', request());
                 } catch (\Throwable $e) {}
             }
         );
@@ -1334,48 +757,48 @@ class ItemRequestController extends Controller
             return response()->json(['success'=>false,'message'=>$result['message'] ?? 'Reject failed'], 403);
         }
 
-        return response()->json(['success'=>true,'message'=>'SPPB rejected successfully']);
+        return response()->json(['success'=>true,'message'=>'Item Request rejected successfully']);
     }
 
-    public function reviseItemRequest(Request $request, $docid)
+    public function reviseItemReq(Request $request, $docid)
     {
         $user    = $request->user();
         $doctype = 'SR';
 
-        $sppb = \App\Models\TrItemRequest::with('creator')->where('sppbid', $docid)->first();
-        if (!$sppb) return response()->json(['success'=>false,'message'=>'SPPB not found'],404);
+        $itemReq = \App\Models\TrItemRequest::with('creator')->where('irid', $docid)->first();
+        if (!$itemReq) return response()->json(['success'=>false,'message'=>'Item Request not found'],404);
 
-        $eid      = \Vinkla\Hashids\Facades\Hashids::encode($sppb->id);
-        $docUrl   = url('/showitemrequests/' . $eid);
-        $fullname = data_get($sppb, 'creator.name') ?: $sppb->created_by;
+        $eid      = \Vinkla\Hashids\Facades\Hashids::encode($itemReq->id);
+        $docUrl   = url('/showitemreq/' . $eid);
+        $fullname = data_get($itemReq, 'creator.name') ?: $itemReq->created_by;
 
         $result = app(\App\Http\Controllers\ApprovalController::class)->reviseStep(
-            $sppb->sppbid,            // refnbr
+            $itemReq->irid,            // refnbr
             $doctype,                 // PT
             $user->username,          // actor
             $user->name,              // actor
-            function (string $refnbr, \Carbon\Carbon $now) use ($sppb, $fullname, $docUrl) {
-                // === HEADER SPPB -> D ===
-                $sppb->status       = 'D';
-                $sppb->completed_by = auth()->user()->username;
-                $sppb->completed_at = $now;
-                $sppb->save();
+            function (string $refnbr, \Carbon\Carbon $now) use ($itemReq, $fullname, $docUrl) {
+                // === HEADER Item Request -> D ===
+                $itemReq->status       = 'D';
+                $itemReq->completed_by = auth()->user()->username;
+                $itemReq->completed_at = $now;
+                $itemReq->save();
 
                 // (opsional) DETAIL -> D
-                // \App\Models\TrItemRequestdetail::where('sppbid', $sppb->sppbid)->update(['status' => 'D']);
+                // \App\Models\TrItemRequestdetail::where('irid', $itemReq->irid)->update(['status' => 'D']);
 
                 // === Email ke requester ===
                 app(\App\Http\Controllers\ApprovalController::class)->notifyRequesterOnStatus(
-                    $sppb->sppbid,
-                    'SPPB',
+                    $itemReq->irid,
+                    'Item Request',
                     'D',
-                    $sppb->created_by,
+                    $itemReq->created_by,
                     $docUrl,
                     [
-                        'cpnyid'   => $sppb->cpny_id ?? $sppb->cpnyid ?? '',
-                        'deptname' => $sppb->department_id ?? $sppb->departementid ?? '',
+                        'cpnyid'   => $itemReq->cpny_id ?? $itemReq->cpnyid ?? '',
+                        'deptname' => $itemReq->department_id ?? $itemReq->departementid ?? '',
                         'date'     => $now->toDateString(),
-                        'info'     => $sppb->keperluan,
+                        'info'     => $itemReq->inventory_descr_req,
                         'fullname' => $fullname,
                         'name'     => $fullname,
                         'createdby'=> $fullname,   // <<< tambahkan ini
@@ -1385,7 +808,7 @@ class ItemRequestController extends Controller
 
                 // === Simpan komentar (jika ada) ===
                 try {
-                    app('App\Http\Controllers\SendCommentController')->sendmsg($sppb->id, 'SR', request());
+                    app('App\Http\Controllers\SendCommentController')->sendmsg($itemReq->id, 'SR', request());
                 } catch (\Throwable $e) {}
             }
         );
@@ -1397,7 +820,7 @@ class ItemRequestController extends Controller
             ], 403);
         }
 
-        return response()->json(['success'=>true,'message'=>'SPPB revised successfully']);
+        return response()->json(['success'=>true,'message'=>'Item Request revised successfully']);
     }
 
     // public function approveItemRequest(Request $request, $docid)
@@ -1407,16 +830,16 @@ class ItemRequestController extends Controller
     //     $doctype = 'SR';
 
     //     // Ambil header + creator
-    //     $sppb = TrItemRequest::with('creator')->where('sppbid', $docid)->first();
-    //     if (!$sppb) {
-    //         return response()->json(['success' => false, 'message' => 'SPPB not found'], 404);
+    //     $itemReq = TrItemRequest::with('creator')->where('irid', $docid)->first();
+    //     if (!$itemReq) {
+    //         return response()->json(['success' => false, 'message' => 'Item Request not found'], 404);
     //     }
-    //     $fullname = data_get($sppb, 'creator.name') ?: $sppb->created_by;
+    //     $fullname = data_get($itemReq, 'creator.name') ?: $itemReq->created_by;
 
     //     // Cari row approval PENDING level terendah yang sudah "aktif" (aprv_datebefore != null)
     //     // Lalu pastikan user saat ini termasuk dalam daftar aprv_username (support ; atau ,)
     //     $currentPending = TrApproval::query()
-    //         ->where('refnbr', $sppb->sppbid)
+    //         ->where('refnbr', $itemReq->irid)
     //         ->where('aprv_doctype', $doctype)
     //         ->where('status', 'P')
     //         ->whereNotNull('aprv_datebefore')
@@ -1447,18 +870,18 @@ class ItemRequestController extends Controller
     //         $currentPending->save();
 
     //         // Update header informasi "terakhir diproses"
-    //         $sppb->completed_by = $user->username;
-    //         $sppb->completed_at = $now;
-    //         $sppb->save();
+    //         $itemReq->completed_by = $user->username;
+    //         $itemReq->completed_at = $now;
+    //         $itemReq->save();
 
     //         // 2) Masih ada pending lain?
     //         $pendingCount = TrApproval::query()
-    //             ->where('refnbr', $sppb->sppbid)
+    //             ->where('refnbr', $itemReq->irid)
     //             ->where('aprv_doctype', $doctype)
     //             ->where('status', 'P')
     //             ->count();
 
-    //         $eid = Hashids::encode($sppb->id);
+    //         $eid = Hashids::encode($itemReq->id);
     //         $subjectMap = [
     //             'P' => 'Waiting Approval',
     //             'R' => 'Rejected Approval',
@@ -1469,33 +892,33 @@ class ItemRequestController extends Controller
 
     //         if ($pendingCount === 0) {
     //             // 3) Tidak ada approver lagi -> dokumen complete
-    //             $sppb->status       = 'C';
-    //             $sppb->completed_by = $user->username;
-    //             $sppb->completed_at = $now;
-    //             $sppb->save();
+    //             $itemReq->status       = 'C';
+    //             $itemReq->completed_by = $user->username;
+    //             $itemReq->completed_at = $now;
+    //             $itemReq->save();
 
     //             // Close semua detail
-    //             TrItemRequestdetail::where('sppbid', $sppb->sppbid)->update(['status' => 'C']);
+    //             TrItemRequestdetail::where('irid', $itemReq->irid)->update(['status' => 'C']);
 
     //             // Kirim email ke requester (creator)
     //             $status        = 'C';
     //             $subjectSuffix = $subjectMap[$status] ?? 'Notification';
 
     //             $data = [
-    //                 'docid'     => $sppb->sppbid,
-    //                 'cpnyid'    => $sppb->cpny_id ?? $sppb->cpnyid ?? '',
-    //                 'deptname'  => $sppb->department_id ?? $sppb->departementid ?? '',
-    //                 'date'      => $sppb->sppbdate,
+    //                 'docid'     => $itemReq->irid,
+    //                 'cpnyid'    => $itemReq->cpny_id ?? $itemReq->cpnyid ?? '',
+    //                 'deptname'  => $itemReq->department_id ?? $itemReq->departementid ?? '',
+    //                 'date'      => $itemReq->itemReqdate,
     //                 'fullname'  => $fullname,
     //                 'name'      => $fullname,
     //                 'createdby' => $fullname,
-    //                 'docname'   => 'SPPB',
-    //                 'info'      => $sppb->keperluan,
+    //                 'docname'   => 'Item Request',
+    //                 'info'      => $itemReq->inventory_descr_req,
     //                 'status'    => $status,
     //                 'url'       => url('/showitemrequests/' . $eid),
     //             ];
 
-    //             $recipients = User::where('username', $sppb->created_by)
+    //             $recipients = User::where('username', $itemReq->created_by)
     //                 ->where('status', 'A')
     //                 ->get();
 
@@ -1504,18 +927,18 @@ class ItemRequestController extends Controller
     //                     $to = $rcp->notification_email ?? $rcp->email;
     //                     Mail::send('emails.mailapprovenew', $data, function ($message) use ($data, $to, $subjectSuffix) {
     //                         $message->to($to)
-    //                             ->subject($data['docid'] . ' - ' . $subjectSuffix . ' SPPB')
+    //                             ->subject($data['docid'] . ' - ' . $subjectSuffix . ' Item Request')
     //                             ->from('digitalserver@pakuwon.com', 'Pakuwon System');
     //                     });
     //                 } catch (\Throwable $e) {
-    //                     Log::error('Failed sending SPPB completion email', ['error' => $e->getMessage()]);
+    //                     Log::error('Failed sending Item Request completion email', ['error' => $e->getMessage()]);
     //                 }
     //             }
 
     //         } else {
     //             // 4) Masih ada approver berikutnya -> aktifkan step berikutnya (level terendah)
     //             $next = TrApproval::query()
-    //                 ->where('refnbr', $sppb->sppbid)
+    //                 ->where('refnbr', $itemReq->irid)
     //                 ->where('aprv_doctype', $doctype)
     //                 ->where('status', 'P')
     //                 ->orderByRaw("CAST(aprv_leveling AS numeric) ASC")
@@ -1530,14 +953,14 @@ class ItemRequestController extends Controller
 
     //                 // Kirim email ke approver level berikutnya via ApprovalController (reusable)
     //                 app(ApprovalController::class)->notifyFirstApprover(
-    //                     $sppb->sppbid,
+    //                     $itemReq->irid,
     //                     $doctype,
     //                     'P',
-    //                     'SPPB',
+    //                     'Item Request',
     //                     url('/showitemrequests/' . $eid),
     //                     [
-    //                         'info'      => $sppb->keperluan,
-    //                         'createdby' => $sppb->created_by,
+    //                         'info'      => $itemReq->inventory_descr_req,
+    //                         'createdby' => $itemReq->created_by,
     //                         'date'      => $now->toDateTimeString(),
     //                     ]
     //                 );
@@ -1549,7 +972,7 @@ class ItemRequestController extends Controller
 
     //     } catch (\Throwable $e) {
     //         DB::rollBack();
-    //         Log::error('Approve SPPB failed', ['error' => $e->getMessage()]);
+    //         Log::error('Approve Item Request failed', ['error' => $e->getMessage()]);
     //         return response()->json(['success' => false, 'message' => 'Approve failed'], 500);
     //     }
     // }
@@ -1561,15 +984,15 @@ class ItemRequestController extends Controller
     //     $doctype = 'SR';
 
     //     // Header + creator
-    //     $sppb = TrItemRequest::with('creator')->where('sppbid', $docid)->first();
-    //     if (!$sppb) {
+    //     $itemReq = TrItemRequest::with('creator')->where('irid', $docid)->first();
+    //     if (!$itemReq) {
     //         return response()->json(['success' => false, 'message' => 'Task not found'], 404);
     //     }
-    //     $fullname = data_get($sppb, 'creator.name') ?: $sppb->created_by;
+    //     $fullname = data_get($itemReq, 'creator.name') ?: $itemReq->created_by;
 
     //     // Row approval aktif (pending + sudah "dibuka" datebefore)
     //     $currentPending = TrApproval::query()
-    //         ->where('refnbr', $sppb->sppbid)
+    //         ->where('refnbr', $itemReq->irid)
     //         ->where('aprv_doctype', $doctype)
     //         ->where('status', 'P')
     //         ->whereNotNull('aprv_datebefore')
@@ -1599,15 +1022,15 @@ class ItemRequestController extends Controller
     //         $currentPending->aprv_name      = $user->name;
     //         $currentPending->save();
 
-    //         // 2) Update header SPPB -> Rejected
-    //         $sppb->status       = 'R';
-    //         $sppb->completed_by = $user->username;
-    //         $sppb->completed_at = $now;
-    //         $sppb->save();
+    //         // 2) Update header Item Request -> Rejected
+    //         $itemReq->status       = 'R';
+    //         $itemReq->completed_by = $user->username;
+    //         $itemReq->completed_at = $now;
+    //         $itemReq->save();
 
     //         // 3) Batalkan semua approval yang masih pending (status 'X')
     //         TrApproval::query()
-    //             ->where('refnbr', $sppb->sppbid)
+    //             ->where('refnbr', $itemReq->irid)
     //             ->where('aprv_doctype', $doctype)
     //             ->where('status', 'P')
     //             ->update(['status' => 'X']);
@@ -1615,7 +1038,7 @@ class ItemRequestController extends Controller
     //         DB::commit();
     //     } catch (\Throwable $e) {
     //         DB::rollBack();
-    //         Log::error('Reject SPPB failed', ['docid' => $docid, 'error' => $e->getMessage()]);
+    //         Log::error('Reject Item Request failed', ['docid' => $docid, 'error' => $e->getMessage()]);
     //         return response()->json(['success' => false, 'message' => 'Reject failed'], 500);
     //     }
 
@@ -1630,23 +1053,23 @@ class ItemRequestController extends Controller
     //             'C' => 'Completed',
     //         ];
     //         $subjectSuffix = $subjectMap[$status] ?? 'Notification';
-    //         $eid           = Hashids::encode($sppb->id);
+    //         $eid           = Hashids::encode($itemReq->id);
 
     //         $data = [
-    //             'docid'     => $sppb->sppbid,
-    //             'cpnyid'    => $sppb->cpny_id ?? $sppb->cpnyid ?? '',
-    //             'deptname'  => $sppb->department_id ?? $sppb->departementid ?? '',
+    //             'docid'     => $itemReq->irid,
+    //             'cpnyid'    => $itemReq->cpny_id ?? $itemReq->cpnyid ?? '',
+    //             'deptname'  => $itemReq->department_id ?? $itemReq->departementid ?? '',
     //             'date'      => $now->toDateString(),
     //             'fullname'  => $fullname,
     //             'name'      => $fullname,
     //             'createdby' => $fullname,
-    //             'docname'   => 'SPPB',
-    //             'info'      => $sppb->keperluan,
+    //             'docname'   => 'Item Request',
+    //             'info'      => $itemReq->inventory_descr_req,
     //             'status'    => $status,
     //             'url'       => url('/showitemrequests/' . $eid),
     //         ];
 
-    //         $recipients = User::where('username', $sppb->created_by)
+    //         $recipients = User::where('username', $itemReq->created_by)
     //             ->where('status', 'A')
     //             ->get();
 
@@ -1656,28 +1079,28 @@ class ItemRequestController extends Controller
 
     //             Mail::send('emails.mailapprovenew', $data, function ($message) use ($data, $to, $subjectSuffix) {
     //                 $message->to($to)
-    //                     ->subject($data['docid'] . ' - ' . $subjectSuffix . ' SPPB')
+    //                     ->subject($data['docid'] . ' - ' . $subjectSuffix . ' Item Request')
     //                     ->from('digitalserver@pakuwon.com', 'Pakuwon System');
     //             });
     //         }
     //     } catch (\Throwable $e) {
-    //         Log::error('Failed sending SPPB rejected email', [
-    //             'docid' => $sppb->sppbid,
+    //         Log::error('Failed sending Item Request rejected email', [
+    //             'docid' => $itemReq->irid,
     //             'error' => $e->getMessage()
     //         ]);
     //     }
 
     //     // 5) Simpan komentar penolakan (jika ada)
     //     try {
-    //         app('App\Http\Controllers\SendCommentController')->sendmsg($sppb->id, $doctype, $request);
+    //         app('App\Http\Controllers\SendCommentController')->sendmsg($itemReq->id, $doctype, $request);
     //     } catch (\Throwable $e) {
     //         Log::warning('SendComment after reject failed', [
-    //             'docid' => $sppb->sppbid,
+    //             'docid' => $itemReq->irid,
     //             'error' => $e->getMessage()
     //         ]);
     //     }
 
-    //     return response()->json(['success' => true, 'message' => 'SPPB rejected successfully']);
+    //     return response()->json(['success' => true, 'message' => 'Item Request rejected successfully']);
     // }
 
     // public function reviseItemRequest(Request $request, $docid)
@@ -1687,15 +1110,15 @@ class ItemRequestController extends Controller
     //     $doctype = 'SR';
 
     //     // 1) Ambil header + creator
-    //     $sppb = TrItemRequest::with('creator')->where('sppbid', $docid)->first();
-    //     if (!$sppb) {
-    //         return response()->json(['success' => false, 'message' => 'SPPB not found'], 404);
+    //     $itemReq = TrItemRequest::with('creator')->where('irid', $docid)->first();
+    //     if (!$itemReq) {
+    //         return response()->json(['success' => false, 'message' => 'Item Request not found'], 404);
     //     }
-    //     $fullname = data_get($sppb, 'creator.name') ?: $sppb->created_by;
+    //     $fullname = data_get($itemReq, 'creator.name') ?: $itemReq->created_by;
 
     //     // 2) Validasi: user harus approver aktif (status P) pada step terendah yang sudah "dibuka" (aprv_datebefore != null)
     //     $currentPending = TrApproval::query()
-    //         ->where('refnbr', $sppb->sppbid)
+    //         ->where('refnbr', $itemReq->irid)
     //         ->where('aprv_doctype', $doctype)
     //         ->where('status', 'P')
     //         ->whereNotNull('aprv_datebefore')
@@ -1725,18 +1148,18 @@ class ItemRequestController extends Controller
     //         $currentPending->aprv_name      = $user->name;
     //         $currentPending->save();
 
-    //         // 5) Update header SPPB -> D (Revise)
-    //         $sppb->status       = 'D';
-    //         $sppb->completed_by = $user->username;
-    //         $sppb->completed_at = $now;
-    //         $sppb->save();
+    //         // 5) Update header Item Request -> D (Revise)
+    //         $itemReq->status       = 'D';
+    //         $itemReq->completed_by = $user->username;
+    //         $itemReq->completed_at = $now;
+    //         $itemReq->save();
 
     //         // (opsional) tandai detail sebagai D juga kalau mau:
-    //         // TrItemRequestdetail::where('sppbid', $sppb->sppbid)->update(['status' => 'D']);
+    //         // TrItemRequestdetail::where('irid', $itemReq->irid)->update(['status' => 'D']);
 
     //         // 6) Batalkan semua approval lain yang masih pending (status 'X')
     //         TrApproval::query()
-    //             ->where('refnbr', $sppb->sppbid)
+    //             ->where('refnbr', $itemReq->irid)
     //             ->where('aprv_doctype', $doctype)
     //             ->where('status', 'P')
     //             ->update(['status' => 'X']);
@@ -1744,7 +1167,7 @@ class ItemRequestController extends Controller
     //         DB::commit();
     //     } catch (\Throwable $e) {
     //         DB::rollBack();
-    //         Log::error('Revise SPPB failed', ['docid' => $docid, 'error' => $e->getMessage()]);
+    //         Log::error('Revise Item Request failed', ['docid' => $docid, 'error' => $e->getMessage()]);
     //         return response()->json(['success' => false, 'message' => 'Revise failed'], 500);
     //     }
 
@@ -1753,23 +1176,23 @@ class ItemRequestController extends Controller
     //         $status        = 'D';
     //         $subjectMap    = ['P'=>'Waiting Approval','R'=>'Rejected Approval','D'=>'Revise Approval','A'=>'Approved','C'=>'Completed'];
     //         $subjectSuffix = $subjectMap[$status] ?? 'Notification';
-    //         $eid           = Hashids::encode($sppb->id);
+    //         $eid           = Hashids::encode($itemReq->id);
 
     //         $data = [
-    //             'docid'     => $sppb->sppbid,
-    //             'cpnyid'    => $sppb->cpny_id ?? $sppb->cpnyid ?? '',
-    //             'deptname'  => $sppb->department_id ?? $sppb->departementid ?? '',
+    //             'docid'     => $itemReq->irid,
+    //             'cpnyid'    => $itemReq->cpny_id ?? $itemReq->cpnyid ?? '',
+    //             'deptname'  => $itemReq->department_id ?? $itemReq->departementid ?? '',
     //             'date'      => $now->toDateString(), // atau pakai $currentPending->aprv_dateafter
     //             'fullname'  => $fullname,
     //             'name'      => $fullname,
     //             'createdby' => $fullname,
-    //             'docname'   => 'SPPB',
-    //             'info'      => $sppb->keperluan,
+    //             'docname'   => 'Item Request',
+    //             'info'      => $itemReq->inventory_descr_req,
     //             'status'    => $status,
     //             'url'       => url('/showitemrequests/' . $eid),
     //         ];
 
-    //         $recipients = User::where('username', $sppb->created_by)
+    //         $recipients = User::where('username', $itemReq->created_by)
     //             ->where('status', 'A')
     //             ->get();
 
@@ -1779,28 +1202,28 @@ class ItemRequestController extends Controller
 
     //             Mail::send('emails.mailapprovenew', $data, function ($message) use ($data, $to, $subjectSuffix) {
     //                 $message->to($to)
-    //                     ->subject($data['docid'] . ' - ' . $subjectSuffix . ' SPPB')
+    //                     ->subject($data['docid'] . ' - ' . $subjectSuffix . ' Item Request')
     //                     ->from('digitalserver@pakuwon.com', 'Pakuwon System');
     //             });
     //         }
     //     } catch (\Throwable $e) {
-    //         Log::error('Failed sending SPPB revise email', [
-    //             'docid' => $sppb->sppbid,
+    //         Log::error('Failed sending Item Request revise email', [
+    //             'docid' => $itemReq->irid,
     //             'error' => $e->getMessage()
     //         ]);
     //     }
 
     //     // 8) Simpan komentar revisi (jika ada)
     //     try {
-    //         app('App\Http\Controllers\SendCommentController')->sendmsg($sppb->id, $doctype, $request);
+    //         app('App\Http\Controllers\SendCommentController')->sendmsg($itemReq->id, $doctype, $request);
     //     } catch (\Throwable $e) {
     //         Log::warning('SendComment after revise failed', [
-    //             'docid' => $sppb->sppbid,
+    //             'docid' => $itemReq->irid,
     //             'error' => $e->getMessage()
     //         ]);
     //     }
 
-    //     return response()->json(['success' => true, 'message' => 'SPPB revised successfully']);
+    //     return response()->json(['success' => true, 'message' => 'Item Request revised successfully']);
     // }
     
 
@@ -1810,7 +1233,7 @@ class ItemRequestController extends Controller
         $id = Hashids::decode($hash)[0] ?? null;
         abort_if(!$id, 404);
 
-        $sppb = TrItemRequest::findOrFail($id);
+        $itemReq = TrItemRequest::findOrFail($id);
 
         $getName = function (?string $username) {
             if (!$username) return null;
@@ -1818,20 +1241,20 @@ class ItemRequestController extends Controller
             return $u->name ?? $username;
         };
 
-        $createdByName = $getName($sppb->created_by ?? null);
-        $createdAt     = $sppb->created_at ? \Carbon\Carbon::parse($sppb->created_at)->format('Y-m-d H:i') : null;
+        $createdByName = $getName($itemReq->created_by ?? null);
+        $createdAt     = $itemReq->created_at ? \Carbon\Carbon::parse($itemReq->created_at)->format('Y-m-d H:i') : null;
 
-        $completedByName = $getName($sppb->completed_by ?? null);
-        $completedAt     = $sppb->completed_at ? \Carbon\Carbon::parse($sppb->completed_at)->format('Y-m-d H:i') : null;
+        $completedByName = $getName($itemReq->completed_by ?? null);
+        $completedAt     = $itemReq->completed_at ? \Carbon\Carbon::parse($itemReq->completed_at)->format('Y-m-d H:i') : null;
 
         // kolom opsional, kalau tidak ada biarkan null
-        $rejectedByName  = $getName($sppb->rejected_by ?? null);
-        $rejectedAt      = isset($sppb->rejected_at) ? \Carbon\Carbon::parse($sppb->rejected_at)->format('Y-m-d H:i') : null;
+        $rejectedByName  = $getName($itemReq->rejected_by ?? null);
+        $rejectedAt      = isset($itemReq->rejected_at) ? \Carbon\Carbon::parse($itemReq->rejected_at)->format('Y-m-d H:i') : null;
 
-        $revisedByName   = $getName($sppb->revised_by ?? null);
-        $revisedAt       = isset($sppb->revised_at) ? \Carbon\Carbon::parse($sppb->revised_at)->format('Y-m-d H:i') : null;
+        $revisedByName   = $getName($itemReq->revised_by ?? null);
+        $revisedAt       = isset($itemReq->revised_at) ? \Carbon\Carbon::parse($itemReq->revised_at)->format('Y-m-d H:i') : null;
 
-        $status = (string) ($sppb->status ?? '');
+        $status = (string) ($itemReq->status ?? '');
         $labelMap = [
             'P' => 'Waiting approval',
             'R' => 'Rejected',
@@ -1843,7 +1266,7 @@ class ItemRequestController extends Controller
         // selalu mulai dari Submitted
         $steps = [[
             'key'          => 'submitted',
-            'title'        => 'SPPB',
+            'title'        => 'Item Request',
             'status'       => 'C',              // dibuat = completed
             'status_label' => 'Submitted',
             'by'           => $createdByName,
@@ -1907,7 +1330,7 @@ class ItemRequestController extends Controller
         }
 
         return response()->json([
-            'doc'   => $sppb->sppbid ?? (string)$sppb->id,
+            'doc'   => $itemReq->irid ?? (string)$itemReq->id,
             'steps' => $steps,
             'status'=> $status,
             'status_label' => $statusLabel,
@@ -1924,29 +1347,29 @@ class ItemRequestController extends Controller
             return redirect()->route('login');
         }
 
-        // Ambil SPPB + relasi yang dibutuhkan
-        $sppb = TrItemRequest::with([
+        // Ambil Item Request + relasi yang dibutuhkan
+        $itemReq = TrItemRequest::with([
                 'requestType:requesttypeid,requesttype_name',
                 'creator:username,name',
             ])
             ->findOrFail($id);
 
-        // Detail baris SPPB
-        $sppbdetail = TrItemRequestdetail::with([
+        // Detail baris Item Request
+        $itemReqdetail = TrItemRequestdetail::with([
                 'location:location_id,location_name',
                 'subLocation:sub_location_id,sub_location_name',
             ])
-            ->where('sppbid', $sppb->sppbid)
+            ->where('irid', $itemReq->irid)
             ->get();
 
         // Approval list (non-cancelled)
-        // $approval = T_approval::where('docid', $sppb->sppbid)
+        // $approval = T_approval::where('docid', $itemReq->irid)
         //     ->where('status', '<>', 'X')
         //     ->orderBy('aprvid')
         //     ->orderBy('created_at')
         //     ->get();
         $approval = TrApproval::query()
-            ->where('refnbr', $sppb->sppbid)          // dulu: docid
+            ->where('refnbr', $itemReq->irid)          // dulu: docid
             ->where('status', '<>', 'X')           
             ->orderByRaw('CAST(aprv_leveling AS numeric) ASC')
             ->orderBy('created_at', 'ASC')            // tie-breaker kalau leveling sama
@@ -1955,10 +1378,10 @@ class ItemRequestController extends Controller
         $approve_count = $approval->count();
 
         // Company (handle null)
-        $company = Company::where('cpnyid', $sppb->cpny_id)->first();
+        $company = Company::where('cpnyid', $itemReq->cpny_id)->first();
 
         // Mapping status dokumen
-        switch ($sppb->status) {
+        switch ($itemReq->status) {
             case 'R':
                 $status_doc = 'Rejected';
                 break;
@@ -1978,29 +1401,29 @@ class ItemRequestController extends Controller
 
         $data = [
             'title'               => 'Surat Permintaan Pembelian Barang',
-            'doc_type'            => 'SPPB',
-            'docid'               => $sppb->sppbid,
-            'department_id'       => $sppb->department_id,
+            'doc_type'            => 'Item Request',
+            'docid'               => $itemReq->irid,
+            'department_id'       => $itemReq->department_id,
             'cpnyname'            => optional($company)->cpnyname,
             'parent'              => optional($company)->parent,
             'project'             => optional($company)->project,
             // identitas & tanggal
-            'created_by_username' => $sppb->created_by,
-            'created_by_name'     => ucwords(strtolower(optional($sppb->creator)->name)),
-            'created_at_fmt'      => optional($sppb->created_at)->format('d F Y'),
-            'req_date_fmt'        => optional($sppb->created_at)->format('d M Y H:i'),
-            'sppbdate'            => \Carbon\Carbon::parse($sppb->sppbdate)->format('d F Y'),
+            'created_by_username' => $itemReq->created_by,
+            'created_by_name'     => ucwords(strtolower(optional($itemReq->creator)->name)),
+            'created_at_fmt'      => optional($itemReq->created_at)->format('d F Y'),
+            'req_date_fmt'        => optional($itemReq->created_at)->format('d M Y H:i'),
+            'itemReqdate'            => \Carbon\Carbon::parse($itemReq->itemReqdate)->format('d F Y'),
             // konten
-            'keperluan'           => $sppb->keperluan,
+            'keperluan'           => $itemReq->inventory_descr_req,
             'status_doc'          => $status_doc,
-            'requesttype_name'    => optional($sppb->requestType)->requesttype_name,
+            'requesttype_name'    => optional($itemReq->requestType)->requesttype_name,
         ];
 
         // Kirim ke view
         $pdf = \PDF::loadView(
             'pages.itemrequests.pdf_itemrequests',
             array_merge($data, [
-                'detail'         => $sppbdetail,
+                'detail'         => $itemReqdetail,
                 'approval'       => $approval,
                 'approve_count'  => $approve_count,
             ])
@@ -2009,7 +1432,7 @@ class ItemRequestController extends Controller
         // Portrait jika <= 5 approver, else landscape
         $pdf->setPaper('A4', ($approve_count <= 5) ? 'portrait' : 'landscape');
 
-        return $pdf->stream("pdf_itemrequests_{$sppb->sppbid}.pdf");
+        return $pdf->stream("pdf_itemrequests_{$itemReq->irid}.pdf");
     }
 
 
