@@ -1,6 +1,6 @@
 <x-app-layout>
     @php
-        $currentPage = Route::currentRouteName() == 'stockjobs' ? 'Stock Jobs' : '';
+        $currentPage = Route::currentRouteName() == 'nonstockjobs' ? 'Nonstock Jobs' : '';
     @endphp
 
     <style>
@@ -22,13 +22,13 @@
         table.dataTable { width: 100% !important; }
         .dataTables_wrapper { width: 100%; }
 
-        #stockJobsTable_filter, #inventoryTable_filter, #pickInventoryTable_filter {
+        #nonstockJobsTable_filter, #inventoryTable_filter, #pickInventoryTable_filter {
             margin-bottom: 20px;
             display: flex;
             justify-content: flex-start;
             align-items: center;
         }
-        #stockJobsTable_filter input, #inventoryTable_filter input, #pickInventoryTable_filter input {
+        #nonstockJobsTable_filter input, #inventoryTable_filter input, #pickInventoryTable_filter input {
             width: auto;
             min-width: 120px;
             padding: 0.25rem 0.5rem;
@@ -37,19 +37,19 @@
             background-color: #f9fafb;
         }
 
-        #stockJobsTable td, #inventoryTable td, #pickInventoryTable td {
+        #nonstockJobsTable td, #inventoryTable td, #pickInventoryTable td {
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
         }
-        #stockJobsTable th, #stockJobsTable td,
+        #nonstockJobsTable th, #nonstockJobsTable td,
         #inventoryTable th, #inventoryTable td,
         #pickInventoryTable th, #pickInventoryTable td {
             padding: 10px;
             max-width: 360px;
         }
 
-        #stockJobsTable tbody tr:hover,
+        #nonstockJobsTable tbody tr:hover,
         #inventoryTable tbody tr:hover,
         #pickInventoryTable tbody tr:hover {
             background-color: #8f8f8f11;
@@ -68,7 +68,7 @@
                         <div class="flex min-w-0 flex-grow flex-col leading-tight">
                             <p class="break-words text-base font-medium">All</p>                            
                         </div>
-                        <p class="shrink-0 text-xl font-bold">{{ number_format($stockJobs + $stockDone) }}</p>
+                        <p class="shrink-0 text-xl font-bold">{{ number_format($nonstockJobs + $nonstockDone) }}</p>
                     </div>
                 </a>
             </button>
@@ -78,9 +78,9 @@
                     <div class="status-card flex h-full items-center gap-3 rounded-lg border border-blue-700 bg-blue-200/20 p-3 text-blue-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-blue-100 hover:shadow-md active:scale-95">
                         <div class="flex h-6 w-6 shrink-0 items-center justify-center text-lg">🧾</div>
                         <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                            <p class="break-words text-base font-medium">Stock Jobs</p>
+                            <p class="break-words text-base font-medium">Nonstock Jobs</p>
                         </div>
-                        <p class="shrink-0 text-xl font-bold">{{ number_format($stockJobs) }}</p>
+                        <p class="shrink-0 text-xl font-bold">{{ number_format($nonstockJobs) }}</p>
                     </div>
                 </a>
             </button>
@@ -90,9 +90,9 @@
                     <div class="status-card flex h-full items-center gap-3 rounded-lg border border-green-700 bg-green-200/20 p-3 text-green-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-green-100 hover:shadow-md active:scale-95">
                         <div class="flex h-6 w-6 shrink-0 items-center justify-center text-lg">✅</div>
                         <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                            <p class="break-words text-base font-medium">Stock Done</p>
+                            <p class="break-words text-base font-medium">Nonstock Done</p>
                         </div>
-                        <p class="shrink-0 text-xl font-bold">{{ number_format($stockDone) }}</p>
+                        <p class="shrink-0 text-xl font-bold">{{ number_format($nonstockDone) }}</p>
                     </div>
                 </a>
             </button>
@@ -102,9 +102,9 @@
                     <div class="status-card flex h-full items-center gap-3 rounded-lg border border-indigo-700 bg-indigo-200/20 p-3 text-indigo-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-indigo-100 hover:shadow-md active:scale-95">
                         <div class="flex h-6 w-6 shrink-0 items-center justify-center text-lg">📦</div>
                         <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                            <p class="break-words text-base font-medium">Inventory Stock</p>                            
+                            <p class="break-words text-base font-medium">Inventory Nonstock</p>                            
                         </div>
-                        <p class="shrink-0 text-xl font-bold">{{ number_format($inventoryStock) }}</p>
+                        <p class="shrink-0 text-xl font-bold">{{ number_format($inventoryNonstock) }}</p>
                     </div>
                 </a>
             </button>
@@ -116,11 +116,11 @@
             {{-- JOBS WRAP --}}
             <div id="jobsWrap" class="rounded-2xl bg-white dark:bg-gray-800">
                 <div class="flex flex-col items-start justify-between gap-4 border-b border-gray-200 p-4 sm:flex-row sm:items-center dark:border-gray-700">
-                    <h1 id="jobsTitle" class="text-xl font-extrabold text-gray-700 dark:text-white">Stock Jobs</h1>
+                    <h1 id="jobsTitle" class="text-xl font-extrabold text-gray-700 dark:text-white">Nonstock Jobs</h1>
                 </div>
 
                 <div class="overflow-x-auto p-6">
-                    <table id="stockJobsTable" class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                    <table id="nonstockJobsTable" class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                         <thead class="bg-gray-50 dark:bg-gray-700">
                             <tr>
                                 <th class="w-40 px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">IRID</th>
@@ -294,7 +294,6 @@
                             <input type="hidden" id="purchase_unit_hidden" name="purchase_unit_hidden">
                         </div>
 
-
                     </div>
 
                     <div class="mt-5 flex justify-end gap-2">
@@ -412,7 +411,6 @@
                 $('#inventory_descr').prop('readonly', false); // boleh edit
             };
 
-
             // ===== GLOBAL HELPERS =====
             window.resetSelect = function($el, placeholder) {
                 $el.prop('disabled', true)
@@ -422,10 +420,10 @@
             };
 
             window.ddUrl = {
-                itemTypes: "{{ route('stockjobs.stock-types') }}",
-                subTypes: "{{ route('stockjobs.stock-sub-types') }}",
-                classes: "{{ route('stockjobs.stock-classes') }}",
-                subClasses: "{{ route('stockjobs.stock-sub-classes') }}"
+                itemTypes: "{{ route('nonstockjobs.nonstock-types') }}",
+                subTypes: "{{ route('nonstockjobs.nonstock-sub-types') }}",
+                classes: "{{ route('nonstockjobs.nonstock-classes') }}",
+                subClasses: "{{ route('nonstockjobs.nonstock-sub-classes') }}"
             };
 
             // ===== PROMISE LOADERS =====
@@ -515,14 +513,14 @@
                 // =========================
                 // JOBS TABLE
                 // =========================
-                jobsTable = $('#stockJobsTable').DataTable({
+                jobsTable = $('#nonstockJobsTable').DataTable({
                     processing: true,
                     serverSide: true,
                     deferRender: true,
                     pageLength: 25,
                     lengthMenu: [10, 25, 50, 100, 250],
                     ajax: {
-                        url: "{{ route('stockjobs.json') }}",
+                        url: "{{ route('nonstockjobs.json') }}",
                         type: "GET",
                         data: function (d) {
                             d.source = 'jobs';
@@ -607,7 +605,7 @@
                     pageLength: 25,
                     lengthMenu: [10, 25, 50, 100, 250],
                     ajax: {
-                        url: "{{ route('stockjobs.json') }}",
+                        url: "{{ route('nonstockjobs.json') }}",
                         type: "GET",
                         data: function (d) {
                             d.source = 'inventory';
@@ -664,7 +662,7 @@
                     pageLength: 10,
                     lengthMenu: [10, 25, 50],
                     ajax: {
-                        url: "{{ route('stockjobs.inventory-pick.json') }}",
+                        url: "{{ route('nonstockjobs.inventory-pick.json') }}",
                         type: "GET",
                     },
                     order: [[0, 'asc']],
@@ -701,8 +699,8 @@
 
                     jobsFilter = f;
 
-                    const titleMap = { all: 'Stock Jobs (All)', jobs: 'Stock Jobs', done: 'Stock Done' };
-                    $jobsTitle.text(titleMap[jobsFilter] ?? 'Stock Jobs');
+                    const titleMap = { all: 'Nonstock Jobs (All)', jobs: 'Nonstock Jobs', done: 'Nonstock Done' };
+                    $jobsTitle.text(titleMap[jobsFilter] ?? 'Nonstock Jobs');
 
                     jobsTable.search('').order([[1, 'desc']]).page(0).draw(false);
                     jobsTable.ajax.reload(null, true);
@@ -729,10 +727,21 @@
                     window.setAddMode();        // ✅ HIDE Inventory ID
                     window.openInvModal();
 
+                    // window.loadItemTypesPromise().then(function(res){
+                    //     const gi = (res.data || []).find(x => String(x.text).toUpperCase() === 'GI');
+                    //     if (gi) $('#item_type').val(gi.id).trigger('change');
+                    // });
                     window.loadItemTypesPromise().then(function(res){
-                        const gi = (res.data || []).find(x => String(x.text).toUpperCase() === 'GI');
-                        if (gi) $('#item_type').val(gi.id).trigger('change');
+                        const ns = (res.data || []).find(
+                            x => String(x.id).toUpperCase() === 'NS'
+                            || String(x.text).toUpperCase() === 'NS'
+                        );
+
+                        if (ns) {
+                            $('#item_type').val(ns.id).trigger('change');
+                        }
                     });
+
                 });
 
 
@@ -745,7 +754,7 @@
                 $(document).on('click', '.editInventoryBtn', function () {
                     const id = $(this).data('id');
 
-                    $.get(`/invstock/${id}/edit`, function (i) {
+                    $.get(`/invnonstock/${id}/edit`, function (i) {
                         $('#inventoryModalTitle').text('Edit Inventory');
                         $('#inventoryForm')[0].reset();
 
@@ -794,7 +803,7 @@
                     const newStatus = $(this).is(':checked') ? 'A' : 'X';
 
                     $.ajax({
-                        url: `/invstock/${id}/toggle-status`,
+                        url: `/invnonstock/${id}/toggle-status`,
                         type: 'PUT',
                         headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
                         data: { status: newStatus },
@@ -821,7 +830,7 @@
                     e.preventDefault();
 
                     const id = $('#inv_id').val();
-                    const url = id ? `/invstock/${id}` : "{{ route('invstock.store') }}";
+                    const url = id ? `/invnonstock/${id}` : "{{ route('invnonstock.store') }}";
 
                     const formData = new FormData(document.getElementById('inventoryForm'));
                     if (id) formData.append('_method', 'PUT');
@@ -902,7 +911,7 @@
                     }
 
                     $.ajax({
-                        url: "{{ route('stockjobs.set-inventory') }}",
+                        url: "{{ route('nonstockjobs.set-inventory') }}",
                         type: 'POST',
                         headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
                         data: {
@@ -915,7 +924,7 @@
                             if (jobsTable) jobsTable.ajax.reload(null, false);
                                 Swal.fire({
                                         icon: 'success',
-                                        title: 'Stock Jobs Sukses',
+                                        title: 'Nonstock Jobs Sukses',
                                         timer: 1200,
                                         showConfirmButton: false
                                 });
@@ -934,7 +943,7 @@
 
                     Swal.fire({
                         title: 'Rollback?',
-                        text: 'Inventory ID akan dikosongkan dan item balik ke Stock Jobs.',
+                        text: 'Inventory ID akan dikosongkan dan item balik ke Nonstock Jobs.',
                         icon: 'warning',
                         showCancelButton: true,
                         confirmButtonText: 'Ya, rollback',
@@ -943,7 +952,7 @@
                         if (!result.isConfirmed) return;
 
                         $.ajax({
-                            url: `/stockjobs/${eid}/rollback`,
+                            url: `/nonstockjobs/${eid}/rollback`,
                             type: 'PUT',
                             headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
                             success: function () {
@@ -983,7 +992,7 @@
               
                 // ====== LOAD: Item Type ======
                 function loadItemTypes(defaultValue = null, defaultText = null) {
-                    const url = "{{ route('stockjobs.stock-types') }}";
+                    const url = "{{ route('nonstockjobs.nonstock-types') }}";
                     console.log('[INV] loadItemTypes() -> GET', url, { defaultValue, defaultText });
 
                     $('#item_type').prop('disabled', false);
@@ -1041,7 +1050,7 @@
 
                     if (!typeId) return;
 
-                    const url = "{{ route('stockjobs.stock-sub-types') }}";
+                    const url = "{{ route('nonstockjobs.nonstock-sub-types') }}";
                     console.log('[INV] load sub-types -> GET', url, 'params=', { item_type_id: typeId });
 
                     $.ajax({
@@ -1075,7 +1084,7 @@
 
                     if (!subTypeId) return;
 
-                    const url = "{{ route('stockjobs.stock-classes') }}";
+                    const url = "{{ route('nonstockjobs.nonstock-classes') }}";
                     console.log('[INV] load classes -> GET', url, 'params=', { item_sub_type_id: subTypeId });
 
                     $.ajax({
@@ -1108,7 +1117,7 @@
 
                     if (!classId) return;
 
-                    const url = "{{ route('stockjobs.stock-sub-classes') }}";
+                    const url = "{{ route('nonstockjobs.nonstock-sub-classes') }}";
                     console.log('[INV] load sub-classes -> GET', url, 'params=', { item_class_id: classId });
 
                     $.ajax({
@@ -1145,10 +1154,21 @@
                     window.setEditMode(false);
                     openInvModal();
 
+                    // window.loadItemTypesPromise().then(function(res){
+                    //     const gi = (res.data || []).find(x => String(x.text).toUpperCase() === 'GI');
+                    //     if (gi) $('#item_type').val(gi.id).trigger('change');
+                    // });
                     window.loadItemTypesPromise().then(function(res){
-                        const gi = (res.data || []).find(x => String(x.text).toUpperCase() === 'GI');
-                        if (gi) $('#item_type').val(gi.id).trigger('change');
+                        const ns = (res.data || []).find(
+                            x => String(x.id).toUpperCase() === 'NS'
+                            || String(x.text).toUpperCase() === 'NS'
+                        );
+
+                        if (ns) {
+                            $('#item_type').val(ns.id).trigger('change');
+                        }
                     });
+
                 });
 
 
@@ -1173,7 +1193,7 @@
                 }
 
                 function loadItemTypesPromise() {
-                    return $.get("{{ route('stockjobs.stock-types') }}").then(res => {
+                    return $.get("{{ route('nonstockjobs.nonstock-types') }}").then(res => {
                         const $type = $('#item_type');
                         $type.prop('disabled', false)
                             .empty()
@@ -1185,7 +1205,7 @@
                 }
 
                 function loadSubTypesPromise(itemTypeId) {
-                    return $.get("{{ route('stockjobs.stock-sub-types') }}", { item_type_id: itemTypeId }).then(res => {
+                    return $.get("{{ route('nonstockjobs.nonstock-sub-types') }}", { item_type_id: itemTypeId }).then(res => {
                         const $sub = $('#item_sub_type');
                         $sub.prop('disabled', false)
                             .empty()
@@ -1197,7 +1217,7 @@
                 }
 
                 function loadClassesPromise(subTypeId) {
-                    return $.get("{{ route('stockjobs.stock-classes') }}", { item_sub_type_id: subTypeId }).then(res => {
+                    return $.get("{{ route('nonstockjobs.nonstock-classes') }}", { item_sub_type_id: subTypeId }).then(res => {
                         const $cls = $('#item_class');
                         $cls.prop('disabled', false)
                             .empty()
@@ -1209,7 +1229,7 @@
                 }
 
                 function loadSubClassesPromise(classId) {
-                    return $.get("{{ route('stockjobs.stock-sub-classes') }}", { item_class_id: classId }).then(res => {
+                    return $.get("{{ route('nonstockjobs.nonstock-sub-classes') }}", { item_class_id: classId }).then(res => {
                         const $subcls = $('#item_sub_class');
                         $subcls.prop('disabled', false)
                             .empty()

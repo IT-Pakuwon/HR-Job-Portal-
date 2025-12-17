@@ -246,7 +246,7 @@
                         </div> --}}
 
                         {{-- 7) stock_unit --}}
-                        {{-- <div>
+                        <div>
                             <label class="block text-gray-700 dark:text-white">Stock Unit</label>
                             <select id="stock_unit" name="stock_unit"
                                     class="select2 w-full rounded-lg border px-3 py-2" required>
@@ -255,11 +255,11 @@
                                     <option value="{{ $r->uom_description }}">{{ $r->uom_description }}</option>
                                 @endforeach
                             </select>
-                            
-                        </div> --}}
+                            <input type="hidden" id="stock_unit_hidden" name="stock_unit">
+                        </div>
 
                         {{-- 8) purchase_unit --}}
-                        {{-- <div>
+                        <div>
                             <label class="block text-gray-700 dark:text-white">Purchase Unit</label>
                             <select id="purchase_unit" name="purchase_unit"
                                     class="select2 w-full rounded-lg border px-3 py-2" required>
@@ -268,32 +268,8 @@
                                     <option value="{{ $r->uom_description }}">{{ $r->uom_description }}</option>
                                 @endforeach
                             </select>
-                            
-                        </div> --}}
-                        <div id="stockUnitWrap">
-                            <label>Stock Unit</label>
-                            <select id="stock_unit" name="stock_unit"
-                                    class="select2 w-full rounded-lg border px-3 py-2" required>
-                                <option value="">-- Select --</option>
-                                @foreach ($baseuom as $r)
-                                    <option value="{{ $r->uom_description }}">{{ $r->uom_description }}</option>
-                                @endforeach
-                            </select>
-                            <input type="hidden" id="stock_unit_hidden" name="stock_unit_hidden">
+                            <input type="hidden" id="purchase_unit_hidden" name="purchase_unit">
                         </div>
-
-                        <div id="purchaseUnitWrap">
-                            <label>Purchase Unit</label>
-                            <select id="purchase_unit" name="purchase_unit"
-                                    class="select2 w-full rounded-lg border px-3 py-2" required>
-                                <option value="">-- Select --</option>
-                                @foreach ($baseuom as $r)
-                                    <option value="{{ $r->uom_description }}">{{ $r->uom_description }}</option>
-                                @endforeach
-                            </select>
-                            <input type="hidden" id="purchase_unit_hidden" name="purchase_unit_hidden">
-                        </div>
-
 
                     </div>
 
@@ -349,6 +325,7 @@
 
         
         <script>
+
             window.setAddMode = function () {
                 $('#inventoryIdWrapper').addClass('hidden');
                 $('#inventoryid').val('');
@@ -359,47 +336,38 @@
             };
                        
             window.setEditMode = function(isEdit) {
-
                 const map = [
-                    // id select, realName request, wrapper selector (optional)
-                    ['item_type',      'item_type_id',      null],
-                    ['item_sub_type',  'item_sub_type_id',  null],
-                    ['item_class',     'item_class_id',     null],
-                    ['item_sub_class', 'item_sub_class_id', null],
-
-                    // ✅ tambah unit (realName = name yang backend expect)
-                    ['stock_unit',     'stock_unit',        '#stockUnitWrap'],
-                    ['purchase_unit',  'purchase_unit',     '#purchaseUnitWrap'],
+                    ['item_type', 'item_type_id'],
+                    ['item_sub_type', 'item_sub_type_id'],
+                    ['item_class', 'item_class_id'],
+                    ['item_sub_class', 'item_sub_class_id'],
+                    ['stock_unit', 'stock_unit'],
+                    ['purchase_unit', 'purchase_unit']
                 ];
 
-                map.forEach(([id, realName, wrapSel]) => {
+                map.forEach(([id, realName]) => {
                     const $sel = $('#' + id);
                     const $hid = $('#' + id + '_hidden');
 
-                    // wrapper: kalau ada, pakai itu. kalau tidak, fallback closest div
-                    const $wrap = wrapSel ? $(wrapSel) : $sel.closest('div');
-
                     if (isEdit) {
                         // 1) simpan value ke hidden
-                        $hid.val($sel.val() || '');
+                        $hid.val($sel.val());
 
                         // 2) hidden input ambil name asli (biar ikut submit)
                         $hid.attr('name', realName);
 
-                        // 3) select dilepas name + dimatikan required (biar tidak divalidasi)
+                        // 3) select dilepas name nya + dimatikan required (biar tidak divalidasi)
                         $sel.removeAttr('name');
                         $sel.prop('required', false);
 
-                        // 4) hide
-                        $wrap.addClass('hidden');
+                        // 4) kalau kamu sembunyikan select, tidak masalah lagi
+                        $sel.closest('div').addClass('hidden');
 
                     } else {
                         // ADD mode: select aktif kembali
                         $sel.attr('name', realName);
                         $sel.prop('required', true);
-
-                        // show
-                        $wrap.removeClass('hidden');
+                        $sel.closest('div').removeClass('hidden');
 
                         // hidden input jangan ikut submit
                         $hid.attr('name', realName + '_hidden');
@@ -407,10 +375,11 @@
                     }
                 });
 
-                // ✅ rules edit: hanya inventory_descr boleh diedit
-                $('#inventoryid').prop('readonly', true);      // tetap readonly
-                $('#inventory_descr').prop('readonly', false); // boleh edit
+                // hanya inventory_descr boleh diedit saat Edit
+                $('#inventory_descr').prop('readonly', false);
             };
+
+
 
 
             // ===== GLOBAL HELPERS =====
@@ -422,10 +391,10 @@
             };
 
             window.ddUrl = {
-                itemTypes: "{{ route('stockjobs.stock-types') }}",
-                subTypes: "{{ route('stockjobs.stock-sub-types') }}",
-                classes: "{{ route('stockjobs.stock-classes') }}",
-                subClasses: "{{ route('stockjobs.stock-sub-classes') }}"
+                itemTypes: "{{ route('itemjobs.item-types') }}",
+                subTypes: "{{ route('itemjobs.item-sub-types') }}",
+                classes: "{{ route('itemjobs.item-classes') }}",
+                subClasses: "{{ route('itemjobs.item-sub-classes') }}"
             };
 
             // ===== PROMISE LOADERS =====
@@ -447,6 +416,7 @@
                     return res;
                 });
             };
+
 
             window.loadSubTypesPromise = function(itemTypeId) {
                 return $.get(window.ddUrl.subTypes, { item_type_id: itemTypeId }).then(function(res){
@@ -711,7 +681,14 @@
                 // =========================
                 // CRUD MODAL helpers
                 // =========================
-         
+                // function openInvModal() {
+                //     $('#inventoryModal').removeClass('hidden').addClass('flex'); 
+                //     // initSelect2InModalSafe();                  
+                // }
+                // function closeInvModal() {
+                //     $('#inventoryModal').addClass('hidden').removeClass('flex');
+                // }
+
                 window.openInvModal = function () {
                     $('#inventoryModal').removeClass('hidden').addClass('flex');
                 };
@@ -800,13 +777,6 @@
                         data: { status: newStatus },
                         success: function () {
                             invTable.ajax.reload(null, false);
-                            Swal.fire({
-                                icon: 'success',
-                                title: 'Berhasil',
-                                text: 'Update Status Sukses',
-                                timer: 1400,
-                                showConfirmButton: false
-                            });
                         },
                         error: function (xhr) {
                             console.error(xhr.responseText);
@@ -832,7 +802,11 @@
                         headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
                         data: formData,
                         processData: false,
-                        contentType: false,                      
+                        contentType: false,
+                        // success: function () {
+                        //     closeInvModal();
+                        //     invTable.ajax.reload(null, false);
+                        // },
                         success: function () {
                             closeInvModal();
                             invTable.ajax.reload(null, false);
@@ -844,7 +818,12 @@
                                 timer: 1400,
                                 showConfirmButton: false
                             });
-                        },                        
+                        },
+
+                        // error: function (xhr) {
+                        //     console.error(xhr.responseText);
+                        //     alert('Gagal menyimpan data inventory');
+                        // }
                         error: function (xhr) {
                             console.error(xhr.responseText);
                             Swal.fire({
@@ -913,12 +892,6 @@
                         success: function () {
                             closePickInvModal();
                             if (jobsTable) jobsTable.ajax.reload(null, false);
-                                Swal.fire({
-                                        icon: 'success',
-                                        title: 'Stock Jobs Sukses',
-                                        timer: 1200,
-                                        showConfirmButton: false
-                                });
                         },
                         error: function (xhr) {
                             console.error(xhr.responseText);
@@ -967,7 +940,11 @@
 
             });
         </script>
-       
+
+        <Script>
+           
+
+        </Script>
         <script>
             $(document).ready(function () {
 
@@ -983,7 +960,7 @@
               
                 // ====== LOAD: Item Type ======
                 function loadItemTypes(defaultValue = null, defaultText = null) {
-                    const url = "{{ route('stockjobs.stock-types') }}";
+                    const url = "{{ route('itemjobs.item-types') }}";
                     console.log('[INV] loadItemTypes() -> GET', url, { defaultValue, defaultText });
 
                     $('#item_type').prop('disabled', false);
@@ -1041,7 +1018,7 @@
 
                     if (!typeId) return;
 
-                    const url = "{{ route('stockjobs.stock-sub-types') }}";
+                    const url = "{{ route('itemjobs.item-sub-types') }}";
                     console.log('[INV] load sub-types -> GET', url, 'params=', { item_type_id: typeId });
 
                     $.ajax({
@@ -1075,7 +1052,7 @@
 
                     if (!subTypeId) return;
 
-                    const url = "{{ route('stockjobs.stock-classes') }}";
+                    const url = "{{ route('itemjobs.item-classes') }}";
                     console.log('[INV] load classes -> GET', url, 'params=', { item_sub_type_id: subTypeId });
 
                     $.ajax({
@@ -1108,7 +1085,7 @@
 
                     if (!classId) return;
 
-                    const url = "{{ route('stockjobs.stock-sub-classes') }}";
+                    const url = "{{ route('itemjobs.item-sub-classes') }}";
                     console.log('[INV] load sub-classes -> GET', url, 'params=', { item_class_id: classId });
 
                     $.ajax({
@@ -1136,7 +1113,8 @@
                 // PASTIKAN loadItemTypes() DIPANGGIL SAAT MODAL DIBUKA
                 // =========================
 
-                // ADD button (punyamu sekarang belum manggil loadItemTypes)        
+                // ADD button (punyamu sekarang belum manggil loadItemTypes)
+        
                 $('#addInventoryBtn').on('click', function () {
                     $('#inventoryModalTitle').text('Add Inventory');
                     $('#inventoryForm')[0].reset();
@@ -1173,7 +1151,7 @@
                 }
 
                 function loadItemTypesPromise() {
-                    return $.get("{{ route('stockjobs.stock-types') }}").then(res => {
+                    return $.get("{{ route('itemjobs.item-types') }}").then(res => {
                         const $type = $('#item_type');
                         $type.prop('disabled', false)
                             .empty()
@@ -1185,7 +1163,7 @@
                 }
 
                 function loadSubTypesPromise(itemTypeId) {
-                    return $.get("{{ route('stockjobs.stock-sub-types') }}", { item_type_id: itemTypeId }).then(res => {
+                    return $.get("{{ route('itemjobs.item-sub-types') }}", { item_type_id: itemTypeId }).then(res => {
                         const $sub = $('#item_sub_type');
                         $sub.prop('disabled', false)
                             .empty()
@@ -1197,7 +1175,7 @@
                 }
 
                 function loadClassesPromise(subTypeId) {
-                    return $.get("{{ route('stockjobs.stock-classes') }}", { item_sub_type_id: subTypeId }).then(res => {
+                    return $.get("{{ route('itemjobs.item-classes') }}", { item_sub_type_id: subTypeId }).then(res => {
                         const $cls = $('#item_class');
                         $cls.prop('disabled', false)
                             .empty()
@@ -1209,7 +1187,7 @@
                 }
 
                 function loadSubClassesPromise(classId) {
-                    return $.get("{{ route('stockjobs.stock-sub-classes') }}", { item_class_id: classId }).then(res => {
+                    return $.get("{{ route('itemjobs.item-sub-classes') }}", { item_class_id: classId }).then(res => {
                         const $subcls = $('#item_sub_class');
                         $subcls.prop('disabled', false)
                             .empty()
@@ -1220,22 +1198,22 @@
                     });
                 }
 
-                // function setEditMode(isEdit) {
-                //     // inventoryid sudah readonly dari awal
-                //     // dropdown dibuat tidak bisa diubah saat edit
-                //     $('#item_type').prop('disabled', isEdit);
-                //     $('#item_sub_type').prop('disabled', isEdit);
-                //     $('#item_class').prop('disabled', isEdit);
-                //     $('#item_sub_class').prop('disabled', isEdit);
+                function setEditMode(isEdit) {
+                    // inventoryid sudah readonly dari awal
+                    // dropdown dibuat tidak bisa diubah saat edit
+                    $('#item_type').prop('disabled', isEdit);
+                    $('#item_sub_type').prop('disabled', isEdit);
+                    $('#item_class').prop('disabled', isEdit);
+                    $('#item_sub_class').prop('disabled', isEdit);
 
-                //     // unit juga tidak bisa diubah saat edit
-                //     $('#stock_unit').prop('disabled', isEdit);
-                //     $('#purchase_unit').prop('disabled', isEdit);
+                    // unit juga tidak bisa diubah saat edit
+                    $('#stock_unit').prop('disabled', isEdit);
+                    $('#purchase_unit').prop('disabled', isEdit);
 
-                //     // yang boleh diubah hanya inventory_descr
-                //     $('#inventory_descr').prop('readonly', !isEdit ? false : false); // tetap bisa edit
-                //     // optional: kalau mau item_category juga tidak dipakai, skip
-                // }
+                    // yang boleh diubah hanya inventory_descr
+                    $('#inventory_descr').prop('readonly', !isEdit ? false : false); // tetap bisa edit
+                    // optional: kalau mau item_category juga tidak dipakai, skip
+                }
 
 
             });

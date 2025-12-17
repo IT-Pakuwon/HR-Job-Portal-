@@ -85,8 +85,8 @@ use App\Http\Controllers\InventoryController;
 use App\Http\Controllers\LocationController;
 use App\Http\Controllers\TopController;
 use App\Http\Controllers\TenantController;
-use App\Http\Controllers\ItemJobsController;
-
+use App\Http\Controllers\StockJobsController;
+use App\Http\Controllers\NonstockJobsController;
 
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Response;
@@ -936,21 +936,50 @@ Route::post('/logout', function () {
     });
 
     Route::middleware('access:STOCKJOBS,VIEW')->group(function () {
-        Route::get('/stockjobs', [ItemJobsController::class, 'index'])->name('stockjobs');
-        Route::get('/stockjobs/json', [ItemJobsController::class, 'json'])->name('stockjobs.json');
-        Route::get('/nonstockjobs', [ItemJobsController::class, 'indexNonStock'])->name('nonstockjobs');
-        Route::get('/nonstockjobs/json', [ItemJobsController::class, 'jsonNonStock'])->name('nonstockjobs.json');
+        Route::get('/stockjobs', [StockJobsController::class, 'index'])->name('stockjobs');
+        Route::get('/stockjobs/json', [StockJobsController::class, 'json'])->name('stockjobs.json');        
+        Route::get('/stockjobs/inventory-pick/json', [StockJobsController::class, 'inventoryPickJson'])->name('stockjobs.inventory-pick.json');
+        Route::get('/stock-types', [StockJobsController::class, 'StockTypes'])->name('stockjobs.stock-types');
+        Route::get('/stock-sub-types', [StockJobsController::class, 'StockSubTypes'])->name('stockjobs.stock-sub-types');
+        Route::get('/stock-classes', [StockJobsController::class, 'StockClasses'])->name('stockjobs.stock-classes');
+        Route::get('/stock-sub-classes', [StockJobsController::class, 'StockSubClasses'])->name('stockjobs.stock-sub-classes');        
+    });
+
+    Route::middleware('access:STOCKJOBS,EDIT')->group(function () {
+        Route::post('/invstock', [StockJobsController::class, 'store'])->name('invstock.store');
+        Route::get('/invstock/{id}/edit', [StockJobsController::class, 'edit'])->name('invstock.edit');
+        Route::put('/invstock/{id}', [StockJobsController::class, 'update'])->name('invstock.update');
+        Route::put('/invstock/{id}/toggle-status', [StockJobsController::class, 'toggleStatus'])->name('invstock.toggle-status');
+        Route::post('/stockjobs/set-inventory', [StockJobsController::class, 'setInventoryToItemRequest'])->name('stockjobs.set-inventory');
+        Route::put('/stockjobs/{eid}/rollback', [StockJobsController::class, 'rollbackInventory'])->name('stockjobs.rollback');
+    });
+
+    Route::middleware('access:NONSTOCKJOBS,VIEW')->group(function () {
+        Route::get('/nonstockjobs', [NonstockJobsController::class, 'index'])->name('nonstockjobs');
+        Route::get('/nonstockjobs/json', [NonstockJobsController::class, 'json'])->name('nonstockjobs.json');        
+        Route::get('/nonstockjobs/inventory-pick/json', [NonstockJobsController::class, 'inventoryPickJson'])->name('nonstockjobs.inventory-pick.json');
+        Route::get('/nonstock-types', [NonstockJobsController::class, 'NonstockTypes'])->name('nonstockjobs.nonstock-types');
+        Route::get('/nonstock-sub-types', [NonstockJobsController::class, 'NonstockSubTypes'])->name('nonstockjobs.nonstock-sub-types');
+        Route::get('/nonstock-classes', [NonstockJobsController::class, 'NonstockClasses'])->name('nonstockjobs.nonstock-classes');
+        Route::get('/nonstock-sub-classes', [NonstockJobsController::class, 'NonstockSubClasses'])->name('nonstockjobs.nonstock-sub-classes');        
+    });
+
+    Route::middleware('access:NONSTOCKJOBS,EDIT')->group(function () {
+        Route::post('/invnonstock', [NonstockJobsController::class, 'store'])->name('invnonstock.store');
+        Route::get('/invnonstock/{id}/edit', [NonstockJobsController::class, 'edit'])->name('invnonstock.edit');
+        Route::put('/invnonstock/{id}', [NonstockJobsController::class, 'update'])->name('invnonstock.update');
+        Route::put('/invnonstock/{id}/toggle-status', [NonstockJobsController::class, 'toggleStatus'])->name('invnonstock.toggle-status');
+        Route::post('/nonstockjobs/set-inventory', [NonstockJobsController::class, 'setInventoryToItemRequest'])->name('nonstockjobs.set-inventory');
+        Route::put('/nonstockjobs/{eid}/rollback', [NonstockJobsController::class, 'rollbackInventory'])->name('nonstockjobs.rollback');
     });
     
-    Route::post('/invstock', [ItemJobsController::class, 'store'])->name('invstock.store');
-    Route::get('/invstock/{id}/edit', [ItemJobsController::class, 'edit'])->name('invstock.edit');
-    Route::put('/invstock/{id}', [ItemJobsController::class, 'update'])->name('invstock.update');
-    Route::put('/invstock/{id}/toggle-status', [ItemJobsController::class, 'toggleStatus'])->name('invstock.toggle-status');
 
-    Route::get('/stockjobs/json', [ItemJobsController::class, 'json'])->name('stockjobs.json');
-    Route::get('/stockjobs/inventory-pick/json', [ItemJobsController::class, 'inventoryPickJson'])->name('stockjobs.inventory-pick.json');
-    Route::post('/stockjobs/set-inventory', [ItemJobsController::class, 'setInventoryToItemRequest'])->name('stockjobs.set-inventory');
-    Route::put('/stockjobs/{eid}/rollback', [ItemJobsController::class, 'rollbackInventory'])->name('stockjobs.rollback');
+    
+
+    
+    
+    
+
 
 
 
