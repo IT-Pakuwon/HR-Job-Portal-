@@ -327,6 +327,8 @@
                                             <th class="w-20 border px-3 py-2 text-center">Qty</th>
                                             <th class="w-20 border px-3 py-2 text-center">UOM</th>
                                             <th class="w-40 border px-3 py-2 text-center">Note</th>
+                                            <th class="w-32 border px-3 py-2 text-center">Last Price</th>
+
                                         </tr>
                                     </thead>
                                     <tbody id="cvBody">
@@ -352,19 +354,71 @@
                                                         class="note-input w-full resize-none rounded-md border border-gray-400 px-2 py-1 shadow-sm focus:ring-2 focus:ring-indigo-400 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200"
                                                         rows="2" autocomplete="off" placeholder="Add note..." aria-label="Note">{{ $row->csnote_detail ?? '' }}</textarea>
                                                 </td>
-
+                                                <td class="border px-3 py-2 text-right font-semibold">
+                                                    {{ number_format((float)($row->last_unitcost ?? 0), 2, ',', '.') }}
+                                                    <button type="button"
+                                                        class="btn-lastprice inline-flex h-7 w-7 items-center justify-center rounded border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
+                                                        title="View Last Price History"
+                                                        data-inventoryid="{{ $row->inventoryid }}"
+                                                        data-inventorydescr="{{ $row->inventory_descr ?? '' }}">
+                                                        🔍
+                                                    </button>
+                                                </td>
                                             </tr>
                                         @endforeach
                                     </tbody>
                                     <tfoot>
                                         <tr id="summaryRow" class="bg-gray-50 dark:bg-gray-700">
-                                            <td colspan="4" class="border px-3 py-2 text-right font-semibold">
+                                            <td colspan="5" class="border px-3 py-2 text-right font-semibold">
                                                 Summary
                                             </td>
                                             {{-- vendor cells via JS --}}
                                         </tr>
                                     </tfoot>
                                 </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="lastPriceModal" class="fixed inset-0 z-[4000] hidden">
+                        <div id="lastPriceModalOverlay" class="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
+
+                        <div class="absolute left-1/2 top-1/2 w-[92vw] max-w-4xl -translate-x-1/2 -translate-y-1/2 rounded-xl bg-white shadow-xl dark:bg-gray-800">
+                            <div class="flex items-center justify-between border-b px-4 py-3 dark:border-gray-700">
+                                <div class="flex flex-col">
+                                    <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-100">Last Price History</h3>
+                                    <div id="lpTitle" class="text-xs text-gray-500 dark:text-gray-300"></div>
+                                </div>
+                                <button id="lastPriceModalClose"
+                                    class="rounded px-2 py-1 text-gray-500 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700">✖</button>
+                            </div>
+
+                            <div class="p-4">
+                                <div id="lpLoading" class="hidden mb-3 text-sm text-gray-600 dark:text-gray-300">
+                                    Loading...
+                                </div>
+
+                                <div class="max-h-[60vh] overflow-auto rounded border border-gray-200 dark:border-gray-700">
+                                    <table class="min-w-full text-sm">
+                                        <thead class="bg-gray-50 dark:bg-gray-700">
+                                            <tr>
+                                                <th class="px-3 py-2 text-left font-semibold">PO Nbr</th>
+                                                <th class="px-3 py-2 text-left font-semibold">PO Date</th>
+                                                <th class="px-3 py-2 text-left font-semibold">CS ID</th>
+                                                <th class="px-3 py-2 text-left font-semibold">Vendor</th>                                               
+                                                <th class="px-3 py-2 text-right font-semibold">Unit Cost</th>
+                                                <th class="px-3 py-2 text-left font-semibold">Purchaser</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="lpBody" class="divide-y divide-gray-100 bg-white dark:divide-gray-700 dark:bg-gray-800">
+                                            <!-- rows by JS -->
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                <div id="lpEmpty" class="hidden mt-3 text-sm text-gray-500 dark:text-gray-300">
+                                    No history found.
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -716,54 +770,54 @@
             data-vendor-phone="${_.escape(v.phone_number ?? '')}"
             data-vendor-cp="${_.escape(v.contact_person ?? '')}"
         >
-            <!-- Vendor Card -->
-    <div class="flex flex-col text-left text-sm">
+                <!-- Vendor Card -->
+                <div class="flex flex-col text-left text-sm">
 
-        <!-- VENDOR NAME + INFO ICON -->
-        <div class="flex items-center gap-1 font-bold text-gray-800 dark:text-gray-100 break-words">
-            <span>${v.vendor_name}</span>
+                    <!-- VENDOR NAME + INFO ICON -->
+                    <div class="flex items-center gap-1 font-bold text-gray-800 dark:text-gray-100 break-words">
+                        <span>${v.vendor_name}</span>
 
-            <!-- INFO ICON -->
-            <div class="relative group inline-block">
-                        <div class="flex h-4 w-4 items-center justify-center 
-                                    rounded-full bg-gray-200 text-gray-700 text-[10px]
-                                    dark:bg-gray-700 dark:text-gray-200 cursor-default">
-                            i
+                        <!-- INFO ICON -->
+                        <div class="relative group inline-block">
+                                    <div class="flex h-4 w-4 items-center justify-center 
+                                                rounded-full bg-gray-200 text-gray-700 text-[10px]
+                                                dark:bg-gray-700 dark:text-gray-200 cursor-default">
+                                        i
+                                    </div>
+
+                            <!-- TOOLTIP -->
+                            <div class="pointer-events-none absolute left-1/2 top-full z-50 mt-2 
+                                        w-64 -translate-x-1/2 rounded-md bg-gray-900 p-3 text-xs 
+                                        text-gray-200 shadow-lg opacity-0 invisible 
+                                        group-hover:opacity-100 group-hover:visible
+                                        transition-opacity duration-200">
+
+                                <div class="font-semibold text-white mb-1">${v.vendor_name}</div>
+
+                                <div class="space-y-1 text-gray-300 leading-4">
+                                    <div>✉️ ${v.contact_person || '-'}</div>
+                                    <div>☎️ ${v.phone_number || '-'}</div>
+                                    <div>🏠 ${v.vendor_addr1 || '-'}</div>
+                                </div>
+
+                                <!-- Arrow -->
+                                <div class="absolute -top-1 left-1/2 h-2 w-2 -translate-x-1/2 rotate-45 bg-gray-900"></div>
+                            </div>
                         </div>
-
-                <!-- TOOLTIP -->
-                <div class="pointer-events-none absolute left-1/2 top-full z-50 mt-2 
-                            w-64 -translate-x-1/2 rounded-md bg-gray-900 p-3 text-xs 
-                            text-gray-200 shadow-lg opacity-0 invisible 
-                            group-hover:opacity-100 group-hover:visible
-                            transition-opacity duration-200">
-
-                    <div class="font-semibold text-white mb-1">${v.vendor_name}</div>
-
-                    <div class="space-y-1 text-gray-300 leading-4">
-                        <div>✉️ ${v.contact_person || '-'}</div>
-                        <div>☎️ ${v.phone_number || '-'}</div>
-                        <div>🏠 ${v.vendor_addr1 || '-'}</div>
                     </div>
 
-                    <!-- Arrow -->
-                    <div class="absolute -top-1 left-1/2 h-2 w-2 -translate-x-1/2 rotate-45 bg-gray-900"></div>
+                    <!-- Payment Term -->
+                    <div class="flex items-center gap-2 mt-2">
+                        <span class="text-xs font-semibold text-gray-600 dark:text-gray-300">Payment Term:</span>
+                        <select name="cara_bayar_${id}" 
+                            class="cara-bayar w-40 rounded-full border border-gray-300 bg-white px-3 py-1 
+                                text-xs font-medium shadow-sm focus:border-indigo-500 focus:ring 
+                                focus:ring-indigo-500/50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200">
+                            ${TOPS_OPTIONS_HTML}
+                        </select>
+                    </div>
+
                 </div>
-            </div>
-        </div>
-
-        <!-- Payment Term -->
-        <div class="flex items-center gap-2 mt-2">
-            <span class="text-xs font-semibold text-gray-600 dark:text-gray-300">Payment Term:</span>
-            <select name="cara_bayar_${id}" 
-                class="cara-bayar w-40 rounded-full border border-gray-300 bg-white px-3 py-1 
-                       text-xs font-medium shadow-sm focus:border-indigo-500 focus:ring 
-                       focus:ring-indigo-500/50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200">
-                ${TOPS_OPTIONS_HTML}
-            </select>
-        </div>
-
-    </div>
 
                         <!-- Delete Button -->
                 <button type="button"
@@ -1785,6 +1839,81 @@
             if ($(this).val()) $(this).removeClass('is-invalid');
         });
     </script>
+
+    <script>
+        function formatNumID(n){
+            n = Number(n || 0);
+            return n.toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+
+        function openLastPriceModal() {
+            $('#lastPriceModal').removeClass('hidden');
+        }
+        function closeLastPriceModal() {
+            $('#lastPriceModal').addClass('hidden');
+            $('#lpBody').empty();
+            $('#lpEmpty').addClass('hidden');
+            $('#lpLoading').addClass('hidden');
+            $('#lpTitle').text('');
+        }
+
+        $('#lastPriceModalClose, #lastPriceModalOverlay').on('click', closeLastPriceModal);
+        $(document).on('keydown', function(e){
+            if(e.key === 'Escape') closeLastPriceModal();
+        });
+
+        $(document).on('click', '.btn-lastprice', function(){
+            const inventoryid = String($(this).data('inventoryid') || '');
+            const inventorydescr = String($(this).data('inventorydescr') || '');
+
+            if(!inventoryid){
+                toastr.error('Inventory ID kosong.');
+                return;
+            }
+
+            $('#lpTitle').text(inventoryid + (inventorydescr ? (' — ' + inventorydescr) : ''));
+            $('#lpBody').empty();
+            $('#lpEmpty').addClass('hidden');
+            $('#lpLoading').removeClass('hidden');
+
+            openLastPriceModal();
+
+            $.ajax({
+                url: "{{ route('cs.lastprice.history') }}",
+                method: "GET",
+                data: { inventoryid },
+                success: function(res){
+                    $('#lpLoading').addClass('hidden');
+
+                    const rows = (res && res.data) ? res.data : [];
+                    if(!rows.length){
+                        $('#lpEmpty').removeClass('hidden');
+                        return;
+                    }
+
+                    rows.forEach(r => {
+                        const tr = `
+                            <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
+                                <td class="px-3 py-2">${r.ponbr ?? ''}</td>
+                                <td class="px-3 py-2">${r.podate ?? ''}</td>
+                                <td class="px-3 py-2">${r.csid ?? ''}</td>
+                                <td class="px-3 py-2">${r.vendorname ?? ''}</td>                                
+                                <td class="px-3 py-2 text-right font-semibold">${formatNumID(r.unitcost)}</td>
+                                <td class="px-3 py-2">${r.purchaser ?? ''}</td>
+                            </tr>
+                        `;
+                        $('#lpBody').append(tr);
+                    });
+                },
+                error: function(xhr){
+                    $('#lpLoading').addClass('hidden');
+                    const msg = (xhr.responseJSON && xhr.responseJSON.message) ? xhr.responseJSON.message : 'Gagal ambil history.';
+                    toastr.error(msg);
+                }
+            });
+        });
+    </script>
+
 
 
 

@@ -476,7 +476,7 @@
                 processing: true,
                 serverSide: true,
                 deferRender: true,
-                pageLength: 25,
+                pageLength: 10,
                 lengthMenu: [10, 25, 50, 100, 250],
                 order: [
                     [2, 'desc'],

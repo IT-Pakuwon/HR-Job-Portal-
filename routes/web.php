@@ -672,6 +672,8 @@ Route::post('/logout', function () {
         Route::get('/pdf_cs/{hash}', [CanvassController::class, 'printCS']);
         Route::get('/showcs/{hash}', [CanvassController::class, 'showCS']);     
         Route::get('/showbqcs/{hash}', [BQCSController::class, 'showBQCS'])->name('bqcs.show');
+        Route::get('/cs/lastprice/history', [CanvassController::class, 'getLastPriceHistory'])->name('cs.lastprice.history');
+
     });
 
     Route::middleware('access:POLIST,VIEW')->group(function () {

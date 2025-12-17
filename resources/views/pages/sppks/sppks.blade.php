@@ -683,7 +683,7 @@
                         // scrollY: '60vh',
                         // scroller: true,
 
-                        pageLength: 25,
+                        pageLength: 10,
                         lengthMenu: [10, 25, 50, 100, 250],
 
                         ajax: {

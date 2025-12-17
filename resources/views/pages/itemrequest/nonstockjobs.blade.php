@@ -239,11 +239,21 @@
                         </div>
 
                         {{-- 6) item_category (input) --}}
-                        {{-- <div class="md:col-span-2">
+                        <div class="md:col-span-2">
                             <label class="block text-gray-700 dark:text-white">Item Category</label>
-                            <input type="text" id="item_category" name="item_category"
-                                class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700">
-                        </div> --}}
+                            <select id="item_category" name="item_category" class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700" required>
+                                <option value="">Select Option</option>
+                                <option value="Communication">Communication</option>
+                                <option value="Electrical">Electrical</option>
+                                <option value="Furniture">Furniture</option>
+                                <option value="Jasa">Jasa</option>
+                                <option value="Komputer">Komputer</option>  
+                                <option value="Kontrak">Kontrak</option>
+                                <option value="Non Stock">Non Stock</option>
+                                <option value="Off Equipment">Off Equipment</option>
+                                <option value="Vehicle">Vehicle</option>
+                            </select>                            
+                        </div>
 
                         {{-- 7) stock_unit --}}
                         {{-- <div>
@@ -409,6 +419,7 @@
                 // ✅ rules edit: hanya inventory_descr boleh diedit
                 $('#inventoryid').prop('readonly', true);      // tetap readonly
                 $('#inventory_descr').prop('readonly', false); // boleh edit
+                $('#item_category').prop('disabled', false);
             };
 
             // ===== GLOBAL HELPERS =====
@@ -517,7 +528,7 @@
                     processing: true,
                     serverSide: true,
                     deferRender: true,
-                    pageLength: 25,
+                    pageLength: 10,
                     lengthMenu: [10, 25, 50, 100, 250],
                     ajax: {
                         url: "{{ route('nonstockjobs.json') }}",
@@ -602,7 +613,7 @@
                     processing: true,
                     serverSide: true,
                     deferRender: true,
-                    pageLength: 25,
+                    pageLength: 10,
                     lengthMenu: [10, 25, 50, 100, 250],
                     ajax: {
                         url: "{{ route('nonstockjobs.json') }}",
@@ -767,6 +778,7 @@
 
                         // ✅ hanya ini yang editable
                         $('#inventory_descr').val(i.inventory_descr);
+                        $('#item_category').val(i.item_category || '').trigger('change');
 
                         // tampilkan value dropdown sebagai “display only”
                         // karena disabled, kita harus pastikan option ada
@@ -787,6 +799,7 @@
                         // unit tampil
                         setSelectDisplay($('#stock_unit'), i.stock_unit ?? '-');
                         setSelectDisplay($('#purchase_unit'), i.purchase_unit ?? '-');
+                        
 
                         window.openInvModal();
 

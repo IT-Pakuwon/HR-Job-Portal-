@@ -609,7 +609,7 @@
                 processing: true,
                 serverSide: true,
                 deferRender: true,
-                pageLength: 25,
+                pageLength: 10,
                 lengthMenu: [10, 25, 50, 100, 250],
                 ajax: {
                     url: "{{ route('csjobs.mine.json') }}",
@@ -633,7 +633,7 @@
                 processing: true,
                 serverSide: true,
                 deferRender: true,
-                pageLength: 25,
+                pageLength: 10,
                 lengthMenu: [10, 25, 50, 100, 250],
                 ajax: {
                     url: "{{ route('csjobs.all.json') }}",
@@ -657,7 +657,7 @@
                 processing: true,
                 serverSide: true,
                 deferRender: true,
-                pageLength: 25,
+                pageLength: 10,
                 lengthMenu: [10, 25, 50, 100, 250],
                 ajax: {
                     url: "{{ route('csjobs.revision.json') }}",
@@ -680,7 +680,7 @@
                 processing: true,
                 serverSide: true,
                 deferRender: true,
-                pageLength: 25,
+                pageLength: 10,
                 lengthMenu: [10, 25, 50, 100, 250],
                 ajax: {
                     url: "{{ route('csjobs.sppbjkt.progress.json') }}",
@@ -704,7 +704,7 @@
                 processing: true,
                 serverSide: true,
                 deferRender: true,
-                pageLength: 25,
+                pageLength: 10,
                 lengthMenu: [10, 25, 50, 100, 250],
                 ajax: {
                     url: "{{ route('csjobs.entry.json') }}",

@@ -98,13 +98,15 @@ class NonstockJobsController extends Controller
 
         if ($search !== '') {
             $q->where(function ($qq) use ($search) {
+                // $qq->where('inventoryid', 'ilike', "%{$search}%")
+                //     ->orWhere('inventory_descr', 'ilike', "%{$search}%")
+                //     ->orWhere('item_sub_type', 'ilike', "%{$search}%")
+                //     ->orWhere('item_class', 'ilike', "%{$search}%")
+                //     ->orWhere('item_sub_class', 'ilike', "%{$search}%")
+                //     ->orWhere('stock_unit', 'ilike', "%{$search}%")
+                //     ->orWhere('status', 'ilike', "%{$search}%");
                 $qq->where('inventoryid', 'ilike', "%{$search}%")
-                    ->orWhere('inventory_descr', 'ilike', "%{$search}%")
-                    ->orWhere('item_sub_type', 'ilike', "%{$search}%")
-                    ->orWhere('item_class', 'ilike', "%{$search}%")
-                    ->orWhere('item_sub_class', 'ilike', "%{$search}%")
-                    ->orWhere('stock_unit', 'ilike', "%{$search}%")
-                    ->orWhere('status', 'ilike', "%{$search}%");
+                    ->orWhere('inventory_descr', 'ilike', "%{$search}%");
             });
         }
 
@@ -444,7 +446,7 @@ class NonstockJobsController extends Controller
             // 'item_class_id'     => ['required','string','max:50'],
             // 'item_sub_class_id' => ['required','string','max:50'],
 
-            // 'item_category'     => ['nullable','string','max:100'],
+            'item_category'     => ['nullable','string','max:100'],
             // 'stock_unit'        => ['required','string','max:50'],
             // 'purchase_unit'     => ['required','string','max:50'],
         ]);
@@ -519,7 +521,7 @@ class NonstockJobsController extends Controller
                 // 'item_class'      => $classCode,
                 // 'item_sub_class'  => $subClsCode,
 
-                // 'item_category'   => $request->item_category,
+                'item_category'   => $request->item_category,
                 // 'stock_unit'      => strtoupper(trim($request->stock_unit)),
                 // 'purchase_unit'   => strtoupper(trim($request->purchase_unit)),
 

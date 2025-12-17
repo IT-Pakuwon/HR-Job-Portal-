@@ -57,6 +57,7 @@ use App\Models\TrBQCS;
 use App\Models\TrBQCSDetail;
 use App\Models\MsTop;
 use App\Models\TrPOReuse;
+use App\Models\TrPoLastPrice;
 
 
 class CanvassController extends Controller
@@ -241,6 +242,41 @@ class CanvassController extends Controller
         // Map detail (logika kamu sendiri)
         $items = $this->mapRemainingLines($detail);
 
+        
+        // ambil inventoryid yang ada di items
+        $invIds = collect($items)
+            ->pluck('inventoryid')
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
+
+        // map: inventoryid => latest unitcost
+        $lastUnitcostMap = [];
+
+        if (!empty($invIds)) {
+            $rows = TrPoLastPrice::query()
+                ->select('inventoryid', 'unitcost', 'podate', 'created_at') // unitcost wajib, lainnya hanya untuk orderBy
+                ->whereIn('inventoryid', $invIds)
+                ->whereNull('deleted_at')
+                ->orderByDesc('podate')       // terbaru
+                ->orderByDesc('created_at')   // tie breaker
+                ->get();
+
+            // ambil baris pertama (latest) untuk tiap inventoryid
+            $lastUnitcostMap = $rows
+                ->groupBy('inventoryid')
+                ->map(fn($g) => (float)($g->first()->unitcost ?? 0))
+                ->toArray();
+        }
+
+        // inject ke tiap item (biar gampang dipakai di blade)
+        $items = collect($items)->map(function ($it) use ($lastUnitcostMap) {
+            $invId = $it->inventoryid ?? null;
+            $it->last_unitcost = $invId ? ($lastUnitcostMap[$invId] ?? 0) : 0;
+            return $it;
+        });
+
         $tops = MsTop::where('status','A')
             ->where('top_type',$top_type) 
             ->orderByRaw('COALESCE(top_days, 9999), top_name') 
@@ -256,6 +292,8 @@ class CanvassController extends Controller
             'tops'       => $tops,
             'poHeader'   => $poHeader ?? null,
             'prefix2'    => $prefix2 ?? null,
+            'items'      => $items,
+
         ]);
     }
 
@@ -2547,6 +2585,37 @@ class CanvassController extends Controller
         ->orderBy('cs_no')
         ->get();
 
+        // ===== Last Price Map (inventoryid => latest unitcost) =====
+        $invIds = $csdetail->pluck('inventoryid')
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
+
+        $lastUnitcostMap = [];
+
+        if (!empty($invIds)) {
+            $rowsLast = TrPoLastPrice::query()
+                ->select('inventoryid', 'unitcost', 'podate', 'created_at')
+                ->whereIn('inventoryid', $invIds)
+                ->whereNull('deleted_at')
+                ->orderByDesc('podate')        // terbaru
+                ->orderByDesc('created_at')    // tie breaker
+                ->get();
+
+            $lastUnitcostMap = $rowsLast
+                ->groupBy('inventoryid')
+                ->map(fn($g) => (float)($g->first()->unitcost ?? 0))
+                ->toArray();
+        }
+
+        // inject ke tiap csdetail (biar blade gampang)
+        $csdetail = $csdetail->map(function($d) use ($lastUnitcostMap) {
+            $invId = $d->inventoryid ?? null;
+            $d->last_unitcost = $invId ? ($lastUnitcostMap[$invId] ?? 0) : 0;
+            return $d;
+        });
+
 
         $approval = T_approval::where('docid', $cs->csid)
             ->where('status','<>','X')
@@ -4263,6 +4332,44 @@ class CanvassController extends Controller
         }
 
         $srcHeader->save();
+    }
+
+    public function getLastPriceHistory(Request $request)
+    {
+        $user = Auth::user();
+        if (!$user) {
+            return response()->json(['ok' => false, 'message' => 'Unauthorized'], 401);
+        }
+
+        $inventoryid = $request->query('inventoryid');
+        if (!$inventoryid) {
+            return response()->json(['ok' => false, 'message' => 'inventoryid is required'], 422);
+        }
+
+        $rows = TrPoLastPrice::query()
+            ->select(['ponbr','podate','vendorname','inventory_descr','unitcost','csid','purchaser'])
+            ->where('inventoryid', $inventoryid)
+            ->whereNull('deleted_at')
+            ->orderByDesc('podate')
+            ->orderByDesc('created_at')
+            ->limit(100)
+            ->get()
+            ->map(function($r){
+                return [
+                    'ponbr'          => $r->ponbr,
+                    'podate'         => $r->podate ? \Carbon\Carbon::parse($r->podate)->format('d/m/Y') : null,
+                    'csid'           => $r->csid,
+                    'vendorname'     => $r->vendorname,
+                    'inventory_descr'=> $r->inventory_descr,
+                    'unitcost'       => (float)($r->unitcost ?? 0),
+                    'purchaser'      => $r->purchaser,
+                ];
+            });
+
+        return response()->json([
+            'ok' => true,
+            'data' => $rows,
+        ]);
     }
 
 }

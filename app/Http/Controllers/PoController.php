@@ -34,6 +34,8 @@ use App\Models\TrPOterm;
 use App\Models\TrRfca;
 use App\Models\TrPOReuse;
 use App\Models\Bq;
+use App\Models\TrPoLastPrice;
+use App\Models\MsInventory;
 
 
 class PoController extends Controller
@@ -236,12 +238,17 @@ class PoController extends Controller
             if ($detailCount <= 0) {
                 throw new \Exception("PO Detail kosong. Tidak bisa proses budget untuk PO {$po->ponbr}");
             }
-
+            
             // 2. Used budget via SP (Submit)
-            DB::connection('pgsql')->statement(
-                'CALL public.sp_process_budget(?, ?, ?, ?)',
-                ['PO', $po->ponbr, 'Submit', Auth::user()->username]
-            );
+            // DB::connection('pgsql')->statement(
+            //     'CALL public.sp_process_budget(?, ?, ?, ?)',
+            //     ['PO', $po->ponbr, 'Submit', Auth::user()->username]
+            // );
+
+            // ✅ INSERT/UPDATE last price
+            if ($po->potype == 'PO'){    
+                $this->insertPoLastPrice($po);
+            }
 
             // 3. Sync term dari TOP
             $this->syncPoTermsFromTop($po);
@@ -252,6 +259,8 @@ class PoController extends Controller
             // 5. Update status ke Purchase Order
             $po->status = 'P';
             $po->save();
+
+           
     
 
         });
@@ -1329,6 +1338,66 @@ class PoController extends Controller
                 'created_by'              => $username,
                 'created_at'              => now(),
             ]);
+        }
+    }
+
+    private function insertPoLastPrice(TrPO $po): void
+    {
+        $username = Auth::user()->username ?? 'system';
+        $now = Carbon::now();
+
+        $details = TrPODetail::where('ponbr', $po->ponbr)->get();
+
+        foreach ($details as $d) {
+            // optional: ambil info inventory untuk type/subtype/category
+            $inv = null;
+            if (!empty($d->inventoryid)) {
+                $inv = MsInventory::query()
+                    ->where('inventoryid', $d->inventoryid)
+                    ->first();
+            }
+
+            // Kalau kamu mau “last price” per vendor+inventory, biasanya lebih aman pakai updateOrCreate
+            // key bisa kamu sesuaikan (ini contoh)
+            TrPoLastPrice::updateOrCreate(
+                [
+                    'cpny_id'     => $po->cpny_id,
+                    'vendorid'    => $po->vendorid,
+                    'inventoryid' => $d->inventoryid,
+                ],
+                [
+                    'ponbr'              => $po->ponbr,
+                    'podate'             => $po->podate ?? $po->submitdate ?? $now, // sesuaikan field tanggal PO kamu
+                    'csid'               => $po->csid ?? null,
+                    'sppbjktid'          => $po->sppbjktid ?? null,
+
+                    'vendorname'         => $po->vendorname ?? null,
+
+                    'inventory_type'     => $inv->inventory_type ?? ($d->inventory_type ?? null),
+                    'inventory_sub_type' => $inv->item_sub_type ?? ($d->inventory_sub_type ?? null),
+                    'inventory_category' => $inv->item_category ?? ($d->inventory_category ?? null),
+
+                    'inventory_descr'    => $d->inventory_descr ?? ($inv->inventory_descr ?? null),
+
+                    'qty'                => $d->qty ?? 0,
+                    'uom'                => $d->uom ?? null,
+                    'siteid'             => $d->siteid ?? null,
+
+                    'unitcost'           => $d->unitcost ?? 0,
+                    'taxcodeid'          => $d->taxcodeid ?? null,
+                    'taxamt'             => $d->taxamt ?? 0,
+                    'totalcost'          => $d->totalcost ?? (($d->qty ?? 0) * ($d->unitcost ?? 0) + ($d->taxamt ?? 0)),
+
+                    'status'             => 'A',
+                    'purchaser'          => $username,
+                    'updated_by'         => $username,
+                    'updated_at'         => $now,
+
+                    // kalau record baru, fill created
+                    'created_by'         => $username,
+                    'created_at'         => $now,
+                ]
+            );
         }
     }
 
