@@ -397,6 +397,7 @@
                                 <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Vendor</th>
                                 <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Delivery Date</th>
                                 <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Created By</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Status</th>
                             `;
                         }
                         if (sc === 'returnjobs') {
@@ -408,6 +409,7 @@
                             <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">SPPB/J/K/T</th>
                             <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Company</th>
                             <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Created By</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Status</th>
                             `;
                         }
                         // TrReceipt scopes (tanpa kolom "+")
@@ -419,6 +421,7 @@
                             <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">SPPB/J/K/T</th>
                             <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Company</th>
                             <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Created By</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Status</th>
                         `;
                     }
 
@@ -456,6 +459,14 @@
                                 {
                                     data: 'created_by'
                                 },
+                                {
+                                    data: 'status',
+                                    orderable: false,
+                                    searchable: false,
+                                    render: (_v, _t, row) => renderStatusBadge(row),
+                                    className: 'text-left'
+                                },
+
                             ];
                         }
                         if (sc === 'returnjobs') {
@@ -489,6 +500,13 @@
                                 {
                                     data: 'created_by'
                                 },
+                                {
+                                    data: 'status',
+                                    orderable: false,
+                                    searchable: false,
+                                    render: (_v, _t, row) => renderStatusBadge(row),
+                                    className: 'text-left'
+                                },
                             ];
                         }
                         // TrReceipt scopes: tanpa kolom "+"
@@ -520,6 +538,13 @@
                             },
                             {
                                 data: 'created_by'
+                            },
+                            {
+                                data: 'status',
+                                orderable: false,
+                                searchable: false,
+                                render: (_v, _t, row) => renderStatusBadge(row),
+                                className: 'text-left'
                             },
                         ];
                     }
@@ -648,6 +673,18 @@
                         const url = `/showreceipt/${encodeURIComponent(hash)}`;
                         return `<a href="${url}" class="inline-flex items-center justify-center px-3 py-1.5 text-sm font-semibold rounded bg-gray-600 text-white hover:bg-gray-700">${label}</a>`;
                     }
+
+                    function renderStatusBadge(row) {
+                        const label = row.status_label ?? row.status ?? 'Unknown';
+                        const cls = row.status_class ?? 'bg-gray-100 text-gray-700 border-gray-200';
+
+                        return `
+                        <span class="inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold ${cls}">
+                            ${label}
+                        </span>
+                        `;
+                    }
+
 
                     // init awal
                     updateTitle(scope);

@@ -652,7 +652,7 @@
     <script>
         $(document).ready(function() {
             const receiptnbr = "{{ $rcp->receiptnbr }}";
-            const doctype = "PR";
+            const doctype = "GR";
 
             loadComments(receiptnbr, doctype);
 
@@ -1164,6 +1164,55 @@
             return `<span class="${statusClass} inline-block rounded-full px-3 py-1 text-xs font-semibold">${statusText}</span>`;
         }
     </script>
+
+    <script>
+        $(document).on("click", "#approveBtn", async function() {
+            const receiptnbr = "{{ $rcp->receiptnbr }}";
+
+            try {
+                const res = await fetch(`/receipt/${receiptnbr}/validate-approve`, {
+                    method: 'GET',
+                    headers: { 'Accept': 'application/json' }
+                });
+                const data = await res.json();
+
+                // jika tidak ok → tampilkan swal dan STOP
+                if (!data.ok) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Tidak bisa Approve',
+                        text: data.message || 'Validasi gagal.',
+                        confirmButtonText: 'OK'
+                    });
+                    return;
+                }
+
+                // kalau ok → confirm dulu (optional)
+                const confirm = await Swal.fire({
+                    icon: 'question',
+                    title: 'Approve Receipt?',
+                    text: 'Yakin mau approve receipt ini?',
+                    showCancelButton: true,
+                    confirmButtonText: 'Yes, Approve',
+                    cancelButtonText: 'Cancel'
+                });
+
+                if (!confirm.isConfirmed) return;
+
+                // lanjut approve (function kamu existing)
+                approveReceipt(receiptnbr);
+
+            } catch (e) {
+                console.error(e);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Gagal cek validasi approve.'
+                });
+            }
+        });
+        </script>
+
 
 
 

@@ -69,7 +69,7 @@ class PoListController extends Controller
             ->where($filterCreator)
             ->count();
 
-        $reuse = TrPO::where('status', 'R')
+        $reuse = TrPO::where('status', 'D')
             ->where($filterCompany)
             ->where($filterCreator)
             ->count();
@@ -137,7 +137,7 @@ class PoListController extends Controller
                 break;
 
             case 'reuse':
-                $base->where('status', 'R')->where($applyCreatorFilter);
+                $base->where('status', 'D')->where($applyCreatorFilter);
                 break;
 
             case 'all':
@@ -174,6 +174,7 @@ class PoListController extends Controller
             6 => "$poTable.taxamt",
             7 => "$poTable.grandtotalamt",
             8 => "$poTable.created_by",
+            9 => "$poTable.status",
         ];
 
         $orderIdx = (int) $req->input('order.0.column', 1);
@@ -216,9 +217,48 @@ class PoListController extends Controller
 
         $rows->transform(function ($r) {
             $r->eid = Hashids::encode($r->id);
+
+            $st = strtoupper((string)($r->status ?? ''));
+
+            // default
+            $statusText  = $st !== '' ? $st : 'Unknown';
+            $statusClass = 'bg-gray-100 text-gray-700 border-gray-200';
+
+            // mapping status PO: H/P/O/C/X/R
+            switch ($st) {
+                case 'H':
+                    $statusText  = 'Hold';
+                    $statusClass = 'bg-blue-100 text-blue-700 border-blue-200';
+                    break;
+                case 'P':
+                    $statusText  = 'Purchase';
+                    $statusClass = 'bg-indigo-100 text-indigo-700 border-indigo-200';
+                    break;
+                case 'O':
+                    $statusText  = 'Partial';
+                    $statusClass = 'bg-amber-100 text-amber-700 border-amber-200';
+                    break;
+                case 'C':
+                    $statusText  = 'Completed';
+                    $statusClass = 'bg-emerald-100 text-emerald-700 border-emerald-200';
+                    break;
+                case 'X':
+                    $statusText  = 'Canceled';
+                    $statusClass = 'bg-red-100 text-red-700 border-red-200';
+                    break;
+                case 'D':
+                    $statusText  = 'Reuse';
+                    $statusClass = 'bg-gray-200 text-gray-700 border-gray-300';
+                    break;
+            }
+
+            $r->status_label = $statusText;
+            $r->status_class = $statusClass;
+
             unset($r->id);
             return $r;
         });
+
 
         return response()->json([
             'draw'            => $draw,

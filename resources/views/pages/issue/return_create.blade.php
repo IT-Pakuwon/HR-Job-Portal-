@@ -9,240 +9,318 @@
         @keyframes spin{to{transform:rotate(360deg)}}@keyframes spinReverse{to{transform:rotate(-360deg)}}
     </style>
 
-    <div class="max-w-9xl mx-auto w-full px-4 py-4 sm:px-6 lg:px-8">
-        <div class="grid grid-cols-1 gap-8 lg:grid-cols-2 lg:grid-rows-[minmax(0,auto)_1fr]">
-            <div class="flex flex-col gap-8 lg:col-span-2 lg:row-span-1">
-                <form id="returnForm" class="flex flex-col gap-4" enctype="multipart/form-data" method="POST" action="{{ route('receipt.return.store') }}">
-                    @csrf
 
-                    {{-- hidden refs --}}
-                    <input type="hidden" name="rcp" value="{{ $eid }}">
-                    <input type="hidden" name="ref_receiptnbr" value="{{ $rcp->receiptnbr }}">
+        {{-- ===== error + overlay styles ===== --}}
 
-                    {{-- ===== Header ===== --}}
-                    <div class="w-full rounded-xl bg-white p-6 shadow-md dark:bg-gray-800">
-                        <div class="mb-6 border-b border-gray-200 pb-4 dark:border-gray-700">
-                            <h2 class="text-xl font-extrabold text-gray-800 dark:text-white">Create Return</h2>
+        <div class="max-w-9xl mx-auto w-full px-4 py-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 gap-8 lg:grid-cols-2 lg:grid-rows-[minmax(0,auto)_1fr]">
+                <div class="flex flex-col gap-8 lg:col-span-2 lg:row-span-1">
+                    <form id="returnForm" class="flex flex-col gap-4" enctype="multipart/form-data"
+                        method="POST" action="{{ route('issue.return.store') }}">
+                        @csrf
+
+                        {{-- hidden refs --}}
+                        <input type="hidden" name="iss" value="{{ $eid }}">
+                        <input type="hidden" name="ref_issuenbr" value="{{ $ref_issuenbr }}">
+
+                        {{-- ===== Header ===== --}}
+                        <div class="w-full rounded-xl bg-white p-6 shadow-md dark:bg-gray-800">
+                            <div class="mb-6 border-b border-gray-200 pb-4 dark:border-gray-700">
+                                <h2 class="text-xl font-extrabold text-gray-800 dark:text-white">Create Return (Issue)</h2>
+                            </div>
+
+                            <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
+                                <div class="flex flex-col gap-2">
+                                    <label class="block text-sm font-medium text-gray-600 dark:text-gray-300">Issue Nbr (Ref)</label>
+                                    <input type="text" value="{{ $iss->issueid }}" readonly
+                                        class="mt-1 w-full rounded-lg border border-gray-300 bg-gray-50 p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
+                                </div>
+
+                                <div class="flex flex-col gap-2">
+                                    <label class="block text-sm font-medium text-gray-600 dark:text-gray-300">Issue Date</label>
+                                    <input type="text" value="{{ $iss->issuedate ? \Carbon\Carbon::parse($iss->issuedate)->format('Y-m-d') : '-' }}" readonly
+                                        class="mt-1 w-full rounded-lg border border-gray-300 bg-gray-50 p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
+                                </div>
+
+                                <div class="flex flex-col gap-2">
+                                    <label class="block text-sm font-medium text-gray-600 dark:text-gray-300">Issue Type</label>
+                                    <input type="text" value="{{ $iss->issuetype ?? '-' }}" readonly
+                                        class="mt-1 w-full rounded-lg border border-gray-300 bg-gray-50 p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
+                                </div>
+
+                                <div class="flex flex-col gap-2">
+                                    <label class="block text-sm font-medium text-gray-600 dark:text-gray-300">SPB ID</label>
+                                    <input type="text" value="{{ $iss->spbid ?? '-' }}" readonly
+                                        class="mt-1 w-full rounded-lg border border-gray-300 bg-gray-50 p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
+                                </div>
+                            </div>
+
+                            <div class="mt-4 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+                                <div class="flex flex-col gap-2">
+                                    <label class="block text-sm font-medium text-gray-600 dark:text-gray-300">Company</label>
+                                    <input type="text" value="{{ $iss->cpny_id ?? '-' }}" readonly
+                                        class="mt-1 w-full rounded-lg border border-gray-300 bg-gray-50 p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
+                                </div>
+
+                                <div class="flex flex-col gap-2">
+                                    <label class="block text-sm font-medium text-gray-600 dark:text-gray-300">Department</label>
+                                    <input type="text" value="{{ $iss->department_id ?? '-' }}" readonly
+                                        class="mt-1 w-full rounded-lg border border-gray-300 bg-gray-50 p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
+                                </div>
+
+                                <div class="flex flex-col gap-2">
+                                    <label class="block text-sm font-medium text-gray-600 dark:text-gray-300">Requested By</label>
+                                    <input type="text" value="{{ $iss->user_peminta ?? '-' }}" readonly
+                                        class="mt-1 w-full rounded-lg border border-gray-300 bg-gray-50 p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
+                                </div>
+                            </div>
                         </div>
 
-                        <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
-                            <div class="flex flex-col gap-2">
-                                <label class="block text-sm font-medium text-gray-600 dark:text-gray-300">Receipt Nbr (Ref)</label>
-                                <input type="text" value="{{ $rcp->receiptnbr }}" readonly
-                                       class="mt-1 w-full rounded-lg border border-gray-300 bg-gray-50 p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
-                            </div>
-                            <div class="flex flex-col gap-2">
-                                <label class="block text-sm font-medium text-gray-600 dark:text-gray-300">Receipt Date</label>
-                                <input type="text" value="{{ \Carbon\Carbon::parse($rcp->receiptdate)->format('Y-m-d') }}" readonly
-                                       class="mt-1 w-full rounded-lg border border-gray-300 bg-gray-50 p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
-                            </div>
-                            <div class="flex flex-col gap-2">
-                                <label class="block text-sm font-medium text-gray-600 dark:text-gray-300">PO Nbr</label>
-                                <input type="text" value="{{ $rcp->ponbr }}" readonly
-                                       class="mt-1 w-full rounded-lg border border-gray-300 bg-gray-50 p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
-                            </div>
-                            <div class="flex flex-col gap-2">
-                                <label class="block text-sm font-medium text-gray-600 dark:text-gray-300">SPPB/J/K/T</label>
-                                <input type="text" value="{{ $rcp->sppbjktid }}" readonly
-                                       class="mt-1 w-full rounded-lg border border-gray-300 bg-gray-50 p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
+                        {{-- ===== Detail ===== --}}
+                        <div class="flex w-full flex-col gap-2 rounded-2xl border-b bg-white dark:bg-gray-800">
+                            <div class="flex w-full flex-col rounded-2xl p-4">
+                                <details class="group" open>
+                                    <summary class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-xl font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
+                                        <span>Return Detail</span>
+                                        <span class="text-sm font-medium text-gray-500 transition-all group-open:hidden">See details →</span>
+                                        <span class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline">Hide details ↓</span>
+                                    </summary>
+
+                                    <div class="mt-6 overflow-x-auto">
+                                        <table class="min-w-full divide-y divide-gray-200 text-sm dark:divide-gray-700">
+                                            <thead class="bg-gray-50 dark:bg-gray-700">
+                                                <tr>
+                                                    <th class="px-4 py-2 text-left font-semibold text-gray-600 dark:text-gray-300">Inv ID</th>
+                                                    <th class="px-4 py-2 text-left font-semibold text-gray-600 dark:text-gray-300">Description</th>
+                                                    <th class="px-4 py-2 text-left font-semibold text-gray-600 dark:text-gray-300">Site</th>
+                                                    <th class="px-4 py-2 text-left font-semibold text-gray-600 dark:text-gray-300">Location</th>
+                                                    <th class="px-4 py-2 text-right font-semibold text-gray-600 dark:text-gray-300">Qty Sisa Return</th>
+                                                    <th class="px-4 py-2 text-center font-semibold text-gray-600 dark:text-gray-300">UoM</th>
+                                                    <th class="px-4 py-2 text-right font-semibold text-gray-600 dark:text-gray-300">Qty Return</th>
+                                                </tr>
+                                            </thead>
+
+                                            <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+                                                @forelse($details as $d)
+                                                    <tr>
+                                                        <td class="px-4 py-2 whitespace-nowrap">{{ $d->inventoryid }}</td>
+                                                        <td class="px-4 py-2">{{ $d->inventory_descr }}</td>
+                                                        <td class="px-4 py-2 whitespace-nowrap">{{ $d->siteid ?? '-' }}</td>
+                                                        <td class="px-4 py-2 whitespace-nowrap">
+                                                            {{ $d->location_id ?? '-' }}
+                                                            @if(!empty($d->sub_location_id))
+                                                                <span class="text-gray-400">/</span>{{ $d->sub_location_id }}
+                                                            @endif
+                                                        </td>
+
+                                                        {{-- controller sudah set $d->qty = qty_sisa_return --}}
+                                                        <td class="px-4 py-2 text-right">
+                                                            {{ number_format((float)($d->qty ?? 0), 2, '.', ',') }}
+                                                        </td>
+
+                                                        <td class="px-4 py-2 text-center">{{ $d->uom }}</td>
+
+                                                        <td class="px-4 py-2 text-right">
+                                                            <input type="text"
+                                                                name="qty_return[{{ $d->id }}]"
+                                                                class="qtyReturn w-28 rounded border border-gray-300 p-1 text-right dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
+                                                                inputmode="decimal"
+                                                                autocomplete="off"
+                                                                placeholder="0.00"
+                                                                data-max="{{ (float)($d->qty ?? 0) }}" />
+                                                        </td>
+                                                    </tr>
+                                                @empty
+                                                    <tr><td colspan="7" class="px-4 py-4 text-center text-gray-500">No issue detail</td></tr>
+                                                @endforelse
+                                            </tbody>
+                                        </table>
+
+                                        <p class="mt-3 text-xs text-gray-500">
+                                            Catatan: Qty Sisa Return berasal dari (Qty Issue - Total Qty Return sebelumnya).
+                                        </p>
+                                    </div>
+                                </details>
                             </div>
                         </div>
 
-                        <div class="mt-4 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-                            <div class="flex flex-col gap-2">
-                                <label class="block text-sm font-medium text-gray-600 dark:text-gray-300">Vendor</label>
-                                <input type="text" value="{{ $rcp->vendorname }}" readonly
-                                       class="mt-1 w-full rounded-lg border border-gray-300 bg-gray-50 p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
-                            </div>
-                            <div class="flex flex-col gap-2">
-                                <label class="block text-sm font-medium text-gray-600 dark:text-gray-300">Company</label>
-                                <input type="text" value="{{ $rcp->cpny_id }}" readonly
-                                       class="mt-1 w-full rounded-lg border border-gray-300 bg-gray-50 p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
-                            </div>
-                            <div class="flex flex-col gap-2">
-                                <label class="block text-sm font-medium text-gray-600 dark:text-gray-300">Department</label>
-                                <input type="text" value="{{ $rcp->department_id }}" readonly
-                                       class="mt-1 w-full rounded-lg border border-gray-300 bg-gray-50 p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
-                            </div>
-                        </div>
-                    </div>
-
-                    {{-- ===== Detail ===== --}}
-                    <div class="flex w-full flex-col gap-2 rounded-2xl border-b bg-white dark:bg-gray-800">
-                        <div class="flex w-full flex-col rounded-2xl p-4">
+                        {{-- Attachments --}}
+                        <div class="w-full rounded-xl bg-white p-6 shadow-md dark:bg-gray-800">
                             <details class="group" open>
                                 <summary class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-xl font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
-                                    <span>Return Detail</span>
+                                    <span>Attachments</span>
                                     <span class="text-sm font-medium text-gray-500 transition-all group-open:hidden">See details →</span>
                                     <span class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline">Hide details ↓</span>
                                 </summary>
 
-                                <div class="mt-6 overflow-x-auto">
-                                    <table class="min-w-full divide-y divide-gray-200 text-sm dark:divide-gray-700">
-                                        <thead class="bg-gray-50 dark:bg-gray-700">
-                                            <tr>
-                                                <th class="px-4 py-2 text-left font-semibold text-gray-600 dark:text-gray-300">Inventory ID</th>
-                                                <th class="px-4 py-2 text-left font-semibold text-gray-600 dark:text-gray-300">Description</th>
-                                                <th class="px-4 py-2 text-right font-semibold text-gray-600 dark:text-gray-300">Qty Received</th>
-                                                <th class="px-4 py-2 text-center font-semibold text-gray-600 dark:text-gray-300">UoM</th>
-                                                <th class="px-4 py-2 text-right font-semibold text-gray-600 dark:text-gray-300">Qty Return</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
-                                            @forelse($details as $d)
-                                                <tr>
-                                                    <td class="px-4 py-2">{{ $d->inventoryid }}</td>
-                                                    <td class="px-4 py-2">{{ $d->inventory_descr }}</td>
-                                                    <td class="px-4 py-2 text-right">{{ number_format((float)$d->qty_received, 2) }}</td>
-                                                    <td class="px-4 py-2 text-center">{{ $d->uom }}</td>
-                                                    <td class="px-4 py-2 text-right">
-                                                        <input type="text" name="qty_return[{{ $d->id }}]"
-                                                            class="qtyReturn w-28 rounded border border-gray-300 p-1 text-right dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
-                                                            inputmode="decimal" autocomplete="off" placeholder="0,00" />
-                                                    </td>
-                                                </tr>
-                                            @empty
-                                                <tr><td colspan="5" class="px-4 py-4 text-center text-gray-500">No receipt detail</td></tr>
-                                            @endforelse
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </details>
-                        </div>
-                    </div>
-
-                    {{-- (optional) Attachments pakai blok bawaanmu --}}
-                    <div class="w-full rounded-xl bg-white p-6 shadow-md dark:bg-gray-800">
-                        <details class="group" open>
-                            <summary class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-xl font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
-                                <span>Attachments</span>
-                                <span class="text-sm font-medium text-gray-500 transition-all group-open:hidden">See details →</span>
-                                <span class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline">Hide details ↓</span>
-                            </summary>
-
-                            <div class="flex flex-col pt-6">
-                                <div id="attachmentsContainer">
-                                    <div class="attachment-row flex items-center gap-2">
-                                        <input type="file" name="attachments[]"
-                                               class="flex-grow rounded-md border border-gray-200 bg-white px-4 py-2 text-sm text-gray-700 file:mr-4 file:rounded-full file:border-0 file:bg-indigo-100 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-indigo-700 hover:file:bg-indigo-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:file:bg-indigo-700 dark:file:text-white dark:hover:file:bg-indigo-600">
-                                        <button type="button" class="removeAttachment hidden rounded border border-red-600 bg-red-200/30 p-3 text-red-600">🗑️</button>
+                                <div class="flex flex-col pt-6">
+                                    <div id="attachmentsContainer">
+                                        <div class="attachment-row flex items-center gap-2">
+                                            <input type="file" name="attachments[]"
+                                                class="flex-grow rounded-md border border-gray-200 bg-white px-4 py-2 text-sm text-gray-700 file:mr-4 file:rounded-full file:border-0 file:bg-indigo-100 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-indigo-700 hover:file:bg-indigo-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:file:bg-indigo-700 dark:file:text-white dark:hover:file:bg-indigo-600">
+                                            <button type="button" class="removeAttachment hidden rounded border border-red-600 bg-red-200/30 p-3 text-red-600">🗑️</button>
+                                        </div>
                                     </div>
                                 </div>
+
+                                <button type="button" id="addAttachment"
+                                    class="mt-4 flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 bg-gray-50 px-4 py-2.5 text-sm font-medium text-gray-700 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
+                                    + Add Attachment
+                                </button>
+                            </details>
+
+                            <div class="flex w-full justify-end gap-4 pt-4">
+                                <a href="{{ url()->previous() }}"
+                                class="inline-flex items-center justify-center rounded-lg bg-red-600 px-6 py-3 text-base font-semibold text-white hover:bg-red-700">
+                                    Cancel
+                                </a>
+
+                                <button type="submit" id="submitBtn"
+                                class="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-6 py-3 text-base font-semibold text-white hover:bg-indigo-700">
+                                    <span id="btnText">Submit Return</span>
+                                </button>
                             </div>
-
-                            <button type="button" id="addAttachment"
-                                class="mt-4 flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 bg-gray-50 px-4 py-2.5 text-sm font-medium text-gray-700 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
-                                + Add Attachment
-                            </button>
-
-                        </details>
-
-                        <div class="flex w-full justify-end gap-4 pt-4">
-                            <a href="{{ url()->previous() }}"
-                               class="inline-flex items-center justify-center rounded-lg bg-red-600 px-6 py-3 text-base font-semibold text-white hover:bg-red-700">Cancel</a>
-                            <button type="submit" id="submitBtn"
-                               class="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-6 py-3 text-base font-semibold text-white hover:bg-indigo-700">
-                                <span id="btnText">Submit Return</span>
-                            </button>
                         </div>
-                    </div>
-                </form>
+                    </form>
+                </div>
             </div>
         </div>
-    </div>
 
-    {{-- Overlay --}}
-    <div id="loadingSpinnerContainer" role="status" aria-live="polite" aria-label="Loading">
-        <div class="loading-card">
-            <div class="loading-spinner"></div>
-            <div class="loading-text">Processing<span class="loading-ellipsis"><span>.</span><span>.</span><span>.</span></span></div>
+        {{-- Overlay --}}
+        <div id="loadingSpinnerContainer" role="status" aria-live="polite" aria-label="Loading">
+            <div class="loading-card">
+                <div class="loading-spinner"></div>
+                <div class="loading-text">Processing<span class="loading-ellipsis"><span>.</span><span>.</span><span>.</span></span></div>
+            </div>
         </div>
-    </div>
 
-    {{-- JS submit & validation (disesuaikan untuk qty_return) --}}
-    <script>
-        function showOverlay(txt){ const $ov = $('#loadingSpinnerContainer'); $ov.find('.loading-text').text(txt||'Processing...'); $ov.fadeIn(120); }
-        function hideOverlay(){ $('#loadingSpinnerContainer').fadeOut(120); }
-
-        $(function () {
-            function clearErrors(){ $('#returnForm .is-invalid').removeClass('is-invalid').removeAttr('aria-invalid'); $('#returnForm .error-feedback').remove(); }
-            function addErr($el,msg){ $el.addClass('is-invalid').attr('aria-invalid','true'); if(!$el.next('.error-feedback').length){ $el.after('<small class="error-feedback">'+msg+'</small>'); } }
-
-            // filter input: angka + , .
-            $(document).on('keypress','.qtyReturn',function(e){
-                const k=e.which||e.keyCode, ch=String.fromCharCode(k);
-                if ([8,9,13,27,37,38,39,40,46].includes(k)) return;
-                if (!/[0-9.,]/.test(ch)) e.preventDefault();
-                const v=this.value;
-                if ((ch==='.' && v.includes('.')) || (ch===',' && v.includes(','))) e.preventDefault();
-            });
-            $(document).on('input','.qtyReturn',function(){ this.value=this.value.replace(/[^0-9.,]/g,''); });
-
-            function hasAnyQty(){
-                let ok=false;
-                $('.qtyReturn').each(function(){
-                    const n=parseFloat((this.value||'').replace(',','.'));
-                    if(!isNaN(n) && n>0){ ok=true; return false; }
-                });
-                return ok;
+        {{-- JS submit & validation --}}
+        <script>
+            function showOverlay(txt){
+                const $ov = $('#loadingSpinnerContainer');
+                $ov.find('.loading-text').text(txt || 'Processing...');
+                $ov.fadeIn(120);
             }
+            function hideOverlay(){ $('#loadingSpinnerContainer').fadeOut(120); }
 
-            $('#returnForm').on('submit', function(e){
-                e.preventDefault();
-                clearErrors();
-
-                if (!hasAnyQty()){
-                    const $f=$('.qtyReturn').first();
-                    addErr($f,'Isi Qty Return > 0 pada minimal satu baris.');
-                    $f.focus();
-                    if (window.toastr) toastr.error('Minimal satu baris Qty Return harus > 0.');
-                    return;
+            $(function () {
+                function clearErrors(){
+                    $('#returnForm .is-invalid').removeClass('is-invalid').removeAttr('aria-invalid');
+                    $('#returnForm .error-feedback').remove();
+                }
+                function addErr($el,msg){
+                    $el.addClass('is-invalid').attr('aria-invalid','true');
+                    if(!$el.next('.error-feedback').length){
+                        $el.after('<small class="error-feedback">'+msg+'</small>');
+                    }
                 }
 
-                // normalisasi , -> .
-                $('.qtyReturn').each(function(){ this.value=(this.value||'').replace(/,/g,'.'); });
+                // filter input: angka + , .
+                $(document).on('keypress','.qtyReturn',function(e){
+                    const k=e.which||e.keyCode, ch=String.fromCharCode(k);
+                    if ([8,9,13,27,37,38,39,40,46].includes(k)) return;
+                    if (!/[0-9.,]/.test(ch)) e.preventDefault();
+                    const v=this.value;
+                    if ((ch==='.' && v.includes('.')) || (ch===',' && v.includes(','))) e.preventDefault();
+                });
 
-                $('#submitBtn').prop('disabled',true); $('#btnText').text('Processing...'); showOverlay('Submitting');
+                $(document).on('input','.qtyReturn',function(){
+                    this.value = (this.value||'').replace(/[^0-9.,]/g,'');
+                });
 
-                const form = this;
-                const data = new FormData(form);
+                function hasAnyQty(){
+                    let ok=false;
+                    $('.qtyReturn').each(function(){
+                        const n=parseFloat((this.value||'').replace(',','.'));
+                        if(!isNaN(n) && n>0){ ok=true; return false; }
+                    });
+                    return ok;
+                }
 
-                $.ajax({
-                    url: form.action,
-                    type: 'POST',
-                    data, processData:false, contentType:false
-                })
-                .done(res=>{
-                    if (window.toastr) toastr.success(res.message || 'Return created.');
-                    window.location.href = "{{ route('receiptlist') }}";
-                })
-                .fail(xhr=>{
-                    if (xhr.status===422 && xhr.responseJSON?.errors){
-                        let msg='Periksa input:<br>';
-                        Object.values(xhr.responseJSON.errors).forEach(arr=> msg += '- '+arr.join(', ')+'<br>');
-                        if (window.toastr) toastr.error(msg);
-                    }else{
-                        if (window.toastr) toastr.error(xhr.responseJSON?.message || 'Failed.');
+                // validasi qty <= max (qty sisa return)
+                function validateMax(){
+                    let ok = true;
+                    $('.qtyReturn').each(function(){
+                        const max = parseFloat($(this).data('max') || 0);
+                        const val = parseFloat((this.value||'').replace(',','.')) || 0;
+                        if (val > 0 && val - max > 1e-9){
+                            ok = false;
+                            addErr($(this), 'Qty Return tidak boleh melebihi Qty Sisa Return ('+max.toFixed(2)+')');
+                        }
+                    });
+                    return ok;
+                }
+
+                $('#returnForm').on('submit', function(e){
+                    e.preventDefault();
+                    clearErrors();
+
+                    if (!hasAnyQty()){
+                        const $f=$('.qtyReturn').first();
+                        addErr($f,'Isi Qty Return > 0 pada minimal satu baris.');
+                        $f.focus();
+                        if (window.toastr) toastr.error('Minimal satu baris Qty Return harus > 0.');
+                        return;
                     }
-                })
-                .always(()=>{
-                    $('#submitBtn').prop('disabled',false); $('#btnText').text('Submit Return'); hideOverlay();
+
+                    if (!validateMax()){
+                        if (window.toastr) toastr.error('Ada Qty Return yang melebihi Qty Sisa Return.');
+                        return;
+                    }
+
+                    // normalisasi , -> .
+                    $('.qtyReturn').each(function(){ this.value=(this.value||'').replace(/,/g,'.'); });
+
+                    $('#submitBtn').prop('disabled',true);
+                    $('#btnText').text('Processing...');
+                    showOverlay('Submitting');
+
+                    const form = this;
+                    const data = new FormData(form);
+
+                    $.ajax({
+                        url: form.action,
+                        type: 'POST',
+                        data,
+                        processData:false,
+                        contentType:false
+                    })
+                    .done(res=>{
+                        if (window.toastr) toastr.success(res.message || 'Return created.');
+                        // aman: balik ke halaman sebelumnya / list issue
+                        window.location.href = "{{ url()->previous() }}";
+                    })
+                    .fail(xhr=>{
+                        if (xhr.status===422 && xhr.responseJSON?.errors){
+                            let msg='Periksa input:<br>';
+                            Object.values(xhr.responseJSON.errors).forEach(arr=> msg += '- '+arr.join(', ')+'<br>');
+                            if (window.toastr) toastr.error(msg);
+                        }else{
+                            if (window.toastr) toastr.error(xhr.responseJSON?.message || 'Failed.');
+                        }
+                    })
+                    .always(()=>{
+                        $('#submitBtn').prop('disabled',false);
+                        $('#btnText').text('Submit Return');
+                        hideOverlay();
+                    });
+                });
+
+                // attachments
+                $('#addAttachment').on('click',function(){
+                    $('#attachmentsContainer').append(
+                        '<div class="attachment-row flex items-center gap-2">'+
+                        '<input type="file" name="attachments[]" class="mt-2 flex-grow rounded-md border border-gray-200 bg-white px-4 py-2 text-sm text-gray-700 file:mr-4 file:rounded-full file:border-0 file:bg-indigo-100 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-indigo-700 hover:file:bg-indigo-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:file:bg-indigo-700 dark:file:text-white dark:hover:file:bg-indigo-600">'+
+                        '<button type="button" class="removeAttachment rounded border border-red-600 bg-red-200/30 p-3 text-red-600">🗑️</button>'+
+                        '</div>'
+                    );
+                });
+                $(document).on('click','.removeAttachment',function(){
+                    $(this).closest('.attachment-row').remove();
                 });
             });
+        </script>
 
-            // attachments
-            $('#addAttachment').on('click',function(){
-                $('#attachmentsContainer').append(
-                    '<div class="attachment-row flex items-center gap-2">'+
-                    '<input type="file" name="attachments[]" class="mt-2 flex-grow rounded-md border border-gray-200 bg-white px-4 py-2 text-sm text-gray-700 file:mr-4 file:rounded-full file:border-0 file:bg-indigo-100 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-indigo-700 hover:file:bg-indigo-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:file:bg-indigo-700 dark:file:text-white dark:hover:file:bg-indigo-600">'+
-                    '<button type="button" class="removeAttachment rounded border border-red-600 bg-red-200/30 p-3 text-red-600">🗑️</button>'+
-                    '</div>'
-                );
-            });
-            $(document).on('click','.removeAttachment',function(){ $(this).closest('.attachment-row').remove(); });
-        });
-    </script>
-
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 </x-app-layout>

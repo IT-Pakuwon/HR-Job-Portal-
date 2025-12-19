@@ -10,24 +10,7 @@ class TrIssue extends Model
     protected $connection = 'pgsql';
     protected $table = "tr_issue";
 
-    protected $fillable = [
-        // 'issueid',
-        // 'issuedate',
-        // 'issuetype',
-        // 'spbid',
-        // 'woid',
-        // 'cpny_id',
-        // 'department_id',
-        // 'user_peminta',
-        // 'issuenote',
-        // 'budget_perpost',
-        // 'totalissueqty',
-        // 'totalreturnissueqty',
-        // 'totalamountissue',
-        // 'status',
-        // 'created_by',
-        // 'updated_by',
-        // 'completed_by'
+    protected $fillable = [     
 
         'issueid' , 'issuedate' , 'issuetype' , 'spbid' , 'ref_issuenbr' , 'woid' , 'cpny_id' , 'department_id' , 
         'user_peminta' , 'issuenote' , 'budget_perpost' , 'grandtotalcost' , 'totalissueqty' , 'totalreturnissueqty' , 

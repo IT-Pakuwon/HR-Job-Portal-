@@ -906,7 +906,8 @@
                     <div class="flex items-center justify-between border-b px-4 py-3 dark:border-gray-700">
                         <div class="flex flex-col">
                             <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-100">Last Price History</h3>
-                            <div id="lpTitle" class="text-xs text-gray-500 dark:text-gray-300"></div>
+                            <h3 id="lpTitle" class="text-lg font-semibold text-gray-800 dark:text-gray-100"></h3>
+                            {{-- <div id="lpTitle" class="text-xs text-gray-500 dark:text-gray-300"></div> --}}
                         </div>
                         <button id="lastPriceModalClose"
                             class="rounded px-2 py-1 text-gray-500 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700">✖</button>

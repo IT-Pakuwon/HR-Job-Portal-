@@ -13,6 +13,7 @@ use App\Models\TrSPPT;
 use Vinkla\Hashids\Facades\Hashids;
 use Illuminate\Support\Str;
 use App\Models\TrPO;
+use Illuminate\Support\Facades\DB;
 
 class BastListController extends Controller
 {
@@ -99,19 +100,17 @@ class BastListController extends Controller
                 ->whereNull('bastid')
                 ->select([
                     'id', 'ponbr', 'cpny_id', 'vendorname', 'created_by',
-                    'terms_name', 'progress_pct', 'payment_pct'
+                    'terms_name', 'progress_pct', 'payment_pct',
+                    DB::raw("'HOLD' as status") // <= status dummy utk jobs
                 ]);
 
+
             $orderColumns = [
-                0 => 'ponbr',      // Action (dummy, abaikan)
-                1 => 'ponbr',
-                2 => 'cpny_id',
-                3 => 'vendorname',
-                4 => 'terms_name',
-                5 => 'progress_pct',
-                6 => 'payment_pct',
-                7 => 'created_by',
+                0=>'ponbr', 1=>'ponbr', 2=>'cpny_id', 3=>'vendorname',
+                4=>'terms_name', 5=>'progress_pct', 6=>'payment_pct', 7=>'created_by',
+                8=>'status',
             ];
+
 
             if ($search !== '') {
                 $base->where(function ($q) use ($search) {
@@ -223,6 +222,58 @@ class BastListController extends Controller
                     }
                 }
             }
+
+            // ===== status badge (untuk UI) =====
+            $st = strtoupper((string)($r->status ?? ''));
+
+            // default
+            $statusText  = 'Unknown';
+            $statusClass = 'bg-gray-100 text-gray-700 border-gray-200';
+
+            // mapping BAST (TrBast)
+            switch ($st) {
+                case 'P':
+                    $statusText  = 'On Progress';
+                    $statusClass = 'bg-blue-100 text-blue-700 border-blue-200';
+                    break;
+                case 'A':
+                    $statusText  = 'Approved';
+                    $statusClass = 'bg-green-100 text-green-700 border-green-200';
+                    break;
+                case 'C':
+                    $statusText  = 'Completed';
+                    $statusClass = 'bg-emerald-100 text-emerald-700 border-emerald-200';
+                    break;
+                case 'R':
+                    $statusText  = 'Rejected';
+                    $statusClass = 'bg-red-100 text-red-700 border-red-200';
+                    break;
+                case 'D':
+                    $statusText  = 'Revise';
+                    $statusClass = 'bg-yellow-100 text-yellow-700 border-yellow-200';
+                    break;
+                case 'X':
+                    $statusText  = 'Canceled';
+                    $statusClass = 'bg-gray-200 text-gray-700 border-gray-300';
+                    break;
+
+                // status dummy jobs
+                case 'HOLD':
+                    $statusText  = 'Hold';
+                    $statusClass = 'bg-purple-100 text-purple-700 border-purple-200';
+                    break;
+
+                default:
+                    $statusText  = $st !== '' ? $st : 'Unknown';
+                    $statusClass = 'bg-gray-100 text-gray-700 border-gray-200';
+                    break;
+            }
+
+            $r->status_label = $statusText;
+            $r->status_class = $statusClass;
+            // ================================
+
+
             return $r;
         });
 

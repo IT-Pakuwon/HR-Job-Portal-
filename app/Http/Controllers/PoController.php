@@ -281,7 +281,7 @@ class PoController extends Controller
             'reason' => ['required','string']
         ]);
 
-        $po->status     = 'R';
+        $po->status     = 'D';
         $po->updated_by = Auth::user()->username ?? 'system';
 
         // simpan reason ke ponote (append)
@@ -1334,7 +1334,7 @@ class PoController extends Controller
                 'rejectordered'           => 0,
                 'completeordered'         => 0,
 
-                'status'                  => 'R', // reuse
+                'status'                  => 'D', // reuse
                 'created_by'              => $username,
                 'created_at'              => now(),
             ]);

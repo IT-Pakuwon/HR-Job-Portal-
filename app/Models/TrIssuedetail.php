@@ -10,37 +10,7 @@ class TrIssuedetail extends Model
     protected $connection = 'pgsql';
     protected $table = "tr_issue_detail";
 
-    protected $fillable = [
-        // 'issueid',
-        // 'issue_no',
-        // 'spbid',
-        // 'spb_no',
-        // 'issuetype',
-        // 'inventoryid',
-        // 'inventory_descr',
-        // 'siteid',
-        // 'qty',
-        // 'uom',
-        // 'type_multiplier',
-        // 'base_multiplier',
-        // 'base_qty',
-        // 'base_uom',
-        // 'unitcost',
-        // 'totalcost',
-        // 'note',
-        // 'location_id',
-        // 'sub_location_id',
-        // 'budget_perpost',
-        // 'budget_cpny_id',
-        // 'budget_business_unit_id',
-        // 'budget_department_fin_id',
-        // 'budget_account_id',
-        // 'budget_activity_id',
-        // 'reason_code',
-        // 'issue_qty',
-        // 'status',
-        // 'created_by',
-        // 'updated_by'
+    protected $fillable = [       
         'issueid' , 'issue_no' , 'spbid' , 'spb_no' , 'inventoryid' , 'inventory_descr' , 'siteid' , 'qty' , 'uom' , 
         'type_multiplier' , 'base_multiplier' , 'base_qty' , 'base_uom' , 'unitcost' , 'totalcost' , 'issuenote_detail' , 
         'location_id' , 'sub_location_id' , 'budget_perpost' , 'budget_cpny_id' , 'budget_business_unit_id' , 

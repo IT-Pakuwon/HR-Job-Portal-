@@ -1458,15 +1458,15 @@ class IssueController extends Controller
 
 
 
-    public function createReturn(Request $request)
+    public function createReturn_xxx(Request $request)
     {
-        $eid = (string) $request->query('iss', '');
-        $id  = Hashids::decode($eid)[0] ?? null;
+       
+        $id  = Hashids::decode($request->id)[0] ?? null;       
         abort_if(!$id, 404);
 
         // Header issue asal (tipe bebas; kita cuma mau referensinya)
         $iss = TrIssue::findOrFail($id);
-
+        
         // Detail dari issue asal (yang qty_received-nya menjadi dasar perhitungan)
         $origDetails = TrIssuedetail::select([
             'id',
@@ -1544,6 +1544,117 @@ class IssueController extends Controller
             'ref_issueid'  => $ref_issueid,
         ]);
     }
+
+    public function createReturn(Request $request)
+    {
+        $decoded = Hashids::decode($request->id);
+        $id      = $decoded[0] ?? null;
+        abort_if(!$id, 404);
+
+        // simpan encoded id untuk view (kalau view perlu)
+        $eid = $request->id;
+
+        // Header issue asal (dokumen yang akan direturn)
+        $iss = TrIssue::findOrFail($id);
+
+        /**
+         * Ambil detail issue asal sebagai "batas maksimal return".
+         * Di tabel detail kamu yang ada adalah issue_qty / base_issue_qty.
+         */
+        $origDetails = TrIssuedetail::query()
+            ->select([
+                'id',
+                'issueid',
+                'issue_no',
+                'inventoryid',
+                'inventory_descr',
+                'uom',
+                'siteid',
+                'location_id',
+                'sub_location_id',
+
+                // angka dasar (maks qty yang bisa direturn)
+                DB::raw("COALESCE(issue_qty::numeric, 0)::numeric AS qty_issued"),
+                DB::raw("COALESCE(base_issue_qty::numeric, 0)::numeric AS base_qty_issued"),
+
+                // multiplier kadang varchar kosong
+                DB::raw("COALESCE(NULLIF(type_multiplier, '')::int, 1) AS type_multiplier"),
+                DB::raw("COALESCE(NULLIF(base_multiplier, '')::int, 1) AS base_multiplier"),
+            ])
+            ->where('issueid', $iss->issueid)
+            // kalau di data kamu issue detail bisa campur, boleh aktifkan filter ini:
+            // ->where(function($q){ $q->whereNull('issuetype')->orWhere('issuetype','issue'); })
+            ->orderBy('issue_no')
+            ->get();
+
+        /**
+         * Total qty_return yang SUDAH pernah dibuat dari dokumen return
+         * yang mereferensikan dokumen asal ini.
+         *
+         * Referensi yang benar: tr_issue.ref_issuenbr = issue asal (mis. $iss->issueid)
+         */
+        $returnedAgg = TrIssuedetail::query()
+            ->select([
+                'inventoryid',
+                'uom',
+                'siteid',
+                'location_id',
+                'sub_location_id',
+                DB::raw('SUM(COALESCE(qty_return,0))::numeric AS sum_returned'),
+            ])
+            ->whereIn('issueid', function ($q) use ($iss) {
+                $q->select('issueid')
+                    ->from('tr_issue')
+                    ->whereRaw('LOWER(issuetype) = ?', ['return'])
+                    ->where('ref_issuenbr', $iss->issueid); // ✅ FIX: bukan ref_issueid
+            })
+            ->groupBy('inventoryid', 'uom', 'siteid', 'location_id', 'sub_location_id')
+            ->get()
+            ->keyBy(function ($r) {
+                return ($r->inventoryid ?? '') . '|'
+                    . ($r->uom ?? '') . '|'
+                    . ($r->siteid ?? '') . '|'
+                    . ($r->location_id ?? '') . '|'
+                    . ($r->sub_location_id ?? '');
+            });
+
+        // Hitung sisa return per baris asal; tampilkan hanya yang masih > 0
+        $details = $origDetails
+            ->map(function ($row) use ($returnedAgg) {
+                $key = ($row->inventoryid ?? '') . '|'
+                    . ($row->uom ?? '') . '|'
+                    . ($row->siteid ?? '') . '|'
+                    . ($row->location_id ?? '') . '|'
+                    . ($row->sub_location_id ?? '');
+
+                $sudahReturn = (float) (optional($returnedAgg->get($key))->sum_returned ?? 0);
+
+                $qtyIssued = (float) $row->qty_issued;
+                $sisa      = max($qtyIssued - $sudahReturn, 0);
+
+                $row->qty_sisa_return = $sisa;
+                $row->qty             = $sisa; // kompatibel dengan view yang pakai $d->qty
+
+                return $row;
+            })
+            ->filter(fn ($r) => (float) $r->qty_sisa_return > 0)
+            ->values();
+
+        if ($details->isEmpty()) {
+            return back()->with('warning', 'Semua item pada issue ini sudah tidak memiliki sisa untuk di-return.');
+        }
+
+        // referensi dokumen asal (pakai issueid sebagai nomor dokumen)
+        $ref_issuenbr = $iss->issueid;
+
+        return view('pages.issue.return_create', [
+            'iss'         => $iss,
+            'details'     => $details,
+            'eid'         => $eid,
+            'ref_issuenbr'=> $ref_issuenbr, // ✅ FIX: konsisten dengan model
+        ]);
+    }
+
 
     // Simpan dokumen return
     public function storeReturn(Request $request)

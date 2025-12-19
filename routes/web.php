@@ -724,6 +724,8 @@ Route::post('/logout', function () {
         Route::post('/receipt/{id}/approve', [ReceiptController::class, 'approveReceipt']);
         Route::post('/receipt/{id}/reject',  [ReceiptController::class, 'rejectReceipt']);
         Route::post('/receipt/{id}/revise',  [ReceiptController::class, 'reviseReceipt']);
+
+        Route::get('/receipt/{receiptnbr}/validate-approve', [ReceiptController::class, 'validateApprove'])->name('receipt.validate-approve');
     });
 
     Route::middleware('access:WOLIST,VIEW')->group(function () {

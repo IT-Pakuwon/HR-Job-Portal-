@@ -176,6 +176,7 @@ class CsListController extends Controller
                     $csTable.'.csnote',
                     $csTable.'.assigndate',
                     $csTable.'.submitdate',
+                    $csTable.'.status',
                     DB::raw("$prefixExpr AS sppbjkt_prefix"),
                     DB::raw("(CASE
                         WHEN $prefixExpr = 'PB' THEN (SELECT id FROM tr_sppb WHERE tr_sppb.sppbid = {$csTable}.sppbjktid LIMIT 1)
@@ -194,10 +195,46 @@ class CsListController extends Controller
             $submit = $r->submitdate ? Carbon::parse($r->submitdate)->startOfDay() : null;
             $r->days = ($assign && $submit) ? $assign->diffInDays($submit) : null;
 
+            // ✅ status label + class (switch biar aman)
+            $st = strtoupper((string)($r->status ?? ''));
+            $statusText  = $st !== '' ? $st : 'Unknown';
+            $statusClass = 'bg-gray-100 text-gray-700 border-gray-200';
+
+            switch ($st) {
+                case 'P':
+                    $statusText  = 'On Progress';
+                    $statusClass = 'bg-blue-100 text-blue-700 border-blue-200';
+                    break;
+                case 'A':
+                    $statusText  = 'Approved';
+                    $statusClass = 'bg-green-100 text-green-700 border-green-200';
+                    break;
+                case 'R':
+                    $statusText  = 'Rejected';
+                    $statusClass = 'bg-red-100 text-red-700 border-red-200';
+                    break;
+                case 'C':
+                    $statusText  = 'Completed';
+                    $statusClass = 'bg-emerald-100 text-emerald-700 border-emerald-200';
+                    break;
+                case 'D':
+                    $statusText  = 'Revise';
+                    $statusClass = 'bg-amber-100 text-amber-700 border-amber-200';
+                    break;
+                case 'X':
+                    $statusText  = 'Canceled';
+                    $statusClass = 'bg-gray-200 text-gray-700 border-gray-300';
+                    break;
+            }
+
+            $r->status_label = $statusText;
+            $r->status_class = $statusClass;
+
             $r->eid          = Hashids::encode($r->id);
             $r->sppbjkid_eid = Hashids::encode($r->sppbjkt_src_id);
             return $r;
         });
+
 
         return response()->json([
             'draw'            => $draw,

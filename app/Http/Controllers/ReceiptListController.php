@@ -67,9 +67,10 @@ class ReceiptListController extends Controller
                 ]);
 
             $orderColumns = [
-                0=>'ponbr', 1=>'ponbr', 2=>'podate', 3=>'cpny_id',
-                4=>'vendorname', 5=>'podeliverydate', 6=>'created_by'
+            0=>'ponbr', 1=>'ponbr', 2=>'podate', 3=>'cpny_id',
+            4=>'vendorname', 5=>'podeliverydate', 6=>'created_by', 7=>'status'
             ];
+
 
             if ($search !== '') {
                 $base->where(function($q) use ($search){
@@ -187,6 +188,57 @@ class ReceiptListController extends Controller
                     }
                 }
             }
+
+            // ===== status badge (untuk UI) =====
+            $st = strtoupper((string)($r->status ?? ''));
+
+            $statusText = 'Unknown';
+            $statusClass = 'bg-gray-100 text-gray-700 border-gray-200';
+
+            switch ($st) {
+                case 'P':
+                    $statusText  = 'Pending';
+                    $statusClass = 'bg-yellow-100 text-yellow-700 border-yellow-200';
+                    break;
+
+                case 'A':
+                    $statusText  = 'Approved';
+                    $statusClass = 'bg-green-100 text-green-700 border-green-200';
+                    break;
+
+                case 'R':
+                    $statusText  = 'Rejected';
+                    $statusClass = 'bg-red-100 text-red-700 border-red-200';
+                    break;
+
+                case 'C':
+                    $statusText  = 'Completed';
+                    $statusClass = 'bg-emerald-100 text-emerald-700 border-emerald-200';
+                    break;
+
+                case 'D':
+                    $statusText  = 'Revise';
+                    $statusClass = 'bg-blue-100 text-blue-700 border-blue-200';
+                    break;
+
+                case 'X':
+                    $statusText  = 'Canceled';
+                    $statusClass = 'bg-gray-200 text-gray-700 border-gray-300';
+                    break;
+
+                default:
+                    // kalau status ada tapi bukan P/A/R/C/D/X → tampilkan raw nya
+                    $statusText = $st !== '' ? $st : 'Unknown';
+                    $statusClass = 'bg-gray-100 text-gray-700 border-gray-200';
+                    break;
+            }
+
+            $r->status_label = $statusText;
+            $r->status_class = $statusClass;
+
+            // ================================
+
+
             return $r;
         });
 

@@ -197,9 +197,9 @@
                                                 <th class="px-4 py-2 text-left font-semibold text-gray-600 dark:text-gray-300">Description</th>
                                                 <th class="px-4 py-2 text-right font-semibold text-gray-600 dark:text-gray-300">Qty (Open)</th>
                                                 <th class="px-4 py-2 text-center font-semibold text-gray-600 dark:text-gray-300">UoM</th>
-                                                <th class="px-4 py-2 text-right font-semibold text-gray-600 dark:text-gray-300">Qty Issue</th>
+                                                <th class="px-4 py-2 text-right font-semibold text-gray-600 dark:text-gray-300">Qty Issue <span class="text-red-600 font-bold">*</span></th>
                                                 <th class="px-4 py-2 text-left font-semibold text-gray-600 dark:text-gray-300">Note</th>      {{-- NEW --}}
-                                                <th class="px-4 py-2 text-right font-semibold text-gray-600 dark:text-gray-300">Site</th>
+                                                <th class="px-4 py-2 text-right font-semibold text-gray-600 dark:text-gray-300">Site<span class="text-red-600 font-bold">*</span></th>
                                             </tr>
                                         </thead>
                                         <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
@@ -319,6 +319,57 @@
         function hideOverlay() { $('#loadingSpinnerContainer').stop(true, true).fadeOut(120); }
     </script>
 
+    <script>
+        // ✅ GLOBAL helpers (biar bisa dipakai dari script manapun)
+        window.clearFormErrors = function(formSelector){
+            const $form = $(formSelector);
+            $form.find('.is-invalid').removeClass('is-invalid').removeAttr('aria-invalid');
+            $form.find('.error-feedback').remove();
+        }
+
+        window.addError = function($el, msg){
+            if (!$el || !$el.length) return;
+            $el.addClass('is-invalid').attr('aria-invalid', 'true');
+            if ($el.next('.error-feedback').length === 0) {
+                $el.after('<small class="error-feedback">' + msg + '</small>');
+            }
+        }
+    </script>
+
+
+    <script>
+        function validateSiteForIssuedRows() {
+            let ok = true;
+
+            // clear error lama di site
+            $('.siteSelect').each(function(){
+                $(this).removeClass('is-invalid').removeAttr('aria-invalid');
+                $(this).next('.error-feedback').remove();
+            });
+
+            $('.qtyIssue').each(function () {
+                const $qty = $(this);
+                const rawQty = ($qty.val() || '').replace(',', '.');
+                const qtyVal = parseFloat(rawQty) || 0;
+
+                if (qtyVal <= 0) return;
+
+                const $row  = $qty.closest('tr');
+                const $site = $row.find('select.siteSelect');
+                const siteVal = ($site.val() || '').trim();
+
+                if (!siteVal) {
+                    ok = false;
+                    window.addError($site, 'Site wajib diisi untuk baris yang Qty Issue > 0.');
+                }
+            });
+
+            return ok;
+        }
+
+
+    </script>
+
     {{-- ===== Submit + Validasi Qty Issue ===== --}}
     <script>
         $(function() {
@@ -371,6 +422,14 @@
                     if (window.toastr) toastr.error('Minimal satu baris Qty Issue harus > 0.');
                     return;
                 }
+
+                if (!validateSiteForIssuedRows()) {
+                    const $firstInvalid = $('.siteSelect.is-invalid').first();
+                    if ($firstInvalid.length) $firstInvalid.focus();
+                    if (window.toastr) toastr.error('Site wajib diisi untuk semua baris yang Qty Issue > 0.');
+                    return;
+                }
+
 
                 // Normalisasi semua qty ke titik
                 $('.qtyIssue').each(function() { this.value = (this.value || '').replace(/,/g, '.'); });
@@ -474,6 +533,8 @@
             });
         });
     </script>
+
+    
 
     {{-- Toastr CDN --}}
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">

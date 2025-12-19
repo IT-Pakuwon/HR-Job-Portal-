@@ -38,7 +38,7 @@ use App\Models\TrSPPBdetail;
 
 class SpbJobsController extends Controller
 {
-    public function index()
+    public function index_xxx()
     {
         $user = Auth::user();
         if (!$user) return redirect()->route('login');
@@ -84,6 +84,66 @@ class SpbJobsController extends Controller
         ));
     }
 
+    public function index()
+    {
+        $user = Auth::user();
+        if (!$user) return redirect()->route('login');
+
+        $u       = $user->username ?? '';
+        $cpny_id = $user->cpny_id ?? '';
+
+        // status label yang mau ditampilkan di card
+        $status_issue_new = 'Open';
+        $status_issue_job = 'Partial';
+        $status_sppb_job  = 'Open/Partial'; // karena kita hitung yang belum Full
+        $status_issue_progress = 'P';
+        $status_sppb_progress  = 'P';
+
+        // 1. Issue New Jobs (SPB) : status='C', status_issue='Open'
+        $issuejobsnew = TrSPB::when($cpny_id, fn($q) => $q->where('cpny_id', $cpny_id))
+            ->where('status', 'C')
+            ->where('status_issue', $status_issue_new)
+            ->count();
+
+        // 2. Issue Jobs (SPB) : status='C', status_issue='Partial'
+        $issuejobs = TrSPB::when($cpny_id, fn($q) => $q->where('cpny_id', $cpny_id))
+            ->where('status', 'C')
+            ->where('status_issue', $status_issue_job)
+            ->count();
+
+        // 3. SPPB Jobs (SPB) : status='C', status_sppb != 'Full'  (Open/Partial)
+        $sppbjobs = TrSPB::when($cpny_id, fn($q) => $q->where('cpny_id', $cpny_id))
+            ->where('status', 'C')
+            ->whereIn('status_sppb', ['Open', 'Partial'])   // ✅ pakai status_sppb
+            ->count();
+
+        // 4. Issue On Progress (Issue) : status='P'
+        $issueprogress = TrIssue::when($cpny_id, fn($q) => $q->where('cpny_id', $cpny_id))
+            ->where('created_by', $u)
+            ->where('status', $status_issue_progress)
+            ->count();
+
+        // 5. SPPB On Progress (SPPB) : status='P'
+        $sppbprogress = TrSPPB::when($cpny_id, fn($q) => $q->where('cpny_id', $cpny_id))
+            ->where('status', $status_sppb_progress)
+            ->count();
+
+        return view('pages.spbjobs.spbjobs', compact(
+            'issuejobsnew',
+            'issuejobs',
+            'sppbjobs',
+            'issueprogress',
+            'sppbprogress',
+
+            // ✅ status label untuk view
+            'status_issue_new',
+            'status_issue_job',
+            'status_sppb_job',
+            'status_issue_progress',
+            'status_sppb_progress'
+        ));
+    }
+
     public function json(Request $req)
     {
         $scope   = strtolower((string) $req->query('scope', 'issuejobsnew'));
@@ -123,6 +183,7 @@ class SpbJobsController extends Controller
                         'keperluan',
                         'created_by',
                         'status',
+                        'status_issue',
                         'status_sppb',
                         'totalspbqty',
                         'totalissueqty',
@@ -140,8 +201,10 @@ class SpbJobsController extends Controller
                     })
                     // SPPB Jobs
                     ->when($scope === 'onprogress', function ($q) {
-                        $q->where('status', 'C')
-                          ->whereRaw('(totalspbqty - totalissueqty - totalsppbqty) > 0');
+                         $q->where('status', 'C')
+                            ->whereIn('status_sppb', ['Open','Partial']);
+                        // $q->where('status', 'C')
+                        //   ->whereRaw('(totalspbqty - totalissueqty - totalsppbqty) > 0');
                     });
 
                 $orderColumns = [

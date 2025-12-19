@@ -474,6 +474,10 @@
                                 <th
                                     class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
                                     Created By</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                                    Status
+                                </th>
+
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-800"></tbody>
@@ -591,6 +595,12 @@
                                 data: 'created_by',
                                 className: 'text-left'
                             },
+                            {
+                                data: 'status',
+                                className: 'text-left',
+                                render: (_v, _t, row) => renderStatusBadge(row)
+                            },
+
                         ],
                         searchDelay: 400,
                         stateSave: true,
@@ -623,6 +633,14 @@
                             localStorage.setItem('activePoScope', btn.dataset.scope);
                         });
                     });
+
+                    function renderStatusBadge(row) {
+                        const label = row.status_label ?? row.status ?? '-';
+                        const cls = row.status_class ?? 'bg-gray-100 text-gray-700 border-gray-200';
+                        return `<span class="inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold ${cls}">${label}</span>`;
+                    }
+
+
                 });
             </script>
         </div>

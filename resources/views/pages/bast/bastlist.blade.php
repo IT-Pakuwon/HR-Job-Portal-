@@ -380,6 +380,7 @@
                                 <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Progress %</th>
                                 <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Payment %</th>
                                 <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Created By</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Status</th>
                             `;
                         }
                         // TrBast scopes
@@ -427,6 +428,14 @@
                                 {
                                     data: 'created_by'
                                 },
+                                {
+                                    data: 'status',
+                                    orderable: false,
+                                    searchable: false,
+                                    className: 'text-left',
+                                    render: (_v, _t, row) => renderStatusBadge(row)
+                                },
+
                                 
                             ];
                         }
@@ -465,37 +474,11 @@
                             },
                             {
                                 data: 'status',
+                                orderable: true,
                                 className: 'text-left',
-                                render: function(data) {
-                                    const map = {
-                                        'D': {
-                                            t: 'Revise',
-                                            c: 'bg-gray-300/30 text-gray-600'
-                                        },
-                                        'P': {
-                                            t: 'On Progress',
-                                            c: 'bg-blue-300/30 text-blue-600'
-                                        },
-                                        'C': {
-                                            t: 'Completed',
-                                            c: 'bg-green-300/30 text-green-600'
-                                        },
-                                        'X': {
-                                            t: 'Cancel',
-                                            c: 'bg-red-300/30 text-red-600'
-                                        },
-                                        'R': {
-                                            t: 'Rejected',
-                                            c: 'bg-red-300/30 text-red-600'
-                                        },
-                                    };
-                                    const it = map[data] || {
-                                        t: data || '-',
-                                        c: 'bg-gray-300/30 text-gray-600'
-                                    };
-                                    return `<span class="w-32 inline-block ${it.c} font-semibold px-3 py-1.5 text-base text-center rounded">${it.t}</span>`;
-                                }
+                                render: (_v, _t, row) => renderStatusBadge(row)
                             },
+
                         ];
                     }
 
@@ -608,6 +591,13 @@
                         const url = `/showbast/${encodeURIComponent(hash)}`;
                         return `<a href="${url}" class="inline-flex items-center justify-center px-3 py-1.5 text-sm font-semibold rounded bg-gray-600 text-white hover:bg-gray-700">${label}</a>`;
                     }
+
+                    function renderStatusBadge(row) {
+                        const label = row.status_label ?? row.status ?? '-';
+                        const cls = row.status_class ?? 'bg-gray-100 text-gray-700 border-gray-200';
+                        return `<span class="inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold ${cls}">${label}</span>`;
+                    }
+
 
                     // init
                     updateTitle(scope);
