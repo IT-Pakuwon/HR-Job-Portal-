@@ -35,8 +35,13 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+
+
     <!-- Vite -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+
 
     @livewireStyles
 
@@ -51,11 +56,11 @@
     </script>
 </head>
 
-<body class="font-inter bg-gray-100 text-gray-600 antialiased dark:bg-gray-900 dark:text-gray-400">
+<body class="font-inter bg-gray-100/50 text-gray-600 antialiased dark:bg-gray-900 dark:text-gray-400">
 
     <!-- CONTENT AREA ONLY (NO SIDEBAR, NO HEADER) -->
     <div class="flex h-[100dvh] overflow-hidden">
-        <div class="flex flex-1 flex-col overflow-y-auto overflow-x-hidden pl-6 pr-6">
+        <div class="flex flex-1 flex-col overflow-y-auto overflow-x-hidden">
             {{ $slot }}
         </div>
 
