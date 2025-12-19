@@ -36,6 +36,7 @@ use App\Models\TrPOReuse;
 use App\Models\Bq;
 use App\Models\TrPoLastPrice;
 use App\Models\MsInventory;
+use App\Models\TrReceipt;
 
 
 class PoController extends Controller
@@ -137,6 +138,11 @@ class PoController extends Controller
             $csUrl  = url("/showcs/{$csHash}");
         }
 
+        $hasReceiptCompleted = TrReceipt::where('ponbr', $po->ponbr)
+            ->where('vendorid', $po->vendorid)
+            ->where('status', 'C')
+            ->exists();
+
         return view('pages.purchase.showpo', [
             'po'          => $po,
             'podetail'    => $podetail,
@@ -145,6 +151,7 @@ class PoController extends Controller
             'eid_ponbr'   => $eid_ponbr,
             'sppbUrl'     => $sppbUrl,   
             'csUrl'       => $csUrl,     
+            'hasReceiptCompleted' => $hasReceiptCompleted,
         ]);
     }
 
@@ -238,12 +245,7 @@ class PoController extends Controller
             if ($detailCount <= 0) {
                 throw new \Exception("PO Detail kosong. Tidak bisa proses budget untuk PO {$po->ponbr}");
             }
-            
-            // 2. Used budget via SP (Submit)
-            // DB::connection('pgsql')->statement(
-            //     'CALL public.sp_process_budget(?, ?, ?, ?)',
-            //     ['PO', $po->ponbr, 'Submit', Auth::user()->username]
-            // );
+                       
 
             // ✅ INSERT/UPDATE last price
             if ($po->potype == 'PO'){    
@@ -256,10 +258,15 @@ class PoController extends Controller
             // 4. Generate RFCA dari term DP
             $this->generateRfcaFromPo($po);
 
+            // Used budget via SP (Submit)
+            DB::connection('pgsql')->statement(
+                'CALL public.sp_process_budget(?, ?, ?, ?)',
+                ['PO', $po->ponbr, 'Submit', Auth::user()->username]
+            );
+
             // 5. Update status ke Purchase Order
             $po->status = 'P';
-            $po->save();
-
+            $po->save();        
            
     
 
@@ -301,6 +308,12 @@ class PoController extends Controller
         app('App\Http\Controllers\SendCommentController')
                 ->sendmsg($po->ponbr, 'PO', $fakeReq);
 
+        // Used budget via SP (Reuse)
+        DB::connection('pgsql')->statement(
+            'CALL public.sp_process_budget(?, ?, ?, ?)',
+            ['PO', $po->ponbr, 'Reuse', Auth::user()->username]
+        );
+
         return response()->json([
             'success' => true,
             'message' => 'Status diubah menjadi REUSE (R).'
@@ -332,6 +345,12 @@ class PoController extends Controller
 
         app('App\Http\Controllers\SendCommentController')
                 ->sendmsg($po->ponbr, 'PO', $fakeReq);
+
+        // Used budget via SP (Cancel)
+        DB::connection('pgsql')->statement(
+            'CALL public.sp_process_budget(?, ?, ?, ?)',
+            ['PO', $po->ponbr, 'Cancel', Auth::user()->username]
+        );
 
         return response()->json([
             'success' => true,
@@ -1399,6 +1418,119 @@ class PoController extends Controller
                 ]
             );
         }
+    }
+
+    public function completePartial(Request $request, $ponbr)
+    {
+        $user = Auth::user();
+        if (!$user) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized'], 401);
+        }
+
+        $data = $request->validate([
+            'reason' => ['required', 'string', 'min:3'],
+        ]);
+
+        // ✅ inject reason supaya bisa dibaca SendCommentController lewat $request->input('message') / 'comment'
+        // sesuaikan key yang dipakai di SendCommentController (lihat catatan di bawah)
+        $request->merge([
+            'message' => $data['reason'],      // untuk controller yang pakai 'message'
+            'comment' => $data['reason'],      // untuk controller yang pakai 'comment'
+            'doctype' => 'PO',
+            'refnbr'  => $ponbr,
+        ]);
+
+        return DB::transaction(function () use ($ponbr, $data, $user, $request) {
+
+            $po = TrPO::where('ponbr', $ponbr)->lockForUpdate()->firstOrFail();
+
+            // guard status
+            if (in_array($po->status, ['H','X','R','C'], true)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Status PO tidak valid untuk completed.'
+                ], 422);
+            }
+
+            // lock all details
+            $details = TrPOdetail::where('ponbr', $ponbr)
+                ->lockForUpdate()
+                ->orderBy('id')
+                ->get();
+
+            if ($details->isEmpty()) {
+                return response()->json(['success' => false, 'message' => 'PO detail tidak ditemukan.'], 404);
+            }
+
+            $hasAnyReceived = $details->contains(fn($d) => (float)($d->qty_received ?? 0) > 0);
+            if (!$hasAnyReceived) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Tidak bisa completed: belum ada item yang diterima (qty_received masih 0 semua).'
+                ], 422);
+            }
+
+            $affected = 0;
+
+            foreach ($details as $d) {
+                $qty       = (float)($d->qty ?? 0);
+                $received  = (float)($d->qty_received ?? 0);
+                $ret       = (float)($d->qty_return ?? 0);
+                $completed = (float)($d->qty_completed ?? 0);
+
+                // qty_sisa = qty - qty_received - qty_completed + qty_return
+                $sisa = max($qty - $received - $completed + $ret, 0);
+
+                if ($sisa <= 0.00001) {
+                    continue;
+                }
+
+                $newCompleted = $completed + $sisa;
+
+                $d->qty_completed = $newCompleted;
+                $d->base_qty_completed = $newCompleted; // kalau ada multiplier, sesuaikan
+                $d->completed = true;
+                $d->updated_by = $user->username ?? $user->name ?? 'system';
+                $d->updated_at = Carbon::now();
+                $d->save();
+
+                $affected++;
+            }
+
+            if ($affected < 1) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Tidak ada sisa qty yang bisa di-complete.'
+                ], 422);
+            }
+
+            // ✅ header status jadi Completed
+            $po->status = 'C';
+
+            // ✅ kirim reason ke SendCommentController
+            try {
+                app(\App\Http\Controllers\SendCommentController::class)
+                    ->sendmsg($ponbr, 'PO', $request);
+            } catch (\Throwable $e) {
+                // optional: log
+                // \Log::warning('SendComment failed', ['err' => $e->getMessage()]);
+            }
+
+            // Used budget via SP (Completed)
+            DB::connection('pgsql')->statement(
+                'CALL public.sp_process_budget(?, ?, ?, ?)',
+                ['PO', $po->ponbr, 'Completed', Auth::user()->username]
+            );
+
+            $po->updated_by = $user->username ?? $user->name ?? 'system';
+            $po->updated_at = Carbon::now();
+            $po->save();
+
+            return response()->json([
+                'success' => true,
+                'message' => "Partial completed berhasil. {$affected} item detail di-update (qty_completed ditambah sisa).",
+            ]);
+        });
     }
 
 }

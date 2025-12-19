@@ -626,6 +626,7 @@ Route::post('/logout', function () {
         Route::get('/csjobs/all/json',  [CsJobController::class, 'CsJobsAllJson'])->name('csjobs.all.json');                   
         Route::get('/csjobs/revision/json', [CsJobController::class, 'CsJobsRevisionJson'])->name('csjobs.revision.json');
         Route::get('/csjobs/sppbjkt-progress/json', [CsJobController::class, 'SppbjktOnProgressJson'])->name('csjobs.sppbjkt.progress.json');
+        Route::get('/csjobs/completed/json', [CsJobController::class, 'CsJobsCompletedJson'])->name('csjobs.completed.json');
         Route::get('/csjobs/counts', [CsJobController::class,'CsJobsCounts'])->name('csjobs.counts');    
         Route::get('/csjobs/entry.json', [CsJobController::class, 'CsJobsEntryJson'])->name('csjobs.entry.json');
         Route::get('/csjobs/dataset-counts', [CsJobController::class,'CsJobsDatasetCounts'])->name('csjobs.dataset.counts');        
@@ -694,6 +695,7 @@ Route::post('/logout', function () {
         Route::post('/po/{poid}/cancel',       [PoController::class, 'cancelPO'])->name('po.cancel');
         // SEND EMAIL
         Route::post('/po/{ponbr}/email/send', [PoController::class, 'sendNowPO'])->name('po.email.send');
+        Route::post('/po/{ponbr}/complete-partial', [PoController::class, 'completePartial'])->name('po.complete-partial');
     });
    
     Route::middleware('access:RECEIPTLIST,VIEW')->group(function () {

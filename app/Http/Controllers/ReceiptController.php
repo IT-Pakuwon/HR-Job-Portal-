@@ -56,25 +56,32 @@ class ReceiptController extends Controller
         // --- Ambil detail PO + hitung sisa yang masih bisa diterima ---
         // qty_sisa = max(qty - qty_received + qty_return, 0)
         $details = TrPOdetail::select([
-                'id','ponbr',
-                'inventoryid','inventory_descr','siteid',
-                DB::raw("COALESCE(uom,'')               AS uom"),
-                DB::raw("COALESCE(qty,0)                AS qty_original"),
-                DB::raw("COALESCE(qty_received,0)       AS qty_received"),
-                DB::raw("COALESCE(qty_return,0)         AS qty_return"),
-                DB::raw("GREATEST(COALESCE(qty,0) - COALESCE(qty_received,0) + COALESCE(qty_return,0), 0) AS qty_sisa")
-            ])
-            ->where('ponbr', $po->ponbr)
-            ->orderBy('id')
-            ->get()
-            // tampilkan hanya yang masih ada sisa
-            ->filter(fn($r) => (float)$r->qty_sisa > 0)
-            // supaya view tetap pakai $d->qty → set ke qty_sisa
-            ->map(function ($r) {
-                $r->qty = (float) $r->qty_sisa;
-                return $r;
-            })
-            ->values();
+            'id','ponbr',
+            'inventoryid','inventory_descr','siteid',
+            DB::raw("COALESCE(uom,'')               AS uom"),
+            DB::raw("COALESCE(qty,0)                AS qty_original"),
+            DB::raw("COALESCE(qty_received,0)       AS qty_received"),
+            DB::raw("COALESCE(qty_completed,0)      AS qty_completed"),  // ✅ add
+            DB::raw("COALESCE(qty_return,0)         AS qty_return"),
+            DB::raw("
+                GREATEST(
+                    COALESCE(qty,0)
+                    - COALESCE(qty_received,0)
+                    - COALESCE(qty_completed,0)
+                    + COALESCE(qty_return,0),
+                    0
+                ) AS qty_sisa
+            "),
+        ])
+        ->where('ponbr', $po->ponbr)
+        ->orderBy('id')
+        ->get()
+        ->filter(fn($r) => (float)$r->qty_sisa > 0)
+        ->map(function ($r) {
+            $r->qty = (float) $r->qty_sisa;
+            return $r;
+        })
+        ->values();
 
         // Saat create, attachment biasanya kosong
         $attachments = [];
@@ -864,25 +871,25 @@ class ReceiptController extends Controller
         if (!$receipt) return response()->json(['success'=>false,'message'=>'Receipt not found'],404);
 
         // ================== VALIDASI: BLOCK APPROVE JIKA PO SUDAH FULL RECEIVED ==================
-        $ponbr = $receipt->ponbr ?? null;
+        // $ponbr = $receipt->ponbr ?? null;
 
-        if ($ponbr) {
-            $totalLines = TrPOdetail::where('ponbr', $ponbr)->count();
+        // if ($ponbr) {
+        //     $totalLines = TrPOdetail::where('ponbr', $ponbr)->count();
 
-            if ($totalLines > 0) {
-                $fullLines = TrPOdetail::where('ponbr', $ponbr)
-                    ->whereRaw('COALESCE(qty_received, 0) >= COALESCE(qty, 0)')
-                    ->count();
+        //     if ($totalLines > 0) {
+        //         $fullLines = TrPOdetail::where('ponbr', $ponbr)
+        //             ->whereRaw('COALESCE(qty_received, 0) >= COALESCE(qty, 0)')
+        //             ->count();
 
-                if ($fullLines >= $totalLines) {
-                    return response()->json([
-                        'success' => false,
-                        'code'    => 'PO_ALREADY_FULLY_RECEIVED',
-                        'message' => "Tidak bisa approve karena PO {$ponbr} sudah di-receipt (qty received sudah sama). Silahkan Reject transaksi ini."
-                    ], 422);
-                }
-            }
-        }
+        //         if ($fullLines >= $totalLines) {
+        //             return response()->json([
+        //                 'success' => false,
+        //                 'code'    => 'PO_ALREADY_FULLY_RECEIVED',
+        //                 'message' => "Tidak bisa approve karena PO {$ponbr} sudah di-receipt (qty received sudah sama). Silahkan Reject transaksi ini."
+        //             ], 422);
+        //         }
+        //     }
+        // }
         // =================================================================================================
 
         $eid      = \Vinkla\Hashids\Facades\Hashids::encode($receipt->id);

@@ -334,14 +334,20 @@
             border-color: rgb(21 128 61);
             /* green-700 */
         }
+
+        #btn-completed.active {
+            background-color: rgb(226 232 240); /* slate-200 */
+            border-color: rgb(15 23 42);        /* slate-900 */
+            color: rgb(15 23 42);
+        }
     </style>
     <div class="max-w-9xl mx-auto w-full px-4 py-4 sm:px-6 lg:px-8">
-        <div class="grid auto-rows-fr grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
+        <div class="grid auto-rows-fr grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
 
             {{-- CS Jobs --}}
             <button type="button" class="w-full text-left">
                 <div id="btn-mine"
-                    class="filter-card flex h-full items-center gap-3 rounded-lg border border-indigo-700 bg-indigo-200/20 p-3 text-indigo-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-indigo-100 hover:shadow-md active:scale-95">
+                    class="filter-card flex h-full items-center gap-2 rounded-lg border border-indigo-700 bg-indigo-200/20 p-2 text-indigo-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-indigo-100 hover:shadow-md active:scale-95">
 
                     <div class="flex h-6 w-6 shrink-0 items-center justify-center text-lg">🗂️</div>
 
@@ -356,7 +362,7 @@
             {{-- CS Revision --}}
             <button type="button" class="w-full text-left">
                 <div id="btn-revision"
-                    class="filter-card flex h-full items-center gap-3 rounded-lg border border-amber-700 bg-amber-200/20 p-3 text-amber-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-amber-100 hover:shadow-md active:scale-95">
+                    class="filter-card flex h-full items-center gap-2 rounded-lg border border-amber-700 bg-amber-200/20 p-2 text-amber-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-amber-100 hover:shadow-md active:scale-95">
 
                     <div class="flex h-6 w-6 shrink-0 items-center justify-center text-lg">📝</div>
 
@@ -371,7 +377,7 @@
             {{-- All CS Jobs --}}
             <button type="button" class="w-full text-left">
                 <div id="btn-all"
-                    class="filter-card flex h-full items-center gap-3 rounded-lg border border-gray-700 bg-gray-200/20 p-3 text-gray-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-gray-100 hover:shadow-md active:scale-95 dark:border-white dark:text-white dark:hover:bg-gray-700">
+                    class="filter-card flex h-full items-center gap-2 rounded-lg border border-gray-700 bg-gray-200/20 p-2 text-gray-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-gray-100 hover:shadow-md active:scale-95 dark:border-white dark:text-white dark:hover:bg-gray-700">
 
                     <div class="flex h-6 w-6 shrink-0 items-center justify-center text-lg">🌐</div>
 
@@ -386,7 +392,7 @@
             {{-- SPPBJKT IN Progress --}}
             <button type="button" class="w-full text-left">
                 <div id="btn-sppbjkt"
-                    class="filter-card flex h-full items-center gap-3 rounded-lg border border-green-700 bg-green-200/20 p-3 text-green-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-green-100 hover:shadow-md active:scale-95">
+                    class="filter-card flex h-full items-center gap-2 rounded-lg border border-green-700 bg-green-200/20 p-2 text-green-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-green-100 hover:shadow-md active:scale-95">
 
                     <div class="flex h-6 w-6 shrink-0 items-center justify-center text-lg">🚦</div>
 
@@ -395,6 +401,21 @@
                     </div>
 
                     <p id="count-sppbjkt" class="shrink-0 text-xl font-bold">{{ $sppbjkt }}</p>
+                </div>
+            </button>
+
+            {{-- Completed Jobs --}}
+            <button type="button" class="w-full text-left">
+                <div id="btn-completed"
+                    class="filter-card flex h-full items-center gap-2 rounded-lg border border-slate-900 bg-slate-200/20 p-2 text-slate-900 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-slate-100 hover:shadow-md active:scale-95">
+
+                    <div class="flex h-6 w-6 shrink-0 items-center justify-center text-lg">✅</div>
+
+                    <div class="flex min-w-0 flex-grow flex-col leading-tight">
+                        <p class="break-words text-base font-medium">Completed Jobs</p>
+                    </div>
+
+                    <p id="count-completed" class="shrink-0 text-xl font-bold">{{ $completed ?? 0 }}</p>
                 </div>
             </button>
 
@@ -472,83 +493,8 @@
                             </tbody>
                         </table>
                     </div>
-                </div>
-
-                {{-- === PANE: CS Jobs (with internal tab for Entry CS) === --}}
-                {{-- <div id="pane-mine">
-                    <!-- Internal Tab Buttons -->
-                    <div class="mb-4 flex gap-3">
-                        <button id="subtab-mine"
-                            class="subtab-btn active rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700">
-                            CS Jobs
-                        </button>
-                        <button id="subtab-entrycs"
-                            class="subtab-btn rounded-md bg-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-300">
-                            Entry CS (My CS)
-                        </button>
-                    </div>
-
-                    <!-- === Sub-pane: CS Jobs === -->
-                    <div id="subpane-mine">
-                        <h2 class="mb-2 text-xl font-semibold">CS Jobs</h2>
-                        <table id="tblMine" class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                            <thead class="bg-gray-50 dark:bg-gray-700">
-                                <tr>
-                                    <th class="w-32 px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">
-                                        Action</th>
-                                    <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">DocID
-                                    </th>
-                                    <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">
-                                        Assign Date</th>
-                                    <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">
-                                        Date</th>
-                                    <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">
-                                        Company</th>
-                                    <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">
-                                        Name</th>
-                                    <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">
-                                        Assign Purchasing</th>
-                                    <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">
-                                        Assign By</th>
-                                    <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">
-                                        Department</th>
-                                    <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">
-                                        Description</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-800">
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <!-- === Sub-pane: Entry CS === -->
-                    <div id="subpane-entrycs" class="hidden">
-                        <h2 class="mb-2 text-xl font-semibold">Entry CS (My CS)</h2>
-                        <table id="tblEntryCS" class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                            <thead class="bg-gray-50 dark:bg-gray-700">
-                                <tr>
-                                    <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">CSID
-                                    </th>
-                                    <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">
-                                        Date</th>
-                                    <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">
-                                        Company</th>
-                                    <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">
-                                        Department</th>
-                                    <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">User
-                                        Peminta</th>
-                                    <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Note
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-800">
-                            </tbody>
-                        </table>
-                    </div>
-                </div> --}}
-
-
-                {{-- === PANE: My Revision === --}}
+                </div>                
+                
                 {{-- === PANE: My Revision (TrPO Reuse) === --}}
                 <div id="pane-revision" class="hidden">
                     <h2 class="mb-2 text-xl font-semibold">My Revision</h2>
@@ -584,7 +530,6 @@
                         <tbody class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-800"></tbody>
                     </table>
                 </div>
-
 
                 {{-- === PANE: All Jobs === --}}
                 <div id="pane-all" class="hidden">
@@ -646,6 +591,48 @@
                         <tbody class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-800"></tbody>
                     </table>
                 </div>
+
+                {{-- === PANE: Completed Jobs === --}}
+                <div id="pane-completed" class="hidden">
+                    <h2 class="mb-2 text-xl font-semibold">Completed Jobs</h2>
+
+                    <table id="tblCompleted" class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                        {{-- <thead class="bg-gray-50 dark:bg-gray-700">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">DocID</th>
+                                <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">Date</th>
+                                <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">Company</th>
+                                <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">Department</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Created By</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Description</th>
+                            </tr>
+                        </thead> --}}
+                        <thead class="bg-gray-50 dark:bg-gray-700">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">DocID
+                                </th>
+                                <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">Assign
+                                    Date</th>
+                                <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">Date
+                                </th>
+                                <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">
+                                    Company</th>
+                                <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">Name
+                                </th>
+                                <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">Assign
+                                    Purchasing</th>
+                                <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">Assign
+                                    By</th>
+                                <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">
+                                    Department</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">
+                                    Description</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-800"></tbody>
+                    </table>
+                </div>
+
 
             </div>
         </div>
@@ -919,9 +906,51 @@
                 responsive: true
             });
 
+            const tblCompleted = $('#tblCompleted').DataTable({
+                processing: true,
+                serverSide: true,
+                deferRender: true,
+                pageLength: 10,
+                lengthMenu: [10, 25, 50, 100, 250],
+                ajax: {
+                    url: "{{ route('csjobs.completed.json') }}",
+                    type: "GET"
+                },
+                order: [
+                    [1, 'desc'], // doc_date
+                    [0, 'desc']  // doc_no
+                ],
+                // columns: [
+                //     {
+                //         data: 'doc_no',
+                //         className: 'text-left',
+                //         render: (_v, _t, row) => renderDocBtn(row) // sama seperti sppbjkt
+                //     },
+                   
+                //     {
+                //         data: 'doc_date',
+                //         className: 'text-center',
+                //         render: v => v ? (isNaN(new Date(v)) ? v : new Date(v).toLocaleDateString('id-ID')) : ''
+                //     },
+                //     { data: 'cpny_id', className: 'text-center' },
+                //     { data: 'department_id', className: 'text-center' },
+                //     {
+                //         data: 'created_by_name',
+                //         className: 'text-left',
+                //         defaultContent: '-'
+                //     },
+                //     { data: 'keperluan', className: 'text-left', defaultContent: '-' },
+                // ],
+                columns: colSetWithoutCreate(),
+                searchDelay: 400,
+                stateSave: true,
+                responsive: true
+            });
+
+
             // ===== Switching panes via cards =====
             function showPane(key) {
-                $('#pane-mine, #pane-revision, #pane-all, #pane-sppbjkt').addClass('hidden');
+                $('#pane-mine, #pane-revision, #pane-all, #pane-sppbjkt, #pane-completed').addClass('hidden');
                 $(`#pane-${key}`).removeClass('hidden');
 
                 // tampilkan Entry CS hanya di CS Jobs
@@ -934,7 +963,10 @@
                     tblAll.columns.adjust();
                 } else if (key === 'sppbjkt') {
                     tblSppbjkt.columns.adjust();
+                } else if (key === 'completed') {
+                    tblCompleted.columns.adjust();
                 }
+
 
                 // highlight kartu aktif
                 $('.filter-card').removeClass('active');
@@ -948,6 +980,8 @@
             $('#btn-revision').on('click', () => showPane('revision'));
             $('#btn-all').on('click', () => showPane('all'));
             $('#btn-sppbjkt').on('click', () => showPane('sppbjkt'));
+            $('#btn-completed').on('click', () => showPane('completed'));
+
 
             // (Opsional) refresh counts
             function refreshCounts() {
@@ -1046,7 +1080,7 @@
     }
 
     </script>
-    <Script>
+    {{-- <Script>
         // Klik tombol X untuk complete sisa openordered
         $(document).on('click', '.btn-complete-open', function() {
             const doc = $(this).data('doc'); // SPPB | SPPJ | SPPK | SPPT
@@ -1120,7 +1154,94 @@
                     .always(() => $btn.prop('disabled', false));
             });
         });
-    </Script>
+    </Script> --}}
+
+    <script>
+        $(document).on('click', '.btn-complete-open', function() {
+            const doc = String($(this).data('doc') || ''); // SPPB | SPPJ | SPPK | SPPT
+            const eid = String($(this).data('eid') || ''); // hashids src_id
+
+            Swal.fire({
+                title: 'Complete Sisa Order?',
+                html: `
+                    <div style="text-align:left;">
+                        <p>Dokumen: <b>${doc}</b></p>
+                        <p>Aksi ini akan menandai <b>semua sisa (open qty)</b> sebagai <b>Completed</b>.</p>
+                        <p style="color:red; font-weight:bold;">Yakin ingin melanjutkan?</p>
+                    </div>
+                `,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Lanjut',
+                cancelButtonText: 'Batal',
+                reverseButtons: true,
+                focusCancel: true,
+            }).then((result) => {
+                if (!result.isConfirmed) return;
+
+                Swal.fire({
+                    title: 'Alasan Completed',
+                    input: 'textarea',
+                    inputPlaceholder: 'Wajib diisi alasan completed...',
+                    inputAttributes: {
+                        required: true,
+                        minlength: 5
+                    },
+                    showCancelButton: true,
+                    confirmButtonText: 'Submit',
+                    cancelButtonText: 'Batal',
+                    preConfirm: (value) => {
+                        if (!value || value.trim().length < 5) {
+                            Swal.showValidationMessage('Alasan wajib diisi (min 5 karakter)');
+                            return false;
+                        }
+                        return value.trim();
+                    }
+                }).then((res) => {
+                    if (!res.isConfirmed) return;
+
+                    const $btn = $(this).prop('disabled', true);
+
+                    $.ajax({
+                        url: `/csjobs/complete/${doc}/${eid}`,
+                        type: 'POST',
+                        data: {
+                            _token: '{{ csrf_token() }}',
+                            reason: res.value
+                        },
+                    })
+                    .done(resp => {
+                        if (resp.ok) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Berhasil!',
+                                text: resp.message || 'Sisa qty telah di-completed-kan.',
+                                timer: 2000,
+                                showConfirmButton: false
+                            });
+
+                            // reload tabel
+                            try { $('#tblMine').DataTable().ajax.reload(null, false); } catch (e) {}
+                            try { $('#tblAll').DataTable().ajax.reload(null, false); } catch (e) {}
+                            try { $('#tblRevision').DataTable().ajax.reload(null, false); } catch (e) {}
+                            try { $('#tblSppbjkt').DataTable().ajax.reload(null, false); } catch (e) {}
+                        } else {
+                            Swal.fire({ icon: 'error', title: 'Gagal!', text: resp.message || 'Gagal memproses aksi.' });
+                        }
+                    })
+                    .fail(xhr => {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Gagal!',
+                            text: xhr.responseJSON?.message || 'Terjadi kesalahan pada server.',
+                        });
+                    })
+                    .always(() => $btn.prop('disabled', false));
+                });
+            });
+        });
+        </script>
+
 
     <script>
         $(document).on('click', '.btn-revise-doc', function () {

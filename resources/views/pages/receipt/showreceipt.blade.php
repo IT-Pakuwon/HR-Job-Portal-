@@ -1165,7 +1165,7 @@
         }
     </script>
 
-    <script>
+    {{-- <script>
         $(document).on("click", "#approveBtn", async function() {
             const receiptnbr = "{{ $rcp->receiptnbr }}";
 
@@ -1211,7 +1211,7 @@
                 });
             }
         });
-        </script>
+        </script> --}}
 
 
 
