@@ -126,6 +126,26 @@
                         (is_string($createdBy) && strtolower($createdBy) === strtolower($loginUser->email ?? ''));
                 }
             @endphp
+            @php
+                $canShowCompletedBtn = false;
+
+                // flag dari controller
+                $hasRcpt = (bool) ($hasReceiptCompleted ?? false);
+
+                if (
+                    $hasRcpt &&
+                    !empty($podetail) &&
+                    $po->status !== 'H' &&
+                    $po->status !== 'X' &&
+                    $po->status !== 'R' &&
+                    $po->status !== 'C'
+                ) {
+                    $canShowCompletedBtn = collect($podetail)
+                        ->contains(fn($d) => (float)($d->qty_received ?? 0) > 0);
+                }
+            @endphp
+
+
 
 
             <div class="flex gap-3">
@@ -170,6 +190,19 @@
                             Send Email
                         </button>
                     @endif
+                    @if ($canShowCompletedBtn)
+                        <button id="completedBtn"
+                            class="inline-flex items-center gap-1 rounded-md bg-emerald-600 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                stroke-width="1.5" stroke="currentColor" class="h-4 w-4">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                            </svg>
+                            Completed
+                        </button>
+                    @endif
+
+
                 @endif
             </div>
         </div>
@@ -243,11 +276,11 @@
                                     '" target="_blank" class="inline-flex items-center gap-1 text-indigo-600 hover:underline dark:text-indigo-400">' .
                                     e($po->sppbjktid) .
                                     '<svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                    stroke-width="1.5" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round"
-                        d="M13.5 6H18m0 0v4.5M18 6l-6.75 6.75M18 18.75H6.75A1.5 1.5 0 0 1 5.25 17.25V6.75A1.5 1.5 0 0 1 6.75 5.25H12" />
-                </svg>
-            </a>';
+                                            stroke-width="1.5" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                d="M13.5 6H18m0 0v4.5M18 6l-6.75 6.75M18 18.75H6.75A1.5 1.5 0 0 1 5.25 17.25V6.75A1.5 1.5 0 0 1 6.75 5.25H12" />
+                                        </svg>
+                                    </a>';
                             }
 
                             $csDisplay = e($po->csid);
@@ -1766,6 +1799,83 @@
             });
         });
     </script>
+    <script>
+        $(function() {
+            const ponbr = @json($po->ponbr);
+            const statusNow = @json($po->status);
+            const completeUrl = @json(route('po.complete-partial', ['ponbr' => $po->ponbr]));
+
+            $('#completedBtn').on('click', async function() {
+
+                const statusMsg = {
+                    H: 'Dokumen belum di-Submit (status HOLD).',
+                    X: 'Dokumen di-Cancel.',
+                    R: 'Dokumen di-Reuse.',
+                    C: 'Dokumen sudah Completed.'
+                };
+
+                if (['H', 'X', 'R', 'C'].includes(statusNow)) {
+                    toastr.warning(statusMsg[statusNow] || 'Dokumen tidak dapat diproses.');
+                    return;
+                }
+
+                const result = await Swal.fire({
+                    title: 'Anda yakin mau completed sebagian?',
+                    text: 'Isi alasan (wajib). Sistem akan meng-complete semua sisa qty pada seluruh item PO.',
+                    icon: 'warning',
+                    input: 'textarea',
+                    inputPlaceholder: 'Tulis alasan completed sebagian...',
+                    inputAttributes: {
+                        'aria-label': 'Alasan'
+                    },
+                    showCancelButton: true,
+                    confirmButtonText: 'Ya, Completed',
+                    cancelButtonText: 'Batal',
+                    preConfirm: (value) => {
+                        if (!value || !value.trim()) {
+                            Swal.showValidationMessage('Alasan wajib diisi.');
+                            return false;
+                        }
+                        return value.trim();
+                    }
+                });
+
+                if (!result.isConfirmed) return;
+
+                $("#loadingSpinnerContainer").fadeIn();
+
+                $.ajax({
+                    url: completeUrl,
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': @json(csrf_token())
+                    },
+                    contentType: 'application/json',
+                    data: JSON.stringify({
+                        reason: result.value
+                    }),
+                    success: function(res) {
+                        if (res && res.success) {
+                            toastr.success(res.message || 'Partial completed berhasil.');
+                            location.reload();
+                        } else {
+                            toastr.error(res.message || 'Gagal completed.');
+                        }
+                    },
+                    error: function(xhr) {
+                        toastr.error(xhr.responseJSON?.message || 'Gagal completed.');
+                    },
+                    complete: function() {
+                        $("#loadingSpinnerContainer").fadeOut();
+                    }
+                });
+            });
+        });
+    </script>
+
+    
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 
 
     <!-- Toastr CSS -->

@@ -6,11 +6,11 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use App\Models\Autonbr;
-use App\Models\T_Message;
-use App\Models\Attachment;
-use App\Models\M_approval;
-use App\Models\M_approval_other;
-use App\Models\T_approval;
+// use App\Models\T_Message;
+// use App\Models\Attachment;
+// use App\Models\M_approval;
+// use App\Models\M_approval_other;
+// use App\Models\T_approval;
 use App\Models\Company;
 use App\Models\Dept;
 use App\Models\Usercpny;
@@ -51,6 +51,7 @@ use App\Http\Controllers\ApprovalController;
 use App\Models\TrApproval;  
 use App\Models\TrPO; 
 use App\Services\CsQtyValidator;
+use App\Models\vSppbjktCompleted;
 
 
 
@@ -64,13 +65,16 @@ class CsJobController extends Controller
 
         $u = $user->username ?? '';
 
-        $mine     = vCsJobs::where('assignpurchasing', $user->username)->count();
-        $revision = vCsRevision::where('created_by', $u)->count();            
+        $mine     = vCsJobs::where('assignpurchasing', $u)->count();
+        $revision = vCsRevision::where('created_by', $u)->count();
         $all      = vCsJobs::count();
         $sppbjkt  = vSppbjktOnProgress::count();
 
-        return view('pages.canvass.csjobs', compact('mine','revision','all','sppbjkt'));
+        $completed = vSppbjktCompleted::where('completed_by', $u)->count();
+
+        return view('pages.canvass.csjobs', compact('mine','revision','all','sppbjkt','completed'));
     }
+
 
     public function CsJobsDatasetCounts(Request $request)
     {
@@ -78,12 +82,14 @@ class CsJobController extends Controller
         $u = $user->username ?? '';
 
         return response()->json([
-            'mine'     => vCsJobs::where('assignpurchasing', $u)->count(),
-            'revision' => vCsRevision::where('created_by', $u)->count(),
-            'all'      => vCsJobs::count(),
-            'sppbjkt'  => vSppbjktOnProgress::count(),
+            'mine'      => vCsJobs::where('assignpurchasing', $u)->count(),
+            'revision'  => vCsRevision::where('created_by', $u)->count(),
+            'all'       => vCsJobs::count(),
+            'sppbjkt'   => vSppbjktOnProgress::count(),
+            'completed' => vSppbjktCompleted::where('completed_by', $u)->count(),
         ]);
     }
+
 
 
     private function buildJobsJson($base, Request $request)
@@ -304,6 +310,21 @@ class CsJobController extends Controller
         return $this->buildJobsJson($base, $request);
     }
 
+    public function CsJobsCompletedJson(Request $request)
+    {
+        $user = Auth::user();
+        $u = $user->username ?? '';
+
+        $base = vSppbjktCompleted::query()
+            ->where('completed_by', $u);
+
+        // pakai builder yang sama, karena fields view completed sudah mirip:
+        // doc_type, src_id, doc_no, doc_date, cpny_id, department_id, keperluan, created_by, row_id, etc.
+        // note: assigndate/assignby/assignpurchasing mungkin null → aman, colSetWithoutCreate handle defaultContent
+        return $this->buildJobsJson($base, $request);
+    }
+
+
    
     private function baseQueryForTab(string $tab)
     {
@@ -471,7 +492,7 @@ class CsJobController extends Controller
 
    
 
-    public function CompleteRemainingOpen(string $doc, string $eid)
+    public function CompleteRemainingOpen_xxx(string $doc, string $eid)
     {
         $ids = \Vinkla\Hashids\Facades\Hashids::decode($eid);
         abort_if(empty($ids), 404);
@@ -568,6 +589,185 @@ class CsJobController extends Controller
             ], 422);
         }
     }
+
+    public function CompleteRemainingOpen(Request $request, string $doc, string $eid)
+    {
+        $data = $request->validate([
+            'reason' => ['required','string','min:5'],
+        ]);
+
+        $ids = Hashids::decode($eid);
+        abort_if(empty($ids), 404);
+        $srcId = $ids[0];
+
+        $user = Auth::user();
+
+        $doc = strtoupper($doc);
+        abort_unless(in_array($doc, ['SPPB','SPPJ','SPPK','SPPT']), 422, 'Invalid doc type');
+
+        // mapping doctype untuk SendCommentController
+        $commentDocMap = [
+            'SPPB' => 'PB',
+            'SPPJ' => 'PJ',
+            'SPPK' => 'PK',
+            'SPPT' => 'PT',
+        ];
+        $commentDocType = $commentDocMap[$doc];
+
+        // mapping url show dokumen
+        $showRouteMap = [
+            'SPPB' => 'showsppbs',
+            'SPPJ' => 'showsppjs',
+            'SPPK' => 'showsppks',
+            'SPPT' => 'showsppts',
+        ];
+
+        DB::connection('pgsql')->beginTransaction();
+        try {
+            switch ($doc) {
+                case 'SPPB':
+                    $updated = \App\Models\TrSPPB::on('pgsql')->lockForUpdate()->findOrFail($srcId);
+                    $details = \App\Models\TrSPPBdetail::on('pgsql')->where('sppbid', $updated->sppbid)->get();
+                    $refnbr  = (string) $updated->sppbid; // nomor dokumen
+                    break;
+
+                case 'SPPJ':
+                    $updated = \App\Models\TrSPPJ::on('pgsql')->lockForUpdate()->findOrFail($srcId);
+                    $details = \App\Models\TrSPPJdetail::on('pgsql')->where('sppjid', $updated->sppjid)->get();
+                    $refnbr  = (string) $updated->sppjid;
+                    break;
+
+                case 'SPPK':
+                    $updated = \App\Models\TrSPPK::on('pgsql')->lockForUpdate()->findOrFail($srcId);
+                    $details = \App\Models\TrSPPKdetail::on('pgsql')->where('sppkid', $updated->sppkid)->get();
+                    $refnbr  = (string) $updated->sppkid;
+                    break;
+
+                case 'SPPT':
+                    $updated = \App\Models\TrSPPT::on('pgsql')->lockForUpdate()->findOrFail($srcId);
+                    $details = \App\Models\TrSPPTdetail::on('pgsql')->where('spptid', $updated->spptid)->get();
+                    $refnbr  = (string) $updated->spptid;
+                    break;
+            }
+
+            $detTable = fn($m) => $m->getTable();
+            $hdrTable = $updated->getTable();
+
+            $sumCompletedAdded = 0.0;
+            $sumOpenReduced    = 0.0;
+
+            foreach ($details as $d) {
+                $qty       = (float)($d->qty ?? 0);
+                $ordered   = (float)($d->ordered ?? 0);
+                $rejected  = (float)($d->rejectordered ?? 0);
+                $completed = (float)($d->completeordered ?? 0);
+
+                if (Schema::connection('pgsql')->hasColumn($detTable($d), 'openordered') && $d->openordered !== null) {
+                    $remaining = (float)$d->openordered;
+                } else {
+                    $remaining = max($qty - $ordered - $rejected - $completed, 0);
+                }
+
+                if ($remaining <= 0) continue;
+
+                if (Schema::connection('pgsql')->hasColumn($detTable($d), 'completeordered')) {
+                    $d->completeordered = $completed + $remaining;
+                }
+                if (Schema::connection('pgsql')->hasColumn($detTable($d), 'openordered')) {
+                    $d->openordered = 0;
+                }
+
+                $d->completed_by = $user->username;
+                $d->completed_at = Carbon::now();
+                $d->save();
+
+                $sumCompletedAdded += $remaining;
+                $sumOpenReduced    += $remaining;
+            }
+
+            if (Schema::connection('pgsql')->hasColumn($hdrTable, 'totalcompleteordered')) {
+                $updated->totalcompleteordered = (float)($updated->totalcompleteordered ?? 0) + $sumCompletedAdded;
+            }
+            if (Schema::connection('pgsql')->hasColumn($hdrTable, 'totalopenordered')) {
+                $updated->totalopenordered = max(0, (float)($updated->totalopenordered ?? 0) - $sumOpenReduced);
+            }
+
+            $updated->save();
+
+            // ✅ kirim reason ke SendCommentController
+            $request->merge([
+                'message' => $data['reason'],
+                'comment' => $data['reason'],
+            ]);
+
+            try {
+                app(\App\Http\Controllers\SendCommentController::class)
+                    ->sendmsg($refnbr, $commentDocType, $request);
+            } catch (\Throwable $e) {
+                // optional log
+            }
+
+            // ✅ EMAIL ke CREATED_BY
+            try {
+                $creatorUsername = $updated->created_by ?? null;
+
+                if ($creatorUsername) {
+                    $creator = \App\Models\User::query()
+                        ->where('username', $creatorUsername)
+                        ->where('status', 'A')
+                        ->first();
+
+                    if ($creator && $creator->notification_email) {
+
+                        // url ke halaman show dokumen
+                        $showBase = $showRouteMap[$doc] ?? null;
+                        $url = $showBase ? url('/' . $showBase . '/' . Hashids::encode($updated->id)) : null;
+
+                        $emailData = [
+                            'docid'     => $refnbr,
+                            'cpnyid'    => (string)($updated->cpny_id ?? ''),
+                            'deptname'  => (string)($updated->department_id ?? ''),
+                            'date'      => Carbon::now(),
+                            'info'      => 'Detail Item marked as Completed. Reason: ' . $data['reason'],
+                            'name'      => (string)($creator->name ?? ''),
+                            'status'    => 'C',              // ✅ Completed
+                            'docname'   => $doc,             // ✅ SPPB/SPPJ/...
+                            'url'       => $url,
+                            'createdby' => (string)($user->name ?? $user->username),
+                            'reason'    => $data['reason'],  // ✅ tambahan (kalau mau dipakai di template)
+                        ];
+
+                        \Mail::send('emails.mailapprovenew', $emailData, function ($message) use ($creator, $refnbr, $doc) {
+                            $message->to($creator->notification_email)
+                                ->subject($refnbr . ' - Completed Detail Item ' . $doc)
+                                ->from('digitalserver@pakuwon.com', 'Pakuwon System');
+                        });
+                    }
+                }
+            } catch (\Throwable $e) {
+                \Log::error('Email completed failed: ' . $e->getMessage(), [
+                    'doc' => $doc,
+                    'srcId' => $srcId,
+                ]);
+            }
+
+            DB::connection('pgsql')->commit();
+
+            return response()->json([
+                'ok'      => true,
+                'message' => 'Sisa qty berhasil di-mark Completed.',
+            ]);
+        } catch (\Throwable $e) {
+            DB::connection('pgsql')->rollBack();
+            \Log::error('CompleteRemainingOpen failed', ['error' => $e->getMessage()]);
+
+            return response()->json([
+                'ok'      => false,
+                'message' => 'Gagal memproses: ' . $e->getMessage(),
+            ], 422);
+        }
+    }
+
 
     public function checkQtyBeforeSubmit(Request $request)
     {

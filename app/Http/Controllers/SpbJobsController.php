@@ -461,28 +461,37 @@ class SpbJobsController extends Controller
         // qty_sisa = qty - issue_qty + return_qty
         // =============================================
         $details = TrSPBdetail::select([
-                'id',
-                'spbid',
-                'spb_no',
-                'inventoryid',
-                'inventory_descr',
-                'siteid',
-                DB::raw("COALESCE(uom,'') AS uom"),
-                DB::raw("COALESCE(qty,0) AS qty_original"),
-                DB::raw("COALESCE(issue_qty,0) AS qty_issued"),
-                DB::raw("COALESCE(return_qty,0) AS qty_returned"),
-                DB::raw("(COALESCE(qty,0) - COALESCE(issue_qty,0) + COALESCE(return_qty,0)) AS qty_sisa")
-            ])
-            ->where('spbid', $spb->spbid)
-            ->orderBy('id')
-            ->get()
-            ->filter(fn($r) => (float)$r->qty_sisa > 0) // hanya yg masih ada sisa issue
-            ->map(function ($r) {
-                // kolom qty untuk form issue
-                $r->qty = (float) $r->qty_sisa;
-                return $r;
-            })
-            ->values();
+            'id',
+            'spbid',
+            'spb_no',
+            'inventoryid',
+            'inventory_descr',
+            'siteid',
+            DB::raw("COALESCE(uom,'') AS uom"),
+            DB::raw("COALESCE(qty,0) AS qty_original"),
+            DB::raw("COALESCE(issue_qty,0) AS qty_issued"),
+            DB::raw("COALESCE(spb_completeqty,0) AS qty_completed"), // ✅ add (alias opsional)
+            DB::raw("COALESCE(return_qty,0) AS qty_returned"),
+            DB::raw("
+                GREATEST(
+                    COALESCE(qty,0)
+                    - COALESCE(issue_qty,0)
+                    - COALESCE(spb_completeqty,0)
+                    + COALESCE(return_qty,0),
+                    0
+                ) AS qty_sisa
+            "),
+        ])
+        ->where('spbid', $spb->spbid)
+        ->orderBy('id')
+        ->get()
+        ->filter(fn($r) => (float)$r->qty_sisa > 0)
+        ->map(function ($r) {
+            $r->qty = (float) $r->qty_sisa; // dipakai oleh form
+            return $r;
+        })
+        ->values();
+
 
 
         // =============================================
@@ -580,29 +589,61 @@ class SpbJobsController extends Controller
         // Ambil detail SPB sesuai struktur baru
         // qty_sisa = qty - issue_qty + return_qty
         // =============================================
+        // $details = TrSPBdetail::select([
+        //         'id',
+        //         'spbid',
+        //         'spb_no',
+        //         'inventoryid',
+        //         'inventory_descr',
+        //         'siteid',
+        //         DB::raw("COALESCE(uom,'') AS uom"),
+        //         DB::raw("COALESCE(qty,0) AS qty_original"),
+        //         DB::raw("COALESCE(issue_qty,0) AS qty_issued"),
+        //         DB::raw("COALESCE(return_qty,0) AS qty_returned"),
+        //         DB::raw("(COALESCE(qty,0) - COALESCE(issue_qty,0) + COALESCE(return_qty,0)) AS qty_sisa")
+        //     ])
+        //     ->where('spbid', $spb->spbid)
+        //     ->orderBy('id')
+        //     ->get()
+        //     ->filter(fn($r) => (float)$r->qty_sisa > 0) // hanya yg masih ada sisa issue
+        //     ->map(function ($r) {
+        //         // kolom qty untuk form issue
+        //         $r->qty = (float) $r->qty_sisa;
+        //         return $r;
+        //     })
+        //     ->values();
         $details = TrSPBdetail::select([
-                'id',
-                'spbid',
-                'spb_no',
-                'inventoryid',
-                'inventory_descr',
-                'siteid',
-                DB::raw("COALESCE(uom,'') AS uom"),
-                DB::raw("COALESCE(qty,0) AS qty_original"),
-                DB::raw("COALESCE(issue_qty,0) AS qty_issued"),
-                DB::raw("COALESCE(return_qty,0) AS qty_returned"),
-                DB::raw("(COALESCE(qty,0) - COALESCE(issue_qty,0) + COALESCE(return_qty,0)) AS qty_sisa")
-            ])
-            ->where('spbid', $spb->spbid)
-            ->orderBy('id')
-            ->get()
-            ->filter(fn($r) => (float)$r->qty_sisa > 0) // hanya yg masih ada sisa issue
-            ->map(function ($r) {
-                // kolom qty untuk form issue
-                $r->qty = (float) $r->qty_sisa;
-                return $r;
-            })
-            ->values();
+            'id',
+            'spbid',
+            'spb_no',
+            'inventoryid',
+            'inventory_descr',
+            'siteid',
+            DB::raw("COALESCE(uom,'') AS uom"),
+            DB::raw("COALESCE(qty,0) AS qty_original"),
+            DB::raw("COALESCE(issue_qty,0) AS qty_issued"),
+            DB::raw("COALESCE(spb_completeqty,0) AS qty_completed"), // ✅ add (alias opsional)
+            DB::raw("COALESCE(return_qty,0) AS qty_returned"),
+            DB::raw("
+                GREATEST(
+                    COALESCE(qty,0)
+                    - COALESCE(issue_qty,0)
+                    - COALESCE(spb_completeqty,0)
+                    + COALESCE(return_qty,0),
+                    0
+                ) AS qty_sisa
+            "),
+        ])
+        ->where('spbid', $spb->spbid)
+        ->orderBy('id')
+        ->get()
+        ->filter(fn($r) => (float)$r->qty_sisa > 0)
+        ->map(function ($r) {
+            $r->qty = (float) $r->qty_sisa; // dipakai oleh form
+            return $r;
+        })
+        ->values();
+
 
 
         // =============================================

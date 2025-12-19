@@ -500,7 +500,9 @@
                                 <th class="px-4 py-2">Qty / UoM</th>  
                                 <th class="px-4 py-2">Location</th>
                                 <th class="px-4 py-2">Budget Department</th>                                
-                                <th class="px-4 py-2">Ordered</th>
+                                <th class="px-4 py-2">Ordered</th>    
+                                <th class="px-4 py-2">Rejectordered</th> 
+                                <th class="px-4 py-2">Completeordered</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -521,6 +523,8 @@
                                     <td class="px-4 py-2">{{ optional($item->location)->location_name }} - {{ optional($item->subLocation)->sub_location_name }}</td>
                                     <td class="px-4 py-2">{{ $item->budget_department_fin_id }} - {{ $item->budget_account_id }} - {{ $item->budget_activity_descr }}</td>
                                     <td class="px-4 py-2">{{ $item->ordered }}</td>
+                                    <td class="px-4 py-2">{{ $item->rejectordered }}</td>
+                                    <td class="px-4 py-2">{{ $item->completeordered }}</td>
                                 </tr>
                             @endforeach
                         </tbody>
