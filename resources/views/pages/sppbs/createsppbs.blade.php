@@ -452,7 +452,7 @@
                             <div class="mb-3 flex border-b border-gray-200 dark:border-gray-700">
 
                                 {{-- Tampilkan TAB STOCK hanya jika user punya akses WHSACCESS --}}
-                                @if($akses_stock)
+                                @if ($akses_stock)
                                     <button type="button"
                                         class="invTab border-b-2 border-indigo-600 px-4 py-2 font-semibold"
                                         data-type="gi">
@@ -461,8 +461,7 @@
                                 @endif
 
                                 <button type="button"
-                                    class="invTab @if(!$akses_stock) border-b-2 border-indigo-600 @else border-b-2 border-transparent @endif
-                                    px-4 py-2 font-semibold"
+                                    class="invTab @if (!$akses_stock) border-b-2 border-indigo-600 @else border-b-2 border-transparent @endif px-4 py-2 font-semibold"
                                     data-type="ns">
                                     Non-Stock
                                 </button>
@@ -1273,7 +1272,7 @@
                 $tbody.html(`<tr><td colspan="4" class="p-3 text-center">Loading...</td></tr>`);
 
                 const deptId = $('#departementid').val() || '';
-                
+
                 $.getJSON("{{ route('inventory.list') }}", {
                         type: invState.type, // 'stock' | 'nonstock'
                         departementid: deptId,
@@ -2669,7 +2668,7 @@
 
             if (hasInventory) {
                 alert("Department tidak bisa diubah karena sudah ada inventory di SPPB Detail.");
-                
+
                 // balikkan ke value sebelumnya
                 $('#departementid').val(prevDept);
 
@@ -2679,7 +2678,6 @@
             // jika aman → update prevDept
             prevDept = $(this).val();
         });
-
     </script>
 
 
