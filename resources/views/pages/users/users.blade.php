@@ -6,7 +6,7 @@
         <!-- Dashboard actions -->
         <div class="mb-8 sm:flex sm:items-center sm:justify-between"></div>
         <!-- Breadcrumb dengan Dropdown -->
- 
+
         <div class="grid">
             <style>
                 .no-border {
@@ -201,10 +201,10 @@
                 /* ✅ Memperkecil Lebar Kolom Actions */
                 #usersTable th:nth-child(1),
                 #usersTable td:nth-child(1) {
-                    width: 180px; /* sebelumnya 120px, kita besarin dikit */
+                    width: 180px;
+                    /* sebelumnya 120px, kita besarin dikit */
                     text-align: center;
                 }
-
             </style>
             <div class="mt-6 rounded-xl bg-white p-4 dark:bg-gray-800">
                 <div class="mb-4 flex items-center justify-between">
@@ -217,11 +217,10 @@
                 {{-- Filter Company & Department --}}
                 <div class="mb-3 flex flex-wrap items-center gap-3">
                     <div>
-                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-1">
+                        <label class="mb-1 block text-sm font-semibold text-gray-700 dark:text-gray-200">
                             Filter Company
                         </label>
-                        <select id="filterCompany"
-                                class="rounded-lg border px-2 py-1 text-sm dark:bg-gray-700">
+                        <select id="filterCompany" class="rounded-lg border px-2 py-1 text-sm dark:bg-gray-700">
                             <option value="">-- All --</option>
                             @foreach ($company as $c)
                                 <option value="{{ $c->cpny_id }}">{{ $c->cpny_id }}</option>
@@ -230,11 +229,10 @@
                     </div>
 
                     <div>
-                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-1">
+                        <label class="mb-1 block text-sm font-semibold text-gray-700 dark:text-gray-200">
                             Filter Department
                         </label>
-                        <select id="filterDepartment"
-                                class="rounded-lg border px-2 py-1 text-sm dark:bg-gray-700">
+                        <select id="filterDepartment" class="rounded-lg border px-2 py-1 text-sm dark:bg-gray-700">
                             <option value="">-- All --</option>
                             @foreach ($department as $d)
                                 <option value="{{ $d->department_id }}">{{ $d->department_id }}</option>
@@ -243,9 +241,8 @@
                     </div>
 
                     <div class="mt-6">
-                        <button id="clearUserFilters"
-                                type="button"
-                                class="rounded-lg border px-3 py-1 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:border-gray-500 dark:hover:bg-gray-600">
+                        <button id="clearUserFilters" type="button"
+                            class="rounded-lg border px-3 py-1 text-sm text-gray-700 hover:bg-gray-100 dark:border-gray-500 dark:text-gray-200 dark:hover:bg-gray-600">
                             Clear Filter
                         </button>
                     </div>
@@ -255,7 +252,7 @@
                 <table id="usersTable" class="w-full table-fixed border-collapse">
                     <thead class="bg-white dark:bg-gray-700">
                         <tr>
-                            <th class="w-32 px-4 py-3 text-center">Actions</th>
+                            <th class="w-48 px-4 py-3 text-center">Actions</th>
                             <th class="px-4 py-3 text-left">Name</th>
                             <th class="px-4 py-3 text-left">Email</th>
                             <th class="px-4 py-3 text-left">Company</th>
@@ -285,7 +282,8 @@
                         </div>
                         <div class="mb-4">
                             <label class="block text-gray-700 dark:text-white">Company</label>
-                            <select name="cpny_id[]" class="select2 w-full rounded-lg border px-3 py-2" multiple required>
+                            <select name="cpny_id[]" class="select2 w-full rounded-lg border px-3 py-2" multiple
+                                required>
                                 @foreach ($company as $p)
                                     <option value="{{ $p->cpny_id }}">{{ $p->cpny_id }}</option>
                                 @endforeach
@@ -294,7 +292,8 @@
                         </div>
                         <div class="mb-4">
                             <label class="block text-gray-700 dark:text-white">Departement</label>
-                            <select name="department_id[]" class="select2 w-full rounded-lg border px-3 py-2" multiple required>
+                            <select name="department_id[]" class="select2 w-full rounded-lg border px-3 py-2" multiple
+                                required>
                                 @foreach ($department as $p)
                                     <option value="{{ $p->department_id }}">{{ $p->department_id }}</option>
                                 @endforeach
@@ -309,7 +308,7 @@
                                 <option value="manager">Manager</option>
                             </select>
                         </div>
-                       
+
                         <div class="mb-4">
                             <label class="block text-gray-700 dark:text-white">Role</label>
                             <select name="role" class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700" required>
@@ -317,7 +316,7 @@
                                 <option value="user">User</option>
                                 <option value="admin">Admin</option>
                             </select>
-                        </div>                    
+                        </div>
 
                         <div class="mb-4">
                             <label class="block text-gray-700 dark:text-white">App Roles </label>
@@ -419,7 +418,7 @@
                     });
 
                     // ===== Filter Company (kolom 3) =====
-                    $('#filterCompany').on('change', function () {
+                    $('#filterCompany').on('change', function() {
                         const val = $(this).val();
 
                         table
@@ -429,7 +428,7 @@
                     });
 
                     // ===== Filter Department (kolom 4) =====
-                    $('#filterDepartment').on('change', function () {
+                    $('#filterDepartment').on('change', function() {
                         const val = $(this).val();
 
                         table
@@ -439,7 +438,7 @@
                     });
 
                     // ===== Clear Filter =====
-                    $('#clearUserFilters').on('click', function () {
+                    $('#clearUserFilters').on('click', function() {
                         $('#filterCompany').val('');
                         $('#filterDepartment').val('');
 
@@ -458,7 +457,7 @@
                     });
 
 
-                   
+
                     $(document).on('click', '.editAppBtn', function() {
                         let appId = $(this).data('id');
                         $.get(`/users/${appId}/edit`, function(app) {
@@ -545,9 +544,9 @@
                 });
             </script>
 
-            <script>               
+            <script>
                 // 🔑 Login As (SweetAlert)
-                $(document).on('click', '.impersonateBtn', function (e) {
+                $(document).on('click', '.impersonateBtn', function(e) {
                     e.preventDefault();
                     e.stopPropagation();
 
@@ -568,8 +567,10 @@
                             $.ajax({
                                 url: `/users/${userId}/impersonate`,
                                 type: 'POST',
-                                headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
-                                success: function (res) {
+                                headers: {
+                                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                                },
+                                success: function(res) {
 
                                     Swal.fire({
                                         title: "Berhasil!",
@@ -578,14 +579,16 @@
                                         timer: 1500,
                                         showConfirmButton: false
                                     }).then(() => {
-                                        window.location.href = res.redirect ?? window.location.href;
+                                        window.location.href = res.redirect ?? window.location
+                                            .href;
                                     });
 
                                 },
-                                error: function (xhr) {
+                                error: function(xhr) {
                                     Swal.fire({
                                         title: "Gagal!",
-                                        text: xhr.responseJSON?.message || 'Gagal login sebagai user.',
+                                        text: xhr.responseJSON?.message ||
+                                            'Gagal login sebagai user.',
                                         icon: "error"
                                     });
                                 }
@@ -597,7 +600,7 @@
 
 
                 // 🔁 Reset Password ke default: pakuwon1234#               
-                $(document).on('click', '.resetPwdBtn', function (e) {
+                $(document).on('click', '.resetPwdBtn', function(e) {
                     e.preventDefault();
                     e.stopPropagation();
 
@@ -619,8 +622,10 @@
                             $.ajax({
                                 url: `/users/${userId}/reset-password`,
                                 type: "POST",
-                                headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
-                                success: function (res) {
+                                headers: {
+                                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                                },
+                                success: function(res) {
 
                                     Swal.fire({
                                         title: "Sukses!",
@@ -631,10 +636,11 @@
                                     });
 
                                 },
-                                error: function (xhr) {
+                                error: function(xhr) {
                                     Swal.fire({
                                         title: "Gagal!",
-                                        text: xhr.responseJSON?.message || "Reset password gagal.",
+                                        text: xhr.responseJSON?.message ||
+                                            "Reset password gagal.",
                                         icon: "error"
                                     });
                                 }
@@ -644,9 +650,6 @@
 
                     });
                 });
-
-
-
             </script>
 
         </div>
