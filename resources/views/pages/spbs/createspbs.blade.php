@@ -163,8 +163,14 @@
                                     <input type="text" id="jenis_pekerjaan_display"
                                         class="flex-1 rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-gray-600 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                         placeholder="Pilih Worktype & Subworktype" readonly>
-                                    <button type="button" id="btnJenisPekerjaan"
-                                        class="rounded-lg bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700">Pilih</button>
+                                    {{-- <button type="button" id="btnJenisPekerjaan"
+                                        class="rounded-lg bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700">Pilih</button> --}}
+                                        <button type="button" id="btnJenisPekerjaan"
+                                            class="rounded border border-gray-500 px-2 py-2 hover:bg-gray-100 dark:hover:bg-gray-700"
+                                            title="Lookup">
+                                            🔎
+                                        </button>
+
                                 </div>
                                 <!-- hidden fields to submit -->
                                 <input type="hidden" name="worktypeid" id="worktypeid">
@@ -2293,15 +2299,35 @@
 
     <script>
         function toggleWoSection() {
-            const wt = ($('#worktypeid').val() || '').trim();
+            const wt  = ($('#worktypeid').val() || '').trim().toUpperCase();
             const swt = ($('#subworktypeid').val() || '').trim();
-            if (wt && swt) {
-                $('#woSection').removeClass('hidden').attr('aria-hidden', 'false');
+
+            // 🔴 ATK → WO HARUS HIDDEN
+            if (wt === 'ATK') {
+                $('#woSection')
+                    .addClass('hidden')
+                    .attr('aria-hidden', 'true');
+
+                $('#woid').val('');
+                $('#wo_name_display').val?.(''); // kalau ada field display
+
+                return; // ⛔ STOP DI SINI
+            }
+
+            // selain ATK → boleh tampil kalau worktype ada
+            if (wt) {
+                $('#woSection')
+                    .removeClass('hidden')
+                    .attr('aria-hidden', 'false');
             } else {
-                $('#woSection').addClass('hidden').attr('aria-hidden', 'true');
-                $('#woid').val(''); // pastikan WO kosong saat disembunyikan
+                $('#woSection')
+                    .addClass('hidden')
+                    .attr('aria-hidden', 'true');
+                $('#woid').val('');
             }
         }
+
+
 
         $(function() {
             // kondisi awal: kalau edit mode sudah ada worktype/subworktype, tampilkan

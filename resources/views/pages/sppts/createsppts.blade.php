@@ -226,7 +226,7 @@
                             </div>
 
                             <!-- Request Type -->
-                            <div class="flex flex-col gap-2">
+                            {{-- <div class="flex flex-col gap-2">
                                 <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Request
                                     Type</label>
                                 <select id="requesttypeid" name="requesttypeid"
@@ -234,6 +234,29 @@
                                     required>
                                     <option value="" disabled selected>Loading...</option>
                                 </select>
+                            </div> --}}
+                            <!-- Request Type -->
+                            <div class="flex flex-col gap-2">
+                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Request Type</label>
+
+                                <div class="flex w-full">
+                                    {{-- hidden value yang dikirim ke backend --}}
+                                    <input type="hidden" name="requesttypeid" id="requesttypeid" value="">
+
+                                    {{-- display readonly --}}
+                                    <input type="text" id="requesttype_name_display" readonly
+                                        class="w-full rounded-l-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                        placeholder="Select request type...">
+
+                                    <button type="button" id="btnSearchRequestType"
+                                        class="inline-flex items-center rounded-r-lg border border-l-0 border-gray-300 bg-gray-100 px-3 text-gray-600 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-600 dark:text-gray-200">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fill-rule="evenodd"
+                                                d="M8.5 3a5.5 5.5 0 014.384 8.832l3.147 3.147a.75.75 0 11-1.06 1.06l-3.147-3.146A5.5 5.5 0 118.5 3zm0 1.5a4 4 0 100 8 4 4 0 000-8z"
+                                                clip-rule="evenodd" />
+                                        </svg>
+                                    </button>
+                                </div>
                             </div>
 
                             <!-- Perpost -->
@@ -608,6 +631,50 @@
                                         class="rounded border px-3 py-1 disabled:opacity-40">Prev</button>
                                     <button id="invNext" type="button"
                                         class="rounded border px-3 py-1 disabled:opacity-40">Next</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ===== Modal Lookup Request Type ===== -->
+                    <div id="requestTypeModal"
+                        class="fixed inset-0 z-[1000] hidden items-center justify-center bg-black/40 p-4">
+                        <div class="w-full max-w-4xl rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
+                            <div class="mb-3 flex items-center justify-between border-b pb-2">
+                                <h3 class="text-lg font-bold text-gray-800 dark:text-white">Select Request Type</h3>
+                                <button type="button" id="closeRequestTypeModal"
+                                    class="rounded px-3 py-1 hover:bg-gray-100 dark:hover:bg-gray-700">✖</button>
+                            </div>
+
+                            <div class="mb-3 flex items-center gap-2 text-sm">
+                                <input id="rtSearch" type="text" placeholder="Search Request Type..."
+                                    class="rounded border border-gray-300 bg-white px-3 py-1 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
+                                <button id="rtRefresh" type="button"
+                                    class="rounded border px-3 py-1 hover:bg-gray-100 dark:hover:bg-gray-700">↻</button>
+
+                                <div class="ml-auto flex flex-wrap items-center gap-3">
+                                    <span>DocType: <b id="rtDocBadge">SPPB</b></span>
+                                </div>
+                            </div>
+
+                            <div class="max-h-[60vh] overflow-auto">
+                                <table class="w-full text-left text-sm">
+                                    <thead class="sticky top-0 bg-gray-50 dark:bg-gray-900">
+                                        <tr>
+                                            <th class="border p-2">Request Type ID</th>
+                                            <th class="border p-2">Name</th>
+                                            <th class="w-24 border p-2 text-center">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="rtTableBody" class="text-sm"></tbody>
+                                </table>
+                            </div>
+
+                            <div class="mt-3 flex items-center justify-between text-sm">
+                                <span id="rtCount" class="opacity-80"></span>
+                                <div class="space-x-2">
+                                    <button id="rtPrev" type="button" class="rounded border px-3 py-1 disabled:opacity-40">Prev</button>
+                                    <button id="rtNext" type="button" class="rounded border px-3 py-1 disabled:opacity-40">Next</button>
                                 </div>
                             </div>
                         </div>
@@ -2691,6 +2758,143 @@
                     loadWo();
                 }
             });
+        });
+    </script>
+
+    <script>
+        $(function () {
+            const DOCTYPE = 'SPPT';
+
+            const $rtModal = $('#requestTypeModal');
+            const $rtTbody = $('#rtTableBody');
+            const $rtCount = $('#rtCount');
+            const $rtDoc   = $('#rtDocBadge');
+
+            let rtState = {
+                search: '',
+                page: 1,
+                per_page: 10,
+                total: 0,
+                doctype: DOCTYPE,
+            };
+
+            function openRtModal() {
+                $rtDoc.text(rtState.doctype || '-');
+                $('#rtSearch').val('');
+                rtState.search = '';
+                rtState.page = 1;
+
+                $rtModal.removeClass('hidden').addClass('flex');
+                loadRequestTypes();
+                setTimeout(() => $('#rtSearch').trigger('focus'), 0);
+            }
+
+            function closeRtModal() {
+                $rtModal.addClass('hidden').removeClass('flex');
+            }
+
+            $('#btnSearchRequestType').on('click', openRtModal);
+            $('#closeRequestTypeModal').on('click', closeRtModal);
+
+            $(document).on('keydown', function (e) {
+                if (e.key === 'Escape' && $rtModal.is(':visible')) closeRtModal();
+            });
+
+            $('#rtSearch').on('input', function () {
+                rtState.search = $(this).val().trim();
+                rtState.page = 1;
+                loadRequestTypes();
+            });
+
+            $('#rtRefresh').on('click', function () {
+                $('#rtSearch').val('');
+                rtState.search = '';
+                rtState.page = 1;
+                loadRequestTypes();
+            });
+
+            $('#rtPrev').on('click', function () {
+                if (rtState.page > 1) {
+                    rtState.page--;
+                    loadRequestTypes();
+                }
+            });
+
+            $('#rtNext').on('click', function () {
+                const maxPage = Math.ceil((rtState.total || 0) / rtState.per_page) || 1;
+                if (rtState.page < maxPage) {
+                    rtState.page++;
+                    loadRequestTypes();
+                }
+            });
+
+            function loadRequestTypes() {
+                $rtTbody.html('<tr><td colspan="3" class="p-3 text-center">Loading...</td></tr>');
+
+                $.getJSON("{{ route('requesttypes.byDoctype') }}", {
+                    doctype: rtState.doctype,
+                    search: rtState.search,
+                    page: rtState.page,
+                    per_page: rtState.per_page
+                })
+                .done(function (res) {
+                    // support 2 kemungkinan response:
+                    // A) {data:[...], total:..}
+                    // B) {data:{data:[...], total:..}} (Laravel paginator default)
+                    const payload = res.data?.data ? res.data : res; // detect paginator shape
+                    const list = (payload.data || []);
+                    rtState.total = payload.total || 0;
+
+                    const rowsArr = list.map(item => {
+                        const id = item.requesttypeid ?? item.id ?? '';
+                        const name = item.requesttype_name ?? item.name ?? id;
+
+                        return `
+                            <tr>
+                                <td class="border p-2">${id}</td>
+                                <td class="border p-2">${$('<div>').text(name).html()}</td>
+                                <td class="border p-2 text-center">
+                                    <button type="button"
+                                        class="chooseRequestType rounded border px-2 py-1 hover:bg-gray-100 dark:hover:bg-gray-700"
+                                        data-id="${id}"
+                                        data-name="${$('<div>').text(name).html()}">
+                                        Choose
+                                    </button>
+                                </td>
+                            </tr>
+                        `;
+                    });
+
+                    $rtTbody.html(rowsArr.join('') || '<tr><td colspan="3" class="p-3 text-center">No data</td></tr>');
+
+                    const showing = list.length;
+                    $rtCount.text(`Showing ${showing} of ${rtState.total} items`);
+
+                    const maxPage = Math.ceil((rtState.total || 0) / rtState.per_page) || 1;
+                    $('#rtPrev').prop('disabled', rtState.page <= 1);
+                    $('#rtNext').prop('disabled', rtState.page >= maxPage);
+                })
+                .fail(function () {
+                    $rtTbody.html('<tr><td colspan="3" class="p-3 text-center text-red-600">Failed to load</td></tr>');
+                    $rtCount.text('');
+                    $('#rtPrev, #rtNext').prop('disabled', true);
+                });
+            }
+
+            // choose -> set value ke form
+            $(document).on('click', '.chooseRequestType', function () {
+                const id = $(this).data('id');
+                const name = $(this).data('name');
+
+                $('#requesttypeid').val(id);
+                $('#requesttype_name_display').val(name);
+
+                // bersihkan invalid UI (kalau kamu pakai addError)
+                $('#requesttype_name_display').removeClass('is-invalid').next('.error-feedback').remove();
+
+                closeRtModal();
+            });          
+
         });
     </script>
 

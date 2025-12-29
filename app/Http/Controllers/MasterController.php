@@ -608,8 +608,53 @@ class MasterController extends Controller
         ]);
     }
 
- 
     public function RequestType(Request $request)
+    {
+        $doctype  = $request->query('doctype');
+        $search   = trim((string) $request->query('search', ''));
+        $page     = max((int) $request->query('page', 1), 1);
+        $perPage  = (int) $request->query('per_page', 10);
+        $perPage  = ($perPage <= 0) ? 10 : min($perPage, 100); // batasi max 100
+
+        if (!$doctype) {
+            return response()->json([
+                'message' => 'Parameter "doctype" wajib diisi.'
+            ], 400);
+        }
+
+        $doctype = strtoupper(trim($doctype));
+
+        $q = MsRequestType::query()
+            ->select('requesttypeid', 'requesttype_name')
+            ->where('doctype', $doctype)
+            ->where('status', 'A');
+
+        // ✅ Search (by id atau name)
+        if ($search !== '') {
+            // aman untuk PostgreSQL / MySQL
+            $q->where(function ($qq) use ($search) {
+                $qq->where('requesttypeid', 'ilike', "%{$search}%")
+                ->orWhere('requesttype_name', 'ilike', "%{$search}%");
+            });
+        }
+
+        $total = (clone $q)->count();
+
+        $rows = $q->orderBy('requesttype_name')
+            ->offset(($page - 1) * $perPage)
+            ->limit($perPage)
+            ->get();
+
+        return response()->json([
+            'data'      => $rows,
+            'total'     => $total,
+            'page'      => $page,
+            'per_page'  => $perPage,
+        ]);
+    }
+
+ 
+    public function RequestType_xxx(Request $request)
     {
         $doctype = $request->query('doctype');
         
@@ -1058,9 +1103,9 @@ class MasterController extends Controller
 
         if ($q !== '') {
             $query->where(function ($w) use ($q) {
-                $w->where('name', 'like', "%{$q}%")
-                ->orWhere('email', 'like', "%{$q}%")
-                ->orWhere('username', 'like', "%{$q}%");
+                $w->where('name', 'ilike', "%{$q}%")
+                ->orWhere('email', 'ilike', "%{$q}%")
+                ->orWhere('username', 'ilike', "%{$q}%");
             });
         }
 
