@@ -474,12 +474,12 @@ Route::post('/logout', function () {
         Route::get('/pdf_budgets/{hash}', [BudgetController::class, 'printBudget']);
         Route::get('/get-business-units/{cpny_id}', [BudgetController::class, 'getBusinessUnits']);
 
-        Route::get('/budgetmonitor', [BudgetMonitorController::class, 'index'])->name('budget.monitor');
-        Route::get('/budgetmonitor/options/companies', [BudgetMonitorController::class, 'companies'])->name('budget.monitor.options.companies');
-        Route::get('/budgetmonitor/options/business-units', [BudgetMonitorController::class, 'businessUnits'])->name('budget.monitor.options.businessUnits');
-        Route::get('/budgetmonitor/options/departments', [BudgetMonitorController::class, 'departments'])->name('budget.monitor.options.departments');
-        Route::get('/budgetmonitor/master.json', [BudgetMonitorController::class, 'masterJson'])->name('budget.monitor.master.json');
-        Route::get('/budgetmonitor/trx.json', [BudgetMonitorController::class, 'trxJson'])->name('budget.monitor.trx.json');
+        Route::get('/budgetmonitor', [BudgetMonitorController::class, 'index'])->name('budgetmonitor');
+        Route::get('/budgetmonitor/options/companies', [BudgetMonitorController::class, 'companies'])->name('budgetmonitor.options.companies');
+        Route::get('/budgetmonitor/options/business-units', [BudgetMonitorController::class, 'businessUnits'])->name('budgetmonitor.options.businessUnits');
+        Route::get('/budgetmonitor/options/departments', [BudgetMonitorController::class, 'departments'])->name('budgetmonitor.options.departments');
+        Route::get('/budgetmonitor/master.json', [BudgetMonitorController::class, 'masterJson'])->name('budgetmonitor.master.json');
+        Route::get('/budgetmonitor/trx.json', [BudgetMonitorController::class, 'trxJson'])->name('budgetmonitor.trx.json');
     });
 
     Route::middleware('access:BUDGET,CREATE')->group(function () {

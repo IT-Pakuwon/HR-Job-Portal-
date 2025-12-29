@@ -121,8 +121,8 @@
         function reloadBoth(){
             const p = buildParams();
 
-            const urlMaster = "{{ route('budget.monitor.master.json') }}?" + $.param(p);
-            const urlTrx    = "{{ route('budget.monitor.trx.json') }}?" + $.param(p);
+            const urlMaster = "{{ route('budgetmonitor.master.json') }}?" + $.param(p);
+            const urlTrx    = "{{ route('budgetmonitor.trx.json') }}?" + $.param(p);
 
             masterTable.ajax.url(urlMaster).load();
             trxTable.ajax.url(urlTrx).load();
@@ -133,7 +133,7 @@
             $('#fBU').html(`<option value="">Select</option>`);
             $('#fDept').html(`<option value="">Select</option>`);
 
-            $.get("{{ route('budget.monitor.options.businessUnits') }}", { cpny_id: cpny }, function(res){
+            $.get("{{ route('budgetmonitor.options.businessUnits') }}", { cpny_id: cpny }, function(res){
                 (res.data || []).forEach(r => {
                     $('#fBU').append(`<option value="${r.business_unit_id}">${r.business_unit_id}</option>`);
                 });
@@ -145,7 +145,7 @@
             const bu   = $('#fBU').val();
             $('#fDept').html(`<option value="">Select</option>`);
 
-            $.get("{{ route('budget.monitor.options.departments') }}", { cpny_id: cpny, business_unit_id: bu }, function(res){
+            $.get("{{ route('budgetmonitor.options.departments') }}", { cpny_id: cpny, business_unit_id: bu }, function(res){
                 (res.data || []).forEach(r => {
                     $('#fDept').append(`<option value="${r.department_fin_id}">${r.department_fin_id}</option>`);
                 });
@@ -158,7 +158,7 @@
 
             masterTable = $('#tblMaster').DataTable({
                 ajax: {
-                    url: "{{ route('budget.monitor.master.json') }}",
+                    url: "{{ route('budgetmonitor.master.json') }}",
                     dataSrc: function(json){
                         const tot = json.totals || {};
                         $('#mTotBudg').text(fmtID(tot.totalbudget));
@@ -185,7 +185,7 @@
 
             trxTable = $('#tblTrx').DataTable({
                 ajax: {
-                    url: "{{ route('budget.monitor.trx.json') }}",
+                    url: "{{ route('budgetmonitor.trx.json') }}",
                     dataSrc: function(json){
                         const tot = json.totals || {};
                         $('#tTotAmount').text(fmtID(tot.budget_amount));

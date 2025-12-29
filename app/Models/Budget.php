@@ -10,18 +10,7 @@ class Budget extends Model
     protected $connection = 'pgsql';
     protected $table = "ms_budget_hd";
 
-    protected $fillable = [
-        // 'budget_id',
-        // 'budget_date',
-        // 'perpost',
-        // 'cpny_id',
-        // 'business_unit_id',
-        // 'department_fin_id',        
-        // 'totalbudget',        
-        // 'status',
-        // 'created_by',
-        // 'updated_by',
-        // 'completed_by',
+    protected $fillable = [       
         'budget_id', 'budget_date', 'perpost', 'cpny_id', 'business_unit_id', 'department_fin_id', 
         'totalbudget', 'status', 'created_by', 'created_at', 'updated_by', 'updated_at', 'deleted_by', 
         'deleted_at', 'completed_by', 'completed_at'

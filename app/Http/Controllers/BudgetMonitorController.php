@@ -13,12 +13,13 @@ class BudgetMonitorController extends Controller
     {
         // Tahun list (ambil dari ms_budget.perpost dan/atau tr_budget.perpost_year)
         $yearsFromBudget = BudgetDetail::query()
-            ->selectRaw("DISTINCT LEFT(perpost, 4) AS year")
+            ->selectRaw("DISTINCT LEFT(perpost::text, 4) AS year")
             ->whereNotNull('perpost')
             ->orderBy('year', 'desc')
             ->pluck('year')
             ->filter()
             ->values();
+
 
         $yearsFromTrx = TrBudget::query()
             ->selectRaw("DISTINCT perpost_year::text AS year")
@@ -38,7 +39,7 @@ class BudgetMonitorController extends Controller
             ->orderBy('cpny_id')
             ->pluck('cpny_id');
 
-        return view('budgets.monitor', [
+        return view('pages.budgets.monitor', [
             'years'     => $years,
             'companies' => $companies,
         ]);
@@ -106,8 +107,9 @@ class BudgetMonitorController extends Controller
 
         // Filter Tahun: ms_budget.perpost => LEFT(perpost,4)
         if ($request->filled('year')) {
-            $q->whereRaw("LEFT(perpost, 4) = ?", [$request->year]);
+            $q->whereRaw("LEFT(perpost::text, 4) = ?", [$request->year]);
         }
+
 
         if ($request->filled('cpny_id')) {
             $q->where('cpny_id', $request->cpny_id);

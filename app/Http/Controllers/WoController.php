@@ -213,6 +213,7 @@ class WoController extends Controller
     
     public function storeWo(Request $request)
     {
+        // dd($request->all());
         $doctype  = 'WO';
         $user     = $request->user();
         $username = $user->username ?? 'system';
@@ -315,9 +316,10 @@ class WoController extends Controller
             ], 422);
         }
         $validated = $validator->validated();
+        
 
         // ===== generate TrApproval dari MsApproval sesuai context =====
-        $approvalCtl = app(ApprovalController::class);
+        $approvalCtl = app(ApprovalController::class);       
         // Pastikan line approval ada (validasi awal)
         $approvalCtl->loadLines($doctype, $validated['cpnyid'], $validated['departementid']);
 
@@ -388,8 +390,28 @@ class WoController extends Controller
 
             $wo->save();
 
-            // ===== Generate TrApproval
+            // ===== Generate TrApproval (WO)
+            $wotype     = strtoupper(trim((string)($validated['wotype'] ?? '')));
+            $worktypeid = strtoupper(trim((string)($validated['worktypeid'] ?? '')));
+
             $ctx = ['ignore_nominal' => true];
+
+            if ($wotype === 'DAILY') {
+                $ctx['approval_conditions'] = array_values(array_filter([$worktypeid]));
+            }
+
+            if ($wotype === 'IMPROVEMENT') {
+                $ctx['approval_conditions'] = array_values(array_filter([
+                    $worktypeid,
+                    "Improvement {$worktypeid}",
+                ]));
+            }
+
+            if (!isset($ctx['approval_conditions']) && $worktypeid !== '') {
+                $ctx['approval_conditions'] = [$worktypeid];
+            }
+
+
             [$firstApprovalUsernames, $linesCount] = $approvalCtl->generateForDocument(
                 $docid,
                 $doctype,
@@ -399,6 +421,8 @@ class WoController extends Controller
                 $ctx,
                 $dt
             );
+
+
 
             // (opsional) Jika kamu punya kolom hint di header WO, bisa disimpan.
             // Contoh:

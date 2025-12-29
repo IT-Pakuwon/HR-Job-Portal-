@@ -36,68 +36,6 @@ class ApprovalController extends Controller
         return array_filter(array_map(fn($s) => strtolower(trim($s)), $arr));
     }
 
-    /** =========================
-     *  CONDITION helpers (NEW)
-     *  ========================= */
-
-    protected function normalizeCondition(?string $raw): string
-    {
-        $s = mb_strtolower(trim((string)$raw));
-        $s = preg_replace('/\s+/', ' ', $s);
-        return $s ?? '';
-    }
-
-    /**
-     * Ambil daftar condition dari context dokumen.
-     * - 'approval_conditions' => ['MEP','Improvement MEP']
-     * - atau 'approval_condition' => 'MEP'
-     */
-    protected function ctxConditions(array $ctx): array
-    {
-        $conds = [];
-
-        if (!empty($ctx['approval_conditions']) && is_array($ctx['approval_conditions'])) {
-            $conds = array_merge($conds, $ctx['approval_conditions']);
-        }
-
-        if (!empty($ctx['approval_condition']) && is_string($ctx['approval_condition'])) {
-            $conds[] = $ctx['approval_condition'];
-        }
-
-        $conds = array_map(fn($c) => $this->normalizeCondition($c), $conds);
-        $conds = array_values(array_unique(array_filter($conds)));
-
-        return $conds;
-    }
-
-    /**
-     * Generic check condition:
-     * Rule aprv_condition akan lolos kalau match ke salah satu condition di dokumen.
-     * Support exact + contains (biar fleksibel "mep" vs "improvement mep").
-     */
-    protected function checkDocCondition(MsApproval $rule, array $ctx): bool
-    {
-        $ruleCond = $this->normalizeCondition($rule->aprv_condition);
-        if ($ruleCond === '') return false;
-
-        $docConds = $this->ctxConditions($ctx);
-        if (empty($docConds)) return false;
-
-        // 1) exact match
-        if (in_array($ruleCond, $docConds, true)) return true;
-
-        // 2) contains match (SATU ARAH SAJA)
-        // docCond mengandung ruleCond (bukan kebalikannya)
-        foreach ($docConds as $dc) {
-            if ($dc !== '' && str_contains($dc, $ruleCond)) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-
     /** ========================================================
      *  1) Load & Filter Approval Lines (Normal/Condition Rules)
      *  ======================================================== */
@@ -118,7 +56,6 @@ class ApprovalController extends Controller
         if ($lines->isEmpty()) {
             abort(422, 'Approval line belum di-setup, Please contact IT!');
         }
-
         return $lines;
     }
 
@@ -132,7 +69,7 @@ class ApprovalController extends Controller
 
     protected function checkUrgent(MsApproval $rule, array $ctx): bool
     {
-        // contoh sumber: header.is_urgent
+        // sumber: header TrSPPB.is_urgent (boolean)
         return !empty($ctx['is_urgent']);
     }
 
@@ -142,7 +79,10 @@ class ApprovalController extends Controller
         $cat = mb_strtolower((string)($ctx['first_inventory_category'] ?? ''));
         if ($cat === '') return false;
 
-        return str_contains($cat, 'komputer');
+        return str_contains($cat, 'komputer')
+            || str_contains($cat, 'computer')
+            || str_contains($cat, 'laptop')
+            || str_contains($cat, 'pc');
     }
 
     protected function checkFixedAsset(MsApproval $rule, array $ctx): bool
@@ -153,7 +93,7 @@ class ApprovalController extends Controller
 
     protected function checkNominal(MsApproval $rule, array $ctx): bool
     {
-        // SPPB: minta abaikan nominal (kecuali dokumen lain)
+        // SPPB: minta ABAlKAN nominal (kecuali dokumen lain)
         if (!empty($ctx['ignore_nominal'])) return false;
 
         $total = (float)($ctx['grand_total'] ?? 0);
@@ -167,8 +107,6 @@ class ApprovalController extends Controller
 
     /**
      * Dispatcher: pilih checker berdasarkan nama condition.
-     * NOTE:
-     * - Jika condition tidak ada di map ini, akan fallback ke checkDocCondition() (untuk WO: HVAC/MEP/CIVIL/HSK/Improvement ...).
      */
     protected function getConditionChecker(string $cond): ?callable
     {
@@ -176,10 +114,10 @@ class ApprovalController extends Controller
             'normal'       => [$this, 'checkNormal'],
             'urgent'       => [$this, 'checkUrgent'],
             'komputer'     => [$this, 'checkKomputer'],
-            'fixed asset'  => [$this, 'checkFixedAsset'],           
+            'fixed asset'  => [$this, 'checkFixedAsset'],
             'nominal'      => [$this, 'checkNominal'],
         ];
-        $key = $this->normalizeCondition($cond);
+        $key = mb_strtolower(trim($cond));
         return $map[$key] ?? null;
     }
 
@@ -200,16 +138,11 @@ class ApprovalController extends Controller
             return false;
         }
 
-        // Condition:
-        // 1) coba checker khusus (urgent/komputer/fixed asset/nominal)
         $cond = trim((string)$rule->aprv_condition);
         $checker = $this->getConditionChecker($cond);
-        if ($checker) {
-            return call_user_func($checker, $rule, $ctx);
-        }
+        if (!$checker) return false;
 
-        // 2) fallback generic match (untuk kondisi WO seperti di gambar)
-        return $this->checkDocCondition($rule, $ctx);
+        return call_user_func($checker, $rule, $ctx);
     }
 
     /**
@@ -232,7 +165,7 @@ class ApprovalController extends Controller
         $cpnyId,
         $deptId,
         string $createdBy,
-        array $ctx = [],
+        array $ctx = [],          // context dokumen untuk evaluasi 'Condition'
         ?Carbon $now = null
     ): array {
         $now = $now ?? Carbon::now();
@@ -248,19 +181,10 @@ class ApprovalController extends Controller
             $picked = $allLines->filter(fn($r) => strcasecmp($r->aprv_type, 'Normal') === 0)->values();
         }
 
-        if ($picked->isEmpty()) {
-            abort(422, 'Approval line tidak valid (tidak ada rule yang match).');
-        }
-
-        // IMPORTANT: jika generate ulang, sebaiknya caller sudah hapus yg lama (atau kamu bisa uncomment ini)
-        // TrApproval::where('refnbr',$refnbr)->where('aprv_doctype',$doctype)->delete();
-
-        $firstLevel = (string)$picked->first()->aprv_leveling;
-
         foreach ($picked as $m) {
             TrApproval::create([
                 'refnbr'             => $refnbr,
-                'aprv_leveling'      => $m->aprv_leveling,  // boleh desimal string (1.00, 1.10, dst)
+                'aprv_leveling'      => $m->aprv_leveling,  // boleh desimal string (1.00, 1.10, 7.80)
                 'aprv_doctype'       => $m->aprv_doctype,
                 'aprv_cpnyid'        => $m->aprv_cpnyid,
                 'aprv_departementid' => $m->aprv_departementid,
@@ -270,7 +194,8 @@ class ApprovalController extends Controller
                 'aprv_condition'     => $m->aprv_condition,
                 'aprv_start_nominal' => $m->aprv_start_nominal,
                 'aprv_end_nominal'   => $m->aprv_end_nominal,
-                'aprv_datebefore'    => ((string)$m->aprv_leveling === $firstLevel) ? $now : null,
+                // level pertama (paling kecil) diberi aprv_datebefore
+                'aprv_datebefore'    => (float)$m->aprv_leveling == (float)$picked->first()->aprv_leveling ? $now : null,
                 'aprv_dateafter'     => null,
                 'status'             => 'P',
                 'created_by'         => $createdBy,
@@ -287,6 +212,10 @@ class ApprovalController extends Controller
      *  2) Notifikasi (Email) Reusable
      *  ================================== */
 
+    /**
+     * Kirim email ke approver level pertama (setelah generate ATAU setelah step sebelumnya approve).
+     * Return: jumlah email yang berhasil dikirim.
+     */
     public function notifyFirstApprover(
         string $refnbr,
         string $doctype,
@@ -299,7 +228,6 @@ class ApprovalController extends Controller
             ->where('refnbr', $refnbr)
             ->where('aprv_doctype', $doctype)
             ->where('status', 'P');
-
         $this->orderByLevel($firstPending);
         $firstPending = $firstPending->first();
 
@@ -333,14 +261,16 @@ class ApprovalController extends Controller
         foreach ($emails as $email) {
             Mail::send('emails.mailapprovenew', $data, function ($message) use ($email, $refnbr, $suffix, $docDisplayName) {
                 $message->to($email)
-                    ->subject($refnbr . ' - ' . $suffix . ' ' . $docDisplayName)
+                    ->subject($refnbr.' - '.$suffix.' '.$docDisplayName)
                     ->from('digitalserver@pakuwon.com', 'Pakuwon System');
             });
         }
-
         return $emails->count();
     }
 
+    /**
+     * Kirim email ke requester/creator untuk status tertentu (R/D/C).
+     */
     public function notifyRequesterOnStatus(
         string $refnbr,
         string $docDisplayName,
@@ -350,15 +280,16 @@ class ApprovalController extends Controller
         array $extra = []
     ): int {
         $suffix = $this->subjectMap[$statusCode] ?? 'Notification';
-        $user   = User::where('username', $creatorUsername)->where('status', 'A')->first();
+        $user   = User::where('username', $creatorUsername)->where('status','A')->first();
         if (!$user) return 0;
 
+        // siapkan default aman untuk template
         $defaults = [
             'docid'     => $refnbr,
             'docname'   => $docDisplayName,
             'status'    => $statusCode,
             'url'       => $urlToDoc,
-            'createdby' => $user->name ?? $creatorUsername,
+            'createdby' => $user->name ?? $creatorUsername, // <<< default createdby
             'name'      => $user->name ?? $creatorUsername,
             'fullname'  => $user->name ?? $creatorUsername,
             'cpnyid'    => '',
@@ -374,32 +305,36 @@ class ApprovalController extends Controller
 
         Mail::send('emails.mailapprovenew', $payload, function ($m) use ($payload, $to, $suffix) {
             $m->to($to)
-                ->subject($payload['docid'] . ' - ' . $suffix . ' ' . $payload['docname'])
-                ->from('digitalserver@pakuwon.com', 'Pakuwon System');
+            ->subject($payload['docid'].' - '.$suffix.' '.$payload['docname'])
+            ->from('digitalserver@pakuwon.com', 'Pakuwon System');
         });
 
         return 1;
     }
 
+
     /** ===========================================
      *  3) Flow Generik: Approve / Reject / Revise
      *  =========================================== */
 
+    /**
+     * Pastikan user boleh bertindak pada step pending aktif.
+     * Return: [bool ok, TrApproval|null step, string|null msg]
+     */
     public function assertUserCanAct(string $refnbr, string $doctype, string $action, string $username): array
     {
-        $needsActive = in_array(strtolower($action), ['approve', 'reject', 'revise'], true);
+        $needsActive = in_array(strtolower($action), ['approve','reject','revise'], true);
 
         $base = TrApproval::query()
             ->where('refnbr', $refnbr)
             ->where('aprv_doctype', $doctype)
             ->where('status', 'P');
-
         $this->orderByLevel($base);
 
         $active = (clone $base)->whereNotNull('aprv_datebefore')->first();
 
         if ($needsActive && !$active) {
-            // AUTO-ACTIVATE jika belum ada step aktif
+            // >>> AUTO-ACTIVATE jika belum ada step aktif
             $active = $this->ensureActiveStep($refnbr, $doctype);
             if (!$active) {
                 return [false, null, 'No pending approval step.'];
@@ -417,6 +352,12 @@ class ApprovalController extends Controller
         return [true, $step, null];
     }
 
+
+    /**
+     * APPROVE satu step. Caller memberi callback:
+     * - onComplete($refnbr, $now): update header/detail dokumen saat COMPLETE + email creator
+     * - onNotifyNext($next, $now): (opsional) kirim email ke approver berikutnya
+     */
     public function approveStep(
         string $refnbr,
         string $doctype,
@@ -433,10 +374,10 @@ class ApprovalController extends Controller
         DB::beginTransaction();
         try {
             // set approved
-            $current->status         = 'A';
-            $current->aprv_dateafter = $now;
-            $current->aprv_username  = $actorUsername;
-            $current->aprv_name      = $actorName;
+            $current->status          = 'A';
+            $current->aprv_dateafter  = $now;
+            $current->aprv_username   = $actorUsername;
+            $current->aprv_name       = $actorName;
             $current->save();
 
             // pending sisa?
@@ -457,7 +398,6 @@ class ApprovalController extends Controller
                 ->where('refnbr', $refnbr)
                 ->where('aprv_doctype', $doctype)
                 ->where('status', 'P');
-
             $this->orderByLevel($next);
             $next = $next->first();
 
@@ -468,6 +408,7 @@ class ApprovalController extends Controller
 
             DB::commit();
 
+            // notifikasi next (optional override)
             if ($onNotifyNext) {
                 $onNotifyNext($next, $now);
             }
@@ -481,6 +422,10 @@ class ApprovalController extends Controller
         }
     }
 
+    /**
+     * REJECT step aktif. Caller memberi callback:
+     * - onAfter($refnbr, $now): update header/detail + email creator (status R)
+     */
     public function rejectStep(
         string $refnbr,
         string $doctype,
@@ -495,12 +440,14 @@ class ApprovalController extends Controller
 
         DB::beginTransaction();
         try {
-            $current->status         = 'R';
-            $current->aprv_dateafter = $now;
-            $current->aprv_username  = $actorUsername;
-            $current->aprv_name      = $actorName;
+            // set rejected
+            $current->status          = 'R';
+            $current->aprv_dateafter  = $now;
+            $current->aprv_username   = $actorUsername;
+            $current->aprv_name       = $actorName;
             $current->save();
 
+            // batalkan pending lain
             TrApproval::query()
                 ->where('refnbr', $refnbr)
                 ->where('aprv_doctype', $doctype)
@@ -520,6 +467,10 @@ class ApprovalController extends Controller
         }
     }
 
+    /**
+     * REVISE step aktif. Caller memberi callback:
+     * - onAfter($refnbr, $now): update header/detail + email creator (status D)
+     */
     public function reviseStep(
         string $refnbr,
         string $doctype,
@@ -534,12 +485,14 @@ class ApprovalController extends Controller
 
         DB::beginTransaction();
         try {
-            $current->status         = 'D';
-            $current->aprv_dateafter = $now;
-            $current->aprv_username  = $actorUsername;
-            $current->aprv_name      = $actorName;
+            // set revise
+            $current->status          = 'D';
+            $current->aprv_dateafter  = $now;
+            $current->aprv_username   = $actorUsername;
+            $current->aprv_name       = $actorName;
             $current->save();
 
+            // batalkan pending lain
             TrApproval::query()
                 ->where('refnbr', $refnbr)
                 ->where('aprv_doctype', $doctype)
@@ -550,20 +503,22 @@ class ApprovalController extends Controller
 
             $onAfter($refnbr, $now);
 
-            return ['ok' => true];
-
+            return ['ok' => true];        
+       
         } catch (\Throwable $e) {
             DB::rollBack();
             report($e);
             $msg = config('app.debug') ? $e->getMessage() : 'Revise failed';
             return ['ok' => false, 'message' => $msg];
         }
+
     }
 
     /** ===========================================
      *  4) API untuk Blade/UI
      *  =========================================== */
 
+    // JSON untuk tabel approval di Blade
     public function getApprovalByDocument(string $refnbr, string $doctype)
     {
         $data = TrApproval::query()
@@ -571,7 +526,10 @@ class ApprovalController extends Controller
             ->where('aprv_doctype', $doctype)
             ->where('status', '<>', 'X');
 
+        // jika orderByLevel mengembalikan builder, pakai itu; kalau tidak, tetap pakai $data
         $ordered = $this->orderByLevel($data) ?? $data;
+
+        // tambahkan pengurutan created_at ASC
         $ordered->orderBy('created_at', 'asc');
 
         $rows = $ordered->get([
@@ -579,9 +537,7 @@ class ApprovalController extends Controller
             'aprv_name',
             'aprv_datebefore',
             'aprv_dateafter',
-            'status',
-            'aprv_type',
-            'aprv_condition',
+            'status',           
         ]);
 
         return response()->json([
@@ -591,11 +547,12 @@ class ApprovalController extends Controller
         ]);
     }
 
+    // Check tombol aksi (approve/reject/revise) boleh ditekan atau tidak
     public function checkApproval(Request $request, string $refnbr, string $action)
     {
         $user     = Auth::user();
         $username = strtolower($user->username ?? '');
-        $doctype  = $request->input('doctype');
+        $doctype  = $request->input('doctype'); // opsional: PB/PR/...
 
         $needsActiveStep = in_array(strtolower($action), ['approve', 'reject', 'revise'], true);
 
@@ -603,14 +560,11 @@ class ApprovalController extends Controller
             ->where('refnbr', $refnbr)
             ->when($doctype, fn($q) => $q->where('aprv_doctype', $doctype))
             ->where('status', 'P');
-
         $this->orderByLevel($baseQuery);
 
         $activeStep = (clone $baseQuery)->whereNotNull('aprv_datebefore')->first();
         if ($needsActiveStep && !$activeStep) {
-            // biar konsisten: auto aktifkan step pertama kalau belum ada
-            $activeStep = $this->ensureActiveStep($refnbr, $doctype ?? '');
-            if (!$activeStep) return response()->json(['canPerformAction' => false]);
+            return response()->json(['canPerformAction' => false]);
         }
 
         $stepToCheck = $needsActiveStep ? $activeStep : $baseQuery->first();
@@ -624,23 +578,23 @@ class ApprovalController extends Controller
         return response()->json(['canPerformAction' => $canPerform]);
     }
 
+    // Tambah di class ApprovalController
     protected function ensureActiveStep(string $refnbr, string $doctype): ?TrApproval
     {
         $base = TrApproval::query()
             ->where('refnbr', $refnbr)
-            ->when($doctype !== '' && $doctype !== null, fn($q) => $q->where('aprv_doctype', $doctype))
+            ->where('aprv_doctype', $doctype)
             ->where('status', 'P');
-
         $this->orderByLevel($base);
-
         $firstPending = $base->first();
+
         if (!$firstPending) return null;
 
         if (empty($firstPending->aprv_datebefore)) {
             $firstPending->aprv_datebefore = Carbon::now();
             $firstPending->save();
         }
-
         return $firstPending;
     }
+
 }
