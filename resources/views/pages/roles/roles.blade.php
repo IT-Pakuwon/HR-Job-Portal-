@@ -8,9 +8,17 @@
 
         <div class="grid">
             <style>
-                .grid { width: 100%; }
-                table.dataTable { width: 100% !important; }
-                .dataTables_wrapper { width: 100%; }
+                .grid {
+                    width: 100%;
+                }
+
+                table.dataTable {
+                    width: 100% !important;
+                }
+
+                .dataTables_wrapper {
+                    width: 100%;
+                }
 
                 #rolesTable_filter {
                     margin-bottom: 20px;
@@ -18,6 +26,7 @@
                     justify-content: flex-start;
                     align-items: center;
                 }
+
                 #rolesTable_filter input {
                     width: auto;
                     padding: 0.25rem 0.5rem;
@@ -30,6 +39,7 @@
                     display: flex;
                     justify-content: flex-start;
                 }
+
                 #rolesTable_length select {
                     width: 80px;
                     padding: 5px;
@@ -47,19 +57,25 @@
                     width: 40px;
                     height: 22px;
                 }
+
                 .switch input {
                     opacity: 0;
                     width: 0;
                     height: 0;
                 }
+
                 .slider {
                     position: absolute;
                     cursor: pointer;
-                    top: 0; left: 0; right: 0; bottom: 0;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    bottom: 0;
                     background-color: #ccc;
                     transition: .4s;
                     border-radius: 34px;
                 }
+
                 .slider:before {
                     position: absolute;
                     content: "";
@@ -71,8 +87,14 @@
                     transition: .4s;
                     border-radius: 50%;
                 }
-                input:checked + .slider { background-color: #4CAF50; }
-                input:checked + .slider:before { transform: translateX(18px); }
+
+                input:checked+.slider {
+                    background-color: #4CAF50;
+                }
+
+                input:checked+.slider:before {
+                    transform: translateX(18px);
+                }
             </style>
 
             <div class="mt-6 rounded-xl bg-white p-4 dark:bg-gray-800">
@@ -105,31 +127,30 @@
                     <form id="roleForm">
                         @csrf
                         <input type="hidden" id="id" name="id">
+                        <div class="mb-4 grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-gray-700 dark:text-white">Role ID</label>
+                                <input type="text" id="role_id" name="role_id"
+                                    class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700" required>
+                            </div>
 
-                        <div class="mb-4">
-                            <label class="block text-gray-700 dark:text-white">Role ID</label>
-                            <input type="text" id="role_id" name="role_id"
-                                   class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700" required>
+                            <div>
+                                <label class="block text-gray-700 dark:text-white">Role Name</label>
+                                <input type="text" id="role_name" name="role_name"
+                                    class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700" required>
+                            </div>
                         </div>
-
-                        <div class="mb-4">
-                            <label class="block text-gray-700 dark:text-white">Role Name</label>
-                            <input type="text" id="role_name" name="role_name"
-                                   class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700" required>
-                        </div>
-
                         <div class="flex justify-end space-x-2">
                             <button type="button" id="closeRoleModal"
-                                    class="rounded-lg bg-red-500 px-4 py-2 text-white">Cancel</button>
-                            <button type="submit"
-                                    class="rounded-lg bg-blue-500 px-4 py-2 text-white">Save</button>
+                                class="rounded-lg bg-red-500 px-4 py-2 text-white">Cancel</button>
+                            <button type="submit" class="rounded-lg bg-blue-500 px-4 py-2 text-white">Save</button>
                         </div>
                     </form>
                 </div>
             </div>
 
             <script>
-                $(document).ready(function () {
+                $(document).ready(function() {
                     let table = $('#rolesTable').DataTable({
                         ajax: {
                             url: "{{ route('roles.json') }}",
@@ -138,10 +159,9 @@
                         },
                         processing: true,
                         serverSide: false,
-                        columns: [
-                            {
+                        columns: [{
                                 data: 'id',
-                                render: function (data, type, row) {
+                                render: function(data, type, row) {
                                     return `
                                         <div class="flex justify-center space-x-2">
                                             <label class="switch">
@@ -157,22 +177,26 @@
                                     `;
                                 }
                             },
-                            { data: 'role_id' },
-                            { data: 'role_name' },
+                            {
+                                data: 'role_id'
+                            },
+                            {
+                                data: 'role_name'
+                            },
                             {
                                 data: 'status',
                                 className: 'text-center',
-                                render: function (data) {
-                                    return data === 'A'
-                                        ? '<span class="bg-green-300/30 text-green-600 font-semibold px-4 py-1 rounded">Active</span>'
-                                        : '<span class="bg-red-300/30 text-red-600 font-semibold px-4 py-1 rounded">Inactive</span>';
+                                render: function(data) {
+                                    return data === 'A' ?
+                                        '<span class="bg-green-300/30 text-green-600 font-semibold px-4 py-1 rounded">Active</span>' :
+                                        '<span class="bg-red-300/30 text-red-600 font-semibold px-4 py-1 rounded">Inactive</span>';
                                 }
                             }
                         ]
                     });
 
                     // Add
-                    $('#addRoleBtn').click(function () {
+                    $('#addRoleBtn').click(function() {
                         $('#roleModalTitle').text("Add Role");
                         $('#roleForm')[0].reset();
                         $('#id').val('');
@@ -180,13 +204,13 @@
                     });
 
                     // Edit
-                    $(document).on('click', '.editRoleBtn', function () {
+                    $(document).on('click', '.editRoleBtn', function() {
                         let id = $(this).data('id');
 
                         $('#roleModalTitle').text("Loading...");
                         $('#roleModal').removeClass('hidden');
 
-                        $.get(`/roles/${id}/edit`, function (data) {
+                        $.get(`/roles/${id}/edit`, function(data) {
                             $('#roleModalTitle').text("Edit Role");
                             $('#id').val(data.id);
                             $('#role_id').val(data.role_id);
@@ -195,23 +219,27 @@
                     });
 
                     // Toggle status
-                    $(document).on('change', '.toggleStatus', function () {
+                    $(document).on('change', '.toggleStatus', function() {
                         let id = $(this).data('id');
                         let newStatus = $(this).is(':checked') ? 'A' : 'X';
 
                         $.ajax({
                             url: `/roles/${id}/toggle-status`,
                             type: 'PUT',
-                            headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
-                            data: { status: newStatus },
-                            success: function () {
+                            headers: {
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                            },
+                            data: {
+                                status: newStatus
+                            },
+                            success: function() {
                                 table.ajax.reload(null, false);
                             }
                         });
                     });
 
                     // Submit (create / update)
-                    $('#roleForm').submit(function (e) {
+                    $('#roleForm').submit(function(e) {
                         e.preventDefault();
 
                         let id = $('#id').val();
@@ -226,22 +254,24 @@
                         $.ajax({
                             url: url,
                             type: method,
-                            headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+                            headers: {
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                            },
                             data: formData,
                             processData: false,
                             contentType: false,
-                            success: function () {
+                            success: function() {
                                 $('#roleModal').addClass('hidden');
                                 table.ajax.reload();
                             },
-                            error: function (xhr) {
+                            error: function(xhr) {
                                 console.error(xhr.responseText);
                                 alert('Gagal menyimpan data role');
                             }
                         });
                     });
 
-                    $('#closeRoleModal').click(function () {
+                    $('#closeRoleModal').click(function() {
                         $('#roleModal').addClass('hidden');
                     });
                 });

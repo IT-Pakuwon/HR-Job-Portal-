@@ -8,13 +8,17 @@
 
         <div class="grid">
             <style>
-                table.dataTable { width: 100% !important; }
+                table.dataTable {
+                    width: 100% !important;
+                }
+
                 #accessRightsTable_filter {
                     margin-bottom: 20px;
                     display: flex;
                     justify-content: flex-start;
                     align-items: center;
                 }
+
                 #accessRightsTable_filter input {
                     width: auto;
                     padding: 0.25rem 0.5rem;
@@ -22,25 +26,32 @@
                     border: 1px solid #d1d5db;
                     background-color: #f9fafb;
                 }
+
                 .switch {
                     position: relative;
                     display: inline-block;
                     width: 40px;
                     height: 22px;
                 }
+
                 .switch input {
                     opacity: 0;
                     width: 0;
                     height: 0;
                 }
+
                 .slider {
                     position: absolute;
                     cursor: pointer;
-                    top: 0; left: 0; right: 0; bottom: 0;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    bottom: 0;
                     background-color: #ccc;
                     transition: .4s;
                     border-radius: 34px;
                 }
+
                 .slider:before {
                     position: absolute;
                     content: "";
@@ -52,8 +63,14 @@
                     transition: .4s;
                     border-radius: 50%;
                 }
-                input:checked + .slider { background-color: #4CAF50; }
-                input:checked + .slider:before { transform: translateX(18px); }
+
+                input:checked+.slider {
+                    background-color: #4CAF50;
+                }
+
+                input:checked+.slider:before {
+                    transform: translateX(18px);
+                }
             </style>
 
             <div class="mt-6 rounded-xl bg-white p-4 dark:bg-gray-800">
@@ -66,33 +83,32 @@
 
                 <div class="mb-3 flex flex-wrap items-center gap-3">
                     <div>
-                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-1">
+                        <label class="mb-1 block text-sm font-semibold text-gray-700 dark:text-gray-200">
                             Filter Role
                         </label>
                         <select id="filterRole" class="rounded-lg border px-2 py-1 text-sm dark:bg-gray-700">
                             <option value="">-- All --</option>
-                            @foreach($roles as $r)
+                            @foreach ($roles as $r)
                                 <option value="{{ $r->role_id }}">{{ $r->role_name }}</option>
                             @endforeach
                         </select>
                     </div>
 
                     <div>
-                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-1">
+                        <label class="mb-1 block text-sm font-semibold text-gray-700 dark:text-gray-200">
                             Filter Screen
                         </label>
                         <select id="filterScreen" class="rounded-lg border px-2 py-1 text-sm dark:bg-gray-700">
                             <option value="">-- All --</option>
-                            @foreach($screens as $s)
+                            @foreach ($screens as $s)
                                 <option value="{{ $s->menu_id }}">{{ $s->menu_name }}</option>
                             @endforeach
                         </select>
                     </div>
 
                     <div class="mt-6">
-                        <button id="clearFilters"
-                                type="button"
-                                class="rounded-lg border px-3 py-1 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:border-gray-500 dark:hover:bg-gray-600">
+                        <button id="clearFilters" type="button"
+                            class="rounded-lg border px-3 py-1 text-sm text-gray-700 hover:bg-gray-100 dark:border-gray-500 dark:text-gray-200 dark:hover:bg-gray-600">
                             Clear Filter
                         </button>
                     </div>
@@ -131,9 +147,9 @@
                             <div class="mb-3">
                                 <label class="block text-gray-700 dark:text-white">Role</label>
                                 <select id="role_id" name="role_id"
-                                        class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700" required>
+                                    class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700" required>
                                     <option value="">-- Select Role --</option>
-                                    @foreach($roles as $r)
+                                    @foreach ($roles as $r)
                                         <option value="{{ $r->role_id }}">{{ $r->role_name }}</option>
                                     @endforeach
                                 </select>
@@ -142,20 +158,20 @@
                             <div class="mb-3">
                                 <label class="block text-gray-700 dark:text-white">Screen</label>
                                 <select id="screen_id" name="screen_id"
-                                        class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700" required>
+                                    class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700" required>
                                     <option value="">-- Select Screen --</option>
-                                    @foreach($screens as $s)
+                                    @foreach ($screens as $s)
                                         <option value="{{ $s->menu_id }}">{{ $s->menu_name }}</option>
                                     @endforeach
                                 </select>
                             </div>
-                           
+
                             <div class="mb-3">
                                 <label class="block text-gray-700 dark:text-white">Application ID</label>
                                 <select id="application_id" name="application_id"
-                                        class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700" required>
+                                    class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700" required>
                                     <option value="">-- Application --</option>
-                                    @foreach($applications as $app)
+                                    @foreach ($applications as $app)
                                         <option value="{{ $app->application_id }}">
                                             {{ $app->application_name }}
                                         </option>
@@ -166,32 +182,32 @@
                             <div class="mb-3">
                                 <label class="block text-gray-700 dark:text-white">Access Type (optional)</label>
                                 <input type="text" id="access_type" name="access_type" value="NORMAL"
-                                       class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700"
-                                       placeholder="e.g. NORMAL, SPECIAL">
+                                    class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700"
+                                    placeholder="e.g. NORMAL, SPECIAL">
                             </div>
 
                             {{-- Checkbox VIEW / CREATE / EDIT / DELETE --}}
                             <div class="mb-3 md:col-span-2">
                                 <label class="block text-gray-700 dark:text-white">Access Rights</label>
-                                <div class="mt-1 flex flex-wrap gap-4">
+                                <div class="mt-1 flex justify-between gap-4">
                                     <label class="inline-flex items-center space-x-1">
-                                        <input type="checkbox" name="access_names[]" value="VIEW"
-                                               id="chk_view" class="h-4 w-4">
+                                        <input type="checkbox" name="access_names[]" value="VIEW" id="chk_view"
+                                            class="h-4 w-4">
                                         <span>VIEW</span>
                                     </label>
                                     <label class="inline-flex items-center space-x-1">
-                                        <input type="checkbox" name="access_names[]" value="CREATE"
-                                               id="chk_create" class="h-4 w-4">
+                                        <input type="checkbox" name="access_names[]" value="CREATE" id="chk_create"
+                                            class="h-4 w-4">
                                         <span>CREATE</span>
                                     </label>
                                     <label class="inline-flex items-center space-x-1">
-                                        <input type="checkbox" name="access_names[]" value="EDIT"
-                                               id="chk_edit" class="h-4 w-4">
+                                        <input type="checkbox" name="access_names[]" value="EDIT" id="chk_edit"
+                                            class="h-4 w-4">
                                         <span>EDIT</span>
                                     </label>
                                     <label class="inline-flex items-center space-x-1">
-                                        <input type="checkbox" name="access_names[]" value="DELETE"
-                                               id="chk_delete" class="h-4 w-4">
+                                        <input type="checkbox" name="access_names[]" value="DELETE" id="chk_delete"
+                                            class="h-4 w-4">
                                         <span>DELETE</span>
                                     </label>
                                 </div>
@@ -204,18 +220,17 @@
                                 </label>
                                 <div class="mt-1 flex flex-wrap gap-2">
                                     <input type="text" id="new_access_name"
-                                           class="flex-1 rounded-lg border px-3 py-2 dark:bg-gray-700"
-                                           placeholder="Contoh: APPROVE, REJECT">
+                                        class="flex-1 rounded-lg border px-3 py-2 dark:bg-gray-700"
+                                        placeholder="Contoh: APPROVE, REJECT">
                                     <button type="button" id="btnAddAccessName"
-                                            class="rounded-lg bg-emerald-500 px-4 py-2 text-white">
+                                        class="rounded-lg bg-emerald-500 px-4 py-2 text-white">
                                         ADD
                                     </button>
                                 </div>
                                 <p class="mt-1 text-xs text-gray-500">
                                     Ketik satu nama lalu klik ADD. Untuk beberapa nama, klik ADD berkali-kali.
                                 </p>
-                                <div id="customAccessContainer"
-                                     class="mt-2 flex flex-wrap gap-3">
+                                <div id="customAccessContainer" class="mt-2 flex flex-wrap gap-3">
                                     {{-- checkbox akses custom akan muncul di sini --}}
                                 </div>
                             </div>
@@ -223,16 +238,15 @@
 
                         <div class="mt-4 flex justify-end space-x-2">
                             <button type="button" id="closeAccessRightModal"
-                                    class="rounded-lg bg-red-500 px-4 py-2 text-white">Cancel</button>
-                            <button type="submit"
-                                    class="rounded-lg bg-blue-500 px-4 py-2 text-white">Save</button>
+                                class="rounded-lg bg-red-500 px-4 py-2 text-white">Cancel</button>
+                            <button type="submit" class="rounded-lg bg-blue-500 px-4 py-2 text-white">Save</button>
                         </div>
                     </form>
                 </div>
             </div>
 
             <script>
-                $(document).ready(function () {
+                $(document).ready(function() {
                     let table = $('#accessRightsTable').DataTable({
                         ajax: {
                             url: "{{ route('access_rights.json') }}",
@@ -241,10 +255,9 @@
                         },
                         processing: true,
                         serverSide: false,
-                        columns: [
-                            {
+                        columns: [{
                                 data: 'id',
-                                render: function (data, type, row) {
+                                render: function(data, type, row) {
                                     return `
                                         <div class="flex justify-center space-x-2">
                                             <label class="switch">
@@ -260,33 +273,43 @@
                                     `;
                                 }
                             },
-                            { data: 'role_id' },
-                            { data: 'screen_id' },
-                            { data: 'application_id' },
-                            { data: 'access_name' },
+                            {
+                                data: 'role_id'
+                            },
+                            {
+                                data: 'screen_id'
+                            },
+                            {
+                                data: 'application_id'
+                            },
+                            {
+                                data: 'access_name'
+                            },
                             {
                                 data: 'access_right',
-                                render: function (data) {
-                                    return data
-                                        ? '<span class="text-green-600 font-semibold">YES</span>'
-                                        : '<span class="text-red-600 font-semibold">NO</span>';
+                                render: function(data) {
+                                    return data ?
+                                        '<span class="text-green-600 font-semibold">YES</span>' :
+                                        '<span class="text-red-600 font-semibold">NO</span>';
                                 }
                             },
-                            { data: 'access_type' },
+                            {
+                                data: 'access_type'
+                            },
                             {
                                 data: 'status',
                                 className: 'text-center',
-                                render: function (data) {
-                                    return data === 'A'
-                                        ? '<span class="bg-green-300/30 text-green-600 font-semibold px-4 py-1 rounded">Active</span>'
-                                        : '<span class="bg-red-300/30 text-red-600 font-semibold px-4 py-1 rounded">Inactive</span>';
+                                render: function(data) {
+                                    return data === 'A' ?
+                                        '<span class="bg-green-300/30 text-green-600 font-semibold px-4 py-1 rounded">Active</span>' :
+                                        '<span class="bg-red-300/30 text-red-600 font-semibold px-4 py-1 rounded">Inactive</span>';
                                 }
                             }
                         ]
                     });
 
                     // ===== Filter ROLE (kolom index 1) =====
-                    $('#filterRole').on('change', function () {
+                    $('#filterRole').on('change', function() {
                         const val = $(this).val();
 
                         table
@@ -296,7 +319,7 @@
                     });
 
                     // ===== Filter SCREEN ID (kolom index 2) =====
-                    $('#filterScreen').on('change', function () {
+                    $('#filterScreen').on('change', function() {
                         const val = $(this).val();
 
                         table
@@ -306,7 +329,7 @@
                     });
 
                     // ===== Clear Filter =====
-                    $('#clearFilters').on('click', function () {
+                    $('#clearFilters').on('click', function() {
                         $('#filterRole').val('');
                         $('#filterScreen').val('');
 
@@ -356,7 +379,7 @@
                     }
 
                     // klik tombol ADD untuk Other Access Names
-                    $('#btnAddAccessName').on('click', function () {
+                    $('#btnAddAccessName').on('click', function() {
                         let val = $('#new_access_name').val();
                         addCustomCheckbox(val, true);
                         $('#new_access_name').val('');
@@ -364,7 +387,7 @@
                     });
 
                     // Enter di input Other Access Names juga jadi ADD
-                    $('#new_access_name').on('keypress', function (e) {
+                    $('#new_access_name').on('keypress', function(e) {
                         if (e.which === 13) {
                             e.preventDefault();
                             $('#btnAddAccessName').click();
@@ -372,21 +395,21 @@
                     });
 
                     // Add
-                    $('#addAccessRightBtn').click(function () {
+                    $('#addAccessRightBtn').click(function() {
                         $('#accessRightModalTitle').text("Add Access Right");
                         resetAccessModal();
                         $('#accessRightModal').removeClass('hidden');
                     });
 
                     // Edit
-                    $(document).on('click', '.editAccessRightBtn', function () {
+                    $(document).on('click', '.editAccessRightBtn', function() {
                         let id = $(this).data('id');
 
                         $('#accessRightModalTitle').text("Loading...");
                         resetAccessModal();
                         $('#accessRightModal').removeClass('hidden');
 
-                        $.get(`/access-rights/${id}/edit`, function (data) {
+                        $.get(`/access-rights/${id}/edit`, function(data) {
                             $('#accessRightModalTitle').text("Edit Access Right");
                             $('#id').val(data.id);
                             $('#role_id').val(data.role_id);
@@ -396,7 +419,7 @@
 
                             // access_names = array dari controller
                             let names = data.access_names || [];
-                            names.forEach(function (n) {
+                            names.forEach(function(n) {
                                 let up = (n || '').toUpperCase();
                                 if (up === 'VIEW') {
                                     $('#chk_view').prop('checked', true);
@@ -415,23 +438,27 @@
                     });
 
                     // Toggle status
-                    $(document).on('change', '.toggleStatus', function () {
+                    $(document).on('change', '.toggleStatus', function() {
                         let id = $(this).data('id');
                         let newStatus = $(this).is(':checked') ? 'A' : 'X';
 
                         $.ajax({
                             url: `/access-rights/${id}/toggle-status`,
                             type: 'PUT',
-                            headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
-                            data: { status: newStatus },
-                            success: function () {
+                            headers: {
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                            },
+                            data: {
+                                status: newStatus
+                            },
+                            success: function() {
                                 table.ajax.reload(null, false);
                             }
                         });
                     });
 
                     // Submit (create/update)
-                    $('#accessRightForm').submit(function (e) {
+                    $('#accessRightForm').submit(function(e) {
                         e.preventDefault();
 
                         let id = $('#id').val();
@@ -446,22 +473,24 @@
                         $.ajax({
                             url: url,
                             type: method,
-                            headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+                            headers: {
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                            },
                             data: formData,
                             processData: false,
                             contentType: false,
-                            success: function () {
+                            success: function() {
                                 $('#accessRightModal').addClass('hidden');
                                 table.ajax.reload();
                             },
-                            error: function (xhr) {
+                            error: function(xhr) {
                                 console.error(xhr.responseText);
                                 alert('Gagal menyimpan access right');
                             }
                         });
                     });
 
-                    $('#closeAccessRightModal').click(function () {
+                    $('#closeAccessRightModal').click(function() {
                         $('#accessRightModal').addClass('hidden');
                     });
                 });

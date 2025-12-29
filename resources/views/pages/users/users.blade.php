@@ -270,75 +270,83 @@
                     <h2 id="modalTitle" class="mb-4 text-xl font-bold text-gray-800 dark:text-white">Add User</h2>
                     <form id="appForm">
                         <input type="hidden" id="id">
-                        <div class="mb-4">
-                            <label class="block text-gray-700 dark:text-white">Name</label>
-                            <input type="text" id="name" name="name"
-                                class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700" required>
-                        </div>
-                        <div class="mb-4">
-                            <label class="block text-gray-700 dark:text-white">Email</label>
-                            <input type="text" id="email" name="email"
-                                class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700" required>
-                        </div>
-                        <div class="mb-4">
-                            <label class="block text-gray-700 dark:text-white">Company</label>
-                            <select name="cpny_id[]" class="select2 w-full rounded-lg border px-3 py-2" multiple
-                                required>
-                                @foreach ($company as $p)
-                                    <option value="{{ $p->cpny_id }}">{{ $p->cpny_id }}</option>
-                                @endforeach
-                            </select>
+                        <div class="mb-4 grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-gray-700 dark:text-white">Name</label>
+                                <input type="text" id="name" name="name"
+                                    class="w-full rounded-lg border border-gray-400 px-3 py-2 dark:bg-gray-700"
+                                    required>
+                            </div>
+                            <div>
+                                <label class="block text-gray-700 dark:text-white">Email</label>
+                                <input type="text" id="email" name="email"
+                                    class="w-full rounded-lg border border-gray-400 px-3 py-2 dark:border-gray-600 dark:bg-gray-700"
+                                    required>
+                            </div>
+                            <div>
+                                <label class="block text-gray-700 dark:text-white">Company</label>
+                                <select name="cpny_id[]" class="select2 w-full rounded-lg border px-3 py-2" multiple
+                                    required>
+                                    @foreach ($company as $p)
+                                        <option value="{{ $p->cpny_id }}">{{ $p->cpny_id }}</option>
+                                    @endforeach
+                                </select>
 
-                        </div>
-                        <div class="mb-4">
-                            <label class="block text-gray-700 dark:text-white">Departement</label>
-                            <select name="department_id[]" class="select2 w-full rounded-lg border px-3 py-2" multiple
-                                required>
-                                @foreach ($department as $p)
-                                    <option value="{{ $p->department_id }}">{{ $p->department_id }}</option>
-                                @endforeach
-                            </select>
+                            </div>
+                            <div>
+                                <label class="block text-gray-700 dark:text-white">Departement</label>
+                                <select name="department_id[]" class="select2 w-full rounded-lg border px-3 py-2"
+                                    multiple required>
+                                    @foreach ($department as $p)
+                                        <option value="{{ $p->department_id }}">{{ $p->department_id }}</option>
+                                    @endforeach
+                                </select>
 
-                        </div>
-                        <div class="mb-4">
-                            <label class="block text-gray-700 dark:text-white">Jabatan</label>
-                            <select name="jabatan" class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700" required>
-                                <option value="">Select Option</option>
-                                <option value="staff">Staff</option>
-                                <option value="manager">Manager</option>
-                            </select>
+                            </div>
+                            <div>
+                                <label class="block text-gray-700 dark:text-white">Jabatan</label>
+                                <select name="jabatan"
+                                    class="w-full rounded-lg border border-gray-400 px-3 py-2 dark:border-gray-600 dark:bg-gray-700"
+                                    required>
+                                    <option value="">Select Option</option>
+                                    <option value="staff">Staff</option>
+                                    <option value="manager">Manager</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="block text-gray-700 dark:text-white">Role</label>
+                                <select name="role"
+                                    class="w-full rounded-lg border border-gray-400 px-3 py-2 dark:border-gray-600 dark:bg-gray-700"
+                                    required>
+                                    <option value="">Select Option</option>
+                                    <option value="user">User</option>
+                                    <option value="admin">Admin</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="block text-gray-700 dark:text-white">App Roles </label>
+                                <select name="role_ids[]" class="select2 w-full rounded-lg border px-3 py-2" multiple>
+                                    @foreach ($roles as $r)
+                                        <option value="{{ $r->role_id }}">
+                                            {{ $r->role_name }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="block text-gray-700 dark:text-white">NIP</label>
+                                <input type="text" name="npk"
+                                    class="w-full rounded-lg border border-gray-400 px-3 py-2 dark:border-gray-600 dark:bg-gray-700">
+                            </div>
                         </div>
 
-                        <div class="mb-4">
-                            <label class="block text-gray-700 dark:text-white">Role</label>
-                            <select name="role" class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700" required>
-                                <option value="">Select Option</option>
-                                <option value="user">User</option>
-                                <option value="admin">Admin</option>
-                            </select>
-                        </div>
-
-                        <div class="mb-4">
-                            <label class="block text-gray-700 dark:text-white">App Roles </label>
-                            <select name="role_ids[]" class="select2 w-full rounded-lg border px-3 py-2" multiple>
-                                @foreach ($roles as $r)
-                                    <option value="{{ $r->role_id }}">
-                                        {{ $r->role_name }}
-                                    </option>
-                                @endforeach
-                            </select>
-                        </div>
-
-                        <div class="mb-4">
-                            <label class="block text-gray-700 dark:text-white">NIP</label>
-                            <input type="text" name="npk"
-                                class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700">
-                        </div>
                         <div class="flex justify-end space-x-2">
                             <button type="button" id="closeModal"
                                 class="rounded-lg bg-red-500 px-4 py-2 text-white">Cancel</button>
                             <button type="submit" class="rounded-lg bg-blue-500 px-4 py-2 text-white">Save</button>
-
                         </div>
                     </form>
                 </div>

@@ -467,7 +467,7 @@
 
                                         <!-- Application -->
                                         @php
-                                            $ApplicationSegments = ['companies', 'department', 'tenants', 'locations'];
+                                            $ApplicationSegments = ['applications', 'screens', 'menus'];
                                         @endphp
                                         <li class="mb-2 ml-2" x-data="{ open: {{ in_array(Request::segment(1), $ApplicationSegments) ? 1 : 0 }} }">
 
@@ -547,7 +547,7 @@
 
                                         <!-- Organization -->
                                         @php
-                                            $organizationSegments = ['applications', 'screens', 'menus'];
+                                            $organizationSegments = ['companies', 'department', 'tenants', 'locations'];
                                         @endphp
                                         <li class="mb-2 ml-2" x-data="{ open: {{ in_array(Request::segment(1), $organizationSegments) ? 1 : 0 }} }">
 
@@ -679,7 +679,7 @@
                                                                 stroke="currentColor" width="16" height="16">
                                                                 <path stroke-linecap="round" stroke-linejoin="round"
                                                                     d="
-                                                                                                                                                                                                                                                                                                                                                                                                M7.5 7.5h.01M3 6.75V3h3.75l12 12-3.75 3.75-12-12z" />
+                                                                                                                                                                                                                                                                                                                                                                                                                                M7.5 7.5h.01M3 6.75V3h3.75l12 12-3.75 3.75-12-12z" />
                                                             </svg>
 
 
@@ -773,13 +773,7 @@
 
                                         <!-- Workflow -->
                                         @php
-                                            $workflowSegments = [
-                                                'categories',
-                                                'vendors',
-                                                'inventories',
-                                                'autonbrs',
-                                                'tops',
-                                            ];
+                                            $workflowSegments = ['approvals'];
                                         @endphp
                                         <li class="mb-2 ml-2" x-data="{ open: {{ in_array(Request::segment(1), $workflowSegments) ? 1 : 0 }} }">
 

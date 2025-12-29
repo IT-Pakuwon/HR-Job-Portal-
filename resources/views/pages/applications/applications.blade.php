@@ -8,13 +8,17 @@
 
         <div class="grid">
             <style>
-                table.dataTable { width: 100% !important; }
+                table.dataTable {
+                    width: 100% !important;
+                }
+
                 #applicationsTable_filter {
                     margin-bottom: 20px;
                     display: flex;
                     justify-content: flex-start;
                     align-items: center;
                 }
+
                 #applicationsTable_filter input {
                     width: auto;
                     padding: 0.25rem 0.5rem;
@@ -22,21 +26,32 @@
                     border: 1px solid #d1d5db;
                     background-color: #f9fafb;
                 }
+
                 .switch {
                     position: relative;
                     display: inline-block;
                     width: 40px;
                     height: 22px;
                 }
-                .switch input { opacity: 0; width: 0; height: 0; }
+
+                .switch input {
+                    opacity: 0;
+                    width: 0;
+                    height: 0;
+                }
+
                 .slider {
                     position: absolute;
                     cursor: pointer;
-                    top: 0; left: 0; right: 0; bottom: 0;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    bottom: 0;
                     background-color: #ccc;
                     transition: .4s;
                     border-radius: 34px;
                 }
+
                 .slider:before {
                     position: absolute;
                     content: "";
@@ -48,8 +63,14 @@
                     transition: .4s;
                     border-radius: 50%;
                 }
-                input:checked + .slider { background-color: #4CAF50; }
-                input:checked + .slider:before { transform: translateX(18px); }
+
+                input:checked+.slider {
+                    background-color: #4CAF50;
+                }
+
+                input:checked+.slider:before {
+                    transform: translateX(18px);
+                }
             </style>
 
             <div class="mt-6 rounded-xl bg-white p-4 dark:bg-gray-800">
@@ -83,30 +104,31 @@
                         @csrf
                         <input type="hidden" id="id">
 
-                        <div class="mb-4">
-                            <label class="block text-gray-700 dark:text-white">Application ID</label>
-                            <input type="text" id="application_id" name="application_id"
-                                   class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700" required>
-                        </div>
+                        <div class="mb-4 grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-gray-700 dark:text-white">Application ID</label>
+                                <input type="text" id="application_id" name="application_id"
+                                    class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700" required>
+                            </div>
 
-                        <div class="mb-4">
-                            <label class="block text-gray-700 dark:text-white">Application Name</label>
-                            <input type="text" id="application_name" name="application_name"
-                                   class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700" required>
+                            <div>
+                                <label class="block text-gray-700 dark:text-white">Application Name</label>
+                                <input type="text" id="application_name" name="application_name"
+                                    class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700" required>
+                            </div>
                         </div>
 
                         <div class="flex justify-end space-x-2">
                             <button type="button" id="closeAppModal"
-                                    class="rounded-lg bg-red-500 px-4 py-2 text-white">Cancel</button>
-                            <button type="submit"
-                                    class="rounded-lg bg-blue-500 px-4 py-2 text-white">Save</button>
+                                class="rounded-lg bg-red-500 px-4 py-2 text-white">Cancel</button>
+                            <button type="submit" class="rounded-lg bg-blue-500 px-4 py-2 text-white">Save</button>
                         </div>
                     </form>
                 </div>
             </div>
 
             <script>
-                $(document).ready(function () {
+                $(document).ready(function() {
                     let table = $('#applicationsTable').DataTable({
                         ajax: {
                             url: "{{ route('applications.json') }}",
@@ -115,10 +137,9 @@
                         },
                         processing: true,
                         serverSide: false,
-                        columns: [
-                            {
+                        columns: [{
                                 data: 'id',
-                                render: function (data, type, row) {
+                                render: function(data, type, row) {
                                     return `
                                         <div class="flex justify-center space-x-2">
                                             <label class="switch">
@@ -134,22 +155,26 @@
                                     `;
                                 }
                             },
-                            { data: 'application_id' },
-                            { data: 'application_name' },
+                            {
+                                data: 'application_id'
+                            },
+                            {
+                                data: 'application_name'
+                            },
                             {
                                 data: 'status',
                                 className: 'text-center',
-                                render: function (data) {
-                                    return data === 'A'
-                                        ? '<span class="bg-green-300/30 text-green-600 font-semibold px-4 py-1 rounded">Active</span>'
-                                        : '<span class="bg-red-300/30 text-red-600 font-semibold px-4 py-1 rounded">Inactive</span>';
+                                render: function(data) {
+                                    return data === 'A' ?
+                                        '<span class="bg-green-300/30 text-green-600 font-semibold px-4 py-1 rounded">Active</span>' :
+                                        '<span class="bg-red-300/30 text-red-600 font-semibold px-4 py-1 rounded">Inactive</span>';
                                 }
                             }
                         ]
                     });
 
                     // Add
-                    $('#addAppBtn').click(function () {
+                    $('#addAppBtn').click(function() {
                         $('#appModalTitle').text("Add Application");
                         $('#appForm')[0].reset();
                         $('#id').val('');
@@ -157,13 +182,13 @@
                     });
 
                     // Edit
-                    $(document).on('click', '.editAppBtn', function () {
+                    $(document).on('click', '.editAppBtn', function() {
                         let id = $(this).data('id');
 
                         $('#appModalTitle').text("Loading...");
                         $('#appModal').removeClass('hidden');
 
-                        $.get(`/applications/${id}/edit`, function (data) {
+                        $.get(`/applications/${id}/edit`, function(data) {
                             $('#appModalTitle').text("Edit Application");
                             $('#id').val(data.id);
                             $('#application_id').val(data.application_id);
@@ -172,23 +197,27 @@
                     });
 
                     // Toggle status
-                    $(document).on('change', '.toggleStatus', function () {
+                    $(document).on('change', '.toggleStatus', function() {
                         let id = $(this).data('id');
                         let newStatus = $(this).is(':checked') ? 'A' : 'X';
 
                         $.ajax({
                             url: `/applications/${id}/toggle-status`,
                             type: 'PUT',
-                            headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
-                            data: { status: newStatus },
-                            success: function () {
+                            headers: {
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                            },
+                            data: {
+                                status: newStatus
+                            },
+                            success: function() {
                                 table.ajax.reload(null, false);
                             }
                         });
                     });
 
                     // Submit form
-                    $('#appForm').submit(function (e) {
+                    $('#appForm').submit(function(e) {
                         e.preventDefault();
 
                         let id = $('#id').val();
@@ -203,22 +232,24 @@
                         $.ajax({
                             url: url,
                             type: method,
-                            headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+                            headers: {
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                            },
                             data: formData,
                             processData: false,
                             contentType: false,
-                            success: function () {
+                            success: function() {
                                 $('#appModal').addClass('hidden');
                                 table.ajax.reload();
                             },
-                            error: function (xhr) {
+                            error: function(xhr) {
                                 console.error(xhr.responseText);
                                 alert('Gagal menyimpan application');
                             }
                         });
                     });
 
-                    $('#closeAppModal').click(function () {
+                    $('#closeAppModal').click(function() {
                         $('#appModal').addClass('hidden');
                     });
                 });

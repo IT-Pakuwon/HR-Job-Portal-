@@ -8,13 +8,17 @@
 
         <div class="grid">
             <style>
-                table.dataTable { width: 100% !important; }
+                table.dataTable {
+                    width: 100% !important;
+                }
+
                 #screensTable_filter {
                     margin-bottom: 20px;
                     display: flex;
                     justify-content: flex-start;
                     align-items: center;
                 }
+
                 #screensTable_filter input {
                     width: auto;
                     padding: 0.25rem 0.5rem;
@@ -22,21 +26,32 @@
                     border: 1px solid #d1d5db;
                     background-color: #f9fafb;
                 }
+
                 .switch {
                     position: relative;
                     display: inline-block;
                     width: 40px;
                     height: 22px;
                 }
-                .switch input { opacity: 0; width: 0; height: 0; }
+
+                .switch input {
+                    opacity: 0;
+                    width: 0;
+                    height: 0;
+                }
+
                 .slider {
                     position: absolute;
                     cursor: pointer;
-                    top: 0; left: 0; right: 0; bottom: 0;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    bottom: 0;
                     background-color: #ccc;
                     transition: .4s;
                     border-radius: 34px;
                 }
+
                 .slider:before {
                     position: absolute;
                     content: "";
@@ -48,8 +63,14 @@
                     transition: .4s;
                     border-radius: 50%;
                 }
-                input:checked + .slider { background-color: #4CAF50; }
-                input:checked + .slider:before { transform: translateX(18px); }
+
+                input:checked+.slider {
+                    background-color: #4CAF50;
+                }
+
+                input:checked+.slider:before {
+                    transform: translateX(18px);
+                }
             </style>
 
             <div class="mt-6 rounded-xl bg-white p-4 dark:bg-gray-800">
@@ -84,24 +105,26 @@
                         @csrf
                         <input type="hidden" id="id">
 
-                        <div class="mb-4">
-                            <label class="block text-gray-700 dark:text-white">Screen ID</label>
-                            <input type="text" id="screen_id" name="screen_id"
-                                   class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700" required>
-                        </div>
+                        <div class="mb-4 grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-gray-700 dark:text-white">Screen ID</label>
+                                <input type="text" id="screen_id" name="screen_id"
+                                    class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700" required>
+                            </div>
 
-                        <div class="mb-4">
-                            <label class="block text-gray-700 dark:text-white">Screen Name</label>
-                            <input type="text" id="screen_name" name="screen_name"
-                                   class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700" required>
+                            <div>
+                                <label class="block text-gray-700 dark:text-white">Screen Name</label>
+                                <input type="text" id="screen_name" name="screen_name"
+                                    class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700" required>
+                            </div>
                         </div>
 
                         <div class="mb-4">
                             <label class="block text-gray-700 dark:text-white">Application</label>
                             <select id="application_id" name="application_id"
-                                    class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700" required>
+                                class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700" required>
                                 <option value="">-- Select Application --</option>
-                                @foreach($applications as $app)
+                                @foreach ($applications as $app)
                                     <option value="{{ $app->application_id }}">
                                         {{ $app->application_id }} - {{ $app->application_name }}
                                     </option>
@@ -111,16 +134,15 @@
 
                         <div class="flex justify-end space-x-2">
                             <button type="button" id="closeScreenModal"
-                                    class="rounded-lg bg-red-500 px-4 py-2 text-white">Cancel</button>
-                            <button type="submit"
-                                    class="rounded-lg bg-blue-500 px-4 py-2 text-white">Save</button>
+                                class="rounded-lg bg-red-500 px-4 py-2 text-white">Cancel</button>
+                            <button type="submit" class="rounded-lg bg-blue-500 px-4 py-2 text-white">Save</button>
                         </div>
                     </form>
                 </div>
             </div>
 
             <script>
-                $(document).ready(function () {
+                $(document).ready(function() {
                     let table = $('#screensTable').DataTable({
                         ajax: {
                             url: "{{ route('screens.json') }}",
@@ -129,10 +151,9 @@
                         },
                         processing: true,
                         serverSide: false,
-                        columns: [
-                            {
+                        columns: [{
                                 data: 'id',
-                                render: function (data, type, row) {
+                                render: function(data, type, row) {
                                     return `
                                         <div class="flex justify-center space-x-2">
                                             <label class="switch">
@@ -148,23 +169,29 @@
                                     `;
                                 }
                             },
-                            { data: 'screen_id' },
-                            { data: 'screen_name' },
-                            { data: 'application_id' },
+                            {
+                                data: 'screen_id'
+                            },
+                            {
+                                data: 'screen_name'
+                            },
+                            {
+                                data: 'application_id'
+                            },
                             {
                                 data: 'status',
                                 className: 'text-center',
-                                render: function (data) {
-                                    return data === 'A'
-                                        ? '<span class="bg-green-300/30 text-green-600 font-semibold px-4 py-1 rounded">Active</span>'
-                                        : '<span class="bg-red-300/30 text-red-600 font-semibold px-4 py-1 rounded">Inactive</span>';
+                                render: function(data) {
+                                    return data === 'A' ?
+                                        '<span class="bg-green-300/30 text-green-600 font-semibold px-4 py-1 rounded">Active</span>' :
+                                        '<span class="bg-red-300/30 text-red-600 font-semibold px-4 py-1 rounded">Inactive</span>';
                                 }
                             }
                         ]
                     });
 
                     // Add
-                    $('#addScreenBtn').click(function () {
+                    $('#addScreenBtn').click(function() {
                         $('#screenModalTitle').text("Add Screen");
                         $('#screenForm')[0].reset();
                         $('#id').val('');
@@ -172,13 +199,13 @@
                     });
 
                     // Edit
-                    $(document).on('click', '.editScreenBtn', function () {
+                    $(document).on('click', '.editScreenBtn', function() {
                         let id = $(this).data('id');
 
                         $('#screenModalTitle').text("Loading...");
                         $('#screenModal').removeClass('hidden');
 
-                        $.get(`/screens/${id}/edit`, function (data) {
+                        $.get(`/screens/${id}/edit`, function(data) {
                             $('#screenModalTitle').text("Edit Screen");
                             $('#id').val(data.id);
                             $('#screen_id').val(data.screen_id);
@@ -188,23 +215,27 @@
                     });
 
                     // Toggle status
-                    $(document).on('change', '.toggleStatus', function () {
+                    $(document).on('change', '.toggleStatus', function() {
                         let id = $(this).data('id');
                         let newStatus = $(this).is(':checked') ? 'A' : 'X';
 
                         $.ajax({
                             url: `/screens/${id}/toggle-status`,
                             type: 'PUT',
-                            headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
-                            data: { status: newStatus },
-                            success: function () {
+                            headers: {
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                            },
+                            data: {
+                                status: newStatus
+                            },
+                            success: function() {
                                 table.ajax.reload(null, false);
                             }
                         });
                     });
 
                     // Submit
-                    $('#screenForm').submit(function (e) {
+                    $('#screenForm').submit(function(e) {
                         e.preventDefault();
 
                         let id = $('#id').val();
@@ -219,22 +250,24 @@
                         $.ajax({
                             url: url,
                             type: method,
-                            headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+                            headers: {
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                            },
                             data: formData,
                             processData: false,
                             contentType: false,
-                            success: function () {
+                            success: function() {
                                 $('#screenModal').addClass('hidden');
                                 table.ajax.reload();
                             },
-                            error: function (xhr) {
+                            error: function(xhr) {
                                 console.error(xhr.responseText);
                                 alert('Gagal menyimpan screen');
                             }
                         });
                     });
 
-                    $('#closeScreenModal').click(function () {
+                    $('#closeScreenModal').click(function() {
                         $('#screenModal').addClass('hidden');
                     });
                 });
