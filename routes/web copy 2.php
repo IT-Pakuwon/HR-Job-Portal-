@@ -147,10 +147,10 @@ Route::post('/login', function (Request $request) {
     return redirect()->intended('/dashboard');
 })->name('login');
 
+Route::get('/modules', function () {
+    return view('layouts.module');
+})->name('modules');
 
-// Route::get('/modules', function () {
-//     return view('layouts.module');
-// })->name('modules');
 
 
 Route::post('/logout', function () {
@@ -473,13 +473,14 @@ Route::post('/logout', function () {
         Route::get('/showbudgets/{hash}', [BudgetController::class, 'showBudget']);
         Route::get('/pdf_budgets/{hash}', [BudgetController::class, 'printBudget']);
         Route::get('/get-business-units/{cpny_id}', [BudgetController::class, 'getBusinessUnits']);
+        
+        Route::get('/budget-monitor', [BudgetMonitorController::class, 'index'])->name('budget.monitor');
+        Route::get('/budget-monitor/options/companies', [BudgetMonitorController::class, 'companies'])->name('budget.monitor.options.companies');
+        Route::get('/budget-monitor/options/business-units', [BudgetMonitorController::class, 'businessUnits'])->name('budget.monitor.options.businessUnits');
+        Route::get('/budget-monitor/options/departments', [BudgetMonitorController::class, 'departments'])->name('budget.monitor.options.departments');
+        Route::get('/budget-monitor/master.json', [BudgetMonitorController::class, 'masterJson'])->name('budget.monitor.master.json');
+        Route::get('/budget-monitor/trx.json', [BudgetMonitorController::class, 'trxJson'])->name('budget.monitor.trx.json');
 
-        Route::get('/budgetmonitor', [BudgetMonitorController::class, 'index'])->name('budget.monitor');
-        Route::get('/budgetmonitor/options/companies', [BudgetMonitorController::class, 'companies'])->name('budget.monitor.options.companies');
-        Route::get('/budgetmonitor/options/business-units', [BudgetMonitorController::class, 'businessUnits'])->name('budget.monitor.options.businessUnits');
-        Route::get('/budgetmonitor/options/departments', [BudgetMonitorController::class, 'departments'])->name('budget.monitor.options.departments');
-        Route::get('/budgetmonitor/master.json', [BudgetMonitorController::class, 'masterJson'])->name('budget.monitor.master.json');
-        Route::get('/budgetmonitor/trx.json', [BudgetMonitorController::class, 'trxJson'])->name('budget.monitor.trx.json');
     });
 
     Route::middleware('access:BUDGET,CREATE')->group(function () {

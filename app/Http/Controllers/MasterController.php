@@ -642,11 +642,12 @@ class MasterController extends Controller
         if (!$cpnyid) {
             return response()->json(['data' => [], 'total' => 0, 'page' => $page, 'per_page' => $perPage]);
         }
-
+        
         // Sesuaikan nama kolom Mslocation kamu:
         // asumsi: cpny_id, location_id, location_name, status
         $q = MsLocation::query()
-            ->where('cpny_id', $cpnyid)
+            // ->where('cpny_id', $cpnyid)
+            ->whereIn('cpny_id', [$cpnyid, 'ALL'])
             ->where('status', 'A');
 
         if ($search !== '') {
@@ -688,7 +689,8 @@ class MasterController extends Controller
         // SESUAIKAN nama kolom:
         // asumsi: cpny_id, location_id, sub_location_id, sub_location_name, status
         $q = MsSubLocation::query()
-            ->where('cpny_id', $cpnyid)
+            // ->where('cpny_id', $cpnyid)
+            ->whereIn('cpny_id', [$cpnyid, 'ALL'])
             ->where('location_id', $location_id)
             ->where('status', 'A');
 
@@ -1224,7 +1226,8 @@ class MasterController extends Controller
     public function getLocations(string $cpny_id)
     {
         $items = MsLocation::query()
-            ->where('cpny_id', $cpny_id)
+            // ->where('cpny_id', $cpny_id)
+            ->whereIn('cpny_id', [$cpny_id, 'ALL'])
             ->where('status', 'A')
             ->orderBy('location_name')
             ->get(['location_id as value', 'location_name as text']);
@@ -1235,7 +1238,8 @@ class MasterController extends Controller
     public function getSubLocations(string $cpny_id, string $location_id)
     {
         $items = MsSubLocation::query()
-            ->where('cpny_id', $cpny_id)
+            // ->where('cpny_id', $cpny_id)
+            ->whereIn('cpny_id', [$cpny_id, 'ALL'])
             ->where('location_id', $location_id)
             ->where('status', 'A')
             ->orderBy('sub_location_name')
