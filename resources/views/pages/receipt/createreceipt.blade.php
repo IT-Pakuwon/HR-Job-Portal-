@@ -459,6 +459,7 @@
                         if (window.toastr) toastr.success(res.message ||
                             'Receipt created successfully!');
                         window.location.href = "/receiptlist";
+                        window.location.reload();
                     })
                     .fail(function(xhr) {
                         if (xhr.status === 422 && xhr.responseJSON && xhr.responseJSON.errors) {

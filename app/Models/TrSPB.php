@@ -11,24 +11,6 @@ class TrSPB extends Model
     protected $table = "tr_spb";
 
     protected $fillable = [
-        // 'spbid',
-        // 'spbdate',
-        // 'cpny_id',
-        // 'department_id',
-        // 'worktypeid',
-        // 'subworktypeid',
-        // 'keperluan',
-        // 'budget_perpost',
-        // 'woid',
-        // 'totalspbqty',
-        // 'totalspbqty',
-        // 'totalissueqty',
-        // 'totalcompleteqty',
-        // 'status',
-        // 'created_by',
-        // 'updated_by',
-        // 'completed_by'
-
         'spbid' , 'spbdate' , 'cpny_id' , 'department_id' , 'worktypeid' , 'subworktypeid' , 'keperluan' , 'budget_perpost' , 
         'woid' , 'grandtotalcost' , 'totalspbqty' , 'totalissueqty' , 'totalreturnqty' , 'totalsppbqty' , 'totalcompleteqty' , 
         'sppbid' , 'status' , 'status_sppb' , 'status_issue' , 'created_by' , 'created_at' , 'updated_by' , 'updated_at' , 

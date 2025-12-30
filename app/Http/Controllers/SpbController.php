@@ -33,6 +33,9 @@ use Illuminate\Support\Str;
 use Google\Cloud\Storage\StorageClient;
 use App\Http\Controllers\ApprovalController;
 use App\Models\TrApproval;
+use App\Models\TrIssue;
+
+
 
 class SpbController extends Controller
 {
@@ -81,38 +84,36 @@ class SpbController extends Controller
                     ->whereIn('cpny_id', $cpnyIds)
                     ->whereIn('department_id', $deptIds)
                     ->count();
+
+        $tracking = TrSPB::whereIn('cpny_id', $cpnyIds)
+            ->whereIn('department_id', $deptIds)
+            ->whereRaw('(COALESCE(totalissueqty,0) > 0 OR COALESCE(totalsppbqty,0) > 0 OR COALESCE(sppbid, \'\') <> \'\')')
+            ->count();
+
     
-        return view('pages.spbs.spbs', compact('all', 'onProgress', 'reject', 'revise', 'completed'));
+        return view('pages.spbs.spbs', compact('all', 'onProgress', 'reject', 'revise', 'completed','tracking'));
     }
 
 
-    
+   
     public function json(Request $request)
     {
         $user = Auth::user();
 
-        if (is_string($user->cpny_id)) {
-            $cpnyIds = array_map('trim', explode(',', $user->cpny_id));
-        } else {
-            $cpnyIds = (array) $user->cpny_id;
-        }
+        $cpnyIds = is_string($user->cpny_id)
+            ? array_map('trim', explode(',', $user->cpny_id))
+            : (array) $user->cpny_id;
 
-        // department_id juga bisa multi, tapi di debug sudah "IT"
-        if (is_string($user->department_id)) {
-            $deptIds = array_map('trim', explode(',', $user->department_id));
-        } else {
-            $deptIds = (array) $user->department_id;
-        }
+        $deptIds = is_string($user->department_id)
+            ? array_map('trim', explode(',', $user->department_id))
+            : (array) $user->department_id;
 
         $draw   = (int) $request->input('draw', 1);
         $start  = (int) $request->input('start', 0);
         $length = (int) $request->input('length', 25);
         $search = trim((string) $request->input('search.value', ''));
-        $status = (string) $request->query('status', ''); // '' = all
+        $status = (string) $request->input('status', '');
 
-        $baseTable = (new TrSPB)->getTable(); // "tr_spb"
-
-        // urutan index harus sinkron dengan <th> di view
         $columns = [
             0 => 'spb.spbid',
             1 => 'spb.spbdate',
@@ -128,72 +129,263 @@ class SpbController extends Controller
         $orderDir = $request->input('order.0.dir', 'asc') === 'asc' ? 'asc' : 'desc';
         $orderCol = $columns[$orderIdx] ?? 'spb.spbid';
 
-        $base = TrSPB::from($baseTable.' as spb')
-            ->leftJoin('ms_worktype as wt', function ($join) {
-                $join->on('wt.worktypeid', '=', 'spb.worktypeid');
-            })
+        $base = TrSPB::from('tr_spb as spb')
+            ->leftJoin('ms_worktype as wt', 'wt.worktypeid', '=', 'spb.worktypeid')
             ->leftJoin('ms_subworktype as swt', function ($join) {
                 $join->on('swt.subworktypeid', '=', 'spb.subworktypeid')
                     ->where('swt.doctype', '=', 'SPB');
             })
-            ->whereIn('spb.cpny_id', $cpnyIds)           // 🔹 filter cpny sesuai user
-            ->whereIn('spb.department_id', $deptIds);    // 🔹 filter dept sesuai user
+            ->whereIn('spb.cpny_id', $cpnyIds)
+            ->whereIn('spb.department_id', $deptIds);
 
-        if ($status !== '') {
-            $base->where('spb.status', $status);
-        }
+        if ($status !== '') $base->where('spb.status', $status);
 
         $recordsTotal = (clone $base)->distinct('spb.spbid')->count('spb.spbid');
 
         if ($search !== '') {
             $base->where(function ($q) use ($search) {
-                $q->where('spb.spbid',           'like', "%{$search}%")
-                ->orWhere('spb.cpny_id',       'like', "%{$search}%")
-                ->orWhere('spb.department_id', 'like', "%{$search}%")
-                ->orWhere('wt.worktype_name',  'like', "%{$search}%")
-                ->orWhere('swt.subworktype_name', 'like', "%{$search}%")
-                ->orWhere('spb.keperluan',     'like', "%{$search}%")
-                ->orWhere('spb.status',        'like', "%{$search}%");
+                $q->where('spb.spbid', 'ilike', "%{$search}%")
+                ->orWhere('spb.cpny_id', 'ilike', "%{$search}%")
+                ->orWhere('spb.department_id', 'ilike', "%{$search}%")
+                ->orWhere('wt.worktype_name', 'ilike', "%{$search}%")
+                ->orWhere('swt.subworktype_name', 'ilike', "%{$search}%")
+                ->orWhere('spb.keperluan', 'ilike', "%{$search}%")
+                ->orWhere('spb.status', 'ilike', "%{$search}%");
             });
         }
 
         $recordsFiltered = (clone $base)->distinct('spb.spbid')->count('spb.spbid');
 
         $data = $base->select(
-                    'spb.id',
-                    'spb.spbid',
-                    'spb.spbdate',
-                    'spb.cpny_id',
-                    'spb.department_id',
-                    'spb.worktypeid',
-                    'spb.subworktypeid',
-                    'wt.worktype_name',
-                    'swt.subworktype_name',
-                    'spb.keperluan',
-                    'spb.status',
-                    'spb.created_by'
-                )
-                ->orderBy($orderCol, $orderDir)
-                ->orderBy('spb.spbid', 'desc')
-                ->skip($start)
-                ->take($length)
-                ->get();
+                'spb.id','spb.spbid','spb.spbdate','spb.cpny_id','spb.department_id',
+                'wt.worktype_name','swt.subworktype_name','spb.keperluan','spb.status','spb.created_by'
+            )
+            ->orderBy($orderCol, $orderDir)
+            ->orderBy('spb.spbid', 'desc')
+            ->skip($start)->take($length)
+            ->get();
 
-        // Encode id dengan hashids → JANGAN hapus id, karena dipakai untuk tombol tracking
         $data->transform(function ($row) {
             $row->eid = \Hashids::encode($row->id);
             return $row;
         });
 
         return response()->json([
-            'draw'            => $draw,
-            'recordsTotal'    => $recordsTotal,
+            'draw' => $draw,
+            'recordsTotal' => $recordsTotal,
             'recordsFiltered' => $recordsFiltered,
-            'data'            => $data,
+            'data' => $data,
         ]);
     }
 
-    
+    public function trackJson(Request $request)
+    {
+        $user = Auth::user();
+
+        $cpnyIds = is_string($user->cpny_id)
+            ? array_values(array_filter(array_map('trim', explode(',', $user->cpny_id))))
+            : array_values(array_filter((array) $user->cpny_id));
+
+        $deptIds = is_string($user->department_id)
+            ? array_values(array_filter(array_map('trim', explode(',', $user->department_id))))
+            : array_values(array_filter((array) $user->department_id));
+
+        $draw   = (int) $request->input('draw', 1);
+        $start  = (int) $request->input('start', 0);
+        $length = (int) $request->input('length', 25);
+        $search = trim((string) $request->input('search.value', ''));
+
+        // kolom order DataTables (sesuaikan dengan kolom di view)
+        $cols = [
+            0 => 'iss.issueid',
+            1 => 'spb.spbid',
+            2 => 'spb.sppbid',
+            3 => 'spb.totalspbqty',
+            4 => 'spb.totalissueqty',
+            5 => 'spb.totalreturnqty',
+            6 => 'spb.totalsppbqty',
+            7 => 'spb.totalcompleteqty',
+            8 => 'spb.status_sppb',
+            9 => 'spb.status_issue',
+        ];
+
+        $orderIdx = (int) $request->input('order.0.column', 0);
+        $orderDir = $request->input('order.0.dir', 'desc') === 'asc' ? 'asc' : 'desc';
+        $orderCol = $cols[$orderIdx] ?? 'iss.issueid';
+
+        // ✅ Master = tr_issue (1 row = 1 issue)
+        $base = \App\Models\TrIssue::from('tr_issue as iss')
+            ->join('tr_spb as spb', 'spb.spbid', '=', 'iss.spbid')
+            // join SPPB by sppbid (kalau tidak selalu ada, pakai leftJoin)
+            ->leftJoin('tr_sppb as sppb', 'sppb.sppbid', '=', 'spb.sppbid')           
+            ->whereIn('spb.cpny_id', $cpnyIds)
+            ->whereIn('spb.department_id', $deptIds);
+
+        if ($search !== '') {
+            $base->where(function ($q) use ($search) {
+                $q->where('iss.issueid', 'ilike', "%{$search}%")
+                ->orWhere('spb.spbid', 'ilike', "%{$search}%")
+                ->orWhere('spb.sppbid', 'ilike', "%{$search}%");
+            });
+        }
+
+        $recordsTotal = (clone $base)->count();
+        $recordsFiltered = $recordsTotal;
+
+        $data = $base->select([
+                'iss.id as issue_row_id',
+                'iss.issueid',
+                'spb.id as spb_row_id',
+                'spb.spbid',
+                'spb.sppbid',
+                'sppb.id as sppb_row_id',
+
+                'spb.totalspbqty',
+                'spb.totalissueqty',
+                'spb.totalreturnqty',
+                'spb.totalsppbqty',
+                'spb.totalcompleteqty',
+                'spb.status_sppb',
+                'spb.status_issue',
+            ])
+            ->orderBy($orderCol, $orderDir)
+            ->skip($start)->take($length)
+            ->get();
+
+        // ✅ inject eid per row (Hashids dari id masing-masing tabel)
+        $data->transform(function ($row) {
+            $row->eid_issue = \Hashids::encode($row->issue_row_id);
+            $row->eid_spb   = \Hashids::encode($row->spb_row_id);
+
+            // sppb bisa null kalau leftJoin tidak ketemu
+            $row->eid_sppb  = $row->sppb_row_id ? \Hashids::encode($row->sppb_row_id) : null;
+
+            return $row;
+        });
+
+        return response()->json([
+            'draw' => $draw,
+            'recordsTotal' => $recordsTotal,
+            'recordsFiltered' => $recordsFiltered,
+            'data' => $data,
+        ]);
+    }
+
+
+
+    public function trackJson_xxx(Request $request)
+    {
+        $user = Auth::user();
+
+        $cpnyIds = is_string($user->cpny_id)
+            ? array_values(array_filter(array_map('trim', explode(',', $user->cpny_id))))
+            : array_values(array_filter((array) $user->cpny_id));
+
+        $deptIds = is_string($user->department_id)
+            ? array_values(array_filter(array_map('trim', explode(',', $user->department_id))))
+            : array_values(array_filter((array) $user->department_id));
+
+        $draw   = (int) $request->input('draw', 1);
+        $start  = (int) $request->input('start', 0);
+        $length = (int) $request->input('length', 25);
+        $search = trim((string) $request->input('search.value', ''));
+
+        // kolom order DataTables (NOTE: issueid adalah alias agregasi)
+        $trackCols = [
+            0 => 'spb.spbid',
+            1 => 'issueid',                // alias hasil string_agg
+            2 => 'spb.sppbid',
+            3 => 'spb.totalspbqty',
+            4 => 'spb.totalissueqty',
+            5 => 'spb.totalreturnqty',
+            6 => 'spb.totalsppbqty',
+            7 => 'spb.totalcompleteqty',
+            8 => 'spb.status_sppb',
+            9 => 'spb.status_issue',
+        ];
+
+        $orderIdx = (int) $request->input('order.0.column', 0);
+        $orderDir = $request->input('order.0.dir', 'desc') === 'asc' ? 'asc' : 'desc';
+        $orderCol = $trackCols[$orderIdx] ?? 'spb.spbid';
+
+        /**
+         * ✅ Base dibalik: mulai dari tr_issue (karena 1 SPB bisa punya >1 Issue)
+         * Tapi output tetap 1 row per SPB dengan string_agg(issueid)
+         */
+        $base = TrIssue::from('tr_issue as iss')
+            ->join('tr_spb as spb', function ($join) {
+                $join->on('spb.spbid', '=', 'iss.spbid');
+            })
+            ->whereNull('iss.deleted_at')
+            ->whereIn('spb.cpny_id', $cpnyIds)
+            ->whereIn('spb.department_id', $deptIds);
+
+        // tracking criteria: ada issue ATAU spb sudah ada sppbid / totalsppbqty
+        $base->where(function ($q) {
+            $q->whereRaw("COALESCE(spb.totalsppbqty,0) > 0")
+            ->orWhereRaw("COALESCE(spb.sppbid,'') <> ''")
+            ->orWhereNotNull('iss.issueid'); // karena base dari iss, ini biasanya true
+        });
+
+        if ($search !== '') {
+            $base->where(function ($q) use ($search) {
+                $q->where('spb.spbid', 'ilike', "%{$search}%")
+                ->orWhere('iss.issueid', 'ilike', "%{$search}%")
+                ->orWhere('spb.sppbid', 'ilike', "%{$search}%");
+            });
+        }
+
+        // total spb unik (untuk paging DataTables)
+        $recordsTotal = (clone $base)->distinct('spb.spbid')->count('spb.spbid');
+        $recordsFiltered = $recordsTotal;
+
+        // select agregasi issue per spb
+        $q = $base->select([
+                'spb.spbid',
+                DB::raw("COALESCE(string_agg(DISTINCT iss.issueid, ', '), '') as issueid"),
+                'spb.sppbid',
+                'spb.totalspbqty',
+                'spb.totalissueqty',
+                'spb.totalreturnqty',
+                'spb.totalsppbqty',
+                'spb.totalcompleteqty',
+                'spb.status_sppb',
+                'spb.status_issue',
+            ])
+            ->groupBy([
+                'spb.spbid',
+                'spb.sppbid',
+                'spb.totalspbqty',
+                'spb.totalissueqty',
+                'spb.totalreturnqty',
+                'spb.totalsppbqty',
+                'spb.totalcompleteqty',
+                'spb.status_sppb',
+                'spb.status_issue',
+            ]);
+
+        // order
+        if ($orderCol === 'issueid') {
+            $q->orderByRaw("issueid {$orderDir}");
+        } else {
+            $q->orderBy($orderCol, $orderDir);
+        }
+
+        $data = $q->skip($start)->take($length)->get();
+
+        return response()->json([
+            'draw' => $draw,
+            'recordsTotal' => $recordsTotal,
+            'recordsFiltered' => $recordsFiltered,
+            'data' => $data,
+        ]);
+    }
+
+
+
+
+
+      
     public function createSpb()
     {        
         $user = Auth::user();       
@@ -216,7 +408,7 @@ class SpbController extends Controller
         
     public function storeSpb(Request $request)
     {
-        // dd($request->all());
+        dd($request->all());
         $doctype  = 'RB';
         $user     = $request->user();
         $username = $user->username ?? 'system';
@@ -493,7 +685,13 @@ class SpbController extends Controller
             $header->save();
 
             // === Approval generate ===
+            $worktypeid = strtoupper(trim((string)($request->input('worktypeid') ?? '')));
             $ctx = ['ignore_nominal' => true];
+
+            if (!isset($ctx['approval_conditions']) && $worktypeid !== '') {
+                $ctx['approval_conditions'] = [$worktypeid];
+            }
+
             [$firstApprovalUsernames, $linesCount] = $approvalCtl->generateForDocument(
                 $docid, $doctype, $request->cpnyid, $request->departementid, $username, $ctx, $dt
             );
@@ -1284,7 +1482,7 @@ class SpbController extends Controller
     //     // pastikan user memang approver aktif (status P) di doc ini
     //     $tApproval = T_approval::where('docid', $spb->spbid)
     //         ->where('status', 'P')
-    //         ->where('aprvusername', 'like', "%{$user->username}%")
+    //         ->where('aprvusername', 'ilike', "%{$user->username}%")
     //         ->whereNotNull('aprvdatebefore') 
     //         ->orderBy('aprvid', 'ASC')
     //         ->first();
@@ -1453,7 +1651,7 @@ class SpbController extends Controller
     //     // Validasi: user harus approver aktif (status P) pada dokumen ini
     //     $tApproval = T_approval::where('docid', $spb->spbid)
     //         ->where('status', 'P')
-    //         ->where('aprvusername', 'like', "%{$user->username}%")
+    //         ->where('aprvusername', 'ilike', "%{$user->username}%")
     //         ->whereNotNull('aprvdatebefore') 
     //         ->orderBy('aprvid', 'ASC')
     //         ->first();
@@ -1568,7 +1766,7 @@ class SpbController extends Controller
     //     // Pastikan user adalah approver aktif (status P) dokumen ini
     //     $tApproval = T_approval::where('docid', $spb->spbid)
     //         ->where('status', 'P')
-    //         ->where('aprvusername', 'like', "%{$user->username}%")
+    //         ->where('aprvusername', 'ilike', "%{$user->username}%")
     //         ->whereNotNull('aprvdatebefore')
     //         ->orderBy('aprvid', 'ASC')
     //         ->first();
@@ -1672,7 +1870,7 @@ class SpbController extends Controller
     //     // dd($action);
     //     // Query dasar untuk pengecekan
     //     $query = T_approval::where('docid', $id)
-    //                 ->where('aprvusername', 'like', '%' . $user->username . '%')
+    //                 ->where('aprvusername', 'ilike', '%' . $user->username . '%')
     //                 ->where('status', 'P');                 
 
     //     // Jika aksi adalah reject atau revise, pastikan aprvdatebefore tidak null

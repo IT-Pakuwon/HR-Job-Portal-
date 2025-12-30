@@ -30,7 +30,7 @@ class UsersController extends Controller
 
     public function json()
     {
-        $users = User::select(['id','name','username','email','cpny_id','department_id','status'])
+        $users = User::select(['id','name','username','email','cpny_id','department_id','jabatan','npk','status'])
             ->orderByDesc('id')
             ->get();
 
@@ -45,6 +45,7 @@ class UsersController extends Controller
             'email'         => 'required',
             'cpny_id'       => 'required|array',
             'department_id' => 'required|array',
+            'jabatan'       => 'required',            
             'role'          => 'required',          // user/admin (yang lama)
             'role_ids'      => 'nullable|array',    // ⬅️ daftar role RBAC (sys_user_role)
         ]);
@@ -68,6 +69,7 @@ class UsersController extends Controller
                 'username'           => $username,
                 'cpny_id'            => $companyIdsString,
                 'department_id'      => $deptIdsString,
+                'jabatan'            => $request->jabatan,
                 'password'           => $password,
                 'user_role'          => $request->role, // user/admin (level UI)
                 'notification_email' => $email,
@@ -132,6 +134,7 @@ class UsersController extends Controller
             'name'          => $user->name,
             'email'         => $user->email,
             'npk'           => $user->npk,
+            'jabatan'       => $user->jabatan,
             'role'          => $user->user_role, // user/admin
             'cpny_id'       => explode(',', $user->cpny_id),
             'department_id' => explode(',', $user->department_id),
@@ -147,6 +150,7 @@ class UsersController extends Controller
             'email'         => 'required',
             'cpny_id'       => 'required|array',
             'department_id' => 'required|array',
+            'jabatan'       => 'required',
             'role'          => 'required',
             'role_ids'      => 'nullable|array',
         ]);
@@ -168,6 +172,7 @@ class UsersController extends Controller
                 'department_id' => $deptIdsString,
                 'user_role'     => $request->role,
                 'npk'           => $request->npk,
+                'jabatan'       => $request->jabatan,
                 'updated_by'    => $loginUser->username,
             ]);
 

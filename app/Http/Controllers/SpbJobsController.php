@@ -103,18 +103,21 @@ class SpbJobsController extends Controller
         $issuejobsnew = TrSPB::when($cpny_id, fn($q) => $q->where('cpny_id', $cpny_id))
             ->where('status', 'C')
             ->where('status_issue', $status_issue_new)
+            ->whereRaw('(COALESCE(totalspbqty,0) - COALESCE(totalissueqty,0) - COALESCE(totalsppbqty,0)) > 0')
             ->count();
 
         // 2. Issue Jobs (SPB) : status='C', status_issue='Partial'
         $issuejobs = TrSPB::when($cpny_id, fn($q) => $q->where('cpny_id', $cpny_id))
             ->where('status', 'C')
             ->where('status_issue', $status_issue_job)
+            ->whereRaw('(COALESCE(totalspbqty,0) - COALESCE(totalissueqty,0) - COALESCE(totalsppbqty,0)) > 0')
             ->count();
 
         // 3. SPPB Jobs (SPB) : status='C', status_sppb != 'Full'  (Open/Partial)
         $sppbjobs = TrSPB::when($cpny_id, fn($q) => $q->where('cpny_id', $cpny_id))
             ->where('status', 'C')
             ->whereIn('status_sppb', ['Open', 'Partial'])   // ✅ pakai status_sppb
+            ->whereRaw('(COALESCE(totalspbqty,0) - COALESCE(totalissueqty,0) - COALESCE(totalsppbqty,0)) > 0')
             ->count();
 
         // 4. Issue On Progress (Issue) : status='P'
@@ -192,16 +195,20 @@ class SpbJobsController extends Controller
                     // Issue New Jobs
                     ->when($scope === 'issuejobsnew', function ($q) {
                         $q->where('status', 'C')
+                          ->whereRaw('(COALESCE(totalspbqty,0) - COALESCE(totalissueqty,0) - COALESCE(totalsppbqty,0)) > 0')
                           ->where('status_issue', 'Open');
                     })
                     // Issue Jobs
                     ->when($scope === 'issuejobs', function ($q) {
                         $q->where('status', 'C')
+                          ->whereRaw('(COALESCE(totalspbqty,0) - COALESCE(totalissueqty,0) - COALESCE(totalsppbqty,0)) > 0')
                           ->where('status_issue',  'Partial');
                     })
+                    
                     // SPPB Jobs
                     ->when($scope === 'onprogress', function ($q) {
                          $q->where('status', 'C')
+                            ->whereRaw('(COALESCE(totalspbqty,0) - COALESCE(totalissueqty,0) - COALESCE(totalsppbqty,0)) > 0')
                             ->whereIn('status_sppb', ['Open','Partial']);
                         // $q->where('status', 'C')
                         //   ->whereRaw('(totalspbqty - totalissueqty - totalsppbqty) > 0');
@@ -583,35 +590,7 @@ class SpbJobsController extends Controller
         // Recalculate total qty di header + status
         // =============================================
         $this->recalcSpbHeaderAndStatus($spb->spbid);
-
-
-        // =============================================
-        // Ambil detail SPB sesuai struktur baru
-        // qty_sisa = qty - issue_qty + return_qty
-        // =============================================
-        // $details = TrSPBdetail::select([
-        //         'id',
-        //         'spbid',
-        //         'spb_no',
-        //         'inventoryid',
-        //         'inventory_descr',
-        //         'siteid',
-        //         DB::raw("COALESCE(uom,'') AS uom"),
-        //         DB::raw("COALESCE(qty,0) AS qty_original"),
-        //         DB::raw("COALESCE(issue_qty,0) AS qty_issued"),
-        //         DB::raw("COALESCE(return_qty,0) AS qty_returned"),
-        //         DB::raw("(COALESCE(qty,0) - COALESCE(issue_qty,0) + COALESCE(return_qty,0)) AS qty_sisa")
-        //     ])
-        //     ->where('spbid', $spb->spbid)
-        //     ->orderBy('id')
-        //     ->get()
-        //     ->filter(fn($r) => (float)$r->qty_sisa > 0) // hanya yg masih ada sisa issue
-        //     ->map(function ($r) {
-        //         // kolom qty untuk form issue
-        //         $r->qty = (float) $r->qty_sisa;
-        //         return $r;
-        //     })
-        //     ->values();
+    
         $details = TrSPBdetail::select([
             'id',
             'spbid',

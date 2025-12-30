@@ -390,6 +390,7 @@
                 .done(function(res) {
                     if (window.toastr) toastr.success(res.message || 'SPPB created successfully!');
                     window.location.href = "{{ route('spbjobs') }}";
+                    window.location.reload();
                 })
                 .fail(function(xhr) {
                     if (xhr.status === 422 && xhr.responseJSON && xhr.responseJSON.errors) {

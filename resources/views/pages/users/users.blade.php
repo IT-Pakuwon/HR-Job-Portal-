@@ -254,6 +254,7 @@
                         <tr>
                             <th class="w-48 px-4 py-3 text-center">Actions</th>
                             <th class="px-4 py-3 text-left">Name</th>
+                            <th class="px-4 py-3 text-left">Username</th>
                             <th class="px-4 py-3 text-left">Email</th>
                             <th class="px-4 py-3 text-left">Company</th>
                             <th class="px-4 py-3 text-left">Departement</th>
@@ -337,8 +338,8 @@
                             </div>
 
                             <div>
-                                <label class="block text-gray-700 dark:text-white">NIP</label>
-                                <input type="text" name="npk"
+                                <label class="block text-gray-700 dark:text-white">NPK</label>
+                                <input type="text" name="npk" id="npk"
                                     class="w-full rounded-lg border border-gray-400 px-3 py-2 dark:border-gray-600 dark:bg-gray-700">
                             </div>
                         </div>
@@ -399,6 +400,10 @@
 
                             {
                                 data: 'name',
+                                className: 'no-pointer'
+                            },
+                            {
+                                data: 'username',
                                 className: 'no-pointer'
                             },
                             {
@@ -474,7 +479,8 @@
                             $('#name').val(app.name);
                             $('#email').val(app.email);
                             $('#npk').val(app.npk);
-                            $('#jabatan').val(app.jabatan);
+                            // $('#jabatan').val(app.jabatan);
+                            $('select[name="jabatan"]').val(app.jabatan).trigger('change');
                             $('select[name="cpny_id[]"]').val(app.cpny_id).trigger('change');
                             $('select[name="department_id[]"]').val(app.department_id).trigger('change');
                             $('select[name="role"]').val(app.role).trigger('change');

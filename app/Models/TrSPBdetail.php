@@ -10,34 +10,7 @@ class TrSPBdetail extends Model
     protected $connection = 'pgsql';
     protected $table = "tr_spb_detail";
 
-    protected $fillable = [
-        // 'spbid',
-        // 'spb_no',
-        // 'inventoryid',
-        // 'inventory_descr',
-        // 'siteid',
-        // 'qty',
-        // 'uom',
-        // 'type_multiplier',
-        // 'base_multiplier',
-        // 'base_qty',
-        // 'base_uom',
-        // 'note',
-        // 'location_id',
-        // 'sub_location_id',
-        // 'budget_perpost',
-        // 'budget_cpny_id',
-        // 'budget_business_unit_id',
-        // 'budget_department_fin_id',
-        // 'budget_account_id',
-        // 'budget_activity_id',
-        // 'stock_qty',
-        // 'spb_openqty',
-        // 'issue_qty',
-        // 'spb_completeqty',
-        // 'status',
-        // 'created_by',
-        // 'updated_by'
+    protected $fillable = [     
 
         'spbid' , 'spb_no' , 'inventoryid' , 'inventory_descr' , 'siteid' , 'qty' , 'uom' , 'type_multiplier' , 
         'base_multiplier' , 'base_qty' , 'base_uom' , 'unitcost' , 'totalcost' , 'note' , 'location_id' , 'sub_location_id' , 

@@ -774,6 +774,7 @@ Route::post('/logout', function () {
     Route::middleware('access:SPBLIST,VIEW')->group(function () {
         Route::get('/spbs', [SpbController::class, 'index'])->name('spbs');
         Route::get('/spbs/json', [SpbController::class, 'json'])->name('spbs.json');
+        Route::get('/spbs/track-json', [SpbController::class, 'trackJson'])->name('spbs.trackJson');
         Route::get('/showspbs/{hash}', [SpbController::class, 'showSpb']);   
         Route::get('/spbs/{id}/tracking', [SpbController::class, 'tracking'])->name('spbs.tracking');
         Route::get('/pdf_spbs/{hash}', [SpbController::class, 'printSpb']);
@@ -795,6 +796,7 @@ Route::post('/logout', function () {
     Route::middleware('access:SPBJOBS,VIEW')->group(function () {
         Route::get('/spbjobs', [SpbJobsController::class, 'index'])->name('spbjobs');
         Route::get('/spbjobs/json', [SpbJobsController::class, 'json'])->name('spbjobs.json');
+        
     });
 
     Route::middleware('access:SPBJOBS,CREATE')->group(function () {

@@ -34,6 +34,7 @@ class User extends Authenticatable
         'notification_email',
         'npk',
         'approval_line',
+        'jabatan',
         'status',
         'created_by',
         'updated_by',
