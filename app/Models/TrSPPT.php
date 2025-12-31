@@ -10,35 +10,7 @@ class TrSPPT extends Model
     protected $connection = 'pgsql';
     protected $table = "tr_sppt";
 
-    protected $fillable = [
-        // 'spptid',
-        // 'spptdate',
-        // 'cpny_id',
-        // 'department_id',
-        // 'requesttypeid',
-        // 'nama_tenant',
-        // 'no_unit_tenant',
-        // 'pic_pengawas',
-        // 'condition_unit',
-        // 'beban',
-        // 'keperluan',
-        // 'budget_perpost',
-        // 'woid',
-        // 'bqid',
-        // 'totalopenordered',
-        // 'totalqty',
-        // 'totalordered',
-        // 'totalrejectordered',
-        // 'totalcompleteordered',
-        // 'assignby',
-        // 'assigndate',
-        // 'assignpurchasing',
-        // 'csjobs',
-        // 'cs',
-        // 'status',
-        // 'created_by',
-        // 'updated_by',
-        // 'completed_by'
+    protected $fillable = [      
         'spptid' , 'spptdate' , 'cpny_id' , 'department_id' , 'requesttypeid' , 'nama_tenant' , 'no_unit_tenant' , 
         'pic_pengawas' , 'condition_unit' , 'beban' , 'keperluan' , 'budget_perpost' , 'woid' , 'bqid' , 'is_urgent',
         'totalqty' ,         'totalopenordered' , 'totalordered' , 'totalrejectordered' , 'totalcompleteordered' , 'assignby' , 
@@ -59,6 +31,22 @@ class TrSPPT extends Model
     public function tenantname()
     {
         return $this->belongsTo(MsTenant::class, 'nama_tenant', 'id');
+    }
+
+     // ✅ (Opsional) accessor untuk display tenant name
+    public function getTenantStoreNameAttribute(): string
+    {
+        return (string) optional($this->tenantname)->store_name;
+    }
+
+    // ✅ (Opsional) accessor untuk "floor_id - store_no"
+    public function getTenantUnitLabelAttribute(): string
+    {
+        $t = $this->tenantname;
+        if (!$t) return '';
+        $floor = trim((string) ($t->floor_id ?? ''));
+        $store = trim((string) ($t->store_no ?? ''));
+        return trim($floor . ' - ' . $store, ' -');
     }
 
     public function pic()

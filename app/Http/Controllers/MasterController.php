@@ -840,7 +840,7 @@ class MasterController extends Controller
         $search  = trim($request->get('search', ''));
         $page    = max((int)$request->get('page', 1), 1);
         $perPage = min(max((int)$request->get('per_page', 10), 1), 100);
-
+        
         if ($woid === '') {
             return response()->json(['message' => 'WOID is required.'], 422);
         }
@@ -860,7 +860,7 @@ class MasterController extends Controller
             ])
             ->where('woid', $woid)
             ->first();
-
+        // dd($wo);        
         if (!$wo) {
             return response()->json(['message' => 'WO not found.'], 404);
         }
@@ -1326,15 +1326,15 @@ class MasterController extends Controller
         $perPage       = min(max((int) $request->input('per_page', 10), 1), 100);
 
         $query = TrWO::query()
-            ->select('woid', 'wodate', 'created_by', 'department_id')
+            ->select('woid', 'wodate', 'created_by', 'department_id', 'worktypeid')
             ->where('status', $status);
 
         if ($worktypeid !== '') {
             $query->where('worktypeid', $worktypeid);
         }
-        if ($subworktypeid !== '') {
-            $query->where('subworktypeid', $subworktypeid);
-        }
+        // if ($subworktypeid !== '') {
+        //     $query->where('subworktypeid', $subworktypeid);
+        // }
 
         if ($search !== '') {
             $query->where(function ($q) use ($search) {

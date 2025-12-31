@@ -523,7 +523,7 @@
                                     class="rounded border px-3 py-1 hover:bg-gray-100 dark:hover:bg-gray-700">↻</button>
 
                                 <div class="ml-auto flex flex-wrap items-center gap-3">
-                                    <span>DocType: <b id="rtDocBadge">SPPB</b></span>
+                                    <span>DocType: <b id="rtDocBadge">SPPJ</b></span>
                                 </div>
                             </div>
 
@@ -1056,6 +1056,16 @@
 
             $('#sppjForm').on('submit', function(e) {
                 e.preventDefault();
+
+                const $rtHidden  = $('#requesttypeid');               // hidden input
+                const $rtDisplay = $('#requesttype_name_display');    // readonly display
+
+                if (!$rtHidden.val() || !$rtHidden.val().trim()) {
+                    addError($rtDisplay, 'Request Type wajib dipilih.');
+                    toastr.error('Request Type wajib dipilih.');
+                    $('html,body').animate({ scrollTop: $rtDisplay.offset().top - 120 }, 300);
+                    return;
+                }
 
                 // Validasi detail dulu
                 if (!validateDetails()) return;

@@ -580,6 +580,14 @@ class WoController extends Controller
             'keperluan'       => $wo->keperluan ?? '',
             'woid'            => $wo->woid ?? '',
             'hash'            => request()->route('hash') ?? '',
+
+            'budget_use'       => $wo->budget_use,               // Internal / External
+            'perpost'          => $wo->budget_perpost,            // year
+            'coa_id'           => $wo->budget_account_id,
+            'activity_id'      => $wo->budget_activity_id,
+            'business_unit_id' => $wo->budget_business_unit_id,
+            'department_fin_id'=> $wo->budget_department_fin_id,
+            'activity_descr'   => $wo->budget_activity_descr,
         ];
 
         return view('pages.wos.editwos', compact(
@@ -594,8 +602,39 @@ class WoController extends Controller
         $id = Hashids::decode($hash)[0] ?? null;
         abort_if(!$id, 404, 'WO tidak ditemukan.');
 
-        // --- validasi: sama seperti storeWo ---
-        $validated = $request->validate([
+        $doctype  = 'WO';
+        $user     = $request->user();
+        $username = $user->username ?? 'system';
+
+        $dt        = \Carbon\Carbon::now();
+        $datestamp = $dt->toDateTimeString();
+
+        // Normalisasi angka lokal → float (copy dari create)
+        $toFloat = function ($v): ?float {
+            if ($v === null || $v === '') return null;
+            $s = preg_replace('/\s+/', '', (string)$v);
+            $hasComma = strpos($s, ',') !== false;
+            $hasDot   = strpos($s, '.') !== false;
+
+            if ($hasComma && $hasDot) {
+                $lastComma = strrpos($s, ',');
+                $lastDot   = strrpos($s, '.');
+                if ($lastComma > $lastDot) {
+                    $s = str_replace('.', '', $s);
+                    $s = str_replace(',', '.', $s);
+                } else {
+                    $s = str_replace(',', '', $s);
+                }
+            } elseif ($hasComma) {
+                $s = str_replace(',', '.', $s);
+            } elseif ($hasDot) {
+                if (substr_count($s, '.') > 1) $s = str_replace('.', '', $s);
+            }
+            return is_numeric($s) ? (float)$s : null;
+        };
+
+        // ===== Validasi utama + validasi kondisional COA (SAMA dengan create) =====
+        $baseRules = [
             'cpnyid'          => ['required','string','max:20'],
             'departementid'   => ['required','string','max:100'],
             'wotype'          => ['required','string','max:100'],
@@ -607,70 +646,70 @@ class WoController extends Controller
             'location_id'     => ['required','string','max:50'],
             'sub_location_id' => ['required','string','max:50'],
             'keperluan'       => ['nullable','string','max:1000'],
-            // 'attachments.*' => ['file','mimes:pdf,jpg,jpeg,png,doc,docx,xls,xlsx,zip','max:5120'],
-        ], [
-            'cpnyid.required' => 'Company wajib.',
-            'departementid.required' => 'Department wajib.',
-            'wotype.required' => 'WO Type wajib.',
-            'worequest.required' => 'WO Request wajib.',
-            'worktypeid.required' => 'Worktype wajib.',
-            'subworktypeid.required' => 'Sub Worktype wajib.',
-            'location_id.required' => 'Location wajib.',
-            'sub_location_id.required' => 'Sub Location wajib.',
-            'picrequester.required' => 'PIC Requester wajib.',
-        ]);
+            'wobudget'        => ['required','in:Internal,External'],
+        ];
 
-        $doctype  = 'WO';
-        $user     = $request->user();
-        $username = $user->username ?? 'system';
-        $dt        = \Carbon\Carbon::now();
-        $datestamp = $dt->toDateTimeString();
-
-        // normalisasi angka lokal -> float (sama seperti storeWo)
-        $toFloat = function ($v): ?float {
-            if ($v === null || $v === '') return null;
-            $s = preg_replace('/\s+/', '', (string)$v);
-            $hasComma = strpos($s, ',') !== false;
-            $hasDot   = strpos($s, '.') !== false;
-
-            if ($hasComma && $hasDot) {
-                $lastComma = strrpos($s, ',');
-                $lastDot   = strrpos($s, '.');
-                if ($lastComma > $lastDot) { // format Eropa: 1.234,56
-                    $s = str_replace('.', '', $s);
-                    $s = str_replace(',', '.', $s);
-                } else { // format US: 1,234.56
-                    $s = str_replace(',', '', $s);
-                }
-            } elseif ($hasComma) {
-                $s = str_replace(',', '.', $s);
-            } elseif ($hasDot && substr_count($s, '.') > 1) {
-                $s = str_replace('.', '', $s);
-            }
-            return is_numeric($s) ? (float)$s : null;
-        };
-
-        // pastikan line approval tersedia
-        $approvalCount = M_approval::where([
-            ['status', '=', 'A'],
-            ['aprvcpnyid', '=', $validated['cpnyid']],
-            ['aprvdeptid', '=', $validated['departementid']],
-            ['aprvdoctype', '=', $doctype],
-        ])->count();
-
-        if ($approvalCount === 0) {
-            return response()->json([
-                'message' => 'Approval line belum di-setup, Please contact IT!',
-            ], 422);
+        $input = $request->all();
+        if (($input['wobudget'] ?? null) === 'Internal') {
+            $baseRules = array_merge($baseRules, [
+                'perpost'            => ['required','string','max:10'],
+                'coa_id'             => ['required','string','max:100'],
+                'activity_id'        => ['required','string','max:100'],
+                'business_unit_id'   => ['required','string','max:100'],
+                'department_fin_id'  => ['required','string','max:100'],
+                'activity_descr'     => ['required','string','max:255'],
+            ]);
+        } else {
+            $baseRules = array_merge($baseRules, [
+                'perpost'            => ['nullable','string','max:10'],
+                'coa_id'             => ['nullable','string','max:100'],
+                'activity_id'        => ['nullable','string','max:100'],
+                'business_unit_id'   => ['nullable','string','max:100'],
+                'department_fin_id'  => ['nullable','string','max:100'],
+                'activity_descr'     => ['nullable','string','max:255'],
+            ]);
         }
 
-        DB::beginTransaction();
-        try {
-          
-            $wo = TrWO::findOrFail($id);
-            $docid = $wo->woid; 
+        $messages = [
+            'cpnyid.required'           => 'Company wajib.',
+            'departementid.required'    => 'Department wajib.',
+            'wotype.required'           => 'WO Type wajib.',
+            'worequest.required'        => 'WO Request wajib.',
+            'worktypeid.required'       => 'Worktype wajib.',
+            'subworktypeid.required'    => 'Sub Worktype wajib.',
+            'location_id.required'      => 'Location wajib.',
+            'sub_location_id.required'  => 'Sub Location wajib.',
+            'picrequester.required'     => 'PIC Requester wajib.',
+            'wobudget.required'         => 'Budget wajib.',
+            'perpost.required'          => 'Perpost wajib untuk Budget Pemberi Kerja.',
+            'coa_id.required'           => 'COA wajib untuk Budget Pemberi Kerja.',
+            'activity_id.required'      => 'Activity wajib untuk Budget Pemberi Kerja.',
+            'business_unit_id.required' => 'Business Unit wajib untuk Budget Pemberi Kerja.',
+            'department_fin_id.required'=> 'Department Finance wajib untuk Budget Pemberi Kerja.',
+            'activity_descr.required'   => 'Deskripsi activity wajib untuk Budget Pemberi Kerja.',
+        ];
 
-            // --- update header ---
+        $validator = \Validator::make($input, $baseRules, $messages);
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => 'Validasi gagal',
+                'errors'  => $validator->errors(),
+            ], 422);
+        }
+        $validated = $validator->validated();
+
+        // ===== ApprovalController (SAMA seperti create) =====
+        $approvalCtl = app(ApprovalController::class);
+
+        // Pastikan line approval ada (validasi awal) -> sama seperti create
+        $approvalCtl->loadLines($doctype, $validated['cpnyid'], $validated['departementid']);
+
+        \DB::beginTransaction();
+        try {
+            $wo = TrWO::lockForUpdate()->findOrFail($id);
+            $docid = $wo->woid;
+
+            // --- update header (SAMA seperti create) ---
             $wo->cpny_id         = $validated['cpnyid'];
             $wo->department_id   = $validated['departementid'];
             $wo->wotype          = $validated['wotype'];
@@ -681,35 +720,66 @@ class WoController extends Controller
             $wo->biaya_wo        = $toFloat($validated['biaya_wo'] ?? null) ?? 0;
             $wo->location_id     = $validated['location_id'];
             $wo->sub_location_id = $validated['sub_location_id'];
-            $wo->keperluan       = $validated['keperluan'] ?? null;           
-            $wo->status       = 'P';
-            $wo->updated_by      = $username ?? $wo->updated_by;
-            $wo->save();
+            $wo->keperluan       = $validated['keperluan'] ?? null;
+            $wo->status          = 'P';
+            $wo->updated_by      = $username;
 
-            $approvals = M_approval::where([
-                ['status', '=', 'A'],
-                ['aprvcpnyid', '=', $validated['cpnyid']],
-                ['aprvdeptid', '=', $validated['departementid']],
-                ['aprvdoctype', '=', $doctype],
-            ])->orderBy('aprvid')->get();
+            // Simpan info Budget + COA (SAMA seperti create)
+            $wo->budget_use = $validated['wobudget'];
 
-            foreach ($approvals as $a) {
-                T_approval::create([
-                    'docid'          => $docid,
-                    'aprvid'         => $a->aprvid,
-                    'aprvdoctype'    => $a->aprvdoctype,
-                    'aprvcpnyid'     => $a->aprvcpnyid,
-                    'aprvdeptid'     => $a->aprvdeptid,
-                    'aprvusername'   => $a->aprvusername,
-                    'name'           => $a->name,
-                    'aprvdatebefore' => $a->aprvid == 1 ? $datestamp : null,
-                    'aprvtotalday'   => 1,
-                    'status'         => 'P',
-                    'created_by'     => $username,
-                ]);
+            if ($validated['wobudget'] === 'Internal') {
+                $wo->budget_perpost           = $validated['perpost'] ?? null;
+                $wo->budget_cpny_id           = $validated['cpnyid'] ?? null;
+                $wo->budget_account_id        = $validated['coa_id'] ?? null;
+                $wo->budget_activity_id       = $validated['activity_id'] ?? null;
+                $wo->budget_business_unit_id  = $validated['business_unit_id'] ?? null;
+                $wo->budget_department_fin_id = $validated['department_fin_id'] ?? null;
+                $wo->budget_activity_descr    = $validated['activity_descr'] ?? null;
+            } else {
+                $wo->budget_perpost           = $validated['perpost'] ?? null;
+                $wo->budget_cpny_id           = null;
+                $wo->budget_account_id        = null;
+                $wo->budget_activity_id       = null;
+                $wo->budget_business_unit_id  = null;
+                $wo->budget_department_fin_id = null;
+                $wo->budget_activity_descr    = null;
             }
 
-            // --- upload attachment baru (kalau ada) ---
+            $wo->save();
+
+           
+            // ===== Generate TrApproval (WO) - SAMA seperti create =====
+            $wotype     = strtoupper(trim((string)($validated['wotype'] ?? '')));
+            $worktypeid = strtoupper(trim((string)($validated['worktypeid'] ?? '')));
+
+            $ctx = ['ignore_nominal' => true];
+
+            if ($wotype === 'DAILY') {
+                $ctx['approval_conditions'] = array_values(array_filter([$worktypeid]));
+            }
+
+            if ($wotype === 'IMPROVEMENT') {
+                $ctx['approval_conditions'] = array_values(array_filter([
+                    $worktypeid,
+                    "Improvement {$worktypeid}",
+                ]));
+            }
+
+            if (!isset($ctx['approval_conditions']) && $worktypeid !== '') {
+                $ctx['approval_conditions'] = [$worktypeid];
+            }
+
+            [$firstApprovalUsernames, $linesCount] = $approvalCtl->generateForDocument(
+                $docid,
+                $doctype,
+                $validated['cpnyid'],
+                $validated['departementid'],
+                $username,
+                $ctx,
+                $dt
+            );
+
+            // ===== Attachments (SAMA seperti create) =====
             $uploadResult = null;
             if ($request->hasFile('attachments')) {
                 $meta = [
@@ -720,13 +790,14 @@ class WoController extends Controller
                     'base_folder'   => 'att-purchasing-app/'.strtolower($doctype),
                     'created_by'    => $username,
                 ];
+
                 $files = (array) $request->file('attachments');
 
                 try {
                     $uploader = app(TrAttachmentController::class);
                     $uploadResult = $uploader->uploadInternal($meta, $files);
                 } catch (\Throwable $e) {
-                    DB::rollBack();
+                    \DB::rollBack();
                     return response()->json([
                         'message' => 'Failed to update WO',
                         'error'   => 'Gagal upload attachment: '.$e->getMessage(),
@@ -734,64 +805,34 @@ class WoController extends Controller
                 }
             }
 
-            // --- (opsional) kirim email ke approver pertama kalau status masih P ---
-            $firstApproval = T_approval::where('docid', $docid)
-                ->where('status', 'P')
-                ->orderBy('aprvid')
-                ->first();
+            // ===== Notifikasi ke approver pertama (SAMA seperti create) =====
+            $eid = \Hashids::encode($wo->id);
 
-            if ($firstApproval && ($wo->status ?? 'P') === 'P') {
-                $status = $wo->status;
-                $subjectMap = [
-                    'P' => 'Waiting Approval',
-                    'R' => 'Rejected Approval',
-                    'D' => 'Revise Approval',
-                    'A' => 'Approved',
-                    'C' => 'Completed',
-                ];
-                $subjectSuffix = $subjectMap[$status] ?? 'Notification';
-
-                $eid = \Hashids::encode($wo->id);
-
-                $data = [
-                    'docid'     => $firstApproval->docid,
-                    'cpnyid'    => $firstApproval->aprvcpnyid,
-                    'deptname'  => $firstApproval->aprvdeptid,
-                    'date'      => $firstApproval->aprvdatebefore,
-                    'name'      => $firstApproval->name,
+            $approvalCtl->notifyFirstApprover(
+                $docid,
+                $doctype,
+                $wo->status,
+                'WO',
+                url('/showwos/' . $eid),
+                [
+                    'info'      => $validated['keperluan'] ?? null,
                     'createdby' => $wo->created_by,
-                    'info'      => $wo->keperluan,
-                    'status'    => $status,
-                    'docname'   => 'WO',
-                    'url'       => url('/showwos/' . $eid),
-                ];
+                    'date'      => $dt->toDateTimeString(),
+                    'updatedby' => $username,
+                ]
+            );
 
-                $approvers = array_filter(array_map('trim', explode(',', (string)$firstApproval->aprvusername)));
-                $emails = User::whereIn('username', $approvers)
-                    ->where('status', 'A')
-                    ->pluck('notification_email');
-
-                foreach ($emails as $email) {
-                    Mail::send('emails.mailapprovenew', $data, function ($message) use ($email, $data, $subjectSuffix) {
-                        $message->to($email)
-                            ->subject($data['docid'].' - '.$subjectSuffix.' WO (Updated)')
-                            ->from('digitalserver@pakuwon.com', 'Pakuwon System');
-                    });
-                }
-            }
-
-            DB::commit();
+            \DB::commit();
 
             return response()->json([
                 'ok'          => true,
                 'message'     => 'WO updated successfully',
                 'id'          => $wo->id,
                 'docid'       => $docid,
-                'attachments' => $uploadResult, // null jika tidak ada upload baru
+                'attachments' => $uploadResult,
             ]);
-
         } catch (\Throwable $e) {
-            DB::rollBack();
+            \DB::rollBack();
             report($e);
 
             return response()->json([

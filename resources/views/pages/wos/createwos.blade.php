@@ -191,8 +191,13 @@
                                     <input id="jenis_pekerjaan_display" readonly
                                         class="flex-1 rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-gray-600 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                         placeholder="Pilih Worktype & Subworktype">
-                                    <button id="btnJenisPekerjaan" type="button"
-                                        class="rounded-lg bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700">Pilih</button>
+                                    {{-- <button id="btnJenisPekerjaan" type="button"
+                                        class="rounded-lg bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700">Pilih</button> --}}
+                                        <button type="button" id="btnJenisPekerjaan"
+                                            class="rounded border border-gray-500 px-2 py-2 hover:bg-gray-100 dark:hover:bg-gray-700"
+                                            title="Lookup">
+                                            🔎
+                                        </button>
                                 </div>
                                 <input type="hidden" name="worktypeid" id="worktypeid">
                                 <input type="hidden" name="subworktypeid" id="subworktypeid">
@@ -205,8 +210,13 @@
                                     <input id="lokasi_display" readonly
                                         class="flex-1 rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-gray-600 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                         placeholder="Pilih Location & Sub Location">
-                                    <button id="btnLokasi" type="button"
-                                        class="rounded-lg bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700">Pilih</button>
+                                    {{-- <button id="btnLokasi" type="button"
+                                        class="rounded-lg bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700">Pilih</button> --}}
+                                    <button type="button" id="btnLokasi"
+                                        class="rounded border border-gray-500 px-2 py-2 hover:bg-gray-100 dark:hover:bg-gray-700"
+                                        title="Lookup">
+                                        🔎
+                                    </button>
                                 </div>
                                 <input type="hidden" name="location_id" id="location_id">
                                 <input type="hidden" name="sub_location_id" id="sub_location_id">
@@ -255,24 +265,31 @@
                                 </select>
                             </div>
 
-                            <!-- COA -->
-                            <div id="coaGroup" class="flex flex-col gap-2">
-                                <label class="req text-sm font-medium text-gray-700 dark:text-gray-300">COA</label>
-                                <div class="flex gap-2">
-                                    <input type="text" id="budget_display" readonly
-                                        class="flex-1 rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-gray-600 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
-                                        placeholder="Pilih Budget">
-                                    <button id="btnBudget" type="button"
-                                        class="rounded-lg bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700">Pilih</button>
-                                </div>
+                            
+                        </div>
 
-                                <!-- hidden -->
-                                <input type="hidden" name="activity_id" id="activity_id">
-                                <input type="hidden" name="business_unit_id" id="business_unit_id">
-                                <input type="hidden" name="department_fin_id" id="department_fin_id">
-                                <input type="hidden" name="coa_id" id="coa_id">
-                                <input type="hidden" name="activity_descr" id="activity_descr">
+                        <!-- COA -->
+                        <div id="coaGroup" class="mt-6">
+                            <label class="req text-sm font-medium text-gray-700 dark:text-gray-300">COA</label>
+                            <div class="flex gap-2">
+                                <input type="text" id="budget_display" readonly
+                                    class="flex-1 rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-gray-600 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                    placeholder="Pilih Budget">
+                                {{-- <button id="btnBudget" type="button"
+                                    class="rounded-lg bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700">Pilih</button> --}}
+                                <button type="button" id="btnBudget"
+                                    class="rounded border border-gray-500 px-2 py-2 hover:bg-gray-100 dark:hover:bg-gray-700"
+                                    title="Lookup">
+                                    🔎
+                                </button>
                             </div>
+
+                            <!-- hidden -->
+                            <input type="hidden" name="activity_id" id="activity_id">
+                            <input type="hidden" name="business_unit_id" id="business_unit_id">
+                            <input type="hidden" name="department_fin_id" id="department_fin_id">
+                            <input type="hidden" name="coa_id" id="coa_id">
+                            <input type="hidden" name="activity_descr" id="activity_descr">
                         </div>
 
                         <!-- Description -->
@@ -752,6 +769,13 @@
                     ok = false;
                 }
 
+                const $wobudget = $('#wobudget');
+                const needsCoa = $wobudget.val() === 'Internal';
+                if (needsCoa && !$('#coa_id').val()) {
+                    addError($('#budget_display'), 'Silakan pilih COA.');
+                    ok = false;
+                }
+
                 if (!ok) {
                     toastr.error('Mohon lengkapi input yang wajib.');
                     const $first = $('#woForm .is-invalid').first();
@@ -761,12 +785,7 @@
                     return;
                 }
 
-                const $wobudget = $('#wobudget');
-                const needsCoa = $wobudget.val() === 'Internal';
-                if (needsCoa && !$('#coa_id').val()) {
-                    addError($('#budget_display'), 'Silakan pilih COA.');
-                    ok = false;
-                }
+                
 
                 $('#submitBtn').prop('disabled', true);
                 $('#cancelBtn').prop('disabled', true);

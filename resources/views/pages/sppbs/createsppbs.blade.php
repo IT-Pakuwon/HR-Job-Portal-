@@ -1108,6 +1108,16 @@
             $('#sppbForm').on('submit', function(e) {
                 e.preventDefault();
 
+                const $rtHidden  = $('#requesttypeid');               // hidden input
+                const $rtDisplay = $('#requesttype_name_display');    // readonly display
+
+                if (!$rtHidden.val() || !$rtHidden.val().trim()) {
+                    addError($rtDisplay, 'Request Type wajib dipilih.');
+                    toastr.error('Request Type wajib dipilih.');
+                    $('html,body').animate({ scrollTop: $rtDisplay.offset().top - 120 }, 300);
+                    return;
+                }
+
                 // Validasi detail dulu
                 if (!validateDetails()) return;
 

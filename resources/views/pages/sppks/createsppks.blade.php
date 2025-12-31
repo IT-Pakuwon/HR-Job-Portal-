@@ -1,7 +1,4 @@
 <x-app-layout>
-    <!-- Select2 CSS & JS -->
-    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
     <style>
         .is-invalid {
@@ -277,18 +274,37 @@
                             <div class="flex flex-col gap-2">
                                 <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">No.
                                     Polisi</label>
-                                <select id="nopol" name="no_polisi"
+                                {{-- <select id="nopol" name="no_polisi"
                                     class="select2 w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                     required>
                                     <option value="" selected disabled>Pilih nopol...</option>
-                                </select>
+                                </select> --}}
+                                <div class="flex w-full">
+                                    {{-- hidden value yang dikirim ke backend --}}
+                                    <input type="hidden" name="no_polisi" id="nopol" value="">                                    
+
+                                    {{-- display readonly --}}
+                                    <input type="text" id="nopol_display" readonly
+                                        class="w-full rounded-l-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                        placeholder="Select No. Polisi...">
+
+                                    <button type="button" id="btnSearchNopol"
+                                        class="inline-flex items-center rounded-r-lg border border-l-0 border-gray-300 bg-gray-100 px-3 text-gray-600 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-600 dark:text-gray-200">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fill-rule="evenodd"
+                                                d="M8.5 3a5.5 5.5 0 014.384 8.832l3.147 3.147a.75.75 0 11-1.06 1.06l-3.147-3.146A5.5 5.5 0 118.5 3zm0 1.5a4 4 0 100 8 4 4 0 000-8z"
+                                                clip-rule="evenodd" />
+                                        </svg>
+                                    </button>
+                                </div>
+
                             </div>
 
                             <!-- Vehicle Owner -->
                             <div class="flex flex-col gap-2">
                                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Vehicle
                                     Owner</label>
-                                <input type="text" id="pemilikkendaraan" readonly
+                                <input type="text" id="pemilikkendaraan" name="pemilikkendaraan" readonly
                                     class="w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-gray-700 shadow-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                     placeholder="-">
                             </div>
@@ -297,7 +313,7 @@
                             <div class="flex flex-col gap-2">
                                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Vehicle
                                     Name</label>
-                                <input type="text" id="namakendaraan" readonly
+                                <input type="text" id="namakendaraan" name="namakendaraan" readonly
                                     class="w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-gray-700 shadow-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                     placeholder="-">
                             </div>
@@ -595,7 +611,7 @@
                                     class="rounded border px-3 py-1 hover:bg-gray-100 dark:hover:bg-gray-700">↻</button>
 
                                 <div class="ml-auto flex flex-wrap items-center gap-3">
-                                    <span>DocType: <b id="rtDocBadge">SPPB</b></span>
+                                    <span>DocType: <b id="rtDocBadge">SPPK</b></span>
                                 </div>
                             </div>
 
@@ -622,95 +638,46 @@
                         </div>
                     </div>
 
-                    <!-- ===== Modal Lookup Location ===== -->
-                    {{-- <div id="locationModal"
-                        class="fixed inset-0 z-[1000] hidden items-center justify-center bg-black/40 p-4">
-                        <div class="w-full max-w-3xl rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
+                    <!-- ===== Modal Lookup No. Polisi ===== -->
+                    <div id="nopolModal" class="fixed inset-0 z-[1000] hidden items-center justify-center bg-black/40 p-4">
+                        <div class="w-full max-w-5xl rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
                             <div class="mb-3 flex items-center justify-between border-b pb-2">
-                                <h3 class="text-lg font-bold text-gray-800 dark:text-white">Select Location</h3>
-                                <button type="button" id="closeLocationModal"
-                                    class="rounded px-3 py-1 hover:bg-gray-100 dark:hover:bg-gray-700">✖</button>
-                            </div>
-
-                            <div class="mb-3 flex items-center gap-2">
-                                <input id="locSearch" type="text" placeholder="Search..."
-                                    class="rounded border border-gray-300 bg-white px-3 py-1 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
-                                <button id="locRefresh" type="button"
-                                    class="rounded border px-3 py-1 hover:bg-gray-100 dark:hover:bg-gray-700">↻</button>
-                                <div class="ml-auto text-sm opacity-80">Company: <span id="locCpnyBadge"
-                                        class="font-semibold"></span></div>
-                            </div>
-
-                            <div class="max-h-[60vh] overflow-auto">
-                                <table class="w-full text-left">
-                                    <thead class="sticky top-0 bg-gray-50 text-sm dark:bg-gray-900">
-                                        <tr>
-                                            <th class="border p-2">Location ID</th>
-                                            <th class="border p-2">Location Name</th>
-                                            <th class="w-24 border p-2 text-center">Action</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="locTableBody" class="text-sm"></tbody>
-                                </table>
-                            </div>
-
-                            <div class="mt-3 flex items-center justify-between text-sm">
-                                <span id="locCount" class="opacity-80"></span>
-                                <div class="space-x-2">
-                                    <button id="locPrev" type="button"
-                                        class="rounded border px-3 py-1 disabled:opacity-40">Prev</button>
-                                    <button id="locNext" type="button"
-                                        class="rounded border px-3 py-1 disabled:opacity-40">Next</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div> --}}
-
-                    <!-- ===== Modal Lookup Sub Location ===== -->
-                    {{-- <div id="subLocationModal"
-                        class="fixed inset-0 z-[1000] hidden items-center justify-center bg-black/40 p-4">
-                        <div class="w-full max-w-3xl rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
-                            <div class="mb-3 flex items-center justify-between border-b pb-2">
-                                <h3 class="text-lg font-bold text-gray-800 dark:text-white">Select Sub Location</h3>
-                                <button type="button" id="closeSubLocationModal"
+                                <h3 class="text-lg font-bold text-gray-800 dark:text-white">Select Vehicle (No. Polisi)</h3>
+                                <button type="button" id="closeNopolModal"
                                     class="rounded px-3 py-1 hover:bg-gray-100 dark:hover:bg-gray-700">✖</button>
                             </div>
 
                             <div class="mb-3 flex items-center gap-2 text-sm">
-                                <input id="subLocSearch" type="text" placeholder="Search..."
+                                <input id="nopolSearch" type="text" placeholder="Search nopol / vehicle name / owner..."
                                     class="rounded border border-gray-300 bg-white px-3 py-1 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
-                                <button id="subLocRefresh" type="button"
+                                <button id="nopolRefresh" type="button"
                                     class="rounded border px-3 py-1 hover:bg-gray-100 dark:hover:bg-gray-700">↻</button>
-                                <div class="ml-auto flex items-center gap-3">
-                                    <span>Company: <b id="subLocCpnyBadge"></b></span>
-                                    <span>Location: <b id="subLocParentBadge"></b></span>
-                                </div>
                             </div>
 
                             <div class="max-h-[60vh] overflow-auto">
-                                <table class="w-full text-left">
-                                    <thead class="sticky top-0 bg-gray-50 text-sm dark:bg-gray-900">
+                                <table class="w-full text-left text-sm">
+                                    <thead class="sticky top-0 bg-gray-50 dark:bg-gray-900">
                                         <tr>
-                                            <th class="border p-2">Sub Location ID</th>
-                                            <th class="border p-2">Sub Location Name</th>
+                                            <th class="border p-2">No. Polisi</th>
+                                            <th class="border p-2">Vehicle Name</th>
+                                            <th class="border p-2">Vehicle Owner</th>
                                             <th class="w-24 border p-2 text-center">Action</th>
                                         </tr>
                                     </thead>
-                                    <tbody id="subLocTableBody" class="text-sm"></tbody>
+                                    <tbody id="nopolTableBody" class="text-sm"></tbody>
                                 </table>
                             </div>
 
                             <div class="mt-3 flex items-center justify-between text-sm">
-                                <span id="subLocCount" class="opacity-80"></span>
+                                <span id="nopolCount" class="opacity-80"></span>
                                 <div class="space-x-2">
-                                    <button id="subLocPrev" type="button"
-                                        class="rounded border px-3 py-1 disabled:opacity-40">Prev</button>
-                                    <button id="subLocNext" type="button"
-                                        class="rounded border px-3 py-1 disabled:opacity-40">Next</button>
+                                    <button id="nopolPrev" type="button" class="rounded border px-3 py-1 disabled:opacity-40">Prev</button>
+                                    <button id="nopolNext" type="button" class="rounded border px-3 py-1 disabled:opacity-40">Next</button>
                                 </div>
                             </div>
                         </div>
-                    </div> --}}
+                    </div>
+
 
                     <!-- Modal: Location + Sub Location -->
                     <div id="modalLokasi"
@@ -1078,6 +1045,28 @@
 
             $('#sppkForm').on('submit', function(e) {
                 e.preventDefault();
+
+                const $rtHidden  = $('#requesttypeid');               // hidden input
+                const $rtDisplay = $('#requesttype_name_display');    // readonly display
+
+                if (!$rtHidden.val() || !$rtHidden.val().trim()) {
+                    addError($rtDisplay, 'Request Type wajib dipilih.');
+                    toastr.error('Request Type wajib dipilih.');
+                    $('html,body').animate({ scrollTop: $rtDisplay.offset().top - 120 }, 300);
+                    return;
+                }
+
+                const $nopolHidden  = $('#nopol');            // hidden value
+                const $nopolDisplay = $('#nopol_display');    // input display
+
+                if (!$nopolHidden.val() || !$nopolHidden.val().trim()) {
+                    addError($nopolDisplay, 'No. Polisi wajib dipilih.');
+                    toastr.error('No. Polisi wajib dipilih.');
+                    $('html,body').animate({
+                        scrollTop: $nopolDisplay.offset().top - 120
+                    }, 300);
+                    return;
+                }
 
                 // Validasi detail dulu
                 if (!validateDetails()) return;
@@ -2187,144 +2176,6 @@
         });
     </script>
 
-    <script>
-        $(function() {
-            const $nopol = $('#nopol');
-            const $pemilik = $('#pemilikkendaraan');
-            const $nama = $('#namakendaraan');
-            const $km = $('#km_input');
-
-            // KM hanya angka
-            $(document).on('input', '#km_input', function() {
-                this.value = this.value.replace(/[^0-9]/g, '');
-            });
-
-            function buildLabel(item) {
-                const nopol = (item.no_polisi || item.id || '').toString().trim();
-                const namaK = (item.namakendaraan || item.nama || item.text || '').toString().trim();
-                // Jika dua-duanya kosong, kembalikan '—'
-                if (!nopol && !namaK) return '—';
-                return namaK ? `${nopol} - ${namaK}` : nopol;
-            }
-
-            // Template untuk list & terpilih (fallback kalau text kosong)
-            function templateResult(item) {
-                if (item.loading) return item.text;
-                const label = item.text && item.text.trim() ? item.text : buildLabel(item);
-                return $('<span>').text(label);
-            }
-
-            function templateSelection(item) {
-                const label = item.text && item.text.trim() ? item.text : buildLabel(item);
-                return label || 'Pilih nopol...';
-            }
-
-            // Init Select2 (AJAX + fallback)
-            $nopol.select2({
-                placeholder: "Cari No. Polisi…",
-                allowClear: true,
-                width: '100%',
-                minimumInputLength: 0,
-                dropdownParent: $nopol.parent(),
-                templateResult: function(item) {
-                    if (item.loading) return item.text;
-                    // Di dropdown list → tampil nopol - namakendaraan
-                    return `${item.no_polisi || item.id} - ${item.namakendaraan || ''}`;
-                },
-                templateSelection: function(item) {
-                    // Saat dipilih → hanya tampil nopol
-                    return item.no_polisi || item.id || '';
-                },
-                ajax: {
-                    url: "{{ route('kendaraan.all') }}",
-                    dataType: 'json',
-                    delay: 250,
-                    data: function(params) {
-                        return {
-                            search: params.term || '',
-                            page: params.page || 1,
-                            per_page: 20
-                        };
-                    },
-                    processResults: function(res, params) {
-                        params.page = params.page || 1;
-                        const rows = Array.isArray(res?.data) ? res.data : [];
-                        const results = rows.map(item => {
-                            return {
-                                id: (item.no_polisi || '').toString(),
-                                text: `${item.no_polisi} - ${item.namakendaraan || ''}`, // untuk dropdown
-                                no_polisi: item.no_polisi || '',
-                                namakendaraan: item.namakendaraan || '',
-                                pemilikkendaraan: item.pemilikkendaraan || ''
-                            };
-                        });
-                        return {
-                            results,
-                            pagination: {
-                                more: (params.page * (res.per_page || 20)) < (res.total || 0)
-                            }
-                        };
-                    },
-                    cache: true
-                }
-            });
-
-
-            // Preload halaman pertama (agar langsung ada opsi meski belum mengetik)
-            (function preloadFirstPage() {
-                $.getJSON("{{ route('kendaraan.all') }}", {
-                        page: 1,
-                        per_page: 20
-                    })
-                    .done(function(res) {
-                        const data = Array.isArray(res?.data) ? res.data : [];
-                        if (!data.length) return;
-                        // Append opsi pertama-pertama ke <select> agar terlihat saat dibuka
-                        data.forEach(item => {
-                            const id = (item.no_polisi || '').toString();
-                            const text =
-                                `${(item.no_polisi || '').toString()} - ${(item.namakendaraan || '').toString()}`;
-                            // hindari duplikat jika sudah ada
-                            if (!$nopol.find(`option[value="${id}"]`).length) {
-                                const opt = new Option(text, id, false, false);
-                                $nopol.append(opt);
-                            }
-                        });
-                        // trigger agar Select2 re-scan opsi
-                        $nopol.trigger('change.select2');
-                    })
-                    .fail(function() {
-                        // silent fail; AJAX utama masih akan jalan saat user search
-                    });
-            })();
-
-            // Autofill saat dipilih
-            $nopol.on('select2:select', function(e) {
-                const d = e.params.data || {};
-                // data dari processResults: fields pemilikkendaraan & namakendaraan
-                $pemilik.val(d.pemilikkendaraan || '');
-                $nama.val(d.namakendaraan || '');
-                // bersihkan error jika ada
-                $nopol.removeClass('is-invalid').next('.error-feedback').remove();
-            });
-
-            // Clear field turunan saat clear
-            $nopol.on('select2:clear', function() {
-                $pemilik.val('');
-                $nama.val('');
-            });
-
-        });
-
-
-        $('#nopol').select2({
-            width: '100%',
-            placeholder: 'Select',
-            allowClear: true,
-            // dropdownAutoWidth: true
-        });
-    </script>
-
 
     <script>
         $(function() {
@@ -2452,16 +2303,36 @@
                 doctype: DOCTYPE,
             };
 
+            // function openRtModal() {
+            //     $rtDoc.text(rtState.doctype || '-');
+            //     $('#rtSearch').val('');
+            //     rtState.search = '';
+            //     rtState.page = 1;
+
+            //     $rtModal.removeClass('hidden').addClass('flex');
+            //     loadRequestTypes();
+            //     setTimeout(() => $('#rtSearch').trigger('focus'), 0);
+            // }
             function openRtModal() {
                 $rtDoc.text(rtState.doctype || '-');
                 $('#rtSearch').val('');
                 rtState.search = '';
                 rtState.page = 1;
 
+                // tampilkan modal dulu
                 $rtModal.removeClass('hidden').addClass('flex');
-                loadRequestTypes();
-                setTimeout(() => $('#rtSearch').trigger('focus'), 0);
+
+                // isi loading placeholder langsung
+                $rtTbody.html('<tr><td colspan="3" class="p-3 text-center">Loading...</td></tr>');
+                $rtCount.text('');
+
+                // kasih kesempatan browser render modal dulu
+                setTimeout(() => {
+                    loadRequestTypes();
+                    $('#rtSearch').trigger('focus');
+                }, 0);
             }
+
 
             function closeRtModal() {
                 $rtModal.addClass('hidden').removeClass('flex');
@@ -2571,6 +2442,151 @@
 
         });
     </script>
+
+    <script>
+        $(function () {
+            const $modal = $('#nopolModal');
+            const $tbody = $('#nopolTableBody');
+            const $count = $('#nopolCount');
+
+            let state = {
+                search: '',
+                page: 1,
+                per_page: 10,
+                total: 0
+            };
+
+            function openModal() {
+                $('#nopolSearch').val('');
+                state.search = '';
+                state.page = 1;
+
+                $modal.removeClass('hidden').addClass('flex');
+                loadVehicles();
+                setTimeout(() => $('#nopolSearch').trigger('focus'), 0);
+            }
+
+            function closeModal() {
+                $modal.addClass('hidden').removeClass('flex');
+            }
+
+            $('#btnSearchNopol').on('click', openModal);
+            $('#closeNopolModal').on('click', closeModal);
+
+            $(document).on('keydown', function (e) {
+                if (e.key === 'Escape' && $modal.is(':visible')) closeModal();
+            });
+
+            $('#nopolSearch').on('input', function () {
+                state.search = $(this).val().trim();
+                state.page = 1;
+                loadVehicles();
+            });
+
+            $('#nopolRefresh').on('click', function () {
+                $('#nopolSearch').val('');
+                state.search = '';
+                state.page = 1;
+                loadVehicles();
+            });
+
+            $('#nopolPrev').on('click', function () {
+                if (state.page > 1) {
+                    state.page--;
+                    loadVehicles();
+                }
+            });
+
+            $('#nopolNext').on('click', function () {
+                const maxPage = Math.ceil((state.total || 0) / state.per_page) || 1;
+                if (state.page < maxPage) {
+                    state.page++;
+                    loadVehicles();
+                }
+            });
+
+            function loadVehicles() {
+                $tbody.html('<tr><td colspan="4" class="p-3 text-center">Loading...</td></tr>');
+
+                $.getJSON("{{ route('kendaraan.all') }}", {
+                    search: state.search,
+                    page: state.page,
+                    per_page: state.per_page
+                })
+                .done(function (res) {
+                    const list = Array.isArray(res?.data) ? res.data : [];
+                    state.total = res.total || 0;
+
+                    const rows = list.map(item => {
+                        const nopol = (item.no_polisi || '').toString();
+                        const nama  = (item.namakendaraan || '').toString();
+                        const own   = (item.pemilikkendaraan || '').toString();
+
+                        return `
+                            <tr>
+                                <td class="border p-2">${nopol}</td>
+                                <td class="border p-2">${$('<div>').text(nama).html()}</td>
+                                <td class="border p-2">${$('<div>').text(own).html()}</td>
+                                <td class="border p-2 text-center">
+                                    <button type="button"
+                                        class="chooseNopol rounded border px-2 py-1 hover:bg-gray-100 dark:hover:bg-gray-700"
+                                        data-nopol="${$('<div>').text(nopol).html()}"
+                                        data-nama="${$('<div>').text(nama).html()}"
+                                        data-own="${$('<div>').text(own).html()}">
+                                        Choose
+                                    </button>
+                                </td>
+                            </tr>
+                        `;
+                    }).join('');
+
+                    $tbody.html(rows || '<tr><td colspan="4" class="p-3 text-center">No data</td></tr>');
+
+                    $count.text(`Showing ${list.length} of ${state.total} items`);
+
+                    const maxPage = Math.ceil((state.total || 0) / state.per_page) || 1;
+                    $('#nopolPrev').prop('disabled', state.page <= 1);
+                    $('#nopolNext').prop('disabled', state.page >= maxPage);
+                })
+                .fail(function () {
+                    $tbody.html('<tr><td colspan="4" class="p-3 text-center text-red-600">Failed to load</td></tr>');
+                    $count.text('');
+                    $('#nopolPrev, #nopolNext').prop('disabled', true);
+                });
+            }
+
+            // Choose -> set ke form header
+            $(document).on('click', '.chooseNopol', function () {
+                const nopol = $(this).data('nopol') || '';
+                const nama  = $(this).data('nama')  || '';
+                const own   = $(this).data('own')   || '';
+
+                // hidden untuk backend
+                $('#nopol').val(nopol);
+
+                // display
+                $('#nopol_display').val(nopol ? `${nopol}` : '');
+
+                // autofill
+                $('#pemilikkendaraan').val(own);
+                $('#namakendaraan').val(nama);
+
+                // bersihkan invalid jika ada
+                $('#nopol_display').removeClass('is-invalid').next('.error-feedback').remove();
+
+                closeModal();
+            });
+
+            // optional: kalau user clear manual (kamu bisa tambahkan tombol clear jika mau)
+            // function clearVehicle() {
+            //     $('#nopol').val('');
+            //     $('#nopol_display').val('');
+            //     $('#pemilikkendaraan').val('');
+            //     $('#namakendaraan').val('');
+            // }
+        });
+    </script>
+
 
 
 

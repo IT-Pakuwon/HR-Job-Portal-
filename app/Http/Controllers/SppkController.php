@@ -208,7 +208,7 @@ class SppkController extends Controller
         
     public function storeSppk(Request $request)
     {
-        // dd($request->all()); // Debugging: check request data
+        dd($request->all()); // Debugging: check request data
         // kumpulkan array dari form
         $inventoryIds  = $request->input('inventoryid',  $request->input('inventory_id', []));
         $productNames  = $request->input('product_name', []);

@@ -408,7 +408,7 @@ class SpbController extends Controller
         
     public function storeSpb(Request $request)
     {
-        dd($request->all());
+        // dd($request->all());
         $doctype  = 'RB';
         $user     = $request->user();
         $username = $user->username ?? 'system';
@@ -836,6 +836,7 @@ class SpbController extends Controller
 
     public function updateSpb(Request $request, $hash)
     {
+        // dd($request->all());
         $id = Hashids::decode($hash)[0] ?? null;
         abort_if(!$id, 404, 'SPB tidak ditemukan.');
 
@@ -1016,41 +1017,15 @@ class SpbController extends Controller
                 'updated_by'        => $username,
             ])->save();
 
-            // === (Opsional) regenerate approval lines seperti store ===
-            // Hapus approval lama pending untuk doc ini agar tidak dobel (opsional; sesuaikan kebijakanmu)
-            // T_approval::where('docid', $header->spbid)->where('status','P')->delete();
+            
 
-            // $approvals = M_approval::where([
-            //     ['status', '=', 'A'],
-            //     ['aprvcpnyid', '=', $request->cpnyid],
-            //     ['aprvdeptid', '=', $request->departementid],
-            //     ['aprvdoctype', '=', $doctype],
-            // ])->get();
+            // === Approval generate ===
+            $worktypeid = strtoupper(trim((string)($request->worktypeid ?? '')));
+            $ctx = ['ignore_nominal' => true];
 
-            // foreach ($approvals as $a) {
-            //     T_approval::create([
-            //         'docid'          => $header->spbid,
-            //         'aprvid'         => $a->aprvid,
-            //         'aprvdoctype'    => $a->aprvdoctype,
-            //         'aprvcpnyid'     => $a->aprvcpnyid,
-            //         'aprvdeptid'     => $a->aprvdeptid,
-            //         'aprvusername'   => $a->aprvusername,
-            //         'name'           => $a->name,
-            //         'aprvdatebefore' => $a->aprvid == 1 ? $datestamp : null,
-            //         'aprvtotalday'   => 1,
-            //         'status'         => 'P',
-            //         'created_by'     => $username,
-            //     ]);
-            // }
-
-            // if ($first = $approvals->first()) {
-            //     $header->completed_by = $first->aprvusername;
-            //     $header->save();
-            // }
-
-            $ctx = [                
-                'ignore_nominal'           => true,                 
-            ];
+            if (!isset($ctx['approval_conditions']) && $worktypeid !== '') {
+                $ctx['approval_conditions'] = [$worktypeid];
+            }
 
             // Generate TrApproval
             [$firstApprovalUsernames, $linesCount] = $approvalCtl->generateForDocument(
@@ -1095,35 +1070,7 @@ class SpbController extends Controller
                 }
             }
 
-            // === (Opsional) Email ke approver pertama (ikuti logika store) ===
-            // if ($firstPending = T_approval::where('docid', $header->spbid)->where('status','P')->orderBy('aprvid')->first()) {
-            //     $eid = Hashids::encode($header->id);
-            //     $data = [
-            //         'docid'    => $firstPending->docid,
-            //         'cpnyid'   => $firstPending->aprvcpnyid,
-            //         'deptname' => $firstPending->aprvdeptid,
-            //         'date'     => $firstPending->aprvdatebefore,
-            //         'name'     => $firstPending->name,
-            //         'createdby'=> $header->created_by,
-            //         'info'     => $request->keperluan,
-            //         'status'   => $header->status, // 'P'
-            //         'docname'  => 'SPB',
-            //         'url'      => url('/showspbs/' . $eid),
-            //     ];
-
-            //     $approverUsernames = array_filter(array_map('trim', explode(',', (string)$firstPending->aprvusername)));
-            //     $emails = User::whereIn('username', $approverUsernames)
-            //         ->where('status', 'A')
-            //         ->pluck('notification_email');
-
-            //     foreach ($emails as $email) {
-            //         \Mail::send('emails.mailapprovenew', $data, function ($message) use ($email, $data) {
-            //             $message->to($email)
-            //                 ->subject($data['docid'].' - Waiting Approval SPB')
-            //                 ->from('digitalserver@pakuwon.com', 'Pakuwon System');
-            //         });
-            //     }
-            // }
+ 
 
             $eid = Hashids::encode($header->id);
 

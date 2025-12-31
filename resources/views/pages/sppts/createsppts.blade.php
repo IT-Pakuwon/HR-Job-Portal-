@@ -1,7 +1,7 @@
 <x-app-layout>
     <!-- Select2 CSS & JS -->
-    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.full.min.js"></script>
+    {{-- <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.full.min.js"></script> --}}
     <style>
         .is-invalid {
             border-color: #ef4444 !important;
@@ -273,7 +273,7 @@
                             </div>
 
                             <!-- Tenant Select2 -->
-                            <div class="flex flex-col gap-2">
+                            {{-- <div class="flex flex-col gap-2">
                                 <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Nama
                                     Tenant</label>
 
@@ -285,7 +285,35 @@
                                     class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300" required
                                     data-placeholder="Search">
                                 </select>
+                            </div> --}}
+                            <!-- Nama Tenant (Modal Picker) -->
+                            <div class="flex flex-col gap-2">
+                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    Nama Tenant
+                                </label>
+
+                                {{-- hidden value yang dikirim ke backend --}}
+                                <input type="hidden" name="nama_tenant" id="nama_tenant">
+                                <input type="hidden" name="tenant_id" id="tenant_id">
+                                <input type="hidden" name="unit_id" id="unit_id">
+
+                                <div class="flex w-full">
+                                    {{-- display readonly --}}
+                                    <input type="text" id="tenant_name_display" readonly
+                                        class="w-full rounded-l-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                        placeholder="Select tenant...">
+
+                                    <button type="button" id="btnSearchTenant"
+                                        class="inline-flex items-center rounded-r-lg border border-l-0 border-gray-300 bg-gray-100 px-3 text-gray-600 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-600 dark:text-gray-200">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fill-rule="evenodd"
+                                                d="M8.5 3a5.5 5.5 0 014.384 8.832l3.147 3.147a.75.75 0 11-1.06 1.06l-3.147-3.146A5.5 5.5 0 118.5 3zm0 1.5a4 4 0 100 8 4 4 0 000-8z"
+                                                clip-rule="evenodd" />
+                                        </svg>
+                                    </button>
+                                </div>
                             </div>
+
 
                         </div>
 
@@ -304,12 +332,12 @@
                             <div class="flex flex-col gap-2">
                                 <label
                                     class="req block text-sm font-medium text-gray-700 dark:text-gray-300">PIC</label>
-                                <input type="hidden" name="pic_pengawas" id="pic_pengawas">
+                                {{-- <input type="hidden" name="pic_pengawas" id="pic_pengawas"> --}}
                                 {{-- <select id="pic_select" name="pic_select"
                                     class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300" required
                                     data-placeholder="Search">
                                 </select> --}}
-                                <input type="text" id="pic_select" name="pic_select" class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300" placeholder="PIC" required />
+                                <input type="text" name="pic_pengawas" class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300" placeholder="PIC" required />
                             </div>
 
                             <!-- Status Unit -->
@@ -489,33 +517,7 @@
                                                             class="w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0">
                                                     </td>
 
-                                                    <!-- Location & Sub Location -->
-                                                    {{-- <td class="border p-3">
-                                                        <div class="flex items-center gap-2">
-                                                            <input type="hidden" name="location_id[]"
-                                                                class="locationIdField">
-                                                            <input type="text" name="location[]"
-                                                                class="locationNameField w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0"
-                                                                placeholder="Select location..." readonly>
-                                                            <button type="button"
-                                                                class="openLocationModal rounded border border-gray-500 px-1 py-1 hover:bg-gray-100 dark:hover:bg-gray-700"
-                                                                title="Lookup">🔎</button>
-                                                        </div>
-                                                    </td>
-
-                                                    <td class="border p-3">
-                                                        <div class="flex items-center gap-2">
-                                                            <input type="hidden" name="sub_location_id[]"
-                                                                class="subLocationIdField">
-                                                            <input type="text" name="sub_location[]"
-                                                                class="subLocationNameField w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0"
-                                                                placeholder="Select sub location..." readonly>
-                                                            <button type="button"
-                                                                class="openSubLocationModal rounded border border-gray-500 px-1 py-1 hover:bg-gray-100 dark:hover:bg-gray-700"
-                                                                title="Lookup">🔎</button>
-                                                        </div>
-                                                    </td> --}}
-
+                                        
                                                     <td class="border p-3">
                                                         <div class="flex items-center gap-2">
                                                             <input type="hidden" name="location_id[]"
@@ -653,7 +655,7 @@
                                     class="rounded border px-3 py-1 hover:bg-gray-100 dark:hover:bg-gray-700">↻</button>
 
                                 <div class="ml-auto flex flex-wrap items-center gap-3">
-                                    <span>DocType: <b id="rtDocBadge">SPPB</b></span>
+                                    <span>DocType: <b id="rtDocBadge">SPPT</b></span>
                                 </div>
                             </div>
 
@@ -680,95 +682,53 @@
                         </div>
                     </div>
 
-                    <!-- ===== Modal Lookup Location ===== -->
-                    {{-- <div id="locationModal"
+                    <!-- ===== Modal Lookup Tenant ===== -->
+                    <div id="tenantModal"
                         class="fixed inset-0 z-[1000] hidden items-center justify-center bg-black/40 p-4">
-                        <div class="w-full max-w-3xl rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
+                        <div class="w-full max-w-5xl rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
                             <div class="mb-3 flex items-center justify-between border-b pb-2">
-                                <h3 class="text-lg font-bold text-gray-800 dark:text-white">Select Location</h3>
-                                <button type="button" id="closeLocationModal"
-                                    class="rounded px-3 py-1 hover:bg-gray-100 dark:hover:bg-gray-700">✖</button>
-                            </div>
-
-                            <div class="mb-3 flex items-center gap-2">
-                                <input id="locSearch" type="text" placeholder="Search..."
-                                    class="rounded border border-gray-300 bg-white px-3 py-1 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
-                                <button id="locRefresh" type="button"
-                                    class="rounded border px-3 py-1 hover:bg-gray-100 dark:hover:bg-gray-700">↻</button>
-                                <div class="ml-auto text-sm opacity-80">Company: <span id="locCpnyBadge"
-                                        class="font-semibold"></span></div>
-                            </div>
-
-                            <div class="max-h-[60vh] overflow-auto">
-                                <table class="w-full text-left">
-                                    <thead class="sticky top-0 bg-gray-50 text-sm dark:bg-gray-900">
-                                        <tr>
-                                            <th class="border p-2">Location ID</th>
-                                            <th class="border p-2">Location Name</th>
-                                            <th class="w-24 border p-2 text-center">Action</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="locTableBody" class="text-sm"></tbody>
-                                </table>
-                            </div>
-
-                            <div class="mt-3 flex items-center justify-between text-sm">
-                                <span id="locCount" class="opacity-80"></span>
-                                <div class="space-x-2">
-                                    <button id="locPrev" type="button"
-                                        class="rounded border px-3 py-1 disabled:opacity-40">Prev</button>
-                                    <button id="locNext" type="button"
-                                        class="rounded border px-3 py-1 disabled:opacity-40">Next</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div> --}}
-
-                    <!-- ===== Modal Lookup Sub Location ===== -->
-                    {{-- <div id="subLocationModal"
-                        class="fixed inset-0 z-[1000] hidden items-center justify-center bg-black/40 p-4">
-                        <div class="w-full max-w-3xl rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
-                            <div class="mb-3 flex items-center justify-between border-b pb-2">
-                                <h3 class="text-lg font-bold text-gray-800 dark:text-white">Select Sub Location</h3>
-                                <button type="button" id="closeSubLocationModal"
+                                <h3 class="text-lg font-bold text-gray-800 dark:text-white">Select Tenant</h3>
+                                <button type="button" id="closeTenantModal"
                                     class="rounded px-3 py-1 hover:bg-gray-100 dark:hover:bg-gray-700">✖</button>
                             </div>
 
                             <div class="mb-3 flex items-center gap-2 text-sm">
-                                <input id="subLocSearch" type="text" placeholder="Search..."
+                                <input id="tenantSearch" type="text" placeholder="Search tenant..."
                                     class="rounded border border-gray-300 bg-white px-3 py-1 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
-                                <button id="subLocRefresh" type="button"
+                                <button id="tenantRefresh" type="button"
                                     class="rounded border px-3 py-1 hover:bg-gray-100 dark:hover:bg-gray-700">↻</button>
-                                <div class="ml-auto flex items-center gap-3">
-                                    <span>Company: <b id="subLocCpnyBadge"></b></span>
-                                    <span>Location: <b id="subLocParentBadge"></b></span>
+
+                                <div class="ml-auto flex flex-wrap items-center gap-3">
+                                    <span>Company: <b id="tenantCpnyBadge">-</b></span>
                                 </div>
                             </div>
 
                             <div class="max-h-[60vh] overflow-auto">
-                                <table class="w-full text-left">
-                                    <thead class="sticky top-0 bg-gray-50 text-sm dark:bg-gray-900">
+                                <table class="w-full text-left text-sm">
+                                    <thead class="sticky top-0 bg-gray-50 dark:bg-gray-900">
                                         <tr>
-                                            <th class="border p-2">Sub Location ID</th>
-                                            <th class="border p-2">Sub Location Name</th>
+                                            <th class="border p-2">Tenant</th>
+                                            <th class="border p-2">Lantai - Unit</th>
                                             <th class="w-24 border p-2 text-center">Action</th>
                                         </tr>
                                     </thead>
-                                    <tbody id="subLocTableBody" class="text-sm"></tbody>
+                                    <tbody id="tenantTableBody" class="text-sm"></tbody>
                                 </table>
                             </div>
 
                             <div class="mt-3 flex items-center justify-between text-sm">
-                                <span id="subLocCount" class="opacity-80"></span>
+                                <span id="tenantCount" class="opacity-80"></span>
                                 <div class="space-x-2">
-                                    <button id="subLocPrev" type="button"
+                                    <button id="tenantPrev" type="button"
                                         class="rounded border px-3 py-1 disabled:opacity-40">Prev</button>
-                                    <button id="subLocNext" type="button"
+                                    <button id="tenantNext" type="button"
                                         class="rounded border px-3 py-1 disabled:opacity-40">Next</button>
                                 </div>
                             </div>
                         </div>
-                    </div> --}}
+                    </div>
+
+
 
                     <!-- Modal: Location + Sub Location -->
                     <div id="modalLokasi"
@@ -1185,6 +1145,26 @@
 
             $('#spptForm').on('submit', function(e) {
                 e.preventDefault();
+
+                const $rtHidden  = $('#requesttypeid');               // hidden input
+                const $rtDisplay = $('#requesttype_name_display');    // readonly display
+
+                if (!$rtHidden.val() || !$rtHidden.val().trim()) {
+                    addError($rtDisplay, 'Request Type wajib dipilih.');
+                    toastr.error('Request Type wajib dipilih.');
+                    $('html,body').animate({ scrollTop: $rtDisplay.offset().top - 120 }, 300);
+                    return;
+                }
+
+                const $tenantHidden  = $('#tenant_id');
+                const $tenantDisplay = $('#tenant_name_display');
+
+                if (!$tenantHidden.val() || !$tenantHidden.val().trim()) {
+                    addError($tenantDisplay, 'Nama Tenant wajib dipilih.');
+                    toastr.error('Nama Tenant wajib dipilih.');
+                    $('html,body').animate({ scrollTop: $tenantDisplay.offset().top - 120 }, 300);
+                    return;
+                }
 
                 // Validasi detail dulu
                 if (!validateDetails()) return;
@@ -2299,186 +2279,7 @@
         });
     </script>
 
-    <script>
-        $(function() {
-            // Helper: format result tenant
-            function formatTenant(item) {
-                if (!item.id) return item.text;
-                const unit = item.unit_label ? `<span class="text-gray-500"> — ${item.unit_label}</span>` : '';
-                return $(`<span>${item.text}${unit}</span>`);
-            }
-
-            // TENANT Select2 (Ajax MsTenant)
-            // $('#tenant_select').select2({
-            //     width: '100%',
-            //     placeholder: $('#tenant_select').data('placeholder') || 'Cari tenant...',
-            //     allowClear: true,
-            //     ajax: {
-            //     url: "{{ route('tenants.search') }}",
-            //     dataType: 'json',
-            //     delay: 250,
-            //     data: function (params) {
-            //         return {
-            //         q: params.term || '',
-            //         page: params.page || 1,
-            //         per_page: 10
-            //         };
-            //     },
-            //     processResults: function (data, params) {
-            //         params.page = params.page || 1;
-            //         // backend response format: {data:[{id,text,unit_label,floor,unit}], total}
-            //         const results = (data.data || []).map(it => ({
-            //         id: it.id,
-            //         text: it.text,            // tenant name
-            //         unit_label: it.unit_label,
-            //         floor: it.floor || it.lantai || '',
-            //         unit: it.unit || ''
-            //         }));
-            //         return {
-            //         results: results,
-            //         pagination: {
-            //             more: (params.page * 10) < (data.total || 0)
-            //         }
-            //         };
-            //     },
-            //     cache: true
-            //     },
-            //     templateResult: formatTenant,
-            //     templateSelection: function (item) { return item.text || item.id; },
-            //     escapeMarkup: function (m) { return m; }
-            // })
-            // .on('select2:select', function (e) {
-            //     const d = e.params.data || {};
-            //     // set hidden & field tampilan
-            //     $('#nama_tenant').val(d.id || '');
-            //     const label = d.unit_label || ( (d.floor || '') && (d.unit || '') ? `${d.floor} - ${d.unit}` : '' );
-            //     $('#no_unit_tenant').val(label);
-            // })
-            // .on('select2:clear', function () {
-            //     $('#nama_tenant').val('');
-            //     $('#no_unit_tenant').val('');
-            // });
-
-
-            $(document).ready(function() {
-                $('#tenant_select').select2({
-                    placeholder: 'Cari tenant...',
-                    allowClear: true,
-                    ajax: {
-                        url: "{{ route('tenants.search') }}",
-                        dataType: 'json',
-                        delay: 250,
-                        data: function(params) {
-                            return {
-                                q: params.term || '',
-                                page: params.page || 1,
-                                per_page: 10,
-                                cpnyid: $('select[name="cpnyid"]').val() ||
-                                    '' // ikut filter company
-                            };
-                        },
-                        processResults: function(data, params) {
-                            params.page = params.page || 1;
-                            const results = (data.data || []).map(it => ({
-                                id: it.id,
-                                text: it.text, // store_name
-                                unit_label: it.unit_label, // floor + unit
-                                unit_id: it.unit, // simpan unit_id
-                                cpnyid: it.cpnyid // kalau perlu
-                            }));
-                            return {
-                                results,
-                                pagination: {
-                                    more: (params.page * 10) < (data.total || 0)
-                                }
-                            };
-                        }
-                    },
-                    templateResult: function(item) {
-                        if (!item.id) return item.text;
-                        const unit = item.unit_label ?
-                            `<span class="text-gray-500"> — ${item.unit_label}</span>` : '';
-                        return $(`<span>${item.text}${unit}</span>`);
-                    },
-                    templateSelection: function(item) {
-                        return item.text || item.id;
-                    },
-                    escapeMarkup: function(m) {
-                        return m;
-                    }
-                });
-
-                // Event saat user pilih tenant
-                $('#tenant_select').on('select2:select', function(e) {
-                    const data = e.params.data;
-                    $('#tenant_id').val(data.id); // simpan tenant id
-                    $('#nama_tenant').val(data.text); // simpan store_name
-                    $('#unit_id').val(data.unit_id || ''); // simpan unit_id
-                    $('#no_unit_tenant').val(data.unit_label); // simpan lantai-unit
-                });
-
-                // Event clear (kalau allowClear true)
-                $('#tenant_select').on('select2:clear', function() {
-                    $('#tenant_id').val('');
-                    $('#nama_tenant').val('');
-                    $('#unit_id').val('');
-                    $('#no_unit_tenant').val('');
-                });
-            });
-
-
-
-            // PIC Select2 (Ajax Users)
-            $('#pic_select').select2({
-                    width: '100%',
-                    placeholder: $('#pic_select').data('placeholder') || 'Cari PIC (User)...',
-                    allowClear: true,
-                    ajax: {
-                        url: "{{ route('users.search') }}",
-                        dataType: 'json',
-                        delay: 250,
-                        data: params => ({
-                            q: params.term || '',
-                            page: params.page || 1,
-                            per_page: 10
-                        }),
-                        processResults: function(data, params) {
-                            params.page = params.page || 1;
-                            const results = (data.data || []).map(it => ({
-                                id: it.id,
-                                text: it.text,
-                                email: it.email,
-                                // username: it.username   // ⬅️ pastikan ikut dibawa ke front-end
-                            }));
-                            return {
-                                results,
-                                pagination: {
-                                    more: (params.page * 10) < (data.total || 0)
-                                }
-                            };
-                        },
-                        cache: true
-                    },
-                    templateResult: function(item) {
-                        if (!item.id) return item.text;
-                        const email = item.email ? `` : '';
-                        return $(`<span>${item.text}${email}</span>`);
-                    },
-                    templateSelection: item => item.text || item.id,
-                    escapeMarkup: m => m
-                })
-                .on('select2:select', function(e) {
-                    const d = e.params.data || {};
-                    // ⬇️ sekarang simpan USERNAME ke hidden field pic_pengawas
-                    $('#pic_pengawas').val(d.id || '');
-                })
-                .on('select2:clear', function() {
-                    $('#pic_pengawas').val('');
-                });
-
-        });
-    </script>
-
+  
 
     <script>
         $(function() {
@@ -2897,6 +2698,171 @@
 
         });
     </script>
+
+    <script>
+        $(function () {
+            const $tenantModal = $('#tenantModal');
+            const $tenantTbody = $('#tenantTableBody');
+            const $tenantCount = $('#tenantCount');
+            const $tenantCpny  = $('#tenantCpnyBadge');
+
+            let tenantState = {
+                search: '',
+                page: 1,
+                per_page: 10,
+                total: 0,
+                cpnyid: null
+            };
+
+            function openTenantModal() {
+                tenantState.cpnyid = $('select[name="cpnyid"]').val() || '';
+                tenantState.search = '';
+                tenantState.page = 1;
+
+                $tenantCpny.text(tenantState.cpnyid || '-');
+                $('#tenantSearch').val('');
+
+                // tampilkan modal dulu, kasih placeholder loading supaya terasa cepat
+                $tenantModal.removeClass('hidden').addClass('flex');
+                $tenantTbody.html('<tr><td colspan="3" class="p-3 text-center">Loading...</td></tr>');
+                $tenantCount.text('');
+
+                // biar render dulu baru ajax
+                setTimeout(() => {
+                    loadTenants();
+                    $('#tenantSearch').trigger('focus');
+                }, 0);
+            }
+
+            function closeTenantModal() {
+                $tenantModal.addClass('hidden').removeClass('flex');
+            }
+
+            $('#btnSearchTenant').on('click', openTenantModal);
+            $('#closeTenantModal').on('click', closeTenantModal);
+
+            $(document).on('keydown', function (e) {
+                if (e.key === 'Escape' && $tenantModal.is(':visible')) closeTenantModal();
+            });
+
+            $('#tenantSearch').on('input', function () {
+                tenantState.search = $(this).val().trim();
+                tenantState.page = 1;
+                loadTenants();
+            });
+
+            $('#tenantRefresh').on('click', function () {
+                $('#tenantSearch').val('');
+                tenantState.search = '';
+                tenantState.page = 1;
+                loadTenants();
+            });
+
+            $('#tenantPrev').on('click', function () {
+                if (tenantState.page > 1) {
+                    tenantState.page--;
+                    loadTenants();
+                }
+            });
+
+            $('#tenantNext').on('click', function () {
+                const maxPage = Math.ceil((tenantState.total || 0) / tenantState.per_page) || 1;
+                if (tenantState.page < maxPage) {
+                    tenantState.page++;
+                    loadTenants();
+                }
+            });
+
+            function loadTenants() {
+                if (!tenantState.cpnyid) {
+                    $tenantTbody.html('<tr><td colspan="3" class="p-3 text-center">Select Company first</td></tr>');
+                    $tenantCount.text('');
+                    $('#tenantPrev, #tenantNext').prop('disabled', true);
+                    return;
+                }
+
+                $tenantTbody.html('<tr><td colspan="3" class="p-3 text-center">Loading...</td></tr>');
+
+                $.getJSON("{{ route('tenants.search') }}", {
+                    q: tenantState.search,
+                    page: tenantState.page,
+                    per_page: tenantState.per_page,
+                    cpnyid: tenantState.cpnyid
+                })
+                .done(function (res) {
+                    const list = (res.data || []);
+                    tenantState.total = res.total || 0;
+
+                    const rows = list.map(it => {
+                        const id = it.id ?? '';
+                        const name = it.text ?? it.store_name ?? it.name ?? '';
+                        const unitLabel = it.unit_label ?? it.unit ?? it.unit_name ?? '';
+                        const unitId = it.unit_id ?? it.unit ?? '';
+
+                        return `
+                            <tr>
+                                <td class="border p-2">${$('<div>').text(name).html()}</td>
+                                <td class="border p-2">${$('<div>').text(unitLabel).html()}</td>
+                                <td class="border p-2 text-center">
+                                    <button type="button"
+                                        class="chooseTenant rounded border px-2 py-1 hover:bg-gray-100 dark:hover:bg-gray-700"
+                                        data-id="${id}"
+                                        data-name="${$('<div>').text(name).html()}"
+                                        data-unit_label="${$('<div>').text(unitLabel).html()}"
+                                        data-unit_id="${unitId}">
+                                        Choose
+                                    </button>
+                                </td>
+                            </tr>
+                        `;
+                    }).join('');
+
+                    $tenantTbody.html(rows || '<tr><td colspan="3" class="p-3 text-center">No data</td></tr>');
+
+                    const showing = list.length;
+                    $tenantCount.text(`Showing ${showing} of ${tenantState.total} items`);
+
+                    const maxPage = Math.ceil((tenantState.total || 0) / tenantState.per_page) || 1;
+                    $('#tenantPrev').prop('disabled', tenantState.page <= 1);
+                    $('#tenantNext').prop('disabled', tenantState.page >= maxPage);
+                })
+                .fail(function () {
+                    $tenantTbody.html('<tr><td colspan="3" class="p-3 text-center text-red-600">Failed to load tenant</td></tr>');
+                    $tenantCount.text('');
+                    $('#tenantPrev, #tenantNext').prop('disabled', true);
+                });
+            }
+
+            // Choose → isi field seperti select2 dulu
+            $(document).on('click', '.chooseTenant', function () {
+                const id = $(this).data('id');
+                const name = $(this).data('name');
+                const unitLabel = $(this).data('unit_label');
+                const unitId = $(this).data('unit_id');
+
+                $('#tenant_id').val(id);
+                $('#nama_tenant').val(name);
+                $('#unit_id').val(unitId || '');
+                $('#tenant_name_display').val(name);
+                $('#no_unit_tenant').val(unitLabel || '');
+
+                // bersihin invalid (kalau kamu nanti addError di display)
+                $('#tenant_name_display').removeClass('is-invalid').next('.error-feedback').remove();
+
+                closeTenantModal();
+            });
+
+            // Kalau company berubah → kosongkan tenant yang sudah dipilih (biar konsisten)
+            $('select[name="cpnyid"]').on('change', function () {
+                $('#tenant_id').val('');
+                $('#nama_tenant').val('');
+                $('#unit_id').val('');
+                $('#tenant_name_display').val('');
+                $('#no_unit_tenant').val('');
+            });
+        });
+    </script>
+
 
     <!-- Toastr CSS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">

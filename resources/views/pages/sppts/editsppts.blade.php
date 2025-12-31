@@ -1,7 +1,5 @@
 <x-app-layout>
-    <!-- Select2 CSS & JS (jika belum ada di edit view) -->
-    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.full.min.js"></script>
+
     <style>
         .is-invalid {
             border-color: #ef4444 !important;
@@ -234,7 +232,7 @@
                             </div>
 
                             <!-- Request Type -->
-                            <div class="flex flex-col gap-2">
+                            {{-- <div class="flex flex-col gap-2">
                                 <label class="req text-sm font-medium text-gray-700 dark:text-gray-300">Request
                                     Type</label>
                                 <select id="requesttypeid" name="requesttypeid"
@@ -242,6 +240,35 @@
                                     required>
                                     <option value="" disabled>Loading...</option>
                                 </select>
+                            </div> --}}
+
+                            <div class="flex flex-col gap-2">
+                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Request Type</label>
+
+                                <div class="flex w-full">
+                                    @php
+                                        $selectedRT = old('requesttypeid', $sppt->requesttypeid);
+                                        // sesuaikan relasi/nama field kamu:
+                                        $selectedRTName = old('requesttype_name', $sppt->requesttype_name ?? optional($sppt->requestType)->requesttype_name ?? '');
+                                    @endphp
+
+                                    <input type="hidden" name="requesttypeid" id="requesttypeid" value="{{ $selectedRT }}">
+
+                                    <input type="text" id="requesttype_name_display" readonly
+                                        value="{{ $selectedRTName }}"
+                                        class="w-full rounded-l-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm ..."
+                                        placeholder="Select request type...">
+
+
+                                    <button type="button" id="btnSearchRequestType"
+                                        class="inline-flex items-center rounded-r-lg border border-l-0 border-gray-300 bg-gray-100 px-3 text-gray-600 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-600 dark:text-gray-200">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fill-rule="evenodd"
+                                                d="M8.5 3a5.5 5.5 0 014.384 8.832l3.147 3.147a.75.75 0 11-1.06 1.06l-3.147-3.146A5.5 5.5 0 118.5 3zm0 1.5a4 4 0 100 8 4 4 0 000-8z"
+                                                clip-rule="evenodd" />
+                                        </svg>
+                                    </button>
+                                </div>
                             </div>
 
                             <!-- Perpost -->
@@ -263,7 +290,7 @@
                             </div>
 
                             <!-- Tenant -->
-                            <div class="flex flex-col gap-2">
+                            {{-- <div class="flex flex-col gap-2">
                                 <label class="req text-sm font-medium text-gray-700 dark:text-gray-300">Nama
                                     Tenant</label>
 
@@ -279,7 +306,54 @@
                                         </option>
                                     @endif
                                 </select>
+                            </div> --}}
+                            @php
+                                // nama_tenant di DB = tenant_id
+                                $tenantId = old('nama_tenant', $sppt->nama_tenant ?? '');
+
+                                // ambil dari relasi tenant
+                                $tenantStoreName = old('tenant_store_name', optional($sppt->tenantname)->store_name ?? '');
+                                $tenantUnitLabel = old('no_unit_tenant', (optional($sppt->tenantname)->floor_id ?? '') . ' - ' . (optional($sppt->tenantname)->store_no ?? ''));
+
+                                $tenantUnitLabel = trim($tenantUnitLabel, ' -');
+                            @endphp
+
+                            <div class="flex flex-col gap-2">
+                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    Nama Tenant
+                                </label>
+
+                                {{-- hidden value yang dikirim ke backend --}}
+                                <input type="hidden" name="nama_tenant" id="nama_tenant" value="{{ $tenantId }}">
+                                <input type="hidden" name="tenant_id" id="tenant_id" value="{{ $tenantId }}">
+
+
+
+                                <div class="flex w-full">
+                                    {{-- display readonly --}}
+                                    <input type="text"
+                                        id="tenant_name_display"
+                                        readonly
+                                        value="{{ $tenantStoreName }}"
+                                        class="w-full rounded-l-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm
+                                            focus:border-indigo-500 focus:ring-indigo-500
+                                            dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                        placeholder="Select tenant...">
+
+                                    <button type="button"
+                                        id="btnSearchTenant"
+                                        class="inline-flex items-center rounded-r-lg border border-l-0 border-gray-300 bg-gray-100 px-3 text-gray-600
+                                            hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500
+                                            dark:border-gray-600 dark:bg-gray-600 dark:text-gray-200">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fill-rule="evenodd"
+                                                d="M8.5 3a5.5 5.5 0 014.384 8.832l3.147 3.147a.75.75 0 11-1.06 1.06l-3.147-3.146A5.5 5.5 0 118.5 3zm0 1.5a4 4 0 100 8 4 4 0 000-8z"
+                                                clip-rule="evenodd" />
+                                        </svg>
+                                    </button>
+                                </div>
                             </div>
+
 
                         </div>
 
@@ -292,13 +366,13 @@
                                     Unit</label>
                                 <input type="text" id="no_unit_tenant" name="no_unit_tenant"
                                     class="w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-gray-700 shadow-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
-                                    readonly value="{{ $sppt->no_unit_tenant }}">
+                                    readonly value="{{ $tenantUnitLabel }}">
                             </div>
 
                             <!-- PIC -->
                             <div class="flex flex-col gap-2">
                                 <label class="req text-sm font-medium text-gray-700 dark:text-gray-300">PIC</label>
-                                <input type="hidden" id="pic_pengawas" name="pic_pengawas" 
+                                {{-- <input type="hidden" id="pic_pengawas" name="pic_pengawas" 
                                     value="{{ $sppt->pic_pengawas }}">
                                 <select id="pic_select" name="pic_select"
                                     class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300" required>
@@ -306,7 +380,8 @@
                                         <option value="{{ $sppt->pic_pengawas }}" selected>{{ $sppt->pic_name }}
                                         </option>
                                     @endif
-                                </select>
+                                </select> --}}
+                                <input type="text" name="pic_pengawas" class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300" value="{{ $sppt->pic_pengawas }}" placeholder="PIC" required />
                             </div>
 
                             <!-- Status -->
@@ -777,95 +852,95 @@
                         </div>
                     </div>
 
-                    <!-- ===== Modal Lookup Location ===== -->
-                    {{-- <div id="locationModal"
+                    <!-- ===== Modal Lookup Request Type ===== -->
+                    <div id="requestTypeModal"
                         class="fixed inset-0 z-[1000] hidden items-center justify-center bg-black/40 p-4">
-                        <div class="w-full max-w-3xl rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
+                        <div class="w-full max-w-4xl rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
                             <div class="mb-3 flex items-center justify-between border-b pb-2">
-                                <h3 class="text-lg font-bold text-gray-800 dark:text-white">Select Location</h3>
-                                <button type="button" id="closeLocationModal"
-                                    class="rounded px-3 py-1 hover:bg-gray-100 dark:hover:bg-gray-700">✖</button>
-                            </div>
-
-                            <div class="mb-3 flex items-center gap-2">
-                                <input id="locSearch" type="text" placeholder="Search..."
-                                    class="rounded border border-gray-300 bg-white px-3 py-1 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
-                                <button id="locRefresh" type="button"
-                                    class="rounded border px-3 py-1 hover:bg-gray-100 dark:hover:bg-gray-700">↻</button>
-                                <div class="ml-auto text-sm opacity-80">Company: <span id="locCpnyBadge"
-                                        class="font-semibold"></span></div>
-                            </div>
-
-                            <div class="max-h-[60vh] overflow-auto">
-                                <table class="w-full text-left">
-                                    <thead class="sticky top-0 bg-gray-50 text-sm dark:bg-gray-900">
-                                        <tr>
-                                            <th class="border p-2">Location ID</th>
-                                            <th class="border p-2">Location Name</th>
-                                            <th class="w-24 border p-2 text-center">Action</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="locTableBody" class="text-sm"></tbody>
-                                </table>
-                            </div>
-
-                            <div class="mt-3 flex items-center justify-between text-sm">
-                                <span id="locCount" class="opacity-80"></span>
-                                <div class="space-x-2">
-                                    <button id="locPrev" type="button"
-                                        class="rounded border px-3 py-1 disabled:opacity-40">Prev</button>
-                                    <button id="locNext" type="button"
-                                        class="rounded border px-3 py-1 disabled:opacity-40">Next</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div> --}}
-
-                    <!-- ===== Modal Lookup Sub Location ===== -->
-                    {{-- <div id="subLocationModal"
-                        class="fixed inset-0 z-[1000] hidden items-center justify-center bg-black/40 p-4">
-                        <div class="w-full max-w-3xl rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
-                            <div class="mb-3 flex items-center justify-between border-b pb-2">
-                                <h3 class="text-lg font-bold text-gray-800 dark:text-white">Select Sub Location</h3>
-                                <button type="button" id="closeSubLocationModal"
+                                <h3 class="text-lg font-bold text-gray-800 dark:text-white">Select Request Type</h3>
+                                <button type="button" id="closeRequestTypeModal"
                                     class="rounded px-3 py-1 hover:bg-gray-100 dark:hover:bg-gray-700">✖</button>
                             </div>
 
                             <div class="mb-3 flex items-center gap-2 text-sm">
-                                <input id="subLocSearch" type="text" placeholder="Search..."
+                                <input id="rtSearch" type="text" placeholder="Search Request Type..."
                                     class="rounded border border-gray-300 bg-white px-3 py-1 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
-                                <button id="subLocRefresh" type="button"
+                                <button id="rtRefresh" type="button"
                                     class="rounded border px-3 py-1 hover:bg-gray-100 dark:hover:bg-gray-700">↻</button>
-                                <div class="ml-auto flex items-center gap-3">
-                                    <span>Company: <b id="subLocCpnyBadge"></b></span>
-                                    <span>Location: <b id="subLocParentBadge"></b></span>
+
+                                <div class="ml-auto flex flex-wrap items-center gap-3">
+                                    <span>DocType: <b id="rtDocBadge">SPPT</b></span>
                                 </div>
                             </div>
 
                             <div class="max-h-[60vh] overflow-auto">
-                                <table class="w-full text-left">
-                                    <thead class="sticky top-0 bg-gray-50 text-sm dark:bg-gray-900">
+                                <table class="w-full text-left text-sm">
+                                    <thead class="sticky top-0 bg-gray-50 dark:bg-gray-900">
                                         <tr>
-                                            <th class="border p-2">Sub Location ID</th>
-                                            <th class="border p-2">Sub Location Name</th>
+                                            <th class="border p-2">Request Type ID</th>
+                                            <th class="border p-2">Name</th>
                                             <th class="w-24 border p-2 text-center">Action</th>
                                         </tr>
                                     </thead>
-                                    <tbody id="subLocTableBody" class="text-sm"></tbody>
+                                    <tbody id="rtTableBody" class="text-sm"></tbody>
                                 </table>
                             </div>
 
                             <div class="mt-3 flex items-center justify-between text-sm">
-                                <span id="subLocCount" class="opacity-80"></span>
+                                <span id="rtCount" class="opacity-80"></span>
                                 <div class="space-x-2">
-                                    <button id="subLocPrev" type="button"
+                                    <button id="rtPrev" type="button" class="rounded border px-3 py-1 disabled:opacity-40">Prev</button>
+                                    <button id="rtNext" type="button" class="rounded border px-3 py-1 disabled:opacity-40">Next</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ===== Modal Lookup Tenant ===== -->
+                    <div id="tenantModal"
+                        class="fixed inset-0 z-[1000] hidden items-center justify-center bg-black/40 p-4">
+                        <div class="w-full max-w-5xl rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
+                            <div class="mb-3 flex items-center justify-between border-b pb-2">
+                                <h3 class="text-lg font-bold text-gray-800 dark:text-white">Select Tenant</h3>
+                                <button type="button" id="closeTenantModal"
+                                    class="rounded px-3 py-1 hover:bg-gray-100 dark:hover:bg-gray-700">✖</button>
+                            </div>
+
+                            <div class="mb-3 flex items-center gap-2 text-sm">
+                                <input id="tenantSearch" type="text" placeholder="Search tenant..."
+                                    class="rounded border border-gray-300 bg-white px-3 py-1 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
+                                <button id="tenantRefresh" type="button"
+                                    class="rounded border px-3 py-1 hover:bg-gray-100 dark:hover:bg-gray-700">↻</button>
+
+                                <div class="ml-auto flex flex-wrap items-center gap-3">
+                                    <span>Company: <b id="tenantCpnyBadge">-</b></span>
+                                </div>
+                            </div>
+
+                            <div class="max-h-[60vh] overflow-auto">
+                                <table class="w-full text-left text-sm">
+                                    <thead class="sticky top-0 bg-gray-50 dark:bg-gray-900">
+                                        <tr>
+                                            <th class="border p-2">Tenant</th>
+                                            <th class="border p-2">Lantai - Unit</th>
+                                            <th class="w-24 border p-2 text-center">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="tenantTableBody" class="text-sm"></tbody>
+                                </table>
+                            </div>
+
+                            <div class="mt-3 flex items-center justify-between text-sm">
+                                <span id="tenantCount" class="opacity-80"></span>
+                                <div class="space-x-2">
+                                    <button id="tenantPrev" type="button"
                                         class="rounded border px-3 py-1 disabled:opacity-40">Prev</button>
-                                    <button id="subLocNext" type="button"
+                                    <button id="tenantNext" type="button"
                                         class="rounded border px-3 py-1 disabled:opacity-40">Next</button>
                                 </div>
                             </div>
                         </div>
-                    </div> --}}
+                    </div>
 
                     <!-- Modal: Location + Sub Location -->
                     <div id="modalLokasi"
@@ -2618,94 +2693,6 @@
         });
     </script>
 
-    {{-- <script>
-        $(function() {
-            /** ---------- Helper umum ---------- **/
-            function injectSelect2Value($select, id, text) {
-                // Hapus option existing yang sama biar nggak dobel
-                $select.find('option[value="' + String(id) + '"]').remove();
-                const opt = new Option(text, String(id), true, true);
-                $select.append(opt).trigger('change'); // render di UI
-            }
-
-            /** ---------- PREFILL TENANT ---------- **/
-            // Nilai dari backend (kalau kamu punya, pakai; kalau tidak, biarkan null)
-            const TENANT_ID = @json($sppt->nama_tenant ?? null); // Wajib ada (ID)
-            const TENANT_LABEL = @json($sppt->tenant_name ?? null); // Opsional (nama untuk ditampilkan)
-            const TENANT_UNIT = @json($sppt->no_unit_tenant ?? null); // Opsional ("Lantai - Unit")
-
-            if (TENANT_ID) {
-                if (TENANT_LABEL) {
-                    injectSelect2Value($('#tenant_select'), TENANT_ID, TENANT_LABEL);
-                    $('#nama_tenant').val(TENANT_ID);
-                    $('#no_unit_tenant').val(TENANT_UNIT || '');
-                } else {
-                    // Cari label via AJAX kalau server cuma kasih ID
-                    $.getJSON("{{ route('tenants.search') }}", {
-                            q: TENANT_ID,
-                            page: 1,
-                            per_page: 10
-                        })
-                        .done(function(res) {
-                            const list = (res && res.data) ? res.data : [];
-                            // cari yang id-nya persis sama
-                            const hit = list.find(x => String(x.id) === String(TENANT_ID));
-                            const text = hit ? (hit.text || String(TENANT_ID)) : String(TENANT_ID);
-                            injectSelect2Value($('#tenant_select'), TENANT_ID, text);
-                            $('#nama_tenant').val(TENANT_ID);
-                            $('#no_unit_tenant').val(hit && hit.unit_label ? hit.unit_label : '');
-                        })
-                        .fail(function() {
-                            // fallback: tampilkan ID
-                            injectSelect2Value($('#tenant_select'), TENANT_ID, String(TENANT_ID));
-                            $('#nama_tenant').val(TENANT_ID);
-                            $('#no_unit_tenant').val('');
-                        });
-                }
-            } else {
-                $('#tenant_select').val(null).trigger('change');
-                $('#nama_tenant').val('');
-                $('#no_unit_tenant').val('');
-            }
-
-            /** ---------- PREFILL PIC (USER) ---------- **/
-            // Di create kamu simpan username ke hidden #pic_pengawas → itu jadi "id" Select2 juga.
-            const PIC_USERNAME = @json($sppt->pic_pengawas ?? null); // Wajib ada (username)
-            const PIC_LABEL = @json($sppt->pic_name ?? null); // Opsional (nama lengkap untuk ditampilkan)
-
-            if (PIC_USERNAME) {
-                if (PIC_LABEL) {
-                    injectSelect2Value($('#pic_select'), PIC_USERNAME, PIC_LABEL);
-                    $('#pic_pengawas').val(PIC_USERNAME);
-                } else {
-                    // Cari label via AJAX kalau server cuma kasih username
-                    $.getJSON("{{ route('users.search') }}", {
-                            q: PIC_USERNAME,
-                            page: 1,
-                            per_page: 10
-                        })
-                        .done(function(res) {
-                            const list = (res && res.data) ? res.data : [];
-                            // Di users.search kamu kirim { id: username, text: full_name, ... } → cocokkan by id
-                            const hit = list.find(x => String(x.id) === String(PIC_USERNAME));
-                            const text = hit ? (hit.text || String(PIC_USERNAME)) : String(PIC_USERNAME);
-                            injectSelect2Value($('#pic_select'), PIC_USERNAME, text);
-                            $('#pic_pengawas').val(PIC_USERNAME);
-                        })
-                        .fail(function() {
-                            // fallback: tampilkan username
-                            injectSelect2Value($('#pic_select'), PIC_USERNAME, String(PIC_USERNAME));
-                            $('#pic_pengawas').val(PIC_USERNAME);
-                        });
-                }
-            } else {
-                $('#pic_select').val(null).trigger('change');
-                $('#pic_pengawas').val('');
-            }
-
-
-        });
-    </script> --}}
 
     <script>
         $(function() {
@@ -3136,6 +3123,307 @@
                     woState.page = 1;
                     loadWo();
                 }
+            });
+        });
+    </script>
+
+     <script>
+        $(function () {
+            const DOCTYPE = 'SPPT';
+
+            const $rtModal = $('#requestTypeModal');
+            const $rtTbody = $('#rtTableBody');
+            const $rtCount = $('#rtCount');
+            const $rtDoc   = $('#rtDocBadge');
+
+            let rtState = {
+                search: '',
+                page: 1,
+                per_page: 10,
+                total: 0,
+                doctype: DOCTYPE,
+            };
+
+            function openRtModal() {
+                $rtDoc.text(rtState.doctype || '-');
+                $('#rtSearch').val('');
+                rtState.search = '';
+                rtState.page = 1;
+
+                $rtModal.removeClass('hidden').addClass('flex');
+                loadRequestTypes();
+                setTimeout(() => $('#rtSearch').trigger('focus'), 0);
+            }
+
+            function closeRtModal() {
+                $rtModal.addClass('hidden').removeClass('flex');
+            }
+
+            $('#btnSearchRequestType').on('click', openRtModal);
+            $('#closeRequestTypeModal').on('click', closeRtModal);
+
+            $(document).on('keydown', function (e) {
+                if (e.key === 'Escape' && $rtModal.is(':visible')) closeRtModal();
+            });
+
+            $('#rtSearch').on('input', function () {
+                rtState.search = $(this).val().trim();
+                rtState.page = 1;
+                loadRequestTypes();
+            });
+
+            $('#rtRefresh').on('click', function () {
+                $('#rtSearch').val('');
+                rtState.search = '';
+                rtState.page = 1;
+                loadRequestTypes();
+            });
+
+            $('#rtPrev').on('click', function () {
+                if (rtState.page > 1) {
+                    rtState.page--;
+                    loadRequestTypes();
+                }
+            });
+
+            $('#rtNext').on('click', function () {
+                const maxPage = Math.ceil((rtState.total || 0) / rtState.per_page) || 1;
+                if (rtState.page < maxPage) {
+                    rtState.page++;
+                    loadRequestTypes();
+                }
+            });
+
+            function loadRequestTypes() {
+                $rtTbody.html('<tr><td colspan="3" class="p-3 text-center">Loading...</td></tr>');
+
+                $.getJSON("{{ route('requesttypes.byDoctype') }}", {
+                    doctype: rtState.doctype,
+                    search: rtState.search,
+                    page: rtState.page,
+                    per_page: rtState.per_page
+                })
+                .done(function (res) {
+                    // support 2 kemungkinan response:
+                    // A) {data:[...], total:..}
+                    // B) {data:{data:[...], total:..}} (Laravel paginator default)
+                    const payload = res.data?.data ? res.data : res; // detect paginator shape
+                    const list = (payload.data || []);
+                    rtState.total = payload.total || 0;
+
+                    const rowsArr = list.map(item => {
+                        const id = item.requesttypeid ?? item.id ?? '';
+                        const name = item.requesttype_name ?? item.name ?? id;
+
+                        return `
+                            <tr>
+                                <td class="border p-2">${id}</td>
+                                <td class="border p-2">${$('<div>').text(name).html()}</td>
+                                <td class="border p-2 text-center">
+                                    <button type="button"
+                                        class="chooseRequestType rounded border px-2 py-1 hover:bg-gray-100 dark:hover:bg-gray-700"
+                                        data-id="${id}"
+                                        data-name="${$('<div>').text(name).html()}">
+                                        Choose
+                                    </button>
+                                </td>
+                            </tr>
+                        `;
+                    });
+
+                    $rtTbody.html(rowsArr.join('') || '<tr><td colspan="3" class="p-3 text-center">No data</td></tr>');
+
+                    const showing = list.length;
+                    $rtCount.text(`Showing ${showing} of ${rtState.total} items`);
+
+                    const maxPage = Math.ceil((rtState.total || 0) / rtState.per_page) || 1;
+                    $('#rtPrev').prop('disabled', rtState.page <= 1);
+                    $('#rtNext').prop('disabled', rtState.page >= maxPage);
+                })
+                .fail(function () {
+                    $rtTbody.html('<tr><td colspan="3" class="p-3 text-center text-red-600">Failed to load</td></tr>');
+                    $rtCount.text('');
+                    $('#rtPrev, #rtNext').prop('disabled', true);
+                });
+            }
+
+            // choose -> set value ke form
+            $(document).on('click', '.chooseRequestType', function () {
+                const id = $(this).data('id');
+                const name = $(this).data('name');
+
+                $('#requesttypeid').val(id);
+                $('#requesttype_name_display').val(name);
+
+                // bersihkan invalid UI (kalau kamu pakai addError)
+                $('#requesttype_name_display').removeClass('is-invalid').next('.error-feedback').remove();
+
+                closeRtModal();
+            });          
+
+        });
+    </script>
+
+    <script>
+        $(function () {
+            const $tenantModal = $('#tenantModal');
+            const $tenantTbody = $('#tenantTableBody');
+            const $tenantCount = $('#tenantCount');
+            const $tenantCpny  = $('#tenantCpnyBadge');
+
+            let tenantState = {
+                search: '',
+                page: 1,
+                per_page: 10,
+                total: 0,
+                cpnyid: null
+            };
+
+            function openTenantModal() {
+                tenantState.cpnyid = $('select[name="cpnyid"]').val() || '';
+                tenantState.search = '';
+                tenantState.page = 1;
+
+                $tenantCpny.text(tenantState.cpnyid || '-');
+                $('#tenantSearch').val('');
+
+                // tampilkan modal dulu, kasih placeholder loading supaya terasa cepat
+                $tenantModal.removeClass('hidden').addClass('flex');
+                $tenantTbody.html('<tr><td colspan="3" class="p-3 text-center">Loading...</td></tr>');
+                $tenantCount.text('');
+
+                // biar render dulu baru ajax
+                setTimeout(() => {
+                    loadTenants();
+                    $('#tenantSearch').trigger('focus');
+                }, 0);
+            }
+
+            function closeTenantModal() {
+                $tenantModal.addClass('hidden').removeClass('flex');
+            }
+
+            $('#btnSearchTenant').on('click', openTenantModal);
+            $('#closeTenantModal').on('click', closeTenantModal);
+
+            $(document).on('keydown', function (e) {
+                if (e.key === 'Escape' && $tenantModal.is(':visible')) closeTenantModal();
+            });
+
+            $('#tenantSearch').on('input', function () {
+                tenantState.search = $(this).val().trim();
+                tenantState.page = 1;
+                loadTenants();
+            });
+
+            $('#tenantRefresh').on('click', function () {
+                $('#tenantSearch').val('');
+                tenantState.search = '';
+                tenantState.page = 1;
+                loadTenants();
+            });
+
+            $('#tenantPrev').on('click', function () {
+                if (tenantState.page > 1) {
+                    tenantState.page--;
+                    loadTenants();
+                }
+            });
+
+            $('#tenantNext').on('click', function () {
+                const maxPage = Math.ceil((tenantState.total || 0) / tenantState.per_page) || 1;
+                if (tenantState.page < maxPage) {
+                    tenantState.page++;
+                    loadTenants();
+                }
+            });
+
+            function loadTenants() {
+                if (!tenantState.cpnyid) {
+                    $tenantTbody.html('<tr><td colspan="3" class="p-3 text-center">Select Company first</td></tr>');
+                    $tenantCount.text('');
+                    $('#tenantPrev, #tenantNext').prop('disabled', true);
+                    return;
+                }
+
+                $tenantTbody.html('<tr><td colspan="3" class="p-3 text-center">Loading...</td></tr>');
+
+                $.getJSON("{{ route('tenants.search') }}", {
+                    q: tenantState.search,
+                    page: tenantState.page,
+                    per_page: tenantState.per_page,
+                    cpnyid: tenantState.cpnyid
+                })
+                .done(function (res) {
+                    const list = (res.data || []);
+                    tenantState.total = res.total || 0;
+
+                    const rows = list.map(it => {
+                        const id = it.id ?? '';
+                        const name = it.text ?? it.store_name ?? it.name ?? '';
+                        const unitLabel = it.unit_label ?? it.unit ?? it.unit_name ?? '';
+                        const unitId = it.unit_id ?? it.unit ?? '';
+
+                        return `
+                            <tr>
+                                <td class="border p-2">${$('<div>').text(name).html()}</td>
+                                <td class="border p-2">${$('<div>').text(unitLabel).html()}</td>
+                                <td class="border p-2 text-center">
+                                    <button type="button"
+                                        class="chooseTenant rounded border px-2 py-1 hover:bg-gray-100 dark:hover:bg-gray-700"
+                                        data-id="${id}"
+                                        data-name="${$('<div>').text(name).html()}"
+                                        data-unit_label="${$('<div>').text(unitLabel).html()}"
+                                        data-unit_id="${unitId}">
+                                        Choose
+                                    </button>
+                                </td>
+                            </tr>
+                        `;
+                    }).join('');
+
+                    $tenantTbody.html(rows || '<tr><td colspan="3" class="p-3 text-center">No data</td></tr>');
+
+                    const showing = list.length;
+                    $tenantCount.text(`Showing ${showing} of ${tenantState.total} items`);
+
+                    const maxPage = Math.ceil((tenantState.total || 0) / tenantState.per_page) || 1;
+                    $('#tenantPrev').prop('disabled', tenantState.page <= 1);
+                    $('#tenantNext').prop('disabled', tenantState.page >= maxPage);
+                })
+                .fail(function () {
+                    $tenantTbody.html('<tr><td colspan="3" class="p-3 text-center text-red-600">Failed to load tenant</td></tr>');
+                    $tenantCount.text('');
+                    $('#tenantPrev, #tenantNext').prop('disabled', true);
+                });
+            }
+
+            // Choose → isi field seperti select2 dulu
+            $(document).on('click', '.chooseTenant', function () {
+                const id = $(this).data('id');
+                const name = $(this).data('name');
+                const unitLabel = $(this).data('unit_label');
+                const unitId = $(this).data('unit_id');
+
+                $('#tenant_id').val(id);
+                $('#nama_tenant').val(name);
+                $('#unit_id').val(unitId || '');
+                $('#tenant_name_display').val(name);
+                $('#no_unit_tenant').val(unitLabel || '');
+
+                // bersihin invalid (kalau kamu nanti addError di display)
+                $('#tenant_name_display').removeClass('is-invalid').next('.error-feedback').remove();
+
+                closeTenantModal();
+            });
+
+            // Kalau company berubah → kosongkan tenant yang sudah dipilih (biar konsisten)
+            $('select[name="cpnyid"]').on('change', function () {
+                $('#tenant_id').val('');
+                $('#nama_tenant').val('');
+                $('#unit_id').val('');
+                $('#tenant_name_display').val('');
+                $('#no_unit_tenant').val('');
             });
         });
     </script>

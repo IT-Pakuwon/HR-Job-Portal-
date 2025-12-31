@@ -223,7 +223,7 @@
                             </div>
 
                             {{-- Request Type --}}
-                            <div class="flex flex-col gap-2">
+                            {{-- <div class="flex flex-col gap-2">
                                 <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Request
                                     Type</label>
                                 <select id="requesttypeid" name="requesttypeid"
@@ -231,6 +231,34 @@
                                     required>
                                     <option value="" disabled>Loading...</option>
                                 </select>
+                            </div> --}}
+                            <div class="flex flex-col gap-2">
+                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Request Type</label>
+
+                                <div class="flex w-full">
+                                    @php
+                                        $selectedRT = old('requesttypeid', $sppk->requesttypeid);
+                                        // sesuaikan relasi/nama field kamu:
+                                        $selectedRTName = old('requesttype_name', $sppk->requesttype_name ?? optional($sppk->requestType)->requesttype_name ?? '');
+                                    @endphp
+
+                                    <input type="hidden" name="requesttypeid" id="requesttypeid" value="{{ $selectedRT }}">
+
+                                    <input type="text" id="requesttype_name_display" readonly
+                                        value="{{ $selectedRTName }}"
+                                        class="w-full rounded-l-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm ..."
+                                        placeholder="Select request type...">
+
+
+                                    <button type="button" id="btnSearchRequestType"
+                                        class="inline-flex items-center rounded-r-lg border border-l-0 border-gray-300 bg-gray-100 px-3 text-gray-600 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-600 dark:text-gray-200">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fill-rule="evenodd"
+                                                d="M8.5 3a5.5 5.5 0 014.384 8.832l3.147 3.147a.75.75 0 11-1.06 1.06l-3.147-3.146A5.5 5.5 0 118.5 3zm0 1.5a4 4 0 100 8 4 4 0 000-8z"
+                                                clip-rule="evenodd" />
+                                        </svg>
+                                    </button>
+                                </div>
                             </div>
 
                             {{-- Perpost --}}
@@ -267,7 +295,7 @@
                                     $namaKendInit = old('namakendaraan', $sppk->namakendaraan ?? '');
                                 @endphp
 
-                                <select id="nopol" name="no_polisi"
+                                {{-- <select id="nopol" name="no_polisi"
                                     class="select2 w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                     required>
 
@@ -278,7 +306,25 @@
                                     @else
                                         <option value="" selected disabled>Pilih nopol...</option>
                                     @endif
-                                </select>
+                                </select> --}}
+                                <div class="flex w-full">
+                                    {{-- hidden value yang dikirim ke backend --}}
+                                    <input type="hidden" name="no_polisi" id="nopol" value="">                                    
+
+                                    {{-- display readonly --}}
+                                    <input type="text" id="nopol_display" readonly value="{{ $noPolisiInit }}"
+                                        class="w-full rounded-l-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                        placeholder="Select No. Polisi...">
+
+                                    <button type="button" id="btnSearchNopol"
+                                        class="inline-flex items-center rounded-r-lg border border-l-0 border-gray-300 bg-gray-100 px-3 text-gray-600 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-600 dark:text-gray-200">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fill-rule="evenodd"
+                                                d="M8.5 3a5.5 5.5 0 014.384 8.832l3.147 3.147a.75.75 0 11-1.06 1.06l-3.147-3.146A5.5 5.5 0 118.5 3zm0 1.5a4 4 0 100 8 4 4 0 000-8z"
+                                                clip-rule="evenodd" />
+                                        </svg>
+                                    </button>
+                                </div>
                             </div>
 
                             {{-- Vehicle Owner --}}
@@ -743,95 +789,89 @@
                         </div>
                     </div>
 
-                    <!-- ===== Modal Lookup Location ===== -->
-                    {{-- <div id="locationModal"
+                    <!-- ===== Modal Lookup Request Type ===== -->
+                    <div id="requestTypeModal"
                         class="fixed inset-0 z-[1000] hidden items-center justify-center bg-black/40 p-4">
-                        <div class="w-full max-w-3xl rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
+                        <div class="w-full max-w-4xl rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
                             <div class="mb-3 flex items-center justify-between border-b pb-2">
-                                <h3 class="text-lg font-bold text-gray-800 dark:text-white">Select Location</h3>
-                                <button type="button" id="closeLocationModal"
-                                    class="rounded px-3 py-1 hover:bg-gray-100 dark:hover:bg-gray-700">✖</button>
-                            </div>
-
-                            <div class="mb-3 flex items-center gap-2">
-                                <input id="locSearch" type="text" placeholder="Search..."
-                                    class="rounded border border-gray-300 bg-white px-3 py-1 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
-                                <button id="locRefresh" type="button"
-                                    class="rounded border px-3 py-1 hover:bg-gray-100 dark:hover:bg-gray-700">↻</button>
-                                <div class="ml-auto text-sm opacity-80">Company: <span id="locCpnyBadge"
-                                        class="font-semibold"></span></div>
-                            </div>
-
-                            <div class="max-h-[60vh] overflow-auto">
-                                <table class="w-full text-left">
-                                    <thead class="sticky top-0 bg-gray-50 text-sm dark:bg-gray-900">
-                                        <tr>
-                                            <th class="border p-2">Location ID</th>
-                                            <th class="border p-2">Location Name</th>
-                                            <th class="w-24 border p-2 text-center">Action</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="locTableBody" class="text-sm"></tbody>
-                                </table>
-                            </div>
-
-                            <div class="mt-3 flex items-center justify-between text-sm">
-                                <span id="locCount" class="opacity-80"></span>
-                                <div class="space-x-2">
-                                    <button id="locPrev" type="button"
-                                        class="rounded border px-3 py-1 disabled:opacity-40">Prev</button>
-                                    <button id="locNext" type="button"
-                                        class="rounded border px-3 py-1 disabled:opacity-40">Next</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div> --}}
-
-                    <!-- ===== Modal Lookup Sub Location ===== -->
-                    {{-- <div id="subLocationModal"
-                        class="fixed inset-0 z-[1000] hidden items-center justify-center bg-black/40 p-4">
-                        <div class="w-full max-w-3xl rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
-                            <div class="mb-3 flex items-center justify-between border-b pb-2">
-                                <h3 class="text-lg font-bold text-gray-800 dark:text-white">Select Sub Location</h3>
-                                <button type="button" id="closeSubLocationModal"
+                                <h3 class="text-lg font-bold text-gray-800 dark:text-white">Select Request Type</h3>
+                                <button type="button" id="closeRequestTypeModal"
                                     class="rounded px-3 py-1 hover:bg-gray-100 dark:hover:bg-gray-700">✖</button>
                             </div>
 
                             <div class="mb-3 flex items-center gap-2 text-sm">
-                                <input id="subLocSearch" type="text" placeholder="Search..."
+                                <input id="rtSearch" type="text" placeholder="Search Request Type..."
                                     class="rounded border border-gray-300 bg-white px-3 py-1 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
-                                <button id="subLocRefresh" type="button"
+                                <button id="rtRefresh" type="button"
                                     class="rounded border px-3 py-1 hover:bg-gray-100 dark:hover:bg-gray-700">↻</button>
-                                <div class="ml-auto flex items-center gap-3">
-                                    <span>Company: <b id="subLocCpnyBadge"></b></span>
-                                    <span>Location: <b id="subLocParentBadge"></b></span>
+
+                                <div class="ml-auto flex flex-wrap items-center gap-3">
+                                    <span>DocType: <b id="rtDocBadge">SPPK</b></span>
                                 </div>
                             </div>
 
                             <div class="max-h-[60vh] overflow-auto">
-                                <table class="w-full text-left">
-                                    <thead class="sticky top-0 bg-gray-50 text-sm dark:bg-gray-900">
+                                <table class="w-full text-left text-sm">
+                                    <thead class="sticky top-0 bg-gray-50 dark:bg-gray-900">
                                         <tr>
-                                            <th class="border p-2">Sub Location ID</th>
-                                            <th class="border p-2">Sub Location Name</th>
+                                            <th class="border p-2">Request Type ID</th>
+                                            <th class="border p-2">Name</th>
                                             <th class="w-24 border p-2 text-center">Action</th>
                                         </tr>
                                     </thead>
-                                    <tbody id="subLocTableBody" class="text-sm"></tbody>
+                                    <tbody id="rtTableBody" class="text-sm"></tbody>
                                 </table>
                             </div>
 
                             <div class="mt-3 flex items-center justify-between text-sm">
-                                <span id="subLocCount" class="opacity-80"></span>
+                                <span id="rtCount" class="opacity-80"></span>
                                 <div class="space-x-2">
-                                    <button id="subLocPrev" type="button"
-                                        class="rounded border px-3 py-1 disabled:opacity-40">Prev</button>
-                                    <button id="subLocNext" type="button"
-                                        class="rounded border px-3 py-1 disabled:opacity-40">Next</button>
+                                    <button id="rtPrev" type="button" class="rounded border px-3 py-1 disabled:opacity-40">Prev</button>
+                                    <button id="rtNext" type="button" class="rounded border px-3 py-1 disabled:opacity-40">Next</button>
                                 </div>
                             </div>
                         </div>
-                    </div> --}}
+                    </div>   
+                    
+                    <!-- ===== Modal Lookup No. Polisi ===== -->
+                    <div id="nopolModal" class="fixed inset-0 z-[1000] hidden items-center justify-center bg-black/40 p-4">
+                        <div class="w-full max-w-5xl rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
+                            <div class="mb-3 flex items-center justify-between border-b pb-2">
+                                <h3 class="text-lg font-bold text-gray-800 dark:text-white">Select Vehicle (No. Polisi)</h3>
+                                <button type="button" id="closeNopolModal"
+                                    class="rounded px-3 py-1 hover:bg-gray-100 dark:hover:bg-gray-700">✖</button>
+                            </div>
+
+                            <div class="mb-3 flex items-center gap-2 text-sm">
+                                <input id="nopolSearch" type="text" placeholder="Search nopol / vehicle name / owner..."
+                                    class="rounded border border-gray-300 bg-white px-3 py-1 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
+                                <button id="nopolRefresh" type="button"
+                                    class="rounded border px-3 py-1 hover:bg-gray-100 dark:hover:bg-gray-700">↻</button>
+                            </div>
+
+                            <div class="max-h-[60vh] overflow-auto">
+                                <table class="w-full text-left text-sm">
+                                    <thead class="sticky top-0 bg-gray-50 dark:bg-gray-900">
+                                        <tr>
+                                            <th class="border p-2">No. Polisi</th>
+                                            <th class="border p-2">Vehicle Name</th>
+                                            <th class="border p-2">Vehicle Owner</th>
+                                            <th class="w-24 border p-2 text-center">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="nopolTableBody" class="text-sm"></tbody>
+                                </table>
+                            </div>
+
+                            <div class="mt-3 flex items-center justify-between text-sm">
+                                <span id="nopolCount" class="opacity-80"></span>
+                                <div class="space-x-2">
+                                    <button id="nopolPrev" type="button" class="rounded border px-3 py-1 disabled:opacity-40">Prev</button>
+                                    <button id="nopolNext" type="button" class="rounded border px-3 py-1 disabled:opacity-40">Next</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
                     <!-- Modal: Location + Sub Location -->
                     <div id="modalLokasi"
@@ -1271,81 +1311,7 @@
         });
     </script>
 
-
-    {{-- <script>
-        // ===== Simpan Form =====
-        $(function () {
-        $('#sppkForm').on('submit', function (e) {
-            e.preventDefault();
-
-            // normalisasi qty (koma -> titik)
-            $('.qtyField').each(function () {
-            if (this.value.includes(',')) this.value = this.value.replace(',', '.');
-            });
-
-            // validasi minimal 1 detail valid
-            const hasValid = $('#sppkTable tr.sppk-row').toArray().some(tr => {
-            const $tr = $(tr);
-            const invId = ($tr.find('.inventoryIdField').val() || '').trim();
-            const qty   = parseFloat($tr.find('input[name="qty[]"]').val() || '0');
-            return invId !== '' && qty > 0;
-            });
-            if (!hasValid) { toastr.error('Minimal 1 item detail harus dipilih (Product Name & Qty > 0).'); return; }
-
-            // lock UI
-            $('#submitBtn, #cancelBtn').prop('disabled', true);
-            $('#btnText').text('Processing...');
-            $('#loadingSpinner').removeClass('hidden');
-
-            // kirim ke route update (pakai action form sendiri)
-            const form   = document.getElementById('sppkForm');
-            const formData = new FormData(form);
-            formData.set('_method','PUT'); // penting!
-
-            $.ajax({
-            url: form.action,        // <-- otomatis: route('sppks.update', $sppk->id)
-            type: 'POST',
-            data: formData,
-            processData: false,
-            contentType: false,
-            success: function (res) {
-                toastr.success(res.message || "SPPK updated successfully!");
-                window.location.href = "/sppks";
-            },
-            error: function (xhr) {
-                if (xhr.status === 422 && xhr.responseJSON && xhr.responseJSON.errors) {
-                const errors = xhr.responseJSON.errors;
-                let msg = 'Mohon periksa input:<br>';
-                Object.keys(errors).forEach(k => { msg += `- ${errors[k].join(', ')}<br>`; });
-                toastr.error(msg);
-                } else if (xhr.responseJSON && xhr.responseJSON.message) {
-                toastr.error(xhr.responseJSON.message);
-                } else {
-                toastr.error('Error! Please check the input.');
-                }
-            },
-            complete: function () {
-                $('#submitBtn, #cancelBtn').prop('disabled', false);
-                $('#btnText').text('Submit Approval');
-                $('#loadingSpinner').addClass('hidden');
-            }
-            });
-        });
-        
-
-        // ===== Cancel Button =====
-        $('#cancelBtn').click(function () {
-            const confirmed = confirm("Are you sure you want to cancel? Unsaved changes will be lost.");
-            if (confirmed) {
-            $('#cancelBtn').prop('disabled', true);
-            $('#cancelText').text('Cancelling...');
-            $('#cancelSpinner').removeClass('hidden');
-            window.location.href = "{{ route('sppks') }}";
-            }
-        });
-        });
-    </script> --}}
-
+    
     <script>
         // ===== Simpan Form (EDIT) =====
         $(function() {
@@ -1725,40 +1691,7 @@
                     $('.removeAttachment').addClass('hidden');
                 }
             }
-
-            // $(document).on('click', '.removeAttachment2', function() {
-            //     let attachmentId = $(this).data('id'); // Ambil ID attachment
-            //     let row = $(this).closest('.attachment-row'); // Dapatkan row attachment
-
-            //     // Cek konfirmasi pengguna
-            //     let confirmDelete = confirm('Are you sure you want to remove this attachment?');
-
-            //     if (confirmDelete) {
-            //         $.ajax({
-            //             url: "/sppks/remove-attachment/" + attachmentId, // Endpoint ke controller
-            //             type: "POST",
-            //             data: {
-            //                 _method: "PUT",
-            //                 _token: "{{ csrf_token() }}"
-            //             },
-            //             success: function(response) {
-            //                 if (response.success) {
-            //                     row.remove(); // Hapus dari tampilan jika berhasil
-            //                     alert("Attachment removed successfully!");
-            //                 } else {
-            //                     alert("Failed to remove attachment.");
-            //                 }
-            //             },
-            //             error: function(xhr) {
-            //                 alert("Error! Unable to remove attachment.");
-            //                 console.error(xhr.responseText);
-            //             }
-            //         });
-            //     } else {
-            //         // **TIDAK ADA AKSI JIKA USER MEMBATALKAN**
-            //         return false;
-            //     }
-            // });
+           
         });
     </script>
 
@@ -2543,144 +2476,7 @@
         });
     </script>
 
-    <script>
-        $(function() {
-            const $nopol = $('#nopol');
-            const $pemilik = $('#pemilikkendaraan');
-            const $nama = $('#namakendaraan');
-            const $km = $('#km_input');
-
-            // KM hanya angka
-            $(document).on('input', '#km_input', function() {
-                this.value = this.value.replace(/[^0-9]/g, '');
-            });
-
-            function buildLabel(item) {
-                const nopol = (item.no_polisi || item.id || '').toString().trim();
-                const namaK = (item.namakendaraan || item.nama || item.text || '').toString().trim();
-                // Jika dua-duanya kosong, kembalikan '—'
-                if (!nopol && !namaK) return '—';
-                return namaK ? `${nopol} - ${namaK}` : nopol;
-            }
-
-            // Template untuk list & terpilih (fallback kalau text kosong)
-            function templateResult(item) {
-                if (item.loading) return item.text;
-                const label = item.text && item.text.trim() ? item.text : buildLabel(item);
-                return $('<span>').text(label);
-            }
-
-            function templateSelection(item) {
-                const label = item.text && item.text.trim() ? item.text : buildLabel(item);
-                return label || 'Pilih nopol...';
-            }
-
-            // Init Select2 (AJAX + fallback)
-            $nopol.select2({
-                placeholder: "Cari No. Polisi…",
-                allowClear: true,
-                width: '100%',
-                minimumInputLength: 0,
-                dropdownParent: $nopol.parent(),
-                templateResult: function(item) {
-                    if (item.loading) return item.text;
-                    // Di dropdown list → tampil nopol - namakendaraan
-                    return `${item.no_polisi || item.id} - ${item.namakendaraan || ''}`;
-                },
-                templateSelection: function(item) {
-                    // Saat dipilih → hanya tampil nopol
-                    return item.no_polisi || item.id || '';
-                },
-                ajax: {
-                    url: "{{ route('kendaraan.all') }}",
-                    dataType: 'json',
-                    delay: 250,
-                    data: function(params) {
-                        return {
-                            search: params.term || '',
-                            page: params.page || 1,
-                            per_page: 20
-                        };
-                    },
-                    processResults: function(res, params) {
-                        params.page = params.page || 1;
-                        const rows = Array.isArray(res?.data) ? res.data : [];
-                        const results = rows.map(item => {
-                            return {
-                                id: (item.no_polisi || '').toString(),
-                                text: `${item.no_polisi} - ${item.namakendaraan || ''}`, // untuk dropdown
-                                no_polisi: item.no_polisi || '',
-                                namakendaraan: item.namakendaraan || '',
-                                pemilikkendaraan: item.pemilikkendaraan || ''
-                            };
-                        });
-                        return {
-                            results,
-                            pagination: {
-                                more: (params.page * (res.per_page || 20)) < (res.total || 0)
-                            }
-                        };
-                    },
-                    cache: true
-                }
-            });
-
-
-            // Preload halaman pertama (agar langsung ada opsi meski belum mengetik)
-            (function preloadFirstPage() {
-                $.getJSON("{{ route('kendaraan.all') }}", {
-                        page: 1,
-                        per_page: 20
-                    })
-                    .done(function(res) {
-                        const data = Array.isArray(res?.data) ? res.data : [];
-                        if (!data.length) return;
-                        // Append opsi pertama-pertama ke <select> agar terlihat saat dibuka
-                        data.forEach(item => {
-                            const id = (item.no_polisi || '').toString();
-                            const text =
-                                `${(item.no_polisi || '').toString()} - ${(item.namakendaraan || '').toString()}`;
-                            // hindari duplikat jika sudah ada
-                            if (!$nopol.find(`option[value="${id}"]`).length) {
-                                const opt = new Option(text, id, false, false);
-                                $nopol.append(opt);
-                            }
-                        });
-                        // trigger agar Select2 re-scan opsi
-                        $nopol.trigger('change.select2');
-                    })
-                    .fail(function() {
-                        // silent fail; AJAX utama masih akan jalan saat user search
-                    });
-            })();
-
-            // Autofill saat dipilih
-            $nopol.on('select2:select', function(e) {
-                const d = e.params.data || {};
-                // data dari processResults: fields pemilikkendaraan & namakendaraan
-                $pemilik.val(d.pemilikkendaraan || '');
-                $nama.val(d.namakendaraan || '');
-                // bersihkan error jika ada
-                $nopol.removeClass('is-invalid').next('.error-feedback').remove();
-            });
-
-            // Clear field turunan saat clear
-            $nopol.on('select2:clear', function() {
-                $pemilik.val('');
-                $nama.val('');
-            });
-
-        });
-
-
-        $('#nopol').select2({
-            width: '100%',
-            placeholder: 'Select',
-            allowClear: true,
-            // dropdownAutoWidth: true
-        });
-    </script>
-
+    
     <script>
         $(function() {
             const $nopol = $('#nopol');
@@ -2823,6 +2619,306 @@
                     if (currentLocRow) openLokasiModal(currentLocRow);
                 }
             });
+        });
+    </script>
+
+     <script>
+        $(function () {
+            const DOCTYPE = 'SPPK';
+
+            const $rtModal = $('#requestTypeModal');
+            const $rtTbody = $('#rtTableBody');
+            const $rtCount = $('#rtCount');
+            const $rtDoc   = $('#rtDocBadge');
+
+            let rtState = {
+                search: '',
+                page: 1,
+                per_page: 10,
+                total: 0,
+                doctype: DOCTYPE,
+            };
+
+            // function openRtModal() {
+            //     $rtDoc.text(rtState.doctype || '-');
+            //     $('#rtSearch').val('');
+            //     rtState.search = '';
+            //     rtState.page = 1;
+
+            //     $rtModal.removeClass('hidden').addClass('flex');
+            //     loadRequestTypes();
+            //     setTimeout(() => $('#rtSearch').trigger('focus'), 0);
+            // }
+            function openRtModal() {
+                $rtDoc.text(rtState.doctype || '-');
+                $('#rtSearch').val('');
+                rtState.search = '';
+                rtState.page = 1;
+
+                // tampilkan modal dulu
+                $rtModal.removeClass('hidden').addClass('flex');
+
+                // isi loading placeholder langsung
+                $rtTbody.html('<tr><td colspan="3" class="p-3 text-center">Loading...</td></tr>');
+                $rtCount.text('');
+
+                // kasih kesempatan browser render modal dulu
+                setTimeout(() => {
+                    loadRequestTypes();
+                    $('#rtSearch').trigger('focus');
+                }, 0);
+            }
+
+            function closeRtModal() {
+                $rtModal.addClass('hidden').removeClass('flex');
+            }
+
+            $('#btnSearchRequestType').on('click', openRtModal);
+            $('#closeRequestTypeModal').on('click', closeRtModal);
+
+            $(document).on('keydown', function (e) {
+                if (e.key === 'Escape' && $rtModal.is(':visible')) closeRtModal();
+            });
+
+            $('#rtSearch').on('input', function () {
+                rtState.search = $(this).val().trim();
+                rtState.page = 1;
+                loadRequestTypes();
+            });
+
+            $('#rtRefresh').on('click', function () {
+                $('#rtSearch').val('');
+                rtState.search = '';
+                rtState.page = 1;
+                loadRequestTypes();
+            });
+
+            $('#rtPrev').on('click', function () {
+                if (rtState.page > 1) {
+                    rtState.page--;
+                    loadRequestTypes();
+                }
+            });
+
+            $('#rtNext').on('click', function () {
+                const maxPage = Math.ceil((rtState.total || 0) / rtState.per_page) || 1;
+                if (rtState.page < maxPage) {
+                    rtState.page++;
+                    loadRequestTypes();
+                }
+            });
+
+            function loadRequestTypes() {
+                $rtTbody.html('<tr><td colspan="3" class="p-3 text-center">Loading...</td></tr>');
+
+                $.getJSON("{{ route('requesttypes.byDoctype') }}", {
+                    doctype: rtState.doctype,
+                    search: rtState.search,
+                    page: rtState.page,
+                    per_page: rtState.per_page
+                })
+                .done(function (res) {
+                    // support 2 kemungkinan response:
+                    // A) {data:[...], total:..}
+                    // B) {data:{data:[...], total:..}} (Laravel paginator default)
+                    const payload = res.data?.data ? res.data : res; // detect paginator shape
+                    const list = (payload.data || []);
+                    rtState.total = payload.total || 0;
+
+                    const rowsArr = list.map(item => {
+                        const id = item.requesttypeid ?? item.id ?? '';
+                        const name = item.requesttype_name ?? item.name ?? id;
+
+                        return `
+                            <tr>
+                                <td class="border p-2">${id}</td>
+                                <td class="border p-2">${$('<div>').text(name).html()}</td>
+                                <td class="border p-2 text-center">
+                                    <button type="button"
+                                        class="chooseRequestType rounded border px-2 py-1 hover:bg-gray-100 dark:hover:bg-gray-700"
+                                        data-id="${id}"
+                                        data-name="${$('<div>').text(name).html()}">
+                                        Choose
+                                    </button>
+                                </td>
+                            </tr>
+                        `;
+                    });
+
+                    $rtTbody.html(rowsArr.join('') || '<tr><td colspan="3" class="p-3 text-center">No data</td></tr>');
+
+                    const showing = list.length;
+                    $rtCount.text(`Showing ${showing} of ${rtState.total} items`);
+
+                    const maxPage = Math.ceil((rtState.total || 0) / rtState.per_page) || 1;
+                    $('#rtPrev').prop('disabled', rtState.page <= 1);
+                    $('#rtNext').prop('disabled', rtState.page >= maxPage);
+                })
+                .fail(function () {
+                    $rtTbody.html('<tr><td colspan="3" class="p-3 text-center text-red-600">Failed to load</td></tr>');
+                    $rtCount.text('');
+                    $('#rtPrev, #rtNext').prop('disabled', true);
+                });
+            }
+
+            // choose -> set value ke form
+            $(document).on('click', '.chooseRequestType', function () {
+                const id = $(this).data('id');
+                const name = $(this).data('name');
+
+                $('#requesttypeid').val(id);
+                $('#requesttype_name_display').val(name);
+
+                // bersihkan invalid UI (kalau kamu pakai addError)
+                $('#requesttype_name_display').removeClass('is-invalid').next('.error-feedback').remove();
+
+                closeRtModal();
+            });          
+
+        });
+    </script>
+
+    <script>
+        $(function () {
+            const $modal = $('#nopolModal');
+            const $tbody = $('#nopolTableBody');
+            const $count = $('#nopolCount');
+
+            let state = {
+                search: '',
+                page: 1,
+                per_page: 10,
+                total: 0
+            };
+
+            function openModal() {
+                $('#nopolSearch').val('');
+                state.search = '';
+                state.page = 1;
+
+                $modal.removeClass('hidden').addClass('flex');
+                loadVehicles();
+                setTimeout(() => $('#nopolSearch').trigger('focus'), 0);
+            }
+
+            function closeModal() {
+                $modal.addClass('hidden').removeClass('flex');
+            }
+
+            $('#btnSearchNopol').on('click', openModal);
+            $('#closeNopolModal').on('click', closeModal);
+
+            $(document).on('keydown', function (e) {
+                if (e.key === 'Escape' && $modal.is(':visible')) closeModal();
+            });
+
+            $('#nopolSearch').on('input', function () {
+                state.search = $(this).val().trim();
+                state.page = 1;
+                loadVehicles();
+            });
+
+            $('#nopolRefresh').on('click', function () {
+                $('#nopolSearch').val('');
+                state.search = '';
+                state.page = 1;
+                loadVehicles();
+            });
+
+            $('#nopolPrev').on('click', function () {
+                if (state.page > 1) {
+                    state.page--;
+                    loadVehicles();
+                }
+            });
+
+            $('#nopolNext').on('click', function () {
+                const maxPage = Math.ceil((state.total || 0) / state.per_page) || 1;
+                if (state.page < maxPage) {
+                    state.page++;
+                    loadVehicles();
+                }
+            });
+
+            function loadVehicles() {
+                $tbody.html('<tr><td colspan="4" class="p-3 text-center">Loading...</td></tr>');
+
+                $.getJSON("{{ route('kendaraan.all') }}", {
+                    search: state.search,
+                    page: state.page,
+                    per_page: state.per_page
+                })
+                .done(function (res) {
+                    const list = Array.isArray(res?.data) ? res.data : [];
+                    state.total = res.total || 0;
+
+                    const rows = list.map(item => {
+                        const nopol = (item.no_polisi || '').toString();
+                        const nama  = (item.namakendaraan || '').toString();
+                        const own   = (item.pemilikkendaraan || '').toString();
+
+                        return `
+                            <tr>
+                                <td class="border p-2">${nopol}</td>
+                                <td class="border p-2">${$('<div>').text(nama).html()}</td>
+                                <td class="border p-2">${$('<div>').text(own).html()}</td>
+                                <td class="border p-2 text-center">
+                                    <button type="button"
+                                        class="chooseNopol rounded border px-2 py-1 hover:bg-gray-100 dark:hover:bg-gray-700"
+                                        data-nopol="${$('<div>').text(nopol).html()}"
+                                        data-nama="${$('<div>').text(nama).html()}"
+                                        data-own="${$('<div>').text(own).html()}">
+                                        Choose
+                                    </button>
+                                </td>
+                            </tr>
+                        `;
+                    }).join('');
+
+                    $tbody.html(rows || '<tr><td colspan="4" class="p-3 text-center">No data</td></tr>');
+
+                    $count.text(`Showing ${list.length} of ${state.total} items`);
+
+                    const maxPage = Math.ceil((state.total || 0) / state.per_page) || 1;
+                    $('#nopolPrev').prop('disabled', state.page <= 1);
+                    $('#nopolNext').prop('disabled', state.page >= maxPage);
+                })
+                .fail(function () {
+                    $tbody.html('<tr><td colspan="4" class="p-3 text-center text-red-600">Failed to load</td></tr>');
+                    $count.text('');
+                    $('#nopolPrev, #nopolNext').prop('disabled', true);
+                });
+            }
+
+            // Choose -> set ke form header
+            $(document).on('click', '.chooseNopol', function () {
+                const nopol = $(this).data('nopol') || '';
+                const nama  = $(this).data('nama')  || '';
+                const own   = $(this).data('own')   || '';
+
+                // hidden untuk backend
+                $('#nopol').val(nopol);
+
+                // display
+                $('#nopol_display').val(nopol ? `${nopol}` : '');
+
+                // autofill
+                $('#pemilikkendaraan').val(own);
+                $('#namakendaraan').val(nama);
+
+                // bersihkan invalid jika ada
+                $('#nopol_display').removeClass('is-invalid').next('.error-feedback').remove();
+
+                closeModal();
+            });
+
+            // optional: kalau user clear manual (kamu bisa tambahkan tombol clear jika mau)
+            // function clearVehicle() {
+            //     $('#nopol').val('');
+            //     $('#nopol_display').val('');
+            //     $('#pemilikkendaraan').val('');
+            //     $('#namakendaraan').val('');
+            // }
         });
     </script>
 

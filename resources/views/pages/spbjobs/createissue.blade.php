@@ -195,6 +195,7 @@
                                             <tr>
                                                 <th class="px-4 py-2 text-left font-semibold text-gray-600 dark:text-gray-300">Inventory ID</th>
                                                 <th class="px-4 py-2 text-left font-semibold text-gray-600 dark:text-gray-300">Description</th>
+                                                <th class="px-4 py-2 text-right font-semibold text-gray-600 dark:text-gray-300">Stock</th>
                                                 <th class="px-4 py-2 text-right font-semibold text-gray-600 dark:text-gray-300">Qty (Open)</th>
                                                 <th class="px-4 py-2 text-center font-semibold text-gray-600 dark:text-gray-300">UoM</th>
                                                 <th class="px-4 py-2 text-right font-semibold text-gray-600 dark:text-gray-300">Qty Issue <span class="text-red-600 font-bold">*</span></th>
@@ -207,6 +208,7 @@
                                                 <tr>
                                                     <td class="px-4 py-2">{{ $d->inventoryid }}</td>
                                                     <td class="px-4 py-2">{{ $d->inventory_descr }}</td>
+                                                    <td class="px-4 py-2 text-center">{{ $d->stock ?? '-' }}</td>
                                                     <td class="px-4 py-2 text-right">{{ number_format((float) $d->qty, 2) }}</td>
                                                     <td class="px-4 py-2 text-center">{{ $d->uom }}</td>
                                                     <td class="px-4 py-2 text-right">

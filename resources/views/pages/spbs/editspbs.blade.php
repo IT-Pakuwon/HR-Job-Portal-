@@ -190,8 +190,11 @@
                                     <input type="text" id="jenis_pekerjaan_display"
                                         class="flex-1 rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-gray-600 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                         placeholder="Pilih Worktype & Subworktype" value="{{ $jenisDisplay }}" readonly>
-                                    <button type="button" id="btnJenisPekerjaan"
-                                        class="rounded-lg bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700">Pilih</button>
+                                        <button type="button" id="btnJenisPekerjaan"
+                                            class="rounded border border-gray-500 px-2 py-2 hover:bg-gray-100 dark:hover:bg-gray-700"
+                                            title="Lookup">
+                                            🔎
+                                        </button>
                                 </div>
                                 <input type="hidden" name="worktypeid" id="worktypeid" value="{{ $spb->worktypeid }}">
                                 <input type="hidden" name="subworktypeid" id="subworktypeid"
@@ -218,7 +221,7 @@
                             </div>
 
                             {{-- WO ID (sebelah Jenis Pekerjaan) --}}
-                            <div class="flex flex-col gap-2">
+                            {{-- <div class="flex flex-col gap-2">
                                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">WO ID</label>
                                 <div class="flex items-center gap-2">
                                     <input type="text" name="woid" id="woid"
@@ -228,7 +231,18 @@
                                         class="rounded border border-gray-500 px-2 py-2 hover:bg-gray-100 dark:hover:bg-gray-700"
                                         title="Lookup">🔎</button>
                                 </div>
+                            </div> --}}
+                            <div id="woSection" class="flex hidden flex-col gap-2 lg:col-span-4">
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">WO ID</label>
+                                <div class="flex items-center gap-2">
+                                    <input type="text" name="woid" id="woid" value="{{ $spb->woid }}"
+                                        class="flex-1 rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                        placeholder="Pilih WO..." readonly>
+                                    <button type="button" id="openWoModal"
+                                        class="rounded border border-gray-500 px-2 py-2 hover:bg-gray-100 dark:hover:bg-gray-700"
+                                        title="Lookup">🔎</button>
                             </div>
+                        </div>
 
 
                         </div>
@@ -883,8 +897,9 @@
                                         <tr>
                                             <th class="border p-2">WO ID</th>
                                             <th class="border p-2">WO Date</th>
-                                            <th class="border p-2">Created By</th>
                                             <th class="border p-2">Department</th>
+                                            <th class="border p-2">Worktype</th>
+                                            <th class="border p-2">Created By</th>
                                             <th class="w-24 border p-2 text-center">Action</th>
                                         </tr>
                                     </thead>
@@ -1215,6 +1230,20 @@
 
             $('#spbForm').on('submit', function(e) {
                 e.preventDefault();
+
+                const wt = ($('#worktypeid').val() || '').toUpperCase();
+                const woid = ($('#woid').val() || '').trim();
+
+                if (wt !== 'ATK' && !woid) {
+                    $('#woid').addClass('is-invalid');
+                    if ($('#woid').next('.error-feedback').length === 0) {
+                        $('#woid').after('<small class="error-feedback">WO wajib dipilih untuk jenis pekerjaan ini.</small>');
+                    }
+
+                    toastr.error('WO wajib dipilih (kecuali ATK).');
+                    $('html,body').animate({ scrollTop: $('#woSection').offset().top - 120 }, 300);
+                    return;
+                }
 
                 // normalisasi qty (koma -> titik)
                 $('.qtyField').each(function() {
@@ -2482,7 +2511,7 @@
             });
 
             // Save ke hidden + tampilan
-            $('#saveJenisPekerjaan').on('click', function() {
+           $('#saveJenisPekerjaan').on('click', function() {
                 const wtVal = $('#modal_worktypeid').val();
                 const wtTxt = $('#modal_worktypeid option:selected').text();
                 const swVal = $('#modal_subworktypeid').val();
@@ -2495,6 +2524,10 @@
                 $('#worktypeid').val(wtVal);
                 $('#subworktypeid').val(swVal);
                 $('#jenis_pekerjaan_display').val(`${wtTxt} — ${swTxt}`);
+
+                $('#woid').val('');
+                toggleWoSection();
+
                 closeJenisModal();
 
                 // bersihkan error jika ada
@@ -2502,7 +2535,7 @@
             });
         });
     </script>
-    <script>
+    {{-- <script>
         $(function() {
             const $woModal = $('#woModal');
             const $woTbody = $('#woTableBody');
@@ -2586,17 +2619,17 @@
                         const rows = (res.data || []).map(it => {
                             // pastikan aman untuk HTML
                             const woid = it.woid || '';
-                            const wodate = it.wodate ||
-                                ''; // tampilkan apa adanya; format bisa di-backend
+                            const wodate = it.wodate ||  ''; 
                             const created_by = it.created_by || '';
                             const dept = it.departement_id || it.department_id || '';
-
+                            const worktype = it.worktypeid || '';
                             return `
                 <tr>
                     <td class="border p-2">${woid}</td>
                     <td class="border p-2">${wodate}</td>
-                    <td class="border p-2">${created_by}</td>
                     <td class="border p-2">${dept}</td>
+                    <td class="border p-2">${worktype}</td>
+                    <td class="border p-2">${created_by}</td> 
                     <td class="border p-2 text-center">
                     <button type="button" class="chooseWo rounded border px-2 py-1 hover:bg-gray-100"
                         data-woid="${$('<div>').text(woid).html()}">Choose</button>
@@ -2636,6 +2669,147 @@
                 if ($woModal.is(':visible')) {
                     woState.departementid = $(this).val() || '';
                     $woDeptBadge.text(woState.departementid || '-');
+                    woState.page = 1;
+                    loadWo();
+                }
+            });
+        });
+    </script> --}}
+    <script>
+        $(function() {
+            const $woModal = $('#woModal');
+            const $woTbody = $('#woTableBody');
+            const $woCount = $('#woCount');
+            const $woWtBadge = $('#woWtBadge'); // baru
+            const $woSwtBadge = $('#woSwtBadge'); // baru
+
+            let woState = {
+                search: '',
+                page: 1,
+                per_page: 10,
+                total: 0,
+                status: 'C',
+                worktypeid: null, // ganti: pakai worktypeid
+                subworktypeid: null, // ganti: pakai subworktypeid
+            };
+
+            function readJenisPekerjaanFromHeader() {
+                woState.worktypeid = $('#worktypeid').val() || '';
+                woState.subworktypeid = $('#subworktypeid').val() || '';
+                $woWtBadge.text(woState.worktypeid || '-');
+                $woSwtBadge.text(woState.subworktypeid || '-');
+            }
+
+            function openWoModal() {
+                readJenisPekerjaanFromHeader();
+                $woModal.removeClass('hidden').addClass('flex');
+                loadWo();
+            }
+
+            function closeWoModal() {
+                $woModal.addClass('hidden').removeClass('flex');
+            }
+
+            // open/close
+            $('#openWoModal').on('click', openWoModal);
+            $('#closeWoModal').on('click', closeWoModal);
+            $(document).on('keydown', function(e) {
+                if (e.key === 'Escape' && $woModal.is(':visible')) closeWoModal();
+            });
+
+            // search & refresh
+            $('#woSearch').on('input', function() {
+                woState.search = $(this).val().trim();
+                woState.page = 1;
+                loadWo();
+            });
+            $('#woRefresh').on('click', function() {
+                $('#woSearch').val('');
+                woState.search = '';
+                woState.page = 1;
+                loadWo();
+            });
+
+            // pagination
+            $('#woPrev').on('click', function() {
+                if (woState.page > 1) {
+                    woState.page--;
+                    loadWo();
+                }
+            });
+            $('#woNext').on('click', function() {
+                const maxPage = Math.ceil((woState.total || 0) / woState.per_page) || 1;
+                if (woState.page < maxPage) {
+                    woState.page++;
+                    loadWo();
+                }
+            });
+
+            // === Load WO list (status='C'), FILTER by worktypeid & subworktypeid ===
+            function loadWo() {
+                $woTbody.html('<tr><td colspan="5" class="p-3 text-center">Loading...</td></tr>');
+
+                $.getJSON(
+                        `/wos/ajax/wos`, {
+                            status: woState.status, // 'C'
+                            worktypeid: woState.worktypeid || '', // <<— kirim worktypeid
+                            subworktypeid: woState.subworktypeid || '', // <<— kirim subworktypeid
+                            search: woState.search,
+                            page: woState.page,
+                            per_page: woState.per_page
+                        }
+                    )
+                    .done(function(res) {
+                        // Expected: { data: [{ woid, wodate, created_by, departement_id }], total, page, per_page }
+                        const rows = (res.data || []).map(it => {
+                            const woid = it.woid || '';
+                            const wodate = it.wodate || '';
+                            const created_by = it.created_by || '';
+                            const dept = it.departement_id || it.department_id || '';
+                            const worktype = it.worktypeid || '';
+                            return `
+                <tr>
+                    <td class="border p-2">${woid}</td>
+                    <td class="border p-2">${wodate}</td>
+                    <td class="border p-2">${dept}</td>
+                    <td class="border p-2">${worktype}</td>
+                    <td class="border p-2">${created_by}</td>                    
+                    <td class="border p-2 text-center">
+                    <button type="button" class="chooseWo rounded border px-2 py-1 hover:bg-gray-100"
+                        data-woid="${$('<div>').text(woid).html()}">Choose</button>
+                    </td>
+                </tr>`;
+                        }).join('');
+
+                        $woTbody.html(rows || '<tr><td colspan="5" class="p-3 text-center">No data</td></tr>');
+                        woState.total = res.total || 0;
+                        $woCount.text(`Showing ${rows ? (res.data.length) : 0} of ${woState.total} items`);
+
+                        const maxPage = Math.ceil((woState.total || 0) / woState.per_page) || 1;
+                        $('#woPrev').prop('disabled', woState.page <= 1);
+                        $('#woNext').prop('disabled', woState.page >= maxPage);
+                    })
+                    .fail(function() {
+                        $woTbody.html(
+                            '<tr><td colspan="5" class="p-3 text-center text-red-600">Failed to load</td></tr>'
+                        );
+                        $woCount.text('');
+                        $('#woPrev, #woNext').prop('disabled', true);
+                    });
+            }
+
+            // pilih WO → isi input
+            $(document).on('click', '.chooseWo', function() {
+                const woid = $(this).data('woid') || '';
+                $('#woid').val(woid);
+                $('#woid').removeClass('is-invalid').next('.error-feedback').remove();
+                closeWoModal();
+            });
+
+            // jika user mengganti Jenis Pekerjaan dan modal WO sedang terbuka → refresh
+            $('#saveJenisPekerjaan').on('click', function() {
+                if ($woModal.is(':visible')) {
+                    readJenisPekerjaanFromHeader();
                     woState.page = 1;
                     loadWo();
                 }
@@ -2816,6 +2990,66 @@
             });
         });
     </script>
+
+    <script>
+        function toggleWoSection() {
+            const wt  = ($('#worktypeid').val() || '').trim().toUpperCase();
+            const swt = ($('#subworktypeid').val() || '').trim();
+
+            // 🔴 ATK → WO HARUS HIDDEN
+            if (wt === 'ATK') {
+                $('#woSection')
+                    .addClass('hidden')
+                    .attr('aria-hidden', 'true');
+
+                $('#woid').val('');
+                $('#wo_name_display').val?.(''); // kalau ada field display
+
+                return; // ⛔ STOP DI SINI
+            }
+
+            // selain ATK → boleh tampil kalau worktype ada
+            if (wt) {
+                $('#woSection')
+                    .removeClass('hidden')
+                    .attr('aria-hidden', 'false');
+            } else {
+                $('#woSection')
+                    .addClass('hidden')
+                    .attr('aria-hidden', 'true');
+                $('#woid').val('');
+            }
+        }
+
+
+
+        $(function() {
+            // kondisi awal: kalau edit mode sudah ada worktype/subworktype, tampilkan
+            toggleWoSection();
+        });
+    </script>
+
+    <script>
+        $(document).on('change', '.prodItemTypeField', function () {
+            updateSiteVisibility($(this).closest('tr'));
+        });
+
+        function updateSiteVisibility($row) {
+            if (!$row || !$row.length) return;
+
+            const itemType = ($row.find('.prodItemTypeField').val() || '').toUpperCase();
+
+            // contoh: kalau NON-STOCK, site disembunyikan
+            if (itemType === 'NON-STOCK') {
+                $row.find('.siteid-column').addClass('hidden');
+                $row.find('.siteid-hidden').val('');
+                $row.find('.siteid-display').val('-');
+            } else {
+                $row.find('.siteid-column').removeClass('hidden');
+            }
+        }
+    </script>
+
 
     <!-- Toastr CSS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">

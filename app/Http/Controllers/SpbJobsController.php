@@ -440,7 +440,7 @@ class SpbJobsController extends Controller
         ]);
     }
 
-    public function createIssue(Request $req) 
+    public function createIssue_xxx(Request $req) 
     {
         // dd($req->all());
         // Ambil spbid (plain) dari query
@@ -516,6 +516,128 @@ class SpbJobsController extends Controller
             'attachments' => $attachments,
         ]);
     }
+
+    public function createIssue(Request $req)
+    {
+        $spbid = (string) $req->query('spbid', '');
+        $id = Hashids::decode($spbid);
+        abort_if(empty($id), 404, 'SPB ID required');
+
+        $spb = TrSPB::select(['id','spbid','spbdate','cpny_id','department_id','keperluan'])
+            ->where('id', $id[0]) // ✅ decode hashids biasanya array
+            ->first();
+
+        abort_if(!$spb, 404, 'SPB not found');
+
+        $this->recalcSpbHeaderAndStatus($spb->spbid);
+
+        $details = TrSPBdetail::select([
+                'id',
+                'spbid',
+                'spb_no',
+                'inventoryid',
+                'inventory_descr',
+                'siteid',
+                DB::raw("COALESCE(uom,'') AS uom"),
+                DB::raw("COALESCE(qty,0) AS qty_original"),
+                DB::raw("COALESCE(issue_qty,0) AS qty_issued"),
+                DB::raw("COALESCE(spb_completeqty,0) AS qty_completed"),
+                DB::raw("COALESCE(return_qty,0) AS qty_returned"),
+                DB::raw("
+                    GREATEST(
+                        COALESCE(qty,0)
+                        - COALESCE(issue_qty,0)
+                        - COALESCE(spb_completeqty,0)
+                        + COALESCE(return_qty,0),
+                        0
+                    ) AS qty_sisa
+                "),
+            ])
+            ->where('spbid', $spb->spbid)
+            ->orderBy('id')
+            ->get()
+            ->filter(fn($r) => (float)$r->qty_sisa > 0)
+            ->map(function ($r) {
+                $r->qty = (float) $r->qty_sisa;
+                return $r;
+            })
+            ->values();
+
+        // =========================================================
+        // ✅ Tambahkan stock_unit berdasarkan cpny_id dari View SQLSrv
+        // =========================================================
+        $cpnyid = strtoupper(trim((string)$spb->cpny_id));
+
+        $model = null;
+        switch ($cpnyid) {
+            case 'AW':
+                $model = \App\Models\ViewInventoryAW::class;
+                break;
+            case 'EP':
+                $model = \App\Models\ViewInventoryEPH::class;
+                break;
+            case 'O8':
+                $model = \App\Models\ViewInventoryO8::class;
+                break;
+            case 'PSA':
+                $model = \App\Models\ViewInventoryPSA::class;
+                break;
+            case 'GPS':
+                $model = \App\Models\ViewInventoryGPS::class;
+                break;
+            default:
+                $model = null;
+                break;
+        }
+
+
+        if ($model && $details->isNotEmpty()) {
+            $invIds = $details->pluck('inventoryid')
+                ->map(fn($v) => strtoupper(trim((string)$v)))
+                ->filter()
+                ->unique()
+                ->values();
+
+            if ($invIds->isNotEmpty()) {
+                // ⚠️ GANTI NAMA KOLOM STOCK UNIT DI VIEW SQL SERVER KAMU DI SINI
+                $uomRows = $model::query()
+                    ->selectRaw("
+                        invtid,
+                        stock AS stock
+                    ")
+                    ->whereIn('invtid', $invIds)
+                    ->when($cpnyid !== '', fn($q) => $q->where('cpnyid', $cpnyid))
+                    ->get();
+
+                $uomMap = $uomRows->mapWithKeys(function($r){
+                    $key = strtoupper(trim((string)$r->invtid));
+                    return [$key => ($r->stock ?? null)];
+                });
+
+                // inject ke detail
+                $details = $details->map(function($d) use ($uomMap){
+                    $key = strtoupper(trim((string)$d->inventoryid));
+                    $d->stock = $uomMap->get($key); // bisa null kalau tidak ketemu
+                    return $d;
+                })->values();
+            }
+        } else {
+            // kalau company tidak ada view-nya → tetap set null biar blade aman
+            $details = $details->map(function($d){
+                $d->stock = null;
+                return $d;
+            })->values();
+        }
+
+        $attachments = [];
+
+        return view('pages.spbjobs.createissue', [
+            'spb'         => $spb->fresh(),
+            'details'     => $details,
+            'attachments' => $attachments,
+        ]);
+    }
+
 
     protected function recalcSpbHeaderAndStatus(string $spbid): void
     {

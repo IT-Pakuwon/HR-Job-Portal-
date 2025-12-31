@@ -183,8 +183,50 @@
                             </div>
                         </div>
 
+                        <div class="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-2">
+                            <!-- Jenis Pekerjaan -->
+                            <div class="flex flex-col gap-2">
+                                <label class="req text-sm font-medium text-gray-700 dark:text-gray-300">Jenis
+                                    Pekerjaan</label>
+                                <div class="flex gap-2">
+                                    <input id="jenis_pekerjaan_display" readonly
+                                        class="flex-1 rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-gray-600 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                        placeholder="Pilih Worktype & Subworktype">
+                                    {{-- <button id="btnJenisPekerjaan" type="button"
+                                        class="rounded-lg bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700">Pilih</button> --}}
+                                        <button type="button" id="btnJenisPekerjaan"
+                                            class="rounded border border-gray-500 px-2 py-2 hover:bg-gray-100 dark:hover:bg-gray-700"
+                                            title="Lookup">
+                                            🔎
+                                        </button>
+                                </div>
+                                <input type="hidden" name="worktypeid" id="worktypeid">
+                                <input type="hidden" name="subworktypeid" id="subworktypeid">
+                            </div>
+
+                            <!-- Lokasi -->
+                            <div class="flex flex-col gap-2">
+                                <label class="req text-sm font-medium text-gray-700 dark:text-gray-300">Lokasi</label>
+                                <div class="flex gap-2">
+                                    <input id="lokasi_display" readonly
+                                        class="flex-1 rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-gray-600 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                        placeholder="Pilih Location & Sub Location">
+                                    {{-- <button id="btnLokasi" type="button"
+                                        class="rounded-lg bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700">Pilih</button> --}}
+                                    <button type="button" id="btnLokasi"
+                                        class="rounded border border-gray-500 px-2 py-2 hover:bg-gray-100 dark:hover:bg-gray-700"
+                                        title="Lookup">
+                                        🔎
+                                    </button>
+                                </div>
+                                <input type="hidden" name="location_id" id="location_id">
+                                <input type="hidden" name="sub_location_id" id="sub_location_id">
+                            </div>
+
+                        </div>
+
                         <!-- Row 2 -->
-                        <div class="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
+                        {{-- <div class="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
 
                             <!-- Lokasi -->
                             <div class="flex flex-col gap-2">
@@ -231,6 +273,69 @@
                                     class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                     placeholder="0.00">
                             </div>
+                        </div> --}}
+
+                        <div class="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
+                            <!-- Perpost -->
+                            <div class="flex flex-col gap-2">
+                                <label class="req text-sm font-medium text-gray-700 dark:text-gray-300">Perpost</label>
+                                <select id="perpost" name="perpost"
+                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
+                                    @php $year = now()->year; @endphp
+                                    <option value="{{ $year }}">{{ $year }}</option>
+                                    <option value="{{ $year + 1 }}">{{ $year + 1 }}</option>
+                                </select>
+                            </div>
+                            <!-- PIC Requester -->
+                            <div class="flex flex-col gap-2">
+                                <label class="req text-sm font-medium text-gray-700 dark:text-gray-300">PIC
+                                    Requester</label>
+                                <input type="text" name="picrequester" id="picrequester"
+                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                    value="{{ auth()->user()->username }}" required>
+                            </div>
+
+                            <!-- Biaya WO -->
+                            <div class="flex flex-col gap-2">
+                                <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Biaya WO</label>
+                                <input type="text" name="biaya_wo" id="biaya_wo" inputmode="decimal"
+                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                    placeholder="0,00">
+                                <small id="biaya_wo_error" class="text-red-600" style="display:none;"></small>
+                            </div>
+
+                            <!-- Budget -->
+                            <div class="flex flex-col gap-2">
+                                <label class="req text-sm font-medium text-gray-700 dark:text-gray-300">Budget</label>
+                                <select name="wobudget" id="wobudget" required
+                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
+                                    <option value="">-- choose --</option>
+                                    <option value="Internal">Pemberi Kerja</option>
+                                    <option value="External">Penerima Kerja</option>
+                                </select>
+                            </div>
+                           
+                        </div>
+                        <!-- COA -->
+                        <div id="coaGroup" class="mt-6">
+                            <label class="req text-sm font-medium text-gray-700 dark:text-gray-300">COA</label>
+                            <div class="flex gap-2">
+                                <input type="text" id="budget_display" readonly
+                                    class="flex-1 rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-gray-600 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                    placeholder="Pilih Budget">                                
+                                <button type="button" id="btnBudget"
+                                    class="rounded border border-gray-500 px-2 py-2 hover:bg-gray-100 dark:hover:bg-gray-700"
+                                    title="Lookup">
+                                    🔎
+                                </button>
+                            </div>
+
+                            <!-- hidden -->
+                            <input type="hidden" name="activity_id" id="activity_id">
+                            <input type="hidden" name="business_unit_id" id="business_unit_id">
+                            <input type="hidden" name="department_fin_id" id="department_fin_id">
+                            <input type="hidden" name="coa_id" id="coa_id">
+                            <input type="hidden" name="activity_descr" id="activity_descr">
                         </div>
 
                         <!-- Description -->
@@ -513,10 +618,50 @@
             if (jpDisp) $('#jenis_pekerjaan_display').val(jpDisp);
 
             // Reset dependents jika header berubah
-            $('select[name="cpnyid"]').on('change', () => $('#location_id, #sub_location_id, #lokasi_display').val(
-                ''));
-            $('select[name="departementid"]').on('change', () => $(
-                '#worktypeid, #subworktypeid, #jenis_pekerjaan_display').val(''));
+            $('select[name="cpnyid"]').on('change', () => $('#location_id, #sub_location_id, #lokasi_display').val(''));
+            $('select[name="departementid"]').on('change', () => $('#worktypeid, #subworktypeid, #jenis_pekerjaan_display').val(''));
+            $('select[name="cpnyid"]').on('change', () => {
+                $('#location_id, #sub_location_id, #lokasi_display').val('');
+                // reset COA
+                $('#budget_display, #activity_id, #business_unit_id, #department_fin_id, #coa_id, #activity_descr').val('');
+            });
+
+            $('select[name="departementid"]').on('change', () => {
+                $('#worktypeid, #subworktypeid, #jenis_pekerjaan_display').val('');
+                // reset COA
+                $('#budget_display, #activity_id, #business_unit_id, #department_fin_id, #coa_id, #activity_descr').val('');
+            });
+
+
+
+            // Prefill budget + perpost
+            $('#wobudget').val(prefill.budget_use || '').trigger('change');
+            if (prefill.perpost) $('#perpost').val(prefill.perpost);
+
+            console.log('Budget prefill:', prefill.budget_use);
+            console.log('Budget select value:', $('#wobudget').val());
+
+
+            // Prefill COA (kalau ada)
+            $('#activity_id').val(prefill.activity_id || '');
+            $('#business_unit_id').val(prefill.business_unit_id || '');
+            $('#department_fin_id').val(prefill.department_fin_id || '');
+            $('#coa_id').val(prefill.coa_id || '');
+            $('#activity_descr').val(prefill.activity_descr || '');
+
+            // tampilkan budget text di display (sesuaikan format yg kamu mau)
+            if (prefill.coa_display) {
+                // kalau controller sudah kasih string siap tampil
+                $('#budget_display').val(prefill.coa_display);
+            } else {
+                // fallback minimal
+                const coaDisp = [prefill.activity_id, prefill.activity_descr].filter(Boolean).join(' — ');
+                if (coaDisp) $('#budget_display').val(coaDisp);
+            }
+
+            // toggleCoaSection();
+
+
         });
     </script>
 
@@ -689,6 +834,10 @@
                 const $subloc = $('#sub_location_id');
                 const $pic = $('#picrequester');
                 const $biaya = $('#biaya_wo');
+                const $budget = $('#wobudget');
+                const $coaDisp = $('#budget_display');
+                const $coaId = $('#coa_id');
+                const $activityId = $('#activity_id');              
 
                 let ok = true;
                 if (!$cpny.val()) {
@@ -731,6 +880,22 @@
                     addError($biaya, 'Biaya WO tidak valid.');
                     ok = false;
                 }
+
+                // Budget wajib (sudah ada required di select, tapi kita enforce di JS juga)
+                if (!$budget.val()) {
+                    addError($budget, 'Budget wajib.');
+                    ok = false;
+                }
+
+                // Jika Pemberi Kerja => COA wajib
+                if (($budget.val() || '').toString().trim() === 'Internal') {
+                    // minimal salah satu identitas COA harus ada
+                    if (!$coaId.val() && !$activityId.val()) {
+                        addError($coaDisp, 'COA wajib diisi untuk Pemberi Kerja.');
+                        ok = false;
+                    }
+                }
+
 
                 if (!ok) {
                     toastr.error('Mohon lengkapi input yang wajib.');
@@ -866,6 +1031,41 @@
                 });
         });
     </script>
+
+    <script>
+        function toggleCoaSection() {
+            const budgetVal = ($('#wobudget').val() || '').toString().trim(); // Internal/External
+            const $coaGroup = $('#coaGroup');
+
+            if (budgetVal === 'Internal') {
+                $coaGroup.removeClass('hidden');
+                $('#btnBudget').prop('disabled', false);
+            } else {
+                $coaGroup.addClass('hidden');
+
+                // clear COA fields
+                $('#budget_display').val('');
+                $('#activity_id').val('');
+                $('#business_unit_id').val('');
+                $('#department_fin_id').val('');
+                $('#coa_id').val('');
+                $('#activity_descr').val('');
+
+                $('#budget_display').removeClass('is-invalid').removeAttr('aria-invalid');
+                $('#budget_display').next('.error-feedback').remove();
+            }
+        }
+
+        $(function() {
+            // apply saat load (setelah prefill value terpasang)
+            toggleCoaSection();
+
+            // apply saat user ganti budget
+            $('#wobudget').on('change', toggleCoaSection);
+        });
+    </script>
+
+
 
 
     {{-- Toastr --}}
