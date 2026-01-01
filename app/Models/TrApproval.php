@@ -25,6 +25,8 @@ class TrApproval extends Model
         'aprv_condition',
         'aprv_start_nominal',
         'aprv_end_nominal',
+        'aprv_duration',
+        'aprv_purpose',
         'status',
         'created_by',
         'updated_by',
