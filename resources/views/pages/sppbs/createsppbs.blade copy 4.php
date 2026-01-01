@@ -1997,7 +1997,13 @@
                         per_page: coaState.per_page
                     })
                     .done(function(res) {
-                        // Expected: { data: [{account_id, activity_detail, totalbudget}], total, ... }
+                        if (res.message) {
+                            if (window.toastr) {
+                                toastr.warning(res.message);
+                            } else {
+                                alert(res.message);
+                            }
+                        }
                         const rows = (res.data || []).map(item => {
                             const id = item.account_id ?? '';
                             const actId = item.activity_id ?? '';

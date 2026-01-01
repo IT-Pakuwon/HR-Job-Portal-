@@ -777,12 +777,12 @@ class MasterController extends Controller
 
     public function CoaBudget(Request $request)
     {
-        $cpnyid   = $request->get('cpnyid');
-        $deptid   = $request->get('deptid');
-        $perpost  = $request->get('perpost'); // ⬅️ ambil perpost (tahun)
-        $search   = trim($request->get('search', ''));
-        $page     = max((int)$request->get('page', 1), 1);
-        $perPage  = max((int)$request->get('per_page', 10), 1);
+        $cpnyid  = $request->get('cpnyid');
+        $deptid  = $request->get('deptid');
+        $perpost = $request->get('perpost'); // tahun / perpost
+        $search  = trim($request->get('search', ''));
+        $page    = max((int) $request->get('page', 1), 1);
+        $perPage = max((int) $request->get('per_page', 10), 1);
 
         if (!$cpnyid || !$deptid) {
             return response()->json([
@@ -790,49 +790,73 @@ class MasterController extends Controller
             ]);
         }
 
-        // Ambil budget aktif untuk company+dept (dan perpost jika ada)
+        // Header budget harus ada (status Completed/Closed)
         $budget = Budget::where('status', 'C')
             ->where('cpny_id', $cpnyid)
             ->where('department_fin_id', $deptid)
-            ->when($perpost, function ($q) use ($perpost) {
-                $q->where('perpost', $perpost);
-            })
+            ->when($perpost, fn ($q) => $q->where('perpost', $perpost))
             ->first();
 
+        // ✅ Opsi A: kalau budget null -> stop dan kirim message
+        if (!$budget) {
+            return response()->json([
+                'data' => [],
+                'total' => 0,
+                'page' => $page,
+                'per_page' => $perPage,
+                'message' => "Budget Belum Completed Approval untuk Company {$cpnyid}, Dept {$deptid}, Perpost {$perpost}."
+            ]);
+        }
 
-        $budgetDetail = BudgetDetail::query()
-            ->when($budget, function ($q) use ($budget) {
-                $q->where('budget_id', $budget->budget_id);
+        // Query detail + join COA + join Activity
+        $q = BudgetDetail::query()
+            ->from('ms_budget as b') // penting biar alias konsisten
+            ->join('ms_coa as c', function ($j) {
+                $j->on('c.account_id', '=', 'b.account_id')
+                ->on('c.cpny_id', '=', 'b.cpny_id');
             })
-            ->where('cpny_id', $cpnyid)
-            ->where('department_fin_id', $deptid)
-            // ->where('status', 'A') // aktifkan jika ada kolom status
-            ->when($perpost, function ($q) use ($perpost) {
-                $q->where('perpost', $perpost);
-            });
+            ->leftJoin('ms_activity as a', function ($j) {
+                $j->on('a.activity_id', '=', 'b.activity_id')
+                ->on('a.cpny_id', '=', 'b.cpny_id');
+            })
+            ->where('b.budget_id', $budget->budget_id)
+            ->where('b.cpny_id', $cpnyid)
+            ->where('b.department_fin_id', $deptid)
+            ->when($perpost, fn ($qq) => $qq->where('b.perpost', $perpost));
 
         if ($search !== '') {
-            $budgetDetail->where(function ($w) use ($search) {
-                $w->where('account_id',     'ilike', "%{$search}%")
-                ->orWhere('activity_descr','ilike', "%{$search}%")
-                ->orWhere('totalbudget',  'ilike', "%{$search}%");
+            $q->where(function ($w) use ($search) {
+                $w->where('b.account_id', 'ilike', "%{$search}%")
+                ->orWhere('c.account_descr', 'ilike', "%{$search}%")
+                ->orWhere('a.activity_descr', 'ilike', "%{$search}%")
+                ->orWhere('b.totalbudget::text', 'ilike', "%{$search}%");
             });
         }
 
-        $total = (clone $budgetDetail)->count();
+        $total = (clone $q)->count();
 
-        $rows = $budgetDetail->orderBy('activity_descr')
+        $rows = $q->orderBy('a.activity_descr')
             ->offset(($page - 1) * $perPage)
             ->limit($perPage)
-            ->get(['account_id', 'activity_id', 'activity_descr', 'totalbudget','business_unit_id','department_fin_id']);
+            ->get([
+                'b.account_id',
+                'c.account_descr',              // ✅ dari ms_coa
+                'b.activity_id',
+                'b.activity_descr as activity_descr', // ✅ dari ms_budget_detail
+                'a.activity_descr as act_descr', // ✅ dari ms_activity
+                'b.totalbudget',
+                'b.business_unit_id',
+                'b.department_fin_id',
+            ]);
 
         return response()->json([
-            'data'     => $rows,
-            'total'    => $total,
-            'page'     => $page,
+            'data' => $rows,
+            'total' => $total,
+            'page' => $page,
             'per_page' => $perPage,
         ]);
     }
+
 
     public function CoaBudgetWo(Request $request)
     {

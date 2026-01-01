@@ -773,7 +773,9 @@
                                     <thead class="sticky top-0 bg-gray-50 text-sm dark:bg-gray-900">
                                         <tr>
                                             <th class="border p-2">Account ID</th>
+                                            <th class="border p-2">Account Descr</th>
                                             <th class="border p-2">Activity</th>
+                                            <th class="border p-2">Budget Descr</th>
                                             <th class="border p-2">Available Budget</th>
                                             <th class="w-24 border p-2 text-center">Action</th>
                                         </tr>
@@ -2076,7 +2078,15 @@
                         per_page: coaState.per_page
                     })
                     .done(function(res) {
-                        // Expected: { data: [{account_id, activity_detail, totalbudget}], total, ... }
+                        if (res.message) {
+                            if (window.toastr) {
+                                toastr.warning(res.message);
+                            } else {
+                                alert(res.message);
+                            }
+                        }
+                        
+
                         const rows = (res.data || []).map(item => {
                             const id = item.account_id ?? '';
                             const actId = item.activity_id ?? '';
@@ -2084,11 +2094,15 @@
                             const deptFinId = item.department_fin_id ?? '';
                             const actDescr = item.activity_descr ?? '';
                             const totalbudget = formatNumber(item.totalbudget) ?? '';
-                            const label = id; // atau `${id} - ${actDescr}`
+                            const label = id; 
+                            const accDescr = item.account_descr ?? '';
+                            const act_Descr = item.act_descr ?? '';
 
                             return `
                     <tr>
                     <td class="border p-2">${id}</td>
+                    <td class="border p-2">${accDescr}</td>
+                    <td class="border p-2">${act_Descr}</td>
                     <td class="border p-2">${actDescr}</td>
                     <td class="border p-2">${totalbudget}</td>
                     <td class="border p-2 text-center">
