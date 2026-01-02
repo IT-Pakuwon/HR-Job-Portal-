@@ -144,7 +144,7 @@
                             <div class="flex flex-col gap-2">
                                 <label
                                     class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Company</label>
-                                <select name="cpnyid"
+                                <select name="cpnyid" id="cpnyid"
                                     class="req headerCpnySelect w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                     required>
                                     @foreach ($usercpny as $p)
@@ -160,7 +160,7 @@
                             <div class="flex flex-col gap-2">
                                 <label
                                     class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Department</label>
-                                <select name="departementid"
+                                <select name="departementid" id="departementid"
                                     class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                     required>
                                     @foreach ($userdept as $p)
@@ -393,7 +393,7 @@
                                                         </td>
 
                                                         {{-- SiteID --}}
-                                                        <td class="siteid-column hidden border p-3">
+                                                        {{-- <td class="siteid-column hidden border p-3">
                                                             <div class="siteid-wrapper hidden">
                                                                 <select name="siteid[]"
                                                                     class="siteSelect w-40 rounded border border-gray-300 p-1 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
@@ -408,12 +408,17 @@
                                                                             site…</option>
                                                                     @endif
                                                                 </select>
-                                                            </div>
-
-                                                            {{-- Hidden input untuk case item_type != GI --}}
+                                                            </div>                                                            
                                                             <input type="hidden" name="siteid[]"
                                                                 class="siteid-hidden" value="">
+                                                        </td> --}}
+                                                        <td class="siteid-column hidden border p-3">
+                                                            <input type="text" name="siteid[]"
+                                                                class="siteidField w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0"
+                                                                placeholder="-" readonly
+                                                                value="{{ $d->siteid ?? '' }}">
                                                         </td>
+
 
                                                         {{-- Note --}}
                                                         <td class="border p-3">
@@ -422,37 +427,7 @@
                                                                 value="{{ $d->note }}">
                                                         </td>
 
-                                                        {{-- Location --}}
-                                                        {{-- <td class="border p-3">
-                                                            <div class="flex items-center gap-2">
-                                                                <input type="hidden" name="location_id[]"
-                                                                    class="locationIdField"
-                                                                    value="{{ $d->location_id }}">
-                                                                <input type="text" name="location[]"
-                                                                    class="locationNameField w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0"
-                                                                    placeholder="Select location..." readonly
-                                                                    value="{{ $d->location_name ?? ($d->locationid ?? ($d->location_id ?? '')) }}">
-                                                                <button type="button"
-                                                                    class="openLocationModal rounded border border-gray-500 px-1 py-1 hover:bg-gray-100 dark:hover:bg-gray-700"
-                                                                    title="Lookup">🔎</button>
-                                                            </div>
-                                                        </td> --}}
-
-                                                        {{-- Sub Location --}}
-                                                        {{-- <td class="border p-3">
-                                                            <div class="flex items-center gap-2">
-                                                                <input type="hidden" name="sub_location_id[]"
-                                                                    class="subLocationIdField"
-                                                                    value="{{ $d->sub_location_id }}">
-                                                                <input type="text" name="sub_location[]"
-                                                                    class="subLocationNameField w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0"
-                                                                    placeholder="Select sub location..." readonly
-                                                                    value="{{ $d->sub_location_name ?? ($d->sublocationid ?? ($d->sub_location_id ?? '')) }}">
-                                                                <button type="button"
-                                                                    class="openSubLocationModal rounded border border-gray-500 px-1 py-1 hover:bg-gray-100 dark:hover:bg-gray-700"
-                                                                    title="Lookup">🔎</button>
-                                                            </div>
-                                                        </td> --}}
+                                                        
 
                                                         @php
                                                             // Ambil data lokasi & sublokasi dari relasi (fallback ke field mentah jika ada)
@@ -661,13 +636,38 @@
                             </div>
 
                             <!-- Tabs -->
-                            <div class="mb-3 flex border-b border-gray-200 dark:border-gray-700">
+                            {{-- <div class="mb-3 flex border-b border-gray-200 dark:border-gray-700">
                                 <button type="button"
                                     class="invTab border-b-2 border-indigo-600 px-4 py-2 font-semibold"
                                     data-type="gi">Stock</button>
                                 <button type="button"
                                     class="invTab border-b-2 border-transparent px-4 py-2 font-semibold"
                                     data-type="ns">Non-Stock</button>
+                                <div class="ml-auto flex items-center gap-2">
+                                    <input id="invSearch" type="text" placeholder="Search..."
+                                        class="rounded border border-gray-300 bg-white px-3 py-1 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
+                                    <button id="invRefresh" type="button"
+                                        class="rounded border px-3 py-1 hover:bg-gray-100 dark:hover:bg-gray-700">↻</button>
+                                </div>
+                            </div> --}}
+                            <div class="mb-3 flex border-b border-gray-200 dark:border-gray-700">
+
+                                {{-- NON-STOCK → DEFAULT AKTIF --}}
+                                <button type="button"
+                                    class="invTab border-b-2 border-indigo-600 px-4 py-2 font-semibold"
+                                    data-type="ns">
+                                    Non-Stock
+                                </button>
+
+                                {{-- STOCK hanya tampil jika punya akses --}}
+                                @if($akses_stock)
+                                    <button type="button"
+                                        class="invTab border-b-2 border-transparent px-4 py-2 font-semibold"
+                                        data-type="gi">
+                                        Stock
+                                    </button>
+                                @endif
+
                                 <div class="ml-auto flex items-center gap-2">
                                     <input id="invSearch" type="text" placeholder="Search..."
                                         class="rounded border border-gray-300 bg-white px-3 py-1 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
@@ -682,7 +682,9 @@
                                         <tr>
                                             <th class="border p-2">Inventory ID</th>
                                             <th class="border p-2">Description</th>
-                                            <th class="border p-2">UoM</th>
+                                            <th class="border p-2">UoM</th>                   
+                                            <th class="border p-2 inv-site-col">SiteID</th>        
+                                            <th class="border p-2 inv-cat-col">Category</th>      
                                             <th class="w-24 border p-2 text-center">Action</th>
                                         </tr>
                                     </thead>
@@ -833,7 +835,9 @@
                                     <thead class="sticky top-0 bg-gray-50 text-sm dark:bg-gray-900">
                                         <tr>
                                             <th class="border p-2">Account ID</th>
+                                            <th class="border p-2">Account Descr</th>
                                             <th class="border p-2">Activity</th>
+                                            <th class="border p-2">Budget Descr</th>
                                             <th class="border p-2">Available Budget</th>
                                             <th class="w-24 border p-2 text-center">Action</th>
                                         </tr>
@@ -1037,16 +1041,13 @@
                         <div class="grid grid-cols-2 justify-between gap-4 md:flex md:flex-row xl:justify-end">
                             <!-- Cancel Button-->
                             <div class="flex justify-start">
-                                <button id="cancelBtn"
+                                <button type="button" id="cancelBtn"
                                     class="mb-4 mt-4 flex w-full items-center justify-center gap-2 rounded border border-red-700 bg-red-200/10 p-2 text-red-700 hover:border-red-700 hover:bg-red-700 hover:font-medium hover:text-white">
-                                    <span id="cancelText">Cancel</span>
+                                    <span id="cancelText">Cancel Document</span>
                                     <svg id="cancelSpinner" class="hidden h-5 w-5 animate-spin text-white"
                                         xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                        <circle class="opacity-25" cx="12" cy="12" r="10"
-                                            stroke="currentColor" stroke-width="4">
-                                        </circle>
-                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z">
-                                        </path>
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
                                     </svg>
                                 </button>
                             </div>
@@ -1189,25 +1190,11 @@
                     </td>
                     {{-- SiteID --}}
                     <td class="border p-3 siteid-column hidden">
-                        <div class="siteid-wrapper hidden">
-                            <select 
-                                name="siteid[]" 
-                                class="siteSelect w-40 rounded border border-gray-300 p-1 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
-                                data-cpny-id="{{ $usercpny2->cpnyid ?? '' }}"
-                                data-current-site="{{ $d->siteid ?? '' }}" 
-                                data-loaded="0"
-                            >
-                                @if (!empty($d->siteid))
-                                    <option value="{{ $d->siteid }}" selected>{{ $d->siteid }}</option>
-                                @else
-                                    <option value="" selected disabled>Select site…</option>
-                                @endif
-                            </select>
-                        </div>
+                        <input type="text" name="siteid[]"
+                            class="siteidField w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0"
+                            placeholder="-" readonlyvalue="{{ $d->siteid ?? '' }}">
+                    </td>                    
 
-                        {{-- Hidden input untuk case item_type != GI --}}
-                        <input type="hidden" name="siteid[]" class="siteid-hidden" value="">
-                    </td>
                     <td class="p-3 border"><input type="text" name="note[]" class="w-full border-none bg-transparent p-2" placeholder="Note"></td>
                     <td class="border p-3">
                         <div class="flex items-center gap-2">
@@ -1249,6 +1236,11 @@
                     $deleted.val(curr ? (curr + ',' + detailId) : String(detailId));
                 }
                 $tr.remove();
+                // setelah remove: kalau tidak ada inventory lagi, unlock
+                if ($('#sppbTable .inventoryIdField').filter(function(){ return ($(this).val()||'').trim() !== '' }).length === 0) {
+                    lockedItemType = null;
+                }
+
                 renumber();
             });
         });
@@ -1315,11 +1307,12 @@
                     const $uomVis = $tr.find('.stock_unitField'); // yang terlihat
                     const $uomTo = $tr.find('.uomToField'); // hidden (hasil pilih UoM)
 
-                    const $locHidden = $tr.find('.locationIdField');
-                    const $locVis = $tr.find('.locationNameField');
+                    const $locHidden = $tr.find('.locationIdField');     
+                    const $subHidden = $tr.find('.subLocationIdField');                   
 
-                    const $subHidden = $tr.find('.subLocationIdField');
-                    const $subVis = $tr.find('.subLocationNameField');
+                    const $locVis = $tr.find('.locationDisplayField');   // yang terlihat sekarang
+                    const $subVis = $tr.find('.locationDisplayField');   // sub juga tampil di field yang sama (combo)
+
 
                     const $coaHidden = $tr.find('.coaIdField');
                     const $coaVis = $tr.find('.coaNameField');
@@ -1429,247 +1422,292 @@
             });
 
             // ===== Cancel Button =====
-            $('#cancelBtn').click(function() {
-                const confirmed = confirm("Are you sure you want to cancel? Unsaved changes will be lost.");
-                if (confirmed) {
-                    $('#cancelBtn').prop('disabled', true);
-                    $('#cancelText').text('Cancelling...');
-                    $('#cancelSpinner').removeClass('hidden');
-                    window.location.href = "{{ route('sppbs') }}";
-                }
-            });
-        });
-    </script>
-
-
-    <script>
-        // ===== SPPB Detail =====
-        $(function() {
-
-
-            // ===== Modal Logic =====
-            const $modal = $('#inventoryModal');
-            const $tbody = $('#invTableBody');
-            const $invCount = $('#invCount');
-
-            let invState = {
-                type: 'gi', // 'stock' | 'nonstock'
-                search: '',
-                page: 1,
-                per_page: 10,
-                total: 0
-            };
-
-            function openModal(forRow) {
-                currentRow = forRow;
-                $modal.removeClass('hidden').addClass('flex');
-                loadInventory();
-            }
-
-            function closeModal() {
-                $modal.addClass('hidden').removeClass('flex');
-            }
-
-            $(document).on('click', '.openInventoryModal', function() {
-                openModal($(this).closest('tr'));
-            });
-            $('#closeInventoryModal').on('click', closeModal);
-            $(document).on('keydown', function(e) {
-                if (e.key === 'Escape' && $modal.is(':visible')) closeModal();
-            });
-
-            // Tab Switching
-            $('.invTab').on('click', function() {
-                $('.invTab').removeClass('border-indigo-600').addClass('border-transparent');
-                $(this).addClass('border-indigo-600').removeClass('border-transparent');
-                invState.type = $(this).data('type'); // 'stock' atau 'nonstock'
-                invState.page = 1;
-                loadInventory();
-            });
-
-            // Search
-            $('#invSearch').on('input', function() {
-                invState.search = $(this).val().trim();
-                invState.page = 1;
-                loadInventory();
-            });
-            $('#invRefresh').on('click', function() {
-                $('#invSearch').val('');
-                invState.search = '';
-                invState.page = 1;
-                loadInventory();
-            });
-
-            // Pagination
-            $('#invPrev').on('click', function() {
-                if (invState.page > 1) {
-                    invState.page--;
-                    loadInventory();
-                }
-            });
-            $('#invNext').on('click', function() {
-                const maxPage = Math.ceil(invState.total / invState.per_page);
-                if (invState.page < maxPage) {
-                    invState.page++;
-                    loadInventory();
-                }
-            });
-
-            // Load Inventory from API
-            function loadInventory() {
-                $tbody.html(`<tr><td colspan="4" class="p-3 text-center">Loading...</td></tr>`);
-                $.getJSON("{{ route('inventory.list') }}", {
-                        type: invState.type, // 'stock' | 'nonstock'
-                        search: invState.search,
-                        page: invState.page,
-                        per_page: invState.per_page
-                    })
-                    .done(function(res) {
-                        // Expected format:
-                        // { data: [{inventoryid, inventory_descr, stock_unit}], total: 123, page:1, per_page:10 }
-                        const rows = (res.data || []).map(item => `
-                <tr>
-                    <td class="border p-2">${item.inventoryid}</td>
-                    <td class="border p-2">${item.inventory_descr}</td>
-                    <td class="border p-2">${item.stock_unit || ''}</td>
-                    <td class="border p-2 text-center">
-                    <button type="button" class="chooseInventory rounded border px-2 py-1 hover:bg-gray-100"
-                        data-id="${item.inventoryid}"
-                        data-name="${$('<div>').text(item.inventory_descr).html()}"
-                        data-stock_unit="${item.stock_unit || ''}"
-                        data-account_id="${item.account_id || ''}"
-                        data-item_type="${$('<div>').text(item.item_type || '').html()}"  
-                        data-item_sub_type="${$('<div>').text(item.item_sub_type || '').html()}"        
-                        data-purchase_unit="${item.purchase_unit || item.purchaseunit || ''}"
-                        data-item_category="${$('<div>').text(item.item_category || '').html()}">
-                        Choose
-                    </button>
-                    </td>
-                </tr>
-                `).join('');
-
-                        $tbody.html(rows || `<tr><td colspan="4" class="p-3 text-center">No data</td></tr>`);
-                        invState.total = res.total || 0;
-                        $invCount.text(`Showing ${rows ? (res.data.length) : 0} of ${invState.total} items`);
-                        // toggle prev/next disabled
-                        const maxPage = Math.ceil((invState.total || 0) / invState.per_page) || 1;
-                        $('#invPrev').prop('disabled', invState.page <= 1);
-                        $('#invNext').prop('disabled', invState.page >= maxPage);
-                    })
-                    .fail(function() {
-                        $tbody.html(
-                            `<tr><td colspan="4" class="p-3 text-center text-red-600">Failed to load inventory</td></tr>`
-                        );
-                        $invCount.text('');
-                        $('#invPrev, #invNext').prop('disabled', true);
-                    });
-            }
-
-            // Choose Inventory -> fill current row
-            // $(document).on('click', '.chooseInventory', function() {
-            //     if (!currentRow) return;
-
-            //     const id = $(this).data('id');
-            //     const name = $(this).data('name');
-            //     const stock_unit = $(this).data('stock_unit');
-            //     const account_id = ($(this).data('account_id') || '').toString().trim();
-
-            //     // NEW: item meta dari inventory
-            //     const item_type = $(this).data('item_type') || '';
-            //     const item_sub_type = $(this).data('item_sub_type') || '';
-            //     const item_category = $(this).data('item_category') || '';
-            //     const purchase_unit = $(this).data('purchase_unit') || '';
-
-            //     currentRow.find('.inventoryIdField').val(id);
-            //     currentRow.find('.productNameField').val(name);
-            //     currentRow.find('.stock_unitField').val(stock_unit || '-');
-            //     currentRow.find('.purchaseUnitField').val(purchase_unit);
-
-            //     // simpan hidden baru
-            //     currentRow.find('.prodItemTypeField').val(item_type);
-            //     currentRow.find('.prodItemSubTypeField').val(item_sub_type);
-            //     currentRow.find('.prodItemCategoryField').val(item_category);
-
-            //     currentRow.find('.coaIdField').val('');
-            //     currentRow.find('.coaNameField').val('');
-
-            //     // //opsional: auto-isi COA bila inventory bawa default account_id (seperti sebelumnya)
-            //     // if (account_id) {
-            //     //     currentRow.find('.coaIdField').val(account_id);
-            //     //     currentRow.find('.coaNameField').val(account_id);
-            //     // } else {
-            //     //     currentRow.find('.coaIdField').val('');
-            //     //     currentRow.find('.coaNameField').val('');
-            //     // }
-
-            //     closeModal();
+            // $('#cancelBtn').click(function() {
+            //     const confirmed = confirm("Are you sure you want to cancel Document? Unsaved changes will be lost.");
+            //     if (confirmed) {
+            //         $('#cancelBtn').prop('disabled', true);
+            //         $('#cancelText').text('Cancelling...');
+            //         $('#cancelSpinner').removeClass('hidden');
+            //         window.location.href = "{{ route('sppbs') }}";
+            //     }
             // });
-            $(document).on('click', '.chooseInventory', function() {
-                if (!currentRow) return;
-
-                const $btn = $(this);
-
-                const id = $btn.data('id');
-                const name = $btn.data('name');
-                const stock_unit = $btn.data('stock_unit');
-
-                // item meta dari inventory (ambil dari data-* di tombol)
-                const item_type_attr = $btn.attr('data-item_type') || '';
-                const item_type_data = $btn.data('item_type') || ''; // jQuery baca data-item_type
-                const item_type_normalized = String(item_type_data || item_type_attr || '')
-                    .toUpperCase()
-                    .trim();
-
-                const item_sub_type = $btn.data('item_sub_type') || '';
-                const item_category = $btn.data('item_category') || '';
-                const purchase_unit = $btn.data('purchase_unit') || '';
-
-                // DEBUG: lihat apa yang sebenarnya kebaca dari tombol
-                console.log('chooseInventory CLICKED →', {
-                    id,
-                    name,
-                    stock_unit,
-                    item_type_attr,
-                    item_type_data,
-                    item_type_normalized,
-                    item_sub_type,
-                    item_category,
-                    purchase_unit
-                });
-
-                // isi field-field di row
-                currentRow.find('.inventoryIdField').val(id);
-                currentRow.find('.productNameField').val(name);
-                currentRow.find('.stock_unitField').val(stock_unit || '-');
-                currentRow.find('.purchaseUnitField').val(purchase_unit);
-
-                // simpan hidden baru
-                currentRow.find('.prodItemTypeField').val(item_type_normalized);
-                currentRow.find('.prodItemSubTypeField').val(item_sub_type);
-                currentRow.find('.prodItemCategoryField').val(item_category);
-
-                // BERSIHKAN COA
-                currentRow.find('.coaIdField').val('');
-                currentRow.find('.coaNameField').val('');
-
-                // bersihkan error
-                currentRow.find('.productNameField')
-                    .removeClass('is-invalid')
-                    .next('.error-feedback').remove();
-                currentRow.find('.stock_unitField')
-                    .removeClass('is-invalid')
-                    .next('.error-feedback').remove();
-
-                // 🔴 PENTING: trigger change supaya updateSiteVisibility jalan
-                currentRow.find('.prodItemTypeField').trigger('change');
-
-                // opsional: langsung panggil juga sebagai jaga-jaga
-                // updateSiteVisibility(currentRow);
-
-                closeModal();
-            });
         });
     </script>
+    
+    <script>
+        $(function () {
+        // ====== GLOBAL STATE (WAJIB ADA) ======
+        let currentRow = null;
+        let lockedItemType = null; // 'GI' atau 'NON_GI'
+
+        function getCpnyId() {
+            return ($('select[name="cpnyid"]').val() || '').trim();
+        }
+        function getDeptId() {
+            return ($('select[name="departementid"]').val() || '').trim();
+        }
+
+        function normLockType(itemType) {
+            const t = String(itemType || '').toUpperCase().trim();
+            return (t === 'GI') ? 'GI' : 'NON_GI';
+        }
+
+        function initLockFromExistingRows() {
+            lockedItemType = null;
+            $('.sppb-row').each(function () {
+            const inv = ($(this).find('.inventoryIdField').val() || '').trim();
+            const it  = ($(this).find('.prodItemTypeField').val() || '').trim();
+            if (inv && it) {
+                lockedItemType = normLockType(it);
+                return false; // break
+            }
+            });
+        }
+
+        function ensureTabMatchesLock() {
+            if (!lockedItemType) return;
+            const wantTab = (lockedItemType === 'GI') ? 'gi' : 'ns';
+
+            $('.invTab').removeClass('border-indigo-600').addClass('border-transparent');
+            $(`.invTab[data-type="${wantTab}"]`).addClass('border-indigo-600').removeClass('border-transparent');
+
+            invState.type = wantTab;
+        }
+
+        // ===== Modal Logic =====
+        const $modal = $('#inventoryModal');
+        const $tbody = $('#invTableBody');
+        const $invCount = $('#invCount');
+
+        let invState = {
+            type: 'gi',     // 'gi' | 'ns'
+            search: '',
+            page: 1,
+            per_page: 10,
+            total: 0
+        };
+
+        function isStockMode() {
+            return String(invState.type).toLowerCase() === 'gi';
+        }
+
+        function toggleInvModalColumns() {
+            const stock = isStockMode();
+            $('.inv-site-col').toggleClass('hidden', !stock);
+            $('.inv-cat-col').toggleClass('hidden', stock);
+        }
+
+        function openModal(forRow) {
+            currentRow = forRow;
+
+            // lock & tab selalu sync
+            initLockFromExistingRows();
+            ensureTabMatchesLock();
+            toggleInvModalColumns();
+
+            $modal.removeClass('hidden').addClass('flex');
+            loadInventory();
+        }
+
+        function closeModal() {
+            $modal.addClass('hidden').removeClass('flex');
+        }
+
+        $(document).on('click', '.openInventoryModal', function () {
+            openModal($(this).closest('tr'));
+        });
+
+        $('#closeInventoryModal').on('click', closeModal);
+
+        $(document).on('keydown', function (e) {
+            if (e.key === 'Escape' && $modal.is(':visible')) closeModal();
+        });
+
+        // Tab Switching
+        $('.invTab').on('click', function () {
+            // kalau sudah terkunci, cegah pindah tab yang beda
+            initLockFromExistingRows();
+            if (lockedItemType) {
+            const wantTab = (lockedItemType === 'GI') ? 'gi' : 'ns';
+            const clicked = $(this).data('type');
+            if (String(clicked) !== String(wantTab)) {
+                toastr.error(lockedItemType === 'GI'
+                ? 'Baris pertama sudah Stock. Semua baris harus Stock.'
+                : 'Baris pertama sudah Non-Stock. Semua baris harus Non-Stock.'
+                );
+                return;
+            }
+            }
+
+            $('.invTab').removeClass('border-indigo-600').addClass('border-transparent');
+            $(this).addClass('border-indigo-600').removeClass('border-transparent');
+
+            invState.type = $(this).data('type'); // 'gi' | 'ns'
+            invState.page = 1;
+            toggleInvModalColumns();
+            loadInventory();
+        });
+
+        // Search
+        $('#invSearch').on('input', function () {
+            invState.search = $(this).val().trim();
+            invState.page = 1;
+            loadInventory();
+        });
+
+        $('#invRefresh').on('click', function () {
+            $('#invSearch').val('');
+            invState.search = '';
+            invState.page = 1;
+            loadInventory();
+        });
+
+        // Pagination
+        $('#invPrev').on('click', function () {
+            if (invState.page > 1) {
+            invState.page--;
+            loadInventory();
+            }
+        });
+
+        $('#invNext').on('click', function () {
+            const maxPage = Math.ceil(invState.total / invState.per_page) || 1;
+            if (invState.page < maxPage) {
+            invState.page++;
+            loadInventory();
+            }
+        });
+
+        // Load Inventory
+        function loadInventory() {
+            const cpnyid = getCpnyId();
+            const deptId = getDeptId();
+
+            if (!cpnyid || !deptId) {
+            $tbody.html(`<tr><td colspan="6" class="p-3 text-center">Select Company & Department first</td></tr>`);
+            $invCount.text('');
+            $('#invPrev, #invNext').prop('disabled', true);
+            return;
+            }
+
+            $tbody.html(`<tr><td colspan="6" class="p-3 text-center">Loading...</td></tr>`);
+
+            $.getJSON("{{ route('inventory.listjoin') }}", {
+            type: invState.type, // 'gi' | 'ns'
+            search: invState.search,
+            departementid: deptId,
+            cpnyid: cpnyid,
+            page: invState.page,
+            per_page: invState.per_page
+            })
+            .done(function (res) {
+            toggleInvModalColumns();
+
+            const stock = isStockMode();
+            const rows = (res.data || []).map(item => `
+                <tr>
+                <td class="border p-2">${item.inventoryid}</td>
+                <td class="border p-2">${item.inventory_descr}</td>
+                <td class="border p-2">${item.stock_unit || ''}</td>
+
+                <td class="border p-2 inv-site-col ${stock ? '' : 'hidden'}">${item.siteid || ''}</td>
+                <td class="border p-2 inv-cat-col ${stock ? 'hidden' : ''}">${item.item_sub_type || ''} - ${item.item_category || ''}</td>
+
+                <td class="border p-2 text-center">
+                    <button type="button" class="chooseInventory rounded border px-2 py-1 hover:bg-gray-100"
+                    data-id="${item.inventoryid}"
+                    data-name="${$('<div>').text(item.inventory_descr).html()}"
+                    data-stock_unit="${item.stock_unit || ''}"
+                    data-item_type="${$('<div>').text(item.item_type || '').html()}"
+                    data-item_sub_type="${$('<div>').text(item.item_sub_type || '').html()}"
+                    data-item_category="${$('<div>').text(item.item_category || '').html()}"
+                    data-purchase_unit="${item.purchase_unit || item.purchaseunit || ''}"
+                    data-siteid="${item.siteid || ''}">
+                    Choose
+                    </button>
+                </td>
+                </tr>
+            `).join('');
+
+            $tbody.html(rows || `<tr><td colspan="6" class="p-3 text-center">No data</td></tr>`);
+
+            invState.total = res.total || 0;
+            $invCount.text(`Showing ${(res.data || []).length} of ${invState.total} items`);
+
+            const maxPage = Math.ceil((invState.total || 0) / invState.per_page) || 1;
+            $('#invPrev').prop('disabled', invState.page <= 1);
+            $('#invNext').prop('disabled', invState.page >= maxPage);
+            })
+            .fail(function () {
+            $tbody.html(`<tr><td colspan="6" class="p-3 text-center text-red-600">Failed to load inventory</td></tr>`);
+            $invCount.text('');
+            $('#invPrev, #invNext').prop('disabled', true);
+            });
+        }
+
+        // Choose inventory
+        $(document).on('click', '.chooseInventory', function () {
+            if (!currentRow) return;
+
+            const $btn = $(this);
+
+            const id = $btn.data('id');
+            const name = $btn.data('name');
+            const stock_unit = $btn.data('stock_unit');
+
+            const item_type = String($btn.data('item_type') || '').toUpperCase().trim();
+            const item_sub_type = $btn.data('item_sub_type') || '';
+            const item_category = $btn.data('item_category') || '';
+            const purchase_unit = $btn.data('purchase_unit') || '';
+            const siteid = $btn.data('siteid') || '';
+
+            const thisLockType = normLockType(item_type);
+
+            // enforce lock
+            initLockFromExistingRows();
+            if (lockedItemType && lockedItemType !== thisLockType) {
+            toastr.error(lockedItemType === 'GI'
+                ? 'Baris pertama sudah Stock. Semua baris harus Stock.'
+                : 'Baris pertama sudah Non-Stock. Semua baris harus Non-Stock.'
+            );
+            return;
+            }
+
+            if (!lockedItemType) {
+            lockedItemType = thisLockType;
+            }
+
+            // fill row fields
+            currentRow.find('.inventoryIdField').val(id);
+            currentRow.find('.productNameField').val(name);
+            currentRow.find('.stock_unitField').val(stock_unit || '-');
+            currentRow.find('.purchaseUnitField').val(purchase_unit);
+
+            currentRow.find('.prodItemTypeField').val(item_type);
+            currentRow.find('.prodItemSubTypeField').val(item_sub_type);
+            currentRow.find('.prodItemCategoryField').val(item_category);
+
+            // site id (GI only)
+            if (item_type === 'GI') currentRow.find('.siteidField').val(siteid || '-');
+            else currentRow.find('.siteidField').val('');
+
+            // clear COA (sesuai create kamu)
+            currentRow.find('.coaIdField, .coaNameField, .activityIdField, .businessUnitIdField, .departmentFinIdField, .actDescrField').val('');
+
+            // clear errors
+            currentRow.find('.productNameField, .stock_unitField').removeClass('is-invalid').next('.error-feedback').remove();
+
+            // update SiteID visibility (punya function kamu)
+            currentRow.find('.prodItemTypeField').trigger('change');
+
+            closeModal();
+        });
+
+        // IMPORTANT: saat page load edit → init lock agar tab otomatis benar
+        initLockFromExistingRows();
+        });
+    </script>
+
 
 
     <script>
@@ -1754,47 +1792,7 @@
         });
     </script>
 
-    <script>
-        $(function() {
-            const DOCTYPE = 'SPPB';
-            const $requestType = $('#requesttypeid');
-            const selectedRT = @json($sppb->requesttypeid);
-
-            function buildOptions(list, selected) {
-                let opts = '<option value="" disabled>Select Request Type</option>';
-                list.forEach(rt => {
-                    const sel = String(selected) === String(rt.requesttypeid) ? 'selected' : '';
-                    opts += `<option value="${rt.requesttypeid}" ${sel}>
-                        ${rt.requesttype_name ?? rt.requesttypeid}
-                    </option>`;
-                });
-                return opts;
-            }
-
-            function loadRequestTypes(selected = null) {
-                $requestType.html('<option value="" disabled>Loading...</option>');
-                $.getJSON("{{ route('requesttypes.byDoctype') }}", {
-                        doctype: DOCTYPE
-                    })
-                    .done(function(res) {
-                        const data = res?.data || [];
-                        if (!data.length) {
-                            $requestType.html('<option value="" disabled>No request type</option>');
-                        } else {
-                            $requestType.html(buildOptions(data, selected));
-                        }
-                    })
-                    .fail(function() {
-                        $requestType.html('<option value="" disabled>Failed to load</option>');
-                    });
-            }
-
-            // initial load pakai selected dari $sppb
-            loadRequestTypes(selectedRT);
-        });
-    </script>
-
-
+    
 
     <script>
         $(function() {
@@ -2260,10 +2258,14 @@
                             const actDescr = item.activity_descr ?? '';
                             const totalbudget = formatNumber(item.totalbudget) ?? '';
                             const label = id; // atau `${id} - ${actDetail}`
+                            const accDescr = item.account_descr ?? '';
+                            const act_Descr = item.act_descr ?? '';
 
                             return `
                     <tr>
                     <td class="border p-2">${id}</td>
+                    <td class="border p-2">${accDescr}</td>
+                    <td class="border p-2">${act_Descr}</td>
                     <td class="border p-2">${actDescr}</td>
                     <td class="border p-2">${totalbudget}</td>
                     <td class="border p-2 text-center">
@@ -3060,7 +3062,98 @@
         });
     </script>
 
+    <script>
+        // =====================
+        // LOCK DEPARTMENT
+        // =====================
+        let prevDept = $('#departementid').val(); // simpan default saat load
 
+        $('#departementid').on('change', function() {
+
+            // cek apakah sudah ada inventory dipilih
+            let hasInventory = false;
+
+            $('.inventoryIdField').each(function() {
+                if ($(this).val() && $(this).val().trim() !== '') {
+                    hasInventory = true;
+                }
+            });
+
+            if (hasInventory) {
+                alert("Department tidak bisa diubah karena sudah ada inventory di SPPB Detail.");
+                
+                // balikkan ke value sebelumnya
+                $('#departementid').val(prevDept);
+
+                return;
+            }
+
+            // jika aman → update prevDept
+            prevDept = $(this).val();
+        });
+
+    </script>
+
+    <script>
+        $(function () {
+            $('#cancelBtn').on('click', function (e) {
+                e.preventDefault();   // jaga-jaga
+                e.stopPropagation();  // biar gak bubble ke form
+
+                Swal.fire({
+                    title: 'Cancel Document?',
+                    text: 'Document akan di-cancel dan status menjadi X.',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Yes, Cancel',
+                    cancelButtonText: 'No',
+                    reverseButtons: true
+                }).then((result) => {
+                    // ✅ kalau user pilih "No" -> stop di sini, jangan lakukan apa-apa
+                    if (!result.isConfirmed) return;
+
+                    // lock UI
+                    $('#cancelBtn').prop('disabled', true);
+                    $('#cancelText').text('Cancelling...');
+                    $('#cancelSpinner').removeClass('hidden');
+                    showOverlay('Cancelling Document');
+
+                    $.ajax({
+                        url: "{{ route('sppbs.cancel', $hash) }}",
+                        type: "POST",
+                        data: {
+                            _method: "PUT",
+                            _token: "{{ csrf_token() }}"
+                        },
+                        success: function (res) {
+                            if (res?.success) {
+                                Swal.fire({
+                                    title: 'Canceled',
+                                    text: res.message || 'Document canceled (status X).',
+                                    icon: 'success'
+                                }).then(() => {
+                                    window.location.href = "{{ route('sppbs') }}";
+                                });
+                            } else {
+                                Swal.fire('Failed', res?.message || 'Failed to cancel document.', 'error');
+                            }
+                        },
+                        error: function (xhr) {
+                            Swal.fire('Error', xhr.responseJSON?.message || 'Failed to cancel document.', 'error');
+                        },
+                        complete: function () {
+                            hideOverlay();
+                            $('#cancelBtn').prop('disabled', false);
+                            $('#cancelText').text('Cancel Document');
+                            $('#cancelSpinner').addClass('hidden');
+                        }
+                    });
+                });
+            });
+        });
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <!-- Toastr CSS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
     <!-- Toastr JS -->

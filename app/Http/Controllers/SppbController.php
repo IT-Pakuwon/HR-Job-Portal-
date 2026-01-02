@@ -742,8 +742,12 @@ class SppbController extends Controller
             ];
         });
 
+        $akses_stock = SysUserRole::where('username', $user->username)
+            ->where('role_id','WHSACCESS')
+            ->first();
+
         return view('pages.sppbs.editsppbs', compact(
-            'sppb','sppbdetail','usercpny','usercpny2','userdept','userdept2','attachments','hash'
+            'sppb','sppbdetail','usercpny','usercpny2','userdept','userdept2','attachments','hash','akses_stock'
         ));
     }
 
@@ -751,7 +755,7 @@ class SppbController extends Controller
 
     public function updateSppb(Request $request, $hash)
     {
-        // dd($request->all()); // matikan agar eksekusi lanjut
+        dd($request->all()); // matikan agar eksekusi lanjut
 
         $id = Hashids::decode($hash)[0] ?? null;
         abort_if(!$id, 404, 'PB tidak ditemukan.');
@@ -2056,6 +2060,41 @@ class SppbController extends Controller
         return $pdf->stream("pdf_sppbs_{$sppb->sppbid}.pdf");
     }
 
+    public function cancelSppb(Request $request, string $hash)
+    {
+        
+        // decode hash -> id (sesuaikan kalau tidak pakai Hashids)
+        $decoded = Hashids::decode($hash);
+        abort_if(empty($decoded), 404, 'Invalid document');
+
+        $id = $decoded[0];
+        
+        // ambil doc
+        $sppb = TrSPPB::query()->where('id', $id)->firstOrFail();        
+
+        DB::beginTransaction();
+        try {
+            // update status header jadi X (Canceled)
+            $sppb->status = 'X';
+            $sppb->updated_by = Auth::user()->username ?? Auth::id(); // kalau kolom ada
+            $sppb->updated_at = now(); // kalau kolom ada
+            $sppb->save();          
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Document canceled (status X).',
+            ]);
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to cancel document.',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
 
 
 

@@ -2510,6 +2510,42 @@ class SppjController extends Controller
         }
     }
 
+    public function cancelSppj(Request $request, string $hash)
+    {
+        
+        // decode hash -> id (sesuaikan kalau tidak pakai Hashids)
+        $decoded = Hashids::decode($hash);
+        abort_if(empty($decoded), 404, 'Invalid document');
+
+        $id = $decoded[0];
+        
+        // ambil doc
+        $sppb = TrSPPJ::query()->where('id', $id)->firstOrFail();        
+
+        DB::beginTransaction();
+        try {
+            // update status header jadi X (Canceled)
+            $sppb->status = 'X';
+            $sppb->updated_by = Auth::user()->username ?? Auth::id(); // kalau kolom ada
+            $sppb->updated_at = now(); // kalau kolom ada
+            $sppb->save();          
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Document canceled (status X).',
+            ]);
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to cancel document.',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
 
 
 

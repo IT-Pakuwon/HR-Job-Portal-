@@ -937,9 +937,14 @@ class WoController extends Controller
 
         $loginUsername = $user->username ?? $user->name ?? null;
         $canUpload     = $wo->created_by === $loginUsername;
+
+        $userdept = Userdept::where('username', '=', $user->username)
+            ->get();
+        $userdept2 = Userdept::where('username', '=', $user->username)
+            ->first();
             
 
-        return view('pages.wos.showwos', compact('wo', 'approval', 'attachments', 'hash','cek_dept','canUpload'));
+        return view('pages.wos.showwos', compact('wo', 'approval', 'attachments', 'hash','cek_dept','canUpload','userdept','userdept2'));
     }
 
 
@@ -1915,7 +1920,8 @@ class WoController extends Controller
 
         // set pic_wo & pic_department (server-side agar aman)
         $wo->pic_wo = $user->username;
-        $wo->pic_department = $user->departmentid ?? $user->department_id ?? $wo->pic_department;
+        // $wo->pic_department = $user->departmentid ?? $user->department_id ?? $wo->pic_department;
+        $wo->pic_department = '';       
         $wo->save();
 
         return response()->json(['success' => true]);
@@ -1924,9 +1930,11 @@ class WoController extends Controller
     // POST /wo/{woid}/job-status
     public function updateJobStatus(Request $req, $woid)
     {
+        
         $req->validate([
-            'status_pekerjaan' => 'required|in:P,R,C',
+            'status_pekerjaan' => 'required|in:P,X,C',
             'pic_wo_comment'   => 'nullable|string',
+            'pic_department'   => 'nullable|string',
             'flag_sppbjkt'     => 'nullable' // checkbox (akan dinormalisasi)
         ]);
 
@@ -1934,6 +1942,7 @@ class WoController extends Controller
 
         $wo->status_pekerjaan = $req->status_pekerjaan;
         $wo->pic_wo_comment   = $req->pic_wo_comment;
+        $wo->pic_department   = $req->pic_department;
 
         // ✅ jika Completed → isi timestamp pic_completed_wo
         if ($req->status_pekerjaan === 'C') {
@@ -1957,6 +1966,7 @@ class WoController extends Controller
             'message' => 'Job status updated.',
             'data'    => [
                 'status_pekerjaan' => $wo->status_pekerjaan,
+                'pic_department'   => $wo->pic_department,
                 'pic_wo_comment'   => $wo->pic_wo_comment,
                 'pic_completed_wo' => $wo->pic_completed_wo,
                 'flag_sppbjkt'     => $wo->flag_sppbjkt,

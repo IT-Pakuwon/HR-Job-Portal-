@@ -658,7 +658,8 @@
                                         <tr>
                                             <th class="border p-2">Inventory ID</th>
                                             <th class="border p-2">Description</th>
-                                            <th class="border p-2">UoM</th>
+                                            <th class="border p-2">UoM</th>                   
+                                            <th class="border p-2">Category</th>
                                             <th class="w-24 border p-2 text-center">Action</th>
                                         </tr>
                                     </thead>
@@ -810,7 +811,9 @@
                                     <thead class="sticky top-0 bg-gray-50 text-sm dark:bg-gray-900">
                                         <tr>
                                             <th class="border p-2">Account ID</th>
+                                            <th class="border p-2">Account Descr</th>
                                             <th class="border p-2">Activity</th>
+                                            <th class="border p-2">Budget Descr</th>
                                             <th class="border p-2">Available Budget</th>
                                             <th class="w-24 border p-2 text-center">Action</th>
                                         </tr>
@@ -1015,16 +1018,13 @@
                         <div class="grid grid-cols-2 justify-between gap-4 md:flex md:flex-row xl:justify-end">
                             <!-- Cancel Button-->
                             <div class="flex justify-start">
-                                <button id="cancelBtn"
+                                <button type="button" id="cancelBtn"
                                     class="mb-4 mt-4 flex w-full items-center justify-center gap-2 rounded border border-red-700 bg-red-200/10 p-2 text-red-700 hover:border-red-700 hover:bg-red-700 hover:font-medium hover:text-white">
-                                    <span id="cancelText">Cancel</span>
+                                    <span id="cancelText">Cancel Document</span>
                                     <svg id="cancelSpinner" class="hidden h-5 w-5 animate-spin text-white"
                                         xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                        <circle class="opacity-25" cx="12" cy="12" r="10"
-                                            stroke="currentColor" stroke-width="4">
-                                        </circle>
-                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z">
-                                        </path>
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
                                     </svg>
                                 </button>
                             </div>
@@ -1458,15 +1458,15 @@
             });
 
             // ===== Cancel Button =====
-            $('#cancelBtn').click(function() {
-                const confirmed = confirm("Are you sure you want to cancel? Unsaved changes will be lost.");
-                if (confirmed) {
-                    $('#cancelBtn').prop('disabled', true);
-                    $('#cancelText').text('Cancelling...');
-                    $('#cancelSpinner').removeClass('hidden');
-                    window.location.href = "{{ route('sppjs') }}";
-                }
-            });
+            // $('#cancelBtn').click(function() {
+            //     const confirmed = confirm("Are you sure you want to cancel? Unsaved changes will be lost.");
+            //     if (confirmed) {
+            //         $('#cancelBtn').prop('disabled', true);
+            //         $('#cancelText').text('Cancelling...');
+            //         $('#cancelSpinner').removeClass('hidden');
+            //         window.location.href = "{{ route('sppjs') }}";
+            //     }
+            // });
         });
     </script>
 
@@ -1561,6 +1561,7 @@
                     <td class="border p-2">${item.inventoryid}</td>
                     <td class="border p-2">${item.inventory_descr}</td>
                     <td class="border p-2">${item.stock_unit || ''}</td>
+                    <td class="border p-2">${item.item_sub_type || ''} - ${item.item_category || ''}</td>
                     <td class="border p-2 text-center">
                     <button type="button" class="chooseInventory rounded border px-2 py-1 hover:bg-gray-100"
                         data-id="${item.inventoryid}"
@@ -2307,10 +2308,14 @@
                             const actDescr = item.activity_descr ?? '';
                             const totalbudget = formatNumber(item.totalbudget) ?? '';
                             const label = id; // atau `${id} - ${actDetail}`
+                            const accDescr = item.account_descr ?? '';
+                            const act_Descr = item.act_descr ?? '';
 
                             return `
                     <tr>
                     <td class="border p-2">${id}</td>
+                    <td class="border p-2">${accDescr}</td>
+                    <td class="border p-2">${act_Descr}</td>
                     <td class="border p-2">${actDescr}</td>
                     <td class="border p-2">${totalbudget}</td>
                     <td class="border p-2 text-center">
@@ -2955,6 +2960,67 @@
 
         });
     </script>
+
+    <script>
+        $(function () {
+            $('#cancelBtn').on('click', function (e) {
+                e.preventDefault();   // jaga-jaga
+                e.stopPropagation();  // biar gak bubble ke form
+
+                Swal.fire({
+                    title: 'Cancel Document?',
+                    text: 'Document akan di-cancel dan status menjadi X.',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Yes, Cancel',
+                    cancelButtonText: 'No',
+                    reverseButtons: true
+                }).then((result) => {
+                    // ✅ kalau user pilih "No" -> stop di sini, jangan lakukan apa-apa
+                    if (!result.isConfirmed) return;
+
+                    // lock UI
+                    $('#cancelBtn').prop('disabled', true);
+                    $('#cancelText').text('Cancelling...');
+                    $('#cancelSpinner').removeClass('hidden');
+                    showOverlay('Cancelling Document');
+
+                    $.ajax({
+                        url: "{{ route('sppjs.cancel', $hash) }}",
+                        type: "POST",
+                        data: {
+                            _method: "PUT",
+                            _token: "{{ csrf_token() }}"
+                        },
+                        success: function (res) {
+                            if (res?.success) {
+                                Swal.fire({
+                                    title: 'Canceled',
+                                    text: res.message || 'Document canceled (status X).',
+                                    icon: 'success'
+                                }).then(() => {
+                                    window.location.href = "{{ route('sppjs') }}";
+                                });
+                            } else {
+                                Swal.fire('Failed', res?.message || 'Failed to cancel document.', 'error');
+                            }
+                        },
+                        error: function (xhr) {
+                            Swal.fire('Error', xhr.responseJSON?.message || 'Failed to cancel document.', 'error');
+                        },
+                        complete: function () {
+                            hideOverlay();
+                            $('#cancelBtn').prop('disabled', false);
+                            $('#cancelText').text('Cancel Document');
+                            $('#cancelSpinner').addClass('hidden');
+                        }
+                    });
+                });
+            });
+        });
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 
     <!-- Toastr CSS -->

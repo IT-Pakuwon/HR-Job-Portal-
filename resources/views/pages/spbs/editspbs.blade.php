@@ -652,7 +652,8 @@
                                         <tr>
                                             <th class="border p-2">Inventory ID</th>
                                             <th class="border p-2">Description</th>
-                                            <th class="border p-2">UoM</th>
+                                            <th class="border p-2">UoM</th>                   
+                                            <th class="border p-2">Category</th>
                                             <th class="border p-2">SiteID</th>
                                             <th class="border p-2">Stock</th>
                                             <th class="w-24 border p-2 text-center">Action</th>
@@ -703,7 +704,9 @@
                                     <thead class="sticky top-0 bg-gray-50 text-sm dark:bg-gray-900">
                                         <tr>
                                             <th class="border p-2">Account ID</th>
+                                            <th class="border p-2">Account Descr</th>
                                             <th class="border p-2">Activity</th>
+                                            <th class="border p-2">Budget Descr</th>
                                             <th class="border p-2">Available Budget</th>
                                             <th class="w-24 border p-2 text-center">Action</th>
                                         </tr>
@@ -1508,6 +1511,7 @@
                             <td class="border p-2">${item.inventoryid}</td>
                             <td class="border p-2">${item.inventory_descr}</td>
                             <td class="border p-2">${item.stock_unit || ''}</td>
+                    <td class="border p-2">${item.item_sub_type || ''} - ${item.item_category || ''}</td>
                             <td class="border p-2">${item.siteid || ''}</td>
                             <td class="border p-2">${formatNumber(item.stock)}</td>                          
                             <td class="border p-2 text-center">
@@ -2232,10 +2236,14 @@
                             const actDetail = item.activity_descr ?? '';
                             const totalbudget = item.totalbudget ?? '';
                             const label = id; // atau `${id} - ${actDetail}`
+                            const accDescr = item.account_descr ?? '';
+                            const act_Descr = item.act_descr ?? '';
 
                             return `
                     <tr>
                     <td class="border p-2">${id}</td>
+                    <td class="border p-2">${accDescr}</td>
+                    <td class="border p-2">${act_Descr}</td>
                     <td class="border p-2">${actDetail}</td>
                     <td class="border p-2">${totalbudget}</td>
                     <td class="border p-2 text-center">

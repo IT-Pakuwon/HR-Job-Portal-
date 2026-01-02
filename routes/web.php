@@ -523,6 +523,7 @@ Route::post('/logout', function () {
         Route::post('/sppb/{id}/approve', [SppbController::class, 'approveSppb']);
         Route::post('/sppb/{id}/reject',  [SppbController::class, 'rejectSppb']);
         Route::post('/sppb/{id}/revise',  [SppbController::class, 'reviseSppb']);
+        Route::put('/sppbs/{hash}/cancel', [SppbController::class, 'cancelSppb'])->name('sppbs.cancel');
     });
 
     Route::middleware('access:SPPJ,VIEW')->group(function () {
@@ -559,6 +560,7 @@ Route::post('/logout', function () {
         Route::put('/bqs/remove-attachment/{id}', [SppjController::class, 'removeAttachment']);
         // BQ import (action edit)
         Route::post('/bqsppj/{bq}/import', [SppjController::class, 'importEdit'])->name('bqsppj.import.edit');
+        Route::put('/sppjs/{hash}/cancel', [SppjController::class, 'cancelSppj'])->name('sppjs.cancel');
     });
 
     Route::middleware('access:SPPK,VIEW')->group(function () {
@@ -581,6 +583,7 @@ Route::post('/logout', function () {
         Route::post('/sppk/{id}/approve', [SppkController::class, 'approveSppk']);
         Route::post('/sppk/{id}/reject',  [SppkController::class, 'rejectSppk']);
         Route::post('/sppk/{id}/revise',  [SppkController::class, 'reviseSppk']);
+        Route::put('/sppks/{hash}/cancel', [SppkController::class, 'cancelSppk'])->name('sppks.cancel');
     });
  
     Route::middleware('access:SPPT,VIEW')->group(function () {
@@ -616,6 +619,7 @@ Route::post('/logout', function () {
         Route::put('/bqs/remove-attachment/{id}', [SpptController::class, 'removeAttachment']);
         // BQ Import (edit)
         Route::post('/bqsppt/{bq}/import', [SpptController::class, 'importEdit'])->name('bqsppt.import.edit');
+        Route::put('/sppts/{hash}/cancel', [SpptController::class, 'cancelSppt'])->name('sppts.cancel');
     });
 
     Route::middleware('access:ASSIGN,VIEW')->group(function () {
@@ -1007,6 +1011,7 @@ Route::post('/logout', function () {
     Route::get('/taxes', [MasterController::class, 'taxes'])->name('taxes.index');
     Route::get('/sites', [MasterController::class, 'sitesWarehouse'])->name('sites.index');
     Route::get('/inventory/list', [MasterController::class, 'InventoryList'])->name('inventory.list');
+    Route::get('/inventory/listjoin', [MasterController::class, 'InventoryListJoin'])->name('inventory.listjoin');
     Route::get('/request-types/by-doctype', [MasterController::class, 'RequestType'])->name('requesttypes.byDoctype');
     Route::get('/locations/by-company', [MasterController::class, 'Location'])->name('locations.byCompany'); 
     Route::get('/sublocations/by-location', [MasterController::class, 'SubLocation'])->name('sublocations.byLocation');

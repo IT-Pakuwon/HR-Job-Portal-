@@ -145,7 +145,7 @@
                             <div class="flex flex-col gap-2">
                                 <label
                                     class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Company</label>
-                                <select name="cpnyid"
+                                <select name="cpnyid" id="cpnyid"
                                     class="req headerCpnySelect w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                     required>
                                     @foreach ($usercpny as $p)
@@ -357,7 +357,7 @@
                                                     </td>
 
                                                     {{-- SiteID --}}
-                                                    <td class="siteid-column hidden border p-3">
+                                                    {{-- <td class="siteid-column hidden border p-3">
                                                         <div class="siteid-wrapper hidden">
                                                             <select name="siteid[]"
                                                                 class="siteSelect w-40 rounded border border-gray-300 p-1 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
@@ -372,12 +372,16 @@
                                                                         site…</option>
                                                                 @endif
                                                             </select>
-                                                        </div>
-
-                                                        {{-- Hidden input untuk case item_type != GI --}}
+                                                        </div>                                                       
                                                         <input type="hidden" name="siteid[]" class="siteid-hidden"
                                                             value="">
+                                                    </td> --}}
+                                                    <td class="siteid-column hidden border p-3">
+                                                        <input type="text" name="siteid[]"
+                                                            class="siteidField w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0"
+                                                            placeholder="-" readonly>
                                                     </td>
+
 
 
 
@@ -532,7 +536,9 @@
                                         <tr>
                                             <th class="border p-2">Inventory ID</th>
                                             <th class="border p-2">Description</th>
-                                            <th class="border p-2">UoM</th>
+                                            <th class="border p-2">UoM</th>   
+                                            <th class="border p-2 inv-site-col">SiteID</th>         
+                                            <th class="border p-2 inv-cat-col">Category</th>        
                                             <th class="w-24 border p-2 text-center">Action</th>
                                         </tr>
                                     </thead>
@@ -1181,6 +1187,13 @@
         $(function() {
             let sppbcount = 1;
             let currentRow = null; // row yang sedang aktif untuk receive pilihan inventory
+            let lockedItemType = ''; // '' | 'GI' | 'NON_GI'
+
+            function normLockType(itemTypeNormalized) {
+                // item_type_normalized sudah uppercase & trim
+                return (itemTypeNormalized === 'GI') ? 'GI' : 'NON_GI';
+            }
+
 
             function updateRowNumbers() {
                 sppbcount = 0;
@@ -1235,19 +1248,11 @@
                 </td>
 
                 <td class="border p-3 siteid-column hidden">
-                    <div class="siteid-wrapper hidden">
-                        <select 
-                            name="siteid[]"
-                            class="siteSelect w-40 rounded border border-gray-300 p-1 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
-                            data-cpny-id=""
-                            data-current-site=""
-                            data-loaded="0"
-                        >
-                            <option value="" selected disabled>Select site…</option>
-                        </select>
-                    </div>
-                    <input type="hidden" name="siteid[]" class="siteid-hidden" value="">
+                    <input type="text" name="siteid[]"
+                        class="siteidField w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0"
+                        placeholder="-" readonly>
                 </td>
+
 
                 <td class="p-3 border">
                 <input type="text" name="note[]" placeholder="Note"
@@ -1299,10 +1304,28 @@
                 updateRemoveButtons();
             });
 
+            function recalcLockedItemType() {
+                // cari item_type dari row yang sudah ada inventoryid
+                let found = '';
+                $('.sppb-row').each(function() {
+                    const $row = $(this);
+                    const invId = ($row.find('.inventoryIdField').val() || '').trim();
+                    if (!invId) return;
+
+                    const t = ($row.find('.prodItemTypeField').val() || '').toUpperCase().trim();
+                    found = normLockType(t);
+                    return false; // break
+                });
+
+                lockedItemType = found; // kalau tidak ada inv sama sekali → ''
+            }
+
+
             $(document).on('click', '.removeSppb', function() {
                 $(this).closest('.sppb-row').remove();
                 updateRowNumbers();
                 updateRemoveButtons();
+                refreshSiteHeaderVisibility();
             });
 
             updateRemoveButtons();
@@ -1320,9 +1343,25 @@
                 total: 0
             };
 
+            function isStockMode() {
+                // STOCK = GI, NON-STOCK = NS
+                return String(invState.type).toLowerCase() === 'gi';
+            }
+
+            function toggleInvModalColumns() {
+                const stock = isStockMode();
+
+                // Stock: SiteID tampil, Category hidden
+                // Non-Stock: Category tampil, SiteID hidden
+                $('.inv-site-col').toggleClass('hidden', !stock);
+                $('.inv-cat-col').toggleClass('hidden', stock);
+            }
+
+
             function openModal(forRow) {
                 currentRow = forRow;
                 $modal.removeClass('hidden').addClass('flex');
+                toggleInvModalColumns();
                 loadInventory();
             }
 
@@ -1344,6 +1383,7 @@
                 $(this).addClass('border-indigo-600').removeClass('border-transparent');
                 invState.type = $(this).data('type'); // 'stock' atau 'nonstock'
                 invState.page = 1;
+                toggleInvModalColumns();
                 loadInventory();
             });
 
@@ -1380,45 +1420,62 @@
                 $tbody.html(`<tr><td colspan="4" class="p-3 text-center">Loading...</td></tr>`);
 
                 const deptId = $('#departementid').val() || '';
+                const cpnyid = ($('#cpnyid').val() || '').trim();
                 
-                $.getJSON("{{ route('inventory.list') }}", {
+                $.getJSON("{{ route('inventory.listjoin') }}", {
                         type: invState.type, // 'stock' | 'nonstock'
                         departementid: deptId,
+                        cpnyid: cpnyid,
                         search: invState.search,
                         page: invState.page,
                         per_page: invState.per_page
                     })
                     .done(function(res) {
-                        // Expected format:
-                        // { data: [{inventoryid, inventory_descr, stock_unit}], total: 123, page:1, per_page:10 }
-                        const rows = (res.data || []).map(item => `
-                <tr>
-                    <td class="border p-2">${item.inventoryid}</td>
-                    <td class="border p-2">${item.inventory_descr}</td>
-                    <td class="border p-2">${item.stock_unit || ''}</td>
-                    <td class="border p-2 text-center">
-                    <button type="button" class="chooseInventory rounded border px-2 py-1 hover:bg-gray-100"
-                        data-id="${item.inventoryid}"
-                        data-name="${$('<div>').text(item.inventory_descr).html()}"
-                        data-stock_unit="${item.stock_unit || ''}"                        
-                        data-item_type="${$('<div>').text(item.item_type || '').html()}"   
-                        data-item_sub_type="${$('<div>').text(item.item_sub_type || '').html()}"      
-                        data-purchase_unit="${item.purchase_unit || item.purchaseunit || ''}"
-                        data-item_category="${$('<div>').text(item.item_category || '').html()}">
-                        Choose
-                    </button>
-                    </td>
-                </tr>
-                `).join('');
+                        toggleInvModalColumns(); // ✅ jaga-jaga kalau state berubah
 
-                        $tbody.html(rows || `<tr><td colspan="4" class="p-3 text-center">No data</td></tr>`);
+                        const stock = isStockMode();
+
+                        const rows = (res.data || []).map(item => `
+                            <tr>
+                            <td class="border p-2">${item.inventoryid}</td>
+                            <td class="border p-2">${item.inventory_descr}</td>
+                            <td class="border p-2">${item.stock_unit || ''}</td>
+
+                            <!-- SiteID: tampil hanya saat Stock -->
+                            <td class="border p-2 inv-site-col ${stock ? '' : 'hidden'}">
+                                ${item.siteid || ''}
+                            </td>
+
+                            <!-- Category: tampil hanya saat Non-Stock -->
+                            <td class="border p-2 inv-cat-col ${stock ? 'hidden' : ''}">
+                                ${item.item_sub_type || ''} - ${item.item_category || ''}
+                            </td>
+
+                            <td class="border p-2 text-center">
+                                <button type="button" class="chooseInventory rounded border px-2 py-1 hover:bg-gray-100"
+                                data-id="${item.inventoryid}"
+                                data-name="${$('<div>').text(item.inventory_descr).html()}"
+                                data-stock_unit="${item.stock_unit || ''}"
+                                data-item_type="${$('<div>').text(item.item_type || '').html()}"
+                                data-item_sub_type="${$('<div>').text(item.item_sub_type || '').html()}"
+                                data-purchase_unit="${item.purchase_unit || item.purchaseunit || ''}"
+                                data-item_category="${$('<div>').text(item.item_category || '').html()}"
+                                data-siteid="${item.siteid || ''}">
+                                Choose
+                                </button>
+                            </td>
+                            </tr>
+                        `).join('');
+
+                        $tbody.html(rows || `<tr><td colspan="6" class="p-3 text-center">No data</td></tr>`);
                         invState.total = res.total || 0;
-                        $invCount.text(`Showing ${rows ? (res.data.length) : 0} of ${invState.total} items`);
-                        // toggle prev/next disabled
+                        $invCount.text(`Showing ${(res.data || []).length} of ${invState.total} items`);
+
                         const maxPage = Math.ceil((invState.total || 0) / invState.per_page) || 1;
                         $('#invPrev').prop('disabled', invState.page <= 1);
                         $('#invNext').prop('disabled', invState.page >= maxPage);
-                    })
+                        })
+
                     .fail(function() {
                         $tbody.html(
                             `<tr><td colspan="4" class="p-3 text-center text-red-600">Failed to load inventory</td></tr>`
@@ -1428,52 +1485,7 @@
                     });
             }
 
-            // Choose Inventory -> fill current row
-            // $(document).on('click', '.chooseInventory', function() {
-            //     if (!currentRow) return;
-
-            //     const id = $(this).data('id');
-            //     const name = $(this).data('name');
-            //     const stock_unit = $(this).data('stock_unit');
-            //     // const account_id   = ($(this).data('account_id') || '').toString().trim();
-
-            //     // NEW: item meta dari inventory
-            //     const item_type = $(this).data('item_type') || '';
-            //     const item_sub_type = $(this).data('item_sub_type') || '';
-            //     const item_category = $(this).data('item_category') || '';
-            //     const purchase_unit = $(this).data('purchase_unit') || '';
-
-            //     currentRow.find('.inventoryIdField').val(id);
-            //     currentRow.find('.productNameField').val(name);
-            //     currentRow.find('.stock_unitField').val(stock_unit || '-');
-            //     currentRow.find('.purchaseUnitField').val(purchase_unit);
-
-            //     // simpan hidden baru
-            //     currentRow.find('.prodItemTypeField').val(item_type);
-            //     currentRow.find('.prodItemSubTypeField').val(item_sub_type);
-            //     currentRow.find('.prodItemCategoryField').val(item_category);
-
-            //     currentRow.find('.coaIdField').val('');
-            //     currentRow.find('.coaNameField').val('');
-
-            //     // setelah set product & stock_unit
-            //     currentRow.find('.productNameField').removeClass('is-invalid').next('.error-feedback')
-            //         .remove();
-            //     currentRow.find('.stock_unitField').removeClass('is-invalid').next('.error-feedback')
-            //         .remove();
-
-
-            //     // //opsional: auto-isi COA bila inventory bawa default account_id (seperti sebelumnya)
-            //     // if (account_id) {
-            //     //     currentRow.find('.coaIdField').val(account_id);
-            //     //     currentRow.find('.coaNameField').val(account_id);
-            //     // } else {
-            //     //     currentRow.find('.coaIdField').val('');
-            //     //     currentRow.find('.coaNameField').val('');
-            //     // }
-
-            //     closeModal();
-            // });
+           
 
             $(document).on('click', '.chooseInventory', function() {
                 if (!currentRow) return;
@@ -1494,6 +1506,30 @@
                 const item_sub_type = $btn.data('item_sub_type') || '';
                 const item_category = $btn.data('item_category') || '';
                 const purchase_unit = $btn.data('purchase_unit') || '';
+                const siteid = $btn.attr('data-siteid') || '';
+                const thisLockType = normLockType(item_type_normalized);
+
+                // kalau sudah ada tipe yang terkunci, dan user pilih tipe berbeda → tolak
+                if (lockedItemType && lockedItemType !== thisLockType) {
+                toastr.error(
+                    lockedItemType === 'GI'
+                    ? 'Baris pertama sudah Stock. Semua baris harus Stock.'
+                    : 'Baris pertama sudah Non-Stock. Semua baris harus Non-Stock.'
+                );
+                return; // stop, jangan isi row
+                }
+
+                // kalau belum terkunci → set dari pilihan pertama yang benar-benar memilih inventory
+                if (!lockedItemType) {
+                lockedItemType = thisLockType;
+
+                // Optional: paksa tab inventory modal sesuai lock (biar user gak salah pilih)
+                // GI => tab stock, NON_GI => tab non-stock
+                const wantTab = (lockedItemType === 'GI') ? 'gi' : 'ns';
+                $('.invTab').removeClass('border-indigo-600').addClass('border-transparent');
+                $(`.invTab[data-type="${wantTab}"]`).addClass('border-indigo-600').removeClass('border-transparent');
+                invState.type = wantTab;
+                }
 
                 // DEBUG: lihat apa yang sebenarnya kebaca dari tombol
                 console.log('chooseInventory CLICKED →', {
@@ -1531,6 +1567,14 @@
                     .removeClass('is-invalid')
                     .next('.error-feedback').remove();
 
+                // isi SiteID hanya kalau GI (Stock)
+                if (item_type_normalized === 'GI') {
+                currentRow.find('.siteidField').val(siteid || '-');
+                } else {
+                currentRow.find('.siteidField').val('');
+                }
+
+                
                 // 🔴 PENTING: trigger change supaya updateSiteVisibility jalan
                 currentRow.find('.prodItemTypeField').trigger('change');
 
@@ -2700,7 +2744,7 @@
         }
 
         // Fungsi show/hide SiteID berdasarkan item_type
-        function updateSiteVisibility($row) {
+        function updateSiteVisibility_xxx($row) {
             const raw = $row.find('.prodItemTypeField').val() || '';
             const itemType = raw.toUpperCase().trim();
 
@@ -2729,6 +2773,26 @@
 
             refreshSiteHeaderVisibility();
         }
+
+        function updateSiteVisibility($row) {
+            const raw = $row.find('.prodItemTypeField').val() || '';
+            const itemType = raw.toUpperCase().trim();
+
+            const $col = $row.find('.siteid-column');
+            const $siteInput = $row.find('.siteidField');
+
+            if (itemType === 'GI') {
+                $col.removeClass('hidden');
+                $siteInput.prop('disabled', false);
+            } else {
+                $col.addClass('hidden');
+                $siteInput.prop('disabled', true);
+                $siteInput.val(''); // kosongkan kalau bukan GI
+            }
+
+            refreshSiteHeaderVisibility();
+        }
+
 
 
         // Saat product dipilih dari modal → update item_type → cek visibility

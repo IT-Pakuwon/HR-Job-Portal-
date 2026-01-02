@@ -397,7 +397,8 @@
                                         <tr>
                                             <th class="border p-2">Inventory ID</th>
                                             <th class="border p-2">Description</th>
-                                            <th class="border p-2">UoM</th>
+                                            <th class="border p-2">UoM</th>                   
+                                            <th class="border p-2">Category</th>
                                             <th class="w-24 border p-2 text-center">Action</th>
                                         </tr>
                                     </thead>
@@ -1059,6 +1060,7 @@
                     <td class="border p-2">${item.inventoryid}</td>
                     <td class="border p-2">${item.inventory_descr}</td>
                     <td class="border p-2">${item.stock_unit || ''}</td>
+                    <td class="border p-2">${item.item_sub_type || ''} - ${item.item_category || ''}</td>
                     <td class="border p-2 text-center">
                     <button type="button" class="chooseInventory rounded border px-2 py-1 hover:bg-gray-100"
                         data-id="${item.inventoryid}"

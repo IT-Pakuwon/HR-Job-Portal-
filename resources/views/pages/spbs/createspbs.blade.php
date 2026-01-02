@@ -439,7 +439,7 @@
                                         <tr>
                                             <th class="border p-2">Inventory ID</th>
                                             <th class="border p-2">Description</th>
-                                            <th class="border p-2">UoM</th>
+                                            <th class="border p-2">UoM</th>    
                                             <th class="border p-2">SiteID</th>
                                             <th class="border p-2">Stock</th>
                                             {{-- <th class="border p-2">Cost</th>    --}}
@@ -553,7 +553,9 @@
                                     <thead class="sticky top-0 bg-gray-50 text-sm dark:bg-gray-900">
                                         <tr>
                                             <th class="border p-2">Account ID</th>
+                                            <th class="border p-2">Account Descr</th>
                                             <th class="border p-2">Activity</th>
+                                            <th class="border p-2">Budget Descr</th>
                                             <th class="border p-2">Available Budget</th>
                                             <th class="w-24 border p-2 text-center">Action</th>
                                         </tr>
@@ -1227,7 +1229,7 @@
                         <tr>
                             <td class="border p-2">${item.inventoryid}</td>
                             <td class="border p-2">${item.inventory_descr}</td>
-                            <td class="border p-2">${item.stock_unit || ''}</td>
+                            <td class="border p-2">${item.stock_unit || ''}</td>                    
                             <td class="border p-2">${item.siteid || ''}</td>
                             <td class="border p-2">${formatNumber(item.stock)}</td>                          
                             <td class="border p-2 text-center">
@@ -1568,6 +1570,8 @@
                         const rows = data.map(item => `
                             <tr>
                                 <td class="border p-2">${item.account_id ?? ''}</td>
+                                <td class="border p-2">${item.account_descr ?? ''}</td>
+                                <td class="border p-2">${item.act_descr ?? ''}</td>
                                 <td class="border p-2">${item.activity_descr ?? ''}</td>                                
                                 <td class="border p-2">${formatNumber(item.totalbudget)}</td> 
                                 <td class="border p-2 text-center">

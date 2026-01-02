@@ -572,11 +572,11 @@
                                         class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-indigo-500 focus:ring-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
                                         <option value="">-- pilih --</option>
                                         <option value="P">On Progress</option>
-                                        <option value="R">Rejected</option>
+                                        <option value="X">Cancel Jobs</option>
                                         <option value="C">Completed</option>
                                     </select>
-                                    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">P = On Progress, R =
-                                        Rejected, C = Completed</p>
+                                    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">P = On Progress, X =
+                                        Cancel Jobs, C = Completed</p>
                                 </div>
 
                                 {{-- Checkbox SPPB JKT --}}
@@ -585,6 +585,24 @@
                                         class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 dark:border-gray-500" />
                                     <span class="text-sm text-gray-700 dark:text-gray-200">SPPB JKT</span>
                                 </label>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <div class="flex items-end gap-4">
+                                <div class="flex-1">
+                                    <label for="jobStatusSelect"
+                                        class="mb-1 block text-sm font-semibold text-gray-700 dark:text-gray-200">
+                                        Department
+                                    </label>
+                                    <select name="pic_department" id="pic_department" required  class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
+                                    @foreach ($userdept as $p)
+                                        <option value="{{ $p->department_id }}"
+                                            {{ $p->department_id == $userdept2->department_id ? 'selected' : '' }}>
+                                            {{ $p->department_id }}
+                                        </option>
+                                    @endforeach
+                                </select>                                
+                                </div>                                
                             </div>
                         </div>
 
@@ -617,10 +635,18 @@
                                     class="w-full rounded-md border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-700 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300"
                                     value="@switch($wo->status_pekerjaan)
                                                 @case('P') On Progress @break
-                                                @case('R') Rejected @break
+                                                @case('X') Cancel Jobs @break
                                                 @case('C') Completed @break
                                                 @default -
                                             @endswitch">
+                            </div>
+                            <div class="flex-1">
+                                <label class="mb-1 block text-sm font-semibold text-gray-700 dark:text-gray-200">
+                                    Department
+                                </label>
+                                <input type="text" readonly
+                                    class="w-full rounded-md border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-700 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300"
+                                    value="{{$wo->pic_department ?? '-' }}">
                             </div>
 
                             <label class="mb-1 inline-flex select-none items-center gap-2 opacity-60">
@@ -698,109 +724,7 @@
         $spinner.fadeOut(); // sembunyikan saat selesai
     </script>
 
-    {{-- <script>
-        $(document).ready(function() {
-            let woid = "{{ $wo->woid }}"; // Ambil task ID dari PHP ke JavaScript
-            loadComments(woid);
-
-            // **Fungsi untuk Memuat Komentar**
-            function loadComments(woid) {
-                console.log("Loading comments for Doc ID:", woid);
-                let commentList = $('#commentList');
-                commentList.html('<p class="text-gray-500 italic">Loading comments...</p>'); // Loader
-
-                $.ajax({
-                    url: `/wo/${woid}/comments`,
-                    type: 'GET',
-                    success: function(response) {
-                        console.log("Comments Loaded:", response);
-                        commentList.empty();
-
-                        if (response.comments.length === 0) {
-                            commentList.append(
-                                '<p class="text-gray-500 italic">No comments yet. Be the first to comment!</p>'
-                            );
-                        } else {
-                            response.comments.forEach(comment => {
-                                // let timeAgo = moment(comment.created_at)
-                                //     .fromNow(); // Format waktu seperti "4 days ago"
-                                let timeAgo = dayjs(comment.created_at).fromNow();
-                                commentList.append(`
-                                        <div class="p-3 bg-gray-100 dark:bg-gray-800 rounded-lg mb-2        -gray-300 dark:   -gray-700">
-                                            <p class="text-sm font-semibold">${comment.username} 
-                                                <span class="text-xs text-gray-500">(${timeAgo})</span>
-                                            </p>
-                                            <p class="text-gray-800 dark:text-gray-200">${comment.message}</p>
-                                        </div>
-                                `);
-                            });
-                        }
-                    },
-                    error: function(xhr) {
-                        console.error("Error fetching comments:", xhr.responseText);
-                        commentList.html('<p class="text-red-500 italic">Failed to load comments.</p>');
-                    }
-                });
-            }
-
-            $(document).on('click', '#postCommentBtn', function(e) {
-                e.preventDefault();
-                addComment();
-            });
-
-            // **Fungsi untuk Menambahkan Komentar**
-            function addComment() {
-                let input = $('#commentInput').val().trim();
-
-                if (input === "") {
-                    alert("Please enter a comment.");
-                    return;
-                }
-
-                $('#postCommentBtn').prop('disabled', true).text('Posting... 🚀'); // Disable button saat proses
-
-                $.ajax({
-                    url: `/wo/${woid}/comments`,
-                    type: 'POST',
-                    data: {
-                        woid: woid,
-                        comment: input,
-                        _token: '{{ csrf_token() }}'
-                    },
-                    success: function(response) {
-                        console.log('Comment added successfully:', response);
-
-                        if (response.status === "success") {
-                            loadComments(woid); // **Reload komentar setelah menambahkan**
-                            $('#commentInput').val(''); // Kosongkan input setelah sukses
-                        }
-                    },
-                    error: function(xhr) {
-                        console.error("Error adding comment:", xhr);
-                        alert("Error: " + (xhr.responseJSON ? xhr.responseJSON.message :
-                            "Unknown Error"));
-                    },
-                    complete: function() {
-                        $('#postCommentBtn').prop('disabled', false).text(
-                            'Post 🚀'); // Aktifkan kembali tombol
-                    }
-                });
-            }
-
-            // **Event Listener untuk Tombol "Post"**
-            $('#postCommentBtn').click(function() {
-                addComment();
-            });
-
-            // **Event Listener untuk Enter (Tanpa Shift) di Input**
-            $('#commentInput').keypress(function(event) {
-                if (event.which === 13 && !event.shiftKey) {
-                    event.preventDefault();
-                    addComment();
-                }
-            });
-        });
-    </script> --}}
+   
     <script>
         $(document).ready(function() {
             const woid = "{{ $wo->woid }}";
@@ -1389,6 +1313,7 @@
                     const jobStatus = ($select.val() || '').trim();
                     const comment = ($comment.val() || '').trim();
                     const flagVal = $flag.is(':checked') ? 1 : 0;
+                    const departmentVal = ($('#pic_department').val() || '').trim();
 
                     if (!jobStatus) {
                         toastr.warning('Silakan pilih Status Pekerjaan terlebih dahulu.');
@@ -1403,6 +1328,7 @@
                         data: {
                             _token: csrf,
                             status_pekerjaan: jobStatus,
+                            pic_department: departmentVal,
                             pic_wo_comment: comment,
                             flag_sppbjkt: flagVal
                         },

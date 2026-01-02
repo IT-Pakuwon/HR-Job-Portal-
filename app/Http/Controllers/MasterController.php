@@ -48,6 +48,7 @@ use App\Models\TrSPPJdetail;
 use App\Models\TrSPPKdetail;
 use App\Models\TrSPPTdetail;
 use App\Models\TrSPBdetail;
+use App\Models\MsDepartment;
 
 
 
@@ -777,6 +778,7 @@ class MasterController extends Controller
 
     public function CoaBudget(Request $request)
     {
+        // dd($request->all());
         $cpnyid  = $request->get('cpnyid');
         $deptid  = $request->get('deptid');
         $perpost = $request->get('perpost'); // tahun / perpost
@@ -790,13 +792,18 @@ class MasterController extends Controller
             ]);
         }
 
+        $msdepartment = MsDepartment::query()
+            ->where('department_id', $deptid)  
+            ->where('status', 'A')          
+            ->first(['department_fin_id']);
+        
         // Header budget harus ada (status Completed/Closed)
         $budget = Budget::where('status', 'C')
             ->where('cpny_id', $cpnyid)
-            ->where('department_fin_id', $deptid)
+            ->where('department_fin_id', $msdepartment->department_fin_id)
             ->when($perpost, fn ($q) => $q->where('perpost', $perpost))
             ->first();
-
+        // dd($budget);
         // ✅ Opsi A: kalau budget null -> stop dan kirim message
         if (!$budget) {
             return response()->json([
@@ -821,7 +828,7 @@ class MasterController extends Controller
             })
             ->where('b.budget_id', $budget->budget_id)
             ->where('b.cpny_id', $cpnyid)
-            ->where('b.department_fin_id', $deptid)
+            ->where('b.department_fin_id', $msdepartment->department_fin_id)
             ->when($perpost, fn ($qq) => $qq->where('b.perpost', $perpost));
 
         if ($search !== '') {
@@ -1598,6 +1605,192 @@ class MasterController extends Controller
             ], 500);
         }
     }
+
+    public function InventoryListJoin(Request $request)
+    {
+        // dd($request->all());
+        $type    = strtoupper($request->get('type', 'GI')); // GI | SE | NS | dll
+        $cpnyid  = strtoupper(trim($request->get('cpnyid', ''))); // ✅ tambah
+        $search  = trim($request->get('search', ''));
+        $page    = max((int) $request->get('page', 1), 1);
+        $perPage = min(max((int) $request->get('per_page', 10), 1), 100);
+
+        // departementid dari form header
+        $deptId = $request->get('departementid'); // boleh null
+
+        // Base query MsInventory (PG)
+        $query = MsInventory::query()
+            ->select([
+                'inventoryid',
+                'inventory_descr',
+                'stock_unit',
+                'item_type',
+                'item_category',
+                'purchase_unit',
+                'item_sub_type',
+                'item_class', // penting untuk filter & debug
+            ]);
+
+        /**
+         * Filter item_type
+         */
+        if ($type === 'GI') {
+            $query->where('item_type', 'GI');
+        } elseif ($type === 'SE') {
+            $query->where('item_type', 'SE');
+        } elseif ($type === 'NS') {
+            $query->where('item_type', 'NS');
+        } else {
+            $query->whereNotIn('item_type', ['GI', 'SE']);
+        }
+
+        /**
+         * FILTER item_class berdasarkan MsWorktypeWhs (hanya GI + deptId)
+         */
+        if ($type === 'GI' && !empty($deptId)) {
+            $allowedItemClasses = MsWorktypeWhs::where('department_id', $deptId)
+                ->where('status', 'A')
+                ->pluck('item_class')
+                ->filter()
+                ->unique()
+                ->values()
+                ->all();
+
+            if (!empty($allowedItemClasses)) {
+                $query->whereIn('item_class', $allowedItemClasses);
+            }
+            // else: biarkan tanpa filter (sesuai script kamu)
+        }
+
+        /**
+         * Search
+         */
+        if ($search !== '') {
+            $query->where(function ($q) use ($search) {
+                $q->where('inventoryid', 'ilike', "%{$search}%")
+                ->orWhere('inventory_descr', 'ilike', "%{$search}%")
+                ->orWhere('stock_unit', 'ilike', "%{$search}%")
+                ->orWhere('purchase_unit', 'ilike', "%{$search}%")
+                ->orWhere('item_class', 'ilike', "%{$search}%");
+            });
+        }
+
+        $total = (clone $query)->count();
+
+        // Ambil page dari PG
+        $rows = $query->distinct()
+            ->groupBy([
+                'inventoryid', 'inventory_descr', 'stock_unit',
+                'item_type', 'item_category', 'purchase_unit',
+                'item_sub_type', 'item_class'
+            ])
+            ->orderBy('inventory_descr')
+            ->offset(($page - 1) * $perPage)
+            ->limit($perPage)
+            ->get();
+
+        // Kalau kosong, balikin cepat
+        if ($rows->isEmpty()) {
+            return response()->json([
+                'data'     => [],
+                'total'    => 0,
+                'page'     => $page,
+                'per_page' => $perPage,
+                'meta'     => ['type' => $type, 'cpnyid' => $cpnyid, 'departementid' => $deptId],
+            ]);
+        }
+
+        /**
+         * ✅ Ambil stock/cost/siteid dari SQL Server via model dinamis (ViewInventory*)
+         *    Hanya kalau cpnyid valid
+         */
+        $model = null;
+        switch ($cpnyid) {
+            case 'AW':
+                $model = \App\Models\ViewInventoryAW::class;
+                break;
+            case 'EP':
+                $model = \App\Models\ViewInventoryEPH::class;
+                break;
+            case 'O8':
+                $model = \App\Models\ViewInventoryO8::class;
+                break;
+            case 'PSA':
+                $model = \App\Models\ViewInventoryPSA::class;
+                break;
+            case 'GPS':
+                $model = \App\Models\ViewInventoryGPS::class;
+                break;
+            default:
+                // kalau cpnyid kosong → skip stok/cost (boleh)
+                // kalau mau strict, uncomment return 422
+                // return response()->json(['message'=>"Unknown cpnyid: {$cpnyid}",'data'=>[],'total'=>0], 422);
+                $model = null;
+                break;
+        }
+
+        $expanded = collect();
+
+        if ($model) {
+            $invIds = $rows->pluck('inventoryid')->map(fn($v) => (string) $v)->unique()->values();
+
+            $ssRows = $model::query()
+                ->selectRaw("
+                    invtid,
+                    cpnyid,
+                    siteid,
+                    CAST(stock AS float) AS stock,
+                    CAST(cost  AS float) AS cost
+                ")
+                ->whereIn('invtid', $invIds)
+                ->when($cpnyid !== '', fn($q) => $q->where('cpnyid', $cpnyid))
+                ->get();
+
+            $ssGroups = $ssRows->groupBy(function ($r) {
+                return strtoupper(trim((string) $r->invtid));
+            });
+
+            foreach ($rows as $r) {
+                $key   = strtoupper(trim((string) $r->inventoryid));
+                $group = $ssGroups->get($key);
+
+                if (!$group || $group->isEmpty()) {
+                    $clone = clone $r;
+                    $clone->stock  = null;
+                    $clone->cost   = null;
+                    $clone->siteid = null;
+                    $expanded->push($clone);
+                    continue;
+                }
+
+                foreach ($group as $ss) {
+                    $clone = clone $r;
+                    $clone->stock  = $ss->stock;
+                    $clone->cost   = $ss->cost;
+                    $clone->siteid = $ss->siteid;
+                    $expanded->push($clone);
+                }
+            }
+        } else {
+            // cpnyid tidak ada / tidak valid → tetap keluar 1 baris per inventory
+            foreach ($rows as $r) {
+                $clone = clone $r;
+                $clone->stock  = null;
+                $clone->cost   = null;
+                $clone->siteid = null;
+                $expanded->push($clone);
+            }
+        }
+
+        return response()->json([
+            'data'     => $expanded,
+            'total'    => $total,
+            'page'     => $page,
+            'per_page' => $perPage,
+            'meta'     => ['type' => $type, 'cpnyid' => $cpnyid, 'departementid' => $deptId],
+        ]);
+    }
+
 
 
 
