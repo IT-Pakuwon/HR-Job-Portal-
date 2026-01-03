@@ -20,7 +20,7 @@ class TrPO extends Model
         'keperluan' , 'ponote' , 'vendorid' , 'vendorname' , 'vendoralamat' , 'vendortelp' , 'vendorcp' , 'vendortop' , 
         'totalamt' , 'taxcodeid' , 'taxamt' , 'grandtotalamt' , 'totalqty' , 'totalqtyreceived' , 'submitdate' , 'podeliverydate' , 
         'spkstartworkingdate' , 'spkendtworkingdate' , 'spktotalday' , 'spkworkschedule' , 'spkmanpower' , 'spkpic' , 'spkwarranty' , 
-        'spkcarabayar' , 'send_email' , 'send_email_at' , 'reuse' , 'reused_at' , 'status' , 'created_by' , 'created_at' , 
+        'spkcarabayar' , 'send_email' , 'send_email_at' , 'reuse' , 'reuse_at' , 'status' , 'created_by' , 'created_at' , 
         'updated_by' , 'updated_at' , 'deleted_by' , 'deleted_at' , 'completed_by' , 'completed_at'
     ];
 

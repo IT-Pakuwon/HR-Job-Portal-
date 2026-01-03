@@ -15,12 +15,12 @@ class TrPOReuse extends Model
     public $timestamps = true;
 
     protected $fillable = [       
-        'cpny_id' , 'ponbr' , 'po_no' , 'csid' , 'sppbjktid' , 'cs_no' , 'sppbjkt_no' , 'inventory_type' , 'inventory_sub_type' , 
-        'inventory_category' , 'inventoryid' , 'inventory_descr' , 'qty' , 'uom' , 'siteid','type_multiplier' , 'base_multiplier' , 
-        'base_qty' , 'base_uom' , 'budget_perpost' , 'budget_cpny_id' , 'budget_business_unit_id' , 'budget_department_fin_id' , 
-        'budget_account_id' , 'budget_activity_id' , 'budget_activity_descr' , 'openordered' , 'ordered' , 'rejectordered' , 
-        'completeordered' , 'status' , 'created_by' , 'created_at' , 'updated_by' , 'updated_at' , 'deleted_by' , 'deleted_at' , 
-        'completed_by' , 'completed_at'
+        'cpny_id', 'ponbr', 'po_no', 'csid', 'sppbjktid', 'cs_no', 'sppbjkt_no', 'inventory_type', 'inventory_sub_type', 
+        'inventory_category', 'inventoryid', 'inventory_descr', 'qty', 'uom', 'siteid', 'type_multiplier', 'base_multiplier', 
+        'base_qty', 'base_uom', 'budget_perpost', 'budget_cpny_id', 
+        'budget_business_unit_id', 'budget_department_fin_id', 'budget_account_id', 'budget_activity_id', 
+        'budget_activity_descr', 'openordered', 'ordered', 'rejectordered', 'completeordered', 'status', 
+        'created_by', 'created_at', 'updated_by', 'updated_at', 'deleted_by', 'deleted_at', 'completed_by', 'completed_at'
     ];
 
     protected $casts = [

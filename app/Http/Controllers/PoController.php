@@ -291,12 +291,13 @@ class PoController extends Controller
 
         $po->status     = 'D';
         $po->updated_by = Auth::user()->username ?? 'system';
+        $po->updated_at = Carbon::now();
 
-        // simpan reason ke ponote (append)
+        // simpan reason ke ponote (append) 
         $stamp = Carbon::now()->format('d/m/Y H:i');
         $who   = Auth::user()->username ?? 'user';
         $reasonLine = "CANCEL REUSE: ".$data['reason'];       
-        $po->reuse = $who;
+        $po->reuse = true;
         $po->reuse_at = $stamp;
         $po->save();
 
@@ -334,6 +335,7 @@ class PoController extends Controller
 
         $po->status     = 'X';
         $po->updated_by = Auth::user()->username ?? 'system';
+        $po->updated_at = Carbon::now();
 
         // simpan reason ke ponote (append)
         $stamp = Carbon::now()->format('d/m/Y H:i');
