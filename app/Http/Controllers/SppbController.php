@@ -34,6 +34,8 @@ use Google\Cloud\Storage\StorageClient;
 use App\Http\Controllers\ApprovalController;
 use App\Models\TrApproval;
 use App\Models\SysUserRole;
+use App\Models\MsSite;
+
 
 class SppbController extends Controller
 {
@@ -237,7 +239,7 @@ class SppbController extends Controller
         $item_types    = $request->input('item_type', []);
         // $item_categories = $request->input('item_category', []);
         $siteids        = $request->input('siteid', []);        
-
+        
         $purchaseUnits    = $request->input('purchase_unit', []);     // dari hidden purchase_unit[]
         $uomMultDivs      = $request->input('uom_unitmultdiv', []);   // 'M' atau 'D'
         $uomRates         = $request->input('uom_unitrate', []);      // bisa "12", "12,5", "12.000",
@@ -368,6 +370,27 @@ class SppbController extends Controller
             $totalQty         = 0;
             $totalOpenOrdered = 0;
             $rowCount = max(count($inventoryIds), count($qtys));
+
+            // ===== default site fallback (ambil sekali per header cpny) =====
+            $defaultSiteId = null;
+            try {
+                $defaultSiteId = MsSite::query()
+                    ->where('cpny_id', $request->cpnyid)
+                    ->where(function($q){
+                        $q->where('site_default', true)
+                        ->orWhere('site_default', 'true')
+                        ->orWhere('site_default', 1)
+                        ->orWhere('site_default', '1');
+                    })
+                    ->value('siteid'); // langsung ambil siteid saja
+            } catch (\Throwable $e) {
+                // optional: log saja, jangan hentikan proses
+                \Log::warning('Failed to get default site', [
+                    'cpnyid' => $request->cpnyid,
+                    'err' => $e->getMessage(),
+                ]);
+            }
+           
            
             for ($i = 0; $i < $rowCount; $i++) {
                 $invId = $inventoryIds[$i] ?? null;
@@ -396,12 +419,21 @@ class SppbController extends Controller
                     $baseQty = $qty / $rate;
                 }
 
+                $siteFromForm = trim((string)($siteids[$i] ?? ''));
+                $finalSiteId  = $siteFromForm !== '' ? $siteFromForm : $defaultSiteId;
+
+                // optional: kalau wajib
+                if (empty($finalSiteId)) {
+                    throw new \Exception("SiteID kosong dan default site tidak ditemukan untuk Company {$request->cpnyid}.");
+                }
+
                 $detail = new TrSPPBdetail();
                 $detail->sppbid                   = $docid;
                 $detail->sppb_no                  = $i + 1;   // nomor urut detail
                 $detail->inventoryid              = $invId;
                 $detail->inventory_descr          = $productName;
-                $detail->siteid                   = $siteids[$i] ?? null;
+                // $detail->siteid                   = $siteids[$i] ?? null;
+                $detail->siteid                   = $finalSiteId;
                 $detail->qty                      = $qty;
                 $detail->uom                      = $uom;
                 $detail->note                     = $notes[$i]   ?? null;
@@ -755,7 +787,7 @@ class SppbController extends Controller
 
     public function updateSppb(Request $request, $hash)
     {
-        dd($request->all()); // matikan agar eksekusi lanjut
+        // dd($request->all()); // matikan agar eksekusi lanjut
 
         $id = Hashids::decode($hash)[0] ?? null;
         abort_if(!$id, 404, 'PB tidak ditemukan.');

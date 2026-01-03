@@ -57,7 +57,7 @@ class ReceiptController extends Controller
         // qty_sisa = max(qty - qty_received + qty_return, 0)
         $details = TrPOdetail::select([
             'id','ponbr',
-            'inventoryid','inventory_descr','siteid',
+            'inventoryid','inventory_descr','siteid','inventory_type',
             DB::raw("COALESCE(uom,'')               AS uom"),
             DB::raw("COALESCE(qty,0)                AS qty_original"),
             DB::raw("COALESCE(qty_received,0)       AS qty_received"),

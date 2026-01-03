@@ -1487,8 +1487,8 @@
                 if (woid) {
                     // ==== Mode pakai WO ====
                     coaState.woid = woid;
-                    coaState.cpnyid = null;
-                    coaState.deptid = null;
+                    coaState.cpnyid = cpny;
+                    coaState.deptid = dept;
                     coaState.perpost = null;
                 } else {
                     // ==== Mode pakai cpnyid + deptid biasa ====
@@ -1542,6 +1542,8 @@
 
                 const params = coaState.woid ? {
                     woid: coaState.woid,
+                    cpnyid: coaState.cpnyid,
+                    deptid: coaState.deptid,
                     search: coaState.search,
                     page: coaState.page,
                     per_page: coaState.per_page

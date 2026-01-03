@@ -236,7 +236,7 @@
                                                             class="qtyReceipt w-28 rounded border border-gray-300 p-1 text-right dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
                                                             inputmode="decimal" autocomplete="off" placeholder="0,00" />
                                                     </td>
-                                                    <td class="px-4 py-2">
+                                                    {{-- <td class="px-4 py-2">
                                                         <select name="siteid[{{ $d->id }}]"
                                                             class="siteSelect w-full rounded border border-gray-300 p-1 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
                                                             data-cpny-id="{{ $po->cpny_id }}"
@@ -250,7 +250,40 @@
                                                                 </option>
                                                             @endif
                                                         </select>
+                                                    </td> --}}
+                                                    <td class="px-4 py-2">
+                                                        @php
+                                                            $invType = strtoupper(trim((string)($d->inventory_type ?? '')));
+                                                            $isGI = ($invType === 'GI');
+                                                        @endphp
+
+                                                        @if(!$isGI)
+                                                            {{-- NON-GI: tampil text dari TrPOdetail.siteid --}}
+                                                            <input type="text"
+                                                                value="{{ $d->siteid }}"
+                                                                readonly
+                                                                class="w-full rounded border border-gray-300 bg-gray-50 p-1 text-sm text-gray-800 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
+                                                            />
+                                                            {{-- tetap kirim ke server supaya store tidak bingung --}}
+                                                            <input type="hidden" name="siteid[{{ $d->id }}]" value="{{ $d->siteid }}">
+                                                        @else
+                                                            {{-- GI: tetap pakai select dan wajib dipilih --}}
+                                                            <select name="siteid[{{ $d->id }}]"
+                                                                class="siteSelect w-full rounded border border-gray-300 p-1 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
+                                                                data-cpny-id="{{ $po->cpny_id }}"
+                                                                data-current-site="{{ $d->siteid }}"
+                                                                data-loaded="0"
+                                                                aria-label="Select site for {{ $d->inventoryid }}"
+                                                                required>
+                                                                @if ($d->siteid)
+                                                                    <option value="{{ $d->siteid }}" selected>{{ $d->siteid }}</option>
+                                                                @else
+                                                                    <option value="" selected disabled>Select site…</option>
+                                                                @endif
+                                                            </select>
+                                                        @endif
                                                     </td>
+
                                                     <td class="px-4 py-2">
                                                         <input type="text" name="detail_note[{{ $d->id }}]"
                                                             class="w-48 rounded border border-gray-300 p-1 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
@@ -542,14 +575,33 @@
             }
 
             // Event: saat select di-FOCUS atau di-KLIK → load data jika belum loaded
+            // $(document).on('focus click', '.siteSelect', async function() {
+            //     const $sel = $(this);
+            //     if ($sel.data('loaded') === 1) return;
+
+            //     const cpnyId = $sel.data('cpny-id');
+            //     const current = $sel.data('current-site') || $sel.val() || '';
+
+            //     // Optional UX: tampilkan placeholder loading
+            //     const prevHtml = $sel.html();
+            //     $sel.html('<option disabled selected>Loading…</option>');
+
+            //     const sites = await fetchSites(cpnyId);
+            //     populateSelectOptions($sel, sites, current);
+
+            //     $sel.data('loaded', 1);
+            // });
             $(document).on('focus click', '.siteSelect', async function() {
                 const $sel = $(this);
+
+                // ✅ guard: kalau select disabled/hidden, skip
+                if ($sel.is(':disabled') || $sel.is(':hidden')) return;
+
                 if ($sel.data('loaded') === 1) return;
 
                 const cpnyId = $sel.data('cpny-id');
                 const current = $sel.data('current-site') || $sel.val() || '';
 
-                // Optional UX: tampilkan placeholder loading
                 const prevHtml = $sel.html();
                 $sel.html('<option disabled selected>Loading…</option>');
 
@@ -558,6 +610,7 @@
 
                 $sel.data('loaded', 1);
             });
+
         });
     </script>
 

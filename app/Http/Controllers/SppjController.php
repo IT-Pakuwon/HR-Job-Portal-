@@ -37,7 +37,7 @@ use App\Models\TrAttachment;
 use Google\Cloud\Storage\StorageClient;
 use App\Http\Controllers\ApprovalController;
 use App\Models\TrApproval;
-
+use App\Models\MsSite;
 
 class SppjController extends Controller
 {
@@ -363,6 +363,26 @@ class SppjController extends Controller
             $totalQty         = 0;
             $totalOpenOrdered = 0;
             $rowCount = max(count($inventoryIds), count($qtys));
+
+            // ===== default site fallback (ambil sekali per header cpny) =====
+            $defaultSiteId = null;
+            try {
+                $defaultSiteId = MsSite::query()
+                    ->where('cpny_id', $request->cpnyid)
+                    ->where(function($q){
+                        $q->where('site_default', true)
+                        ->orWhere('site_default', 'true')
+                        ->orWhere('site_default', 1)
+                        ->orWhere('site_default', '1');
+                    })
+                    ->value('siteid'); // langsung ambil siteid saja
+            } catch (\Throwable $e) {
+                // optional: log saja, jangan hentikan proses
+                \Log::warning('Failed to get default site', [
+                    'cpnyid' => $request->cpnyid,
+                    'err' => $e->getMessage(),
+                ]);
+            }
            
             for ($i = 0; $i < $rowCount; $i++) {
                 $invId = $inventoryIds[$i] ?? null;
@@ -391,11 +411,20 @@ class SppjController extends Controller
                     $baseQty = $qty / $rate;
                 }
 
+                $siteFromForm = trim((string)($siteids[$i] ?? ''));
+                $finalSiteId  = $siteFromForm !== '' ? $siteFromForm : $defaultSiteId;
+
+                // optional: kalau wajib
+                if (empty($finalSiteId)) {
+                    throw new \Exception("SiteID kosong dan default site tidak ditemukan untuk Company {$request->cpnyid}.");
+                }
+
                 $detail = new TrSPPJdetail();
                 $detail->sppjid                   = $docid;
                 $detail->sppj_no                  = $i + 1;   // nomor urut detail
                 $detail->inventoryid              = $invId;
                 $detail->inventory_descr          = $productName;
+                $detail->siteid                   = $finalSiteId;
                 $detail->qty                      = $qty;
                 $detail->uom                      = $uom;
                 $detail->note                     = $notes[$i]   ?? null;

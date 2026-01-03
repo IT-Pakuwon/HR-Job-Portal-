@@ -37,6 +37,7 @@ use App\Models\Bq;
 use App\Models\TrPoLastPrice;
 use App\Models\MsInventory;
 use App\Models\TrReceipt;
+use App\Models\MsEmailCcRule;
 
 
 class PoController extends Controller
@@ -295,6 +296,8 @@ class PoController extends Controller
         $stamp = Carbon::now()->format('d/m/Y H:i');
         $who   = Auth::user()->username ?? 'user';
         $reasonLine = "CANCEL REUSE: ".$data['reason'];       
+        $po->reuse = $who;
+        $po->reuse_at = $stamp;
         $po->save();
 
         // Insert detail ke tabel Reuse
@@ -316,7 +319,7 @@ class PoController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Status diubah menjadi REUSE (R).'
+            'message' => 'PO telah di-REUSE (C).'
         ]);
     }
 
@@ -864,12 +867,13 @@ class PoController extends Controller
         ]);
     }
 
-      
-    public function sendNowPO_xxx(Request $req, string $ponbr)
+
+    
+
+    public function sendNowPO(Request $req, string $ponbr)
     {
         $authUser = Auth::user();
 
-        // 1) Validasi payload
         $data = $req->validate([
             'from'    => ['required','email'],
             'to'      => ['required'],
@@ -879,17 +883,15 @@ class PoController extends Controller
             'html'    => ['required','string'],
         ]);
 
-        // 2) Ambil PO + detail + data untuk view
-        $po = TrPO::where('ponbr', $ponbr)->firstOrFail();
+        $po       = TrPO::where('ponbr', $ponbr)->firstOrFail();
         $podetail = TrPOdetail::where('ponbr', $po->ponbr)->orderBy('cs_no')->get();
 
-        $dpp   = $po->totalamt;
-        $ppn   = $po->taxamt;
-        $grand = $po->grandtotalamt;
+        $dpp       = $po->totalamt;
+        $ppn       = $po->taxamt;
+        $grand     = $po->grandtotalamt;
         $terbilang = ucfirst($this->terbilang($grand)) . ' rupiah';
-        $company = MsCompany::where('cpny_id', $po->cpny_id)->first();
+        $company   = MsCompany::where('cpny_id', $po->cpny_id)->first();
 
-        // tampilkan nama pembuat/pengirim
         $purchaser = ucwords(strtolower($authUser->name));
 
         $viewData = [
@@ -904,45 +906,96 @@ class PoController extends Controller
             'purchaser' => $purchaser,
         ];
 
-        // 3) Tentukan display name pengirim (sesudah $po ada)
-        $senderName = User::where('notification_email', $data['from'])->value('name');
-        if (!$senderName) {
-            $senderName = User::where('username', $po->created_by)->value('name');
-        }
-        if (!$senderName && Auth::check()) {
-            $senderName = Auth::user()->name ?? Auth::user()->fullname ?? null;
-        }
-        $senderName = $senderName ?: 'Pakuwon System';
+        $senderName = User::where('notification_email', $data['from'])->value('name')
+            ?: User::where('username', $po->created_by)->value('name')
+            ?: (Auth::check() ? (Auth::user()->name ?? Auth::user()->fullname) : null)
+            ?: 'Pakuwon System';
 
-        // 4) Normalisasi daftar email
+        // Normalisasi + validasi email
         $norm = function ($v) {
             if (!$v) return [];
-            if (is_array($v)) return array_values(array_unique(array_filter(array_map('trim',$v))));
-            return array_values(array_unique(array_filter(array_map('trim', preg_split('/[,;]+/', $v)))));
+            $arr = is_array($v)
+                ? $v
+                : preg_split('/[,;]+/', (string)$v);
+
+            $arr = array_values(array_unique(array_filter(array_map('trim', $arr))));
+            // filter valid email
+            $arr = array_values(array_filter($arr, fn($e) => filter_var($e, FILTER_VALIDATE_EMAIL)));
+            return $arr;
         };
+
         $to  = $norm($data['to']);
-        $cc  = $norm($data['cc'] ?? []);
-        $bcc = $norm($data['bcc'] ?? []);
         if (empty($to)) {
             return response()->json(['success'=>false,'message'=>'Field "To" wajib diisi.'], 422);
         }
 
-        // 5) Kumpulkan attachment dari tabel Attachment
-        $attachments = Attachment::where('docid', $po->ponbr)->where('status','A')->get();
-        $filePaths = [];
-        foreach ($attachments as $row) {
-            $year = $row->created_at ? Carbon::parse($row->created_at)->year : Carbon::now()->year;
-            $path = public_path("attachments/{$year}/{$row->attachfile}");
-            if (is_file($path)) $filePaths[] = $path;
+        // =========================
+        // CC dari table (default cc rules)
+        // =========================
+        $ccFromTable = MsEmailCcRule::query()
+            ->where('status', 'A')
+            ->where('cpny_id', $po->cpny_id)
+            // ->where('department_id', $po->department_id) // pastikan kolom PO = department_id
+            ->pluck('email')
+            ->map(fn($e) => trim((string)$e))
+            ->filter(fn($e) => filter_var($e, FILTER_VALIDATE_EMAIL))
+            ->values()
+            ->all();
+
+        // CC dari request (kalau ada)
+        $ccFromRequest = $norm($data['cc'] ?? []);
+
+        // merge + unique
+        $cc  = array_values(array_unique(array_merge($ccFromTable, $ccFromRequest)));
+
+        $bcc = $norm($data['bcc'] ?? []);
+
+        // ===== lampiran GCS (bagian kamu tetap) =====
+        $rows = TrAttachment::where('refnbr', $po->ponbr)
+            ->where('status', 'A')
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        $config      = config('filesystems.disks.gcs');
+        $keyFilePath = $config['key_file'];
+        if (!Str::startsWith($keyFilePath, ['/', 'C:\\', 'D:\\'])) {
+            $keyFilePath = base_path($keyFilePath);
+        }
+        $storage = new StorageClient([
+            'projectId'   => $config['project_id'],
+            'keyFilePath' => $keyFilePath,
+        ]);
+        $bucket = $storage->bucket($config['bucket']);
+
+        $gcsAttachments = [];
+        foreach ($rows as $r) {
+            $objectPath = rtrim((string)$r->folder, '/').'/'.(string)$r->filename;
+            try {
+                $object = $bucket->object($objectPath);
+                if ($object->exists()) {
+                    $binary = $object->downloadAsString();
+                    $name = $r->attachment_name ?: basename($objectPath);
+                    $mime = $r->mimetype ?? ($object->info()['contentType'] ?? 'application/octet-stream');
+
+                    $gcsAttachments[] = [
+                        'data' => $binary,
+                        'name' => $name,
+                        'mime' => $mime,
+                    ];
+                } else {
+                    \Log::warning('GCS object not found', ['path' => $objectPath]);
+                }
+            } catch (\Throwable $e) {
+                \Log::warning('GCS download failed', ['path' => $objectPath, 'error' => $e->getMessage()]);
+            }
         }
 
-        // 6) Generate PDF + tambahkan footer "Created by..." dan "Page X of Y"
+        // ===== generate PDF (bagian kamu tetap) =====
         $view = $po->potype === 'PO' ? 'pages.purchase.pdf_po' : 'pages.purchase.pdf_spk';
-        $pdf  = Pdf::loadView($view, $viewData)->setPaper('A4', 'portrait');
+        $pdf  = PDF::loadView($view, $viewData)->setPaper('A4', 'portrait');
 
-        /** @var \Dompdf\Dompdf $dompdf */
         $dompdf = $pdf->getDomPDF();
-        $dompdf->render(); // wajib supaya {PAGE_COUNT} tersedia
+        $dompdf->render();
 
         $canvas  = $dompdf->get_canvas();
         $w       = $canvas->get_width();
@@ -957,39 +1010,43 @@ class PoController extends Controller
         $rightTpl  = "Page {PAGE_NUM} of {PAGE_COUNT}";
         $rightW    = $metrics->getTextWidth($rightTpl, $font, $size);
 
-        $y = $h - 28;                 // ~10mm dari bawah
-        // $pad = 20;                    // margin horizontal
-        $pad = $canvas->get_width() - $w - 75;
-        $canvas->page_text(20, $y, $leftTxt,  $font, $size, [0,0,0]);                 // kiri
-        $canvas->page_text($w - $pad - $rightW, $y, $rightTpl, $font, $size, [0,0,0]);  // kanan
+        $y = $h - 28;
+        $x = $canvas->get_width() - $w - 75;
 
-        $pdfBinary = $dompdf->output(); // ambil binary SETELAH footer ditulis
+        $canvas->page_text(20, $y, $leftTxt, $font, $size, [0,0,0]);
+        $canvas->page_text($w - $x - $rightW - 20, $y, $rightTpl, $font, $size, [0,0,0]);
+
+        $pdfBinary = $dompdf->output();
         $pdfName   = ($po->potype === 'PO' ? 'PO' : 'SPK') . "_{$po->ponbr}.pdf";
 
-        // 7) Kirim email
-        Mail::html($data['html'], function ($message) use ($data, $to, $cc, $bcc, $pdfBinary, $pdfName, $filePaths, $senderName) {
+        // ===== kirim email =====
+        Mail::html($data['html'], function ($message) use ($data, $to, $cc, $bcc, $pdfBinary, $pdfName, $gcsAttachments, $senderName) {
             $message->from($data['from'], $senderName);
             $message->to($to);
+
+            // ✅ cc hasil merge table + request
             if (!empty($cc))  $message->cc($cc);
             if (!empty($bcc)) $message->bcc($bcc);
+
             $message->subject($data['subject']);
 
-            // attach PDF hasil render + footer
             $message->attachData($pdfBinary, $pdfName, ['mime' => 'application/pdf']);
 
-            // attach file-file existing
-            foreach ($filePaths as $path) {
-                $message->attach($path);
+            foreach ($gcsAttachments as $att) {
+                $message->attachData($att['data'], $att['name'], ['mime' => $att['mime'] ?? 'application/octet-stream']);
             }
         });
 
         return response()->json([
             'success' => true,
-            'message' => 'Email sudah dikirim beserta lampiran.'
+            'message' => 'Email sudah dikirim beserta lampiran PDF & file dari GCS.',
+            'cc_used' => $cc, // opsional untuk debugging
         ]);
     }
 
-    public function sendNowPO(Request $req, string $ponbr) 
+      
+   
+    public function sendNowPO_tanpa_cc(Request $req, string $ponbr) 
     {
         $authUser = Auth::user();
 
@@ -1307,6 +1364,137 @@ class PoController extends Controller
     }
 
     private function insertPOReuse($po)
+    {
+        $user     = Auth::user();
+        $username = $user->username ?? 'system';
+
+        // Ambil semua detail PO
+        $details = \App\Models\TrPOdetail::where('ponbr', $po->ponbr)->get();
+
+        if ($details->isEmpty()) {
+            return;
+        }
+
+        foreach ($details as $d) {
+
+            // =========================
+            // Hitung sisa qty (yang boleh di-reuse)
+            // =========================
+            $qty          = (float) ($d->qty ?? 0);
+            $qtyReceived  = (float) ($d->qty_received ?? 0);
+            $qtyReturn    = (float) ($d->qty_return ?? 0);
+            $qtyCompleted = (float) ($d->qty_completed ?? 0);
+
+            /**
+             * Definisi "sisa" yang aman:
+             * - qty_completed = sudah selesai (tidak boleh reuse)
+             * - qty_return = balik/retur (anggap tidak boleh reuse)
+             * - qty_received biasanya tidak mengurangi sisa order (karena received belum tentu completed),
+             *   tapi user minta ikut dicek -> kita jadikan guard supaya sisa tidak lebih kecil dari yang sudah received.
+             *
+             * Jadi baseline: qty - completed - return
+             */
+            $remaining = $qty - $qtyCompleted - $qtyReturn;
+
+            // Guard: tidak boleh kurang dari 0
+            if ($remaining < 0) {
+                $remaining = 0;
+            }
+
+            // Guard tambahan sesuai request: kalau sudah received melebihi remaining, remaining jangan lebih kecil dari (qty - received - return - completed)
+            // (ini mencegah reuse qty yang sudah fisik diterima, jika itu memang aturan bisnis kamu)
+            $remainingByReceived = $qty - $qtyReceived - $qtyReturn - $qtyCompleted;
+            if ($remainingByReceived < 0) {
+                $remainingByReceived = 0;
+            }
+
+            // pilih yang paling konservatif (paling kecil) supaya aman
+            $remaining = min($remaining, $remainingByReceived);
+
+            // Kalau tidak ada sisa → skip
+            if ($remaining <= 0) {
+                continue;
+            }
+
+            // =========================
+            // Hitung sisa base qty (kalau kamu pakai base_qty)
+            // =========================
+            $baseQty          = (float) ($d->base_qty ?? 0);
+            $baseQtyReceived  = (float) ($d->base_qty_received ?? 0);
+            $baseQtyReturn    = (float) ($d->base_qty_return ?? 0);
+            $baseQtyCompleted = (float) ($d->base_qty_completed ?? 0);
+
+            $baseRemaining = $baseQty - $baseQtyCompleted - $baseQtyReturn;
+            if ($baseRemaining < 0) $baseRemaining = 0;
+
+            $baseRemainingByReceived = $baseQty - $baseQtyReceived - $baseQtyReturn - $baseQtyCompleted;
+            if ($baseRemainingByReceived < 0) $baseRemainingByReceived = 0;
+
+            $baseRemaining = min($baseRemaining, $baseRemainingByReceived);
+
+            // kalau base_qty tidak dipakai/0, fallback proporsional dari remaining
+            if ($baseRemaining <= 0 && $baseQty > 0 && $qty > 0) {
+                $baseRemaining = ($baseQty / $qty) * $remaining;
+            }
+
+            // =========================
+            // Insert TrPOReuse (qty = sisa)
+            // =========================
+            \App\Models\TrPOReuse::create([
+                'cpny_id'                  => $po->cpny_id ?? null,
+
+                'ponbr'                    => $d->ponbr,
+                'po_no'                    => $d->po_no,
+                'csid'                     => $d->csid,
+                'cs_no'                    => $d->cs_no,
+                'sppbjktid'                => $d->sppbjktid,
+
+                // ⚠️ ini field di model kamu namanya sppbjktid_no (bukan sppbjktid_no?)
+                // di code lama kamu pakai $d->sppbjktid_no tapi key insert pakai 'sppbjkt_no'
+                // aku samakan jadi sppbjktid_no -> sppbjktid_no (sesuaikan kolom TrPOReuse kamu)
+                'sppbjkt_no'               => $d->sppbjktid_no,
+
+                'inventory_type'           => $d->inventory_type,
+                'inventory_sub_type'       => $d->inventory_sub_type,
+                'inventory_category'       => $d->inventory_category,
+                'inventoryid'              => $d->inventoryid,
+                'inventory_descr'          => $d->inventory_descr,
+
+                // ✅ pakai sisa
+                'qty'                      => $remaining,
+                'uom'                      => $d->uom,
+                'siteid'                   => $d->siteid,
+
+                'type_multiplier'          => $d->type_multiplier,
+                'base_multiplier'          => $d->base_multiplier,
+                'base_qty'                 => $baseRemaining,
+                'base_uom'                 => $d->base_uom,
+
+                'budget_perpost'           => $d->budget_perpost,
+                'budget_cpny_id'           => $d->budget_cpny_id,
+                'budget_business_unit_id'  => $d->budget_business_unit_id,
+                'budget_department_fin_id' => $d->budget_department_fin_id,
+                'budget_account_id'        => $d->budget_account_id,
+                'budget_activity_id'       => $d->budget_activity_id,
+                'budget_activity_descr'    => $d->budget_activity_descr,
+
+                // default openordered/ordered dkk
+                'openordered'              => $remaining,
+                'ordered'                  => 0,
+                'rejectordered'            => 0,
+                'completeordered'          => 0,
+
+                'status'                   => 'D', // reuse
+                'created_by'               => $username,
+                // created_at otomatis kalau TrPOReuse pakai timestamps=true,
+                // tapi kalau tidak, ini aman:
+                'created_at'               => now(),
+            ]);
+        }
+    }
+
+
+    private function insertPOReuse_xxx($po)
     {
         $user     = Auth::user();
         $username = $user->username ?? 'system';

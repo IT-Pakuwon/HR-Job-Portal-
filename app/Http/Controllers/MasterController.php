@@ -867,6 +867,192 @@ class MasterController extends Controller
 
     public function CoaBudgetWo(Request $request)
     {
+        $woid    = trim((string) $request->get('woid', ''));
+        $cpnyid  = $request->get('cpnyid');
+        $deptid  = $request->get('deptid');
+        $search  = trim((string) $request->get('search', ''));
+        $page    = max((int) $request->get('page', 1), 1);
+        $perPage = min(max((int) $request->get('per_page', 10), 1), 100);
+
+        if ($woid === '') {
+            return response()->json(['message' => 'WOID is required.'], 422);
+        }
+
+        // =========================================================
+        // 1) Ambil WO + join COA + join Activity (buat descr)
+        // =========================================================
+        $wo = TrWO::query()
+            ->from('tr_wo as w') // sesuaikan nama tabel sebenarnya kalau beda
+            ->leftJoin('ms_coa as c', function ($j) {
+                $j->on('c.account_id', '=', 'w.budget_account_id')
+                ->on('c.cpny_id', '=', 'w.cpny_id');
+            })
+            ->leftJoin('ms_activity as a', function ($j) {
+                $j->on('a.activity_id', '=', 'w.budget_activity_id')
+                ->on('a.cpny_id', '=', 'w.cpny_id');
+            })
+            ->where('w.woid', $woid)
+            ->first([
+                'w.woid',
+                'w.cpny_id',
+                'w.department_id',
+                'w.budget_perpost',
+                'w.budget_account_id',
+                'w.budget_activity_id',
+                'w.budget_activity_descr',       // dari WO (kalau ada)
+                'w.budget_business_unit_id',
+                'w.budget_department_fin_id',
+                'w.budget_use',
+                'c.account_descr as account_descr',
+                'a.activity_descr as act_descr',
+                'w.pic_department',
+            ]);
+            
+        if (!$wo) {
+            return response()->json(['message' => 'WO not found.'], 404);
+        }
+
+        $meta = [
+            'woid'    => $wo->woid,
+            'cpnyid'  => $wo->cpny_id,
+            'deptid'  => $wo->department_id,
+            'perpost' => $wo->budget_perpost,
+            'budget_use' => $wo->budget_use,
+        ];
+
+        $budgetUse = strtoupper(trim((string) ($wo->budget_use ?? '')));
+
+        // =========================================================
+        // 2) INTERNAL -> ambil dari TrWO (single row)
+        // =========================================================
+        if ($budgetUse === 'INTERNAL') {
+            $row = (object) [
+                'account_id'        => $wo->budget_account_id,
+                'account_descr'     => $wo->account_descr,                 // ✅ dari ms_coa
+                'activity_id'       => $wo->budget_activity_id,
+                'activity_descr'    => $wo->budget_activity_descr,         // dari WO
+                'act_descr'         => $wo->act_descr,                     // ✅ dari ms_activity
+                'business_unit_id'  => $wo->budget_business_unit_id,
+                'department_fin_id' => $wo->budget_department_fin_id,
+                'totalbudget'       => null, // internal: biasanya bukan dari budget table (kalau mau isi dari WO, ganti di sini)
+            ];
+
+            // search sederhana untuk 1 row
+            if ($search !== '') {
+                $haystack = implode(' ', array_map('strval', [
+                    $row->account_id,
+                    $row->account_descr,
+                    $row->activity_id,
+                    $row->activity_descr,
+                    $row->act_descr,
+                    $row->business_unit_id,
+                    $row->department_fin_id,
+                ]));
+
+                if (stripos($haystack, $search) === false) {
+                    return response()->json([
+                        'meta'     => $meta,
+                        'data'     => [],
+                        'total'    => 0,
+                        'page'     => $page,
+                        'per_page' => $perPage,
+                    ]);
+                }
+            }
+
+            return response()->json([
+                'meta'     => $meta,
+                'data'     => [$row],
+                'total'    => 1,
+                'page'     => 1,
+                'per_page' => $perPage,
+            ]);
+
+        } else {              
+
+            $perpost = $wo->budget_perpost;    
+           
+            $msdepartment = MsDepartment::query()
+                ->where('department_id', $wo->pic_department)  
+                ->where('status', 'A')          
+                ->first(['department_fin_id']);
+            
+            $deptFin = $msdepartment->department_fin_id;
+           
+            // Header budget harus completed
+            $budget = Budget::query()
+                ->where('status', 'C')
+                ->where('cpny_id', $cpnyid)
+                ->where('department_fin_id', $deptFin)
+                ->when($perpost, fn ($q) => $q->where('perpost', $perpost))
+                ->first();
+
+            if (!$budget) {
+                return response()->json([
+                    'meta'     => $meta,
+                    'data'     => [],
+                    'total'    => 0,
+                    'page'     => $page,
+                    'per_page' => $perPage,
+                    'message'  => "Budget belum Completed Approval untuk Company {$cpnyid}, DeptFin {$deptFin}, Perpost {$perpost}.",
+                ]);
+            }
+
+            $q = BudgetDetail::query()
+                ->from('ms_budget as b')
+                ->join('ms_coa as c', function ($j) {
+                    $j->on('c.account_id', '=', 'b.account_id')
+                    ->on('c.cpny_id', '=', 'b.cpny_id');
+                })
+                ->leftJoin('ms_activity as a', function ($j) {
+                    $j->on('a.activity_id', '=', 'b.activity_id')
+                    ->on('a.cpny_id', '=', 'b.cpny_id');
+                })
+                ->where('b.budget_id', $budget->budget_id)
+                ->where('b.cpny_id', $cpnyid)
+                ->where('b.department_fin_id', $deptFin)
+                ->when($perpost, fn ($qq) => $qq->where('b.perpost', $perpost));
+
+            if ($search !== '') {
+                $q->where(function ($w) use ($search) {
+                    $w->where('b.account_id', 'ilike', "%{$search}%")
+                    ->orWhere('c.account_descr', 'ilike', "%{$search}%")
+                    ->orWhere('a.activity_descr', 'ilike', "%{$search}%")
+                    ->orWhere('b.activity_descr', 'ilike', "%{$search}%")
+                    ->orWhere('b.totalbudget::text', 'ilike', "%{$search}%");
+                });
+            }
+
+            $total = (clone $q)->count();
+
+            $rows = $q->orderBy('a.activity_descr')
+                ->offset(($page - 1) * $perPage)
+                ->limit($perPage)
+                ->get([
+                    'b.account_id',
+                    'c.account_descr',                 // ✅ dari ms_coa
+                    'b.activity_id',
+                    'b.activity_descr as activity_descr',
+                    'a.activity_descr as act_descr',   // ✅ dari ms_activity
+                    'b.totalbudget',
+                    'b.business_unit_id',
+                    'b.department_fin_id',
+                ]);
+
+            return response()->json([
+                'meta'     => $meta,
+                'data'     => $rows,
+                'total'    => $total,
+                'page'     => $page,
+                'per_page' => $perPage,
+            ]);
+        }
+    }
+
+
+    public function CoaBudgetWo_xxx(Request $request)
+    {
+        // dd($request->all());
         $woid    = trim($request->get('woid', ''));
         $search  = trim($request->get('search', ''));
         $page    = max((int)$request->get('page', 1), 1);
