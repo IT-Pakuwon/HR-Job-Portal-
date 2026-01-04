@@ -12,9 +12,10 @@ class TrSPPJ extends Model
 
     protected $fillable = [
         'sppjid' , 'sppjdate' , 'cpny_id' , 'department_id' , 'requesttypeid' , 'keperluan' , 'budget_perpost' , 
-        'woid' , 'bqid' , 'is_urgent', 'totalqty' , 'totalopenordered' , 'totalordered' , 'totalrejectordered' , 'totalcompleteordered' , 
-        'assignby' , 'assigndate' , 'assignpurchasing' , 'csjobs' , 'cs' , 'status' , 'created_by' , 'created_at' , 
-        'updated_by' , 'updated_at' , 'deleted_by' , 'deleted_at' , 'completed_by' , 'completed_at'    
+        'woid' , 'bqid' , 'bqtype' , 'is_urgent' , 'totalqty' , 'totalopenordered' , 'totalordered' , 'totalrejectordered' ,
+        'totalcompleteordered' , 'assignby' , 'assigndate' , 'assignpurchasing' , 'csjobs' , 'cs' , 'status' , 
+        'created_by' , 'created_at' , 'updated_by' , 'updated_at' , 'deleted_by' , 'deleted_at' , 
+        'completed_by' , 'completed_at'
     ];
 
     public function requestType()
