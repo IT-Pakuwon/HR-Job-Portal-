@@ -166,13 +166,23 @@
                             </span>
                             {{ $bq->bqid }}
                         </h1>
-                        <h1 class="flex items-center gap-2 text-lg font-bold text-gray-800 dark:text-gray-100">
+                        {{-- <h1 class="flex items-center gap-2 text-lg font-bold text-gray-800 dark:text-gray-100">
                             <span
                                 class="inline-flex items-center rounded-md bg-purple-100 px-2 py-1 text-sm font-semibold text-purple-700">
                                 ID
                             </span>
                             {{ $bq->sppjtid }}
-                        </h1>
+                        </h1> --}}
+
+                        <div class="flex items-center gap-3">
+                            {{-- 
+                            <a href="{{ url('/pdf_sppjs') }}/{{ $hash }}" target="_blank"> --}}
+                            <button
+                                class="inline-flex cursor-pointer items-center gap-2 rounded-full bg-indigo-600 px-4 py-1 text-sm font-semibold text-white transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                                Print PDF
+                            </button>
+                            </a>
+                        </div>
                     </header>
 
                     <div class="flex flex-1 flex-col overflow-y-auto p-4">
@@ -185,6 +195,11 @@
                                 $value = 'break-words font-medium text-gray-900 dark:text-gray-300 sm:flex-1';
 
                                 $fields = [
+                                    [
+                                        'icon' => 'hashtag',
+                                        'label' => 'ID SPPJ',
+                                        'value' => $bq->sppjtid,
+                                    ],
                                     [
                                         'icon' => 'building-office',
                                         'label' => 'Company',
@@ -202,6 +217,7 @@
                                     ],
                                 ];
                             @endphp
+
 
                             {{-- Render Fields --}}
                             @foreach ($fields as $f)
@@ -223,12 +239,12 @@
                 </div>
 
                 {{-- Right Card (Photo Before) --}}
-                <div class="flex flex-col gap-4 bg-white sm:w-1/2 md:w-full dark:bg-gray-800">
+                <div class="flex flex-col gap-4 rounded-xl bg-white sm:w-1/2 md:w-full dark:bg-gray-800">
                     <header
                         class="flex items-center rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
                         <h2 class="text-lg font-semibold text-gray-800 dark:text-gray-100">📸 Photo Before</h2>
                     </header>
-                    
+
                     {{-- Attachment (div grid) --}}
                     <div class="flex-1 overflow-y-auto px-4 py-3">
                         <div id="bqAttachmentGrid"
@@ -395,7 +411,8 @@
             `;
 
                 return `
-                <div class="group relative flex flex-col overflow-hidden rounded-md border border-gray-200 bg-white transition hover:border-gray-500 dark:border-gray-700 dark:bg-gray-800 min-w-[120px]">
+                <div class="p-2 "> 
+                 <div class="group relative flex flex-col overflow-hidden rounded-md border border-gray-200 bg-white transition hover:border-gray-500 dark:border-gray-700 dark:bg-gray-800">
                 <a ${at.url ? `href="${href}" target="_blank"` : ''} class="relative block aspect-square overflow-hidden">
                     ${thumb}
                     <div class="absolute inset-0 bg-black/0 transition group-hover:bg-black/20"></div>
@@ -409,6 +426,7 @@
                     <div class="truncate text-[11px] text-gray-500 dark:text-gray-400" title="${by}">${by}</div>
                     <div class="text-[11px] text-gray-500 dark:text-gray-400 whitespace-nowrap">${dateStr}</div>
                     </div>
+                </div>
                 </div>
                 </div>
             `;

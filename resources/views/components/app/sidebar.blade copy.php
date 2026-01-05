@@ -5,7 +5,7 @@
 
     <!-- Sidebar -->
     <div id="sidebar"
-        class="lg:flex! no-scrollbar lg:sidebar-expanded:w-64 {{ $variant === 'v2' ? 'border-r border-gray-200 dark:border-gray-700/60' : '  ' }} absolute left-0 top-0 z-40 flex h-[100dvh] w-64 shrink-0 flex-col overflow-y-scroll bg-white p-4 transition-all duration-200 ease-in-out lg:static lg:left-auto lg:top-auto lg:w-20 lg:translate-x-0 lg:overflow-y-auto dark:bg-gray-800"
+        class="lg:flex! no-scrollbar lg:sidebar-expanded:w-64 {{ $variant === 'v2' ? 'border-r border-gray-200 dark:border-gray-700/60' : '  ' }} absolute left-0 top-0 z-40 flex h-[100dvh] w-64 shrink-0 flex-col overflow-y-scroll bg-white p-4 transition-all duration-200 ease-in-out lg:static lg:left-auto lg:top-auto lg:w-20 lg:translate-x-0 lg:overflow-y-auto dark:bg-gray-800 break-words"
         :class="{
             'max-lg:translate-x-0': sidebarOpen,
             'max-lg:-translate-x-64': !sidebarOpen,
@@ -226,7 +226,7 @@
                                 auth()->user()->username === 'ariewibisono' ||
                                 auth()->user()->username === 'adefahmi' ||
                                 auth()->user()->username === 'williemhalim')
-                            <li class="py-2 pl-4 pr-3 text-xs font-semibold uppercase tracking-wider text-gray-500 last:mb-0"
+                            <li class="py-2 pl-4 pr-3 text-xs font-semibold uppercase tracking-wider whitespace-normal break-words leading-tight text-gray-500 last:mb-0"
                                 :class="{ 'lg:block': sidebarExpanded, 'lg:hidden': !sidebarExpanded }">
                                 Purchasing
                             </li>

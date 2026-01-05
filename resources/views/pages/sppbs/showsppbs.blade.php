@@ -400,40 +400,40 @@
 
                                 </table>
                                 {{-- Upload attachment (multi) --}}
-                                @if($canUpload)
-                                <div class="border-t border-gray-200 p-4 dark:border-gray-700">
-                                    <form id="sppbAttachmentUploadForm" enctype="multipart/form-data">
-                                        @csrf
-                                        <div class="flex flex-col gap-3 md:flex-row md:items-center">
-                                            <div class="flex-1">
-                                                <label for="sppbAttachFiles"
-                                                    class="mb-2 block text-sm font-semibold text-gray-800 dark:text-gray-200">
-                                                    Upload Attachments
-                                                </label>
-                                                <div class="flex items-center gap-3">
-                                                    <input type="hidden" name="cpnyid"
-                                                        value="{{ $sppb->cpny_id }}">
-                                                    <input type="hidden" name="departementid"
-                                                        value="{{ $sppb->department_id }}">
-                                                    <input type="file" id="sppbAttachFiles" name="attachments[]"
-                                                        multiple
-                                                        class="block w-full cursor-pointer rounded-md border border-gray-300 bg-white px-2 py-[7px] text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" />
-                                                    <button type="button" id="btnUploadSppbAttachment"
-                                                        class="inline-flex h-[36px] items-center justify-center rounded-md bg-indigo-600 px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                                                        Upload
-                                                    </button>
-                                                    <button type="button" id="btnResetSppbAttachment"
-                                                        class="inline-flex h-[36px] items-center justify-center rounded-md border border-gray-300 bg-white px-4 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-400 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">
-                                                        Reset
-                                                    </button>
+                                @if ($canUpload)
+                                    <div class="border-t border-gray-200 p-4 dark:border-gray-700">
+                                        <form id="sppbAttachmentUploadForm" enctype="multipart/form-data">
+                                            @csrf
+                                            <div class="flex flex-col gap-3 md:flex-row md:items-center">
+                                                <div class="flex-1">
+                                                    <label for="sppbAttachFiles"
+                                                        class="mb-2 block text-sm font-semibold text-gray-800 dark:text-gray-200">
+                                                        Upload Attachments
+                                                    </label>
+                                                    <div class="flex items-center gap-3">
+                                                        <input type="hidden" name="cpnyid"
+                                                            value="{{ $sppb->cpny_id }}">
+                                                        <input type="hidden" name="departementid"
+                                                            value="{{ $sppb->department_id }}">
+                                                        <input type="file" id="sppbAttachFiles"
+                                                            name="attachments[]" multiple
+                                                            class="block w-full cursor-pointer rounded-md border border-gray-300 bg-white px-2 py-[7px] text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" />
+                                                        <button type="button" id="btnUploadSppbAttachment"
+                                                            class="inline-flex h-[36px] items-center justify-center rounded-md bg-indigo-600 px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                                            Upload
+                                                        </button>
+                                                        <button type="button" id="btnResetSppbAttachment"
+                                                            class="inline-flex h-[36px] items-center justify-center rounded-md border border-gray-300 bg-white px-4 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-400 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">
+                                                            Reset
+                                                        </button>
+                                                    </div>
+                                                    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                                                        Max 10 files, PDF / Image preferred.
+                                                    </p>
                                                 </div>
-                                                <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                                                    Max 10 files, PDF / Image preferred.
-                                                </p>
                                             </div>
-                                        </div>
-                                    </form>
-                                </div>
+                                        </form>
+                                    </div>
                                 @endif
                             </div>
 
@@ -466,10 +466,9 @@
                 <header
                     class="flex items-center justify-between rounded-t-2xl border-b border-gray-200 bg-white px-6 py-4 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
                     <h2 class="text-xl font-semibold">📝 SPPB Detail</h2>
-                        {{-- Button Edit COA --}}
-                        @if($akses_cc)
-                        <button
-                            id="btnEditCoa"
+                    {{-- Button Edit COA --}}
+                    @if ($akses_cc)
+                        <button id="btnEditCoa"
                             class="inline-flex items-center gap-1 rounded-md bg-indigo-600 px-3 py-2 text-sm font-medium text-white shadow hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                 stroke-width="1.5" stroke="currentColor" class="h-4 w-4">
@@ -478,19 +477,19 @@
                             </svg>
                             Edit COA
                         </button>
-                        @endif
+                    @endif
                 </header>
                 <div class="overflow-x-auto">
                     <table class="w-full text-sm text-gray-700 dark:text-gray-200">
                         <thead class="sticky top-0 z-20 bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300">
                             <tr>
-                                <th class="px-4 py-2">No</th>                               
+                                <th class="px-4 py-2">No</th>
                                 <th class="px-4 py-2">Description / Note</th>
-                                <th class="px-4 py-2">Qty / UoM</th>  
-                                <th class="px-4 py-2">Location</th>                                
-                                <th class="px-4 py-2">Budget Department</th>                                
-                                <th class="px-4 py-2">Ordered</th>    
-                                <th class="px-4 py-2">Rejectordered</th> 
+                                <th class="px-4 py-2">Qty / UoM</th>
+                                <th class="px-4 py-2">Location</th>
+                                <th class="px-4 py-2">Budget Department</th>
+                                <th class="px-4 py-2">Ordered</th>
+                                <th class="px-4 py-2">Rejectordered</th>
                                 <th class="px-4 py-2">Completeordered</th>
                             </tr>
                         </thead>
@@ -498,8 +497,9 @@
                             @foreach ($sppbdetail as $item)
                                 <tr
                                     class="border-t border-gray-200 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800">
-                                    <td class="px-4 py-2">{{ $item->sppb_no }}</td>                                   
-                                    <td class="px-4 py-2">{{ $item->inventory_descr }} ( {{ $item->inventoryid }} )<br>
+                                    <td class="px-4 py-2">{{ $item->sppb_no }}</td>
+                                    <td class="px-4 py-2">{{ $item->inventory_descr }} ( {{ $item->inventoryid }}
+                                        )<br>
                                         <span class="text-xs text-gray-500 dark:text-gray-400">
                                             Note: {{ $item->note }}
                                         </span>
@@ -508,13 +508,18 @@
                                         <span class="text-xs text-gray-500 dark:text-gray-400">
                                             {{ $item->uom }}
                                         </span>
-                                    </td>     
-                                    <td class="px-4 py-2">{{ optional($item->location)->location_name }} - {{ optional($item->subLocation)->sub_location_name }}</td>                                   
-                                    <td class="px-4 py-2">{{ $item->budget_department_fin_id }} - {{ $item->budget_account_id }} - {{ $item->budget_activity_descr }}</td>
-                                    <td class="px-4 py-2">{{ $item->ordered }}</td>
-                                    <td class="px-4 py-2">{{ $item->rejectordered }}</td>
-                                    <td class="px-4 py-2">{{ $item->completeordered }}</td>
-                                   
+                                    </td>
+                                    <td class="px-4 py-2">{{ optional($item->location)->location_name }} -
+                                        {{ optional($item->subLocation)->sub_location_name }}</td>
+                                    <td class="px-4 py-2">{{ $item->budget_department_fin_id }} -
+                                        {{ $item->budget_account_id }} - {{ $item->budget_activity_descr }}</td>
+                                    <td class="px-4 py-2">
+                                        {{ number_format($item->ordered, 2, ',', '.') }}</td>
+                                    <td class="px-4 py-2"> {{ number_format($item->rejectordered, 2, ',', '.') }}
+                                    </td>
+                                    <td class="px-4 py-2"> {{ number_format($item->completeordered, 2, ',', '.') }}
+                                    </td>
+
                                 </tr>
                             @endforeach
                         </tbody>
@@ -523,11 +528,11 @@
             </div>
 
             {{-- Modal Edit COA --}}
-            <div id="editCoaModal"
-                class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40">
+            <div id="editCoaModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40">
                 <div class="w-full max-w-6xl rounded-xl bg-white shadow-lg dark:bg-gray-800">
                     {{-- Header modal --}}
-                    <div class="flex items-center justify-between border-b border-gray-200 px-4 py-3 dark:border-gray-700">
+                    <div
+                        class="flex items-center justify-between border-b border-gray-200 px-4 py-3 dark:border-gray-700">
                         <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-100">
                             Edit COA
                         </h3>
@@ -540,7 +545,8 @@
                     {{-- Body modal: table --}}
                     <div class="max-h-[60vh] overflow-y-auto px-4 py-3">
                         <table class="w-full min-w-max border-separate border-spacing-0 text-sm">
-                            <thead class="bg-gray-100 text-xs font-semibold uppercase tracking-wide text-gray-600 dark:bg-gray-700 dark:text-gray-200">
+                            <thead
+                                class="bg-gray-100 text-xs font-semibold uppercase tracking-wide text-gray-600 dark:bg-gray-700 dark:text-gray-200">
                                 <tr>
                                     <th class="w-64 px-3 py-2 text-left">
                                         Inventory Descr / Note
@@ -558,29 +564,30 @@
                             </thead>
                             <tbody id="editCoaTableBody">
                                 @foreach ($sppbdetail as $row)
-                                    <tr data-row-id="{{ $row->id }}"
-                                        data-cpny="{{ $row->budget_cpny_id }}"
+                                    <tr data-row-id="{{ $row->id }}" data-cpny="{{ $row->budget_cpny_id }}"
                                         data-dept="{{ $row->budget_department_fin_id }}"
                                         data-perpost="{{ $row->budget_perpost }}">
 
                                         <td>{{ $row->inventory_descr }}<br>
                                             <span class="text-xs text-gray-500">Note : {{ $row->note }}</span><br>
-                                            <span class="text-xs text-gray-500">Location : {{ optional($row->location)->location_name }} - {{ optional($row->subLocation)->sub_location_name }}</span>
+                                            <span class="text-xs text-gray-500">Location :
+                                                {{ optional($row->location)->location_name }} -
+                                                {{ optional($row->subLocation)->sub_location_name }}</span>
                                         </td>
 
                                         <td class="text-center">
-                                            {{ number_format($row->qty,2,',','.') }} <br>
+                                            {{ number_format($row->qty, 2, ',', '.') }} <br>
                                             <span class="text-xs text-gray-500">{{ $row->uom }}</span>
                                         </td>
 
                                         <td>{{ $row->budget_activity_descr }}</td>
 
                                         <td>
-                                            <select class="coa-select w-full"
-                                                    data-row-id="{{ $row->id }}">
+                                            <select class="coa-select w-full" data-row-id="{{ $row->id }}">
                                                 @if ($row->budget_account_id)
                                                     <option value="{{ $row->budget_account_id }}" selected>
-                                                        {{ $row->budget_account_id }} - {{ $row->budget_activity_descr }}
+                                                        {{ $row->budget_account_id }} -
+                                                        {{ $row->budget_activity_descr }}
                                                     </option>
                                                 @endif
                                             </select>
@@ -599,7 +606,8 @@
                     </div>
 
                     {{-- Footer modal --}}
-                    <div class="flex items-center justify-end gap-2 border-t border-gray-200 px-4 py-3 dark:border-gray-700">
+                    <div
+                        class="flex items-center justify-end gap-2 border-t border-gray-200 px-4 py-3 dark:border-gray-700">
                         <button id="btnCancelEditCoa"
                             class="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-400 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">
                             Cancel
@@ -1171,7 +1179,7 @@
     </script>
 
     <script>
-        $(function () {
+        $(function() {
             const $modal = $('#editCoaModal');
             const DOC_TYPE = "PB";
 
@@ -1179,7 +1187,7 @@
 
             // === Buka modal Edit COA ===
             // pakai event delegation
-            $(document).on('click', '#btnEditCoa', function () {
+            $(document).on('click', '#btnEditCoa', function() {
                 console.log('[Edit COA] btnEditCoa clicked'); // DEBUG
 
                 $modal.removeClass('hidden').addClass('flex');
@@ -1187,7 +1195,7 @@
             });
 
             // === Tutup modal ===
-            $(document).on('click', '#btnCloseEditCoa, #btnCancelEditCoa', function () {
+            $(document).on('click', '#btnCloseEditCoa, #btnCancelEditCoa', function() {
                 console.log('[Edit COA] close clicked'); // DEBUG
 
                 $modal.addClass('hidden').removeClass('flex');
@@ -1197,7 +1205,7 @@
             function initCoaSelect2() {
                 console.log('%c[Select2] initCoaSelect2 DIPANGGIL', 'color:#4CAF50;font-weight:bold');
 
-                $('.coa-select').each(function () {
+                $('.coa-select').each(function() {
                     const $sel = $(this);
 
                     // Skip kalau sudah di-init
@@ -1206,14 +1214,16 @@
                         return;
                     }
 
-                    const $tr     = $sel.closest('tr');
-                    const cpnyid  = $tr.data('cpny');
-                    const deptid  = $tr.data('dept');
+                    const $tr = $sel.closest('tr');
+                    const cpnyid = $tr.data('cpny');
+                    const deptid = $tr.data('dept');
                     const perpost = $tr.data('perpost');
 
                     console.log('%c[Select2] Init untuk row', 'color:#3498DB', {
                         row_id: $tr.data('row-id'),
-                        cpnyid, deptid, perpost
+                        cpnyid,
+                        deptid,
+                        perpost
                     });
 
                     $sel.select2({
@@ -1226,7 +1236,7 @@
                             dataType: 'json',
                             delay: 250,
 
-                            data: function (params) {
+                            data: function(params) {
                                 const sendData = {
                                     cpnyid,
                                     deptid,
@@ -1235,29 +1245,34 @@
                                     page: params.page || 1,
                                     per_page: 10
                                 };
-                                console.log('%c[Select2][AJAX] SEND DATA →', 'color:#9B59B6', sendData);
+                                console.log('%c[Select2][AJAX] SEND DATA →', 'color:#9B59B6',
+                                    sendData);
                                 return sendData;
                             },
 
-                            processResults: function (res, params) {
-                                console.log('%c[Select2][AJAX] RESPONSE ←', 'color:#1ABC9C', res);
+                            processResults: function(res, params) {
+                                console.log('%c[Select2][AJAX] RESPONSE ←', 'color:#1ABC9C',
+                                    res);
 
                                 params.page = params.page || 1;
 
-                                const results = res.data.map(function (item, idx) {
-                                    const comboId   = item.account_id + "|" + item.activity_descr;
-                                    const comboText = item.account_id + " - " + item.activity_descr;
+                                const results = res.data.map(function(item, idx) {
+                                    const comboId = item.account_id + "|" + item
+                                        .activity_descr;
+                                    const comboText = item.account_id + " - " + item
+                                        .activity_descr;
 
-                                    console.log('%c[Select2] MAP ITEM', 'color:#E74C3C', {
-                                        row_index: idx,
-                                        comboId,
-                                        comboText,
-                                        original: item
-                                    });
+                                    console.log('%c[Select2] MAP ITEM',
+                                        'color:#E74C3C', {
+                                            row_index: idx,
+                                            comboId,
+                                            comboText,
+                                            original: item
+                                        });
 
                                     return {
-                                        id: comboId,            // ⬅️ ID unik
-                                        text: comboText,        // ⬅️ teks
+                                        id: comboId, // ⬅️ ID unik
+                                        text: comboText, // ⬅️ teks
                                         account_id: item.account_id,
                                         activity_descr: item.activity_descr,
                                         activity_id: item.activity_id
@@ -1266,7 +1281,9 @@
 
                                 return {
                                     results,
-                                    pagination: { more: (params.page * res.per_page) < res.total }
+                                    pagination: {
+                                        more: (params.page * res.per_page) < res.total
+                                    }
                                 };
                             },
 
@@ -1275,7 +1292,7 @@
                     });
 
                     // Saat user pilih item baru
-                    $sel.on("select2:select", function (e) {
+                    $sel.on("select2:select", function(e) {
                         console.log('%c[Select2] USER SELECTED', 'color:#2ECC71', {
                             selected: e.params.data,
                             displayed_text: e.params.data.text,
@@ -1284,7 +1301,7 @@
                     });
 
                     // Saat user clear
-                    $sel.on("select2:clear", function () {
+                    $sel.on("select2:clear", function() {
                         console.log('%c[Select2] CLEARED', 'color:#E67E22');
                     });
                 });
@@ -1292,14 +1309,14 @@
 
 
             // === Save COA ===
-            $(document).on('click', '#btnSaveEditCoa', function () {
+            $(document).on('click', '#btnSaveEditCoa', function() {
                 console.log('[Edit COA] Save clicked'); // DEBUG
 
                 let payload = [];
 
-                $('#editCoaTableBody tr').each(function () {
-                    const $tr     = $(this);
-                    const rowId   = $tr.data('row-id');
+                $('#editCoaTableBody tr').each(function() {
+                    const $tr = $(this);
+                    const rowId = $tr.data('row-id');
                     const $select = $tr.find('.coa-select');
 
                     // Data terpilih dari Select2
@@ -1312,8 +1329,8 @@
                         return; // lanjut ke row berikutnya
                     }
 
-                    const accountId     = selected.account_id;        // dari BudgetDetail
-                    const activityDescr = selected.activity_descr;    // dari BudgetDetail
+                    const accountId = selected.account_id; // dari BudgetDetail
+                    const activityDescr = selected.activity_descr; // dari BudgetDetail
 
                     payload.push({
                         id: rowId,
@@ -1330,14 +1347,14 @@
                 }
 
                 $.ajax({
-                    url: "{{ route('coa.update', $sppb->sppbid ?? $sppb->id ?? null) }}",
+                    url: "{{ route('coa.update', $sppb->sppbid ?? ($sppb->id ?? null)) }}",
                     type: 'POST',
                     data: {
                         _token: '{{ csrf_token() }}',
-                        doc_type: DOC_TYPE,   // info dokumen (PB / SPPB / dll)
+                        doc_type: DOC_TYPE, // info dokumen (PB / SPPB / dll)
                         rows: payload
                     },
-                    success: function (res) {
+                    success: function(res) {
                         console.log('[Edit COA] save response', res); // DEBUG
 
                         if (res.success) {
@@ -1348,7 +1365,7 @@
                             toastr.error(res.message || 'Failed to update COA');
                         }
                     },
-                    error: function (xhr) {
+                    error: function(xhr) {
                         console.error('[Edit COA] save error', xhr.responseText);
                         toastr.error('Error updating COA');
                     }

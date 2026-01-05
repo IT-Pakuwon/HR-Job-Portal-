@@ -1,11 +1,17 @@
 <x-authentication-layout>
     <div
-        class="card w-xl mx-auto transform rounded-2xl bg-white p-8 shadow-xl transition-all duration-300 hover:shadow-2xl dark:bg-gray-800">
-        <h2 class="mb-3 text-center text-3xl font-extrabold text-gray-900 md:text-4xl dark:text-gray-100">
-            {{ __('Welcome back 👋 ') }}
-        </h2>
+        class="card w-xl mx-auto transform rounded-xl bg-white p-8 shadow-xl transition-all duration-300 hover:shadow-2xl dark:bg-gray-800">
+        <div class="flex flex-row items-center justify-center gap-6">
+            <img src="{{ asset('logo/logo.png') }}" alt="App Logo" class="mb-3 h-8 w-auto md:h-12">
+
+            <h2 class="text-center text-3xl font-extrabold text-gray-900 md:text-4xl dark:text-gray-100">
+                {{ __('APP SYSTEM') }}
+            </h2>
+        </div>
+
         <p class="mb-8 text-center text-base text-gray-600 dark:text-gray-300">
-            {{ __('Please sign in to your account!') }}
+            {{ __('Welcome back! Please sign in to continue.') }}
+
         </p>
 
         @if (session('status'))
