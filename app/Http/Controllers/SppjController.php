@@ -2328,7 +2328,7 @@ class SppjController extends Controller
             }
 
             $tglbln = substr($year, 2) . $month;
-            $bqid   = $doctype . $tglbln . sprintf('%03d', $urutan);
+            $bqid   = $doctype . $tglbln . sprintf('%04d', $urutan);
 
             $sppj->bqid = $bqid;
             $sppj->save();

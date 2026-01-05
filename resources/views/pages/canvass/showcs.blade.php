@@ -810,10 +810,11 @@
                                                             {{ $row->budget_department_fin_id ?? '-' }} - {{ $row->budget_account_id ?? '-' }}
                                                         </td>     
                                                         <td class="w-32 px-3 py-2 align-top">
-                                                            {{ number_format((float)($row->last_unitcost ?? 0), 2, ',', '.') }}
+                                                            {{ number_format((float)($row->inventory_last_price ?? 0), 2, ',', '.') }}
                                                             <button type="button"
                                                                 class="btn-lastprice inline-flex h-7 w-7 items-center justify-center rounded border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
                                                                 title="View Last Price History"
+                                                                data-csdate="{{ $cs->csdate }}"
                                                                 data-inventoryid="{{ $row->inventoryid }}"
                                                                 data-inventorydescr="{{ $row->inventory_descr ?? '' }}">
                                                                 🔍
@@ -1929,6 +1930,7 @@
         $(document).on('click', '.btn-lastprice', function(){
             const inventoryid = String($(this).data('inventoryid') || '');
             const inventorydescr = String($(this).data('inventorydescr') || '');
+            const csdate = String($(this).data('csdate') || '');
 
             if(!inventoryid){
                 toastr.error('Inventory ID kosong.');
@@ -1945,7 +1947,10 @@
             $.ajax({
                 url: "{{ route('cs.lastprice.history') }}",
                 method: "GET",
-                data: { inventoryid },
+                data: {
+                    inventoryid: inventoryid,
+                    csdate: csdate
+                },
                 success: function(res){
                     $('#lpLoading').addClass('hidden');
 
@@ -1956,9 +1961,19 @@
                     }
 
                     rows.forEach(r => {
+                        const url = `/showpo/${r.eid}`;
                         const tr = `
                             <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
-                                <td class="px-3 py-2">${r.ponbr ?? ''}</td>
+                                <td class="px-3 py-2">
+                                    ${r.eid
+                                        ? `<a href="/showpo/${r.eid}"
+                                            target="_blank"
+                                            class="text-indigo-600 hover:underline font-semibold">
+                                            ${r.ponbr ?? ''}
+                                        </a>`
+                                        : (r.ponbr ?? '')
+                                    }
+                                </td>
                                 <td class="px-3 py-2">${r.podate ?? ''}</td>
                                 <td class="px-3 py-2">${r.csid ?? ''}</td>
                                 <td class="px-3 py-2">${r.vendorname ?? ''}</td>               

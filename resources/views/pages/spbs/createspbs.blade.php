@@ -1979,6 +1979,7 @@
                             status: woState.status, // 'C'
                             worktypeid: woState.worktypeid || '', // <<— kirim worktypeid
                             subworktypeid: woState.subworktypeid || '', // <<— kirim subworktypeid
+                            departmentid: ($('select[name="departementid"]').val() || '').trim(),
                             search: woState.search,
                             page: woState.page,
                             per_page: woState.per_page

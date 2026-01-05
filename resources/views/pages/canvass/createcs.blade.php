@@ -205,6 +205,9 @@
                     <input type="hidden" name="cpny_id" value="{{ $header->cpny_id }}">
                     <input type="hidden" name="department_id" value="{{ $header->department_id }}">
                     <input type="hidden" name="bqid" value="{{ $header->bqid ?? '' }}">
+                    <input type="hidden" name="woid" value="{{ $header->woid ?? '' }}">
+                    <input type="hidden" name="spbid" value="{{ $header->spbid ?? '' }}">
+                    <input type="hidden" name="keperluan" value="{{ $header->keperluan ?? '' }}">
                     {{-- <input type="hidden" name="user_peminta" value="{{ optional($header->creator)->name }}"> --}}
                     <input type="hidden" name="user_peminta" value="{{ $header->created_by }}">
                     <input type="hidden" name="assigndate" value="{{ $header->assigndate ?? '' }}">
@@ -390,7 +393,7 @@
                                     {{-- <div id="lpTitle" class="text-xs text-gray-500 dark:text-gray-300"></div> --}}
                                     <h3 id="lpTitle" class="text-lg font-semibold text-gray-800 dark:text-gray-100"></h3>
                                 </div>
-                                <button id="lastPriceModalClose"
+                                <button type="button" id="lastPriceModalClose"
                                     class="rounded px-2 py-1 text-gray-500 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700">✖</button>
                             </div>
 
@@ -516,7 +519,7 @@
 
                                     <!-- Cancel Button -->
                                     <div class="flex justify-start">
-                                        <button id="cancelBtn"
+                                        <button type="button" id="cancelBtn" 
                                             class="mb-4 mt-4 flex w-full items-center justify-center gap-2 rounded border border-red-700 bg-red-200/10 p-2 text-red-700 hover:border-red-700 hover:bg-red-700 hover:font-medium hover:text-white md:w-auto">
                                             <span id="cancelText">Cancel</span>
                                             <svg id="cancelSpinner" class="hidden h-5 w-5 animate-spin text-white"
@@ -532,7 +535,7 @@
 
                                     <!-- Save Button -->
                                     <div class="flex justify-start">
-                                        <button id="saveBtn"
+                                        <button type="button" id="saveBtn"
                                             class="mb-4 mt-4 flex w-full items-center justify-center gap-2 rounded border border-gray-700 bg-gray-200/10 p-2 text-gray-700 hover:border-gray-700 hover:bg-gray-700 hover:font-medium hover:text-white md:w-auto">
                                             <span id="saveText">Save CS</span>
                                             <svg id="saveSpinner" class="hidden h-5 w-5 animate-spin text-white"
@@ -1858,21 +1861,83 @@
             $('#lpTitle').text('');
         }
 
-        $('#lastPriceModalClose, #lastPriceModalOverlay').on('click', closeLastPriceModal);
+        // $('#lastPriceModalClose, #lastPriceModalOverlay').on('click', closeLastPriceModal);
+        $('#lastPriceModalClose, #lastPriceModalOverlay').on('click', function(e){
+            e.preventDefault();
+            e.stopPropagation();
+            closeLastPriceModal();
+        });
+
         $(document).on('keydown', function(e){
             if(e.key === 'Escape') closeLastPriceModal();
         });
 
-        $(document).on('click', '.btn-lastprice', function(){
+        // $(document).on('click', '.btn-lastprice', function(){
+        //     const inventoryid = String($(this).data('inventoryid') || '');
+        //     const inventorydescr = String($(this).data('inventorydescr') || '');
+
+        //     if(!inventoryid){
+        //         toastr.error('Inventory ID kosong.');
+        //         return;
+        //     }
+
+        //     $('#lpTitle').text(inventoryid + (inventorydescr ? (' — ' + inventorydescr) : ''));
+        //     $('#lpBody').empty();
+        //     $('#lpEmpty').addClass('hidden');
+        //     $('#lpLoading').removeClass('hidden');
+
+        //     openLastPriceModal();
+
+        //     $.ajax({
+        //         url: "{{ route('cs.lastprice.history.entry') }}",
+        //         method: "GET",
+        //         data: { inventoryid },
+        //         success: function(res){
+        //             $('#lpLoading').addClass('hidden');
+
+        //             const rows = (res && res.data) ? res.data : [];
+        //             if(!rows.length){
+        //                 $('#lpEmpty').removeClass('hidden');
+        //                 return;
+        //             }
+
+        //             rows.forEach(r => {
+        //                 const tr = `
+        //                     <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
+        //                         <td class="px-3 py-2">${r.ponbr ?? ''}</td>
+        //                         <td class="px-3 py-2">${r.podate ?? ''}</td>
+        //                         <td class="px-3 py-2">${r.csid ?? ''}</td>
+        //                         <td class="px-3 py-2">${r.vendorname ?? ''}</td>                                
+        //                         <td class="px-3 py-2 text-right font-semibold">${formatNumID(r.unitcost)}</td>
+        //                         <td class="px-3 py-2">${r.purchaser ?? ''}</td>
+        //                     </tr>
+        //                 `;
+        //                 $('#lpBody').append(tr);
+        //             });
+        //         },
+        //         error: function(xhr){
+        //             $('#lpLoading').addClass('hidden');
+        //             const msg = (xhr.responseJSON && xhr.responseJSON.message) ? xhr.responseJSON.message : 'Gagal ambil history.';
+        //             toastr.error(msg);
+        //         }
+        //     });
+        // });
+        $(document).on('click', '.btn-lastprice', function(e){
+            e.preventDefault();
+            e.stopPropagation();
+
             const inventoryid = String($(this).data('inventoryid') || '');
             const inventorydescr = String($(this).data('inventorydescr') || '');
 
-            if(!inventoryid){
+            if (!inventoryid) {
                 toastr.error('Inventory ID kosong.');
                 return;
             }
 
-            $('#lpTitle').text(inventoryid + (inventorydescr ? (' — ' + inventorydescr) : ''));
+            $('#lpTitle').text(
+                inventoryid + (inventorydescr ? (' — ' + inventorydescr) : '')
+            );
+
             $('#lpBody').empty();
             $('#lpEmpty').addClass('hidden');
             $('#lpLoading').removeClass('hidden');
@@ -1880,7 +1945,7 @@
             openLastPriceModal();
 
             $.ajax({
-                url: "{{ route('cs.lastprice.history') }}",
+                url: "{{ route('cs.lastprice.history.entry') }}",
                 method: "GET",
                 data: { inventoryid },
                 success: function(res){
@@ -1908,11 +1973,14 @@
                 },
                 error: function(xhr){
                     $('#lpLoading').addClass('hidden');
-                    const msg = (xhr.responseJSON && xhr.responseJSON.message) ? xhr.responseJSON.message : 'Gagal ambil history.';
+                    const msg = (xhr.responseJSON && xhr.responseJSON.message)
+                        ? xhr.responseJSON.message
+                        : 'Gagal ambil history.';
                     toastr.error(msg);
                 }
             });
         });
+
     </script>
 
 

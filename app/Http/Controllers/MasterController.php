@@ -1538,13 +1538,17 @@ class MasterController extends Controller
         $status        = $request->input('status', 'C');
         $worktypeid    = trim($request->input('worktypeid', ''));
         $subworktypeid = trim($request->input('subworktypeid', ''));
+        $departmentid    = trim($request->input('departmentid', ''));
         $search        = trim($request->input('search', ''));
         $page          = max((int) $request->input('page', 1), 1);
         $perPage       = min(max((int) $request->input('per_page', 10), 1), 100);
 
         $query = TrWO::query()
             ->select('woid', 'wodate', 'created_by', 'department_id', 'worktypeid')
-            ->where('status', $status);
+            ->where('flag_sppbjkt', true) 
+            ->where('status', $status)
+            ->where('status_pekerjaan', 'P')
+            ->where('pic_department', $departmentid);
 
         if ($worktypeid !== '') {
             $query->where('worktypeid', $worktypeid);
@@ -1642,7 +1646,9 @@ class MasterController extends Controller
             ->where('status', 'C') 
             ->where('flag_sppbjkt', true)           
             ->where('cpny_id', $cpnyid)
-            ->where('department_id', $deptid);
+            ->where('status_pekerjaan', 'P')
+            // ->where('department_id', $deptid);
+            ->where('pic_department', $deptid);
             // ->when($perpost, fn($q) => $q->where('perpost', $perpost)); // kalau TrWo punya perpost
 
         if ($search !== '') {

@@ -77,18 +77,18 @@
                 </div>
             </button>
 
-            {{-- Reject --}}
-            <button type="button" class="status-filter group block h-full" data-status="R">
+            {{-- Cancel --}}
+            <button type="button" class="status-filter group block h-full" data-status="X">
                 <div
                     class="status-card flex h-full items-center gap-3 rounded-lg border border-red-700 bg-red-200/20 p-3 text-red-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-red-100 hover:shadow-md active:scale-95">
 
                     <div class="flex h-7 w-7 shrink-0 items-center justify-center text-xl">⛔️</div>
 
                     <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                        <p class="break-words text-base font-medium">Reject</p>
+                        <p class="break-words text-base font-medium">Cancel</p>
                     </div>
 
-                    <p class="shrink-0 text-xl font-extrabold">{{ $reject }}</p>
+                    <p class="shrink-0 text-xl font-extrabold">{{ $cancel }}</p>
                 </div>
             </button>
 

@@ -893,9 +893,39 @@ class CanvassController extends Controller
         $csnote      = $request->input('csnote');
         $assigndate  = $request->input('assigndate');
         $prev_csid   = $request->input('prev_csid');   // kalau ada → CS revisi
+        $spbid       = $request->input('spbid');
+        $woid        = $request->input('woid');
+        $keperluan    = $request->input('keperluan');
 
         $vendors = json_decode($request->input('vendors', '[]'), true) ?: [];
         $details = json_decode($request->input('details', '[]'), true) ?: [];
+
+        // === Ambil inventoryid unik dari payload ===
+        $invIds = collect($details)
+            ->pluck('inventoryid')
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
+
+        // === Ambil harga PO terakhir per inventory ===
+        $lastPriceMap = [];
+
+        if (!empty($invIds)) {
+            $rows = \App\Models\TrPoLastPrice::query()
+                ->select('inventoryid', 'unitcost', 'podate', 'created_at')
+                ->whereIn('inventoryid', $invIds)
+                ->whereNull('deleted_at')
+                ->orderByDesc('podate')
+                ->orderByDesc('created_at')
+                ->get()
+                ->groupBy('inventoryid');
+
+            foreach ($rows as $inventoryid => $items) {
+                $lastPriceMap[$inventoryid] = round((float) ($items->first()->unitcost ?? 0), 2);
+            }
+        }
+
 
         // 3) Context user & waktu
         $user     = $request->user();
@@ -1007,6 +1037,9 @@ class CanvassController extends Controller
             $cs->cpny_id       = $cpnyId;
             $cs->sppbjktid     = $sppbjktid;
             $cs->bqid          = $bqid ?: ($srcHeader->bqid ?? null);
+            $cs->woid          = $woid ?: ($srcHeader->woid ?? null);
+            $cs->spbid         = $spbid ?: ($srcHeader->spbid ?? null);
+            $cs->keperluan     = $keperluan ?: ($srcHeader->keperluan ?? null);
             $cs->department_id = $deptId ?: ($srcHeader->department_id ?? null);
             $cs->user_peminta  = $userPeminta ?: (optional($srcHeader->creator)->name ?? null);
             $cs->csnote        = $csnote ?: null;
@@ -1107,14 +1140,15 @@ class CanvassController extends Controller
                 $det->siteid               = $d['siteid']                ?? ($src->siteid ?? null);
 
                 // konversi dari sumber (jika ada)
-               $det->type_multiplier      = $src->type_multiplier       ?? null;
+                $det->type_multiplier      = $src->type_multiplier       ?? null;
                 $det->base_multiplier      = isset($src->base_multiplier) ? $round2($src->base_multiplier) : null;
                 $det->base_qty             = isset($src->base_qty)        ? $round2($src->base_qty)        : null;
                 $det->base_uom             = $src->base_uom ?? null;
 
                 // harga terakhir & note
-                $det->inventory_last_price = isset($d['inventory_last_price']) ? $round2($d['inventory_last_price'])
-                                            : (isset($src->inventory_last_price) ? $round2($src->inventory_last_price) : 0);
+                // $det->inventory_last_price = isset($d['inventory_last_price']) ? $round2($d['inventory_last_price'])
+                //                             : (isset($src->inventory_last_price) ? $round2($src->inventory_last_price) : 0);
+                $det->inventory_last_price = $lastPriceMap[$det->inventoryid] ?? 0;
                 $det->csnote_detail        = $d['csnote_detail'] ?? ($src->note ?? null);
 
                 // lokasi & budgeting
@@ -1303,7 +1337,10 @@ class CanvassController extends Controller
         $userPeminta  = $request->input('user_peminta');
         $csnote       = $request->input('csnote');                   
         $assigndate   = $request->input('assigndate');               
-        $prev_csid    = $request->input('prev_csid');                // kalau ada → CS revisi
+        $prev_csid    = $request->input('prev_csid');  
+        $spbid        = $request->input('spbid');
+        $woid         = $request->input('woid');
+        $keperluan    = $request->input('keperluan');
 
         // Dari JS: vendors[] + details[]
         $vendors = json_decode($request->input('vendors', '[]'), true) ?: [];
@@ -1435,6 +1472,9 @@ class CanvassController extends Controller
             $cs->cpny_id       = $cpnyId;
             $cs->sppbjktid     = $sppbjktid;                          
             $cs->bqid          = $bqid ?: ($srcHeader->bqid ?? null);
+            $cs->woid          = $woid ?: ($srcHeader->woid ?? null);
+            $cs->spbid         = $spbid ?: ($srcHeader->spbid ?? null);
+            $cs->keperluan     = $keperluan ?: ($srcHeader->keperluan ?? null);
             $cs->department_id = $deptId ?: ($srcHeader->department_id ?? null);
             $cs->user_peminta  = $userPeminta ?: (optional($srcHeader->creator)->name ?? null);
             $cs->csnote        = $csnote ?: null;
@@ -2175,7 +2215,7 @@ class CanvassController extends Controller
 
     public function updateCS(Request $request, $csid)
     {
-        // dd($request->all());
+        dd($request->all());
         // 1) Validasi payload dasar
         $request->validate([
             'doc'             => 'required|string',     // SPPB|SPPJ|SPPK|SPPT
@@ -2195,6 +2235,32 @@ class CanvassController extends Controller
         // 2) Decode JSON dari form
         $vendors = json_decode($request->input('vendors', '[]'), true) ?: [];
         $details = json_decode($request->input('details', '[]'), true) ?: [];
+
+        // === Ambil inventoryid unik dari payload ===
+        $invIds = collect($details)
+            ->pluck('inventoryid')
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
+
+        // === Ambil harga PO terakhir per inventory ===
+        $lastPriceMap = [];
+
+        if (!empty($invIds)) {
+            $rows = \App\Models\TrPoLastPrice::query()
+                ->select('inventoryid', 'unitcost', 'podate', 'created_at')
+                ->whereIn('inventoryid', $invIds)
+                ->whereNull('deleted_at')
+                ->orderByDesc('podate')
+                ->orderByDesc('created_at')
+                ->get()
+                ->groupBy('inventoryid');
+
+            foreach ($rows as $inventoryid => $items) {
+                $lastPriceMap[$inventoryid] = round((float) ($items->first()->unitcost ?? 0), 2);
+            }
+        }
 
         // 3) Context user & waktu
         $user      = $request->user();
@@ -2364,10 +2430,10 @@ class CanvassController extends Controller
                 $det->base_qty        = isset($src->base_qty)        ? $round2($src->base_qty)        : null;
                 $det->base_uom        = $src->base_uom ?? null;
 
-                $det->inventory_last_price = isset($d['inventory_last_price'])
-                    ? $round2($d['inventory_last_price'])
-                    : (isset($src->inventory_last_price) ? $round2($src->inventory_last_price) : 0);
-
+                // $det->inventory_last_price = isset($d['inventory_last_price'])
+                //     ? $round2($d['inventory_last_price'])
+                //     : (isset($src->inventory_last_price) ? $round2($src->inventory_last_price) : 0);
+                $det->inventory_last_price = $lastPriceMap[$det->inventoryid] ?? 0;
                 $det->csnote_detail        = $d['csnote_detail'] ?? ($src->note ?? null);
 
                 $det->location_id               = $src->location_id               ?? null;
@@ -3641,8 +3707,8 @@ class CanvassController extends Controller
                 $po->sppbjktid         = $cs->sppbjktid;
                 $po->department_id     = $cs->department_id;
                 $po->user_peminta      = $cs->user_peminta;
-                $po->keperluan         = $cs->csnote ?? $cs->keperluan;
-                $po->ponote            = null;
+                $po->keperluan         = $cs->keperluan;
+                $po->ponote            = $cs->csnote;
 
                 $po->vendorid          = $vendorId;
                 $po->vendorname        = $vendorName;
@@ -4336,6 +4402,62 @@ class CanvassController extends Controller
 
     public function getLastPriceHistory(Request $request)
     {
+        
+        $user = Auth::user();
+        if (!$user) {
+            return response()->json(['ok' => false, 'message' => 'Unauthorized'], 401);
+        }
+
+        $inventoryid = $request->query('inventoryid');
+        $csdate = $request->query('csdate');
+        if (!$inventoryid) {
+            return response()->json(['ok' => false, 'message' => 'inventoryid is required'], 422);
+        }
+
+        // 1) Ambil history (dari TrPoLastPrice)
+        $hist = TrPoLastPrice::query()
+            ->select(['ponbr','podate','vendorname','inventory_descr','unitcost','csid','purchaser'])
+            ->where('podate', '<', $csdate)
+            ->where('inventoryid', $inventoryid)
+            ->whereNull('deleted_at')
+            ->orderByDesc('podate')
+            ->orderByDesc('created_at')
+            ->limit(100)
+            ->get();
+
+        // 2) Ambil mapping PO ID dari TrPo berdasarkan ponbr
+        $ponbrs = $hist->pluck('ponbr')->filter()->unique()->values()->all();
+
+        // sesuaikan model TrPO kamu (nama class bisa TrPO / TrPo)
+        $poIdByPonbr = \App\Models\TrPO::query()
+            ->select(['id', 'ponbr'])
+            ->whereIn('ponbr', $ponbrs)
+            ->pluck('id', 'ponbr'); // [ponbr => id]
+
+        // 3) Bentuk response
+        $rows = $hist->map(function ($r) use ($poIdByPonbr) {
+            $poId = $poIdByPonbr[$r->ponbr] ?? null;
+
+            return [
+                'ponbr'           => $r->ponbr,
+                'eid'             => $poId ? \Vinkla\Hashids\Facades\Hashids::encode($poId) : null, // ✅ dari TrPo.id
+                'podate'          => $r->podate ? \Carbon\Carbon::parse($r->podate)->format('d/m/Y') : null,
+                'csid'            => $r->csid,
+                'vendorname'      => $r->vendorname,
+                'inventory_descr' => $r->inventory_descr,
+                'unitcost'        => (float) ($r->unitcost ?? 0),
+                'purchaser'       => $r->purchaser,
+            ];
+        });
+
+        return response()->json([
+            'ok' => true,
+            'data' => $rows,
+        ]);
+    }
+
+    public function getLastPriceHistoryEntry(Request $request)
+    {
         $user = Auth::user();
         if (!$user) {
             return response()->json(['ok' => false, 'message' => 'Unauthorized'], 401);
@@ -4371,5 +4493,6 @@ class CanvassController extends Controller
             'data' => $rows,
         ]);
     }
+
 
 }

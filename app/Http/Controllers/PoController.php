@@ -267,6 +267,7 @@ class PoController extends Controller
 
             // 5. Update status ke Purchase Order
             $po->status = 'P';
+            $po->send_email = false; // reset flag email
             $po->save();        
            
     
@@ -875,6 +876,7 @@ class PoController extends Controller
     public function sendNowPO(Request $req, string $ponbr)
     {
         $authUser = Auth::user();
+        $stamp = Carbon::now()->format('d/m/Y H:i');
 
         $data = $req->validate([
             'from'    => ['required','email'],
@@ -1038,6 +1040,10 @@ class PoController extends Controller
                 $message->attachData($att['data'], $att['name'], ['mime' => $att['mime'] ?? 'application/octet-stream']);
             }
         });
+
+        $po->send_email = true;
+        $po->send_email_at = $stamp;
+        $po->save();
 
         return response()->json([
             'success' => true,

@@ -854,9 +854,141 @@ class WoController extends Controller
             return response()->json(['success' => false, 'message' => 'Failed to update attachment status', 'error' => $e->getMessage()], 500);
         }
     }
- 
 
     public function showWo($hash)
+    {
+        $id = Hashids::decode($hash)[0] ?? null;
+        abort_if(!$id, 404);
+
+        $user = Auth::user();
+        if (!$user) {
+            return redirect()->route('login');
+        }
+
+        $wo = TrWO::with([
+            'worktype',
+            'subworktype',
+            'location',
+            'sublocation',
+            'creator:username,name',
+        ])->findOrFail($id);
+
+        // // =========================
+        // // APPROVAL + ATTACHMENTS (punya kamu tetap)
+        // // =========================
+        // $approval = T_approval::where('docid', $wo->woid)
+        //     ->where('status', '<>', 'X')
+        //     ->orderBy('created_at')
+        //     ->orderBy('aprvid')
+        //     ->get();
+
+        $rows = TrAttachment::where('refnbr', $wo->woid)
+            ->where('status', 'A')
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        // siapkan Signed URL dari GCS
+        $config = config('filesystems.disks.gcs');
+        $keyFilePath = $config['key_file'];
+        if (!Str::startsWith($keyFilePath, ['/','C:\\','D:\\'])) {
+            $keyFilePath = base_path($keyFilePath);
+        }
+
+        $storage = new StorageClient([
+            'projectId'   => $config['project_id'],
+            'keyFilePath' => $keyFilePath,
+        ]);
+        $bucket = $storage->bucket($config['bucket']);
+
+        // map jadi data siap pakai di view
+        $attachments = $rows->map(function ($r) use ($bucket) {
+            $objectPath = rtrim($r->folder, '/').'/'.$r->filename;   // ex: att-purchasing-app/wo/2025/xxxx-file.pdf
+            $object     = $bucket->object($objectPath);
+
+            // Signed URL 10 menit
+            $signedUrl = null;
+            try {
+                $signedUrl = $object->signedUrl(
+                    new \DateTimeImmutable('+10 minutes'),
+                    ['version' => 'v4']
+                );
+            } catch (\Throwable $e) {
+                // kalau gagal signed URL, biarkan null; di UI tampilkan nama saja
+                \Log::warning('Signed URL gagal', ['path' => $objectPath, 'error' => $e->getMessage()]);
+            }
+
+            return (object) [                
+                'display_name' => $r->attachment_name,         // nama yang enak dibaca
+                'created_by'   => $r->created_by,
+                'created_at'   => $r->created_at,
+                'url'          => $signedUrl,                  // bisa null jika gagal
+                'folder'       => $r->folder,
+                'filename'     => $r->filename,
+                'extention'    => $r->extention,
+                'size'         => $r->filesize,
+            ];
+        });
+
+        // ... signed url mapping attachments (punya kamu tetap)
+        // $attachments = ...
+
+        // =========================
+        // ✅ HITUNG isProcessor DI CONTROLLER
+        // department_id user: "ENGINEERING,ENGINEERING HVAC,..." => array
+        // =========================
+        $userDeptRaw = (string)($user->department_id ?? '');
+        $userDepts = collect(explode(',', $userDeptRaw))
+            ->map(fn($v) => strtoupper(trim($v)))
+            ->filter()
+            ->unique()
+            ->values();
+
+        // MsWorktypeDept: ambil semua department utk worktype WO ini
+        $worktypeDepts = MsWorktypeDept::where('worktypeid', $wo->worktypeid)
+            ->pluck('department_id')
+            ->map(fn($v) => strtoupper(trim((string)$v)))
+            ->filter()
+            ->unique()
+            ->values();
+
+        $deptMatch = $worktypeDepts->contains('ALL')
+            || $userDepts->intersect($worktypeDepts)->isNotEmpty();
+
+        // PIC WO boleh proses juga
+        $loginUsername = strtolower(trim((string)($user->username ?? $user->name ?? '')));
+        $pic = strtolower(trim((string)($wo->pic_wo ?? '')));
+
+        $isPicWo = ($pic !== '' && $pic === $loginUsername); // ✅ hanya PIC yang boleh save/edit
+        $hasPic  = ($pic !== ''); // ✅ sudah diprocess
+
+        $canProcess = ($deptMatch && !$hasPic) || $isPicWo; // ✅ tombol process hanya kalau belum ada PIC, atau user adalah PIC
+
+        // =========================
+        // canUpload + userdept (punya kamu)
+        // =========================
+        $loginUsername2 = $user->username ?? $user->name ?? null;
+        $canUpload     = $wo->created_by === $loginUsername2;
+
+        $userdept = Userdept::where('username', '=', $user->username)->get();
+        $userdept2 = Userdept::where('username', '=', $user->username)->first();
+
+        return view('pages.wos.showwos', compact(
+            'wo',        
+            'attachments',
+            'hash',
+            'canUpload',
+            'userdept',
+            'userdept2',
+            'canProcess',
+            'isPicWo',
+            'worktypeDepts',
+            'userDepts'
+        ));
+    }
+
+ 
+
+    public function showWo_xxx($hash)
     {
         $id = Hashids::decode($hash)[0] ?? null;
         abort_if(!$id, 404);
@@ -1765,8 +1897,8 @@ class WoController extends Controller
         // dd($deptIds);
         // Kalau salah satu kosong → tidak ada data
         if (empty($cpnyIds) || empty($deptIds)) {
-            $all = $onProgress = $reject = $completed = $wojobs = 0;
-            return view('pages.wos.wojobs', compact('all', 'onProgress', 'reject', 'wojobs', 'completed'));
+            $all = $onProgress = $cancel = $completed = $wojobs = 0;
+            return view('pages.wos.wojobs', compact('all', 'onProgress', 'cancel', 'wojobs', 'completed'));
         }
 
         $base = TrWO::from('tr_wo as wo')
@@ -1780,11 +1912,11 @@ class WoController extends Controller
         // Hitung pakai DISTINCT woid
         $all        = (clone $base)->selectRaw('COUNT(DISTINCT wo.woid) AS c')->value('c');
         $onProgress = (clone $base)->where('wo.status_pekerjaan', 'P')->selectRaw('COUNT(DISTINCT wo.woid) AS c')->value('c');
-        $reject     = (clone $base)->where('wo.status_pekerjaan', 'R')->selectRaw('COUNT(DISTINCT wo.woid) AS c')->value('c');
+        $cancel     = (clone $base)->where('wo.status_pekerjaan', 'X')->selectRaw('COUNT(DISTINCT wo.woid) AS c')->value('c');
         $completed  = (clone $base)->where('wo.status_pekerjaan', 'C')->selectRaw('COUNT(DISTINCT wo.woid) AS c')->value('c');
         $wojobs     = (clone $base)->where('wo.status_pekerjaan', 'H')->selectRaw('COUNT(DISTINCT wo.woid) AS c')->value('c');
 
-        return view('pages.wos.wojobs', compact('all', 'onProgress', 'reject', 'wojobs', 'completed'));
+        return view('pages.wos.wojobs', compact('all', 'onProgress', 'cancel', 'wojobs', 'completed'));
     }
 
 
@@ -1865,14 +1997,14 @@ class WoController extends Controller
 
         if ($search !== '') {
             $base->where(function ($q) use ($search) {
-                $q->where('wo.woid',          'like', "%{$search}%")
-                ->orWhere('wo.cpny_id',     'like', "%{$search}%")
-                ->orWhere('wo.department_id','like', "%{$search}%")
-                ->orWhere('wt.worktype_name','like', "%{$search}%")
-                ->orWhere('wo.worequest',   'like', "%{$search}%")
-                ->orWhere('wo.keperluan',   'like', "%{$search}%")
-                ->orWhere('wo.status',      'like', "%{$search}%")
-                ->orWhere('wo.status_pekerjaan','like', "%{$search}%");
+                $q->where('wo.woid',          'ilike', "%{$search}%")
+                ->orWhere('wo.cpny_id',     'ilike', "%{$search}%")
+                ->orWhere('wo.department_id','ilike', "%{$search}%")
+                ->orWhere('wt.worktype_name','ilike', "%{$search}%")
+                ->orWhere('wo.worequest',   'ilike', "%{$search}%")
+                ->orWhere('wo.keperluan',   'ilike', "%{$search}%")
+                ->orWhere('wo.status',      'ilike', "%{$search}%")
+                ->orWhere('wo.status_pekerjaan','ilike', "%{$search}%");
             });
         }
 
