@@ -245,6 +245,23 @@
                                     'value' => ucwords(strtolower(optional($srcHeader->purchaser)->name)),
                                 ],
                             ];
+
+                            if (!empty($cs->imbudgetid)) {
+                                $fields[] = [
+                                    'icon'  => 'banknotes',
+                                    'label' => 'IM Unbudget',
+                                    'value' => $cs->imbudgetid,
+                                ];
+                            }
+
+                            if (!empty($cs->prev_csid)) {
+                                $fields[] = [
+                                    'icon'  => 'arrow-uturn-left',
+                                    'label' => 'Prev CS',
+                                    'value' => $cs->prev_csid,
+                                ];
+                            }
+
                             if (in_array($prefix, ['PJ', 'PT'], true) && !empty($cs->bqid)) {
                                 // pakai bqid yang benar dari $cs
                                 $bqUrl = route('bqcs.show', $eid_bq);

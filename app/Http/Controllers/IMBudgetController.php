@@ -326,38 +326,40 @@ class IMBudgetController extends Controller
             $header->budget_perpost           = $perpost;
             $header->total_budget_needed      = 0;
             $header->total_budget_requested   = 0;
-            $header->status                   = 'P';
+            $header->status                   = 'H';
             $header->created_by               = $username;
             $header->save();
 
-            // === 2) AGREGASI DETAIL CS → GROUPING
-            // Tentukan cara hitung amount per baris CSdetail:
-            $rowAmount = function($d) use ($toFloat) {
-                // Cari vendor yang selected (1..6)
-                for ($i=1;$i<=6;$i++){
+            
+
+            // === 2) AGREGASI DETAIL CS → GROUPING (amount_expense)
+            $rowAmount = function ($d) use ($toFloat) : float {
+                // pakai vendor selected: ambil vendortotalprice slot yg selected
+                for ($i = 1; $i <= 6; $i++) {
                     $sel = (bool) ($d->{"vendor{$i}selected"} ?? false);
                     if ($sel) {
                         $tot = $toFloat($d->{"vendortotalprice{$i}"} ?? null);
-                        if ($tot !== null) return max($tot, 0.0);
+                        return $tot !== null ? max($tot, 0.0) : 0.0;
                     }
                 }
+
                 // fallback: qty * last price
                 $qty   = $toFloat($d->qty) ?? 0.0;
                 $price = $toFloat($d->inventory_last_price) ?? 0.0;
                 return max($qty * $price, 0.0);
             };
 
-            // key grouping
-            $groups = []; // key => ['sum'=>..., 'sample'=>TrCSdetail]
+            // key grouping (harus include activity_descr supaya tidak ketabrak)
+            $groups = []; // key => ['sum'=>..., ...]
             foreach ($rows as $d) {
-                // mapping kunci budget (dengan fallback)
-                $g_perpost   = $d->budget_perpost               ?? $perpost;
-                $g_cpny      = $d->budget_cpny_id               ?? $cpnyid;
-                $g_bu        = $d->budget_business_unit_id      ?? null;
-                $g_deptfin   = $d->budget_department_fin_id     ?? null;
-                $g_account   = $d->budget_account_id            ?? null;
-                $g_activity  = $d->budget_activity_id           ?? null;
-                $g_actdescr  = $d->budget_activity_descr        ?? null;
+
+                $g_perpost  = $d->budget_perpost              ?? $perpost;
+                $g_cpny     = $d->budget_cpny_id              ?? $cpnyid;
+                $g_bu       = $d->budget_business_unit_id     ?? null;
+                $g_deptfin  = $d->budget_department_fin_id    ?? null;
+                $g_account  = $d->budget_account_id           ?? null;
+                $g_activity = $d->budget_activity_id          ?? null;
+                $g_actdescr = $d->budget_activity_descr       ?? null;
 
                 $amount = $rowAmount($d);
                 if ($amount <= 0) continue;
@@ -369,6 +371,7 @@ class IMBudgetController extends Controller
                     (string)$g_deptfin,
                     (string)$g_account,
                     (string)$g_activity,
+                    (string)$g_actdescr,
                 ]);
 
                 if (!isset($groups[$key])) {
@@ -383,6 +386,7 @@ class IMBudgetController extends Controller
                         'actdescr' => $g_actdescr,
                     ];
                 }
+
                 $groups[$key]['sum'] += $amount;
             }
 
@@ -394,45 +398,35 @@ class IMBudgetController extends Controller
                 ], 422);
             }
 
-            // Helper ambil month index dari perpost (boleh 202510/2025-10/2025-10-xx)
-            $parseMonthIndex = function($perpost): int {
-                // terima "YYYYMM" atau "YYYY-MM" atau "YYYY-MM-DD"
-                $s = preg_replace('/[^0-9]/', '', (string)$perpost); // buang non-digit
-                // ambil 2 digit terakhir sebagai bulan
-                $mm = (int)substr($s, -2);
-                if ($mm < 1 || $mm > 12) $mm = (int)date('n');
-                return $mm;
-            };
+            // === Helper ambil remain dari ms_budget (pakai total* sesuai rule kamu)
+            $getBudgetRemain = function ($perpost, $cpny, $bu, $deptfin, $account, $activity, $actdescr) : float {
 
-            // Helper ambil remain dari ms_budget periode terkait
-            $getMonthlyRemain = function($perpost, $cpny, $bu, $deptfin, $account, $activity): float {
-                $mm = $parseMonthIndex = function($p){
-                    $s = preg_replace('/[^0-9]/', '', (string)$p);
-                    $mm = (int)substr($s, -2);
-                    if ($mm < 1 || $mm > 12) $mm = (int)date('n');
-                    return $mm;
-                };
-                $month = $mm($perpost);
-                $idx = str_pad($month, 2, '0');
-
-                $row = BudgetDetail::where('perpost', $perpost)
+                $q = BudgetDetail::query()
+                    ->where('perpost', $perpost)
                     ->where('cpny_id', $cpny)
-                    ->when($bu,      fn($q)=>$q->where('business_unit_id', $bu))
-                    ->when($deptfin, fn($q)=>$q->where('department_fin_id', $deptfin))
-                    ->when($account, fn($q)=>$q->where('account_id', $account))
-                    ->when($activity,fn($q)=>$q->where('activity_id', $activity))
-                    ->first();
+                    ->when($bu,      fn($q) => $q->where('business_unit_id', $bu))
+                    ->when($deptfin, fn($q) => $q->where('department_fin_id', $deptfin))
+                    ->when($account, fn($q) => $q->where('account_id', $account))
+                    ->when($actdescr, fn($q) => $q->where('activity_descr', $actdescr))
+                    ->when($activity,fn($q) => $q->where('activity_id', $activity));
 
+                // $actdescr = trim((string)($actdescr ?? ''));
+                // if ($actdescr !== '') {
+                //     $q->where('activity_descr', $actdescr);
+                // }
+
+                $row = $q->first();
                 if (!$row) return 0.0;
 
-                // field dinamis per bulan
-                $bgt   = (float)($row->{"period{$idx}_budget"}      ?? 0);
-                $bgtA  = (float)($row->{"period{$idx}_budget_add"}  ?? 0);
-                $used  = (float)($row->{"period{$idx}_used"}        ?? 0);
-                $resv  = (float)($row->{"period{$idx}_reserve"}     ?? 0);
+                $totalBudget     = (float)($row->totalbudget     ?? 0);
+                $totalAdditional = (float)($row->totalbudget_add ?? 0);
+                $totalReserve    = (float)($row->total_reserve   ?? 0);
+                $totalUsed       = (float)($row->total_used      ?? 0);
 
-                $remain = ($bgt + $bgtA) - ($used + $resv);
-                return max($remain, 0.0);
+                $remain = ($totalBudget + $totalAdditional) - ($totalReserve + $totalUsed);
+                // return max($remain, 0.0);
+                return $remain;
+
             };
 
             // === 3) INSERT DETAIL hasil GROUP & hitung totals
@@ -440,41 +434,61 @@ class IMBudgetController extends Controller
             $sumRequested = 0.0;
 
             foreach ($groups as $g) {
-                $expense = (float)$g['sum'];
-                $remain  = (float)$getMonthlyRemain(
-                    $g['perpost'], $g['cpny'], $g['bu'], $g['deptfin'], $g['account'], $g['activity']
+
+                $expense = (float) $g['sum'];
+                $remain  = (float) $getBudgetRemain(
+                    $g['perpost'],
+                    $g['cpny'],
+                    $g['bu'],
+                    $g['deptfin'],
+                    $g['account'],
+                    $g['activity'],
+                    $g['actdescr']
                 );
-                $needed  = max($expense - $remain, 0.0);
 
-                // Simpan satu baris detail per GRUP
+                $remainx = $remain + $expense;
+                $needed = max($expense - $remainx, 0.0);
+
+                // ✅ kalau kamu hanya mau baris yang kekurangan budget:
+                if ($needed <= 0) {
+                    continue;
+                }
+
                 $detail = new TrIMBudgetdetail();
-                $detail->imbudgetid                   = $docid;
-                $detail->csid                         = $csid;
-                $detail->sppbjktid                    = $sppbjktid;
+                $detail->imbudgetid                  = $docid;
+                $detail->csid                        = $csid;
+                $detail->sppbjktid                   = $sppbjktid;
 
-                $detail->budget_perpost               = $g['perpost'];
-                $detail->budget_cpny_id               = $g['cpny'];
-                $detail->budget_business_unit_id      = $g['bu'];
-                $detail->budget_department_fin_id     = $g['deptfin'];
-                $detail->budget_account_id            = $g['account'];
-                $detail->budget_activity_id           = $g['activity'];
-                $detail->budget_activity_descr        = $g['actdescr'];
+                $detail->budget_perpost              = $g['perpost'];
+                $detail->budget_cpny_id              = $g['cpny'];
+                $detail->budget_business_unit_id     = $g['bu'];
+                $detail->budget_department_fin_id    = $g['deptfin'];
+                $detail->budget_account_id           = $g['account'];
+                $detail->budget_activity_id          = $g['activity'];
+                $detail->budget_activity_descr       = $g['actdescr'];
 
-                // kolom hasil perhitungan agregat
-                $detail->amount_expense               = $expense; // <-- pastikan kolom tersedia
-                $detail->budget_remain                = $remain;  // <-- pastikan kolom tersedia
-                $detail->budget_needed                = $needed;  // aturan: hanya jika expense > remain
+                $detail->amount_expense              = $remainx;
+                $detail->budget_remain               = $remainx;
+                $detail->budget_needed               = $needed;
 
-                // kompatibilitas: pakai requested = expense (kalau masih dipakai di header)
-                $detail->budget_requested             = $expense;
+                // kalau kolom ini masih dipakai
+                $detail->budget_requested            = $expense;
 
-                $detail->note                         = null;
-                $detail->status                       = 'P';
-                $detail->created_by                   = $username;
+                $detail->status                      = 'P';
+                $detail->created_by                  = $username;
                 $detail->save();
 
                 $sumRequested += $expense;
                 $sumNeeded    += $needed;
+            }
+
+            // kalau semua grup ternyata remain cukup, jangan bikin IMBudget kosong
+            if ($sumNeeded <= 0) {
+                DB::rollBack();
+                return response()->json([
+                    'success' => false,
+                    'message' => "Tidak ada kekurangan budget untuk CS {$csid} (remain cukup).",
+                ], 422);
             }
 
             // === 4) update total header ===
@@ -482,24 +496,25 @@ class IMBudgetController extends Controller
             $header->total_budget_needed    = $sumNeeded;
             $header->save();
 
+
             // === 5) Generate TrApproval NORMAL via ApprovalController ===
-            $ctx = ['ignore_nominal' => true];
+            // $ctx = ['ignore_nominal' => true];
 
-            [$firstApprovalUsernames, $linesCount] = $approvalCtl->generateForDocument(
-                $docid,
-                $doctype,
-                $cpnyid,
-                $departementid,
-                $username,
-                $ctx,
-                $dt
-            );
+            // [$firstApprovalUsernames, $linesCount] = $approvalCtl->generateForDocument(
+            //     $docid,
+            //     $doctype,
+            //     $cpnyid,
+            //     $departementid,
+            //     $username,
+            //     $ctx,
+            //     $dt
+            // );
 
-            if ($firstApprovalUsernames) {
-                $header->completed_by = $firstApprovalUsernames;
-                $header->completed_at = $dt;
-                $header->save();
-            }
+            // if ($firstApprovalUsernames) {
+            //     $header->completed_by = $firstApprovalUsernames;
+            //     $header->completed_at = $dt;
+            //     $header->save();
+            // }
 
             $eid = Hashids::encode($header->id);
             // === 6) Notifikasi approver pertama
@@ -519,7 +534,7 @@ class IMBudgetController extends Controller
             // }
 
             $status     = $header->status;
-            $subjectMap = ['P'=>'Waiting Approval','R'=>'Rejected Approval','D'=>'Revise Approval','A'=>'Approved','C'=>'Completed'];
+            $subjectMap = ['P'=>'Waiting Approval','R'=>'Rejected Approval','D'=>'Revise Approval','A'=>'Approved','C'=>'Completed','H'=>'On Hold','X'=>'Cancelled'];
 
             $data = [
                 'docid'     => $docid,
@@ -631,10 +646,14 @@ class IMBudgetController extends Controller
                 'size'         => $r->filesize,
             ];
         });
+
+        $cs = TrCS::where('csid', $imbudget->csid)           
+            ->first();
+        $eidcs = Hashids::encode($cs->id);    
              
 
         return view('pages.imbudgets.editimbudgets', compact(
-            'imbudget','imbudgetdetail','usercpny','usercpny2','userdept','userdept2','hash','attachments'
+            'imbudget','imbudgetdetail','usercpny','usercpny2','userdept','userdept2','hash','attachments','eidcs'
         ));
     }
 

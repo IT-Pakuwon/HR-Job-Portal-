@@ -976,6 +976,18 @@ class CanvassController extends Controller
             $allowedDocs = ['SPPB', 'SPPJ', 'SPPK', 'SPPT'];
 
             if (in_array($doc, $allowedDocs, true)) {
+                $srcIdPlain = $srcId;
+
+                // kalau src_id dari FE adalah hashids (eid), decode ke integer id
+                if (!is_numeric($srcIdPlain)) {
+                    $decoded = Hashids::decode((string)$srcIdPlain);
+                    $srcIdPlain = $decoded[0] ?? null;
+                }
+
+                if (!$srcIdPlain) {
+                    throw new \Exception("Invalid src_id (cannot decode/find id) for doc={$doc}");
+                }
+
                 [$srcHeader, $srcDetails, $srcLineKey, $srcIndex] = $this->buildSourceForDoc($doc, $srcId);
 
                 // Index detail untuk lookup by key
@@ -1054,7 +1066,7 @@ class CanvassController extends Controller
             $cs->keperluan     = $keperluan ?: ($srcHeader->keperluan ?? null);
             $cs->bqtype        = $bqtype ?: ($srcHeader->bqtype ?? null);
             $cs->department_id = $deptId ?: ($srcHeader->department_id ?? null);
-            $cs->user_peminta  = $userPeminta ?: (optional($srcHeader->creator)->name ?? null);
+            $cs->user_peminta  = $userPeminta ?: null;
             $cs->csnote        = $csnote ?: null;
             $cs->assigndate    = $assigndate ?: null;
             $cs->prev_csid     = $prev_csid ?: null;
@@ -1517,7 +1529,8 @@ class CanvassController extends Controller
             $cs->bqtype        = $bqtype ?: ($srcHeader->bqtype ?? null);
             $cs->department_id = $deptId ?: ($srcHeader->department_id ?? null);
             $cs->budget_perpost = $budgetPerpost ?? null;
-            $cs->user_peminta  = $userPeminta ?: (optional($srcHeader->creator)->name ?? null);
+            // $cs->user_peminta  = $userPeminta ?: (optional($srcHeader->creator)->name ?? null);
+            $cs->user_peminta  = $userPeminta ?: null;
             $cs->csnote        = $csnote ?: null;
             $cs->assigndate    = $assigndate ?: null;
             $cs->prev_csid     = $prev_csid ?: null;
@@ -2438,8 +2451,7 @@ class CanvassController extends Controller
             $cs->cpny_id       = $cpnyId;
             $cs->bqid          = $request->input('bqid') ?: ($srcHeader->bqid ?? $cs->bqid);
             $cs->department_id = $deptId ?: ($srcHeader->department_id ?? $cs->department_id);
-            $cs->user_peminta  = $request->input('user_peminta')
-                                    ?: (optional($srcHeader->creator)->name ?? $cs->user_peminta);
+            $cs->user_peminta  = $request->input('user_peminta') ?: null;
             $cs->csnote        = $request->input('csnote') ?: null;
             $cs->assigndate    = $request->input('assigndate') ?: null;
 
@@ -3988,7 +4000,7 @@ class CanvassController extends Controller
         return [$h, $d, $k, $idx];
     }
 
-    private function buildSourceForDoc(string $doc, string $srcId): array
+    private function buildSourceForDoc_zzz(string $doc, string $srcId): array
     {
         switch ($doc) {
             case 'SPPB':
@@ -4058,6 +4070,120 @@ class CanvassController extends Controller
 
         return [$h, $d, $k, $idx];
     }
+
+   
+    private function buildSourceForDoc(string $doc, string $srcId): array
+    {
+        $doc = strtoupper(trim($doc));
+        $srcId = trim((string)$srcId);
+
+        // Helper: cari header fleksibel (by doc key, by id numeric, by hashids->id)
+        $findHeader = function (string $modelClass, string $docKey) use ($srcId) {
+            // 1) coba by doc key (sppbid/sppjid/sppkid/spptid)
+            $q = $modelClass::on('pgsql')->with(['requestType', 'creator', 'purchaser'])
+                ->where($docKey, $srcId);
+
+            $h = $q->first();
+            if ($h) return $h;
+
+            // 2) coba by numeric id
+            if (ctype_digit($srcId)) {
+                $h = $modelClass::on('pgsql')->with(['requestType', 'creator', 'purchaser'])
+                    ->where('id', (int)$srcId)
+                    ->first();
+                if ($h) return $h;
+            }
+
+            // 3) coba decode hashids -> id
+            $decoded = Hashids::decode($srcId);
+            $plainId = $decoded[0] ?? null;
+            if ($plainId) {
+                $h = $modelClass::on('pgsql')->with(['requestType', 'creator', 'purchaser'])
+                    ->where('id', (int)$plainId)
+                    ->first();
+                if ($h) return $h;
+            }
+
+            return null;
+        };
+
+        switch ($doc) {
+            case 'SPPB': {
+                $h = $findHeader(\App\Models\TrSPPB::class, 'sppbid');
+                if (!$h) {
+                    throw new \Exception("SPPB not found for src_id={$srcId} (try send sppbid or eid)");
+                }
+
+                $k = 'sppb_no';
+
+                $d = \App\Models\TrSPPBdetail::on('pgsql')
+                    ->where('sppbid', $h->sppbid)
+                    ->orderBy($k)
+                    ->get();
+                break;
+            }
+
+            case 'SPPJ': {
+                $h = $findHeader(\App\Models\TrSPPJ::class, 'sppjid');
+                if (!$h) {
+                    throw new \Exception("SPPJ not found for src_id={$srcId} (try send sppjid or eid)");
+                }
+
+                $k = 'sppj_no';
+
+                $d = \App\Models\TrSPPJdetail::on('pgsql')
+                    ->where('sppjid', $h->sppjid)
+                    ->orderBy($k)
+                    ->get();
+                break;
+            }
+
+            case 'SPPK': {
+                $h = $findHeader(\App\Models\TrSPPK::class, 'sppkid');
+                if (!$h) {
+                    throw new \Exception("SPPK not found for src_id={$srcId} (try send sppkid or eid)");
+                }
+
+                $k = 'sppk_no';
+
+                $d = \App\Models\TrSPPKdetail::on('pgsql')
+                    ->where('sppkid', $h->sppkid)
+                    ->orderBy($k)
+                    ->get();
+                break;
+            }
+
+            case 'SPPT': {
+                $h = $findHeader(\App\Models\TrSPPT::class, 'spptid');
+                if (!$h) {
+                    throw new \Exception("SPPT not found for src_id={$srcId} (try send spptid or eid)");
+                }
+
+                $k = 'sppt_no';
+
+                $d = \App\Models\TrSPPTdetail::on('pgsql')
+                    ->where('spptid', $h->spptid)
+                    ->orderBy($k)
+                    ->get();
+                break;
+            }
+
+            default:
+                abort(422, "Invalid doc type ({$doc})");
+        }
+
+        // build index untuk matching
+        $idx = [];
+        foreach ($d as $sd) {
+            $key = strtoupper(trim($sd->inventoryid ?? '')) . '|' .
+                strtoupper(trim($sd->uom ?? '')) . '|' .
+                strtoupper(trim($sd->inventory_descr ?? ''));
+            $idx[$key] = $sd;
+        }
+
+        return [$h, $d, $k, $idx];
+    }
+
 
 
     private function updateOrderedOnSource(array $details, $srcHeader, $srcDetails, array $srcIndex, string $cpnyId): void {

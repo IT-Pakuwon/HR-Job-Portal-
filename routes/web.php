@@ -849,6 +849,7 @@ Route::post('/logout', function () {
         Route::get('/imbudget/{id}/comments', [IMBudgetController::class, 'fetchComments']);
         Route::get('/imbudgets/{id}/tracking', [IMBudgetController::class, 'tracking'])->name('imbudgets.tracking');
         Route::get('/pdf_imbudgets/{hash}', [IMBudgetController::class, 'printIMBudget']);
+        Route::get('/editimbudgets/{hash}', [IMBudgetController::class, 'editIMBudget']);
     });
 
     Route::middleware('access:IMBUDGET,CREATE')->group(function () {
@@ -857,7 +858,7 @@ Route::post('/logout', function () {
     });
 
     Route::middleware('access:IMBUDGET,EDIT')->group(function () {
-        Route::get('/editimbudgets/{hash}', [IMBudgetController::class, 'editIMBudget']);
+        
         Route::put('/imbudgets/{id}', [IMBudgetController::class, 'updateIMBudget'])->name('imbudgets.update');
 
         // Comments (create)

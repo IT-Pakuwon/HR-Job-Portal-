@@ -11,8 +11,11 @@ class AccessRightMiddleware
 {
     public function handle($request, Closure $next, $screenId, $action)
     {
+        // if (!auth()->check()) {
+        //     abort(401);
+        // }
         if (!auth()->check()) {
-            abort(401);
+            return redirect()->guest(route('login')); // penting: guest => set intended
         }
 
         $username = auth()->user()->username;

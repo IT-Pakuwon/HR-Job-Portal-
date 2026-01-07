@@ -135,7 +135,13 @@
                                     class="inline-flex items-center rounded-md bg-purple-100 px-2 py-1 text-sm font-semibold text-purple-700">
                                     ID
                                 </span>
-                                {{ $imbudget->imbudgetid }} - Edit IMBudget
+                                {{ $imbudget->imbudgetid }} - 
+                                <a href="{{ url('/showcs/' . $eidcs) }}"
+                                    target="_blank"
+                                    class="w-full rounded-lg border border-gray-300 bg-indigo-50 p-2.5 text-indigo-700 font-semibold
+                                        hover:underline dark:border-gray-600 dark:bg-gray-700 dark:text-indigo-400">
+                                    {{ $imbudget->csid }}
+                                </a>
                             </h2>
                         </div>
 
@@ -144,61 +150,61 @@
 
                             {{-- Company --}}
                             <div class="flex flex-col gap-2">
-                                <label
-                                    class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Company</label>
-                                <select name="cpnyid"
-                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
-                                    required>
-                                    @foreach ($usercpny as $p)
-                                        <option value="{{ $p->cpnyid }}"
-                                            {{ $p->cpnyid == $imbudget->cpny_id ? 'selected' : '' }}>
-                                            {{ $p->cpnyid }}
-                                        </option>
-                                    @endforeach
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    Company
+                                </label>
+
+                                <select disabled
+                                    class="w-full rounded-lg border border-gray-300 bg-gray-100 p-2.5 text-gray-700 shadow-sm
+                                        dark:border-gray-600 dark:bg-gray-600 dark:text-gray-300 cursor-not-allowed">
+                                    <option>{{ $imbudget->cpny_id }}</option>
                                 </select>
+
+                                {{-- hidden agar tetap terkirim --}}
+                                <input type="hidden" name="cpnyid" value="{{ $imbudget->cpny_id }}">
                             </div>
 
                             {{-- Department --}}
                             <div class="flex flex-col gap-2">
-                                <label
-                                    class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Department</label>
-                                <select name="departementid"
-                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
-                                    required>
-                                    @foreach ($userdept as $p)
-                                        <option value="{{ $p->deptname }}"
-                                            {{ $p->deptname == $imbudget->department_id ? 'selected' : '' }}>
-                                            {{ $p->deptname }}
-                                        </option>
-                                    @endforeach
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    Department
+                                </label>
+
+                                <select disabled
+                                    class="w-full rounded-lg border border-gray-300 bg-gray-100 p-2.5 text-gray-700 shadow-sm
+                                        dark:border-gray-600 dark:bg-gray-600 dark:text-gray-300 cursor-not-allowed">
+                                    <option>{{ $imbudget->department_id }}</option>
                                 </select>
+
+                                <input type="hidden" name="departementid" value="{{ $imbudget->department_id }}">
                             </div>
+
                             <div class="flex flex-col gap-2">
-                                <label
-                                    class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Perpost</label>
-                                @php $year = \Carbon\Carbon::now()->year; @endphp
-                                <select id="perpost" name="perpost"
-                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
-                                    required>
-                                    <option value="{{ $year }}"
-                                        {{ (string) $imbudget->budget_perpost === (string) $year ? 'selected' : '' }}>
-                                        {{ $year }}</option>
-                                    <option value="{{ $year + 1 }}"
-                                        {{ (string) $imbudget->budget_perpost === (string) ($year + 1) ? 'selected' : '' }}>
-                                        {{ $year + 1 }}</option>
-                                </select>
-                            </div>
-                        </div>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    Perpost
+                                </label>
 
+                                <input type="text" disabled
+                                    class="w-full rounded-lg border border-gray-300 bg-gray-100 p-2.5 text-gray-700 shadow-sm
+                                        dark:border-gray-600 dark:bg-gray-600 dark:text-gray-300 cursor-not-allowed"
+                                    value="{{ $imbudget->budget_perpost }}">
 
-                        {{-- Description --}}
-                        <div class="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
-                            <div class="flex flex-col gap-2 lg:col-span-4">
-                                <label for="imbudgetnote"
-                                    class="block text-sm font-medium text-gray-700 dark:text-gray-300">Description</label>
-                                <textarea name="imbudgetnote" id="imbudgetnote" rows="3"
-                                    class="w-full rounded-lg border border-gray-300 bg-white p-3 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">{{ old('imbudgetnote', $imbudget->imbudgetnote) }}</textarea>
+                                <input type="hidden" name="perpost" value="{{ $imbudget->budget_perpost }}">
                             </div>
+               
+                            <div class="flex flex-col gap-2">
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    Description
+                                </label>
+
+                                <textarea readonly rows="3"
+                                    class="w-full rounded-lg border border-gray-300 bg-gray-100 p-3 text-gray-700 shadow-sm
+                                        dark:border-gray-600 dark:bg-gray-600 dark:text-gray-300 cursor-not-allowed">{{ $imbudget->imbudgetnote }}</textarea>
+
+                                <input type="hidden" name="imbudgetnote" value="{{ $imbudget->imbudgetnote }}">
+                            </div>
+
+                            
                         </div>
                     </div>
 
