@@ -686,7 +686,7 @@ Route::post('/logout', function () {
         Route::get('/showcs/{hash}', [CanvassController::class, 'showCS']);     
         Route::get('/showbqcs/{hash}', [BQCSController::class, 'showBQCS'])->name('bqcs.show');
         Route::get('/cs/lastprice/history', [CanvassController::class, 'getLastPriceHistory'])->name('cs.lastprice.history');
-        Route::get('/cs/lastprice/history', [CanvassController::class, 'getLastPriceHistoryEntry'])->name('cs.lastprice.history.entry');
+        Route::get('/cs/lastprice/history.entry', [CanvassController::class, 'getLastPriceHistoryEntry'])->name('cs.lastprice.history.entry');
 
     });
 

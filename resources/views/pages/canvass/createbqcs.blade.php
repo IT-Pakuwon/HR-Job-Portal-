@@ -159,15 +159,19 @@
                                             <div class="grid grid-cols-2 gap-3 text-xs">
                                                 <label class="flex flex-col gap-1">
                                                     <span>Est. Material</span>
-                                                    <input
+                                                    {{-- {{ $d->est_material_price }} --}}
+                                                    {{ number_format((float)($d->est_material_price ?? 0), 2, ',', '.') }}
+                                                    {{-- <input
                                                         class="w-full rounded-md border bg-gray-100 px-2 py-1 text-right"
-                                                        readonly>
+                                                        readonly> --}}
                                                 </label>
                                                 <label class="flex flex-col gap-1">
                                                     <span>Est. Jasa</span>
-                                                    <input
+                                                    {{-- {{ $d->est_jasa_price }} --}}
+                                                    {{ number_format((float)($d->est_jasa_price ?? 0), 2, ',', '.') }}
+                                                    {{-- <input
                                                         class="w-full rounded-md border bg-gray-100 px-2 py-1 text-right"
-                                                        readonly>
+                                                        readonly> --}}
                                                 </label>
                                             </div>
                                         </td>

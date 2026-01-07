@@ -141,12 +141,12 @@ class SppkController extends Controller
 
         if ($search !== '') {
             $base->where(function ($q) use ($search) {
-                $q->where('sppk.sppkid',           'like', "%{$search}%")
-                ->orWhere('sppk.cpny_id',       'like', "%{$search}%")
-                ->orWhere('sppk.department_id', 'like', "%{$search}%")
-                ->orWhere('rt.requesttype_name','like', "%{$search}%")
-                ->orWhere('sppk.keperluan',     'like', "%{$search}%")
-                ->orWhere('sppk.status',        'like', "%{$search}%");
+                $q->where('sppk.sppkid',           'ilike', "%{$search}%")
+                ->orWhere('sppk.cpny_id',       'ilike', "%{$search}%")
+                ->orWhere('sppk.department_id', 'ilike', "%{$search}%")
+                ->orWhere('rt.requesttype_name','ilike', "%{$search}%")
+                ->orWhere('sppk.keperluan',     'ilike', "%{$search}%")
+                ->orWhere('sppk.status',        'ilike', "%{$search}%");
             });
         }
 
@@ -1494,7 +1494,7 @@ class SppkController extends Controller
     //     // pastikan user memang approver aktif (status P) di doc ini
     //     $tApproval = T_approval::where('docid', $sppk->sppkid)
     //         ->where('status', 'P')
-    //         ->where('aprvusername', 'like', "%{$user->username}%")
+    //         ->where('aprvusername', 'ilike', "%{$user->username}%")
     //         ->whereNotNull('aprvdatebefore') 
     //         ->orderBy('aprvid', 'ASC')
     //         ->first();
@@ -1663,7 +1663,7 @@ class SppkController extends Controller
     //     // Validasi: user harus approver aktif (status P) pada dokumen ini
     //     $tApproval = T_approval::where('docid', $sppk->sppkid)
     //         ->where('status', 'P')
-    //         ->where('aprvusername', 'like', "%{$user->username}%")
+    //         ->where('aprvusername', 'ilike', "%{$user->username}%")
     //         ->whereNotNull('aprvdatebefore') 
     //         ->orderBy('aprvid', 'ASC')
     //         ->first();
@@ -1779,7 +1779,7 @@ class SppkController extends Controller
     //     // Pastikan user adalah approver aktif (status P) dokumen ini
     //     $tApproval = T_approval::where('docid', $sppk->sppkid)
     //         ->where('status', 'P')
-    //         ->where('aprvusername', 'like', "%{$user->username}%")
+    //         ->where('aprvusername', 'ilike', "%{$user->username}%")
     //         ->whereNotNull('aprvdatebefore') 
     //         ->orderBy('aprvid', 'ASC')
     //         ->first();
@@ -1884,7 +1884,7 @@ class SppkController extends Controller
     //     // dd($action);
     //     // Query dasar untuk pengecekan
     //     $query = T_approval::where('docid', $id)
-    //                 ->where('aprvusername', 'like', '%' . $user->username . '%')
+    //                 ->where('aprvusername', 'ilike', '%' . $user->username . '%')
     //                 ->where('status', 'P');                 
 
     //     // Jika aksi adalah reject atau revise, pastikan aprvdatebefore tidak null

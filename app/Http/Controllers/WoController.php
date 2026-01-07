@@ -143,13 +143,13 @@ class WoController extends Controller
 
         if ($search !== '') {
             $base->where(function ($q) use ($search) {
-                $q->where('wo.woid',            'like', "%{$search}%")
-                ->orWhere('wo.cpny_id',       'like', "%{$search}%")
-                ->orWhere('wo.department_id', 'like', "%{$search}%")
-                ->orWhere('wt.worktype_name', 'like', "%{$search}%")
-                ->orWhere('wo.worequest',     'like', "%{$search}%")
-                ->orWhere('wo.keperluan',     'like', "%{$search}%")
-                ->orWhere('wo.status',        'like', "%{$search}%");
+                $q->where('wo.woid',            'ilike', "%{$search}%")
+                ->orWhere('wo.cpny_id',       'ilike', "%{$search}%")
+                ->orWhere('wo.department_id', 'ilike', "%{$search}%")
+                ->orWhere('wt.worktype_name', 'ilike', "%{$search}%")
+                ->orWhere('wo.worequest',     'ilike', "%{$search}%")
+                ->orWhere('wo.keperluan',     'ilike', "%{$search}%")
+                ->orWhere('wo.status',        'ilike', "%{$search}%");
             });
         }
 
@@ -1288,7 +1288,7 @@ class WoController extends Controller
     //     // pastikan user memang approver aktif (status P) di doc ini
     //     $tApproval = T_approval::where('docid', $wo->woid)
     //         ->where('status', 'P')
-    //         ->where('aprvusername', 'like', "%{$user->username}%")
+    //         ->where('aprvusername', 'ilike', "%{$user->username}%")
     //         ->whereNotNull('aprvdatebefore') 
     //         ->orderBy('aprvid', 'ASC')
     //         ->first();
@@ -1450,7 +1450,7 @@ class WoController extends Controller
     //     // Validasi: user harus approver aktif (status P) pada dokumen ini
     //     $tApproval = T_approval::where('docid', $wo->woid)
     //         ->where('status', 'P')
-    //         ->where('aprvusername', 'like', "%{$user->username}%")
+    //         ->where('aprvusername', 'ilike', "%{$user->username}%")
     //         ->whereNotNull('aprvdatebefore') 
     //         ->orderBy('aprvid', 'ASC')
     //         ->first();
@@ -1565,7 +1565,7 @@ class WoController extends Controller
     //     // Pastikan user adalah approver aktif (status P) dokumen ini
     //     $tApproval = T_approval::where('docid', $wo->woid)
     //         ->where('status', 'P')
-    //         ->where('aprvusername', 'like', "%{$user->username}%")
+    //         ->where('aprvusername', 'ilike', "%{$user->username}%")
     //         ->whereNotNull('aprvdatebefore')
     //         ->orderBy('aprvid', 'ASC')
     //         ->first();
@@ -1669,7 +1669,7 @@ class WoController extends Controller
     //     // dd($action);
     //     // Query dasar untuk pengecekan
     //     $query = T_approval::where('docid', $id)
-    //                 ->where('aprvusername', 'like', '%' . $user->username . '%')
+    //                 ->where('aprvusername', 'ilike', '%' . $user->username . '%')
     //                 ->where('status', 'P');                 
 
     //     // Jika aksi adalah reject atau revise, pastikan aprvdatebefore tidak null

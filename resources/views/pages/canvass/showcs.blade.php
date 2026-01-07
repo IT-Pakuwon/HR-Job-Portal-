@@ -807,7 +807,7 @@
 
                                                         {{-- Budget Department --}}
                                                         <td class="w-32 px-3 py-2 align-top">
-                                                            {{ $row->budget_department_fin_id ?? '-' }} - {{ $row->budget_account_id ?? '-' }}
+                                                            {{ $row->budget_department_fin_id ?? '-' }} - {{ $row->budget_account_id ?? '-' }} - {{ $row->budget_activity_descr }}
                                                         </td>     
                                                         <td class="w-32 px-3 py-2 align-top">
                                                             {{ number_format((float)($row->inventory_last_price ?? 0), 2, ',', '.') }}
@@ -870,26 +870,29 @@
                                 @foreach ($vendors as $v)
                                     <td class="w-48 space-y-1 px-3 py-2">
                                         <div class="flex justify-between">
-                                            <span>Total:</span>
-                                            <span>{{ $v['total'] }}</span>
+                                            <span>Total :</span>
+                                            <span>{{ number_format((float)($v['total'] ?? 0), 2, ',', '.') }}</span>
                                         </div>
-                                        <div class="flex justify-between">
-                                            <div class="flex justify-between">
-                                                <span>PPN:</span>
-                                                <span>{{ $v['ppn'] }}%</span>
+
+                                        <div class="flex justify-between gap-3">
+                                            <div class="flex justify-between w-1/2">
+                                                <span>PPN :</span>
+                                                <span>{{ number_format((float)($v['ppn'] ?? 0), 2, ',', '.') }}%</span>
                                             </div>
-                                            <div class="flex justify-between">
-                                                <span>PPh:</span>
-                                                <span>{{ $v['pph'] }}%</span>
+                                            <div class="flex justify-between w-1/2">
+                                                <span>PPh :</span>
+                                                <span>{{ number_format((float)($v['pph'] ?? 0), 2, ',', '.') }}%</span>
                                             </div>
                                         </div>
+
                                         <div class="flex justify-between">
-                                            <span>Grand:</span>
-                                            <span>{{ $v['grand'] }}</span>
+                                            <span>Grand :</span>
+                                            <span>{{ number_format((float)($v['grand'] ?? 0), 2, ',', '.') }}</span>
                                         </div>
+
                                         <div class="flex justify-between">
-                                            <span>Selected:</span>
-                                            <span>{{ $v['selected_grand'] }}</span>
+                                            <span>Selected :</span>
+                                            <span>{{ number_format((float)($v['selected_grand'] ?? 0), 2, ',', '.') }}</span>
                                         </div>
                                     </td>
                                 @endforeach

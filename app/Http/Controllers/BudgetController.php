@@ -52,7 +52,7 @@ use App\Http\Controllers\ApprovalController;
 use App\Models\TrApproval;
 use App\Models\SysUserRole;
 use App\Models\SysAccessRight;
-
+use PhpOffice\PhpSpreadsheet\IOFactory;
 
 
 class BudgetController extends Controller
@@ -194,26 +194,72 @@ class BudgetController extends Controller
         return view('pages.budgets.createbudgets', compact('companies','tempData','temp_id'));
     }
    
-    public function import_xxx(Request $request, Budget $budget = null)
+ 
+    public function import(Request $request, $hash = null)
     {
-
-        
         $request->validate([
             'file'              => 'required|mimes:xlsx,xls,csv',
             'cpny_id'           => 'required',
             'business_unit_id'  => 'required',
             'department_fin_id' => 'required',
         ]);
-       
-        $eid = $budget ? Hashids::encode($budget->id) : null;
+
+        // Jika edit, decode hash -> ambil Budget
+        $budget = null;
+        if ($hash) {
+            $decoded = Hashids::decode($hash);
+            $id = $decoded[0] ?? null;
+            abort_if(!$id, 404, 'Invalid budget hash.');
+            $budget = Budget::findOrFail($id);
+        }
 
         try {
-            $username = Auth::user()->username;
+            $username = Auth::user()->username ?? 'system';
             $temp_id  = Str::uuid()->toString();
 
             MsBudgetTemp::where('created_by', $username)->delete();
 
-            // Import Excel
+            // =========================
+            // ✅ VALIDASI: TOLAK FORMULA
+            // =========================
+            $file = $request->file('file');
+            $ext  = strtolower($file->getClientOriginalExtension());
+
+            if (in_array($ext, ['xlsx', 'xls'], true)) {
+                $spreadsheet = IOFactory::load($file->getPathname());
+
+                foreach ($spreadsheet->getWorksheetIterator() as $sheet) {
+                    $highestRow = $sheet->getHighestDataRow();
+                    $highestCol = $sheet->getHighestDataColumn();
+
+                    for ($row = 1; $row <= $highestRow; $row++) {
+                        for ($col = 'A'; $col <= $highestCol; $col++) {
+                            $cell = $sheet->getCell("{$col}{$row}");
+                            $raw  = $cell->getValue();
+
+                            if ($raw === null || $raw === '') continue;
+
+                            // rumus asli excel
+                            if ($cell->isFormula()) {
+                                throw new \RuntimeException(
+                                    "Import budget gagal: file Excel mengandung rumus pada sheet '{$sheet->getTitle()}' cell {$col}{$row}. " .
+                                    "Silakan ubah menjadi nilai (Copy → Paste Values)."
+                                );
+                            }
+
+                            // jaga-jaga jika tersimpan sebagai string diawali '='
+                            if (is_string($raw) && str_starts_with(ltrim($raw), '=')) {
+                                throw new \RuntimeException(
+                                    "Import budget gagal: file Excel mengandung rumus pada sheet '{$sheet->getTitle()}' cell {$col}{$row}. " .
+                                    "Silakan Paste Values lalu import ulang."
+                                );
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Import ke temp
             Excel::import(
                 new MsBudgetTempImport(
                     $temp_id,
@@ -222,24 +268,23 @@ class BudgetController extends Controller
                     $request->department_fin_id,
                     $username
                 ),
-                $request->file('file')
+                $file
             );
 
             session(['import_temp_id' => $temp_id]);
 
-            /* ───────── Redirect ───────── */
+            // redirect
             return $budget
-                ? redirect()->route('budget.edit', $eid)
-                            ->with('success', 'Data berhasil di‑import (edit mode).')
+                ? redirect()->route('budget.edit', $hash)
+                    ->with('success', 'Data berhasil di-import (edit mode).')
                 : redirect()->route('budget.create')
-                            ->with('success', 'Data berhasil di‑import.');
+                    ->with('success', 'Data berhasil di-import.');
         } catch (\Throwable $e) {
-            return back()->with('error', 'Gagal import: '.$e->getMessage());
+            return back()->withInput()->with('error', 'Gagal import: ' . $e->getMessage());
         }
     }
 
-   
-    public function import(Request $request, $hash = null)
+    public function import_xxx(Request $request, $hash = null)
     {
         $request->validate([
             'file'              => 'required|mimes:xlsx,xls,csv',

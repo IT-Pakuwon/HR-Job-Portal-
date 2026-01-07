@@ -69,7 +69,7 @@ class DashboardController extends Controller
 
         // 1) ambil DOCID pending
         $docids = DB::connection($aprConn)->table($tblApr)
-            ->where('aprv_username', 'like', "%{$user->username}%")
+            ->where('aprv_username', 'ilike', "%{$user->username}%")
             ->where('status', 'P')
             ->whereNotNull('aprv_datebefore')
             ->pluck('refnbr')->unique()->values();
@@ -162,7 +162,7 @@ class DashboardController extends Controller
         $tblPurch = $purchM->getTable();
 
         $docids = DB::connection($aprConn)->table($tblApr)
-            ->where('aprv_username', 'like', "%{$user->username}%")
+            ->where('aprv_username', 'ilike', "%{$user->username}%")
             ->where('status', 'P')
             ->whereNotNull('aprv_datebefore')
             ->pluck('refnbr')->unique()->values();
@@ -231,7 +231,7 @@ class DashboardController extends Controller
         $tblPurch = $purchM->getTable();
 
         $docids = DB::connection($aprConn)->table($tblApr)
-            ->where('aprv_username', 'like', "%{$user->username}%")
+            ->where('aprv_username', 'ilike', "%{$user->username}%")
             ->where('status', 'A')
             ->whereNotNull('aprv_datebefore')
             ->pluck('refnbr')->unique()->values();

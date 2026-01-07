@@ -266,7 +266,23 @@
                                     </button>
                                 </div>
                             </div>
-                            <div class="flex flex-col gap-2 lg:col-span-2">
+                            <div class="flex flex-col gap-2">
+                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">BQ Type</label>
+                                <select name="bqtype" id="bqtype" required
+                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm
+                                        focus:border-indigo-500 focus:ring-indigo-500
+                                        dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
+                                    <option value="">-- Pilih BQ Type --</option>
+                                    <option value="Jasa" {{ old('bqtype', $sppj->bqtype) == 'Jasa' ? 'selected' : '' }}>
+                                        Jasa
+                                    </option>
+                                    <option value="Kontrak" {{ old('bqtype', $sppj->bqtype) == 'Kontrak' ? 'selected' : '' }}>
+                                        Kontrak
+                                    </option>
+                                </select>
+                            </div>
+
+                            <div class="flex flex-col gap-2">
                                 <label for="keperluan"
                                     class="req block text-sm font-medium text-gray-700 dark:text-gray-300">
                                     Description
@@ -1211,79 +1227,6 @@
     </script>
 
 
-    {{-- <script>
-        // ===== Simpan Form =====
-        $(function () {
-        $('#sppjForm').on('submit', function (e) {
-            e.preventDefault();
-
-            // normalisasi qty (koma -> titik)
-            $('.qtyField').each(function () {
-            if (this.value.includes(',')) this.value = this.value.replace(',', '.');
-            });
-
-            // validasi minimal 1 detail valid
-            const hasValid = $('#sppjTable tr.sppj-row').toArray().some(tr => {
-            const $tr = $(tr);
-            const invId = ($tr.find('.inventoryIdField').val() || '').trim();
-            const qty   = parseFloat($tr.find('input[name="qty[]"]').val() || '0');
-            return invId !== '' && qty > 0;
-            });
-            if (!hasValid) { toastr.error('Minimal 1 item detail harus dipilih (Product Name & Qty > 0).'); return; }
-
-            // lock UI
-            $('#submitBtn, #cancelBtn').prop('disabled', true);
-            $('#btnText').text('Processing...');
-            $('#loadingSpinner').removeClass('hidden');
-
-            // kirim ke route update (pakai action form sendiri)
-            const form   = document.getElementById('sppjForm');
-            const formData = new FormData(form);
-            formData.set('_method','PUT'); // penting!
-
-            $.ajax({
-            url: form.action,        // <-- otomatis: route('sppjs.update', $sppj->id)
-            type: 'POST',
-            data: formData,
-            processData: false,
-            contentType: false,
-            success: function (res) {
-                toastr.success(res.message || "SPPJ updated successfully!");
-                window.location.href = "/sppjs";
-            },
-            error: function (xhr) {
-                if (xhr.status === 422 && xhr.responseJSON && xhr.responseJSON.errors) {
-                const errors = xhr.responseJSON.errors;
-                let msg = 'Mohon periksa input:<br>';
-                Object.keys(errors).forEach(k => { msg += `- ${errors[k].join(', ')}<br>`; });
-                toastr.error(msg);
-                } else if (xhr.responseJSON && xhr.responseJSON.message) {
-                toastr.error(xhr.responseJSON.message);
-                } else {
-                toastr.error('Error! Please check the input.');
-                }
-            },
-            complete: function () {
-                $('#submitBtn, #cancelBtn').prop('disabled', false);
-                $('#btnText').text('Submit Approval');
-                $('#loadingSpinner').addClass('hidden');
-            }
-            });
-        });
-        
-
-        // ===== Cancel Button =====
-        $('#cancelBtn').click(function () {
-            const confirmed = confirm("Are you sure you want to cancel? Unsaved changes will be lost.");
-            if (confirmed) {
-            $('#cancelBtn').prop('disabled', true);
-            $('#cancelText').text('Cancelling...');
-            $('#cancelSpinner').removeClass('hidden');
-            window.location.href = "{{ route('sppjs') }}";
-            }
-        });
-        });
-    </script> --}}
 
     <script>
         // ===== Simpan Form (EDIT) =====
@@ -1310,6 +1253,60 @@
 
             $('#sppjForm').on('submit', function(e) {
                 e.preventDefault();
+
+                let headerOk = true;
+
+                const $cpny   = $('select[name="cpnyid"]');
+                const $dept   = $('select[name="departementid"]');
+                const $perpost= $('#perpost');
+                const $bqtype = $('#bqtype');
+                const $desc   = $('#keperluan');
+
+                const $rtHidden  = $('#requesttypeid');               // hidden input
+                const $rtDisplay = $('#requesttype_name_display');    // readonly display
+
+                if (!$cpny.val()) {
+                    addError($cpny, 'Company wajib dipilih.');
+                    headerOk = false;
+                }
+
+                if (!$dept.val()) {
+                    addError($dept, 'Department wajib dipilih.');
+                    headerOk = false;
+                }
+
+                if (!$perpost.val()) {
+                    addError($perpost, 'Perpost wajib dipilih.');
+                    headerOk = false;
+                }
+
+                // Request Type (hidden)
+                if (!$rtHidden.val() || !$rtHidden.val().trim()) {
+                    addError($rtDisplay, 'Request Type wajib dipilih.');
+                    headerOk = false;
+                }
+
+                // BQ Type wajib pilih
+                if (!$bqtype.val() || !$bqtype.val().trim()) {
+                    addError($bqtype, 'BQ Type wajib dipilih.');
+                    headerOk = false;
+                }
+
+                // Description wajib
+                if (!$desc.val() || !$desc.val().trim()) {
+                    addError($desc, 'Description wajib diisi.');
+                    headerOk = false;
+                }
+
+                if (!headerOk) {
+                    const $first = $('#sppjForm .is-invalid').first();
+                    if ($first.length) {
+                        $('html,body').animate({ scrollTop: $first.offset().top - 120 }, 300);
+                        $first.trigger('focus');
+                    }
+                    toastr.error('Mohon lengkapi field wajib di bagian header.');
+                    return;
+                }
 
                 // normalisasi qty (koma -> titik)
                 $('.qtyField').each(function() {

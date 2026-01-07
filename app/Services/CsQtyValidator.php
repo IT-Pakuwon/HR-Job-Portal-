@@ -6,50 +6,63 @@ use App\Models\TrSPPBdetail;
 use App\Models\TrSPPJdetail;
 use App\Models\TrSPPKdetail;
 use App\Models\TrSPPTdetail;
-use Vinkla\Hashids\Facades\Hashids;
+use App\Models\TrPOReuse;
 
 class CsQtyValidator
 {
     /**
      * Validasi qty detail CS dibanding sisa (open) di dokumen sumber.
      *
-     * @param  string $doc   SPPB | SPPJ | SPPK | SPPT
-     * @param  string $srcId hashids dari header sumber (sppbid/sppjid/sppkid/spptid)
+     * @param  string $doc   SPPB | SPPJ | SPPK | SPPT | PO | SPK
+     * @param  string $srcId id sumber:
+     *                      - SPPB/J/K/T: id header (sppbid/sppjid/sppkid/spptid)
+     *                      - PO/SPK: csid lama (prev_csid) untuk lookup ke tr_po_reuse
      * @param  array  $details array detail dari request (inventoryid, uom, qty)
      * @return array  ['ok' => bool, 'message' => string, 'errors' => array]
      */
     public static function validate(string $doc, string $srcId, array $details): array
     {
-        // dd($doc.'-'.$srcId.'-'.$details);
-        // Map doc ke model detail + FK header
+        $doc = strtoupper(trim($doc));
+
+        // Map doc ke model detail + cara filter sumber
         $map = [
             'SPPB' => [
-                'model' => TrSPPBdetail::class,
-                'fk'    => 'sppbid',
+                'model'      => TrSPPBdetail::class,
+                'filter_col' => 'sppbid',
             ],
             'SPPJ' => [
-                'model' => TrSPPJdetail::class,
-                'fk'    => 'sppjid',
+                'model'      => TrSPPJdetail::class,
+                'filter_col' => 'sppjid',
             ],
             'SPPK' => [
-                'model' => TrSPPKdetail::class,
-                'fk'    => 'sppkid',
+                'model'      => TrSPPKdetail::class,
+                'filter_col' => 'sppkid',
             ],
             'SPPT' => [
-                'model' => TrSPPTdetail::class,
-                'fk'    => 'spptid',
+                'model'      => TrSPPTdetail::class,
+                'filter_col' => 'spptid',
+            ],
+
+            // ✅ Revisi dari PO/SPK → pakai tr_po_reuse by csid (prev_csid)
+            'PO' => [
+                'model'      => TrPOReuse::class,
+                'filter_col' => 'csid',
+            ],
+            'SPK' => [
+                'model'      => TrPOReuse::class,
+                'filter_col' => 'csid',
             ],
         ];
 
-        if (! isset($map[$doc])) {
+        if (!isset($map[$doc])) {
             return [
                 'ok'      => false,
                 'message' => "Doc type {$doc} tidak dikenali.",
                 'errors'  => [],
             ];
         }
-       
-        if (! $srcId) {
+
+        if (!$srcId) {
             return [
                 'ok'      => false,
                 'message' => "ID dokumen sumber tidak valid.",
@@ -58,13 +71,14 @@ class CsQtyValidator
         }
 
         $detailModel = $map[$doc]['model'];
-        $fk          = $map[$doc]['fk'];
+        $filterCol   = $map[$doc]['filter_col'];
 
-        // Ambil semua detail sumber untuk header ini
-        /** @var \Illuminate\Support\Collection $srcDetails */
-        $srcDetails = $detailModel::where($fk, $srcId)->get();
-       
-        // Index-kan by key (inventoryid + uom) supaya gampang dicocokkan
+        // Ambil semua detail sumber untuk dokumen ini
+        $srcDetails = $detailModel::query()
+            ->where($filterCol, $srcId)
+            ->get();
+
+        // Index-kan by key (inventoryid + uom)
         $indexed = $srcDetails->groupBy(function ($row) {
             return ($row->inventoryid ?? '') . '|' . ($row->uom ?? '');
         });
@@ -73,34 +87,34 @@ class CsQtyValidator
 
         foreach ($details as $idx => $detail) {
             $inv = $detail['inventoryid'] ?? null;
-            $uom = $detail['uom']         ?? null;
+            $uom = $detail['uom'] ?? null;
             $qty = (float) ($detail['qty'] ?? 0);
 
-            if (! $inv || ! $uom) {
-                // kalau tidak ada key, skip saja
+            if (!$inv || !$uom) {
                 continue;
             }
 
             $key = $inv . '|' . $uom;
 
-            if (! isset($indexed[$key])) {
+            if (!isset($indexed[$key])) {
                 // detail ini tidak ditemukan di sumber → optional, bisa diabaikan
                 continue;
             }
 
-            /** @var \App\Models\Model $src */
             $src = $indexed[$key]->first();
 
-            $srcQty      = (float) ($src->qty              ?? 0);
-            $ordered     = (float) ($src->ordered          ?? 0);
-            $reject      = (float) ($src->rejectordered    ?? 0);
-            $completed   = (float) ($src->completeordered  ?? 0);
-            $openordered = (float) ($src->openordered      ?? 0);
+            $srcQty      = (float) ($src->qty ?? 0);
+            $ordered     = (float) ($src->ordered ?? 0);
+            $reject      = (float) ($src->rejectordered ?? 0);
+            $completed   = (float) ($src->completeordered ?? 0);
+
+            // beberapa tabel punya openordered, beberapa mungkin tidak
+            $openordered = (float) ($src->openordered ?? 0);
 
             // Sisa secara perhitungan
             $calculatedRemain = $srcQty - $ordered - $reject - $completed;
 
-            // Pakai max antara kolom openordered dan hasil hitung
+            // Pakai max antara openordered dan hasil hitung
             $allow = max($openordered, $calculatedRemain, 0);
 
             if ($qty > $allow) {
@@ -120,7 +134,7 @@ class CsQtyValidator
             }
         }
 
-        if (! empty($errors)) {
+        if (!empty($errors)) {
             return [
                 'ok'      => false,
                 'message' => 'Terdapat item dengan qty melebihi sisa open/order yang diizinkan.',

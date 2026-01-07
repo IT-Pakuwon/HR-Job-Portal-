@@ -208,6 +208,8 @@
                     <input type="hidden" name="woid" value="{{ $header->woid ?? '' }}">
                     <input type="hidden" name="spbid" value="{{ $header->spbid ?? '' }}">
                     <input type="hidden" name="keperluan" value="{{ $header->keperluan ?? '' }}">
+                    <input type="hidden" name="bqtype" value="{{ $header->bqtype ?? '' }}">
+                    <input type="hidden" name="budget_perpost" value="{{ $header->budget_perpost ?? '' }}">
                     {{-- <input type="hidden" name="user_peminta" value="{{ optional($header->creator)->name }}"> --}}
                     <input type="hidden" name="user_peminta" value="{{ $header->created_by }}">
                     <input type="hidden" name="assigndate" value="{{ $header->assigndate ?? '' }}">
@@ -339,7 +341,7 @@
                                             <tr data-inventoryid="{{ $row->inventoryid ?? '' }}"
                                                 data-inventory_descr="{{ $row->inventory_descr }}"
                                                 data-uom="{{ $row->uom }}"
-                                                data-lastprice="{{ $row->inventory_last_price ?? 0 }}"
+                                                data-lastprice="{{ (float)($row->last_unitcost ?? 0) }}"
                                                 data-original_qty="{{ (float) $row->qty }}"
                                                 data-note="{{ $row->csnote_detail ?? '' }}">
                                                 <td class="border px-3 py-2">{{ $row->inventory_descr }}</td>
@@ -1664,7 +1666,7 @@
         // ==========================================
         const doc = $('input[name="doc"]').val();
         const srcId = $('input[name="src_id"]').val();
-
+        console.log('Checking qty for doc', doc, 'src_id', srcId, details);
         showOverlay('Validating qty');
 
         $.ajax({

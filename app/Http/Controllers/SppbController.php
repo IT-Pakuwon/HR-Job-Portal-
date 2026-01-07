@@ -143,12 +143,12 @@ class SppbController extends Controller
 
         if ($search !== '') {
             $base->where(function ($q) use ($search) {
-                $q->where('sppb.sppbid',          'like', "%{$search}%")
-                ->orWhere('sppb.cpny_id',       'like', "%{$search}%")
-                ->orWhere('sppb.department_id', 'like', "%{$search}%")
-                ->orWhere('rt.requesttype_name','like', "%{$search}%")
-                ->orWhere('sppb.keperluan',     'like', "%{$search}%")
-                ->orWhere('sppb.status',        'like', "%{$search}%");
+                $q->where('sppb.sppbid',          'ilike', "%{$search}%")
+                ->orWhere('sppb.cpny_id',       'ilike', "%{$search}%")
+                ->orWhere('sppb.department_id', 'ilike', "%{$search}%")
+                ->orWhere('rt.requesttype_name','ilike', "%{$search}%")
+                ->orWhere('sppb.keperluan',     'ilike', "%{$search}%")
+                ->orWhere('sppb.status',        'ilike', "%{$search}%");
             });
         }
 

@@ -291,8 +291,7 @@ class CanvassController extends Controller
             'items'      => $items,
             'tops'       => $tops,
             'poHeader'   => $poHeader ?? null,
-            'prefix2'    => $prefix2 ?? null,
-            'items'      => $items,
+            'prefix2'    => $prefix2 ?? null,            
 
         ]);
     }
@@ -895,7 +894,9 @@ class CanvassController extends Controller
         $prev_csid   = $request->input('prev_csid');   // kalau ada → CS revisi
         $spbid       = $request->input('spbid');
         $woid        = $request->input('woid');
-        $keperluan    = $request->input('keperluan');
+        $keperluan   = $request->input('keperluan');
+        $bqtype      = $request->input('bqtype');    
+        $budgetPerpost = $request->input('budget_perpost');
 
         $vendors = json_decode($request->input('vendors', '[]'), true) ?: [];
         $details = json_decode($request->input('details', '[]'), true) ?: [];
@@ -970,6 +971,7 @@ class CanvassController extends Controller
             $srcLineKey = null;
             $srcIndex   = [];
             $reuseIndex = []; 
+            $prevLocIndex = [];
 
             $allowedDocs = ['SPPB', 'SPPJ', 'SPPK', 'SPPT'];
 
@@ -1001,6 +1003,16 @@ class CanvassController extends Controller
                         strtoupper(trim(($rd->uom ?? '')))          . '|' .
                         strtoupper(trim(($rd->inventory_descr ?? '')));
                     $reuseIndex[$key] = $rd;
+                }
+                $prevDetails2 = \App\Models\TrCSdetail::on('pgsql')
+                    ->where('csid', $prev_csid)
+                    ->get();
+
+                foreach ($prevDetails2 as $pd) {
+                    $key = strtoupper(trim(($pd->inventoryid ?? ''))) . '|' .
+                        strtoupper(trim(($pd->uom ?? '')))         . '|' .
+                        strtoupper(trim(($pd->inventory_descr ?? '')));
+                    $prevLocIndex[$key] = $pd; // simpan row prev utk ambil location
                 }
             }
 
@@ -1040,6 +1052,7 @@ class CanvassController extends Controller
             $cs->woid          = $woid ?: ($srcHeader->woid ?? null);
             $cs->spbid         = $spbid ?: ($srcHeader->spbid ?? null);
             $cs->keperluan     = $keperluan ?: ($srcHeader->keperluan ?? null);
+            $cs->bqtype        = $bqtype ?: ($srcHeader->bqtype ?? null);
             $cs->department_id = $deptId ?: ($srcHeader->department_id ?? null);
             $cs->user_peminta  = $userPeminta ?: (optional($srcHeader->creator)->name ?? null);
             $cs->csnote        = $csnote ?: null;
@@ -1051,9 +1064,9 @@ class CanvassController extends Controller
 
             $csTable = $cs->getTable();
 
-            $safeSet($cs, $csTable, 'budget_perpost', $srcHeader->budget_perpost ?? null);
-            $safeSet($cs, $csTable, 'woid',           $srcHeader->woid           ?? null);
-            $safeSet($cs, $csTable, 'spbid',          $srcHeader->spbid          ?? null);
+            $safeSet($cs, $csTable, 'budget_perpost', $budgetPerpost ?? null);
+            $safeSet($cs, $csTable, 'woid',           $woid           ?? null);
+            $safeSet($cs, $csTable, 'spbid',          $spbid          ?? null);
 
             // Header vendor (display)
             for ($slot = 1; $slot <= 6; $slot++) {
@@ -1117,6 +1130,7 @@ class CanvassController extends Controller
                     $srcRefNo = null;
                 }
 
+                $prevLoc = (!empty($prev_csid) && isset($prevLocIndex[$matchKey])) ? $prevLocIndex[$matchKey] : null;
 
                 $det = new \App\Models\TrCSdetail();
                 $det->setConnection('pgsql');
@@ -1148,12 +1162,16 @@ class CanvassController extends Controller
                 // harga terakhir & note
                 // $det->inventory_last_price = isset($d['inventory_last_price']) ? $round2($d['inventory_last_price'])
                 //                             : (isset($src->inventory_last_price) ? $round2($src->inventory_last_price) : 0);
-                $det->inventory_last_price = $lastPriceMap[$det->inventoryid] ?? 0;
+                // $det->inventory_last_price = $lastPriceMap[$det->inventoryid] ?? 0;
+                $det->inventory_last_price = isset($d['inventory_last_price']) ? $round2($d['inventory_last_price'])
+                                                : (isset($src->inventory_last_price) ? $round2($src->inventory_last_price) : 0);
                 $det->csnote_detail        = $d['csnote_detail'] ?? ($src->note ?? null);
 
                 // lokasi & budgeting
-                 $det->location_id               = $src->location_id               ?? null;
-                $det->sub_location_id           = $src->sub_location_id           ?? null;
+                // $det->location_id               = $src->location_id               ?? null;
+                // $det->sub_location_id           = $src->sub_location_id           ?? null;
+                $det->location_id               = $src->location_id     ?? ($prevLoc->location_id ?? null);
+                $det->sub_location_id           = $src->sub_location_id ?? ($prevLoc->sub_location_id ?? null);       
                 $det->budget_perpost            = $src->budget_perpost            ?? null;
                 $det->budget_cpny_id            = $cpnyId; // tetap perusahaan CS
                 $det->budget_business_unit_id   = $src->budget_business_unit_id   ?? null;
@@ -1341,6 +1359,8 @@ class CanvassController extends Controller
         $spbid        = $request->input('spbid');
         $woid         = $request->input('woid');
         $keperluan    = $request->input('keperluan');
+        $bqtype       = $request->input('bqtype');
+        $budgetPerpost = $request->input('budget_perpost');
 
         // Dari JS: vendors[] + details[]
         $vendors = json_decode($request->input('vendors', '[]'), true) ?: [];
@@ -1427,16 +1447,31 @@ class CanvassController extends Controller
             }
 
             // 2b) Kalau CS revisi, ambil sumber dari TrPOReuse (CS sebelumnya)
+           
+            $prevDetIndex = [];
+            $prevLocIndex = [];
+
             if (!empty($prev_csid)) {
-                $reuseDetails = \App\Models\TrPOReuse::on('pgsql')
+                $prevDetails = \App\Models\TrPOReuse::on('pgsql')
                     ->where('csid', $prev_csid)
                     ->get();
 
-                foreach ($reuseDetails as $rd) {
-                    $key = strtoupper(trim(($rd->inventoryid ?? ''))) . '|' .
-                        strtoupper(trim(($rd->uom ?? '')))          . '|' .
-                        strtoupper(trim(($rd->inventory_descr ?? '')));
-                    $reuseIndex[$key] = $rd;
+                foreach ($prevDetails as $pd) {
+                    $key = strtoupper(trim(($pd->inventoryid ?? ''))) . '|' .
+                        strtoupper(trim(($pd->uom ?? '')))         . '|' .
+                        strtoupper(trim(($pd->inventory_descr ?? '')));
+                    $prevDetIndex[$key] = $pd;
+                }
+
+                $prevDetails2 = \App\Models\TrCSdetail::on('pgsql')
+                    ->where('csid', $prev_csid)
+                    ->get();
+
+                foreach ($prevDetails2 as $pd) {
+                    $key = strtoupper(trim(($pd->inventoryid ?? ''))) . '|' .
+                        strtoupper(trim(($pd->uom ?? '')))         . '|' .
+                        strtoupper(trim(($pd->inventory_descr ?? '')));
+                    $prevLocIndex[$key] = $pd; // simpan row prev utk ambil location
                 }
             }
 
@@ -1464,28 +1499,39 @@ class CanvassController extends Controller
             $tglbln = substr($year, 2) . $month; // YYMM
             $csid   = $doctype . $tglbln . sprintf("%04d", $urutan);
 
+            $prevCS = null;
+            if (!empty($prev_csid)) {
+                $prevCS = TrCS::on('pgsql')->where('csid', $prev_csid)->first();
+            }
+
+
             // ==== 4) Simpan header TrCS (lengkapi dari header sumber jika ada) ====
             $cs = new TrCS();
             $cs->setConnection('pgsql');
             $cs->csid          = $csid;
             $cs->csdate        = $dt->toDateString();
             $cs->cpny_id       = $cpnyId;
-            $cs->sppbjktid     = $sppbjktid;                          
-            $cs->bqid          = $bqid ?: ($srcHeader->bqid ?? null);
-            $cs->woid          = $woid ?: ($srcHeader->woid ?? null);
-            $cs->spbid         = $spbid ?: ($srcHeader->spbid ?? null);
+            $cs->sppbjktid     = $sppbjktid;                         
+           
             $cs->keperluan     = $keperluan ?: ($srcHeader->keperluan ?? null);
+            $cs->bqtype        = $bqtype ?: ($srcHeader->bqtype ?? null);
             $cs->department_id = $deptId ?: ($srcHeader->department_id ?? null);
+            $cs->budget_perpost = $budgetPerpost ?? null;
             $cs->user_peminta  = $userPeminta ?: (optional($srcHeader->creator)->name ?? null);
             $cs->csnote        = $csnote ?: null;
             $cs->assigndate    = $assigndate ?: null;
             $cs->prev_csid     = $prev_csid ?: null;
             $cs->rev_csid      = $nextRev;
+            // $cs->budget_perpost = $srcHeader->budget_perpost ?? ($prevCS->budget_perpost ?? null);
+            $cs->woid          = $woid ?: ($srcHeader->woid ?? ($prevCS->woid ?? null));
+            $cs->spbid         = $spbid ?: ($srcHeader->spbid ?? ($prevCS->spbid ?? null));
+            $cs->bqid          = $bqid ?: ($srcHeader->bqid ?? ($prevCS->bqid ?? null));
+
             
             $csTable = $cs->getTable();
-            $safeSet($cs, $csTable, 'budget_perpost', $srcHeader->budget_perpost ?? null);
-            $safeSet($cs, $csTable, 'woid',           $srcHeader->woid           ?? null);
-            $safeSet($cs, $csTable, 'spbid',          $srcHeader->spbid          ?? null);
+            $safeSet($cs, $csTable, 'budget_perpost', $budgetPerpost ?? null);
+            $safeSet($cs, $csTable, 'woid',           $woid           ?? null);
+            $safeSet($cs, $csTable, 'spbid',          $spbid          ?? null);
 
             $cs->status     = 'H';
             $cs->created_by = $username;
@@ -1545,46 +1591,56 @@ class CanvassController extends Controller
                 } else {
                     $srcRefNo = null;
                 }
+
+                $prevDet = (!empty($prev_csid) && isset($prevDetIndex[$matchKey])) ? $prevDetIndex[$matchKey] : null;
+                $prevLoc = (!empty($prev_csid) && isset($prevLocIndex[$matchKey])) ? $prevLocIndex[$matchKey] : null;
+
                 
                 $det = new TrCSdetail();
                 $det->setConnection('pgsql');
                 $det->csid          = $csid;
                 $det->sppbjktid     = $sppbjktid;
                 $det->cs_no         = $lineNo;
-                $det->sppbjkt_no    = $srcRefNo;
+                $det->sppbjkt_no = $srcRefNo ?? ($prevDet->sppbjkt_no ?? null);
 
-                // inventory fields (payload > sumber/TrPOReuse)
-                $det->inventory_type       = $d['inventory_type']     ?? ($src->inventory_type     ?? null);
+                // inventory fields (payload > sumber/TrPOReuse)                
                 $det->inventoryid          = $d['inventoryid']        ?? ($src->inventoryid        ?? null);
                 $det->inventory_descr      = $d['inventory_descr']    ?? ($src->inventory_descr    ?? null);
-                $det->inventory_sub_type   = $d['inventory_sub_type'] ?? ($src->inventory_sub_type ?? null);
-                $det->inventory_category   = $d['inventory_category'] ?? ($src->inventory_category ?? null);
+                $det->inventory_type     = $d['inventory_type']     ?? ($src->inventory_type     ?? ($prevDet->inventory_type ?? null));
+                $det->inventory_sub_type = $d['inventory_sub_type'] ?? ($src->inventory_sub_type ?? ($prevDet->inventory_sub_type ?? null));
+                $det->inventory_category = $d['inventory_category'] ?? ($src->inventory_category ?? ($prevDet->inventory_category ?? null));
+
 
                 $det->qty                  = $round2($d['qty']        ?? ($src->qty ?? 0));
                 $det->uom                  = $d['uom']                ?? ($src->uom ?? null);
-                $det->siteid               = $d['siteid']             ?? ($src->siteid ?? null);
+                // $det->siteid               = $d['siteid']             ?? ($src->siteid ?? null);
 
-                // konversi UOM dari sumber
-                $det->type_multiplier      = $src->type_multiplier        ?? null;
-                $det->base_multiplier      = isset($src->base_multiplier) ? $round2($src->base_multiplier) : null;
-                $det->base_qty             = isset($src->base_qty)        ? $round2($src->base_qty)        : null;
-                $det->base_uom             = $src->base_uom ?? null;
+                // // konversi UOM dari sumber              
+                $det->siteid          = $d['siteid'] ?? ($src->siteid ?? ($prevDet->siteid ?? null));
+                $det->type_multiplier = $src->type_multiplier ?? ($prevDet->type_multiplier ?? null);
+                $det->base_multiplier = isset($src->base_multiplier) ? $round2($src->base_multiplier)
+                                    : (isset($prevDet->base_multiplier) ? $round2($prevDet->base_multiplier) : null);
+                $det->base_qty        = isset($src->base_qty) ? $round2($src->base_qty)
+                                    : (isset($prevDet->base_qty) ? $round2($prevDet->base_qty) : null);
+                $det->base_uom        = $src->base_uom ?? ($prevDet->base_uom ?? null);
+
 
                 // harga terakhir & note
                 $det->inventory_last_price = isset($d['inventory_last_price']) ? $round2($d['inventory_last_price'])
                                                 : (isset($src->inventory_last_price) ? $round2($src->inventory_last_price) : 0);
                 $det->csnote_detail        = $d['csnote_detail'] ?? ($src->note ?? null);
 
-                // lokasi & budgeting
-                $det->location_id               = $src->location_id               ?? null;
-                $det->sub_location_id           = $src->sub_location_id           ?? null;
-                $det->budget_perpost            = $src->budget_perpost            ?? null;
-                $det->budget_cpny_id            = $cpnyId; // tetap perusahaan CS
-                $det->budget_business_unit_id   = $src->budget_business_unit_id   ?? null;
-                $det->budget_department_fin_id  = $src->budget_department_fin_id  ?? null;
-                $det->budget_account_id         = $src->budget_account_id         ?? null;
-                $det->budget_activity_id        = $src->budget_activity_id        ?? null;
-                $det->budget_activity_descr     = $src->budget_activity_descr     ?? null;
+                // lokasi & budgeting               
+                $det->location_id     = $src->location_id     ?? ($prevLoc->location_id ?? null);
+                $det->sub_location_id = $src->sub_location_id ?? ($prevLoc->sub_location_id ?? null);       
+                $det->budget_cpny_id            = $cpnyId; // tetap perusahaan CS              
+                $det->budget_perpost           = $src->budget_perpost           ?? ($prevDet->budget_perpost ?? null);
+                $det->budget_business_unit_id  = $src->budget_business_unit_id  ?? ($prevDet->budget_business_unit_id ?? null);
+                $det->budget_department_fin_id = $src->budget_department_fin_id ?? ($prevDet->budget_department_fin_id ?? null);
+                $det->budget_account_id        = $src->budget_account_id        ?? ($prevDet->budget_account_id ?? null);
+                $det->budget_activity_id       = $src->budget_activity_id       ?? ($prevDet->budget_activity_id ?? null);
+                $det->budget_activity_descr    = $src->budget_activity_descr    ?? ($prevDet->budget_activity_descr ?? null);
+
 
                 // Map harga per vendor (maks 6)
                 for ($i = 0; $i < min(count($d['vendor'] ?? []), 6); $i++) {
@@ -1827,6 +1883,40 @@ class CanvassController extends Controller
             }
         }
 
+        // ambil inventoryid yang ada di items
+        $invIds = collect($items)
+            ->pluck('inventoryid')
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
+       
+        // map: inventoryid => latest unitcost
+        $lastUnitcostMap = [];
+
+        if (!empty($invIds)) {
+            $rows = TrPoLastPrice::query()
+                ->select('inventoryid', 'unitcost', 'podate', 'created_at') // unitcost wajib, lainnya hanya untuk orderBy
+                ->whereIn('inventoryid', $invIds)
+                ->whereNull('deleted_at')
+                ->orderByDesc('podate')       // terbaru
+                ->orderByDesc('created_at')   // tie breaker
+                ->get();
+
+            // ambil baris pertama (latest) untuk tiap inventoryid
+            $lastUnitcostMap = $rows
+                ->groupBy('inventoryid')
+                ->map(fn($g) => (float)($g->first()->unitcost ?? 0))
+                ->toArray();
+        }
+
+        // inject ke tiap item (biar gampang dipakai di blade)
+        $items = collect($items)->map(function ($it) use ($lastUnitcostMap) {
+            $invId = $it->inventoryid ?? null;
+            $it->last_unitcost = $invId ? ($lastUnitcostMap[$invId] ?? 0) : 0;
+            return $it;
+        });
+
         $tops = MsTop::where('status','A')
             ->where('top_type',$top_type) 
             ->orderByRaw('COALESCE(top_days, 9999), top_name') 
@@ -1849,7 +1939,7 @@ class CanvassController extends Controller
             'bq'         => $bq,
             'bq_eid'     => $bq_eid,
             'csVendorTotals'  => $csVendorTotals,
-            'bqVendorTotals'  => $bqVendorTotals,
+            'bqVendorTotals'  => $bqVendorTotals,            
         ]);
     }
 
@@ -2215,7 +2305,7 @@ class CanvassController extends Controller
 
     public function updateCS(Request $request, $csid)
     {
-        dd($request->all());
+        // dd($request->all());
         // 1) Validasi payload dasar
         $request->validate([
             'doc'             => 'required|string',     // SPPB|SPPJ|SPPK|SPPT

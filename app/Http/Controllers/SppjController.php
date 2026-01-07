@@ -38,6 +38,7 @@ use Google\Cloud\Storage\StorageClient;
 use App\Http\Controllers\ApprovalController;
 use App\Models\TrApproval;
 use App\Models\MsSite;
+use PhpOffice\PhpSpreadsheet\IOFactory;
 
 class SppjController extends Controller
 {
@@ -144,12 +145,12 @@ class SppjController extends Controller
 
         if ($search !== '') {
             $base->where(function ($q) use ($search) {
-                $q->where('sppj.sppjid',           'like', "%{$search}%")
-                ->orWhere('sppj.cpny_id',       'like', "%{$search}%")
-                ->orWhere('sppj.department_id', 'like', "%{$search}%")
-                ->orWhere('rt.requesttype_name','like', "%{$search}%")
-                ->orWhere('sppj.keperluan',     'like', "%{$search}%")
-                ->orWhere('sppj.status',        'like', "%{$search}%");
+                $q->where('sppj.sppjid',           'ilike', "%{$search}%")
+                ->orWhere('sppj.cpny_id',       'ilike', "%{$search}%")
+                ->orWhere('sppj.department_id', 'ilike', "%{$search}%")
+                ->orWhere('rt.requesttype_name','ilike', "%{$search}%")
+                ->orWhere('sppj.keperluan',     'ilike', "%{$search}%")
+                ->orWhere('sppj.status',        'ilike', "%{$search}%");
             });
         }
 
@@ -344,6 +345,7 @@ class SppjController extends Controller
             $header->budget_perpost    = $request->input('perpost');
             $header->woid              = $request->input('woid');
             $header->is_urgent         = $request->input('is_urgent');
+            $header->bqtype            = $request->input('bqtype');
             $header->bqid              = '';
             $header->totalopenordered  = 0;
             $header->totalqty          = 0;
@@ -826,6 +828,7 @@ class SppjController extends Controller
         $header->requesttypeid  = $request->requesttypeid;
         $header->keperluan      = $request->keperluan;
         $header->budget_perpost = $request->perpost;   
+        $header->bqtype         = $request->bqtype;
         $header->woid           = $request->woid;
         $header->is_urgent      = $request->is_urgent;
         $header->status         = 'P';
@@ -1485,7 +1488,7 @@ class SppjController extends Controller
     //     // pastikan user memang approver aktif (status P) di doc ini
     //     $tApproval = T_approval::where('docid', $sppj->sppjid)
     //         ->where('status', 'P')
-    //         ->where('aprvusername', 'like', "%{$user->username}%")
+    //         ->where('aprvusername', 'ilike', "%{$user->username}%")
     //         ->whereNotNull('aprvdatebefore') 
     //         ->orderBy('aprvid', 'ASC')
     //         ->first();
@@ -1654,7 +1657,7 @@ class SppjController extends Controller
     //     // Validasi: user harus approver aktif (status P) pada dokumen ini
     //     $tApproval = T_approval::where('docid', $sppj->sppjid)
     //         ->where('status', 'P')
-    //         ->where('aprvusername', 'like', "%{$user->username}%")
+    //         ->where('aprvusername', 'ilike', "%{$user->username}%")
     //         ->whereNotNull('aprvdatebefore') 
     //         ->orderBy('aprvid', 'ASC')
     //         ->first();
@@ -1769,7 +1772,7 @@ class SppjController extends Controller
     //     // Pastikan user adalah approver aktif (status P) dokumen ini
     //     $tApproval = T_approval::where('docid', $sppj->sppjid)
     //         ->where('status', 'P')
-    //         ->where('aprvusername', 'like', "%{$user->username}%")
+    //         ->where('aprvusername', 'ilike', "%{$user->username}%")
     //         ->whereNotNull('aprvdatebefore') 
     //         ->orderBy('aprvid', 'ASC')
     //         ->first();
@@ -1873,7 +1876,7 @@ class SppjController extends Controller
     //     // dd($action);
     //     // Query dasar untuk pengecekan
     //     $query = T_approval::where('docid', $id)
-    //                 ->where('aprvusername', 'like', '%' . $user->username . '%')
+    //                 ->where('aprvusername', 'ilike', '%' . $user->username . '%')
     //                 ->where('status', 'P');                 
 
     //     // Jika aksi adalah reject atau revise, pastikan aprvdatebefore tidak null
@@ -2012,15 +2015,16 @@ class SppjController extends Controller
         ])->findOrFail($id);     
 
         $canEdit = TrApproval::where('refnbr', $bq->sppjtid)
+            ->where('aprv_leveling', '1')
             ->where('status', 'P')
             ->whereNotNull('aprv_datebefore')
             ->where(function ($q) use ($user) {
                 $u = $user->username;
 
                 $q->where('aprv_username', $u) 
-                ->orWhere('aprv_username', 'like', $u . ',%')      
-                ->orWhere('aprv_username', 'like', '%,' . $u . ',%') 
-                ->orWhere('aprv_username', 'like', '%,' . $u);     
+                ->orWhere('aprv_username', 'ilike', $u . ',%')      
+                ->orWhere('aprv_username', 'ilike', '%,' . $u . ',%') 
+                ->orWhere('aprv_username', 'ilike', '%,' . $u);     
             })
             ->exists();
 
@@ -2191,6 +2195,92 @@ class SppjController extends Controller
             // Bersihkan temp milik user agar batch tidak tercampur
             BqDetailTemp::where('created_by', $username)->delete();
 
+            $idx    = $request->input('idx');
+            $sppjtid = $request->input('sppjtid');
+
+            // =========================
+            // ✅ VALIDASI: TOLAK FORMULA
+            // =========================
+            $file = $request->file('file');
+
+            // CSV tidak punya formula, jadi hanya cek Excel
+            $ext = strtolower($file->getClientOriginalExtension());
+            if (in_array($ext, ['xlsx', 'xls'], true)) {
+                $spreadsheet = IOFactory::load($file->getPathname());
+
+                // Cek semua sheet biar aman (kalau template ada multi sheet)
+                foreach ($spreadsheet->getWorksheetIterator() as $sheet) {
+                    $highestRow = $sheet->getHighestDataRow();
+                    $highestCol = $sheet->getHighestDataColumn(); // mis: 'H'
+
+                    for ($row = 1; $row <= $highestRow; $row++) {
+                        // loop kolom A..highestCol
+                        for ($col = 'A'; $col <= $highestCol; $col++) {
+                            $cell = $sheet->getCell("{$col}{$row}");
+                            $raw  = $cell->getValue();
+
+                            // skip kosong
+                            if ($raw === null || $raw === '') {
+                                continue;
+                            }
+
+                            // Deteksi formula (paling akurat)
+                            if ($cell->isFormula()) {
+                                throw new \RuntimeException(
+                                    "File Excel mengandung rumus (formula) pada sheet '{$sheet->getTitle()}' cell {$col}{$row}. " .
+                                    "Silakan Copy → Paste Special → Values, lalu import ulang."
+                                );
+                            }
+
+                            // Guard tambahan (kadang value diawali '=')
+                            if (is_string($raw) && str_starts_with(ltrim($raw), '=')) {
+                                throw new \RuntimeException(
+                                    "File Excel mengandung rumus (formula) pada sheet '{$sheet->getTitle()}' cell {$col}{$row}. " .
+                                    "Silakan ubah menjadi nilai (Paste Values), lalu import ulang."
+                                );
+                            }
+                        }
+                    }
+                }
+            }
+
+            // =========================
+            // ✅ IMPORT BARU JALAN
+            // =========================
+            Excel::import(
+                new BqDetailTempImport($temp_id, $sppjtid),
+                $file
+            );
+
+            // Simpan temp_id ke session untuk dipakai di halaman create
+            session(['import_temp_id' => $temp_id]);
+
+            // ⬇️ Selalu redirect ke create
+            return redirect()
+                ->route('bqsppj.create', $idx)
+                ->with('success', 'Data berhasil di-import.');
+        } catch (\Throwable $e) {
+            return back()
+                ->withInput()
+                ->with('error', 'Gagal import: ' . $e->getMessage());
+        }
+    }
+
+    public function importCreate_xxx(Request $request)
+    {
+        // dd($request->all());
+        $request->validate([
+            'file'    => 'required|mimes:xlsx,xls,csv',
+            'sppjtid' => 'required',
+        ]);
+
+        try {
+            $username = Auth::user()->username ?? 'system';
+            $temp_id  = (string) Str::uuid();
+
+            // Bersihkan temp milik user agar batch tidak tercampur
+            BqDetailTemp::where('created_by', $username)->delete();
+
             $idx = $request->input('idx');
             $sppjtid = $request->input('sppjtid');
 
@@ -2215,8 +2305,90 @@ class SppjController extends Controller
         }
     }
 
-
     public function importEdit(Request $request)
+    {
+        $request->validate([
+            'file'    => 'required|mimes:xlsx,xls,csv',
+            'sppjtid' => 'required', // hidden input
+        ]);
+
+        try {
+            $username = Auth::user()->username ?? 'system';
+            $temp_id  = (string) Str::uuid();
+
+            // Bersihkan temp milik user agar batch tidak tercampur
+            BqDetailTemp::where('created_by', $username)->delete();
+
+            $idx     = $request->input('idx');
+            $sppjtid = $request->input('sppjtid');
+
+            // =========================
+            // ✅ VALIDASI: TOLAK FORMULA
+            // =========================
+            $file = $request->file('file');
+            $ext  = strtolower($file->getClientOriginalExtension());
+
+            // CSV tidak punya formula → skip
+            if (in_array($ext, ['xlsx', 'xls'], true)) {
+                $spreadsheet = IOFactory::load($file->getPathname());
+
+                foreach ($spreadsheet->getWorksheetIterator() as $sheet) {
+                    $highestRow = $sheet->getHighestDataRow();
+                    $highestCol = $sheet->getHighestDataColumn();
+
+                    for ($row = 1; $row <= $highestRow; $row++) {
+                        for ($col = 'A'; $col <= $highestCol; $col++) {
+                            $cell = $sheet->getCell("{$col}{$row}");
+                            $raw  = $cell->getValue();
+
+                            if ($raw === null || $raw === '') {
+                                continue;
+                            }
+
+                            // Deteksi formula resmi
+                            if ($cell->isFormula()) {
+                                throw new \RuntimeException(
+                                    "Import gagal (edit mode): file Excel mengandung rumus pada sheet '{$sheet->getTitle()}' cell {$col}{$row}. " .
+                                    "Silakan ubah menjadi nilai (Copy → Paste Values)."
+                                );
+                            }
+
+                            // Guard tambahan
+                            if (is_string($raw) && str_starts_with(ltrim($raw), '=')) {
+                                throw new \RuntimeException(
+                                    "Import gagal (edit mode): file Excel mengandung rumus pada sheet '{$sheet->getTitle()}' cell {$col}{$row}. " .
+                                    "Silakan Paste Values lalu import ulang."
+                                );
+                            }
+                        }
+                    }
+                }
+            }
+
+            // =========================
+            // ✅ IMPORT BARU JALAN
+            // =========================
+            Excel::import(
+                new BqDetailTempImport($temp_id, $sppjtid),
+                $file
+            );
+
+            // Simpan temp_id ke session untuk dipakai di edit
+            session(['import_temp_id' => $temp_id]);
+
+            return redirect()
+                ->route('bqsppj.edit', $idx)
+                ->with('success', 'Data berhasil di-import (edit mode).');
+
+        } catch (\Throwable $e) {
+            return back()
+                ->withInput()
+                ->with('error', 'Gagal import: ' . $e->getMessage());
+        }
+    }
+
+
+    public function importEdit_xxx(Request $request)
     {
         $request->validate([
             'file'     => 'required|mimes:xlsx,xls,csv',

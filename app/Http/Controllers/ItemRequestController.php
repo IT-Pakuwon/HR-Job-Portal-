@@ -111,15 +111,15 @@ class ItemRequestController extends Controller
 
         if ($search !== '') {
             $base->where(function ($q) use ($search) {
-                $q->where('ir.irid',                 'like', "%{$search}%")
-                ->orWhere('ir.cpny_id',            'like', "%{$search}%")
-                ->orWhere('ir.department_id',      'like', "%{$search}%")
-                ->orWhere('ir.inventory_descr_req','like', "%{$search}%")
-                ->orWhere('ir.inventoryid',        'like', "%{$search}%")
-                ->orWhere('ir.pic_item_req',       'like', "%{$search}%")
-                ->orWhere('ir.pic_completed_item_req','like', "%{$search}%")
-                ->orWhere('ir.status',             'like', "%{$search}%")
-                ->orWhere('ir.created_by',         'like', "%{$search}%");
+                $q->where('ir.irid',                 'ilike', "%{$search}%")
+                ->orWhere('ir.cpny_id',            'ilike', "%{$search}%")
+                ->orWhere('ir.department_id',      'ilike', "%{$search}%")
+                ->orWhere('ir.inventory_descr_req','ilike', "%{$search}%")
+                ->orWhere('ir.inventoryid',        'ilike', "%{$search}%")
+                ->orWhere('ir.pic_item_req',       'ilike', "%{$search}%")
+                ->orWhere('ir.pic_completed_item_req','ilike', "%{$search}%")
+                ->orWhere('ir.status',             'ilike', "%{$search}%")
+                ->orWhere('ir.created_by',         'ilike', "%{$search}%");
             });
         }
 
