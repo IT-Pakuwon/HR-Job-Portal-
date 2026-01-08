@@ -563,8 +563,40 @@ class ApprovalController extends Controller
     /** ===========================================
      *  4) API untuk Blade/UI
      *  =========================================== */
-
     public function getApprovalByDocument(string $refnbr, string $doctype)
+    {
+        $query = TrApproval::query()
+            ->where('refnbr', $refnbr)
+            ->where('aprv_doctype', $doctype)
+            ->where('status', '<>', 'X');
+
+        // penting: bersihkan order bawaan kalau ada dari scope / orderByLevel()
+        $query->reorder();
+
+        $rows = $query           
+            ->orderBy('created_at', 'asc')       // yang terbaru dulu pada level yg sama
+            ->orderBy('aprv_leveling', 'asc')     // numeric -> aman
+            ->orderBy('id', 'asc')               // tie-breaker stabil
+            ->get([
+                'aprv_leveling',
+                'aprv_name',
+                'aprv_datebefore',
+                'aprv_dateafter',
+                'status',
+                'aprv_type',
+                'aprv_condition',
+            ]);
+
+        return response()->json([
+            'refnbr'  => $refnbr,
+            'doctype' => $doctype,
+            'data'    => $rows,
+        ]);
+    }
+
+
+
+    public function getApprovalByDocument_xxx(string $refnbr, string $doctype)
     {
         $data = TrApproval::query()
             ->where('refnbr', $refnbr)

@@ -6,11 +6,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use App\Models\Autonbr;
-use App\Models\T_Message;
 use App\Models\Attachment;
-use App\Models\M_approval;
-use App\Models\M_approval_other;
-use App\Models\T_approval;
 use App\Models\Company;
 use App\Models\Dept;
 use App\Models\Usercpny;
@@ -37,6 +33,10 @@ use App\Http\Controllers\ApprovalController;
 use App\Models\TrApproval;
 use App\Models\BudgetDetail;
 use App\Models\SysUserRole;
+use App\Models\TrSPPB;
+use App\Models\TrSPPJ;
+use App\Models\TrSPPK;
+use App\Models\TrSPPT;
 
 class IMBudgetController extends Controller
 {
@@ -467,12 +467,12 @@ class IMBudgetController extends Controller
                 $detail->budget_activity_id          = $g['activity'];
                 $detail->budget_activity_descr       = $g['actdescr'];
 
-                $detail->amount_expense              = $remainx;
+                $detail->amount_expense              = $expense;
                 $detail->budget_remain               = $remainx;
                 $detail->budget_needed               = $needed;
 
                 // kalau kolom ini masih dipakai
-                $detail->budget_requested            = $expense;
+                $detail->budget_requested            = $needed;
 
                 $detail->status                      = 'P';
                 $detail->created_by                  = $username;
@@ -866,17 +866,7 @@ class IMBudgetController extends Controller
         ->findOrFail($id);        
 
         $imbudgetdetail = TrIMBudgetdetail::where('imbudgetid', $imbudget->imbudgetid)
-            ->get();
-        
-        $approval = T_approval::where('docid', $imbudget->imbudgetid)
-            ->where('status','<>','X')      
-            ->orderBy('created_at')
-            ->orderBy('aprvid')      
-            ->get();
-       
-        // $attachment = Attachment::where('docid', $imbudget->imbudgetid)    
-        //     ->where('status','A')        
-        //     ->get();    
+            ->get();        
         
         // ---------- ambil lampiran dari tr_attachment ----------
         $rows = TrAttachment::where('refnbr', $imbudget->imbudgetid)
@@ -926,11 +916,43 @@ class IMBudgetController extends Controller
             ];
         });
 
+        // ---- Prev CS (AMAN null) ----
+        $eid_cs = null;
+        if (!empty($imbudget->csid)) {
+            $cs = TrCS::where('csid', $imbudget->csid)->first(); // <- pakai csid yg direferensikan
+            $eid_cs = $cs ? Hashids::encode($cs->id) : null;
+        }
+
+        $prefix = strtoupper(substr((string)$imbudget->sppbjktid, 0, 2));
+
+        $srcHeader  = null;
+        $srcDetails = null;
+        $docid      = null;
+
+        if ($prefix == 'PB') {
+            $srcHeader  = TrSPPB::with(['requestType', 'creator', 'purchaser'])->where('sppbid', $imbudget->sppbjktid)->first();            
+            $docid      = $srcHeader->sppbid;
+        } elseif ($prefix == 'PJ') {
+            $srcHeader  = TrSPPJ::with(['requestType', 'creator', 'purchaser'])->where('sppjid', $imbudget->sppbjktid)->first();            
+            $docid      = $srcHeader->sppjid;
+        } elseif ($prefix == 'PK') {
+            $srcHeader  = TrSPPK::with(['requestType', 'creator', 'purchaser'])->where('sppkid', $imbudget->sppbjktid)->first();            
+            $docid      = $srcHeader->sppkid;
+        } elseif ($prefix == 'PT') {
+            $srcHeader  = TrSPPT::with(['requestType', 'creator', 'purchaser'])->where('spptid', $imbudget->sppbjktid)->first();            
+            $docid      = $srcHeader->spptid;
+        } else {
+            abort(422, 'Invalid doc type');
+        }
+
+        // kalau srcHeader tidak ketemu, jangan fatal error di encode
+        $eid_sppbjkt = $srcHeader ? Hashids::encode($srcHeader->id) : null;
+
         $loginUsername = $user->username ?? $user->name ?? null;
         $canUpload     = $imbudget->created_by === $loginUsername;
         
        
-        return view('pages.imbudgets.showimbudgets', compact('imbudget','approval','attachments','imbudgetdetail','hash','canUpload'));
+        return view('pages.imbudgets.showimbudgets', compact('imbudget','attachments','imbudgetdetail','hash','canUpload','eid_cs','eid_sppbjkt','prefix','docid'));
     }
 
     

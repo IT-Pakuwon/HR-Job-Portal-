@@ -2736,13 +2736,7 @@ class CanvassController extends Controller
             'updater:username,name',
             'completer:username,name',
         ])->findOrFail($id);
-
-        // $csdetail = TrCSdetail::with([
-        //     'location:location_id,location_name',
-        //     'subLocation:sub_location_id,sub_location_name'
-        // ])->where('csid', $cs->csid)
-        // ->orderBy('cs_no')
-        // ->get();
+       
         $csdetail = TrCSdetail::with([
             'location:location_id,location_name',
             'subLocation:sub_location_id,sub_location_name'
@@ -2789,11 +2783,7 @@ class CanvassController extends Controller
             ->where('status','<>','X')
             ->orderBy('created_at')
             ->orderBy('aprvid')
-            ->get();
-
-        // $attachmentCS = Attachment::where('docid', $cs->csid)
-        //     ->where('status','A')
-        //     ->get();
+            ->get();        
 
         // ---------- ambil lampiran dari tr_attachment ----------
         $rows = TrAttachment::where('refnbr', $cs->csid)
@@ -2843,10 +2833,7 @@ class CanvassController extends Controller
             ];
         });
 
-        // $attachmentBJKT = Attachment::where('docid', $cs->sppbjktid)
-        //     ->where('status','A')
-        //     ->get();
-
+        
         // ---------- ambil lampiran dari tr_attachment ----------
         $rows = TrAttachment::where('refnbr', $cs->sppbjktid)
             ->where('status', 'A')
@@ -2895,42 +2882,60 @@ class CanvassController extends Controller
             ];
         });
 
-        // =========================
+        /// =========================
         // Ambil header sumber (SPPB/J/K/T) dari 2 huruf depan sppbjktid
         // =========================
         $prefix = strtoupper(substr((string)$cs->sppbjktid, 0, 2));
 
+        $srcHeader  = null;
+        $srcDetails = null;
+        $docid      = null;
+
         if ($prefix == 'PB') {
-                $srcHeader = TrSPPB::with(['requestType', 'creator', 'purchaser'])->where('sppbid', $cs->sppbjktid)->first();
-                $srcDetails = TrSPPBdetail::where('sppbid', $cs->sppbjktid)->get();
-                $docid = $srcHeader ? $srcHeader->sppbid : null;
-        } else if ($prefix == 'PJ') {
-                $srcHeader = TrSPPJ::with(['requestType', 'creator', 'purchaser'])->where('sppjid', $cs->sppbjktid)->first();
-                $srcDetails = TrSPPJdetail::where('sppjid', $cs->sppbjktid)->get();
-                $docid = $srcHeader ? $srcHeader->sppjid : null;
-        } else if ($prefix == 'PK') {
-                $srcHeader = TrSPPK::with(['requestType', 'creator', 'purchaser'])->where('sppkid', $cs->sppbjktid)->first();
-                $srcDetails = TrSPPKdetail::where('sppkid', $cs->sppbjktid)->get();
-                $docid = $srcHeader ? $srcHeader->sppkid : null;
-        } else if ($prefix == 'PT') {
-                $srcHeader = TrSPPT::with(['requestType', 'creator', 'purchaser'])->where('spptid', $cs->sppbjktid)->first();
-                $srcDetails = TrSPPTdetail::where('spptid', $cs->sppbjktid)->get();
-                $docid = $srcHeader ? $srcHeader->spptid : null;
+            $srcHeader  = TrSPPB::with(['requestType', 'creator', 'purchaser'])->where('sppbid', $cs->sppbjktid)->first();
+            $srcDetails = TrSPPBdetail::where('sppbid', $cs->sppbjktid)->get();
+            $docid      = $srcHeader->sppbid;
+        } elseif ($prefix == 'PJ') {
+            $srcHeader  = TrSPPJ::with(['requestType', 'creator', 'purchaser'])->where('sppjid', $cs->sppbjktid)->first();
+            $srcDetails = TrSPPJdetail::where('sppjid', $cs->sppbjktid)->get();
+            $docid      = $srcHeader->sppjid;
+        } elseif ($prefix == 'PK') {
+            $srcHeader  = TrSPPK::with(['requestType', 'creator', 'purchaser'])->where('sppkid', $cs->sppbjktid)->first();
+            $srcDetails = TrSPPKdetail::where('sppkid', $cs->sppbjktid)->get();
+            $docid      = $srcHeader->sppkid;
+        } elseif ($prefix == 'PT') {
+            $srcHeader  = TrSPPT::with(['requestType', 'creator', 'purchaser'])->where('spptid', $cs->sppbjktid)->first();
+            $srcDetails = TrSPPTdetail::where('spptid', $cs->sppbjktid)->get();
+            $docid      = $srcHeader->spptid;
         } else {
             abort(422, 'Invalid doc type');
-        }   
-       
-        $eid_sppbjkt = Hashids::encode($srcHeader->id);
-
-        $eid_bq = null; // <-- tambahkan ini dulu
-
-        if (in_array($prefix, ['PJ', 'PT'], true)) {
-            $bqcs = TrBQCS::where('bqid', $cs->bqid)->first();
-
-            if ($bqcs) {
-                $eid_bq = Hashids::encode($bqcs->id);
-            }
         }
+
+        // kalau srcHeader tidak ketemu, jangan fatal error di encode
+        $eid_sppbjkt = $srcHeader ? Hashids::encode($srcHeader->id) : null;
+
+        // ---- BQ (khusus PJ/PT) ----
+        $eid_bq = null;
+        if (in_array($prefix, ['PJ', 'PT'], true) && !empty($cs->bqid)) {
+            $bqcs = TrBQCS::where('bqid', $cs->bqid)->first();
+            $eid_bq = $bqcs ? Hashids::encode($bqcs->id) : null;
+        }
+
+        // ---- Prev CS (AMAN null) ----
+        $eid_cs_prev = null;
+        if (!empty($cs->prev_csid)) {
+            $cs_prev = TrCS::where('csid', $cs->prev_csid)->first(); // <- pakai csid yg direferensikan
+            $eid_cs_prev = $cs_prev ? Hashids::encode($cs_prev->id) : null;
+        }
+
+        // ---- IMBudget (AMAN null) ----
+        $eid_imbudget = null;
+        $imbudget = null;
+        if (!empty($cs->imbudgetid)) {
+            $imbudget = TrIMBudget::where('imbudgetid', $cs->imbudgetid)->first();
+            $eid_imbudget = $imbudget ? Hashids::encode($imbudget->id) : null;
+        }
+
 
         // ---- susun vendor header: maksimal 6 kolom ----
         $vendors = [];
@@ -2956,7 +2961,7 @@ class CanvassController extends Controller
         }
 
         $loginUsername = $user->username ?? $user->name ?? null;
-        $canUpload     = $cs->created_by === $loginUsername;
+        $canUpload     = $cs->created_by === $loginUsername;        
 
         return view('pages.canvass.showcs', [
             'cs'         => $cs,
@@ -2971,7 +2976,9 @@ class CanvassController extends Controller
             'hash'      => $hash,
             'eid_sppbjkt' => $eid_sppbjkt,
             'eid_bq'    => $eid_bq,
-            'canUpload'     => $canUpload,
+            'canUpload'     => $canUpload,           
+            'eid_cs_prev' => $eid_cs_prev,            
+            'eid_imbudget' => $eid_imbudget,
         ]);
     }
 
@@ -3017,10 +3024,15 @@ class CanvassController extends Controller
        
         // ======== LOGIKA IMBUDGET ========
         // Ambil level approver saat ini
+        $uname = (string) ($user->username ?? '');
+
         $pending = TrApproval::where('refnbr', $cs->csid)
-            ->where('status', 'P')           
-            ->whereNotNull('aprv_datebefore')           
-            ->orderByRaw("CAST(aprv_leveling AS numeric) ASC")
+            ->where('status', 'P')
+            ->whereNotNull('aprv_datebefore')
+            // aprv_username bisa "indrawancahyadi,williemhalim" => cari yg mengandung username login
+            ->whereRaw("aprv_username ILIKE ?", ['%' . str_replace(['\\','%','_'], ['\\\\','\\%','\\_'], $uname) . '%'])
+            ->orderBy('aprv_leveling', 'asc')   // aprv_leveling sudah numeric di PG
+            ->orderBy('created_at', 'asc')
             ->first();
            
         $currentLevel = (int)($pending->aprv_leveling ?? 0);

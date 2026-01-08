@@ -67,7 +67,10 @@ class CsListController extends Controller
             ->count();
 
         // All → semua company user, tanpa filter created_by
+        // $all = TrCS::when(!empty($cpnyList), fn($q) => $q->whereIn('cpny_id', $cpnyList))
+        //     ->count();
         $all = TrCS::when(!empty($cpnyList), fn($q) => $q->whereIn('cpny_id', $cpnyList))
+            ->whereNotIn('status', ['H', 'D'])
             ->count();
 
         return view('pages.canvass.cslist', compact('my','onProgress','reject','all','completed'));
@@ -109,6 +112,7 @@ class CsListController extends Controller
         switch ($scope) {
             case 'all':
                 // only apply company filter, no creator filter
+                $base->whereNotIn('status', ['H','D']);
                 break;
 
             case 'onprogress':
@@ -223,7 +227,11 @@ class CsListController extends Controller
                     break;
                 case 'X':
                     $statusText  = 'Canceled';
-                    $statusClass = 'bg-gray-200 text-gray-700 border-gray-300';
+                    $statusClass = 'bg-red-100 text-red-700 border-red-200';
+                    break;
+                case 'H':
+                    $statusText  = 'Hold';
+                    $statusClass = 'bg-gray-100 text-gray-700 border-gray-200';
                     break;
             }
 

@@ -2159,13 +2159,21 @@
                             const accDescr = item.account_descr ?? '';
                             const act_Descr = item.act_descr ?? '';
 
+                            const available = formatNumber(item.availablebudget) ?? '';
+                            const used = formatNumber(item.usedbudget) ?? '';
+                            const remaining = formatNumber(item.remaining) ?? '';
+
                             return `
                     <tr>
                     <td class="border p-2">${id}</td>
                     <td class="border p-2">${accDescr}</td>
                     <td class="border p-2">${act_Descr}</td>
                     <td class="border p-2">${actDescr}</td>
-                    <td class="border p-2">${totalbudget}</td>
+                    <td class="border p-2">
+                        <div class="font-semibold">${remaining}</div>
+                        <div class="text-xs opacity-70">Available : ${available}</div>
+                        <div class="text-xs opacity-70">Used: ${used}</div>
+                    </td>
                     <td class="border p-2 text-center">
                         <button type="button" class="chooseCoa rounded border px-2 py-1 hover:bg-gray-100"
                         data-id="${id}"

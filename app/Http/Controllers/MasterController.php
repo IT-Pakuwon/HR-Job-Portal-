@@ -778,6 +778,109 @@ class MasterController extends Controller
 
     public function CoaBudget(Request $request)
     {
+        $cpnyid  = $request->get('cpnyid');
+        $deptid  = $request->get('deptid');
+        $perpost = $request->get('perpost');
+        $search  = trim($request->get('search', ''));
+        $page    = max((int) $request->get('page', 1), 1);
+        $perPage = max((int) $request->get('per_page', 10), 1);
+
+        if (!$cpnyid || !$deptid) {
+            return response()->json([
+                'data' => [], 'total' => 0, 'page' => $page, 'per_page' => $perPage
+            ]);
+        }
+
+        $msdepartment = MsDepartment::query()
+            ->where('department_id', $deptid)
+            ->where('status', 'A')
+            ->first(['department_fin_id']);
+
+        if (!$msdepartment) {
+            return response()->json([
+                'data' => [], 'total' => 0, 'page' => $page, 'per_page' => $perPage,
+                'message' => "Department {$deptid} tidak ditemukan / tidak aktif."
+            ]);
+        }
+
+        $budget = Budget::where('status', 'C')
+            ->where('cpny_id', $cpnyid)
+            ->where('department_fin_id', $msdepartment->department_fin_id)
+            ->when($perpost, fn ($q) => $q->where('perpost', $perpost))
+            ->first();
+
+        if (!$budget) {
+            return response()->json([
+                'data' => [],
+                'total' => 0,
+                'page' => $page,
+                'per_page' => $perPage,
+                'message' => "Budget Belum Completed Approval untuk Company {$cpnyid}, Dept {$deptid}, Perpost {$perpost}."
+            ]);
+        }
+
+        $q = BudgetDetail::query()
+            ->from('ms_budget as b')
+            ->join('ms_coa as c', function ($j) {
+                $j->on('c.account_id', '=', 'b.account_id')
+                ->on('c.cpny_id', '=', 'b.cpny_id');
+            })
+            ->leftJoin('ms_activity as a', function ($j) {
+                $j->on('a.activity_id', '=', 'b.activity_id')
+                ->on('a.cpny_id', '=', 'b.cpny_id');
+            })
+            ->where('b.budget_id', $budget->budget_id)
+            ->where('b.cpny_id', $cpnyid)
+            ->where('b.department_fin_id', $msdepartment->department_fin_id)
+            ->when($perpost, fn ($qq) => $qq->where('b.perpost', $perpost));
+
+        if ($search !== '') {
+            $q->where(function ($w) use ($search) {
+                $w->where('b.account_id', 'ilike', "%{$search}%")
+                ->orWhere('c.account_descr', 'ilike', "%{$search}%")
+                ->orWhere('a.activity_descr', 'ilike', "%{$search}%")
+                // search ke angka budget
+                ->orWhereRaw("(COALESCE(b.totalbudget,0) + COALESCE(b.totalbudget_add,0))::text ILIKE ?", ["%{$search}%"]);
+            });
+        }
+
+        $total = (clone $q)->count();
+
+        $rows = $q->orderBy('a.activity_descr')
+            ->offset(($page - 1) * $perPage)
+            ->limit($perPage)
+            ->get([
+                'b.account_id',
+                'c.account_descr',
+                'b.activity_id',
+                'b.activity_descr as activity_descr',
+                'a.activity_descr as act_descr',
+                'b.business_unit_id',
+                'b.department_fin_id',
+
+                // ===== budget fields mentah (opsional utk debug) =====
+                DB::raw("COALESCE(b.totalbudget,0)      as totalbudget"),
+                DB::raw("COALESCE(b.totalbudget_add,0)  as totalbudget_add"),
+                DB::raw("COALESCE(b.total_reserve,0)    as total_reserve"),
+                DB::raw("COALESCE(b.total_used,0)       as total_used"),
+
+                // ===== hasil rumus =====
+                DB::raw("(COALESCE(b.totalbudget,0) + COALESCE(b.totalbudget_add,0)) as availablebudget"),
+                DB::raw("(COALESCE(b.total_reserve,0) + COALESCE(b.total_used,0))   as usedbudget"),
+                DB::raw("((COALESCE(b.totalbudget,0) + COALESCE(b.totalbudget_add,0)) - (COALESCE(b.total_reserve,0) + COALESCE(b.total_used,0))) as remaining"),
+            ]);
+
+        return response()->json([
+            'data' => $rows,
+            'total' => $total,
+            'page' => $page,
+            'per_page' => $perPage,
+        ]);
+    }
+
+
+    public function CoaBudget_xxx(Request $request)
+    {
         // dd($request->all());
         $cpnyid  = $request->get('cpnyid');
         $deptid  = $request->get('deptid');

@@ -193,55 +193,69 @@
                     </header>
                     <div class="flex flex-1 flex-col overflow-y-auto p-4">
                         @php
+                            // Build the SPPB/J/K/T link
+                            $routeMap = [
+                                'PB' => 'showsppbs',
+                                'PJ' => 'showsppjs',
+                                'PK' => 'showsppks',
+                                'PT' => 'showsppts',
+                            ];
+
+                            $routeBase = $routeMap[$prefix] ?? null;
+
+                            // NOTE: eid_sppbjkt itu hash string, jadi pakai langsung
+                            $docUrl = (!empty($routeBase) && !empty($eid_sppbjkt))
+                                ? url("/{$routeBase}/{$eid_sppbjkt}")
+                                : null;
+
+                            $docBtn = $docUrl
+                                ? '<a href="' . e($docUrl) . '" target="_blank" rel="noopener"
+                                    class="inline-flex items-center gap-1 text-sm font-semibold text-indigo-600 hover:underline dark:text-indigo-400">' .
+                                    e($docid) . '</a>'
+                                : e($docid);
+
+                            // Default supaya tidak undefined
+                            $csLink = '-';
+                            if (!empty($imbudget->csid)) {
+                                $csUrl = !empty($eid_cs) ? url("/showcs/{$eid_cs}") : null;
+
+                                $csLink = $csUrl
+                                    ? '<a href="' . e($csUrl) . '" target="_blank" rel="noopener"
+                                        class="inline-flex items-center gap-1 text-sm font-semibold text-indigo-600 hover:underline dark:text-indigo-400">' .
+                                        e($imbudget->csid) . '</a>'
+                                    : e($imbudget->csid);
+                            }
+
                             // Reusable class system
-                            $row = 'flex flex-col gap-1 p-2 sm:flex-row sm:items-center sm:gap-3';
+                            $row   = 'flex flex-col gap-1 p-2 sm:flex-row sm:items-center sm:gap-3';
                             $label = 'flex items-center gap-2 text-gray-500 sm:min-w-40';
                             $value = 'break-words font-medium text-gray-900 dark:text-gray-300 sm:flex-1';
 
                             $fields = [
-                                [
-                                    'icon' => 'building-office',
-                                    'label' => 'Company',
-                                    'value' => $imbudget->cpny_id,
-                                ],
-                                [
-                                    'icon' => 'squares-2x2',
-                                    'label' => 'Department',
-                                    'value' => $imbudget->department_id,
-                                ],
-                                [
-                                    'icon' => 'calendar',
-                                    'label' => 'Date',
-                                    'value' => date('j F Y', strtotime($imbudget->imbudgetdate)),
-                                ],
-                                [
-                                    'icon' => 'user',
-                                    'label' => 'User Peminta',
-                                    'value' => ucwords(strtolower(optional($imbudget->userpeminta)->name)),
-                                ],
-                                [
-                                    'icon' => 'document-text',
-                                    'label' => 'CS',
-                                    'value' => $imbudget->csid,
-                                ],
-                                [
-                                    'icon' => 'document-text',
-                                    'label' => 'SPPBJKT ID',
-                                    'value' => $imbudget->sppbjktid,
-                                ],
+                                ['icon' => 'building-office', 'label' => 'Company',     'value' => $imbudget->cpny_id],
+                                ['icon' => 'squares-2x2',     'label' => 'Department',  'value' => $imbudget->department_id],
+                                ['icon' => 'calendar',        'label' => 'Date',        'value' => date('j F Y', strtotime($imbudget->imbudgetdate))],
+                                ['icon' => 'user',            'label' => 'User Peminta','value' => ucwords(strtolower(optional($imbudget->userpeminta)->name))],
+
+                                // HTML links (raw)
+                                ['icon' => 'document-text',   'label' => 'CS',          'value' => $csLink, 'is_raw' => true],
+                                ['icon' => 'document-text',   'label' => 'SPPBJKT ID',  'value' => $docBtn, 'is_raw' => true],
                             ];
                         @endphp
 
                         <div class="grid grid-cols-2 gap-x-8 gap-y-3 text-sm sm:grid-cols-2">
-
-                            {{-- Render all rows --}}
                             @foreach ($fields as $f)
                                 <div class="{{ $row }}">
                                     <div class="{{ $label }}">
                                         <x-dynamic-component :component="'heroicon-o-' . $f['icon']" class="h-5 w-5 text-gray-400" />
                                         <span>{{ $f['label'] }}</span>
                                     </div>
-                                    <span class="{{ $value }}">{{ $f['value'] }}</span>
+
+                                    @if (!empty($f['is_raw']))
+                                        <span class="{{ $value }}">{!! $f['value'] !!}</span>
+                                    @else
+                                        <span class="{{ $value }}">{{ $f['value'] }}</span>
+                                    @endif
                                 </div>
                             @endforeach
 
@@ -259,8 +273,7 @@
                                     </div>
                                 </div>
                             @endif
-
-                        </div>
+                        </div>                        
                     </div>
 
 

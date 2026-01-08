@@ -247,20 +247,39 @@
                             ];
 
                             if (!empty($cs->imbudgetid)) {
+                                $imbUrl = !empty($eid_imbudget) ? url("/showimbudgets/{$eid_imbudget}") : null;
+
+                                $imbLink = $imbUrl
+                                    ? '<a href="' . e($imbUrl) . '" target="_blank" rel="noopener"
+                                        class="inline-flex items-center gap-1 text-sm font-semibold text-indigo-600 hover:underline dark:text-indigo-400">' .
+                                        e($cs->imbudgetid) . '</a>'
+                                    : e($cs->imbudgetid);
+
                                 $fields[] = [
-                                    'icon'  => 'banknotes',
-                                    'label' => 'IM Unbudget',
-                                    'value' => $cs->imbudgetid,
+                                    'icon'   => 'banknotes',
+                                    'label'  => 'IM Unbudget',
+                                    'value'  => $imbLink,
+                                    'is_raw' => true,
                                 ];
                             }
 
                             if (!empty($cs->prev_csid)) {
+                                $prevUrl = !empty($eid_cs_prev) ? url("/showcs/{$eid_cs_prev}") : null;
+
+                                $prevLink = $prevUrl
+                                    ? '<a href="' . e($prevUrl) . '" target="_blank" rel="noopener"
+                                        class="inline-flex items-center gap-1 text-sm font-semibold text-indigo-600 hover:underline dark:text-indigo-400">' .
+                                        e($cs->prev_csid) . '</a>'
+                                    : e($cs->prev_csid);
+
                                 $fields[] = [
-                                    'icon'  => 'arrow-uturn-left',
-                                    'label' => 'Prev CS',
-                                    'value' => $cs->prev_csid,
+                                    'icon'   => 'arrow-uturn-left',
+                                    'label'  => 'Prev CS',
+                                    'value'  => $prevLink,
+                                    'is_raw' => true,
                                 ];
                             }
+
 
                             if (in_array($prefix, ['PJ', 'PT'], true) && !empty($cs->bqid)) {
                                 // pakai bqid yang benar dari $cs
