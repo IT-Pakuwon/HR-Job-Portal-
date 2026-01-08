@@ -194,11 +194,11 @@
                                         placeholder="Pilih Worktype & Subworktype">
                                     {{-- <button id="btnJenisPekerjaan" type="button"
                                         class="rounded-lg bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700">Pilih</button> --}}
-                                        <button type="button" id="btnJenisPekerjaan"
-                                            class="rounded border border-gray-500 px-2 py-2 hover:bg-gray-100 dark:hover:bg-gray-700"
-                                            title="Lookup">
-                                            🔎
-                                        </button>
+                                    <button type="button" id="btnJenisPekerjaan"
+                                        class="rounded border border-gray-500 px-2 py-2 hover:bg-gray-100 dark:hover:bg-gray-700"
+                                        title="Lookup">
+                                        🔎
+                                    </button>
                                 </div>
                                 <input type="hidden" name="worktypeid" id="worktypeid">
                                 <input type="hidden" name="subworktypeid" id="subworktypeid">
@@ -314,7 +314,7 @@
                                     <option value="External">Penerima Kerja</option>
                                 </select>
                             </div>
-                           
+
                         </div>
                         <!-- COA -->
                         <div id="coaGroup" class="mt-6">
@@ -322,7 +322,7 @@
                             <div class="flex gap-2">
                                 <input type="text" id="budget_display" readonly
                                     class="flex-1 rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-gray-600 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
-                                    placeholder="Pilih Budget">                                
+                                    placeholder="Pilih Budget">
                                 <button type="button" id="btnBudget"
                                     class="rounded border border-gray-500 px-2 py-2 hover:bg-gray-100 dark:hover:bg-gray-700"
                                     title="Lookup">
@@ -507,7 +507,7 @@
 
                         <div class="flex w-full justify-end gap-4 pt-4">
                             <button type="button" id="cancelBtn"
-                                class="inline-flex items-center justify-center rounded-lg bg-red-600 px-6 py-3 text-base font-semibold text-white shadow-md transition-colors hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">
+                                class="flex items-center gap-2 rounded-md bg-red-500 px-4 py-2 text-white hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-300">
                                 <span id="cancelText">Cancel</span>
                                 <svg id="cancelSpinner" class="ml-2 hidden h-5 w-5 animate-spin text-white"
                                     xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -517,7 +517,7 @@
                                 </svg>
                             </button>
                             <button type="submit" id="submitBtn"
-                                class="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-6 py-3 text-base font-semibold text-white shadow-md transition-colors hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                                class="flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300">
                                 <span id="btnText">Submit Approval</span>
                                 <svg id="loadingSpinner" class="ml-2 hidden h-5 w-5 animate-spin text-white"
                                     xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -614,22 +614,26 @@
             $('#worktypeid').val(prefill.worktypeid || '');
             $('#subworktypeid').val(prefill.subworktypeid || '');
             const jpDisp = [prefill.worktype_name || '', prefill.subworktype_name || ''].filter(Boolean).join(
-            ' — ');
+                ' — ');
             if (jpDisp) $('#jenis_pekerjaan_display').val(jpDisp);
 
             // Reset dependents jika header berubah
-            $('select[name="cpnyid"]').on('change', () => $('#location_id, #sub_location_id, #lokasi_display').val(''));
-            $('select[name="departementid"]').on('change', () => $('#worktypeid, #subworktypeid, #jenis_pekerjaan_display').val(''));
+            $('select[name="cpnyid"]').on('change', () => $('#location_id, #sub_location_id, #lokasi_display').val(
+                ''));
+            $('select[name="departementid"]').on('change', () => $(
+                '#worktypeid, #subworktypeid, #jenis_pekerjaan_display').val(''));
             $('select[name="cpnyid"]').on('change', () => {
                 $('#location_id, #sub_location_id, #lokasi_display').val('');
                 // reset COA
-                $('#budget_display, #activity_id, #business_unit_id, #department_fin_id, #coa_id, #activity_descr').val('');
+                $('#budget_display, #activity_id, #business_unit_id, #department_fin_id, #coa_id, #activity_descr')
+                    .val('');
             });
 
             $('select[name="departementid"]').on('change', () => {
                 $('#worktypeid, #subworktypeid, #jenis_pekerjaan_display').val('');
                 // reset COA
-                $('#budget_display, #activity_id, #business_unit_id, #department_fin_id, #coa_id, #activity_descr').val('');
+                $('#budget_display, #activity_id, #business_unit_id, #department_fin_id, #coa_id, #activity_descr')
+                    .val('');
             });
 
 
@@ -688,7 +692,7 @@
                 $.getJSON(`/wos/ajax/worktypes?${params}`)
                     .done(function(list) {
                         list.forEach(it => $('#modal_worktypeid').append(new Option(it.text, it
-                        .value)));
+                            .value)));
                         openJenisModal();
                     })
                     .fail(function() {
@@ -837,7 +841,7 @@
                 const $budget = $('#wobudget');
                 const $coaDisp = $('#budget_display');
                 const $coaId = $('#coa_id');
-                const $activityId = $('#activity_id');              
+                const $activityId = $('#activity_id');
 
                 let ok = true;
                 if (!$cpny.val()) {

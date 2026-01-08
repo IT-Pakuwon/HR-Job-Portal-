@@ -160,7 +160,7 @@
                                                 <label class="flex flex-col gap-1">
                                                     <span>Est. Material</span>
                                                     {{-- {{ $d->est_material_price }} --}}
-                                                    {{ number_format((float)($d->est_material_price ?? 0), 2, ',', '.') }}
+                                                    {{ number_format((float) ($d->est_material_price ?? 0), 2, ',', '.') }}
                                                     {{-- <input
                                                         class="w-full rounded-md border bg-gray-100 px-2 py-1 text-right"
                                                         readonly> --}}
@@ -168,7 +168,7 @@
                                                 <label class="flex flex-col gap-1">
                                                     <span>Est. Jasa</span>
                                                     {{-- {{ $d->est_jasa_price }} --}}
-                                                    {{ number_format((float)($d->est_jasa_price ?? 0), 2, ',', '.') }}
+                                                    {{ number_format((float) ($d->est_jasa_price ?? 0), 2, ',', '.') }}
                                                     {{-- <input
                                                         class="w-full rounded-md border bg-gray-100 px-2 py-1 text-right"
                                                         readonly> --}}
@@ -226,11 +226,11 @@
                     <div
                         class="flex justify-end gap-3 rounded-b-xl border-t border-gray-200 p-4 dark:border-gray-700 dark:bg-gray-700/40">
                         <a href="{{ url()->previous() }}"
-                            class="rounded-lg bg-gray-200 px-4 py-2 text-gray-700 transition hover:bg-gray-300 dark:bg-gray-600 dark:text-gray-200 dark:hover:bg-gray-500">
+                            class="flex items-center gap-2 rounded-md bg-gray-200 px-4 py-2 text-gray-700 hover:bg-gray-300 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-300">
                             Cancel
                         </a>
                         <button type="button" id="btnSaveBQ"
-                            class="rounded-lg bg-indigo-600 px-5 py-2 text-white shadow hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-400">
+                            class="flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300">
                             Save BQ
                         </button>
                     </div>

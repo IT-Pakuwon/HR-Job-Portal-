@@ -937,10 +937,10 @@
                                 </svg> Add Attachment
                             </button>
                         </details>
-                        <div class="mt-4 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                        <div
+                            class="mt-4 flex flex-row justify-between gap-4 md:flex-row md:items-center md:justify-between">
                             <button id="backBtn" onclick="history.back()"
-                                class="flex items-center gap-2 rounded-md bg-gray-200 px-4 py-2 text-gray-700 hover:bg-gray-300 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-300">
-
+                                class="flex items-center justify-center gap-2 rounded-md bg-gray-200 px-4 py-2 text-gray-700 hover:bg-gray-300 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-300">
                                 <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none"
                                     viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -965,7 +965,7 @@
                                     </button> --}}
 
                                 <button type="submit" id="submitBtn"
-                                    class="flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300">
+                                    class="flex items-center justify-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300">
                                     <span id="btnText">Submit Approval</span>
                                     <svg id="loadingSpinner" class="hidden h-5 w-5 animate-spin text-white"
                                         xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">

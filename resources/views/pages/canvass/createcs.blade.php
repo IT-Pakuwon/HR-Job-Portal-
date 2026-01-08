@@ -521,7 +521,8 @@
                             </button>
 
                             <!-- Action Buttons -->
-                            <div class="mt-4 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                            <div
+                                class="mt-4 flex flex-row justify-between gap-4 md:flex-row md:items-center md:justify-between">
                                 <button id="backBtn" onclick="history.back()"
                                     class="flex items-center gap-2 rounded-md bg-gray-200 px-4 py-2 text-gray-700 hover:bg-gray-300 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-300">
 
@@ -535,8 +536,8 @@
 
                                 {{-- <!-- Cancel Button -->
                                 <div class="flex justify-start">
-                                    <button type="button" id="cancelBtn"
-                                        class="mb-4 mt-4 flex w-full items-center justify-center gap-2 rounded border border-red-700 bg-red-200/10 p-2 text-red-700 hover:border-red-700 hover:bg-red-700 hover:font-medium hover:text-white md:w-auto">
+                                            <button id="cancelBtn"
+                                                class="flex items-center gap-2 rounded-md bg-red-500 px-4 py-2 text-white hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-300"> md:w-auto">
                                         <span id="cancelText">Cancel</span>
                                         <svg id="cancelSpinner" class="hidden h-5 w-5 animate-spin text-white"
                                             xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">

@@ -253,32 +253,33 @@
                                                     </td> --}}
                                                     <td class="px-4 py-2">
                                                         @php
-                                                            $invType = strtoupper(trim((string)($d->inventory_type ?? '')));
-                                                            $isGI = ($invType === 'GI');
+                                                            $invType = strtoupper(
+                                                                trim((string) ($d->inventory_type ?? '')),
+                                                            );
+                                                            $isGI = $invType === 'GI';
                                                         @endphp
 
-                                                        @if(!$isGI)
+                                                        @if (!$isGI)
                                                             {{-- NON-GI: tampil text dari TrPOdetail.siteid --}}
-                                                            <input type="text"
-                                                                value="{{ $d->siteid }}"
-                                                                readonly
-                                                                class="w-full rounded border border-gray-300 bg-gray-50 p-1 text-sm text-gray-800 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
-                                                            />
+                                                            <input type="text" value="{{ $d->siteid }}" readonly
+                                                                class="w-full rounded border border-gray-300 bg-gray-50 p-1 text-sm text-gray-800 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" />
                                                             {{-- tetap kirim ke server supaya store tidak bingung --}}
-                                                            <input type="hidden" name="siteid[{{ $d->id }}]" value="{{ $d->siteid }}">
+                                                            <input type="hidden" name="siteid[{{ $d->id }}]"
+                                                                value="{{ $d->siteid }}">
                                                         @else
                                                             {{-- GI: tetap pakai select dan wajib dipilih --}}
                                                             <select name="siteid[{{ $d->id }}]"
                                                                 class="siteSelect w-full rounded border border-gray-300 p-1 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
                                                                 data-cpny-id="{{ $po->cpny_id }}"
-                                                                data-current-site="{{ $d->siteid }}"
-                                                                data-loaded="0"
+                                                                data-current-site="{{ $d->siteid }}" data-loaded="0"
                                                                 aria-label="Select site for {{ $d->inventoryid }}"
                                                                 required>
                                                                 @if ($d->siteid)
-                                                                    <option value="{{ $d->siteid }}" selected>{{ $d->siteid }}</option>
+                                                                    <option value="{{ $d->siteid }}" selected>
+                                                                        {{ $d->siteid }}</option>
                                                                 @else
-                                                                    <option value="" selected disabled>Select site…</option>
+                                                                    <option value="" selected disabled>Select
+                                                                        site…</option>
                                                                 @endif
                                                             </select>
                                                         @endif
@@ -340,38 +341,32 @@
                             </button>
                         </details>
 
-                        <div class="w-full px-4">
-                            <div class="grid grid-cols-2 justify-between gap-4 md:flex md:flex-row xl:justify-end">
-                                <!--Cancel Button-->
-                                <div class="flex justify-start">
-                                    <a href="{{ url()->previous() }}"
-                                        class="mb-4 mt-4 flex w-full items-center justify-center gap-2 rounded border border-red-700 bg-red-200/10 p-2 text-red-700 hover:border-red-700 hover:bg-red-700 hover:font-medium hover:text-white">
-                                        <span id="cancelText">Cancel</span>
-                                        <svg id="cancelSpinner" class="hidden h-5 w-5 animate-spin text-white"
-                                            xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                            <circle class="opacity-25" cx="12" cy="12" r="10"
-                                                stroke="currentColor" stroke-width="4">
-                                            </circle>
-                                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z">
-                                            </path>
-                                        </svg>
-                                    </a>
-                                </div>
-                                <!--Submit Button-->
-                                <div class="flex justify-start md:justify-end">
-                                    <button type="submit" id="submitBtn"
-                                        class="mb-4 mt-4 flex w-full items-center justify-center gap-2 rounded border border-blue-700 bg-blue-200/10 p-2 text-blue-700 hover:border-blue-700 hover:bg-blue-700 hover:font-medium hover:text-white">
-                                        <span id="btnText">Submit Approval</span>
-                                        <svg id="loadingSpinner" class="hidden h-5 w-5 animate-spin text-white"
-                                            xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                            <circle class="opacity-25" cx="12" cy="12" r="10"
-                                                stroke="currentColor" stroke-width="4">
-                                            </circle>
-                                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z">
-                                            </path>
-                                        </svg>
-                                    </button>
-                                </div>
+                        <div
+                            class="mt-4 flex flex-row justify-between gap-4 md:flex-row md:items-center md:justify-between">
+                            <button id="backBtn" onclick="history.back()"
+                                class="flex items-center gap-2 rounded-md bg-gray-200 px-4 py-2 text-gray-700 hover:bg-gray-300 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-300">
+
+                                <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none"
+                                    viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M15 19l-7-7 7-7" />
+                                </svg>
+                                <span>Back</span>
+                            </button>
+                            <!--Submit Button-->
+                            <div class="flex flex-col gap-3 md:flex-row md:items-center">
+                                <button type="submit" id="submitBtn"
+                                    class="flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300">
+                                    <span id="btnText">Submit Approval</span>
+                                    <svg id="loadingSpinner" class="hidden h-5 w-5 animate-spin text-white"
+                                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10"
+                                            stroke="currentColor" stroke-width="4">
+                                        </circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z">
+                                        </path>
+                                    </svg>
+                                </button>
                             </div>
                         </div>
                     </div>

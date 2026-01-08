@@ -474,7 +474,8 @@
                             </button>
                         </details>
 
-                        <div class="mt-4 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                        <div
+                            class="mt-4 flex flex-row justify-between gap-4 md:flex-row md:items-center md:justify-between">
                             <button id="backBtn" onclick="history.back()"
                                 class="flex items-center gap-2 rounded-md bg-gray-200 px-4 py-2 text-gray-700 hover:bg-gray-300 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-300">
 

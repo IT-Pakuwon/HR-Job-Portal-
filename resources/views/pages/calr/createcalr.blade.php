@@ -1,23 +1,112 @@
 <x-app-layout>
     {{-- ===== Basic error styles ===== --}}
     <style>
-        .is-invalid { border-color: #ef4444 !important; }
-        .error-feedback { display:block; color:#dc2626; font-size:12px; margin-top:6px; }
+        .is-invalid {
+            border-color: #ef4444 !important;
+        }
+
+        .error-feedback {
+            display: block;
+            color: #dc2626;
+            font-size: 12px;
+            margin-top: 6px;
+        }
     </style>
 
     {{-- ===== Overlay styles ===== --}}
     <style>
-        #loadingSpinnerContainer{position:fixed;inset:0;display:none;background:rgba(17,24,39,.55);backdrop-filter:blur(2px);z-index:2000}
-        #loadingSpinnerContainer .loading-card{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:10px;padding:18px 22px;border-radius:16px;background:linear-gradient(180deg,rgba(31,41,55,.9),rgba(17,24,39,.9));border:1px solid rgba(255,255,255,.08);box-shadow:0 10px 30px rgba(0,0,0,.35), inset 0 0 0 1px rgba(255,255,255,.04)}
-        #loadingSpinnerContainer .loading-spinner{width:54px;height:54px;border-radius:50%;border:4px solid transparent;border-top-color:#6366f1;animation:spin 1s linear infinite;position:relative}
-        #loadingSpinnerContainer .loading-spinner::after{content:"";position:absolute;inset:6px;border-radius:50%;border:4px solid transparent;border-left-color:#a5b4fc;animation:spinReverse .75s linear infinite}
-        #loadingSpinnerContainer .loading-text{color:#e5e7eb;font-weight:600;letter-spacing:.02em}
-        #loadingSpinnerContainer .loading-ellipsis span{display:inline-block;animation:blink 1.4s infinite both}
-        #loadingSpinnerContainer .loading-ellipsis span:nth-child(2){animation-delay:.2s}
-        #loadingSpinnerContainer .loading-ellipsis span:nth-child(3){animation-delay:.4s}
-        @keyframes spin{to{transform:rotate(360deg)}}
-        @keyframes spinReverse{to{transform:rotate(-360deg)}}
-        @keyframes blink{0%{opacity:.3;transform:translateY(0)}20%{opacity:1;transform:translateY(-2px)}100%{opacity:.3;transform:translateY(0)}}
+        #loadingSpinnerContainer {
+            position: fixed;
+            inset: 0;
+            display: none;
+            background: rgba(17, 24, 39, .55);
+            backdrop-filter: blur(2px);
+            z-index: 2000
+        }
+
+        #loadingSpinnerContainer .loading-card {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            padding: 18px 22px;
+            border-radius: 16px;
+            background: linear-gradient(180deg, rgba(31, 41, 55, .9), rgba(17, 24, 39, .9));
+            border: 1px solid rgba(255, 255, 255, .08);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, .35), inset 0 0 0 1px rgba(255, 255, 255, .04)
+        }
+
+        #loadingSpinnerContainer .loading-spinner {
+            width: 54px;
+            height: 54px;
+            border-radius: 50%;
+            border: 4px solid transparent;
+            border-top-color: #6366f1;
+            animation: spin 1s linear infinite;
+            position: relative
+        }
+
+        #loadingSpinnerContainer .loading-spinner::after {
+            content: "";
+            position: absolute;
+            inset: 6px;
+            border-radius: 50%;
+            border: 4px solid transparent;
+            border-left-color: #a5b4fc;
+            animation: spinReverse .75s linear infinite
+        }
+
+        #loadingSpinnerContainer .loading-text {
+            color: #e5e7eb;
+            font-weight: 600;
+            letter-spacing: .02em
+        }
+
+        #loadingSpinnerContainer .loading-ellipsis span {
+            display: inline-block;
+            animation: blink 1.4s infinite both
+        }
+
+        #loadingSpinnerContainer .loading-ellipsis span:nth-child(2) {
+            animation-delay: .2s
+        }
+
+        #loadingSpinnerContainer .loading-ellipsis span:nth-child(3) {
+            animation-delay: .4s
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg)
+            }
+        }
+
+        @keyframes spinReverse {
+            to {
+                transform: rotate(-360deg)
+            }
+        }
+
+        @keyframes blink {
+            0% {
+                opacity: .3;
+                transform: translateY(0)
+            }
+
+            20% {
+                opacity: 1;
+                transform: translateY(-2px)
+            }
+
+            100% {
+                opacity: .3;
+                transform: translateY(0)
+            }
+        }
     </style>
 
     @php
@@ -39,12 +128,13 @@
 
                     {{-- ===== HEADER RFCA ===== --}}
                     <div class="w-full rounded-xl bg-white p-6 shadow-md dark:bg-gray-800">
-                        <div class="mb-6 flex items-center justify-between border-b border-gray-200 pb-4 dark:border-gray-700">
+                        <div
+                            class="mb-6 flex items-center justify-between border-b border-gray-200 pb-4 dark:border-gray-700">
                             <h2 class="text-xl font-extrabold text-gray-800 dark:text-white">
                                 Create CALR – RFCA: <span class="text-indigo-600">{{ $rfca->rfcaid }}</span>
                             </h2>
                             <a href="{{ url()->previous() }}"
-                               class="inline-flex items-center justify-center rounded-lg bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">
+                                class="inline-flex items-center justify-center rounded-lg bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">
                                 Back
                             </a>
                         </div>
@@ -52,29 +142,32 @@
                         {{-- Row 1 --}}
                         <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-5">
                             <div class="flex flex-col gap-2">
-                                <label class="block text-sm font-medium text-gray-600 dark:text-gray-300">RFCA ID</label>
+                                <label class="block text-sm font-medium text-gray-600 dark:text-gray-300">RFCA
+                                    ID</label>
                                 <input type="text" value="{{ $rfca->rfcaid }}" readonly
-                                       class="mt-1 w-full rounded-lg border border-gray-300 bg-gray-50 p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200"/>
+                                    class="mt-1 w-full rounded-lg border border-gray-300 bg-gray-50 p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
                             </div>
                             <div class="flex flex-col gap-2">
                                 <label class="block text-sm font-medium text-gray-600 dark:text-gray-300">PO Nbr</label>
                                 <input type="text" value="{{ $rfca->ponbr }}" readonly
-                                       class="mt-1 w-full rounded-lg border border-gray-300 bg-gray-50 p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200"/>
+                                    class="mt-1 w-full rounded-lg border border-gray-300 bg-gray-50 p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
                             </div>
                             <div class="flex flex-col gap-2">
                                 <label class="block text-sm font-medium text-gray-600 dark:text-gray-300">CS ID</label>
                                 <input type="text" value="{{ $rfca->csid }}" readonly
-                                       class="mt-1 w-full rounded-lg border border-gray-300 bg-gray-50 p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200"/>
+                                    class="mt-1 w-full rounded-lg border border-gray-300 bg-gray-50 p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
                             </div>
                             <div class="flex flex-col gap-2">
-                                <label class="block text-sm font-medium text-gray-600 dark:text-gray-300">Company</label>
+                                <label
+                                    class="block text-sm font-medium text-gray-600 dark:text-gray-300">Company</label>
                                 <input type="text" value="{{ $rfca->cpny_id }}" readonly
-                                       class="mt-1 w-full rounded-lg border border-gray-300 bg-gray-50 p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200"/>
+                                    class="mt-1 w-full rounded-lg border border-gray-300 bg-gray-50 p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
                             </div>
                             <div class="flex flex-col gap-2">
-                                <label class="block text-sm font-medium text-gray-600 dark:text-gray-300">Department</label>
+                                <label
+                                    class="block text-sm font-medium text-gray-600 dark:text-gray-300">Department</label>
                                 <input type="text" value="{{ $rfca->department_id }}" readonly
-                                       class="mt-1 w-full rounded-lg border border-gray-300 bg-gray-50 p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200"/>
+                                    class="mt-1 w-full rounded-lg border border-gray-300 bg-gray-50 p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
                             </div>
                         </div>
 
@@ -83,27 +176,28 @@
                             <div class="flex flex-col gap-2 lg:col-span-2">
                                 <label class="block text-sm font-medium text-gray-600 dark:text-gray-300">Vendor</label>
                                 <input type="text" value="{{ $rfca->vendorname }}" readonly
-                                       class="mt-1 w-full rounded-lg border border-gray-300 bg-gray-50 p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200"/>
+                                    class="mt-1 w-full rounded-lg border border-gray-300 bg-gray-50 p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
                             </div>
                             <div class="flex flex-col gap-2 lg:col-span-3">
-                                <label class="block text-sm font-medium text-gray-600 dark:text-gray-300">Purpose</label>
+                                <label
+                                    class="block text-sm font-medium text-gray-600 dark:text-gray-300">Purpose</label>
                                 <input type="text" value="{{ $rfca->keperluan }}" readonly
-                                       class="mt-1 w-full rounded-lg border border-gray-300 bg-gray-50 p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200"/>
+                                    class="mt-1 w-full rounded-lg border border-gray-300 bg-gray-50 p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
                             </div>
                         </div>
 
                         {{-- Row 3 – Amounts + Location --}}
                         <div class="mt-4 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-5">
                             <div class="flex flex-col gap-2">
-                                <label class="block text-sm font-medium text-gray-600 dark:text-gray-300">RFCA Amount</label>
-                                <input type="text"
-                                       value="Rp {{ number_format($rfcaAmount, 0, ',', '.') }}"
-                                       readonly
-                                       class="mt-1 w-full rounded-lg border border-gray-300 bg-gray-50 p-2 font-semibold dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200"/>
+                                <label class="block text-sm font-medium text-gray-600 dark:text-gray-300">RFCA
+                                    Amount</label>
+                                <input type="text" value="Rp {{ number_format($rfcaAmount, 0, ',', '.') }}" readonly
+                                    class="mt-1 w-full rounded-lg border border-gray-300 bg-gray-50 p-2 font-semibold dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
                             </div>
 
                             <div class="flex flex-col gap-2">
-                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">CALR Amount</label>
+                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">CALR
+                                    Amount</label>
                                 {{-- input tampilan (ada pemisah ribuan) --}}
                                 <input type="text" id="calr_amount_display"
                                     class="mt-1 w-full rounded-lg border border-gray-300 bg-white p-2 text-sm text-gray-800 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
@@ -119,12 +213,11 @@
                                     Balance Amount (RFCA - CALR)
                                 </label>
                                 <input type="text" id="balance_amount"
-                                       value="Rp {{ number_format($rfcaAmount, 0, ',', '.') }}"
-                                       readonly
-                                       class="mt-1 w-full rounded-lg border border-gray-300 bg-gray-50 p-2 font-semibold text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"/>
+                                    value="Rp {{ number_format($rfcaAmount, 0, ',', '.') }}" readonly
+                                    class="mt-1 w-full rounded-lg border border-gray-300 bg-gray-50 p-2 font-semibold text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" />
                             </div>
-                        </div>                        
-                        
+                        </div>
+
                     </div>
 
                     {{-- ===== PO DETAIL (TrPOdetail) ===== --}}
@@ -170,27 +263,34 @@
                     {{-- ===== Attachments ===== --}}
                     <div class="w-full rounded-xl bg-white p-6 shadow-md dark:bg-gray-800">
                         <details class="group" open>
-                            <summary class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-xl font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
+                            <summary
+                                class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-xl font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
                                 <span>Attachments</span>
-                                <span class="text-sm font-medium text-gray-500 transition-all group-open:hidden">See details &rarr;</span>
-                                <span class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline">Hide details &darr;</span>
+                                <span class="text-sm font-medium text-gray-500 transition-all group-open:hidden">See
+                                    details &rarr;</span>
+                                <span
+                                    class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline">Hide
+                                    details &darr;</span>
                             </summary>
 
                             <div class="flex flex-col pt-6">
                                 <div id="attachmentsContainer">
                                     <div class="attachment-row flex items-center gap-2">
                                         <input type="file" name="attachments_ba[]"
-                                               class="flex-grow rounded-md border border-gray-200 bg-white px-4 py-2 text-sm text-gray-700 file:mr-4 file:rounded-full file:border-0 file:bg-indigo-100 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-indigo-700 hover:file:bg-indigo-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:file:bg-indigo-700 dark:file:text-white dark:hover:file:bg-indigo-600">
+                                            class="flex-grow rounded-md border border-gray-200 bg-white px-4 py-2 text-sm text-gray-700 file:mr-4 file:rounded-full file:border-0 file:bg-indigo-100 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-indigo-700 hover:file:bg-indigo-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:file:bg-indigo-700 dark:file:text-white dark:hover:file:bg-indigo-600">
                                         <button type="button"
-                                                class="removeAttachment hidden rounded border border-red-600 bg-red-200/30 p-3 text-red-600 transition-colors hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">🗑️</button>
+                                            class="removeAttachment hidden rounded border border-red-600 bg-red-200/30 p-3 text-red-600 transition-colors hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">🗑️</button>
                                     </div>
                                 </div>
                             </div>
 
                             <button type="button" id="addAttachment"
-                                    class="mt-4 flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 bg-gray-50 px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                    <path fill-rule="evenodd" d="M10 2a1 1 0 011 1v6h6a1 1 0 110 2h-6v6a1 1 0 11-2 0v-6H3a1 1 0 110-2h6V3a1 1 0 011-1z" clip-rule="evenodd"/>
+                                class="mt-4 flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 bg-gray-50 px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20"
+                                    fill="currentColor">
+                                    <path fill-rule="evenodd"
+                                        d="M10 2a1 1 0 011 1v6h6a1 1 0 110 2h-6v6a1 1 0 11-2 0v-6H3a1 1 0 110-2h6V3a1 1 0 011-1z"
+                                        clip-rule="evenodd" />
                                 </svg>
                                 Add Attachment
                             </button>
@@ -198,9 +298,9 @@
 
                         <div class="flex w-full justify-end gap-4 pt-4">
                             <a href="{{ url()->previous() }}"
-                               class="inline-flex items-center justify-center rounded-lg bg-red-600 px-6 py-3 text-base font-semibold text-white shadow-md transition-colors hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">Cancel</a>
+                                class="flex items-center gap-2 rounded-md bg-red-500 px-4 py-2 text-white hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-300">Cancel</a>
                             <button type="submit" id="submitBtn"
-                                    class="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-6 py-3 text-base font-semibold text-white shadow-md transition-colors hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                                class="flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300">
                                 <span id="btnText">Submit Approval</span>
                             </button>
                         </div>
@@ -223,26 +323,32 @@
 
     {{-- ===== Overlay helpers ===== --}}
     <script>
-        function showOverlay(text='Processing'){
-            const $ov=$('#loadingSpinnerContainer');
-            $ov.find('.loading-text').html((text||'Processing')+'<span class="loading-ellipsis"><span>.</span><span>.</span><span>.</span></span>');
-            $ov.stop(true,true).fadeIn(120);
+        function showOverlay(text = 'Processing') {
+            const $ov = $('#loadingSpinnerContainer');
+            $ov.find('.loading-text').html((text || 'Processing') +
+                '<span class="loading-ellipsis"><span>.</span><span>.</span><span>.</span></span>');
+            $ov.stop(true, true).fadeIn(120);
         }
-        function hideOverlay(){ $('#loadingSpinnerContainer').stop(true,true).fadeOut(120); }
+
+        function hideOverlay() {
+            $('#loadingSpinnerContainer').stop(true, true).fadeOut(120);
+        }
     </script>
 
     {{-- ===== Hitung Balance (RFCA - CALR) ===== --}}
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
+        document.addEventListener('DOMContentLoaded', function() {
             const rfcaAmountRaw = parseInt(document.getElementById('rfca_amount_raw').value || '0', 10);
 
             const calrDisplay = document.getElementById('calr_amount_display'); // input yg terlihat
-            const calrHidden  = document.getElementById('calr_amount');         // nilai murni utk submit
+            const calrHidden = document.getElementById('calr_amount'); // nilai murni utk submit
             const balanceInput = document.getElementById('balance_amount');
 
             function formatRupiah(num) {
                 if (isNaN(num)) num = 0;
-                return 'Rp ' + num.toLocaleString('id-ID', { maximumFractionDigits: 2 });
+                return 'Rp ' + num.toLocaleString('id-ID', {
+                    maximumFractionDigits: 2
+                });
             }
 
             function formatNumberID(num) {
@@ -272,7 +378,7 @@
             }
 
             if (calrDisplay) {
-                calrDisplay.addEventListener('input', function () {
+                calrDisplay.addEventListener('input', function() {
                     // simpan posisi kursor kira-kira
                     const start = this.selectionStart;
                     syncFromDisplay();
@@ -291,36 +397,37 @@
 
     {{-- ===== Submit (AJAX) ===== --}}
     <script>
-        $(function(){
-            function clearFormErrors(){
+        $(function() {
+            function clearFormErrors() {
                 $('#calrForm .is-invalid').removeClass('is-invalid').removeAttr('aria-invalid');
                 $('#calrForm .error-feedback').remove();
             }
-            function addError($el,msg){
-                if(!$el||!$el.length) return;
-                $el.addClass('is-invalid').attr('aria-invalid','true');
-                if($el.next('.error-feedback').length===0){
-                    $el.after('<small class="error-feedback">'+msg+'</small>');
+
+            function addError($el, msg) {
+                if (!$el || !$el.length) return;
+                $el.addClass('is-invalid').attr('aria-invalid', 'true');
+                if ($el.next('.error-feedback').length === 0) {
+                    $el.after('<small class="error-feedback">' + msg + '</small>');
                 }
             }
-            $(document).on('input change','#calrForm input, #calrForm select',function(){
+            $(document).on('input change', '#calrForm input, #calrForm select', function() {
                 $(this).removeClass('is-invalid').removeAttr('aria-invalid');
                 $(this).next('.error-feedback').remove();
             });
 
-            $('#addAttachment').on('click', function(){
+            $('#addAttachment').on('click', function() {
                 $('#attachmentsContainer').append(
-                    '<div class="attachment-row flex items-center gap-2">'+
-                    '<input type="file" name="attachments[]" class="mt-2 flex-grow rounded-md border border-gray-200 bg-white px-4 py-2 text-sm text-gray-700 file:mr-4 file:rounded-full file:border-0 file:bg-indigo-100 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-indigo-700 hover:file:bg-indigo-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:file:bg-indigo-700 dark:file:text-white dark:hover:file:bg-indigo-600">'+
-                    '<button type="button" class="removeAttachment rounded border border-red-600 bg-red-200/30 p-3 text-red-600 transition hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">🗑️</button>'+
+                    '<div class="attachment-row flex items-center gap-2">' +
+                    '<input type="file" name="attachments[]" class="mt-2 flex-grow rounded-md border border-gray-200 bg-white px-4 py-2 text-sm text-gray-700 file:mr-4 file:rounded-full file:border-0 file:bg-indigo-100 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-indigo-700 hover:file:bg-indigo-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:file:bg-indigo-700 dark:file:text-white dark:hover:file:bg-indigo-600">' +
+                    '<button type="button" class="removeAttachment rounded border border-red-600 bg-red-200/30 p-3 text-red-600 transition hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">🗑️</button>' +
                     '</div>'
                 );
             });
-            $(document).on('click','.removeAttachment',function(){
+            $(document).on('click', '.removeAttachment', function() {
                 $(this).closest('.attachment-row').remove();
             });
 
-            $('#calrForm').on('submit', function(e){
+            $('#calrForm').on('submit', function(e) {
                 e.preventDefault();
                 clearFormErrors();
                 $('#submitBtn').prop('disabled', true);
@@ -329,34 +436,34 @@
 
                 const formData = new FormData(document.getElementById('calrForm'));
                 $.ajax({
-                    url: "{{ route('calr.store') }}",
-                    type: "POST",
-                    data: formData,
-                    processData: false,
-                    contentType: false
-                })
-                .done(function(res){
-                    if (window.toastr) toastr.success(res.message || 'Calr created successfully!');
-                    window.location.href = "/calrlist";
-                })
-                .fail(function(xhr){
-                    if (xhr.status === 422 && xhr.responseJSON && xhr.responseJSON.errors) {
-                        let msg = 'Mohon periksa input:<br>';
-                        Object.keys(xhr.responseJSON.errors).forEach(k=>{
-                            msg += `- ${xhr.responseJSON.errors[k].join(', ')}<br>`;
-                        });
-                        if (window.toastr) toastr.error(msg);
-                    } else if (xhr.responseJSON && xhr.responseJSON.message) {
-                        if (window.toastr) toastr.error(xhr.responseJSON.message);
-                    } else {
-                        if (window.toastr) toastr.error('Error! Please check the input.');
-                    }
-                })
-                .always(function(){
-                    $('#submitBtn').prop('disabled', false);
-                    $('#btnText').text('Submit Approval');
-                    hideOverlay();
-                });
+                        url: "{{ route('calr.store') }}",
+                        type: "POST",
+                        data: formData,
+                        processData: false,
+                        contentType: false
+                    })
+                    .done(function(res) {
+                        if (window.toastr) toastr.success(res.message || 'Calr created successfully!');
+                        window.location.href = "/calrlist";
+                    })
+                    .fail(function(xhr) {
+                        if (xhr.status === 422 && xhr.responseJSON && xhr.responseJSON.errors) {
+                            let msg = 'Mohon periksa input:<br>';
+                            Object.keys(xhr.responseJSON.errors).forEach(k => {
+                                msg += `- ${xhr.responseJSON.errors[k].join(', ')}<br>`;
+                            });
+                            if (window.toastr) toastr.error(msg);
+                        } else if (xhr.responseJSON && xhr.responseJSON.message) {
+                            if (window.toastr) toastr.error(xhr.responseJSON.message);
+                        } else {
+                            if (window.toastr) toastr.error('Error! Please check the input.');
+                        }
+                    })
+                    .always(function() {
+                        $('#submitBtn').prop('disabled', false);
+                        $('#btnText').text('Submit Approval');
+                        hideOverlay();
+                    });
             });
         });
     </script>

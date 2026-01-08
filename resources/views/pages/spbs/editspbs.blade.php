@@ -190,11 +190,11 @@
                                     <input type="text" id="jenis_pekerjaan_display"
                                         class="flex-1 rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-gray-600 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                         placeholder="Pilih Worktype & Subworktype" value="{{ $jenisDisplay }}" readonly>
-                                        <button type="button" id="btnJenisPekerjaan"
-                                            class="rounded border border-gray-500 px-2 py-2 hover:bg-gray-100 dark:hover:bg-gray-700"
-                                            title="Lookup">
-                                            🔎
-                                        </button>
+                                    <button type="button" id="btnJenisPekerjaan"
+                                        class="rounded border border-gray-500 px-2 py-2 hover:bg-gray-100 dark:hover:bg-gray-700"
+                                        title="Lookup">
+                                        🔎
+                                    </button>
                                 </div>
                                 <input type="hidden" name="worktypeid" id="worktypeid" value="{{ $spb->worktypeid }}">
                                 <input type="hidden" name="subworktypeid" id="subworktypeid"
@@ -241,8 +241,8 @@
                                     <button type="button" id="openWoModal"
                                         class="rounded border border-gray-500 px-2 py-2 hover:bg-gray-100 dark:hover:bg-gray-700"
                                         title="Lookup">🔎</button>
+                                </div>
                             </div>
-                        </div>
 
 
                         </div>
@@ -652,7 +652,7 @@
                                         <tr>
                                             <th class="border p-2">Inventory ID</th>
                                             <th class="border p-2">Description</th>
-                                            <th class="border p-2">UoM</th>                   
+                                            <th class="border p-2">UoM</th>
                                             <th class="border p-2">Category</th>
                                             <th class="border p-2">SiteID</th>
                                             <th class="border p-2">Stock</th>
@@ -1007,27 +1007,40 @@
                             </button>
                         </details>
 
-                        <div class="flex w-full justify-end gap-4 pt-4">
-                            <button type="button" id="cancelBtn"
-                                class="inline-flex items-center justify-center rounded-lg bg-red-600 px-6 py-3 text-base font-semibold text-white transition-colors hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">
-                                <span id="cancelText">Cancel</span>
-                                <svg id="cancelSpinner" class="ml-2 hidden h-5 w-5 animate-spin text-white"
-                                    xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                    <circle class="opacity-25" cx="12" cy="12" r="10"
-                                        stroke="currentColor" stroke-width="4"></circle>
-                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+                        <div
+                            class="mt-4 flex flex-row justify-between gap-4 md:flex-row md:items-center md:justify-between">
+                            <button id="backBtn" onclick="history.back()"
+                                class="flex items-center gap-2 rounded-md bg-gray-200 px-4 py-2 text-gray-700 hover:bg-gray-300 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-300">
+
+                                <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none"
+                                    viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M15 19l-7-7 7-7" />
                                 </svg>
+                                <span>Back</span>
                             </button>
-                            <button type="submit" id="submitBtn"
-                                class="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-6 py-3 text-base font-semibold text-white transition-colors hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
-                                <span id="btnText">Submit Approval</span>
-                                <svg id="loadingSpinner" class="ml-2 hidden h-5 w-5 animate-spin text-white"
-                                    xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                    <circle class="opacity-25" cx="12" cy="12" r="10"
-                                        stroke="currentColor" stroke-width="4"></circle>
-                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
-                                </svg>
-                            </button>
+                            <div class="flex flex-col gap-3 md:flex-row md:items-center">
+                                <button type="button" id="cancelBtn"
+                                    class="flex items-center gap-2 rounded-md bg-red-500 px-4 py-2 text-white hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-300">
+                                    <span id="cancelText">Cancel</span>
+                                    <svg id="cancelSpinner" class="ml-2 hidden h-5 w-5 animate-spin text-white"
+                                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10"
+                                            stroke="currentColor" stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+                                    </svg>
+                                </button>
+                                <button type="submit" id="submitBtn"
+                                    class="flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300">
+                                    <span id="btnText">Submit Approval</span>
+                                    <svg id="loadingSpinner" class="ml-2 hidden h-5 w-5 animate-spin text-white"
+                                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10"
+                                            stroke="currentColor" stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+                                    </svg>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </form>
@@ -1240,11 +1253,15 @@
                 if (wt !== 'ATK' && !woid) {
                     $('#woid').addClass('is-invalid');
                     if ($('#woid').next('.error-feedback').length === 0) {
-                        $('#woid').after('<small class="error-feedback">WO wajib dipilih untuk jenis pekerjaan ini.</small>');
+                        $('#woid').after(
+                            '<small class="error-feedback">WO wajib dipilih untuk jenis pekerjaan ini.</small>'
+                        );
                     }
 
                     toastr.error('WO wajib dipilih (kecuali ATK).');
-                    $('html,body').animate({ scrollTop: $('#woSection').offset().top - 120 }, 300);
+                    $('html,body').animate({
+                        scrollTop: $('#woSection').offset().top - 120
+                    }, 300);
                     return;
                 }
 
@@ -2525,7 +2542,7 @@
             });
 
             // Save ke hidden + tampilan
-           $('#saveJenisPekerjaan').on('click', function() {
+            $('#saveJenisPekerjaan').on('click', function() {
                 const wtVal = $('#modal_worktypeid').val();
                 const wtTxt = $('#modal_worktypeid option:selected').text();
                 const swVal = $('#modal_subworktypeid').val();
@@ -3007,7 +3024,7 @@
 
     <script>
         function toggleWoSection() {
-            const wt  = ($('#worktypeid').val() || '').trim().toUpperCase();
+            const wt = ($('#worktypeid').val() || '').trim().toUpperCase();
             const swt = ($('#subworktypeid').val() || '').trim();
 
             // 🔴 ATK → WO HARUS HIDDEN
@@ -3044,7 +3061,7 @@
     </script>
 
     <script>
-        $(document).on('change', '.prodItemTypeField', function () {
+        $(document).on('change', '.prodItemTypeField', function() {
             updateSiteVisibility($(this).closest('tr'));
         });
 
