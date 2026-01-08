@@ -786,7 +786,7 @@
                                             <th class="border p-2">Account Descr</th>
                                             <th class="border p-2">Activity</th>
                                             <th class="border p-2">Budget Descr</th>
-                                            <th class="border p-2">Available Budget</th>
+                                            <th class="border p-2">Remaining Budget</th>
                                             <th class="w-24 border p-2 text-center">Action</th>
                                         </tr>
                                     </thead>
@@ -2154,14 +2154,12 @@
                             const buId = item.business_unit_id ?? '';
                             const deptFinId = item.department_fin_id ?? '';
                             const actDescr = item.activity_descr ?? '';
-                            const totalbudget = formatNumber(item.totalbudget) ?? '';
-                            const label = id;
-                            const accDescr = item.account_descr ?? '';
-                            const act_Descr = item.act_descr ?? '';
-
                             const available = formatNumber(item.availablebudget) ?? '';
                             const used = formatNumber(item.usedbudget) ?? '';
                             const remaining = formatNumber(item.remaining) ?? '';
+                            const label = id;
+                            const accDescr = item.account_descr ?? '';
+                            const act_Descr = item.act_descr ?? '';                           
 
                             return `
                     <tr>

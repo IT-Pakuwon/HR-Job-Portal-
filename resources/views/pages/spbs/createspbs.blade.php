@@ -556,7 +556,7 @@
                                             <th class="border p-2">Account Descr</th>
                                             <th class="border p-2">Activity</th>
                                             <th class="border p-2">Budget Descr</th>
-                                            <th class="border p-2">Available Budget</th>
+                                            <th class="border p-2">Remaining Budget</th>
                                             <th class="w-24 border p-2 text-center">Action</th>
                                         </tr>
                                     </thead>

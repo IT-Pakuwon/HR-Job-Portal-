@@ -412,7 +412,7 @@
                                         <tr>
                                             <th class="border p-2">Account ID</th>
                                             <th class="border p-2">Activity</th>
-                                            <th class="border p-2">Available Budget</th>
+                                            <th class="border p-2">Remaining Budget</th>
                                             <th class="w-24 border p-2 text-center">Action</th>
                                         </tr>
                                     </thead>
@@ -1025,7 +1025,9 @@
                             const buId = item.business_unit_id ?? '';
                             const deptFinId = item.department_fin_id ?? '';
                             const actDetail = item.activity_descr ?? '';
-                            const totalbudget = formatNumber(item.totalbudget) ?? '';
+                            const available = formatNumber(item.availablebudget) ?? '';
+                            const used = formatNumber(item.usedbudget) ?? '';
+                            const remaining = formatNumber(item.remaining) ?? '';
 
                             // label yang tampil di input display
                             const label = id ? `${id}${actDetail ? ' - ' + actDetail : ''}` : (
@@ -1035,7 +1037,11 @@
                     <tr>
                     <td class="border p-2">${id}</td>
                     <td class="border p-2">${actDetail}</td>
-                    <td class="border p-2">${totalbudget}</td>
+                    <td class="border p-2">
+                        <div class="font-semibold">${remaining}</div>
+                        <div class="text-xs opacity-70">Available : ${available}</div>
+                        <div class="text-xs opacity-70">Used: ${used}</div>
+                    </td>
                     <td class="border p-2 text-center">
                         <button type="button" class="chooseCoa rounded border px-2 py-1 hover:bg-gray-100"
                                 data-id="${id}"
