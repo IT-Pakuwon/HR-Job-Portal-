@@ -774,6 +774,11 @@ class IMBudgetController extends Controller
             }
             $header->save();
 
+            $activity = 'Submit';
+            $docid = $header->imbudgetid;
+
+            $this->reserveBudget($doctype, $docid, $activity, $username);
+
             // 4) Generate TrApproval utk dokumen IM
             $ctx = [
                 'ignore_nominal' => false,
@@ -1055,6 +1060,13 @@ class IMBudgetController extends Controller
                 $imbudget->completed_at = $now;
                 $imbudget->save();
 
+                $activity = 'Reject';
+                $docid = $imbudget->imbudgetid;
+                $username = auth()->user()->username;
+                $doctype = 'IM';
+
+                $this->reserveBudget($doctype, $docid, $activity, $username);
+
                 // optional: tandai detail R
                 // \App\Models\TrIMBudgetdetail::where('imbudgetid', $imbudget->imbudgetid)->update(['status' => 'R']);
 
@@ -1112,6 +1124,13 @@ class IMBudgetController extends Controller
                 $imbudget->completed_by = auth()->user()->username;
                 $imbudget->completed_at = $now;
                 $imbudget->save();
+
+                $activity = 'Revise';
+                $docid = $imbudget->imbudgetid;
+                $username = auth()->user()->username;
+                $doctype = 'IM';
+
+                $this->reserveBudget($doctype, $docid, $activity, $username);
 
                 // (opsional) DETAIL -> D
                 // \App\Models\TrIMBudgetdetail::where('imbudgetid', $imbudget->imbudgetid)->update(['status' => 'D']);
@@ -1346,6 +1365,15 @@ class IMBudgetController extends Controller
         $pdf->setPaper('A4', ($approve_count <= 5) ? 'portrait' : 'landscape');
 
         return $pdf->stream("pdf_imbudgets_{$imbudget->imbudgetid}.pdf");
+    }
+
+    private function reserveBudget(string $doctype, string $docid, string $activity, string $username): void
+    {
+        // Panggil PostgreSQL Stored Procedure: sp_process_budget(doctype, docid, activity, user)
+        DB::connection('pgsql')->statement(
+            'CALL public.sp_process_budget(?, ?, ?, ?)',
+            [strtoupper($doctype), $docid, $activity, $username]
+        );
     }
 
 

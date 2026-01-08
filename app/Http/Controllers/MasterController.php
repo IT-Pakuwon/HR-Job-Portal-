@@ -191,7 +191,9 @@ class MasterController extends Controller
 
         $total = (clone $query)->count();
 
-        $rows = $query->orderBy('inventory_descr')
+        $rows = $query
+            ->orderBy('inventoryid', 'asc')
+            // ->orderBy('inventory_descr')
             ->offset(($page - 1) * $perPage)
             ->limit($perPage)
             ->get();

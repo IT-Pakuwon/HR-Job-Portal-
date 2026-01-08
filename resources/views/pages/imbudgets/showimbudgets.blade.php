@@ -164,6 +164,7 @@
                                 'C' => 'Completed',
                                 'X' => 'Cancelled',
                                 'R' => 'Rejected',
+                                'H' => 'Hold',
                                 default => 'Unknown',
                             };
 
